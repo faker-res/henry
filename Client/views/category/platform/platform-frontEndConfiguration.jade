@@ -57,6 +57,9 @@ style.
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
+            span {{"SKIN_MANAGEMENT" | translate}}
+
     .col-md-12
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -66,14 +69,13 @@ style.
                 .text-center(ng-if='!vm.selectedFrontEndSettingTab')
                     label.text-danger {{'Please select a type' | translate}}
 
-                // Tab - popular recommendation
                 .row
                     .col-md-12
                         .well.col-xs-12
                             .search-filters-item
                                 label {{'PRODUCT_NAME' | translate}}
-                                select.form-control(ng-model='vm.filterPopularRecommendationPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformGameData(vm.filterPopularRecommendationPlatform); vm.getAllPlayerLevels(vm.filterPopularRecommendationPlatform); vm.loadPopularRecommendationSetting(vm.filterPopularRecommendationPlatform); ')
-                .text-center(ng-if='!vm.filterPopularRecommendationPlatform')
+                                select.form-control(ng-model='vm.filterFrontEndSettingPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.frontEndSettingPlatform()')
+                .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
                 .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterPopularRecommendationPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
@@ -121,6 +123,9 @@ style.
                     div.text-right
                         button#testSave.btn-primary.btn {{'SAVE' | translate}}
 
+                // Tab - skin management
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
+                    include frontEndConfiguration-skinManagement
 
 #popularRecommendationSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

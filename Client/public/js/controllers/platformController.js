@@ -124,7 +124,9 @@ define(['js/app'], function (myApp) {
                 "festivalType1": 1,
                 "festivalType2": 2,
                 "festivalType3": 3,
-                "birthday": 4
+                "birthday1": 4,
+                "birthday2": 5,
+                "birthday3": 6
             }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
@@ -22465,39 +22467,109 @@ define(['js/app'], function (myApp) {
                         }
                         else {
                             //vm.createFestivalRowByLevel(0);
-                            vm.rewardMainParamTableBirthday = [];
+                            vm.rewardMainParamTableBirthday1 = [];
+                            vm.rewardMainParamTableBirthday2 = [];
+                            vm.rewardMainParamTableBirthday3 = [];
+
                             vm.rewardMainParamTableFestivalType1 = [];
                             vm.rewardMainParamTableFestivalType2 = [];
                             vm.rewardMainParamTableFestivalType3 = [];
 
                             vm.remainMainParamTableFestival = {};
 
-                            let birthdayValue = [];
+                            let birthday1Value = [];
+                            let birthday2Value = [];
+                            let birthday3Value = [];
                             let festivalType1Value = [];
                             let festivalType2Value = [];
                             let festivalType3Value = [];
 
                             if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[0] && vm.rewardParams.rewardParam[0].value && vm.rewardParams.rewardParam[0].value.length){
-                                birthdayValue = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday);
+                                birthday1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday1);
+                                birthday2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday2);
+                                birthday3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.birthday3);
                                 festivalType1Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
                                 festivalType2Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
                                 festivalType3Value = vm.rewardParams.rewardParam[0].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
                             }
 
                             // birthday
-                            if (birthdayValue && !birthdayValue.length){
-                                birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday}];
+                            if (birthday1Value && !birthday1Value.length){
+                                birthday1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday1}];
                             }
 
-                            let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
-                            if (birthdayHeader.totalConsumptionInInterval) {
-                                delete birthdayHeader.totalConsumptionInInterval
+                            let birthday1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday1Header.totalConsumptionInInterval) {
+                                delete birthday1Header.totalConsumptionInInterval
                             }
-
-                            vm.rewardMainParamTableBirthday.push({
-                                header: birthdayHeader,
-                                value: birthdayValue
+                            if (birthday1Header.minTopUpAmount) {
+                                delete birthday1Header.minTopUpAmount
+                            }
+                            if (birthday1Header.title) {
+                                delete birthday1Header.title
+                            }
+                            if (birthday1Header.topUpReturnReward) {
+                                delete birthday1Header.topUpReturnReward
+                            }
+                            vm.rewardMainParamTableBirthday1.push({
+                                header: birthday1Header,
+                                value: birthday1Value
                             });
+
+                            //birthday2 incomplete.
+                            if (birthday2Value && !birthday2Value.length){
+                                birthday2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday2}];
+                            }
+
+                            let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday2Header.totalConsumptionInInterval) {
+                                delete birthday2Header.totalConsumptionInInterval
+                            }
+
+                            if (birthday2Header.title) {
+                                delete birthday2Header.title
+                            }
+
+                            vm.rewardMainParamTableBirthday2.push({
+                                header: birthday2Header,
+                                value: birthday2Value
+                            });
+
+                            //birthday 3 incomplete
+                            if (birthday3Value && !birthday3Value.length){
+                                birthday3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday3}];
+                            }
+
+                            let birthday3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                            if (birthday3Header.minTopUpAmount) {
+                                delete birthday3Header.minTopUpAmount
+                            }
+
+                            if (birthday3Header.applyTimes) {
+                                delete birthday3Header.applyTimes
+                            }
+
+                            if (birthday3Header.requiredConsumption) {
+                                delete birthday3Header.requiredConsumption
+                            }
+
+                            if (birthday3Header.expiredInDay) {
+                                delete birthday3Header.expiredInDay
+                            }
+
+                            if (birthday3Header.topUpReturnReward) {
+                                delete birthday3Header.topUpReturnReward
+                            }
+
+                            if (birthday3Header.title) {
+                                delete birthday3Header.title
+                            }
+
+                            vm.rewardMainParamTableBirthday3.push({
+                                header: birthday3Header,
+                                value: birthday3Value
+                            });
+
 
                             // festival type1
                             if (festivalType1Value && !festivalType1Value.length){
@@ -22622,16 +22694,30 @@ define(['js/app'], function (myApp) {
                 $("#festivalItemModal").modal('hide');
             }
 
+            vm.editNewFestivalTitle = (festival) => {
+                if (!vm.showReward._id) {
+                    vm.addFestivalErrMsg = $translate("You need to this reward first before create festival item");
+                    return
+                }
+                vm.rewardParams.others = vm.showReward.param.others;
+                vm.editReward();
+                $("#festivalItemModal").modal('hide');
+            }
+
             vm.createFestivalRowByLevel = (idx) => {
                 // generate record by player level (if isPlayerLevelDiff is selected)
-                let birthdayValue = [];
+                let birthday1Value = [];
+                let birthday2Value = [];
+                let birthday3Value = [];
                 let festivalType1Value = [];
                 let festivalType2Value = [];
                 let festivalType3Value = [];
                 vm.remainMainParamTableFestival[idx] = [];
 
                 if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam[idx] && vm.rewardParams.rewardParam[idx].value && vm.rewardParams.rewardParam[idx].value.length) {
-                    birthdayValue = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday);
+                    birthday1Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday1);
+                    birthday2Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday2);
+                    birthday3Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.birthday3);
                     festivalType1Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType1);
                     festivalType2Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType2);
                     festivalType3Value = vm.rewardParams.rewardParam[idx].value.filter( p => p.rewardType == vm.festivalRewardType.festivalType3);
@@ -22705,23 +22791,74 @@ define(['js/app'], function (myApp) {
                     value: festivalType3Value
                 });
 
-                // birthday
-                if (birthdayValue && !birthdayValue.length) {
-                    birthdayValue = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday}];
+                // birthday 1
+                if (birthday1Value && !birthday1Value.length) {
+                    birthday1Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday1}];
                 }
 
-                let birthdayHeader = Object.assign({}, vm.rewardMainParam.rewardParam);
-                if (birthdayHeader.totalConsumptionInInterval) {
-                    delete birthdayHeader.totalConsumptionInInterval
+                let birthday1Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday1Header.totalConsumptionInInterval) {
+                    delete birthday1Header.totalConsumptionInInterval
                 }
-                if (birthdayHeader.title) {
-                    delete birthdayHeader.title;
+                if (birthday1Header.minTopUpAmount) {
+                    delete birthday1Header.minTopUpAmount;
+                }
+                if (birthday1Header.topUpReturnReward) {
+                    delete birthday1Header.topUpReturnReward;
+                }
+                vm.remainMainParamTableFestival[idx].push({
+                    header: birthday1Header,
+                    value: birthday1Value
+                });
+
+                // birthday 2
+                if (birthday2Value && !birthday2Value.length) {
+                    birthday2Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday2}];
+                }
+
+                let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday2Header.totalConsumptionInInterval) {
+                    delete birthday2Header.totalConsumptionInInterval
+                }
+                if (birthday2Header.title) {
+                    delete birthday2Header.title;
                 }
 
                 vm.remainMainParamTableFestival[idx].push({
-                    header: birthdayHeader,
-                    value: birthdayValue
+                    header: birthday2Header,
+                    value: birthday2Value
                 });
+
+                // birthday 3
+                if (birthday3Value && !birthday3Value.length) {
+                    birthday3Value = [{ id: createObjectId(), rewardType: vm.festivalRewardType.birthday3}];
+                }
+
+                let birthday3Header = Object.assign({}, vm.rewardMainParam.rewardParam);
+                if (birthday3Header.minTopUpAmount) {
+                    delete birthday3Header.minTopUpAmount
+                }
+                if (birthday3Header.applyTimes) {
+                    delete birthday3Header.applyTimes
+                }
+                if (birthday3Header.applyTimes) {
+                    delete birthday3Header.applyTimes
+                }
+                if (birthday3Header.expiredInDay) {
+                    delete birthday3Header.expiredInDay
+                }
+                if (birthday3Header.topUpReturnReward) {
+                    delete birthday3Header.topUpReturnReward
+                }
+                if (birthday3Header.title) {
+                    delete birthday3Header.title;
+                }
+
+                vm.remainMainParamTableFestival[idx].push({
+                    header: birthday3Header,
+                    value: birthday3Value
+                });
+
             }
             vm.rewardPeriodNewRow = (valueCollection) => {
                 valueCollection.push({startDate: "", startTime: "", endDate: "", endTime: ""});
@@ -22743,6 +22880,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.addNewFestivalTypeRow = (row, entry, newEntryData) => {
+                newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
 
@@ -23536,6 +23674,8 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable2 = [];
                 vm.rewardMainParamTable3 = [];
                 vm.rewardMainParamTable4 = [];
+                vm.rewardMainParamTable5 = [];
+                vm.rewardMainParamTable6 = [];
 
                 vm.rewardMainParamTable.push({value: []});
                 if (vm.isPlayerLevelDiff){
@@ -23548,6 +23688,8 @@ define(['js/app'], function (myApp) {
                             vm.rewardMainParamTable2[idx] = vm.remainMainParamTableFestival[idx][1];
                             vm.rewardMainParamTable3[idx] = vm.remainMainParamTableFestival[idx][2];
                             vm.rewardMainParamTable4[idx] = vm.remainMainParamTableFestival[idx][3];
+                            vm.rewardMainParamTable5[idx] = vm.remainMainParamTableFestival[idx][4];
+                            vm.rewardMainParamTable6[idx] = vm.remainMainParamTableFestival[idx][5];
                         }
                     });
                 }
@@ -23559,13 +23701,16 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTableFestivalType2[0].value ? vm.rewardMainParamTableFestivalType2[0].value : [];
                     let rewardParamFestivalType3 = vm.rewardMainParamTableFestivalType3 && vm.rewardMainParamTableFestivalType3[0] &&
                     vm.rewardMainParamTableFestivalType3[0].value ? vm.rewardMainParamTableFestivalType3[0].value : [];
-                    let rewardParamBirthday = vm.rewardMainParamTableBirthday && vm.rewardMainParamTableBirthday[0] &&
-                    vm.rewardMainParamTableBirthday[0].value ? vm.rewardMainParamTableBirthday[0].value : [];
-
+                    let rewardParamBirthday1 = vm.rewardMainParamTableBirthday1 && vm.rewardMainParamTableBirthday1[0] &&
+                    vm.rewardMainParamTableBirthday1[0].value ? vm.rewardMainParamTableBirthday1[0].value : [];
+                    let rewardParamBirthday2 = vm.rewardMainParamTableBirthday2 && vm.rewardMainParamTableBirthday2[0] &&
+                    vm.rewardMainParamTableBirthday2[0].value ? vm.rewardMainParamTableBirthday2[0].value : [];
+                    let rewardParamBirthday3 = vm.rewardMainParamTableBirthday3 && vm.rewardMainParamTableBirthday3[0] &&
+                    vm.rewardMainParamTableBirthday3[0].value ? vm.rewardMainParamTableBirthday3[0].value : [];
                     // // redefine
                     vm.rewardMainParamTable = [];
                     vm.rewardMainParamTable.push({value: []});
-                    vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday);
+                    vm.rewardMainParamTable[0].value = rewardParamFestivalType1.concat(rewardParamFestivalType2).concat(rewardParamFestivalType3).concat(rewardParamBirthday1).concat(rewardParamBirthday2).concat(rewardParamBirthday3);
                 }
             }
 
@@ -23707,7 +23852,14 @@ define(['js/app'], function (myApp) {
                         Object.keys(vm.rewardMainParamTable4).forEach((e, idx) => {
                             curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable4[e].value)
                         });
-
+                        // param table 5
+                        Object.keys(vm.rewardMainParamTable5).forEach((e, idx) => {
+                            curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable5[e].value)
+                        });
+                        // param table 6
+                        Object.keys(vm.rewardMainParamTable6).forEach((e, idx) => {
+                            curReward.param.rewardParam[idx].value = curReward.param.rewardParam[idx].value.concat(vm.rewardMainParamTable6[e].value)
+                        });
                     }
                 } else {
 
@@ -24566,8 +24718,27 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.frontEndSettingPlatform = function () {
+                switch (vm.selectedFrontEndSettingTab) {
+                    case 'popularRecommendation':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        break;
+                }
+            }
+
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
+                switch (choice) {
+                    case 'popularRecommendation':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'skinManagement':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.frontEndSkinManagement = {};
+                        break;
+                }
             };
 
             vm.initFrontendConfiguration2 = function () {
