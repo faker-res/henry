@@ -3719,7 +3719,7 @@ let dbPlayerInfo = {
         })
         return result;
     },
-    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode, forbidLevelUpReward, forbidLevelMaintainReward) {
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode, changeData) {
 
         let result = [];
         let addList = forbidRewardEvents.addList;
@@ -3731,24 +3731,17 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
-                    console.log('****forbidLevelUpReward', forbidLevelUpReward);
-                    console.log('****typeof forbidLevelUpReward', typeof forbidLevelUpReward);
-
-                    console.log('****forbidLevelUpReward', forbidLevelMaintainReward);
-                    console.log('****typeof forbidLevelUpReward', typeof forbidLevelUpReward);
-                    if (forbidLevelUpReward === true || forbidLevelUpReward === false) {
-                        updateData.forbidLevelUpReward = forbidLevelUpReward;
+                    console.log('*****changeData', changeData);
+                    if (changeData.hasOwnProperty("forbidLevelUpReward")) {
+                        updateData.forbidLevelUpReward = changeData.forbidLevelUpReward;
                     }
-                    if (forbidLevelMaintainReward === true || forbidLevelMaintainReward === false) {
-                        updateData.forbidLevelMaintainReward = forbidLevelMaintainReward;
+                    if (changeData.hasOwnProperty("forbidLevelMaintainReward")) {
+                        updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
                     }
                     if (disablePromoCode != undefined) {
                         updateData.forbidPromoCode = disablePromoCode ? true : false;
                     }
-
-                    if (addList.length == 0 && removeList.length == 0) {
-                        updateData.forbidRewardEvents = [];
-                    }
+                    console.log('****updateData',updateData)
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
                         'platform': platformObjId

@@ -36398,6 +36398,11 @@ define(['js/app'], function (myApp) {
                                 vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
+                                vm.selectedAllForbidRewardEvent = false;
+                                if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                                    vm.selectedAllForbidRewardEvent = true;
+                                }
+
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
                             },
                             callback: function () {
@@ -36435,12 +36440,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined) {
-                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
-                                        if (!ans) {
-                                            return
-                                        }
-                                    }
+                                    // if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined && vm.forbidLevelUpReward == undefined && vm.forbidLevelMaintainReward == undefined) {
+                                    //     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                    //     if (!ans) {
+                                    //         return
+                                    //     }
+                                    // }
 
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
@@ -36458,10 +36463,17 @@ define(['js/app'], function (myApp) {
                                             'removeList': vm.forbidRewardEventRemoveList
                                         },
                                         forbidPromoCode: vm.forbidPromoCode,
-                                        forbidLevelUpReward: vm.forbidLevelUpReward,
-                                        forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        // forbidLevelUpReward: vm.forbidLevelUpReward,
+                                        // forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
+
+                                    if (vm.forbidLevelUpReward) {
+                                        sendData.forbidLevelUpReward = forbidLevelUpReward;
+                                    }
+                                    if (vm.forbidLevelMaintainReward) {
+                                        sendData.forbidLevelMaintainReward = forbidLevelMaintainReward;
+                                    }
                                     // subcategory 1
                                     vm.batchPermitModifySucc = false;
                                     $(".forbidRewardEventPopover").popover('hide');
@@ -36815,6 +36827,28 @@ define(['js/app'], function (myApp) {
                     });
                 });
             };
+            vm.selectedAllForbidRewardEventToList = function() {
+                if (vm.selectedAllForbidRewardEvent) {
+                    vm.allRewardEvent.forEach( item => {
+                        vm.forbidRewardEventAddList.push(item._id)
+                        $('#c-'+item._id).html($translate("ModifyIt"));
+                    })
+                    $('c-forbidPromoCode').html($translate("ModifyIt"));
+                    $('c-forbidLevelUpReward').html($translate("ModifyIt"));
+                    $('c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                    vm.forbidGameRemoveList = [];
+                } else {
+                    vm.allRewardEvent.forEach( item => {
+
+                        vm.forbidGameRemoveList.push(item._id)
+                        $('#c-'+item._id).html($translate("ModifyIt"));
+                    })
+                    vm.forbidRewardEventAddList = [];
+                    $('c-forbidPromoCode').html($translate("ModifyIt"));
+                    $('c-forbidLevelUpReward').html($translate("ModifyIt"));
+                    $('c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                }
+            }
             vm.initBulkClearXIMAWithdraw = function() {
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
