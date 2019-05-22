@@ -22508,6 +22508,9 @@ define(['js/app'], function (myApp) {
                             if (birthday1Header.title) {
                                 delete birthday1Header.title
                             }
+                            if (birthday1Header.amountPercent) {
+                                delete birthday1Header.amountPercent
+                            }
                             if (birthday1Header.topUpReturnReward) {
                                 delete birthday1Header.topUpReturnReward
                             }
@@ -22525,7 +22528,9 @@ define(['js/app'], function (myApp) {
                             if (birthday2Header.totalConsumptionInInterval) {
                                 delete birthday2Header.totalConsumptionInInterval
                             }
-
+                            if (birthday2Header.rewardAmount) {
+                                delete birthday2Header.rewardAmount
+                            }
                             if (birthday2Header.title) {
                                 delete birthday2Header.title
                             }
@@ -22544,9 +22549,8 @@ define(['js/app'], function (myApp) {
                             if (birthday3Header.minTopUpAmount) {
                                 delete birthday3Header.minTopUpAmount
                             }
-
-                            if (birthday3Header.applyTimes) {
-                                delete birthday3Header.applyTimes
+                            if (birthday3Header.amountPercent) {
+                                delete birthday3Header.amountPercent
                             }
 
                             if (birthday3Header.requiredConsumption) {
@@ -22585,6 +22589,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType1Header.title){
                                 delete festivalType1Header.title
                             }
+                            if(festivalType1Header.amountPercent){
+                                delete festivalType1Header.amountPercent
+                            }
                             if(festivalType1Header.topUpReturnReward){
                                 delete festivalType1Header.topUpReturnReward
                             }
@@ -22604,6 +22611,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType2Header.totalConsumptionInInterval){
                                 delete festivalType2Header.totalConsumptionInInterval
                             }
+                            if(festivalType2Header.rewardAmount){
+                                delete festivalType2Header.rewardAmount
+                            }
                             if(festivalType2Header.title){
                                 delete festivalType2Header.title
                             }
@@ -22620,8 +22630,8 @@ define(['js/app'], function (myApp) {
                             if(festivalType3Header.minTopUpAmount){
                                 delete festivalType3Header.minTopUpAmount
                             }
-                            if(festivalType3Header.applyTimes){
-                                delete festivalType3Header.applyTimes
+                            if(festivalType3Header.amountPercent){
+                                delete festivalType3Header.amountPercent
                             }
                             if(festivalType3Header.requiredConsumption){
                                 delete festivalType3Header.requiredConsumption
@@ -22734,7 +22744,9 @@ define(['js/app'], function (myApp) {
                 if (festivalType1Header.minTopUpAmount) {
                     delete festivalType1Header.minTopUpAmount
                 }
-
+                if (festivalType1Header.amountPercent) {
+                    delete festivalType1Header.amountPercent
+                }
                 if (festivalType1Header.topUpReturnReward) {
                     delete festivalType1Header.topUpReturnReward
                 }
@@ -22754,10 +22766,12 @@ define(['js/app'], function (myApp) {
                 if(festivalType2Header.totalConsumptionInInterval){
                     delete festivalType2Header.totalConsumptionInInterval
                 }
+                if(festivalType2Header.rewardAmount){
+                    delete festivalType2Header.rewardAmount
+                }
                 if(festivalType2Header.title){
                     delete festivalType2Header.title
                 }
-
                 vm.remainMainParamTableFestival[idx].push({
                     header: festivalType2Header,
                     value: festivalType2Value
@@ -22771,9 +22785,6 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.minTopUpAmount){
                     delete festivalType3Header.minTopUpAmount
                 }
-                if(festivalType3Header.applyTimes){
-                    delete festivalType3Header.applyTimes
-                }
                 if(festivalType3Header.requiredConsumption){
                     delete festivalType3Header.requiredConsumption
                 }
@@ -22783,6 +22794,10 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.topUpReturnReward){
                     delete festivalType3Header.topUpReturnReward
                 }
+                if(festivalType3Header.amountPercent){
+                    delete festivalType3Header.amountPercent
+                }
+
                 if(festivalType3Header.title){
                     delete festivalType3Header.title
                 }
@@ -22803,6 +22818,9 @@ define(['js/app'], function (myApp) {
                 if (birthday1Header.minTopUpAmount) {
                     delete birthday1Header.minTopUpAmount;
                 }
+                if (birthday1Header.amountPercent) {
+                    delete birthday1Header.amountPercent;
+                }
                 if (birthday1Header.topUpReturnReward) {
                     delete birthday1Header.topUpReturnReward;
                 }
@@ -22819,6 +22837,9 @@ define(['js/app'], function (myApp) {
                 let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
                 if (birthday2Header.totalConsumptionInInterval) {
                     delete birthday2Header.totalConsumptionInInterval
+                }
+                if (birthday2Header.rewardAmount) {
+                    delete birthday2Header.rewardAmount
                 }
                 if (birthday2Header.title) {
                     delete birthday2Header.title;
@@ -22838,11 +22859,8 @@ define(['js/app'], function (myApp) {
                 if (birthday3Header.minTopUpAmount) {
                     delete birthday3Header.minTopUpAmount
                 }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
-                }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
+                if (birthday3Header.amountPercent) {
+                    delete birthday3Header.amountPercent
                 }
                 if (birthday3Header.expiredInDay) {
                     delete birthday3Header.expiredInDay
