@@ -10486,8 +10486,18 @@ function getFestivalName(id, rewardType,  festivals, DOB) {
     if (rewardType == 4 || rewardType == 5 || rewardType == 6) {
         month = new Date(DOB).getMonth() + 1;
         day =  new Date(DOB).getDate();
-        result = '会员生日' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+
     }
+    if (rewardType == 4) {
+        result = '会员生日 ' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    if (rewardType == 5) {
+        result = '会员生日 - 需最小充值额' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    if (rewardType == 6) {
+        result = '会员生日 - 需累积总投注额' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+
     return result
 }
 
