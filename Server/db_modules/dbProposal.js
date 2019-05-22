@@ -6142,7 +6142,7 @@ var proposal = {
                 proposals = proposalData[1];
 
 
-                return insertRepeatCount(proposals, data.platformId);
+                return insertRepeatCount(proposals, data.platformId, data);
             }
         ).then(
             proposals => {
@@ -6315,7 +6315,7 @@ var proposal = {
         ).then(
             proposalData => {
                 console.log("LH Check payment monitor total 0----------------------", proposalData.length);
-                return insertRepeatCount(proposalData, data.platformList);
+                return insertRepeatCount(proposalData, data.platformList, data);
             }
         ).then(
             proposals => {
@@ -8443,12 +8443,14 @@ var proposal = {
  */
 
 // lets do the most basic version, refactor later
-function insertRepeatCount(proposals, platformList) {
+function insertRepeatCount(proposals, platformList, query) {
     return new Promise(function (resolve) {
         let typeIds = null;
         let commonTopUpTypeIds;
+        let typeIdsWithoutCommonTopUp = null;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformList);
         let getCommonTopUpTypeIdProm = commonTopUpTypeIds ? Promise.resolve(commonTopUpTypeIds) : getCommonTopUpProposalTypeIds(platformList);
+        let getTypeIdsWithoutCommonTopUpProm = typeIdsWithoutCommonTopUp ? Promise.resolve(typeIdsWithoutCommonTopUp) : getTopUpTypeIdsWithoutCommonTopUp(platformList);
         let insertedProposals = [];
 
         if (!proposals || proposals.length === 0) {
@@ -8464,10 +8466,11 @@ function insertRepeatCount(proposals, platformList) {
                     insertedProposals[i] = handleSuccessProposal(proposal);
                     res();
                 } else {
-                    Promise.all([getProposalTypesIdProm, getCommonTopUpTypeIdProm]).then(
+                    Promise.all([getProposalTypesIdProm, getCommonTopUpTypeIdProm, getTypeIdsWithoutCommonTopUpProm]).then(
                         typeIdData => {
                             typeIds = typeIdData[0] || null;
                             commonTopUpTypeIds = typeIdData[1] || null;
+                            typeIdsWithoutCommonTopUp = typeIdData[2] || null;
                             return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
                         }
                     ).then(
@@ -8518,6 +8521,10 @@ function insertRepeatCount(proposals, platformList) {
             let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
             let alipayAccount = proposal.data.alipayAccount ? proposal.data.alipayAccount : "";
             let bankCardNoRegExp;
+            let firstCommonTopUpProm = Promise.resolve(true);
+            let lastCommonTopUpProm = Promise.resolve(true);
+            let prevSuccessTopUp;
+            let nextSuccessTopUp;
 
             if (proposal.data.bankCardNo) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
@@ -8552,13 +8559,13 @@ function insertRepeatCount(proposals, platformList) {
 
             let prevSuccessQuery = {
                 type: {$in: relevantTypeIds},
-                createTime: {$lte: new Date(proposal.createTime)},
+                createTime: {$gte: new Date(query.startTime), $lte: new Date(proposal.createTime)},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
             let nextSuccessQuery = {
                 type: {$in: relevantTypeIds},
-                createTime: {$gte: new Date(proposal.createTime)},
+                createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)},
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             };
 
@@ -8577,16 +8584,32 @@ function insertRepeatCount(proposals, platformList) {
                 nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
+            let prevSuccessTopUpQuery = {
+                type: {$in: typeIdsWithoutCommonTopUp},
+                createTime: {$gte: new Date(query.startTime), $lte: new Date(proposal.createTime)},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            let nextSuccessTopUpQuery = {
+                type: {$in: typeIdsWithoutCommonTopUp},
+                createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
             let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).limit(1).lean();
             let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
+            let prevSuccessTopUpProm = dbconfig.collection_proposal.findOne(prevSuccessTopUpQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).lean();
+            let nextSuccessTopUpProm = dbconfig.collection_proposal.findOne(nextSuccessTopUpQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean();
 
             // for debug usage
             // let pS, nS, fISQ;
 
-            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
+            return Promise.all([prevSuccessProm, nextSuccessProm, prevSuccessTopUpProm, nextSuccessTopUpProm]).then(
                 successData => {
                     let prevSuccess = successData[0];
                     let nextSuccess = successData[1];
+                    prevSuccessTopUp = successData[2];
+                    nextSuccessTopUp = successData[3];
 
                     let allCountQuery = {
                         type: {$in: relevantTypeIds}
@@ -8626,11 +8649,49 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime = {$gt: prevSuccessCreateTime};
                         currentCountQuery.createTime.$gt = prevSuccessCreateTime;
                         firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    } else {
+                        allCountQuery.createTime = {$gte: new Date(query.startTime)};
+                        currentCountQuery.createTime.$gte = new Date(query.startTime);
+                        firstInStreakQuery.createTime = {$gte: new Date(query.startTime)};
                     }
 
                     if (nextSuccess[0]) {
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
+                    } else {
+                        allCountQuery.createTime.$lt = new Date(query.endTime);
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
+                    }
+
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                        let playerName = proposal.data.playerName;
+
+                        allCountQuery["data.playerName"] = playerName;
+                        currentCountQuery["data.playerName"] = playerName;
+                        firstInStreakQuery["data.playerName"] = playerName;
+
+                        let commonTopUpQuery = {
+                            type: {$in: commonTopUpTypeIds},
+                            "data.playerName": playerName,
+                        };
+
+                        if (prevSuccessTopUp && prevSuccessTopUp.createTime) {
+                            commonTopUpQuery.createTime = {$gte: new Date(prevSuccessTopUp.createTime)};
+                        } else {
+                            commonTopUpQuery.createTime = {$gte: new Date(query.startTime)};
+                        }
+
+                        if (nextSuccessTopUp && nextSuccessTopUp.createTime) {
+                            commonTopUpQuery.createTime.$lt = new Date(nextSuccessTopUp.createTime);
+                        } else {
+                            commonTopUpQuery.createTime.$lt = new Date(query.endTime);
+                        }
+
+                        firstCommonTopUpProm  = dbconfig.collection_proposal.findOne(commonTopUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean();
+                        lastCommonTopUpProm  = dbconfig.collection_proposal.findOne(commonTopUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).lean();
                     }
 
                     // for debug usage
@@ -8640,15 +8701,17 @@ function insertRepeatCount(proposals, platformList) {
 
                     let allCountProm = dbconfig.collection_proposal.find(allCountQuery).read("secondaryPreferred").count();
                     let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).read("secondaryPreferred").count();
-                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
+                    let firstInStreakProm = dbconfig.collection_proposal.findOne(firstInStreakQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).limit(1).lean();
 
-                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, firstCommonTopUpProm, lastCommonTopUpProm]);
                 }
             ).then(
                 countData => {
                     let allCount = countData[0];
                     let currentCount = countData[1];
                     let firstFailure = countData[2][0];
+                    let firstCommonTopUp = countData[3];
+                    let lastCommonTopUp = countData[4];
 
                     // for debug usage
                     // if (!firstFailure) {
@@ -8665,10 +8728,18 @@ function insertRepeatCount(proposals, platformList) {
                     proposal.$merchantAllCount = allCount;
                     proposal.$merchantCurrentCount = currentCount;
 
-                    if (!firstFailure || firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
-                        proposal.$merchantGapTime = 0;
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                        if (firstCommonTopUp && firstCommonTopUp.createTime) {
+                            proposal.$merchantGapTime = getMinutesBetweenDates(firstCommonTopUp.createTime, lastCommonTopUp && lastCommonTopUp.createTime ? new Date(lastCommonTopUp.createTime) : new Date(proposal.createTime));
+                        } else {
+                            proposal.$merchantGapTime = 0;
+                        }
                     } else {
-                        proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        if (!firstFailure || firstFailure.proposalId.toString() === proposal.proposalId.toString()) {
+                            proposal.$merchantGapTime = 0;
+                        } else {
+                            proposal.$merchantGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        }
                     }
                     return proposal;
                 }
@@ -8677,24 +8748,45 @@ function insertRepeatCount(proposals, platformList) {
 
         function handleFailurePlayer(proposal) {
             let playerName = proposal.data.playerName;
+            let firstCommonTopUpProm = Promise.resolve(true);
+            let lastCommonTopUpProm = Promise.resolve(true);
+            let prevSuccessTopUp;
+            let nextSuccessTopUp;
 
             let prevSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$lte: proposal.createTime},
+                createTime: {$gte: new Date(query.startTime), $lte: proposal.createTime},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
             let nextSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
-                createTime: {$gte: proposal.createTime},
+                createTime: {$gte: proposal.createTime, $lt: new Date(query.endTime)},
                 "data.playerName": playerName,
                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
             }, {createTime: 1}).sort({createTime: 1}).limit(1).lean();
 
-            return Promise.all([prevSuccessProm, nextSuccessProm]).then(
+            let prevSuccessTopUpQuery = {
+                type: {$in: typeIdsWithoutCommonTopUp},
+                createTime: {$gte: new Date(query.startTime), $lte: new Date(proposal.createTime)},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            let nextSuccessTopUpQuery = {
+                type: {$in: typeIdsWithoutCommonTopUp},
+                createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)},
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            };
+
+            let prevSuccessTopUpProm = dbconfig.collection_proposal.findOne(prevSuccessTopUpQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).lean();
+            let nextSuccessTopUpProm = dbconfig.collection_proposal.findOne(nextSuccessTopUpQuery, {createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean();
+
+            return Promise.all([prevSuccessProm, nextSuccessProm, prevSuccessTopUpProm, nextSuccessTopUpProm]).then(
                 successData => {
                     let prevSuccess = successData[0];
                     let nextSuccess = successData[1];
+                    prevSuccessTopUp = successData[2];
+                    nextSuccessTopUp = successData[3];
 
                     let allCountQuery = {
                         type: {$in: typeIds},
@@ -8719,11 +8811,42 @@ function insertRepeatCount(proposals, platformList) {
                         allCountQuery.createTime = {$gt: prevSuccessCreateTime};
                         currentCountQuery.createTime.$gt = prevSuccessCreateTime;
                         firstInStreakQuery.createTime = {$gt: prevSuccessCreateTime};
+                    } else {
+                        allCountQuery.createTime = {$gte: new Date(query.startTime)};
+                        currentCountQuery.createTime.$gte = new Date(query.startTime);
+                        firstInStreakQuery.createTime = {$gte: new Date(query.startTime)};
                     }
 
                     if (nextSuccess[0]) {
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
+                    } else {
+                        allCountQuery.createTime.$lt = new Date(query.endTime);
+                        currentCountQuery.createTime.$lt = new Date(query.endTime);
+                        firstInStreakQuery.createTime.$lt = new Date(query.endTime);
+                    }
+
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+
+                        let commonTopUpQuery = {
+                            type: {$in: commonTopUpTypeIds},
+                            "data.playerName": playerName,
+                        };
+
+                        if (prevSuccessTopUp && prevSuccessTopUp.createTime) {
+                            commonTopUpQuery.createTime = {$gte: new Date(prevSuccessTopUp.createTime)};
+                        } else {
+                            commonTopUpQuery.createTime = {$gte: new Date(query.startTime)};
+                        }
+
+                        if (nextSuccessTopUp && nextSuccessTopUp.createTime) {
+                            commonTopUpQuery.createTime.$lt = new Date(nextSuccessTopUp.createTime);
+                        } else {
+                            commonTopUpQuery.createTime.$lt = new Date(query.endTime);
+                        }
+
+                        firstCommonTopUpProm  = dbconfig.collection_proposal.findOne(commonTopUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean();
+                        lastCommonTopUpProm  = dbconfig.collection_proposal.findOne(commonTopUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: -1}).lean();
                     }
 
                     let allCommonTopUpCountQuery = JSON.parse(JSON.stringify(allCountQuery));
@@ -8737,7 +8860,7 @@ function insertRepeatCount(proposals, platformList) {
                     let allCommonTopUpCountProm = dbconfig.collection_proposal.find(allCommonTopUpCountQuery).count();
                     let currentCommonTopUpCountProm = dbconfig.collection_proposal.find(currentCommonTopUpCountQuery).count();
 
-                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, allCommonTopUpCountProm, currentCommonTopUpCountProm]);
+                    return Promise.all([allCountProm, currentCountProm, firstInStreakProm, allCommonTopUpCountProm, currentCommonTopUpCountProm, firstCommonTopUpProm, lastCommonTopUpProm]);
                 }
             ).then(
                 countData => {
@@ -8746,16 +8869,26 @@ function insertRepeatCount(proposals, platformList) {
                     let firstFailure = countData[2];
                     let allCommonTopUpCount = countData[3];
                     let currentCommonTopUpCount = countData[4];
+                    let firstCommonTopUp = countData[5];
+                    let lastCommonTopUp = countData[6];
 
                     proposal.$playerAllCount = allCount;
                     proposal.$playerCurrentCount = currentCount;
                     proposal.$playerAllCommonTopUpCount = allCommonTopUpCount;
                     proposal.$playerCurrentCommonTopUpCount = currentCommonTopUpCount;
 
-                    if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
-                        proposal.$playerGapTime = 0;
+                    if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                        if (firstCommonTopUp && firstCommonTopUp.createTime) {
+                            proposal.$playerGapTime = getMinutesBetweenDates(firstCommonTopUp.createTime, lastCommonTopUp && lastCommonTopUp.createTime ? new Date(lastCommonTopUp.createTime) : new Date(proposal.createTime));
+                        } else {
+                            proposal.$playerGapTime = 0;
+                        }
                     } else {
-                        proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        if (!firstFailure || String(firstFailure.proposalId) === String(proposal.proposalId)) {
+                            proposal.$playerGapTime = 0;
+                        } else {
+                            proposal.$playerGapTime = getMinutesBetweenDates(firstFailure.createTime, new Date(proposal.createTime));
+                        }
                     }
                     return proposal;
                 }
@@ -8982,6 +9115,33 @@ function getTopUpProposalTypeIds(platformList) {
 function getCommonTopUpProposalTypeIds(platformList) {
     let proposalTypeQuery = {
         name: constProposalType.PLAYER_COMMON_TOP_UP
+    };
+
+    if(platformList && platformList.length > 0){
+        proposalTypeQuery.platformId = {$in: platformList}
+    }
+
+    return dbconfig.collection_proposalType.find(proposalTypeQuery, {_id: 1}).lean().then(
+        proposalTypes => {
+            return proposalTypes.map(type => {
+                return type._id;
+            });
+        }
+    );
+}
+
+function getTopUpTypeIdsWithoutCommonTopUp(platformList) {
+    let mainTopUpTypes = {
+        $in: [
+            constProposalType.PLAYER_TOP_UP,
+            constProposalType.PLAYER_ALIPAY_TOP_UP,
+            constProposalType.PLAYER_MANUAL_TOP_UP,
+            constProposalType.PLAYER_WECHAT_TOP_UP
+        ]
+    };
+
+    let proposalTypeQuery = {
+        name: mainTopUpTypes
     };
 
     if(platformList && platformList.length > 0){

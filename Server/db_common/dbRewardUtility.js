@@ -50,6 +50,9 @@ const dbRewardUtility = {
                 case "6":
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getLastMonthSGTImeFromDate(rewardData.applyTargetDate) : dbUtil.getLastMonthSGTime();
                     break;
+                case "7":
+                    intervalTime = rewardData.applyTargetDate ? dbUtil.getYearlySGTIme() : {};
+                    break;
                 default:
                     if (eventData.validStartTime && eventData.validEndTime) {
                         intervalTime = {startTime: eventData.validStartTime, endTime: eventData.validEndTime};
@@ -788,6 +791,29 @@ const dbRewardUtility = {
                 name: "DataError",
                 message: "This top up record has been used"
             });
+        }
+    },
+
+    checkRewardApplyEnoughTopupCount: (eventData, topupInPeriodCount) => {
+        // Check top up count within period
+        if (eventData.condition.topUpCountType) {
+            let intervalType = eventData.condition.topUpCountType[0];
+            let value1 = eventData.condition.topUpCountType[1];
+            let value2 = eventData.condition.topUpCountType[2];
+
+            const hasMetTopupCondition =
+                intervalType == "1" && topupInPeriodCount >= value1
+                || intervalType == "2" && topupInPeriodCount <= value1
+                || intervalType == "3" && topupInPeriodCount == value1
+                || intervalType == "4" && topupInPeriodCount >= value1 && topupInPeriodCount < value2;
+
+            if (!hasMetTopupCondition) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Top up count has not met period condition"
+                });
+            }
         }
     },
 

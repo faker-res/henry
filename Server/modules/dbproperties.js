@@ -100,6 +100,8 @@ let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
+let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
+let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -263,6 +265,8 @@ let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depo
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
+let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
+let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -561,8 +565,14 @@ let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTim
 let platformPartnerCommConfigSchema = require('../schema/platformPartnerCommConfig');
 let platformPartnerCommConfigModel = db_admin.model('platformPartnerCommConfig', platformPartnerCommConfigSchema, 'platformPartnerCommConfig');
 
+let activeValidDailyPlayerSchema = require('../schema/activeValidDailyPlayer');
+let activeValidDailyPlayerModel = db_admin.model('activeValidDailyPlayer', activeValidDailyPlayerSchema, 'activeValidDailyPlayer');
+
 let partnerMainCommConfigSchema = require('./../schema/partnerMainCommConfig');
 let partnerMainCommConfigModel = dbLogs2.model('partnerMainCommConfig', partnerMainCommConfigSchema, 'partnerMainCommConfig');
+
+let partnerMainCommRateConfigSchema = require('./../schema/partnerMainCommRateConfig');
+let partnerMainCommRateConfigModel = dbLogs2.model('partnerMainCommRateConfig', partnerMainCommRateConfigSchema, 'partnerMainCommRateConfig');
 
 let partnerDefDownLineCommConfigSchema = require('./../schema/partnerDefDownLineCommConfig');
 let partnerDefDownLineCommConfigModel = dbLogs2.model('partnerDefDownLineCommConfig', partnerDefDownLineCommConfigSchema, 'partnerDefDownLineCommConfig');
@@ -724,6 +734,8 @@ var dbProperties = {
     collection_wcDevice: wcDeviceModel,
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
+    collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
+    collection_frontEndSkinSetting: frontEndSkinSettingModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
@@ -828,6 +840,8 @@ var dbProperties = {
     collection_partnerMainCommConfig: partnerMainCommConfigModel,
     collection_partnerDefDownLineCommConfig: partnerDefDownLineCommConfigModel,
     collection_partnerDownLineCommConfig: partnerDownLineCommConfigModel,
+    collection_partnerMainCommRateConfig: partnerMainCommRateConfigModel,
+    collection_activeValidDailyPlayer: activeValidDailyPlayerModel,
 
     //unique
     collection_playerName: playerNameModal,

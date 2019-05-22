@@ -283,17 +283,6 @@ let dbPlayerCredibility = {
     getAllCredibilityRemarks: () => {
         return dbconfig.collection_playerCredibilityRemark.find({}).lean().exec();
     },
-    getPlatformCredibilityRemarks: (platformList) => {
-        let query = {};
-        if (platformList && platformList.length) {
-            query = {
-                platform: {$in: platformList}
-            }
-        }
-        return dbconfig.collection_playerCredibilityRemark.find(query)
-            .populate({path: 'platform', model: dbconfig.collection_platform})
-            .lean().exec();
-    },
 
     addCredibilityRemark: (platformObjId, name, score) => {
         let remark = dbconfig.collection_playerCredibilityRemark({
@@ -365,16 +354,21 @@ let dbPlayerCredibility = {
                     // let gameTypeProm = dbconfig.collection_playerConsumptionRecord.distinct("gameId", {playerId: player._id});
                     let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: player.playerLevel}).lean();
                     let playerRemarksProm = dbconfig.collection_playerCredibilityRemark.find({_id:{$in:player.credibilityRemarks}}).lean();
-                    let winRatioProm = dbconfig.collection_playerConsumptionRecord.aggregate([
-                        {$match: {playerId: player._id}},
-                        {
-                            $group: {
-                                _id: null,
-                                totalConsumption: {$sum: "$validAmount"},
-                                totalBonus: {$sum: "$bonusAmount"}
-                            }
-                        }
-                    ]).read("secondaryPreferred");
+
+                    // Reduce server load, win ratio will based on rough value
+                    let winRatioProm = Promise.resolve([{totalConsumption: playerData.consumptionSum, totalBonus: playerData.bonusAmountSum}]);
+                    // let winRatioProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                    //     {$match: {playerId: player._id}},
+                    //     {
+                    //         $group: {
+                    //             _id: null,
+                    //             totalConsumption: {$sum: "$validAmount"},
+                    //             totalBonus: {$sum: "$bonusAmount"}
+                    //         }
+                    //     }
+                    // ]).read("secondaryPreferred");
+
+
 
                     return Promise.all([platformProm,/* gameTypeProm,*/ playerLevelProm, playerRemarksProm, winRatioProm]);
                 }

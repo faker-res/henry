@@ -140,7 +140,11 @@ define(['js/app'], function (myApp) {
             if(authService && authService.adminId){
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     $scope.$evalAsync(() => {
-                        vm.platformByAdminId = data.data;
+                        vm.platformByAdminId = data.data.map(item => {
+                            item.platformId$ = item.platformId ? Number(item.platformId) : '';
+
+                            return item;
+                        });
                     })
                 }, function (error){
                     console.error(error);
@@ -3565,11 +3569,11 @@ define(['js/app'], function (myApp) {
         vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchants);
             vm.merchantGroupCloneList = vm.merchantGroups;
-            let agent = vm.paymentMonitorQuery.userAgent;
-            let thirdParty = vm.paymentMonitorQuery.merchantGroup;
-            let mainTopupType = vm.paymentMonitorQuery.mainTopupType;
-            let topupType = vm.paymentMonitorQuery.topupType;
-            let bankTypeId = vm.paymentMonitorQuery.bankTypeId;
+            let agent = vm.paymentMonitorQuery && vm.paymentMonitorQuery.userAgent ? vm.paymentMonitorQuery.userAgent : [];
+            let thirdParty = vm.paymentMonitorQuery && vm.paymentMonitorQuery.merchantGroup ? vm.paymentMonitorQuery.merchantGroup : [];
+            let mainTopupType = vm.paymentMonitorQuery && vm.paymentMonitorQuery.mainTopupType ? vm.paymentMonitorQuery.mainTopupType : null;
+            let topupType = vm.paymentMonitorQuery && vm.paymentMonitorQuery.topupType ? vm.paymentMonitorQuery.topupType : [];
+            let bankTypeId = vm.paymentMonitorQuery && vm.paymentMonitorQuery.bankTypeId ? vm.paymentMonitorQuery.bankTypeId : null;
             if (agent && agent.length > 0) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices)

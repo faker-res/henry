@@ -691,6 +691,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "Biweekly",
         4: "Monthly",
         6: "LastMonth",
+        7: "Yearly",
         5: "No Interval",
     };
 
@@ -964,6 +965,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         16: {name: "商城", type: "功能"},
         17: {name: "分享", type: "功能"},
         18: {name: "代理", type: "功能"}
+    };
+
+    $scope.frontEndSettingDevice = {
+        1: "PC",
+        2: "APP",
+        3: "H5"
     };
 
     // $scope.consumptionRecordProviderName = {

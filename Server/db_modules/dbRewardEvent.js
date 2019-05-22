@@ -1318,6 +1318,60 @@ var dbRewardEvent = {
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
+        if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+            let platformId = playerData.platform._id;
+            let playerObjId = playerData._id;
+            let playerBirthday = playerData.DOB;
+            let consumptionMatchQuery = {
+                createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                //bDirty: false,
+                playerId: playerData._id,
+            };
+
+            if (intervalTime) {
+                consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+            topupMatchQuery.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
+
+            if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
+                returnData.condition.bet.gameGroup = eventData.condition.consumptionProvider;
+                let consumptionProviders = [];
+                eventData.condition.consumptionProvider.forEach(providerId => {
+                    consumptionProviders.push(ObjectId(providerId));
+                });
+                consumptionMatchQuery.providerId = {$in: consumptionProviders};
+            }
+
+            let periodConsumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                {$match: consumptionMatchQuery},
+            ]);
+
+            promArr.push(periodConsumptionProm);
+
+            if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+                let ignoreUsedTopupReward = [];
+                ignoreUsedTopupReward = eventData.condition.ignoreTopUpDirtyCheckForReward.map(function (rewardId) {
+                    return ObjectId(rewardId)
+                });
+                // topupMatchQuery.$or.push({'usedEvent': {$in: ignoreUsedTopupReward}});
+            }
+
+            let periodTopupProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: topupMatchQuery
+                }
+            );
+            promArr.push(periodTopupProm);
+            let periodPropsProm = dbconfig.collection_proposal.find(eventQuery).lean();
+            promArr.push(periodPropsProm);
+
+
+            let festivalApplyProm = dbRewardEvent.getFestivalApply(eventData, platformId, playerObjId, selectedRewardParam, playerBirthday);
+            promArr.push(festivalApplyProm);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+        }
 
         if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
             let promiseUsed = [];
@@ -2580,6 +2634,61 @@ var dbRewardEvent = {
                         returnData.result.rewardAmount = returnData.result.canApplyAmount;
                         break;
 
+
+                    case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                        console.log('rewardSpecificData', rewardSpecificData);
+                        let consumptionData = rewardSpecificData[0];
+                        let topUpDatas = rewardSpecificData[1];
+                        let periodData = rewardSpecificData[2];
+                        let festivalData = rewardSpecificData[3];
+                        let applyFestivalTimes =  0;
+                        let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
+                        let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
+                        let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
+                        console.log('MT --checking before festivalData', festivalData);
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
+                        if (festivalData && festivalData.length > 0) {
+                            festivalData = festivalData.map( item => {
+                                let meetTopUp = false;
+                                let meetConsumption = false;
+                                // reward type 2, 5 need minTopUpAmount
+                                if (item.rewardType == 2 || item.rewardType == 5) {
+                                    topUpDatas.forEach(topup => {
+                                        if (topup.minTopUpAmount) {
+                                            meetTopUp = true;
+                                        }
+                                    })
+                                    if (meetTopUp) {
+                                        return item;
+                                    }
+                                } else if (item.rewardType == 3 || item.rewardType == 6) {
+                                    // reward type 3, 6 need totalConsumptionInInterval
+                                    if (consumptionSum > item.totalConsumptionInInterval) {
+                                        meetConsumption = true;
+                                        return item;
+                                    }
+                                } else {
+                                    return item
+                                }
+                            })
+                        }
+                        console.log('MT --checking after festivalData', festivalData)
+                        console.log('MT --checking selectedRewardParam',selectedRewardParam);
+                        console.log('MT --checking topUpDatas', topUpDatas);
+                        console.log('MT --checking periodData', periodData);
+                        console.log('MT --checking applyFestivalTimes', applyFestivalTimes);
+                        console.log('MT --checking topUpSum', topUpSum);
+                        console.log('MT --checking consumptionSum', consumptionSum);
+                        console.log('MT --checking applyRewardSum', applyRewardSum);
+                        returnData.result = festivalData;
+
+                        break;
+
                     default:
                         return Q.reject({
                             status: constServerCode.INVALID_DATA,
@@ -2591,17 +2700,147 @@ var dbRewardEvent = {
                 if (eventData.condition.providerGroup) {
                     returnData.result.providerGroup = eventData.condition.providerGroup;
                 }
-                if (returnData.condition.deposit && returnData.condition.deposit.status == 1) {
-                    if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
-                        returnData.condition.deposit.status = 2;
-                    }
-                }
                 return returnData;
             }
         )
 
 
-    } ,
+    },
+    getFestivalApply: function (eventData, platformId, playerObjId, selectedRewardParam, playerBirthday) {
+        let result = { count:0 , festivals:[] };
+        let proms = [];
+        let festivalDate;
+
+        if (selectedRewardParam && selectedRewardParam.length > 0) {
+            selectedRewardParam.forEach( item => {
+                // apply a birthday festival
+                if ( item.rewardType == 2 || item.rewardType == 4 ) {
+                    let birthday = getBirthday(playerBirthday);
+                    console.log('MT --checking dbRewardEvent --birthday', birthday);
+                    festivalDate = birthday;
+                } else {
+                    festivalDate = dbRewardEvent.getFestivalRewardDate(item, eventData.param.others);
+                }
+
+                let isRightApplyTime = checkIfRightApplyTime(item, festivalDate);
+                if (isRightApplyTime) {
+                    // check is today is in between the apply period
+                    let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData);
+                    proms.push(prom)
+                }
+
+            })
+        }
+        return Promise.all(proms).then(
+            data => {
+                console.log('MT --checking festival match time period', data);
+                return data;
+            }
+        )
+    },
+    checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData) {
+        return new Promise((resolve, reject) => {
+            let result = false;
+            let todayTime = dbUtil.getDayTime(new Date());
+            console.log('MT --checking festivalId', festivalId)
+            let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
+            let applyPeriod = dbRewardEvent.getTimePeriod(expiredInDay, todayTime)
+            let festivalPeriod = null;
+            let sendQuery = {
+                "data.platformObjId": platformId,
+                "data.playerObjId": playerObjId,
+                "data.eventId": eventId,
+                "createTime": {
+                    '$gte':applyPeriod.startTime,
+                    '$lte':moment(applyPeriod.endTime).toDate()
+                },
+                "data.festivalObjId": festivalId,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            }
+            console.log('MT --checking festival sendQuery --', sendQuery)
+
+            return dbconfig.collection_proposal.find(sendQuery).lean()
+            .then( data => {
+                if (data) {
+                    // type 3 dont have attribute of applytimes, so make this default:1
+                    if (rewardParam.rewardType == 3) {
+                        rewardParam.applyTimes = 1;
+                    }
+                    console.log('rewardParam...', rewardParam)
+                    let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others);
+                    if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
+                        console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
+                        resolve({status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType})
+                    } else {
+                        console.log('***MT --checking cannot apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
+                        resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType});
+                    }
+                } else {
+                    console.log('***MT --checking festival proposal not found');
+                    resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType});
+                }
+            })
+        })
+    },
+    getFestivalName: function(id, rewardType,  festivals) {
+        let result = {'name':'', 'month':'', 'day':''};
+        if (festivals && festivals.length > 0) {
+            let festival = festivals.filter( item => {
+                return item.id == id
+            })
+            festival = ( festival && festival[0] ) ? festival[0] : {};
+            result.name = festival.name;
+            result.month = festival.month;
+            result.day = festival.day;
+
+        }
+        if (rewardType == 2 || rewardType == 4) {
+            result.name = '会员生日';
+        }
+        return result
+    },
+    getFestivalRewardDate: function (reward, festivals) {
+        //find the festival date inside the reward param
+        let result = [];
+        let rewardId = reward.festivalId ? reward.festivalId: null;
+        let festival = festivals.filter(item => {
+            return item.id == rewardId;
+        })
+        result = ( festival && festival[0] ) ? festival[0] : [];
+        return result
+    },
+    getTimePeriod: function(expiredInDay, festival) {
+        let todayTime, year, month, day, startTime, endTime;
+        let fullDate = [];
+        console.log('MT --checking festival:', festival);
+        if (festival && festival.month && festival.day) {
+            year = new Date().getFullYear();
+
+            month = getPlural(festival.month);
+            day = getPlural(festival.day);
+            fullDate = [year, month, day];
+            fullDate = fullDate.join('-')
+
+            //date convertion
+            console.log('expiredInDay', expiredInDay)
+            console.log('MT --checking fullDate', fullDate);
+            todayTime = {
+                "startTime": moment(fullDate).format('YYYY-MM-DD HH:mm:ss.sss'),
+                "endTime": moment(fullDate).add(1, 'days')
+            }
+        } else {
+            todayTime = dbUtil.getDayTime(new Date());
+        }
+
+        let expiredDay = expiredInDay ? Number(expiredInDay) : 0;
+        let applyPeriod = {
+            "startTime": todayTime.startTime,
+            "endTime": moment(todayTime.endTime).add(expiredDay, 'days').format('YYYY-MM-DD HH:mm:ss.sss')
+        }
+        console.log('after->todayTime', applyPeriod);
+        return applyPeriod;
+    },
+
 
     /**
      * Find reward events by query
@@ -2691,7 +2930,7 @@ var dbRewardEvent = {
                     })
                 }
 
-                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
+                return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData, {new: true}).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
             }
         ).catch(
             err => {
@@ -3425,6 +3664,36 @@ function getIntervalPeriodFromEvent(event, applyTargetTime) {
     }
 
     return intervalTime;
+}
+
+function getPlural (num) {
+    num = (num < 9) ? "0" + num : num;
+    return num;
+}
+
+function checkIfRightApplyTime(specificDate, festival) {
+    // reconstruct the month/time to a timestamp to verify if fulfil the apply time
+    let result = false;
+    let currentTime = moment(new Date()).toDate();
+    let period = dbRewardEvent.getTimePeriod(specificDate.expiredInDay || 0, festival);
+    if ( currentTime > moment(period.startTime).toDate() &&  currentTime < moment(period.endTime).toDate() ) {
+        result = true;
+    }
+    console.log('MT --checking …startTime -- …endTime', moment(period.startTime).toDate() , moment(period.endTime).toDate());
+    console.log('MT --checking …startTime -- …endTime currentTime', currentTime);
+    console.log(result);
+    return result;
+}
+
+function getBirthday(playerBirthday) {
+    let result = { month: null, day: null};
+    console.log(playerBirthday);
+
+    var month = new Date(playerBirthday).getMonth() + 1;
+    var day = new Date(playerBirthday).getDate();
+    result.month = month;
+    result.day = day;
+    return result;
 }
 
 var proto = dbRewardEventFunc.prototype;

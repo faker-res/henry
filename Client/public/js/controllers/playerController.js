@@ -10385,6 +10385,11 @@ define(['js/app'], function (myApp) {
             if (vm.appliedRewardList && vm.appliedRewardList.length){
                 sendQuery.data.appliedRewardList = vm.appliedRewardList;
             }
+
+            if (vm.playerApplyRewardPara && vm.playerApplyRewardPara.festivalItemId) {
+                sendQuery.data.festivalItemId = vm.playerApplyRewardPara.festivalItemId;
+            }
+
             if (isForceApply) {
                 if (vm.playerApplyEventResult && vm.playerApplyEventResult.error && vm.playerApplyEventResult.error.status === 466) {
                     sendQuery.data.isClearConcurrent = isForceApply;
@@ -10681,6 +10686,71 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.getFestivalSelection = function ( playerLevel, DOB, rewardObj ) {
+            let playerLevelId = playerLevel._id || '';
+            let festivalType =  ( rewardObj.condition && rewardObj.condition.festivalType ) ? rewardObj.condition.festivalType : '';
+            if (rewardObj.param && rewardObj.param.rewardParam && rewardObj.param.rewardParam.length > 0) {
+                let rewardByPlayerLevel = rewardObj.param.rewardParam.filter( item => {
+                    return item.levelId == playerLevelId;
+                })
+                vm.festivalByPlayerLevel = ( rewardByPlayerLevel && rewardByPlayerLevel[0] && rewardByPlayerLevel[0].value ) ? rewardByPlayerLevel[0].value : [];
+            }
+
+            if (vm.festivalByPlayerLevel && vm.festivalByPlayerLevel && vm.festivalByPlayerLevel.length > 0) {
+                vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.map( item => {
+                    item.festivalName = vm.getFestivalName(item.festivalId, item.rewardType, rewardObj.param.others, DOB);
+                    return item;
+                })
+            }
+            vm.festivalByPlayerLevel = vm.festivalByPlayerLevel.filter( festival => {
+
+                switch (festivalType)
+                {
+                    case "1":
+                        // only return the birthday reward - type = 4
+                        if (festival.rewardType == 6) {
+                            // special case - type 3 dont have apply times
+                            return festival.festivalName && festival.rewardType && festival.rewardType == 6;
+                        } else {
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && (festival.rewardType == 4 || festival.rewardType == 5 || festival.rewardType == 6);
+                        }
+                        break;
+                    case "2":
+                        if (festival.rewardType == 3) {
+                            // special case - type 3 dont have apply times
+                            return festival.festivalName && festival.rewardType && festival.rewardType == 3;
+                        } else {
+                            return festival.festivalName && festival.applyTimes && festival.rewardType && (festival.rewardType != 4 && festival.rewardType != 5 && festival.rewardType != 6 );
+                        }
+                        break;
+                    default:
+                        return festival.festivalName && festival.applyTimes && festival.rewardType;
+                }
+            })
+
+        }
+
+        vm.getFestivalName = function(id, rewardType,  festivals, DOB) {
+            let result = '';
+            let month, day;
+            if (festivals && festivals.length > 0) {
+                let festival = festivals.filter( item => {
+                    return item.id == id
+                })
+                festival = ( festival && festival[0] ) ? festival[0] : {};
+                month = festival.month;
+                day = festival.day;
+                result = festival.name + '(' + month + $translate('month') + day + $translate('day') + ')';
+
+            }
+            if ( rewardType == 4 || rewardType == 5 || rewardType == 6) {
+                month = new Date(DOB).getMonth() + 1;
+                day =  new Date(DOB).getDate();
+                result = '会员生日' + '(' + month + $translate('month') + day + $translate('day') + ')';
+            }
+            return result
+        }
+
         vm.prepareShowConsumptionSlipReward = function () {
 
             vm.consumptionSlipReward = {totalCount: 0};
@@ -10886,6 +10956,7 @@ define(['js/app'], function (myApp) {
             if (!rewardObj) return;
             vm.playerApplyRewardPara.code = rewardObj.code;
             vm.playerApplyRewardShow.TopupRecordSelect = false;
+            vm.playerApplyRewardShow.festivalSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
             vm.playerApplyRewardShow.returnData = {};
 
@@ -10978,6 +11049,11 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
                 vm.getPlayerTopupRecord(null, rewardObj, type);
+            }
+
+            if (type == "PlayerFestivalRewardGroup") {
+                vm.playerApplyRewardShow.festivalSelect = true;
+                vm.getFestivalSelection(vm.isOneSelectedPlayer().playerLevel, vm.isOneSelectedPlayer().DOB, rewardObj);
             }
 
             vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
@@ -14680,7 +14756,8 @@ define(['js/app'], function (myApp) {
                 utilService.actionAfterLoaded('#modalPlayerPermissionChangeLog .searchDiv .startTime', function () {
                     vm.playerPermissionQuery.startTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .startTime');
                     vm.playerPermissionQuery.endTime = utilService.createDatePicker('#modalPlayerPermissionChangeLog .searchDiv .endTime');
-                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    // vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                    vm.playerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date(vm.selectedSinglePlayer.registrationTime)));
                     vm.playerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 });
             }

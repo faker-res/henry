@@ -151,6 +151,7 @@ var simplifiedChinese = {
     "PlayerLoseReturnRewardGroup": "输值反利（組）",
     "PlayerRandomRewardGroup": "随机抽奖（组）",
     "PlayerTopUpReturnGroup": "存送金(组)",
+    "PlayerFestivalRewardGroup": "特别节日（组）",
 
     "UpdatePlayerInfo": "编辑玩家基本资料",
     "UpdatePlayerCredit": "更改玩家额度",
@@ -188,7 +189,8 @@ var simplifiedChinese = {
     "CustomizePartnerCommRate": "客制化代理参数",
     "SettlePartnerCommission": "代理佣金",
     "PlayerRegistrationIntention": "玩家注册意向",
-
+    "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
+    "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -505,6 +507,7 @@ var simplifiedChinese = {
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
     "This mobile device has applied for max reward times in event period": "此移动设备已经达到了该优惠周期内的申请上限",
     "This player has applied for other reward in event period": "此帐号已经在该优惠周期内领取其他优惠",
+    "This player does not have phone number to apply this reward": "此账号没有绑定手机号码，无法领取优惠",
     "Reward Amount and Spending Times cannot be empty. Please check reward condition.": "固定优惠金额和解锁流水不能为空。 请检查优惠条件",
     "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
     "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢",
@@ -548,8 +551,9 @@ var simplifiedChinese = {
     "Phone number already set": "电话号码已设置",
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
+    "Not the Period of this Reward": "不在此优惠的申请时间中",
+    "Over the apply limit already": "超过了此优惠的申请上限",
     "Not allowed to transfer from test environment.": "只允许测试账号操作转入"
-
     //todo::add missing messages here
 
     /*
