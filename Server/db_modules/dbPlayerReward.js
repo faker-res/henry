@@ -8375,7 +8375,6 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
                             if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
                                 console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
-                                console.log(lastTopUpData)
                                 proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
                             }
 
