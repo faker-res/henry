@@ -5712,7 +5712,6 @@ var dbPlatform = {
                                                                             deferred.reject({
                                                                                 status: constServerCode.DB_ERROR,
                                                                                 name: "DataError",
-                                                                                // errorMessage: "File name: " + fileName + " exists",
                                                                                 errorMessage: fileName + " " + localization.localization.translate("exists, please re-upload a new image."),
                                                                             });
                                                                         } else {
