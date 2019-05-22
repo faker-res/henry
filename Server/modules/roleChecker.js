@@ -573,7 +573,7 @@ var roleChecker = {
             "FrontEndConfiguration": {
                 Read: [],
                 popularRecommendation: [],
-                skinManagement: []
+                skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting']
             },
             "AuctionSystem": {
                 Read: [],
