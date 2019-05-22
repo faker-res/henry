@@ -264,7 +264,9 @@ define(['js/app'], function (myApp) {
             2: 'WEEKLY_BONUS_AMOUNT',
             3: 'BIWEEKLY_BONUS_AMOUNT',
             4: 'MONTHLY_BONUS_AMOUNT',
-            5: 'WEEKLY_CONSUMPTION'
+            5: 'WEEKLY_CONSUMPTION',
+            6: 'OPTIONAL_REGISTRATION',
+            7: 'DAILY_CONSUMPTION'
         };
 
         vm.partnerCommissionLog = {};
@@ -7586,6 +7588,7 @@ define(['js/app'], function (myApp) {
                         editPartnerContactPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditContact'),
                         editPartnerWithdrawPermission: $scope.checkViewPermission('Partner', 'Partner', 'BankDetail'),
                         editPartnerCommissionPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditCommission'),
+                        vmm: vm,
                         selectedTab: vm.editPartnerSelectedTab,
                         tabClicked: vm.tabClicked,
                         modifyCritical: vm.modifyCritical,
@@ -7704,6 +7707,12 @@ define(['js/app'], function (myApp) {
                     this.filterBankName = vm.filterBankName;
                     this.isEditingPartnerPaymentShowVerify = vm.isEditingPartnerPaymentShowVerify;
                 };
+
+                function commissionSettingTab () {
+                    return
+                }
+
+                vm.partnerDialogOption = option;
                 $('#dialogEditPartner').floatingDialog(option);
                 $('#dialogEditPartner').focus();
                 $scope.safeApply();
@@ -11320,15 +11329,16 @@ define(['js/app'], function (myApp) {
             vm.partnerCommission.isEditing = false;
             vm.partnerCommission.isCustomized = false;
 
-            // if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
-            //     vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
-            // } else {
+            if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
+                vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
+            } else {
                 vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
-            // }
+            }
 
             switch (vm.commissionSettingTab) {
-                case 'DAILY_BONUS_AMOUNT':
                 case 'DAILY_CONSUMPTION':
+                    vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
+                case 'DAILY_BONUS_AMOUNT':
                     vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
                     break;
                 case 'WEEKLY_BONUS_AMOUNT':

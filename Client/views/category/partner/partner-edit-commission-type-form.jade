@@ -4,26 +4,29 @@ form(name="form_edit_partner_commission_type", novalidate)
             thead
                 tr
                     th {{'PARTNER_NAME' | translate}}
-                    th(colspan=4) {{'bonusAmount1' | translate}}
+                    th {{'bonusAmount1' | translate}}
                     th {{'Spent Amount' | translate}}
                     th {{'CLOSED_COMMISSION' | translate}}
             tbody
                 tr
                     td
                         text {{newPartner.partnerName}}
-                    td
+                    //td
                         label.radio-inline {{'DAILY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="switchCommissionTab('DAILY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
+                        label.radio-inline {{'DAILY_CONSUMPTION' | translate}}
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='7' ng-click="switchCommissionTab('DAILY_CONSUMPTION', newPartner.commissionType);")
+                    //td
                         label.radio-inline {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="switchCommissionTab('BIWEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
-                    td
+                    //td
                         label.radio-inline {{'MONTHLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="switchCommissionTab('MONTHLY_BONUS_AMOUNT', newPartner.commissionType);")
-                    td
+                    //td
                         label.radio-inline {{'WEEKLY_CONSUMPTION' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="switchCommissionTab('WEEKLY_CONSUMPTION', newPartner.commissionType);")
                     td
@@ -38,10 +41,10 @@ form(name="form_edit_partner_commission_type", novalidate)
                     table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded")
                         thead
                             tr
-                                th(colspan=6) {{'Total'| translate}}{{'Commission'| translate}}:{{commissionSettingTab | translate}}
+                                th(colspan=6) {{'Total'| translate}}{{'Commission'| translate}}:{{vmm.commissionSettingTab | translate}}
                             tr
-                                th(colspan=2) {{playerConsumptionTableHeader | translate}}
-                                th(colspan=2) {{activePlayerTableHeader | translate}}
+                                th(colspan=2) {{vmm.playerConsumptionTableHeader | translate}}
+                                th(colspan=2) {{vmm.activePlayerTableHeader | translate}}
                                 th(rowspan=2) {{'Commission Rate' | translate}}
                                 th(rowspan=2) {{'ACTION_BUTTON' | translate}}
                             tr
@@ -70,10 +73,10 @@ form(name="form_edit_partner_commission_type", novalidate)
                         table.simple-table
                             thead
                                 tr
-                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{commissionSettingTab | translate}}
+                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{vmm.commissionSettingTab | translate}}
                                 tr
-                                    th(colspan=2) {{playerConsumptionTableHeader | translate}}
-                                    th(colspan=2) {{activePlayerTableHeader | translate}}
+                                    th(colspan=2) {{vmm.playerConsumptionTableHeader | translate}}
+                                    th(colspan=2) {{vmm.activePlayerTableHeader | translate}}
                                     th(rowspan=2) {{'Commission Rate' | translate}}
                                     th(rowspan=2) {{'ACTION_BUTTON' | translate}}
                                 tr
