@@ -1460,7 +1460,6 @@ var param109 = param109Cursor.next();
 
 db.rewardType.update({"name": type109}, {$set: {params: param109._id, des: type109, isGrouped: true}}, {upsert: true});
 
-
 // 特别节日组
 var type110 = "PlayerFestivalRewardGroup";
 db.rewardParam.update({
@@ -1511,6 +1510,7 @@ db.rewardParam.update({
                     title: {type: "text", des: "Festival Title"},
                     topUpReturnReward: {type: "text", des: "Top Up Return Reward"},
                     minTopUpAmount: {type: "number", des: "Minimal top up amount"},
+                    amountPercent: {type: "percentage", des: "REWARD_AMOUNT_PERCENT"},
                     totalConsumptionInInterval: {type: "number", des: "Total consumption amount in interval"},
                     rewardAmount: {type: "number", des: "Reward amount"},
                     applyTimes: {type: "number", des: "Maximum Apply Times"},
