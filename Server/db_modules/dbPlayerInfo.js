@@ -15981,75 +15981,92 @@ let dbPlayerInfo = {
             {path: "platform", model: dbconfig.collection_platform}
         ).lean().then(
             playerData => {
-                if (playerData) {
-                    playerInfo = playerData;
-                    if (playerData.permission && playerData.permission.banReward) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: "Player do not have permission for reward"
-                        });
-                    }
-
-                    let playerState;
-
-                    console.log('data===', data);
-                    console.log('isBulkApply===', isBulkApply);
-                    console.log('isPreview===', isPreview);
-                    console.log('playerInfo._id===', playerInfo._id);
-
-                    if (isBulkApply || isPreview) {
-                        console.log('playerState TRUE===');
-                        // bypass player state for bulk apply
-                        playerState = Promise.resolve(true);
-                    } else {
-                        console.log('playerState FALSE===');
-                        playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
-                    }
-
-                    return playerState.then(
-                        playerState => {
-                            console.log('playerState===22', playerState);
-                            if (playerState || data.isClearConcurrent) {
-                                if (code === "MANUAL_PLAYER_LEVEL_UP_REWARD") {
-                                    return {
-                                        _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
-                                        type: {
-                                            name: constRewardType.PLAYER_LEVEL_UP
-                                        }
-                                    }
-                                }
-
-                                if (code === "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD") {
-                                    return {
-                                        _id: "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD",
-                                        type: {
-                                            name: constRewardType.PLAYER_LEVEL_MAINTAIN
-                                        }
-                                    }
-                                }
-
-                                return dbconfig.collection_rewardEvent.findOne({
-                                    platform: playerData.platform,
-                                    code: code
-                                }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
-                            } else {
-                                console.log('applyRewardEvent concurrent -- apply reward fail===');
-                                return Promise.reject({
-                                    name: "DBError",
-                                    status: constServerCode.CONCURRENT_DETECTED,
-                                    message: "Apply Reward Fail, please try again later"
-                                })
-                            }
-                        }
-                    );
-                }
-                else {
-                    return Q.reject({
+                if (!playerData) {
+                    return Promise.reject({
                         name: "DataError",
                         message: "Can not find player"
                     });
                 }
+
+                playerInfo = playerData;
+
+                return dbconfig.collection_rewardEvent.findOne({
+                    platform: playerData.platform,
+                    code: code
+                }).populate({path: "type", model: dbconfig.collection_rewardType}).lean().then(
+                    rewardEvent => {
+                        let isXima = rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
+
+                        if (playerData.permission && playerData.permission.banReward && !isXima) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Player do not have permission for reward"
+                            });
+                        }
+
+                        if (playerData.permission && playerData.permission.forbidPlayerConsumptionReturn && isXima) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Player do not have permission for consumption return"
+                            });
+                        }
+
+                        let playerState;
+
+                        console.log('data===', data);
+                        console.log('isBulkApply===', isBulkApply);
+                        console.log('isPreview===', isPreview);
+                        console.log('playerInfo._id===', playerInfo._id);
+
+                        if (isBulkApply || isPreview) {
+                            console.log('playerState TRUE===');
+                            // bypass player state for bulk apply
+                            playerState = Promise.resolve(true);
+                        } else {
+                            console.log('playerState FALSE===');
+                            playerState = dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+                        }
+
+                        return playerState.then(
+                            playerState => {
+                                console.log('playerState===22', playerState);
+                                if (playerState || data.isClearConcurrent) {
+                                    if (code === "MANUAL_PLAYER_LEVEL_UP_REWARD") {
+                                        return {
+                                            _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
+                                            type: {
+                                                name: constRewardType.PLAYER_LEVEL_UP
+                                            }
+                                        }
+                                    }
+
+                                    if (code === "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD") {
+                                        return {
+                                            _id: "MANUAL_PLAYER_LEVEL_MAINTAIN_REWARD",
+                                            type: {
+                                                name: constRewardType.PLAYER_LEVEL_MAINTAIN
+                                            }
+                                        }
+                                    }
+
+                                    return dbconfig.collection_rewardEvent.findOne({
+                                        platform: playerData.platform,
+                                        code: code
+                                    }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                } else {
+                                    console.log('applyRewardEvent concurrent -- apply reward fail===');
+                                    return Promise.reject({
+                                        name: "DBError",
+                                        status: constServerCode.CONCURRENT_DETECTED,
+                                        message: "Apply Reward Fail, please try again later"
+                                    })
+                                }
+                            }
+                        );
+                    }
+                );
             }
         ).then(
             rewardEvent => {
@@ -20061,25 +20078,30 @@ let dbPlayerInfo = {
                 ).then(
                     data => {
                         console.log('getConsumptionDetailOfPlayers - end');
-                        data = data.filter(result => {
-                            return result !== "";
-                        });
-
                         let retArr = [];
-                        data.forEach(
-                            e => {
-                                if (Array.isArray(e)) {
-                                    if (e && e.length) {
-                                        e.forEach(f => {
-                                            retArr.push(f);
-                                        })
+
+                        if (data && data.length) {
+                            data = data.filter(result => {
+                                return result !== "";
+                            });
+
+
+                            data.forEach(
+                                e => {
+                                    if (Array.isArray(e)) {
+                                        if (e && e.length) {
+                                            e.forEach(f => {
+                                                retArr.push(f);
+                                            })
+                                        }
+                                    }
+                                    else {
+                                        retArr.push(e);
                                     }
                                 }
-                                else {
-                                    retArr.push(e);
-                                }
-                            }
-                        );
+                            );
+                        }
+
 
                         return retArr;
                     }
@@ -20327,7 +20349,7 @@ let dbPlayerInfo = {
             let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail, feeDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm, feeProm]);
 
-            console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done');
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done', players && players.length);
 
             if (players && players.length) {
                 let retArr = [];

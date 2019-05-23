@@ -22508,6 +22508,9 @@ define(['js/app'], function (myApp) {
                             if (birthday1Header.title) {
                                 delete birthday1Header.title
                             }
+                            if (birthday1Header.amountPercent) {
+                                delete birthday1Header.amountPercent
+                            }
                             if (birthday1Header.topUpReturnReward) {
                                 delete birthday1Header.topUpReturnReward
                             }
@@ -22525,7 +22528,9 @@ define(['js/app'], function (myApp) {
                             if (birthday2Header.totalConsumptionInInterval) {
                                 delete birthday2Header.totalConsumptionInInterval
                             }
-
+                            if (birthday2Header.rewardAmount) {
+                                delete birthday2Header.rewardAmount
+                            }
                             if (birthday2Header.title) {
                                 delete birthday2Header.title
                             }
@@ -22544,9 +22549,8 @@ define(['js/app'], function (myApp) {
                             if (birthday3Header.minTopUpAmount) {
                                 delete birthday3Header.minTopUpAmount
                             }
-
-                            if (birthday3Header.applyTimes) {
-                                delete birthday3Header.applyTimes
+                            if (birthday3Header.amountPercent) {
+                                delete birthday3Header.amountPercent
                             }
 
                             if (birthday3Header.requiredConsumption) {
@@ -22585,6 +22589,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType1Header.title){
                                 delete festivalType1Header.title
                             }
+                            if(festivalType1Header.amountPercent){
+                                delete festivalType1Header.amountPercent
+                            }
                             if(festivalType1Header.topUpReturnReward){
                                 delete festivalType1Header.topUpReturnReward
                             }
@@ -22604,6 +22611,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType2Header.totalConsumptionInInterval){
                                 delete festivalType2Header.totalConsumptionInInterval
                             }
+                            if(festivalType2Header.rewardAmount){
+                                delete festivalType2Header.rewardAmount
+                            }
                             if(festivalType2Header.title){
                                 delete festivalType2Header.title
                             }
@@ -22620,8 +22630,8 @@ define(['js/app'], function (myApp) {
                             if(festivalType3Header.minTopUpAmount){
                                 delete festivalType3Header.minTopUpAmount
                             }
-                            if(festivalType3Header.applyTimes){
-                                delete festivalType3Header.applyTimes
+                            if(festivalType3Header.amountPercent){
+                                delete festivalType3Header.amountPercent
                             }
                             if(festivalType3Header.requiredConsumption){
                                 delete festivalType3Header.requiredConsumption
@@ -22734,7 +22744,9 @@ define(['js/app'], function (myApp) {
                 if (festivalType1Header.minTopUpAmount) {
                     delete festivalType1Header.minTopUpAmount
                 }
-
+                if (festivalType1Header.amountPercent) {
+                    delete festivalType1Header.amountPercent
+                }
                 if (festivalType1Header.topUpReturnReward) {
                     delete festivalType1Header.topUpReturnReward
                 }
@@ -22754,10 +22766,12 @@ define(['js/app'], function (myApp) {
                 if(festivalType2Header.totalConsumptionInInterval){
                     delete festivalType2Header.totalConsumptionInInterval
                 }
+                if(festivalType2Header.rewardAmount){
+                    delete festivalType2Header.rewardAmount
+                }
                 if(festivalType2Header.title){
                     delete festivalType2Header.title
                 }
-
                 vm.remainMainParamTableFestival[idx].push({
                     header: festivalType2Header,
                     value: festivalType2Value
@@ -22771,9 +22785,6 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.minTopUpAmount){
                     delete festivalType3Header.minTopUpAmount
                 }
-                if(festivalType3Header.applyTimes){
-                    delete festivalType3Header.applyTimes
-                }
                 if(festivalType3Header.requiredConsumption){
                     delete festivalType3Header.requiredConsumption
                 }
@@ -22783,6 +22794,10 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.topUpReturnReward){
                     delete festivalType3Header.topUpReturnReward
                 }
+                if(festivalType3Header.amountPercent){
+                    delete festivalType3Header.amountPercent
+                }
+
                 if(festivalType3Header.title){
                     delete festivalType3Header.title
                 }
@@ -22803,6 +22818,9 @@ define(['js/app'], function (myApp) {
                 if (birthday1Header.minTopUpAmount) {
                     delete birthday1Header.minTopUpAmount;
                 }
+                if (birthday1Header.amountPercent) {
+                    delete birthday1Header.amountPercent;
+                }
                 if (birthday1Header.topUpReturnReward) {
                     delete birthday1Header.topUpReturnReward;
                 }
@@ -22819,6 +22837,9 @@ define(['js/app'], function (myApp) {
                 let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
                 if (birthday2Header.totalConsumptionInInterval) {
                     delete birthday2Header.totalConsumptionInInterval
+                }
+                if (birthday2Header.rewardAmount) {
+                    delete birthday2Header.rewardAmount
                 }
                 if (birthday2Header.title) {
                     delete birthday2Header.title;
@@ -22838,11 +22859,8 @@ define(['js/app'], function (myApp) {
                 if (birthday3Header.minTopUpAmount) {
                     delete birthday3Header.minTopUpAmount
                 }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
-                }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
+                if (birthday3Header.amountPercent) {
+                    delete birthday3Header.amountPercent
                 }
                 if (birthday3Header.expiredInDay) {
                     delete birthday3Header.expiredInDay
@@ -24729,9 +24747,17 @@ define(['js/app'], function (myApp) {
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         vm.popularRecommendationSettingDeletedList = [];
-                        vm.frontEndDeletedList = [];
+                        break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.urlConfigShowMessage = '';
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByPC(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByAPP(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndSkinSettingByH5(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'skinManagement':
+                        vm.skinSettingShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         break;
                 }
@@ -24747,6 +24773,11 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.pcSkinSettingList = [];
+                        vm.appSkinSettingList = [];
+                        vm.h5SkinSettingList = [];
+                        vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'skinManagement':
@@ -24781,6 +24812,7 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function () {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
@@ -24794,7 +24826,7 @@ define(['js/app'], function (myApp) {
                     vm.newFrontEndSkinSetting = {};
                     vm.skinSettingShowMessage = "SUCCESS";
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('saveSkinSetting error: ', err);
                     vm.skinSettingShowMessage = "FAIL";
@@ -24811,21 +24843,98 @@ define(['js/app'], function (myApp) {
                             return item;
                         });
                     }
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, function (err) {
-                    console.error('getFrontEndPopularRecommendationSetting error: ', err);
+                    console.error('getSkinSetting error: ', err);
                 }, true);
             };
 
-            vm.removeFrontEndSkinSetting = function (objId, index) {
+            vm.removeFrontEndSkinSetting = function (objId) {
                 return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
                     console.log("removeSkinSetting success:", data);
                     vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }, err => {
                     console.error('removeSkinSetting error: ', err);
                 });
             }
+            //#endregion
+
+            //#region Frontend Configuration - Url Configuration
+            vm.getFrontEndSkinSettingByPC = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByPC', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.pcSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByPC error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByAPP = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByAPP', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.appSkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByAPP error: ', err);
+                }, true);
+            };
+
+            vm.getFrontEndSkinSettingByH5 = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSettingByH5', {platformObjId: platformObjId}, function (data) {
+                    if (data && data.data) {
+                        vm.h5SkinSettingList = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSettingByH5 error: ', err);
+                }, true);
+            };
+
+            vm.saveFrontEndUrlConfig = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
+                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
+                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
+                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
+                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
+                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
+                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
+                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
+                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
+                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
+                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
+                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null
+                };
+
+                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
+                    console.log("saveUrlConfig success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.urlConfigShowMessage = "SUCCESS";
+                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('saveUrlConfig error: ', err);
+                    vm.urlConfigShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndUrlConfig = function (objId) {
+                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                    console.log('getUrlConfig', data.data);
+                    if (data && data.data) {
+                        vm.frontEndUrlConfig = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getUrlConfig error: ', err);
+                }, true);
+            };
+            //#endregion
 
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
@@ -40083,6 +40192,35 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.editPopularRecommendationSetting = function(eventObjectId) {
+                let i = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                vm.popularRecommendationSetting = {};
+
+                vm.popularRecommendationSetting.title = vm.frontEndPopularRecommendationData[i].title;
+                vm.popularRecommendationSetting.displayTitle = vm.frontEndPopularRecommendationData[i].displayTitle;
+                vm.popularRecommendationSetting.category = vm.frontEndPopularRecommendationData[i].category;
+
+                if(vm.frontEndPopularRecommendationData[i].pc) {
+                    $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
+                }
+
+                vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
+                vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
+                vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
+                vm.popularRecommendationSetting.isNewPlayerVisible = vm.frontEndPopularRecommendationData[i].isNewPlayerVisible;
+                vm.popularRecommendationSetting.isFirstTimeLoginPlayerVisible = vm.frontEndPopularRecommendationData[i].isFirstTimeLoginPlayerVisible;
+                vm.popularRecommendationSetting.isPlayerWithRegisteredHpNoVisible = vm.frontEndPopularRecommendationData[i].isPlayerWithRegisteredHpNoVisible;
+                vm.popularRecommendationSetting.isVisible = vm.frontEndPopularRecommendationData[i].isVisible;
+                vm.popularRecommendationSetting.visibleForBalanceBelow = vm.frontEndPopularRecommendationData[i].visibleForBalanceBelow;
+                vm.popularRecommendationSetting.visibleForInvolveInGameProvider = vm.frontEndPopularRecommendationData[i].visibleForInvolveInGameProvider;
+                vm.popularRecommendationSetting.visibleForTopUpTimeMoreThan = vm.frontEndPopularRecommendationData[i].visibleForTopUpTimeMoreThan;
+                vm.popularRecommendationSetting.visibleOnDevice = vm.frontEndPopularRecommendationData[i].visibleOnDevice;
+                vm.popularRecommendationSetting.visibleOnPlayerLevel = vm.frontEndPopularRecommendationData[i].visibleOnPlayerLevel;
+
+                $('#popularRecommendationSetting').modal();
+
+            }
+
             vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
@@ -40291,7 +40429,7 @@ define(['js/app'], function (myApp) {
                 $("#rewardPointClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"clarificationFile", vm.rewardPointClarificationImageFile);});
                 $("#rewardPointVoucherClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"voucherClarificationFile", vm.rewardPointClarificationImageFile);})
             };
-            
+
             vm.submitRewardPointClarification = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndRewardPointClarificationUploader').show();

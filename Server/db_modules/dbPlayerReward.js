@@ -5843,6 +5843,7 @@ let dbPlayerReward = {
         let isPresetRandomReward = false;
         let isAnyRewardLeft;
         let forbidRewardProm = Promise.resolve(true);
+        let lastTopUpData;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -6107,7 +6108,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            console.log('MT --checking intervalTime', intervalTime);
             if (!rewardData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
@@ -6122,6 +6122,7 @@ let dbPlayerReward = {
             festivalPeriod.startTime = moment(festivalPeriod.startTime).toDate();
             festivalPeriod.endTime = moment(festivalPeriod.endTime).toDate();
             intervalTime = festivalPeriod;
+            console.log('MT --checking intervalTime', intervalTime);
 
             if (!selectedRewardParam || selectedRewardParam.length == 0) {
                 return Q.reject({name: "DataError", message: "The Festival Item is Not Exist"});
@@ -7482,6 +7483,11 @@ let dbPlayerReward = {
                         let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + value.amount, 0) : 0;
                         let consumptionSum = consumptionData ? consumptionData.reduce((sum, value) => sum + value.validAmount, 0): 0
                         let applyRewardSum = periodData ? periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0): 0;
+
+                        if (topUpData && topUpData.length > 0) {
+                            lastTopUpData = topUpData && topUpData[topUpData.length - 1] ? topUpData[topUpData.length - 1] : null;
+                        }
+
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         if(topUpData && topUpData.length > 0){
@@ -8367,6 +8373,11 @@ let dbPlayerReward = {
                             }
                         }
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                            if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
+                                console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
+                                proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
+                            }
+
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
                             if (playerData.deviceId) {
@@ -10426,9 +10437,6 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         .then( data => {
             if (data) {
                 // type 3 dont have attribute of applytimes, so make this default:1
-                if (rewardParam.rewardType == 3 || rewardParam.rewardType == 6) {
-                    rewardParam.applyTimes = 1;
-                }
                 console.log('***MT --checking rewardParam...', rewardParam);
                 if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
                     console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
