@@ -3719,7 +3719,7 @@ let dbPlayerInfo = {
         })
         return result;
     },
-    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode, changeData) {
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, changeData) {
 
         let result = [];
         let addList = forbidRewardEvents.addList;
@@ -3731,17 +3731,16 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
-                    console.log('*****changeData', changeData);
-                    if (changeData.hasOwnProperty("forbidLevelUpReward")) {
+
+                    if (changeData.isForbidPromoCode) {
+                        updateData.forbidPromoCode = changeData.forbidPromoCode;
+                    }
+                    if (changeData.isForbidLevelUpReward) {
                         updateData.forbidLevelUpReward = changeData.forbidLevelUpReward;
                     }
-                    if (changeData.hasOwnProperty("forbidLevelMaintainReward")) {
+                    if (changeData.isForbidLevelMaintainReward) {
                         updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
                     }
-                    if (disablePromoCode != undefined) {
-                        updateData.forbidPromoCode = disablePromoCode ? true : false;
-                    }
-                    console.log('****updateData',updateData)
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
                         'platform': platformObjId

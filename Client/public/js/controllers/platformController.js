@@ -7732,15 +7732,17 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.forbidRewardEventPopover',
                             content: function () {
-                                var data = JSON.parse(this.dataset.row);
-                                vm.forbidRewardEventPopover = data;
-                                vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
-                                vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
-                                vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
-                                vm.forbidRewardEvents = [];
-                                vm.forbidRewardDisable = true;
-                                $scope.safeApply();
-                                return $compile($('#forbidRewardEventPopover').html())($scope);
+                                $scope.$evalAsync(()=>{
+                                    var data = JSON.parse(this.dataset.row);
+                                    vm.forbidRewardEventPopover = data;
+                                    vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                    vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                                    vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                    vm.forbidRewardEvents = [];
+                                    vm.forbidRewardDisable = true;
+                                    vm.selectedAllForbidRewardEvent = false;
+                                    return $compile($('#forbidRewardEventPopover').html())($scope);
+                                })
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
@@ -36396,6 +36398,9 @@ define(['js/app'], function (myApp) {
                                 vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                                 vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
                                 vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                vm.isForbidPromoCode = false;
+                                vm.isForbidLevelUpReward = false;
+                                vm.isForbidLevelMaintainReward = false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
                                 vm.selectedAllForbidRewardEvent = false;
@@ -36440,12 +36445,6 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    // if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined && vm.forbidLevelUpReward == undefined && vm.forbidLevelMaintainReward == undefined) {
-                                    //     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
-                                    //     if (!ans) {
-                                    //         return
-                                    //     }
-                                    // }
 
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
@@ -36463,17 +36462,14 @@ define(['js/app'], function (myApp) {
                                             'removeList': vm.forbidRewardEventRemoveList
                                         },
                                         forbidPromoCode: vm.forbidPromoCode,
-                                        // forbidLevelUpReward: vm.forbidLevelUpReward,
-                                        // forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        forbidLevelUpReward: vm.forbidLevelUpReward,
+                                        forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        isForbidPromoCode: vm.isForbidPromoCode,
+                                        isForbidLevelUpReward: vm.isForbidLevelUpReward,
+                                        isForbidLevelMaintainReward: vm.isForbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
 
-                                    if (vm.forbidLevelUpReward) {
-                                        sendData.forbidLevelUpReward = forbidLevelUpReward;
-                                    }
-                                    if (vm.forbidLevelMaintainReward) {
-                                        sendData.forbidLevelMaintainReward = forbidLevelMaintainReward;
-                                    }
                                     // subcategory 1
                                     vm.batchPermitModifySucc = false;
                                     $(".forbidRewardEventPopover").popover('hide');
@@ -36828,26 +36824,30 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.selectedAllForbidRewardEventToList = function() {
-                if (vm.selectedAllForbidRewardEvent) {
-                    vm.allRewardEvent.forEach( item => {
-                        vm.forbidRewardEventAddList.push(item._id)
-                        $('#c-'+item._id).html($translate("ModifyIt"));
-                    })
-                    $('c-forbidPromoCode').html($translate("ModifyIt"));
-                    $('c-forbidLevelUpReward').html($translate("ModifyIt"));
-                    $('c-forbidLevelMaintainReward').html($translate("ModifyIt"));
-                    vm.forbidGameRemoveList = [];
-                } else {
-                    vm.allRewardEvent.forEach( item => {
+                $scope.$evalAsync(() => {
+                    if (vm.selectedAllForbidRewardEvent) {
+                        vm.allRewardEvent.forEach( item => {
+                            vm.forbidRewardEventAddList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                        vm.forbidRewardEventRemoveList = [];
+                    } else {
+                        vm.allRewardEvent.forEach( item => {
 
-                        vm.forbidGameRemoveList.push(item._id)
-                        $('#c-'+item._id).html($translate("ModifyIt"));
-                    })
-                    vm.forbidRewardEventAddList = [];
-                    $('c-forbidPromoCode').html($translate("ModifyIt"));
-                    $('c-forbidLevelUpReward').html($translate("ModifyIt"));
-                    $('c-forbidLevelMaintainReward').html($translate("ModifyIt"));
-                }
+                            vm.forbidRewardEventRemoveList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+
+                        vm.forbidRewardEventAddList = [];
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                    }
+                })
+
             }
             vm.initBulkClearXIMAWithdraw = function() {
                 let playerNames = vm.splitBatchPermit();
