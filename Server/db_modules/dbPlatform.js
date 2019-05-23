@@ -3905,15 +3905,41 @@ var dbPlatform = {
 
     saveFrontEndPopularRecommendationSetting: (data) => {
         if (data){
-            let record = new dbconfig.collection_frontEndPopularRecommendationSetting(data);
-            return record.save();
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbconfig.collection_frontEndPopularRecommendationSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            }
+            else{
+                let record = new dbconfig.collection_frontEndPopularRecommendationSetting(data);
+                return record.save();
+            }
         }
     },
 
     saveFrontEndRewardPointClarification: (data) => {
         if (data){
-            let record = new dbconfig.collection_frontEndRewardPointClarification(data);
-            return record.save();
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbconfig.collection_frontEndRewardPointClarification.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            }
+            else{
+                let record = new dbconfig.collection_frontEndRewardPointClarification(data);
+                return record.save();
+            }
         }
     },
 
