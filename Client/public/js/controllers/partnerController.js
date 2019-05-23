@@ -17421,7 +17421,7 @@ define(['js/app'], function (myApp) {
         ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
         vm.getSelectedCommissionPeriod = () => {
             if (vm.selectedCommissionPeriod) {
-                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id};
+                let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.realTimeCommissionQuery.platformObjId};
 
                 if (vm.realTimeCommissionQuery.partnerName) {
                     query.partnerName = vm.realTimeCommissionQuery.partnerName;
@@ -17467,7 +17467,7 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
-            if (vm.commissionPeriodUsed && vm.commissionPeriodUsed.startTime && vm.commissionPeriodUsed.endTime) {
+            if (vm.selectCommissionPeriod && vm.commissionPeriodUsed && vm.commissionPeriodUsed.startTime && vm.commissionPeriodUsed.endTime) {
                 query.startTime = vm.commissionPeriodUsed.startTime;
                 query.endTime = vm.commissionPeriodUsed.endTime;
             }

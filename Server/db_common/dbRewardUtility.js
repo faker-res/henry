@@ -827,14 +827,14 @@ const dbRewardUtility = {
         }
     },
 
-    checkRewardApplyAnyWithdrawAfterTopup: (eventData, playerData, topupCreateTime) => {
+    checkRewardApplyAnyWithdrawAfterTopup: async (eventData, playerData, topupCreateTime) => {
         let withdrawPropQuery = {
             'data.platformId': playerData.platform._id,
             'data.playerObjId': playerData._id,
             createTime: {$gt: topupCreateTime},
             status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
         };
-        let withdrawAfterTopupProp = dbPropUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery);
+        let withdrawAfterTopupProp = await dbPropUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery);
 
         // Check withdrawal after top up condition
         if (!eventData.condition.allowApplyAfterWithdrawal && withdrawAfterTopupProp) {
