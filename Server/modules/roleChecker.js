@@ -574,8 +574,9 @@ var roleChecker = {
                 Read: [],
                 popularRecommendation: [],
                 rewardPointClarification: [],
+                carouselConfiguration: [],
+                urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
-                urlConfiguration: ['getSkinSettingByPC', 'getSkinSettingByAPP', 'getSkinSettingByH5', 'saveUrlConfig', 'getUrlConfig']
             },
             "AuctionSystem": {
                 Read: [],

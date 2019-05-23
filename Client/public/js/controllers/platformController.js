@@ -24750,13 +24750,16 @@ define(['js/app'], function (myApp) {
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         vm.popularRecommendationSettingDeletedList = [];
                         break;
+                    case 'carouselConfiguration':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                     case 'urlConfiguration':
                         vm.frontEndUrlConfig = {};
                         vm.urlConfigShowMessage = '';
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByPC(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByAPP(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByH5(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'skinManagement':
                         vm.skinSettingShowMessage = '';
@@ -24774,11 +24777,12 @@ define(['js/app'], function (myApp) {
                     case 'popularRecommendation':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
+                    case 'carouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                     case 'urlConfiguration':
                         vm.frontEndUrlConfig = {};
-                        vm.pcSkinSettingList = [];
-                        vm.appSkinSettingList = [];
-                        vm.h5SkinSettingList = [];
+                        vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
@@ -24863,39 +24867,6 @@ define(['js/app'], function (myApp) {
             //#endregion
 
             //#region Frontend Configuration - Url Configuration
-            vm.getFrontEndSkinSettingByPC = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByPC', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.pcSkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByPC error: ', err);
-                }, true);
-            };
-
-            vm.getFrontEndSkinSettingByAPP = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByAPP', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.appSkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByAPP error: ', err);
-                }, true);
-            };
-
-            vm.getFrontEndSkinSettingByH5 = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByH5', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.h5SkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByH5 error: ', err);
-                }, true);
-            };
-
             vm.saveFrontEndUrlConfig = function () {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
@@ -24935,6 +24906,13 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                     console.error('getUrlConfig error: ', err);
                 }, true);
+            };
+            //#endregion
+
+            //#region Frontend Configuration - Carousel Configuration
+            vm.initCarouselSetting = function() {
+                vm.newFrontEndCarousel = {};
+                $('#carouselSetting').modal();
             };
             //#endregion
 
