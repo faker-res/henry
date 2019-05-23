@@ -55,6 +55,8 @@ style.
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardPointClarification"}', ng-click='vm.frontEndSettingTabClicked("rewardPointClarification")')
+            span {{"REWARD_POINT_CLARIFICATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
             span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
@@ -81,6 +83,10 @@ style.
                 // Tab - popular recommendation
                 .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
                     include frontEndConfiguration-popularRecommendation
+
+                // Tab - reward point briefing
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardPointClarification" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardPointClarification")')
+                    include frontEndConfiguration-rewardPointClarification
 
                 // Tab - url Configuration
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
@@ -187,10 +193,10 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
                             .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 1")
-                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                    div.inline-block(style="width: 70%;")
-                                        input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                        input#popularRecommendationAppNewPageFile(type="file")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationAppNewPageFile(type="file")
                             .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -264,3 +270,52 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#frontEndPopularRecommendationUploader.collapse
                     i.fa.fa-spinner.fa-spin
+
+
+#rewardPointClarification.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Reward Point Clarification" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.rewardPointClarification.device')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardPointClarification.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") VIP {{"PRIVILEGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVipPrivilegeFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REWARD POINT CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointClarificationFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VOUCHER CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVoucherClarificationFile(type="file")
+                        .col-md-6
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label VIP {{'Privilege File Preview (Resolution: 750*375)' | translate}}
+                                img#vipPrivilegeFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'Reward Point Clarification Preview （Width: 750)' | translate}}
+                                img#clarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'Voucher Clarification Preview (Width: 750)' | translate}}
+                                img#voucherClarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardPointClarification()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndRewardPointClarificationUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+

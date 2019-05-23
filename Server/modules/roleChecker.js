@@ -573,6 +573,7 @@ var roleChecker = {
             "FrontEndConfiguration": {
                 Read: [],
                 popularRecommendation: [],
+                rewardPointClarification: [],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 urlConfiguration: ['getSkinSettingByPC', 'getSkinSettingByAPP', 'getSkinSettingByH5', 'saveUrlConfig', 'getUrlConfig']
             },

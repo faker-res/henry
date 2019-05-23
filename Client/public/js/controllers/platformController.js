@@ -24738,6 +24738,10 @@ define(['js/app'], function (myApp) {
 
             vm.frontEndSettingPlatform = function () {
                 switch (vm.selectedFrontEndSettingTab) {
+                    case 'rewardPointClarification':
+                        vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                        vm.frontEndDeletedList = [];
+                        break;
                     case 'popularRecommendation':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
@@ -24762,6 +24766,9 @@ define(['js/app'], function (myApp) {
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
+                    case 'rewardPointClarification':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                     case 'popularRecommendation':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
@@ -24785,7 +24792,6 @@ define(['js/app'], function (myApp) {
             vm.initFrontendConfiguration2 = function () {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
-                    vm.selectedFrontEndSettingTab  = "popularRecommendation";
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable"
@@ -40150,20 +40156,20 @@ define(['js/app'], function (myApp) {
                 vm.refreshSPicker();
 
                 $('#popularRecommendationSetting').modal();
-                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage");});
-                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage");});
-                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail");});
+                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.popularRecommendationImageFile);});
 
-                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image");});
-                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage");});
-                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail");});
+                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail", vm.popularRecommendationImageFile);});
 
-                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage");});
-                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage");});
-                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail");});
+                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail", vm.popularRecommendationImageFile);});
             };
 
-            vm.readURL = (input, previewId) => {
+            vm.readURL = (input, previewId, holder) => {
                 console.log(input);
                 if (input.files && input.files[0] && vm.selectedPlatformId) {
                     let reader1 = new FileReader();
@@ -40172,7 +40178,7 @@ define(['js/app'], function (myApp) {
                         $(`#${previewId}`).attr('src', e.target.result);
                     };
                     reader2.onload = function (e) {
-                        vm.popularRecommendationImageFile[previewId] = {
+                        holder[previewId] = {
                             platformId: vm.selectedPlatformId,
                             token: authService.getToken($cookies),
                             fileStream: e.target.result,
@@ -40189,7 +40195,7 @@ define(['js/app'], function (myApp) {
             vm.editPopularRecommendationSetting = function(eventObjectId) {
                 let i = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
                 vm.popularRecommendationSetting = {};
-                
+
                 vm.popularRecommendationSetting.title = vm.frontEndPopularRecommendationData[i].title;
                 vm.popularRecommendationSetting.displayTitle = vm.frontEndPopularRecommendationData[i].displayTitle;
                 vm.popularRecommendationSetting.category = vm.frontEndPopularRecommendationData[i].category;
@@ -40197,7 +40203,7 @@ define(['js/app'], function (myApp) {
                 if(vm.frontEndPopularRecommendationData[i].pc) {
                     $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
                 }
-                
+
                 vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
                 vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
                 vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
@@ -40241,7 +40247,7 @@ define(['js/app'], function (myApp) {
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
-                        prom = prom.then(()=>{return vm.uploadToFtp(item).then(removeFromList)});
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.popularRecommendationImageFile, vm.popularRecommendationImageUrl).then(removeFromList)});
                     }
                 );
 
@@ -40302,8 +40308,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.uploadToFtp = (holderName) => {
-                let sendQuery = vm.popularRecommendationImageFile[holderName];
+            vm.uploadToFtp = (holderName, holder, retUrlHolder) => {
+                let sendQuery = holder[holderName];
                 let fileName = sendQuery && sendQuery.fileName ? sendQuery.fileName : null;
                 console.log("sendFileFTP query", sendQuery);
                 return new Promise((resolve, reject)=>{
@@ -40313,7 +40319,7 @@ define(['js/app'], function (myApp) {
                     return socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
                         console.log("sendFileFTP ret", data);
                         data.name = holderName;
-                        vm.popularRecommendationImageUrl[holderName] = data && data.data && data.data.url ? data.data.url : null;
+                        retUrlHolder[holderName] = data && data.data && data.data.url ? data.data.url : null;
                         socketService.showConfirmMessage(fileName + " " + $translate("has been uploaded."), 10000);
                         return resolve(data);
                     }, function (err) {
@@ -40378,16 +40384,138 @@ define(['js/app'], function (myApp) {
 
             vm.deletePopularRecommendation = function (eventObjectId){
                 if (eventObjectId){
-                    vm.popularRecommendationSettingDeletedList.push(eventObjectId);
-                    const eventElement = document.getElementById(eventObjectId);
-                    eventElement.style.display = "none";
-                    // let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    // if (index != -1){
-                    //     vm.frontEndPopularRecommendationData.splice(index, 1);
-                    // }
-
-
+                    $scope.$evalAsync( () => {
+                        vm.popularRecommendationSettingDeletedList.push(eventObjectId);
+                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                        if (index != -1){
+                            vm.frontEndPopularRecommendationData.splice(index, 1);
+                        }
+                    })
                 }
+            };
+
+            vm.deleteFrontEndSetting = function (eventObjectId, holder){
+                if (eventObjectId){
+                    $scope.$evalAsync( () => {
+                        vm.frontEndDeletedList.push(eventObjectId);
+                        let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
+                        if (index != -1){
+                            holder.splice(index, 1);
+                        }
+                    })
+                }
+            };
+
+            vm.addNewRewardPointClarification = function () {
+                vm.rewardPointClarification = {};
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.rewardPointClarificationImageFile = {};
+                vm.rewardPointClarificationImageUrl = {};
+
+                //reset
+                document.querySelector('#rewardPointVipPrivilegeFile').value = "";
+                document.querySelector('#rewardPointClarificationFile').value = "";
+                document.querySelector('#rewardPointVoucherClarificationFile').value = "";
+
+                $('#vipPrivilegeFile').attr("src","");
+                $('#clarificationFile').attr("src","");
+                $('#voucherClarificationFile').attr("src","");
+
+                vm.refreshSPicker();
+
+                $('#rewardPointClarification').modal();
+                $("#rewardPointVipPrivilegeFile").change((ev)=>{vm.readURL(ev.currentTarget,"vipPrivilegeFile", vm.rewardPointClarificationImageFile);});
+                $("#rewardPointClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"clarificationFile", vm.rewardPointClarificationImageFile);});
+                $("#rewardPointVoucherClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"voucherClarificationFile", vm.rewardPointClarificationImageFile);})
+            };
+
+            vm.submitRewardPointClarification = () => {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndRewardPointClarificationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.rewardPointClarificationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "vipPrivilegeFile",
+                    "clarificationFile",
+                    "voucherClarificationFile",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.rewardPointClarificationImageFile, vm.rewardPointClarificationImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.rewardPointClarificationImageUrl", vm.rewardPointClarificationImageUrl);
+                        vm.rewardPointClarification.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.rewardPointClarificationImageUrl){
+                            if (vm.rewardPointClarificationImageUrl.vipPrivilegeFile){
+                                vm.rewardPointClarification.vipPrivilegeUrl = vm.rewardPointClarificationImageUrl.vipPrivilegeFile
+                            }
+                            if (vm.rewardPointClarificationImageUrl.clarificationFile){
+                                vm.rewardPointClarification.rewardPointClarificationUrl = vm.rewardPointClarificationImageUrl.clarificationFile
+                            }
+                            if (vm.rewardPointClarificationImageUrl.voucherClarificationFile){
+                                vm.rewardPointClarification.voucherClarificationUrl = vm.rewardPointClarificationImageUrl.voucherClarificationFile
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndRewardPointClarification', vm.rewardPointClarification, function (data) {
+                                    console.log("saveFrontEndRewardPointClarification ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndRewardPointClarificationUploader').hide();
+                                    // close the modal
+                                    $('#rewardPointClarification').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndRewardPointClarification err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndRewardPointClarificationUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndRewardPointClarificationUploaders').hide();
+                });
+            };
+
+            vm.loadRewardPointClarificationData = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndRewardPointClarification', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndRewardPointClarification', data.data);
+                        if (data && data.data) {
+                            vm.frontEndRewardPointClarificationData = data.data;
+                        }
+                    })
+                }, function (err) {
+                    console.error('getFrontEndRewardPointClarification error: ', err);
+                }, true);
+            };
+
+            vm.updateRewardPointClarification = function () {
+                socketService.$socket($scope.AppSocket, 'updateRewardPointClarification', {deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateRewardPointClarification is done', data);
+                            vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
             };
 
             function getSelectedPlatform() {
