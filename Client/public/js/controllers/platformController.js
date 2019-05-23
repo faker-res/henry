@@ -25065,6 +25065,7 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.ranking = vm.playerRewardRanking.totalCount - index - sendData.index;
                             }
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformObjId})[0].name;
                             return item;
                         })
                         , vm.playerRewardRanking.totalCount, {}, isNewSearch)
@@ -25084,6 +25085,7 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {title: $translate('REWARD_POINTS_RANKING'), data: "ranking"},
                         {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('LEVEL'), data: "playerLevel.name"},
@@ -25139,6 +25141,7 @@ define(['js/app'], function (myApp) {
                                 item.ranking = vm.playerRewardRankingRandom.totalCount - index - sendData.index;
                             }
                             item.lastUpdate = vm.dateReformat(item.lastUpdate);
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformObjId})[0].name;
                             return item;
                         })
                         , vm.playerRewardRankingRandom.totalCount, {}, isNewSearch)
@@ -25166,6 +25169,8 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {
                             "title": $translate('Multiselect'),
                             bSortable: false,
@@ -25660,6 +25665,9 @@ define(['js/app'], function (myApp) {
                 vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit).then(
                     (data) => {
                         $scope.safeApply();
+                        data.data.forEach(item => {
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformId})[0].name;
+                        });
                         vm.allRewardPointsLog = data;
                         console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
                         vm.drawRewardPointsLogTable(vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
@@ -25740,6 +25748,7 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {title: $translate('Reward Point ID'), data: "pointLogId"},
                         {title: $translate('Proposal Creator'), data: "creator"},
                         {
