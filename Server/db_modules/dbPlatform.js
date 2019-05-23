@@ -3905,8 +3905,41 @@ var dbPlatform = {
 
     saveFrontEndPopularRecommendationSetting: (data) => {
         if (data){
-            let record = new dbconfig.collection_frontEndPopularRecommendationSetting(data);
-            return record.save();
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbconfig.collection_frontEndPopularRecommendationSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            }
+            else{
+                let record = new dbconfig.collection_frontEndPopularRecommendationSetting(data);
+                return record.save();
+            }
+        }
+    },
+
+    saveFrontEndRewardPointClarification: (data) => {
+        if (data){
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbconfig.collection_frontEndRewardPointClarification.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            }
+            else{
+                let record = new dbconfig.collection_frontEndRewardPointClarification(data);
+                return record.save();
+            }
         }
     },
 
@@ -3914,6 +3947,15 @@ var dbPlatform = {
         let prom =  Promise.resolve();
         if (platformObjId){
             prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
+    getFrontEndRewardPointClarification: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbconfig.collection_frontEndRewardPointClarification.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
         }
 
         return prom;
@@ -3954,6 +3996,24 @@ var dbPlatform = {
         function getAndUpdatePopularRecommendationSetting (eventObjectId, updateQuery) {
             return dbconfig.collection_frontEndPopularRecommendationSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
         }
+    },
+
+    updateRewardPointClarification: (deletedList) => {
+        let prom = [];
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(dbconfig.collection_frontEndRewardPointClarification.findOneAndUpdate({_id: ObjectId(data)}, updateQuery).lean())
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
     },
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {

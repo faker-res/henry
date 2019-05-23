@@ -3719,7 +3719,7 @@ let dbPlayerInfo = {
         })
         return result;
     },
-    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode) {
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, changeData) {
 
         let result = [];
         let addList = forbidRewardEvents.addList;
@@ -3731,12 +3731,15 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
-                    if (disablePromoCode != undefined) {
-                        updateData.forbidPromoCode = disablePromoCode ? true : false;
-                    }
 
-                    if (addList.length == 0 && removeList.length == 0) {
-                        updateData.forbidRewardEvents = [];
+                    if (changeData.isForbidPromoCode) {
+                        updateData.forbidPromoCode = changeData.forbidPromoCode;
+                    }
+                    if (changeData.isForbidLevelUpReward) {
+                        updateData.forbidLevelUpReward = changeData.forbidLevelUpReward;
+                    }
+                    if (changeData.isForbidLevelMaintainReward) {
+                        updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
                     }
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
@@ -20078,25 +20081,30 @@ let dbPlayerInfo = {
                 ).then(
                     data => {
                         console.log('getConsumptionDetailOfPlayers - end');
-                        data = data.filter(result => {
-                            return result !== "";
-                        });
-
                         let retArr = [];
-                        data.forEach(
-                            e => {
-                                if (Array.isArray(e)) {
-                                    if (e && e.length) {
-                                        e.forEach(f => {
-                                            retArr.push(f);
-                                        })
+
+                        if (data && data.length) {
+                            data = data.filter(result => {
+                                return result !== "";
+                            });
+
+
+                            data.forEach(
+                                e => {
+                                    if (Array.isArray(e)) {
+                                        if (e && e.length) {
+                                            e.forEach(f => {
+                                                retArr.push(f);
+                                            })
+                                        }
+                                    }
+                                    else {
+                                        retArr.push(e);
                                     }
                                 }
-                                else {
-                                    retArr.push(e);
-                                }
-                            }
-                        );
+                            );
+                        }
+
 
                         return retArr;
                     }
@@ -20344,7 +20352,7 @@ let dbPlayerInfo = {
             let [players, gameDetail, topUpAndBonusDetail, rewardDetail, csOfficerDetail, feeDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, rewardProm, promoteWayProm, feeProm]);
 
-            console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done');
+            console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done', players && players.length);
 
             if (players && players.length) {
                 let retArr = [];
