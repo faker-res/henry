@@ -3866,7 +3866,7 @@ define(['js/app'], function (myApp) {
                                                 : item.data.alipayAccount ? item.data.alipayAccount
                                                     : item.data.bankCardNo ? item.data.bankCardNo
                                                         : item.data.accountNo ? item.data.accountNo : null;
-                                    item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                                    //item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                                     item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                                     item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount + "/" + item.$playerAllCommonTopUpCount;
                                     item.status$ = $translate(item.status);
@@ -4010,7 +4010,7 @@ define(['js/app'], function (myApp) {
                                         item.topupTypeStr = $translate(item.type.name);
                                     }
 
-                                    item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
+                                    //item.merchantCount$ = item.merchantCurrentCount + "/" + item.merchantTotalCount + " (" + item.merchantGapTime + ")";
                                     item.playerCount$ = item.playerCurrentCount + "/" + item.playerTotalCount + " (" + item.playerGapTime + ")";
                                     item.playerCommonTopUpCount$ = item.playerCurrentCommonTopUpCount + "/" + item.playerCommonTopUpTotalCount;
                                     item.status$ = $translate(item.status);
@@ -4361,7 +4361,7 @@ define(['js/app'], function (myApp) {
                         },
                         sClass: 'merchantCount',
                         "width": "90px"},
-                    {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
+                    //{title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
@@ -4543,7 +4543,7 @@ define(['js/app'], function (myApp) {
                         },
                         sClass: 'merchantCount',
                         "width": "90px"},
-                    {title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
+                    //{title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
                     {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
