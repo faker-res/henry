@@ -21417,7 +21417,7 @@ define(['js/app'], function (myApp) {
                     vm.showReward.condition.imageUrl = [""];
                 }
 
-                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "PlayerFestivalRewardGroup")) {
+                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup")) {
                     // set to the new display style
                     vm.isNewDisplay = true;
                 }
@@ -40189,7 +40189,7 @@ define(['js/app'], function (myApp) {
             vm.editPopularRecommendationSetting = function(eventObjectId) {
                 let i = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
                 vm.popularRecommendationSetting = {};
-                
+
                 vm.popularRecommendationSetting.title = vm.frontEndPopularRecommendationData[i].title;
                 vm.popularRecommendationSetting.displayTitle = vm.frontEndPopularRecommendationData[i].displayTitle;
                 vm.popularRecommendationSetting.category = vm.frontEndPopularRecommendationData[i].category;
@@ -40197,7 +40197,7 @@ define(['js/app'], function (myApp) {
                 if(vm.frontEndPopularRecommendationData[i].pc) {
                     $('#pcImage').attr("src", vm.frontEndPopularRecommendationData[i].pc.imageUrl);
                 }
-                
+
                 vm.popularRecommendationSetting.displayOrder = vm.frontEndPopularRecommendationData[i].displayOrder;
                 vm.popularRecommendationSetting.status = vm.frontEndPopularRecommendationData[i].status;
                 vm.popularRecommendationSetting.isPlayerVisible = vm.frontEndPopularRecommendationData[i].isPlayerVisible;
