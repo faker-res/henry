@@ -6142,7 +6142,7 @@ var proposal = {
                 proposals = proposalData[1];
 
 
-                return insertRepeatCount(proposals, data.platformId, data);
+                return insertRepeatCount(proposals, data.platformId, data, false);
             }
         ).then(
             proposals => {
@@ -6315,7 +6315,7 @@ var proposal = {
         ).then(
             proposalData => {
                 console.log("LH Check payment monitor total 0----------------------", proposalData.length);
-                return insertRepeatCount(proposalData, data.platformList, data);
+                return insertRepeatCount(proposalData, data.platformList, data, true);
             }
         ).then(
             proposals => {
@@ -8443,7 +8443,7 @@ var proposal = {
  */
 
 // lets do the most basic version, refactor later
-function insertRepeatCount(proposals, platformList, query) {
+function insertRepeatCount(proposals, platformList, query, isFromMain) {
     return new Promise(function (resolve) {
         let typeIds = null;
         let commonTopUpTypeIds;
@@ -8471,7 +8471,13 @@ function insertRepeatCount(proposals, platformList, query) {
                             typeIds = typeIdData[0] || null;
                             commonTopUpTypeIds = typeIdData[1] || null;
                             typeIdsWithoutCommonTopUp = typeIdData[2] || null;
-                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+
+                            if (isFromMain) {
+                                // 支付监控(总)-去掉商户计数的统计-因为pms有做了商户计数，所以客服不需要关注了
+                                return Promise.all([handleFailurePlayer(proposal)]);
+                            } else {
+                                return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                            }
                         }
                     ).then(
                         () => {
