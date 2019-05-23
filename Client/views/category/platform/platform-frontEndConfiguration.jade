@@ -1,11 +1,62 @@
 style.
-    .bg-secondary {
-        background-color: #868E96;
+    .connected-sortable {
+        /*margin: 0 auto;*/
+        list-style: none;
+        padding: 0px;
+        /*width: 90%;*/
+        min-height: 500px;
+    }
+    li.draggable-item {
+        width: inherit;
+        padding: 0.5em;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        margin: 1em 0;
+        border: 1px solid rgb(190, 190, 190);
+        text-align: center;
+        position: relative;
+        -webkit-transition: transform .25s ease-in-out;
+        -moz-transition: transform .25s ease-in-out;
+        -o-transition: transform .25s ease-in-out;
+        transition: transform .25s ease-in-out;
+
+        -webkit-transition: box-shadow .25s ease-in-out;
+        -moz-transition: box-shadow .25s ease-in-out;
+        -o-transition: box-shadow .25s ease-in-out;
+        transition: box-shadow .25s ease-in-out;
+    }
+    /* styles during drag */
+    li.draggable-item.ui-sortable-helper {
+        background-color: #e5e5e5;
+        -webkit-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        -moz-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        transform: scale(1.015);
+        z-index: 100;
+    }
+    li.draggable-item.ui-sortable-placeholder {
+        background-color: #ddd;
+        -moz-box-shadow: inset 0 0 10px #000000;
+        -webkit-box-shadow: inset 0 0 10px #000000;
+        box-shadow: inset 0 0 10px #000000;
+    }
+    .tab-btngroup {
+        display: inline-block;
+        position: absolute;
+        top: 30%;
+        right: 0;
+        z-index: 100;
+    }
+    .btn-delete {
+        border-radius: 100%!important;
+        margin: 0 .5em;
     }
 .row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
+            span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
             span {{"SKIN_MANAGEMENT" | translate}}
 
@@ -28,22 +79,12 @@ style.
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
                 // Tab - popular recommendation
-                .col-md-12(ng-if='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
-                    div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
-                        div(style="display: inline;")
-                            label {{'Setting For Popular Recommendation' | translate}}
-                            br
-                            label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-                        btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting()")
-                            span.fa.fa-pencil-square-o {{"ADD" | translate}}
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                    include frontEndConfiguration-popularRecommendation
 
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Recommended_Game' | translate}}
-
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Bottom_Banner' | translate}}
+                // Tab - url Configuration
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
+                    include frontEndConfiguration-url
 
                 // Tab - skin management
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
@@ -81,25 +122,25 @@ style.
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 1")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control(ng-model="vm.popularRecommendationSetting.pc.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationPcNewPageFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 2")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control(ng-model="vm.popularRecommendationSetting.pc.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
                                     input#popularRecommendationPcPageDetailFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 3")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 4")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.pc.onClickAction == 5")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 5")
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
@@ -113,25 +154,25 @@ style.
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 1")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control(ng-model="vm.popularRecommendationSetting.h5.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationH5NewPageFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 2")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control(ng-model="vm.popularRecommendationSetting.h5.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
                                     input#popularRecommendationH5PageDetailFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 3")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 4")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.h5.onClickAction == 5")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 5")
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
@@ -145,25 +186,25 @@ style.
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 1")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")
                                         input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                         input#popularRecommendationAppNewPageFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 2")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control(ng-model="vm.popularRecommendationSetting.app.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
                                     input#popularRecommendationAppPageDetailFile(type="file")
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 3")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 3")
                                 label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 4")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 4")
                                 label(style="width: 30%;") {{"ROUTE"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-if="vm.popularRecommendationSetting.app.onClickAction == 5")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 5")
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')

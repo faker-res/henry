@@ -3913,10 +3913,47 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
         }
 
         return prom;
+    },
+
+    updatePopularRecommendationSetting: (dataList, deletedList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            category: data.category,
+                            isVisible: data.isVisible,
+                            displayOrder: data.displayOrder
+                        };
+                        prom.push(getAndUpdatePopularRecommendationSetting (ObjectId(data._id), updateQuery))
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdatePopularRecommendationSetting(ObjectId(data), updateQuery))
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdatePopularRecommendationSetting (eventObjectId, updateQuery) {
+            return dbconfig.collection_frontEndPopularRecommendationSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
     },
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {
@@ -5712,7 +5749,7 @@ var dbPlatform = {
                                                                             deferred.reject({
                                                                                 status: constServerCode.DB_ERROR,
                                                                                 name: "DataError",
-                                                                                errorMessage: "File name: " + fileName + " exists",
+                                                                                errorMessage: fileName + " " + localization.localization.translate("exists, please re-upload a new image."),
                                                                             });
                                                                         } else {
                                                                             ftpClient.put(buffer, fileName, function (err) {
@@ -5844,7 +5881,7 @@ var dbPlatform = {
                                                                         deferred.reject({
                                                                             status: constServerCode.DB_ERROR,
                                                                             name: "DataError",
-                                                                            errorMessage: "File name: " + fileName + " exists"
+                                                                            errorMessage: fileName + " " + localization.localization.translate("exists, please re-upload a new file."),
                                                                         });
                                                                     } else {
                                                                         ftpClient.put(fileStream, fileName, function (err) {
