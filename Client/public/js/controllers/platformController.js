@@ -24788,7 +24788,48 @@ define(['js/app'], function (myApp) {
                     vm.selectedFrontEndSettingTab  = "popularRecommendation";
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                            connectWith: ".connected-sortable"
+                            connectWith: ".connected-sortable",
+                            stop: function () {
+                                let arr1 = $('.droppable-area1').sortable('toArray');
+                                let arr2 = $('.droppable-area2').sortable('toArray');
+                                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                                arr1.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr2.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr3.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+                            }
                         });
                     });
                 })
@@ -40378,15 +40419,15 @@ define(['js/app'], function (myApp) {
 
             vm.deletePopularRecommendation = function (eventObjectId){
                 if (eventObjectId){
-                    vm.popularRecommendationSettingDeletedList.push(eventObjectId);
-                    const eventElement = document.getElementById(eventObjectId);
-                    eventElement.style.display = "none";
-                    // let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    // if (index != -1){
-                    //     vm.frontEndPopularRecommendationData.splice(index, 1);
-                    // }
-
-
+                    $scope.$evalAsync( () => {
+                        vm.popularRecommendationSettingDeletedList.push(eventObjectId);
+                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
+                        if (index != -1){
+                            setTimeout(() => {
+                                vm.frontEndPopularRecommendationData.splice(index, 1);
+                            }, 0);
+                        }
+                    })
                 }
             };
 
