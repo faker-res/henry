@@ -102,6 +102,8 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
     isVisible: {type: Boolean, default: true},
     // 1: available; 2: deleted
     status: {type: Number, index: true, default: 1},
+    // display order based on individual category
+    displayOrder: {type: Number, index: true},
 
 });
 

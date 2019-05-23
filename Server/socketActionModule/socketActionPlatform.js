@@ -46,11 +46,39 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.saveFrontEndPopularRecommendationSetting, [data], actionName, isValidData);
         },
 
+        updatePopularRecommendationSetting: function updatePopularRecommendationSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbPlatform.updatePopularRecommendationSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
+        saveFrontEndRewardPointClarification: function saveFrontEndRewardPointClarification (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbPlatform.saveFrontEndRewardPointClarification, [data], actionName, isValidData);
+        },
+
+        getFrontEndRewardPointClarification: function  getFrontEndRewardPointClarification (data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbPlatform.getFrontEndRewardPointClarification, [data.platformObjId], actionName, isValidData);
+        },
+
         getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateRewardPointClarification: function updateRewardPointClarification (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbPlatform.updateRewardPointClarification, [data.deletedList], actionName, isValidData);
         },
 
         /**

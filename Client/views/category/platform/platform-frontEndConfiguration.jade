@@ -1,16 +1,14 @@
 style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
     .connected-sortable {
-        margin: 0 auto;
+        /*margin: 0 auto;*/
         list-style: none;
-        width: 90%;
+        padding: 0px;
+        /*width: 90%;*/
         min-height: 500px;
     }
     li.draggable-item {
         width: inherit;
-        padding: 1em;
+        padding: 0.5em;
         background-color: #f5f5f5;
         border-radius: 4px;
         margin: 1em 0;
@@ -57,6 +55,10 @@ style.
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
             span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardPointClarification"}', ng-click='vm.frontEndSettingTabClicked("rewardPointClarification")')
+            span {{"REWARD_POINT_CLARIFICATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
+            span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
             span {{"SKIN_MANAGEMENT" | translate}}
 
@@ -78,50 +80,17 @@ style.
                 .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
+                // Tab - popular recommendation
                 .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
-                    div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
-                        div(style="display: inline;")
-                            label {{'Setting For Popular Recommendation' | translate}}
-                            br
-                            label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-                        btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting()")
-                            span.fa.fa-pencil-square-o {{"ADD" | translate}}
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
-                        ul.connected-sortable.droppable-area1
-                            li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1", id="{{'categoryOne_' + one._id}}")
-                                img(ng-src="{{one.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
+                    include frontEndConfiguration-popularRecommendation
 
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Recommended_Game' | translate}}
-                        ul.connected-sortable.droppable-area2
-                            li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2", id="{{'categoryTwo_' + two._id}}")
-                                img(ng-src="{{two.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
+                // Tab - reward point briefing
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardPointClarification" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardPointClarification")')
+                    include frontEndConfiguration-rewardPointClarification
 
-                    div.col-md-4.fronendConfigDiv
-                        span(style='font-weight: bold;') {{'Bottom_Banner' | translate}}
-                        ul.connected-sortable.droppable-area3
-                            li.draggable-item(ng-repeat="three in vm.frontEndPopularRecommendationData", ng-if="three.category == 3", id="{{'categoryThree_' + three._id}}")
-                                img(ng-src="{{three.pc.imageUrl}}" width="100%" height="80px")
-                                .tab-btngroup
-                                    button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
-                                    button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
-                                    button.btn.btn-danger.btn-delete
-                                        span.fa.fa-trash-o
-
-
-                    div.text-right
-                        button#testSave.btn-primary.btn {{'SAVE' | translate}}
+                // Tab - url Configuration
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
+                    include frontEndConfiguration-url
 
                 // Tab - skin management
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
@@ -224,10 +193,10 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
                             .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 1")
-                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                    div.inline-block(style="width: 70%;")
-                                        input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                        input#popularRecommendationAppNewPageFile(type="file")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationAppNewPageFile(type="file")
                             .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 2")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -301,3 +270,52 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#frontEndPopularRecommendationUploader.collapse
                     i.fa.fa-spinner.fa-spin
+
+
+#rewardPointClarification.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Reward Point Clarification" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.rewardPointClarification.device')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardPointClarification.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") VIP {{"PRIVILEGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVipPrivilegeFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REWARD POINT CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointClarificationFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VOUCHER CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVoucherClarificationFile(type="file")
+                        .col-md-6
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label VIP {{'Privilege File Preview (Resolution: 750*375)' | translate}}
+                                img#vipPrivilegeFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'Reward Point Clarification Preview （Width: 750)' | translate}}
+                                img#clarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'Voucher Clarification Preview (Width: 750)' | translate}}
+                                img#voucherClarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardPointClarification()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndRewardPointClarificationUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
