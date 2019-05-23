@@ -836,8 +836,6 @@ const dbRewardUtility = {
         };
         let withdrawAfterTopupProp = await dbPropUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery);
 
-        console.log('checkRewardApplyAnyWithdrawAfterTopup', eventData.condition.allowApplyAfterWithdrawal, withdrawAfterTopupProp);
-
         // Check withdrawal after top up condition
         if (!eventData.condition.allowApplyAfterWithdrawal && withdrawAfterTopupProp) {
             return Promise.reject({
