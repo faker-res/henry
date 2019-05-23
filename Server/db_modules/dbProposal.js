@@ -6367,7 +6367,7 @@ var proposal = {
                     filteredResult.forEach(
                         result => {
                             if(result){
-                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, query.createTime));
+                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, data.endTime));
                             }
                         }
                     );
@@ -6384,7 +6384,7 @@ var proposal = {
         );
     },
 
-    checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
+    checkIfProposalIsFollowUp: (proposal, endTime) => {
         if(proposal && proposal.proposalId){
             return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}, {createTime: 1}).then(
                 followUpRecord => {
@@ -6397,6 +6397,10 @@ var proposal = {
                     }
 
                     return proposal;
+                }
+            ).then(
+                proposalData => {
+                    return checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime);
                 }
             )
         }
@@ -9161,6 +9165,36 @@ function getTopUpTypeIdsWithoutCommonTopUp(platformList) {
             });
         }
     );
+}
+
+function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
+    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+        return getTopUpTypeIdsWithoutCommonTopUp([proposalData.data.platformId]).then(
+            topUpProposalTypeIds => {
+                if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
+                    let topUpQuery = {
+                        type: {$in: topUpProposalTypeIds},
+                        "data.playerName": proposalData.data.playerName,
+                        createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)}
+                    };
+
+                    return dbconfig.collection_proposal.findOne(topUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean().then(
+                        successTopUpData => {
+                            if (successTopUpData) {
+                                return;
+                            } else {
+                                return proposalData;
+                            }
+                        }
+                    );
+                } else {
+                    return proposalData;
+                }
+            }
+        )
+    } else {
+        return proposalData;
+    }
 }
 
 function asyncLoop(count, func, callback) {
