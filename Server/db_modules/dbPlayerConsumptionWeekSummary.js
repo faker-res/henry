@@ -583,7 +583,7 @@ var dbPlayerConsumptionWeekSummary = {
                     playerData = data;
                     platformData = data.platform;
 
-                    if (playerData.permission && playerData.permission.banReward || !playerData.playerLevel.canApplyConsumptionReturn) {
+                    if (!playerData.playerLevel.canApplyConsumptionReturn) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
