@@ -8096,41 +8096,51 @@ var proposal = {
             return;
         }
 
-        let followUpObj = {
-            platformObjId: followUpData.platformObjId,
-            website: followUpData.website,
-            proposalId: followUpData.proposalId,
-            type: followUpData.type,
-            userAgent: followUpData.userAgent,
-            topupType: followUpData.topupType,
-            merchantNo: followUpData.merchantNo,
-            merchantNo$: followUpData.merchantNo$,
-            inputDevice: followUpData.inputDevice,
-            depositMethod: followUpData.depositMethod,
-            bankTypeId: followUpData.bankTypeId,
-            merchantName: followUpData.merchantName,
-            merchantCurrentCount: followUpData.merchantCurrentCount,
-            merchantTotalCount: followUpData.merchantTotalCount,
-            merchantGapTime: followUpData.merchantGapTime,
-            status: followUpData.status,
-            playerObjId: followUpData.playerObjId,
-            playerName: followUpData.playerName,
-            playerCurrentCount: followUpData.playerCurrentCount,
-            playerTotalCount: followUpData.playerTotalCount,
-            playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
-            playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
-            playerGapTime: followUpData.playerGapTime,
-            amount: followUpData.amount,
-            proposalCreateTime: followUpData.proposalCreateTime,
-            createTime: followUpData.createTime,
-            lockedAdminId: followUpData.lockedAdminId,
-            lockedAdminName: followUpData.lockedAdminName,
-            followUpCompletedTime: followUpData.followUpCompletedTime,
-            followUpContent: followUpContent,
-            line: followUpData.line
-        };
+        return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: followUpData.proposalId, platformObjId: followUpData.platformObjId}).lean().then(
+            data => {
+                if (!data) {
+                    let followUpObj = {
+                        platformObjId: followUpData.platformObjId,
+                        website: followUpData.website,
+                        proposalId: followUpData.proposalId,
+                        type: followUpData.type,
+                        userAgent: followUpData.userAgent,
+                        topupType: followUpData.topupType,
+                        merchantNo: followUpData.merchantNo,
+                        merchantNo$: followUpData.merchantNo$,
+                        inputDevice: followUpData.inputDevice,
+                        depositMethod: followUpData.depositMethod,
+                        bankTypeId: followUpData.bankTypeId,
+                        merchantName: followUpData.merchantName,
+                        merchantCurrentCount: followUpData.merchantCurrentCount,
+                        merchantTotalCount: followUpData.merchantTotalCount,
+                        merchantGapTime: followUpData.merchantGapTime,
+                        status: followUpData.status,
+                        playerObjId: followUpData.playerObjId,
+                        playerName: followUpData.playerName,
+                        playerCurrentCount: followUpData.playerCurrentCount,
+                        playerTotalCount: followUpData.playerTotalCount,
+                        playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
+                        playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
+                        playerGapTime: followUpData.playerGapTime,
+                        amount: followUpData.amount,
+                        proposalCreateTime: followUpData.proposalCreateTime,
+                        createTime: followUpData.createTime,
+                        lockedAdminId: followUpData.lockedAdminId,
+                        lockedAdminName: followUpData.lockedAdminName,
+                        followUpCompletedTime: followUpData.followUpCompletedTime,
+                        followUpContent: followUpContent,
+                        line: followUpData.line
+                    };
 
-        return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
+                    return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
+                } else {
+                    return;
+                }
+            }
+        );
+
+
     },
 
     rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
