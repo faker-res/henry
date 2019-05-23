@@ -157,7 +157,7 @@ const dbPartnerCommission = {
                         let isCustomPlatformFeeRate = Boolean(platformFeeRateData.isCustom);
                         let platformFee = 0;
                         if (bonusBased) {
-                            platformFee = math.chain(platformFeeRate).multiply(totalBonusAmount).round(2).done();
+                            platformFee = math.chain(platformFeeRate).multiply(totalBonusAmount).divide(100).round(2).done();
                         }
                         totalPlatformFee += platformFee;
 
