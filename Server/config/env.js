@@ -47,6 +47,7 @@ var localConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/8H_tfnbk5J3_j8rjthtPGdyo70QPBqoqeDti1YaCwj4",
+    keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
 };
 
 //for aws-development
@@ -77,6 +78,7 @@ var devConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
+    keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
 };
 
 //for settlement
@@ -271,6 +273,7 @@ var prodConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
+    keyMode: 0 // Mode 0: Legacy Key, Mode 1: Key Service
 };
 
 

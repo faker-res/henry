@@ -3,7 +3,7 @@ let Schema = mongoose.Schema;
 // record all commCalc's player detail
 
 // demo player details
-let commCalcPlayer = new Schema({
+let commCalcPlayerSchema = new Schema({
     // platform
     platform:  {type: Schema.ObjectId, ref: 'platform'},
     // partner commission log object id
@@ -24,4 +24,6 @@ let commCalcPlayer = new Schema({
     withdrawalDetail: {}
 });
 
-module.exports = commCalcPlayer;
+module.exports = commCalcPlayerSchema;
+
+commCalcPlayerSchema.index({commCalc: 1, name: 1});
