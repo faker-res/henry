@@ -65,7 +65,28 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.getUrlConfig, [data.platformObjId], actionName, isValidData);
-        }
+        },
+
+        saveCarouselSetting: function saveCarouselSetting (data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.device);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveCarouselSetting, [data], actionName, isValidData);
+        },
+
+        getCarouselSetting: function getCarouselSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateCarouselSetting: function updateCarouselSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
     };
     socketActionFrontEndSetting.actions = this.actions;
 }
