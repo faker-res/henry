@@ -101,6 +101,7 @@ let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
+let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
@@ -269,6 +270,7 @@ let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
+let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
@@ -586,6 +588,15 @@ let partnerDefDownLineCommConfigModel = dbLogs2.model('partnerDefDownLineCommCon
 let partnerDownLineCommConfigSchema = require('./../schema/partnerDownLineCommConfig');
 let partnerDownLineCommConfigModel = dbLogs2.model('partnerDownLineCommConfig', partnerDownLineCommConfigSchema, 'partnerDownLineCommConfig');
 
+let commCalcSchema = require('./../schema/logs2/commCalc');
+let commCalcModel = dbLogs2.model('commCalc', commCalcSchema, 'commCalc');
+
+let commCalcPlayerSchema = require('./../schema/logs2/commCalcPlayer');
+let commCalcPlayerModel = dbLogs2.model('commCalcPlayer', commCalcPlayerSchema, 'commCalcPlayer');
+
+let commCalcParentSchema = require('./../schema/logs2/commCalcParent');
+let commCalcParentModel = dbLogs2.model('commCalcParent', commCalcParentSchema, 'commCalcParent');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -741,6 +752,7 @@ var dbProperties = {
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
+    collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
     collection_frontEndRewardPointClarification: frontEndRewardPointClarificationModel,
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
@@ -851,6 +863,10 @@ var dbProperties = {
     collection_partnerDownLineCommConfig: partnerDownLineCommConfigModel,
     collection_partnerMainCommRateConfig: partnerMainCommRateConfigModel,
     collection_activeValidDailyPlayer: activeValidDailyPlayerModel,
+
+    collection_commCalc: commCalcModel,
+    collection_commCalcPlayer: commCalcPlayerModel,
+    collection_commCalcParent: commCalcParentModel,
 
     //unique
     collection_playerName: playerNameModal,
