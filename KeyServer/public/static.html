@@ -98,7 +98,7 @@
         };
 
         webEnv.forEach(env => {
-            let ajaxUrl = 'http://' + env.nodeUrl;
+            let ajaxUrl = env.nodeUrl;
 
             if (env.nodePort) {
                 ajaxUrl += ':' + env.nodePort + '/' + url;
