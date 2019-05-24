@@ -39,4 +39,5 @@ div.col-md-4.fronendConfigDiv
                     span.fa.fa-trash-o
 
 div.text-right
-    button#testSave.btn-primary.btn(ng-click="vm.updatePopularRecommendationSetting()") {{'SAVE' | translate}}
+    button.btn-danger.btn.btn-space(ng-click="vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button#testSave.btn-primary.btn.btn-space(ng-click="vm.updatePopularRecommendationSetting()") {{'SAVE' | translate}}

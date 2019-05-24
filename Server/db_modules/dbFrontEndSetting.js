@@ -84,18 +84,6 @@ var dbFrontEndSetting = {
         return dbConfig.collection_frontEndSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).exec();
     },
 
-    getSkinSettingByPC: (platformObjId) => {
-        return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId), device: 1}).lean();
-    },
-
-    getSkinSettingByAPP: (platformObjId) => {
-        return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId), device: 2}).lean();
-    },
-
-    getSkinSettingByH5: (platformObjId) => {
-        return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId), device: 3}).lean();
-    },
-
     saveUrlConfig: (data) => {
         return dbConfig.collection_frontEndUrlConfiguration.findOne({platformObjId: ObjectId(data.platform)}).lean().then(
             urlConfigData => {

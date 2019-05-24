@@ -7734,15 +7734,17 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.forbidRewardEventPopover',
                             content: function () {
-                                var data = JSON.parse(this.dataset.row);
-                                vm.forbidRewardEventPopover = data;
-                                vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
-                                vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
-                                vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
-                                vm.forbidRewardEvents = [];
-                                vm.forbidRewardDisable = true;
-                                $scope.safeApply();
-                                return $compile($('#forbidRewardEventPopover').html())($scope);
+                                $scope.$evalAsync(()=>{
+                                    var data = JSON.parse(this.dataset.row);
+                                    vm.forbidRewardEventPopover = data;
+                                    vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                    vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                                    vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                    vm.forbidRewardEvents = [];
+                                    vm.forbidRewardDisable = true;
+                                    vm.selectedAllForbidRewardEvent = false;
+                                    return $compile($('#forbidRewardEventPopover').html())($scope);
+                                })
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
@@ -21417,7 +21419,7 @@ define(['js/app'], function (myApp) {
                     vm.showReward.condition.imageUrl = [""];
                 }
 
-                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "PlayerFestivalRewardGroup")) {
+                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup")) {
                     // set to the new display style
                     vm.isNewDisplay = true;
                 }
@@ -24750,13 +24752,16 @@ define(['js/app'], function (myApp) {
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'carouselConfiguration':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                     case 'urlConfiguration':
                         vm.frontEndUrlConfig = {};
                         vm.urlConfigShowMessage = '';
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByPC(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByAPP(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndSkinSettingByH5(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'skinManagement':
                         vm.skinSettingShowMessage = '';
@@ -24774,14 +24779,15 @@ define(['js/app'], function (myApp) {
                     case 'popularRecommendation':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
+                    case 'carouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                     case 'popUpAdvertisement':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
                         vm.frontEndUrlConfig = {};
-                        vm.pcSkinSettingList = [];
-                        vm.appSkinSettingList = [];
-                        vm.h5SkinSettingList = [];
+                        vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
@@ -24799,7 +24805,48 @@ define(['js/app'], function (myApp) {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                            connectWith: ".connected-sortable"
+                            connectWith: ".connected-sortable",
+                            stop: function () {
+                                let arr1 = $('.droppable-area1').sortable('toArray');
+                                let arr2 = $('.droppable-area2').sortable('toArray');
+                                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                                arr1.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr2.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr3.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+                            }
                         });
                     });
                 })
@@ -24866,39 +24913,6 @@ define(['js/app'], function (myApp) {
             //#endregion
 
             //#region Frontend Configuration - Url Configuration
-            vm.getFrontEndSkinSettingByPC = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByPC', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.pcSkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByPC error: ', err);
-                }, true);
-            };
-
-            vm.getFrontEndSkinSettingByAPP = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByAPP', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.appSkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByAPP error: ', err);
-                }, true);
-            };
-
-            vm.getFrontEndSkinSettingByH5 = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSettingByH5', {platformObjId: platformObjId}, function (data) {
-                    if (data && data.data) {
-                        vm.h5SkinSettingList = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSettingByH5 error: ', err);
-                }, true);
-            };
-
             vm.saveFrontEndUrlConfig = function () {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
@@ -24938,6 +24952,13 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                     console.error('getUrlConfig error: ', err);
                 }, true);
+            };
+            //#endregion
+
+            //#region Frontend Configuration - Carousel Configuration
+            vm.initCarouselSetting = function() {
+                vm.newFrontEndCarousel = {};
+                $('#carouselSetting').modal();
             };
             //#endregion
 
@@ -36810,8 +36831,16 @@ define(['js/app'], function (myApp) {
                                 vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                                 vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
                                 vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                vm.isForbidPromoCode = false;
+                                vm.isForbidLevelUpReward = false;
+                                vm.isForbidLevelMaintainReward = false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
+                                vm.selectedAllForbidRewardEvent = false;
+                                if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                                    vm.selectedAllForbidRewardEvent = true;
+                                }
+
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
                             },
                             callback: function () {
@@ -36849,12 +36878,6 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined) {
-                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
-                                        if (!ans) {
-                                            return
-                                        }
-                                    }
 
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
@@ -36874,8 +36897,12 @@ define(['js/app'], function (myApp) {
                                         forbidPromoCode: vm.forbidPromoCode,
                                         forbidLevelUpReward: vm.forbidLevelUpReward,
                                         forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        isForbidPromoCode: vm.isForbidPromoCode,
+                                        isForbidLevelUpReward: vm.isForbidLevelUpReward,
+                                        isForbidLevelMaintainReward: vm.isForbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
+
                                     // subcategory 1
                                     vm.batchPermitModifySucc = false;
                                     $(".forbidRewardEventPopover").popover('hide');
@@ -37229,6 +37256,32 @@ define(['js/app'], function (myApp) {
                     });
                 });
             };
+            vm.selectedAllForbidRewardEventToList = function() {
+                $scope.$evalAsync(() => {
+                    if (vm.selectedAllForbidRewardEvent) {
+                        vm.allRewardEvent.forEach( item => {
+                            vm.forbidRewardEventAddList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                        vm.forbidRewardEventRemoveList = [];
+                    } else {
+                        vm.allRewardEvent.forEach( item => {
+
+                            vm.forbidRewardEventRemoveList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+
+                        vm.forbidRewardEventAddList = [];
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                    }
+                })
+
+            }
             vm.initBulkClearXIMAWithdraw = function() {
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
@@ -40606,7 +40659,7 @@ define(['js/app'], function (myApp) {
                     console.error('getFrontEndPopUpAdvertisementSetting error: ', err);
                 }, true);
             };
-            
+
             vm.editPopUpAdvertisement = function (eventObjectId) {
                 vm.addNewPopUpAdvertisement(false, eventObjectId)
             };

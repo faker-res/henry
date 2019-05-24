@@ -53,27 +53,6 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.removeSkinSetting, [data.skinSettingObjId], actionName, isValidData);
         },
 
-        getSkinSettingByPC: function getSkinSettingByPC (data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getSkinSettingByPC, [data.platformObjId], actionName, isValidData);
-        },
-
-        getSkinSettingByAPP: function getSkinSettingByAPP (data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getSkinSettingByAPP, [data.platformObjId], actionName, isValidData);
-        },
-
-        getSkinSettingByH5: function getSkinSettingByH5 (data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getSkinSettingByH5, [data.platformObjId], actionName, isValidData);
-        },
-
         saveUrlConfig: function saveUrlConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform);
