@@ -1,6 +1,6 @@
 form(name="form_edit_partner_commission_type", novalidate)
     div
-        table.simple-table
+        table.simple-table(ng-if='!(vmm.selectedSinglePartner && vmm.selectedSinglePartner.parent)')
             thead
                 tr
                     th {{'PARTNER_NAME' | translate}}
@@ -16,10 +16,10 @@ form(name="form_edit_partner_commission_type", novalidate)
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="switchCommissionTab('DAILY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType, true);")
                     td
                         label.radio-inline {{'DAILY_CONSUMPTION' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='7' ng-click="switchCommissionTab('DAILY_CONSUMPTION', newPartner.commissionType);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='7' ng-click="switchCommissionTab('DAILY_CONSUMPTION', newPartner.commissionType, true);")
                     //td
                         label.radio-inline {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="switchCommissionTab('BIWEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
@@ -33,7 +33,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         label.radio-inline {{'CLOSED_COMMISSION' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="switchCommissionTab('CLOSED', newPartner.commissionType);")
         br
-    div(ng-if="partnerCommission.isCustomized || commissionRateConfig.isCustomized")
+    div(ng-if="newPartner.commissionType == vmm.selectedSinglePartner.commissionType")
         .col-md-12.panel.panel-body.panel-primary
             .panel-body.common-right-panel-body
                 div.tab-content
@@ -113,7 +113,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && partnerCommission.isGameProviderIncluded && commissionSettingIsEditAll(0)" ng-click = "commissionSettingEditAll(partnerCommission.gameProviderGroup, false); updateAllCustomizeCommissionRate(partnerCommission.gameProviderGroup)") {{"UPDATE_ALL_COMMISSION_RATE" | translate}}
                         button.btn.btn-primary.common-button(ng-click='resetAllCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
 
-        .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;")
+        .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;", ng-if='newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7')
             div
                 h4 {{'Partner Rate Setting' | translate}}
                 table.common-table.playerLvlTable
@@ -187,8 +187,8 @@ form(name="form_edit_partner_commission_type", novalidate)
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal')") {{'Customize' | translate}}
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal', true)") {{'Reset default' | translate}}
     .pull-right
-        button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && !commissionRateIsEditAll()" ng-click = "commissionRateEditAll(true)") {{"EDIT_ALL_FEE_RATE" | translate}}
+        button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && !commissionRateIsEditAll() && newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7" ng-click = "commissionRateEditAll(true)") {{"EDIT_ALL_FEE_RATE" | translate}}
         button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && commissionRateIsEditAll()" ng-click = "commissionRateEditAll(false); customizePartnerRate(commissionRateConfig)") {{"UPDATE" | translate}}
         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
         button.btn.btn-primary.common-button(ng-if="!partnerCommission.isCustomized" data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"SUBMIT_CHANGES" | translate}}
-        button.btn.btn-danger.common-button(ng-if="!partnerCommission.isCustomized" ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}
+        button.btn.btn-danger.common-button(ng-if="!partnerCommission.isCustomized && newPartner.commissionType == vmm.selectedSinglePartner.commissionType" ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}

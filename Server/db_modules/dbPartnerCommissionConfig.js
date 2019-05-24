@@ -28,7 +28,7 @@ const dbPartnerCommissionConfig = {
         }).lean();
     },
 
-    getPartnerCommConfig: (partnerObjId, commissionType) => {
+    getPartnerCommConfig: (partnerObjId, commissionType, isSkipUpdate) => {
         // return current partner commission config, if not exist, create new base on parent/platform default base on provider
         // if still not exist, return empty array (or not included if individual provider group config not exist)
         let partner;
@@ -50,10 +50,10 @@ const dbPartnerCommissionConfig = {
                 }
 
                 if (parentData) {
-                    return getDownLineCommConfig(partner._id, parentData._id, commissionType);
+                    return getDownLineCommConfig(partner._id, partner.platform, parentData._id, commissionType, isSkipUpdate);
                 }
                 else {
-                    return getMainCommConfig(partner._id, partner.platform, commissionType);
+                    return getMainCommConfig(partner._id, partner.platform, commissionType, isSkipUpdate);
                 }
             }
         )
@@ -77,13 +77,108 @@ const dbPartnerCommissionConfig = {
             }
         )
     },
+
+    updateMainPartnerCommissionData: async function (parentObjId, partnerObjId, platformObjId, commissionType)/*(partnerObjId, platformObjId, commissionType, isSkipUpdate)*/ {
+        let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
+        if ((!providerGroups && providerGroups.length)) {
+            return;
+        }
+
+        if (parentObjId) { // checking - only update main partner commission
+            return;
+        }
+            let defConfigs = await dbconfig.collection_platformPartnerCommConfig.find({
+                // provider: providerGroups[i]._id,
+                provider: {$in: providerGroups.map(provider => provider._id)},
+                platform: platformObjId,
+                commissionType
+            }).lean();
+
+            if (defConfigs && defConfigs.length) {
+                for (let i = 0; i < defConfigs.length; i++) {
+                    let defConfig = defConfigs[i];
+
+                    if (!defConfig) {
+                        // this means platform haven't properly set default commission
+                        continue;
+                    }
+                    delete defConfig.__v;
+                    delete defConfig._id;
+                    defConfig.partner = partnerObjId;
+                    dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
+                        platform: platformObjId,
+                        partner: partnerObjId,
+                        provider: defConfig.provider
+                    }, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
+                }
+                updateDownLineCommConfig(partnerObjId, platformObjId, commissionType, defConfigs);
+            }
+    }
 };
 
 function clearParent (partnerObjId, platformObjId) {
     return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObjId, platform: platformObjId}, {$unset: {parent: ""}}, {new:true}).lean();
 }
 
-function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
+async function updateDownLineCommConfig (parentObjId, platformObjId, commissionType, commConfigObj)/*(partnerObjId, platformObjId, parentObjId, commissionType, isSkipUpdate)*/ {
+    // if (!parentObjId && !commConfigObj) {
+    if (!parentObjId || !commConfigObj || !commConfigObj.length) {
+        return;
+    }
+
+    let partnersObj = await dbconfig.collection_partner.find({parent: parentObjId}, {_id: 1, commissionType: 1}).lean();
+    if (!partnersObj || !partnersObj.length) {
+        return;
+    }
+
+    dbconfig.collection_partner.update({_id: {$in: partnersObj.map(partner => partner._id)}}, {commissionType: commissionType}, {multi: true}).catch(errorUtils.reportError);
+
+    let commConfigData = JSON.parse(JSON.stringify(commConfigObj));
+
+    commConfigData = commConfigData.map(commConfig => {
+        commConfig.commissionSetting = commConfig.commissionSetting.map(commSetting => {
+            commSetting.commissionRate -= 0.01;
+            if (commSetting.commissionRate < 0.01) {
+                commSetting.commissionRate = 0.01;
+            }
+            return commSetting;
+        })
+        return commConfig;
+    });
+
+    partnersObj.map(partner=> {
+        for (let i = 0; i < commConfigData.length; i++) {
+            let commConfig =  JSON.parse(JSON.stringify(commConfigData[i]));
+
+            if (!commConfig) {
+                // this means platform haven't properly set default commission
+                continue;
+            }
+            delete commConfig._id;
+            delete commConfig.__v;
+            let defCommConfig =  JSON.parse(JSON.stringify(commConfig));
+            defCommConfig.partner = parentObjId;
+            commConfig.partner = partner._id;
+
+            dbconfig.collection_partnerDefDownLineCommConfig.findOneAndUpdate({
+                platform: platformObjId,
+                partner: parentObjId,
+                provider: defCommConfig.provider
+            }, defCommConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
+
+            dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({
+                platform: platformObjId,
+                partner: partner._id,
+                provider: commConfig.provider
+            }, commConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
+        }
+
+        updateDownLineCommConfig(partner._id, platformObjId, commissionType, commConfigData);
+    })
+
+}
+
+function getMainCommConfig (partnerObjId, platformObjId, commissionType, isSkipUpdate) {
     let configs = [], providerGroups = [];
     let configProm = dbconfig.collection_partnerMainCommConfig.find({platform: platformObjId, partner: partnerObjId, commissionType}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
@@ -102,10 +197,10 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
 
             for (let i = 0; i < providerGroups.length; i++) {
                 if (!providerGroups[i] || !providerGroups[i]._id) {
-                    continue
+                    continue;
                 }
                 let config = configData.find((config) => {
-                    return config.provider && Sting(config.provider) == String(providerGroups[i]._id);
+                    return config.provider && String(config.provider) == String(providerGroups[i]._id);
                 });
 
                 if (config) {
@@ -121,7 +216,7 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
         }
     ).then(
         defConfigs => {
-            if (!defConfigs || !defConfigs.length) {
+            if (!defConfigs || !defConfigs.length || isSkipUpdate) {
                 return configs;
             }
 
@@ -132,9 +227,10 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
                     // this means platform haven't properly set default commission
                     continue;
                 }
+                delete defConfig.__v;
                 delete defConfig._id;
                 defConfig.partner = partnerObjId;
-                dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean();
+                dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 configs.push(defConfig);
             }
 
@@ -143,7 +239,7 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType) {
     );
 }
 
-function getDownLineCommConfig (partnerObjId, parentObjId, commissionType) {
+function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commissionType, isSkipUpdate) {
     let configs = [], providerGroups = [];
     let configProm = dbconfig.collection_partnerDownLineCommConfig.find({platform: platformObjId, partner: partnerObjId, commissionType}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
@@ -165,7 +261,7 @@ function getDownLineCommConfig (partnerObjId, parentObjId, commissionType) {
                     continue
                 }
                 let config = configData.find((config) => {
-                    return config.provider && Sting(config.provider) == String(providerGroups[i]._id);
+                    return config.provider && String(config.provider) == String(providerGroups[i]._id);
                 });
 
                 if (config) {
@@ -181,15 +277,20 @@ function getDownLineCommConfig (partnerObjId, parentObjId, commissionType) {
         }
     ).then(
         defConfigs => {
-            if (!defConfigs || !defConfigs.length) {
+            if (!defConfigs || !defConfigs.length || isSkipUpdate) {
                 return configs;
             }
 
             for (let i = 0; i < defConfigs.length; i++) {
                 let defConfig = defConfigs[i];
+
+                if (!defConfig) {
+                    // this means platform haven't properly set default commission
+                    continue;
+                }
                 delete defConfig._id;
                 defConfig.partner = partnerObjId;
-                dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean();
+                dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 configs.push(defConfig);
             }
 

@@ -64,6 +64,7 @@ const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+const dbPartnerCommissionConfig = require("../db_modules/dbPartnerCommissionConfig");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
 const extConfig = require('../config/externalPayment/paymentSystems');
@@ -1457,6 +1458,7 @@ var proposalExecutor = {
                         constShardKeys.collection_partner
                     ).then(
                         function (data) {
+                            dbPartnerCommissionConfig.updateMainPartnerCommissionData(data.parent, data._id, data.platform, data.commissionType);
                             deferred.resolve(data);
                         },
                         function (err) {
