@@ -101,6 +101,7 @@ let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
+let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
@@ -269,6 +270,7 @@ let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
+let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
@@ -750,6 +752,7 @@ var dbProperties = {
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
+    collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
     collection_frontEndRewardPointClarification: frontEndRewardPointClarificationModel,
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
