@@ -32,7 +32,7 @@ const dbPartnerCommission = {
         let providerGroupConsumptionData, playerRawDetail;
         let bonusBased = false;
         let commissionRates = {};
-        let grossCommission = 0, grossDirectCommission = 0, rawCommissions = [];
+        let grossCommission = 0, rawCommissions = [];
         let totalReward = 0, totalTopUp = 0, totalWithdrawal = 0, depositCrewDetail = [], withdrawCrewDetail = [], bonusCrewDetail = [];
         let totalRewardFee = 0, totalTopUpFee = 0, totalWithdrawalFee = 0, totalPlatformFee = 0, totalWinLose = 0, nettCommission = 0;
         let parentCommissionDetail = {};
@@ -160,7 +160,7 @@ const dbPartnerCommission = {
                             });
                         }
 
-                        let rawCommission = math.chain(totalConsumption).multiply(commissionRates[groupRate.groupName].commissionRate).round(2).done(); // this is useless for partner, only use to count relative partner's commission
+                        let rawCommission = math.chain(totalConsumption).multiply(commissionRates[groupRate.groupName].commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
                         let rawDirectCommission = math.chain(totalConsumption).multiply(directCommissionRate.commissionRate).round(2).done();
 
                         let platformFeeRate = platformFeeRateData.rate || 0;
@@ -247,7 +247,7 @@ const dbPartnerCommission = {
                         totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
                         totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
                         totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
-                        nettCommission = grossCommission + grossDirectCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
+                        nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
 
                     // if it is bonus based, calculate the nett parent commisssion as well
@@ -286,7 +286,6 @@ const dbPartnerCommission = {
                         withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
                         status: constPartnerCommissionLogStatus.PREVIEW,
                         grossCommission: grossCommission,
-                        grossDirectCommission: grossDirectCommission,
                         nettCommission: nettCommission,
                         disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                         depositCrewDetail: depositCrewDetail,
