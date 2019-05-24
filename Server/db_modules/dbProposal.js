@@ -6175,7 +6175,7 @@ var proposal = {
                 proposals = proposalData[1];
 
 
-                return insertRepeatCount(proposals, data.platformId, data);
+                return insertRepeatCount(proposals, data.platformId, data, false);
             }
         ).then(
             proposals => {
@@ -6348,7 +6348,7 @@ var proposal = {
         ).then(
             proposalData => {
                 console.log("LH Check payment monitor total 0----------------------", proposalData.length);
-                return insertRepeatCount(proposalData, data.platformList, data);
+                return insertRepeatCount(proposalData, data.platformList, data, true);
             }
         ).then(
             proposals => {
@@ -6400,7 +6400,7 @@ var proposal = {
                     filteredResult.forEach(
                         result => {
                             if(result){
-                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, query.createTime));
+                                checkFollowUpProm.push(proposal.checkIfProposalIsFollowUp(result, data.endTime));
                             }
                         }
                     );
@@ -6417,7 +6417,7 @@ var proposal = {
         );
     },
 
-    checkIfProposalIsFollowUp: (proposal, createTimeQuery) => {
+    checkIfProposalIsFollowUp: (proposal, endTime) => {
         if(proposal && proposal.proposalId){
             return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: proposal.proposalId}, {createTime: 1}).then(
                 followUpRecord => {
@@ -6430,6 +6430,10 @@ var proposal = {
                     }
 
                     return proposal;
+                }
+            ).then(
+                proposalData => {
+                    return checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime);
                 }
             )
         }
@@ -8125,41 +8129,51 @@ var proposal = {
             return;
         }
 
-        let followUpObj = {
-            platformObjId: followUpData.platformObjId,
-            website: followUpData.website,
-            proposalId: followUpData.proposalId,
-            type: followUpData.type,
-            userAgent: followUpData.userAgent,
-            topupType: followUpData.topupType,
-            merchantNo: followUpData.merchantNo,
-            merchantNo$: followUpData.merchantNo$,
-            inputDevice: followUpData.inputDevice,
-            depositMethod: followUpData.depositMethod,
-            bankTypeId: followUpData.bankTypeId,
-            merchantName: followUpData.merchantName,
-            merchantCurrentCount: followUpData.merchantCurrentCount,
-            merchantTotalCount: followUpData.merchantTotalCount,
-            merchantGapTime: followUpData.merchantGapTime,
-            status: followUpData.status,
-            playerObjId: followUpData.playerObjId,
-            playerName: followUpData.playerName,
-            playerCurrentCount: followUpData.playerCurrentCount,
-            playerTotalCount: followUpData.playerTotalCount,
-            playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
-            playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
-            playerGapTime: followUpData.playerGapTime,
-            amount: followUpData.amount,
-            proposalCreateTime: followUpData.proposalCreateTime,
-            createTime: followUpData.createTime,
-            lockedAdminId: followUpData.lockedAdminId,
-            lockedAdminName: followUpData.lockedAdminName,
-            followUpCompletedTime: followUpData.followUpCompletedTime,
-            followUpContent: followUpContent,
-            line: followUpData.line
-        };
+        return dbconfig.collection_paymentMonitorFollowUp.findOne({proposalId: followUpData.proposalId, platformObjId: followUpData.platformObjId}).lean().then(
+            data => {
+                if (!data) {
+                    let followUpObj = {
+                        platformObjId: followUpData.platformObjId,
+                        website: followUpData.website,
+                        proposalId: followUpData.proposalId,
+                        type: followUpData.type,
+                        userAgent: followUpData.userAgent,
+                        topupType: followUpData.topupType,
+                        merchantNo: followUpData.merchantNo,
+                        merchantNo$: followUpData.merchantNo$,
+                        inputDevice: followUpData.inputDevice,
+                        depositMethod: followUpData.depositMethod,
+                        bankTypeId: followUpData.bankTypeId,
+                        merchantName: followUpData.merchantName,
+                        merchantCurrentCount: followUpData.merchantCurrentCount,
+                        merchantTotalCount: followUpData.merchantTotalCount,
+                        merchantGapTime: followUpData.merchantGapTime,
+                        status: followUpData.status,
+                        playerObjId: followUpData.playerObjId,
+                        playerName: followUpData.playerName,
+                        playerCurrentCount: followUpData.playerCurrentCount,
+                        playerTotalCount: followUpData.playerTotalCount,
+                        playerCurrentCommonTopUpCount: followUpData.playerCurrentCommonTopUpCount,
+                        playerCommonTopUpTotalCount: followUpData.playerCommonTopUpTotalCount,
+                        playerGapTime: followUpData.playerGapTime,
+                        amount: followUpData.amount,
+                        proposalCreateTime: followUpData.proposalCreateTime,
+                        createTime: followUpData.createTime,
+                        lockedAdminId: followUpData.lockedAdminId,
+                        lockedAdminName: followUpData.lockedAdminName,
+                        followUpCompletedTime: followUpData.followUpCompletedTime,
+                        followUpContent: followUpContent,
+                        line: followUpData.line
+                    };
 
-        return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
+                    return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
+                } else {
+                    return;
+                }
+            }
+        );
+
+
     },
 
     rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
@@ -8476,7 +8490,7 @@ var proposal = {
  */
 
 // lets do the most basic version, refactor later
-function insertRepeatCount(proposals, platformList, query) {
+function insertRepeatCount(proposals, platformList, query, isFromMain) {
     return new Promise(function (resolve) {
         let typeIds = null;
         let commonTopUpTypeIds;
@@ -8504,7 +8518,13 @@ function insertRepeatCount(proposals, platformList, query) {
                             typeIds = typeIdData[0] || null;
                             commonTopUpTypeIds = typeIdData[1] || null;
                             typeIdsWithoutCommonTopUp = typeIdData[2] || null;
-                            return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+
+                            if (isFromMain) {
+                                // 支付监控(总)-去掉商户计数的统计-因为pms有做了商户计数，所以客服不需要关注了
+                                return Promise.all([handleFailurePlayer(proposal)]);
+                            } else {
+                                return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
+                            }
                         }
                     ).then(
                         () => {
@@ -9188,6 +9208,36 @@ function getTopUpTypeIdsWithoutCommonTopUp(platformList) {
             });
         }
     );
+}
+
+function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
+    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+        return getTopUpTypeIdsWithoutCommonTopUp([proposalData.data.platformId]).then(
+            topUpProposalTypeIds => {
+                if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
+                    let topUpQuery = {
+                        type: {$in: topUpProposalTypeIds},
+                        "data.playerName": proposalData.data.playerName,
+                        createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)}
+                    };
+
+                    return dbconfig.collection_proposal.findOne(topUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean().then(
+                        successTopUpData => {
+                            if (successTopUpData) {
+                                return;
+                            } else {
+                                return proposalData;
+                            }
+                        }
+                    );
+                } else {
+                    return proposalData;
+                }
+            }
+        )
+    } else {
+        return proposalData;
+    }
 }
 
 function asyncLoop(count, func, callback) {

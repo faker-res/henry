@@ -12,20 +12,13 @@
     <li>This page can be closed after keys are saved, but the key will not remain in cache.</li>
     <li>Each time server restart need to save the keys once more.</li>
 </ul>
+<br>
+<h1>操作1: 输入Key</h1>
 <div class="key-area">
     <div>
         <form>
             <label>Private key (In effect):</label><br>
             <textarea id="private1" rows='16' cols='65'></textarea><br>
-        </form>
-    </div>
-    <div class="margin-all-5">
-        <button onclick="migrateKey(event, '#private2', '#private1')">Replicate -></button>
-    </div>
-    <div align="right">
-        <form>
-            <label>Private key (Replaced):</label><br>
-            <textarea id="private2" rows='16' cols='65'></textarea><br>
         </form>
     </div>
 </div>
@@ -39,12 +32,42 @@
             <text id="status1" color="red"></text>
         </form>
     </div>
+</div>
+<br>
+<h1>操作2: 换Key</h1>
+<div class="key-area">
+    <div>
+        <form>
+            <label>Private key (新Key):</label><br>
+            <textarea id="private1" rows='16' cols='65'></textarea><br>
+        </form>
+    </div>
+    <div class="margin-all-5">
+        <button onclick="migrateKey(event, '#private2', '#private1')">Replicate -></button>
+    </div>
+    <div align="right">
+        <form>
+            <label>Private key (老Key):</label><br>
+            <textarea id="private2" rows='16' cols='65'></textarea><br>
+        </form>
+    </div>
+</div>
+<br>
+<div class="key-area">
+    <div align="left">
+        <form>
+            <label>Public key (新Key):</label><br>
+            <textarea id="public1" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#private1', '#public1', '#status1')">Save</button>
+            <text id="status1" color="red"></text>
+        </form>
+    </div>
     <div class="margin-all-5">
         <button onclick="migrateKey(event, '#public2', '#public1')">Replicate -></button>
     </div>
     <div align="right">
         <form>
-            <label>Public key (Replaced):</label><br>
+            <label>Public key (老Key):</label><br>
             <textarea id="public2" rows='7' cols='65'></textarea><br>
             <button onclick="saveKey(event, 'playerPhone.pub.bak', '#private2', '#public2', '#status2')">Save</button>
             <text id="status2" color="red"></text>
@@ -52,7 +75,7 @@
     </div>
 </div>
 <br>
-<h1>If key is changed:</h1>
+<h1>操作3: 热更新FPMS系统Key</h1>
 <ul>
     <li>If completed with both current and replaced key pair, will trigger FPMS script to update player's info encryption.</li>
 </ul>
