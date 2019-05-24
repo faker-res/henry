@@ -13,6 +13,8 @@ let commCalcParentSchema = new Schema({
     grossCommission: {type: Number},
     // nett commission
     nettCommission: {type: Number},
+    // raw commissions detail
+    rawCommissions: [],
 
 });
 
