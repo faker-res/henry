@@ -24792,6 +24792,12 @@ define(['js/app'], function (myApp) {
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
                         break;
+                    case 'rewardSetting':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.newRewardtSetting = {};
+                        vm.rewardSettingData = [];
+
+                        break;
                 }
             };
 
@@ -24858,6 +24864,13 @@ define(['js/app'], function (myApp) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
             };
+
+            vm.addRewardCategory = function () {
+                vm.rewardSettingData.push({categoryName: vm.newRewardSetting});
+                console.log('vm.eventSettingData', vm.rewardSettingData);
+            }
+
+
 
             //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function () {

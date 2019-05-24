@@ -63,6 +63,8 @@ style.
             span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
             span {{"SKIN_MANAGEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardSetting"}', ng-click='vm.frontEndSettingTabClicked("rewardSetting")')
+            span {{"REWARD_SETTING" | translate}}
 
     .col-md-12
         .panel.panel-primary
@@ -101,6 +103,10 @@ style.
                 // Tab - skin management
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
                     include frontEndConfiguration-skinManagement
+
+                // Tab - Event Setting
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardSetting")')
+                    include frontEndConfiguration-rewardSetting
 
 #popularRecommendationSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

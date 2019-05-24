@@ -577,6 +577,7 @@ var roleChecker = {
                 carouselConfiguration: [],
                 urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
+                rewardSetting: [],
             },
             "AuctionSystem": {
                 Read: [],
