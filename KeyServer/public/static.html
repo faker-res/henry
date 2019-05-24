@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="resources/jquery-3.3.1.min.js"></script>
+    <meta charset="UTF-8">
+    <title>M1</title>
+</head>
+<body>
+
+<h1>Runtime SSL</h1>
+<ul>
+    <li>This page can be closed after keys are saved, but the key will not remain in cache.</li>
+    <li>Each time server restart need to save the keys once more.</li>
+</ul>
+<br>
+<h1>操作1: 输入Key</h1>
+<div class="key-area">
+    <div>
+        <form>
+            <label>Private key (In effect):</label><br>
+            <textarea id="private1" rows='16' cols='65'></textarea><br>
+        </form>
+    </div>
+</div>
+<br>
+<div class="key-area">
+    <div align="left">
+        <form>
+            <label>Public key (In effect):</label><br>
+            <textarea id="public1" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#private1', '#public1', '#status1')">Save</button>
+            <text id="status1" color="red"></text>
+        </form>
+    </div>
+</div>
+<br>
+<h1>操作2: 换Key</h1>
+<div class="key-area">
+    <div>
+        <form>
+            <label>Private key (新Key):</label><br>
+            <textarea id="private1" rows='16' cols='65'></textarea><br>
+        </form>
+    </div>
+    <div class="margin-all-5">
+        <button onclick="migrateKey(event, '#private2', '#private1')">Replicate -></button>
+    </div>
+    <div align="right">
+        <form>
+            <label>Private key (老Key):</label><br>
+            <textarea id="private2" rows='16' cols='65'></textarea><br>
+        </form>
+    </div>
+</div>
+<br>
+<div class="key-area">
+    <div align="left">
+        <form>
+            <label>Public key (新Key):</label><br>
+            <textarea id="public1" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#private1', '#public1', '#status1')">Save</button>
+            <text id="status1" color="red"></text>
+        </form>
+    </div>
+    <div class="margin-all-5">
+        <button onclick="migrateKey(event, '#public2', '#public1')">Replicate -></button>
+    </div>
+    <div align="right">
+        <form>
+            <label>Public key (老Key):</label><br>
+            <textarea id="public2" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#private2', '#public2', '#status2')">Save</button>
+            <text id="status2" color="red"></text>
+        </form>
+    </div>
+</div>
+<br>
+<h1>操作3: 热更新FPMS系统Key</h1>
+<ul>
+    <li>If completed with both current and replaced key pair, will trigger FPMS script to update player's info encryption.</li>
+</ul>
+<div>
+    <button onclick="updateFPMS()">Update FPMS Key</button>
+    <text id="update" color="red"></text>
+</div>
+
+</body>
+</html>
+
+<script type='text/javascript' src='js/webEnv.js'></script>
+<script>
+    function saveKey(e, url, privateKey, publicKey, statusId) {
+        e.preventDefault();
+
+        let saveData = {
+            privateKey: $(privateKey).val(),
+            publicKey: $(publicKey).val()
+        };
+
+        webEnv.forEach(env => {
+            let ajaxUrl = 'http://' + env.nodeUrl;
+
+            if (env.nodePort) {
+                ajaxUrl += ':' + env.nodePort + '/' + url;
+            } else {
+                ajaxUrl += '/' + url;
+            }
+
+            // Multiple ajax
+            $.ajax({
+                url: ajaxUrl,
+                data: JSON.stringify(saveData),
+                method: "POST",
+                beforeSend: (request) => {
+                    request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
+                },
+                success: (data) => {
+                    console.log(env.nodeUrl, env.nodePort, data);
+                    $(statusId).text(data.toString());
+                }
+            })
+        })
+    }
+
+    function migrateKey(e, targetId, originId) {
+        e.preventDefault();
+        $(targetId).val($(originId).val());
+    }
+
+    function updateFPMS() {
+        let serv = webEnv[0];
+        let url = 'restartFPMS';
+        let ajaxUrl = 'http://' + serv.nodeUrl;
+
+        if (serv.nodePort) {
+            ajaxUrl += ':' + serv.nodePort + '/' + url;
+        } else {
+            ajaxUrl += '/' + url;
+        }
+
+        $.ajax({
+            url: ajaxUrl,
+            method: "POST",
+            beforeSend: (request) => {
+                request.setRequestHeader("x-token", sessionStorage.getItem('tkn'));
+            },
+            success: (data) => {
+                console.log(serv.nodeUrl, serv.nodePort, data);
+                $(update).text(data.toString());
+            }
+        })
+
+
+
+    }
+</script>
+
+<style>
+    .key-area {
+        display: flex;
+        align-items:  center;
+    }
+
+    .margin-all-5 {
+        margin: 5px;
+    }
+
+    .hide {
+        display: none;
+    }
+
+</style>
