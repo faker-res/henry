@@ -3,7 +3,7 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         label {{'Setting For Popular Recommendation' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting()")
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
@@ -13,7 +13,7 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
                 button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deletePopularRecommendation(one._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(one._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
@@ -24,7 +24,7 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
                 button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deletePopularRecommendation(two._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(two._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
@@ -35,7 +35,7 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
                 button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deletePopularRecommendation(three._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(three._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.text-right

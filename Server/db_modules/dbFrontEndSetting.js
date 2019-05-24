@@ -3,6 +3,67 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
+
+    saveFrontEndPopUpAdvSetting: (data) => {
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndPopUpAdvertisementSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndPopUpAdvertisementSetting(data);
+                return record.save();
+            }
+        }
+    },
+
+    updatePopUpAdvertisementSetting: (dataList, deletedList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            isVisible: data.isVisible,
+                            displayOrder: data.displayOrder
+                        };
+                        prom.push(dbConfig.collection_frontEndPopUpAdvertisementSetting.findOneAndUpdate({_id: ObjectId(data._id)}, updateQuery).lean())
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(dbConfig.collection_frontEndPopUpAdvertisementSetting.findOneAndUpdate({_id: ObjectId(data)}, updateQuery).lean())
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+    },
+
+    getFrontEndPopUpAdvertisementSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
     saveSkinSetting: (data) => {
         let newSetting = {
             platformObjId: ObjectId(data.platform),
