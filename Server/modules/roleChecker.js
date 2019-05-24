@@ -578,6 +578,7 @@ var roleChecker = {
                 urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
                 popUpAdvertisement: [],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
+                rewardSetting: [],
             },
             "AuctionSystem": {
                 Read: [],
