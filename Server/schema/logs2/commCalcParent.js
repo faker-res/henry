@@ -2,11 +2,11 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 // demo player details
-let commCalcPlayer = new Schema({
+let commCalcParentSchema = new Schema({
     // partner commission log object id
     commCalc: {type: Schema.ObjectId, ref: 'partnerCommissionLog', required: true, index: true},
     // parent object id
-    parentObjId: {type: Schema.ObjectId},
+    parentObjId: {type: Schema.ObjectId, ref: 'partner'},
     // parent name
     parentName: {type: String},
     // gross commission
@@ -16,4 +16,6 @@ let commCalcPlayer = new Schema({
 
 });
 
-module.exports = commCalcPlayer;
+module.exports = commCalcParentSchema;
+
+commCalcParentSchema.index({commCalc: 1, parentObjId: 1});
