@@ -10887,11 +10887,13 @@ let dbPlayerInfo = {
         const topupFieldsByPeriod = {
             DAY: 'dailyTopUpSum',
             WEEK: 'weeklyTopUpSum',
+            MONTH: 'pastMonthTopUpSum',
             NONE: 'topUpSum'
         };
         const consumptionFieldsByPeriod = {
             DAY: 'dailyConsumptionSum',
             WEEK: 'weeklyConsumptionSum',
+            MONTH: 'pastMonthConsumptionSum',
             NONE: 'consumptionSum'
         };
         skip = skip || 0;
