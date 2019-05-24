@@ -255,9 +255,9 @@ const dbPartnerCommission = {
                         let parentComm = parentCommissionDetail[String(parent._id)];
                         parentComm.grossCommission = parentComm.grossCommission || 0;
                         parentComm.nettCommission = parentComm.grossCommission;
-                        // if (bonusBased && grossCommission) {
-                        //     parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
-                        // }
+                        if (bonusBased && grossCommission) {
+                            parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
+                        }
                     });
 
                     let returnObj = {
