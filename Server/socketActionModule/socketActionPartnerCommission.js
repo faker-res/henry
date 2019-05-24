@@ -51,6 +51,12 @@ function socketActionPartnerCommission(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartnerCommission.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName, data.startTime, data.endTime], actionName, isValidData);
         },
 
+        getPartnerCommConfig: function getPartnerCommConfig (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId && data.commissionType);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPartnerCommConfig, [data.partnerObjId, data.commissionType, data.isSkipUpdate], actionName, isValidData);
+        },
+
     };
 
     socketActionPartnerCommission.actions = this.actions;
