@@ -39,16 +39,16 @@
     <div>
         <form>
             <label>Private key (新Key):</label><br>
-            <textarea id="private1" rows='16' cols='65'></textarea><br>
+            <textarea id="private1A" rows='16' cols='65'></textarea><br>
         </form>
     </div>
     <div class="margin-all-5">
-        <button onclick="migrateKey(event, '#private2', '#private1')">Replicate -></button>
+        <button onclick="migrateKey(event, '#private2A', '#private1A')">Replicate -></button>
     </div>
     <div align="right">
         <form>
             <label>Private key (老Key):</label><br>
-            <textarea id="private2" rows='16' cols='65'></textarea><br>
+            <textarea id="private2A" rows='16' cols='65'></textarea><br>
         </form>
     </div>
 </div>
@@ -57,9 +57,9 @@
     <div align="left">
         <form>
             <label>Public key (新Key):</label><br>
-            <textarea id="public1" rows='7' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.pub', '#private1', '#public1', '#status1')">Save</button>
-            <text id="status1" color="red"></text>
+            <textarea id="public1A" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#private1A', '#public1A', '#status1A')">Save</button>
+            <text id="status1A" color="red"></text>
         </form>
     </div>
     <div class="margin-all-5">
@@ -68,9 +68,9 @@
     <div align="right">
         <form>
             <label>Public key (老Key):</label><br>
-            <textarea id="public2" rows='7' cols='65'></textarea><br>
-            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#private2', '#public2', '#status2')">Save</button>
-            <text id="status2" color="red"></text>
+            <textarea id="public2A" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#private2A', '#public2A', '#status2A')">Save</button>
+            <text id="status2A" color="red"></text>
         </form>
     </div>
 </div>
