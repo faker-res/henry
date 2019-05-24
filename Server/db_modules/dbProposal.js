@@ -9184,6 +9184,7 @@ function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
                 if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
                     let topUpQuery = {
                         type: {$in: topUpProposalTypeIds},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                         "data.playerName": proposalData.data.playerName,
                         createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)}
                     };
