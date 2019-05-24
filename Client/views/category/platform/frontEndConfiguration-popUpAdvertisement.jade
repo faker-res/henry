@@ -1,0 +1,21 @@
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div(style="display: inline;")
+        label {{'Setting For Pop-up Advertisement' | translate}}
+        br
+        label.text-danger {{'Note: can be inter-switchable between CS Test and Production' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopUpAdvertisement(true)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+
+div.col-md-4.fronendConfigDiv.popUpAdvModal
+    ul.connected-sortable.droppable-area1
+        li.draggable-item(style="background: white !important;", ng-repeat="item in vm.popUpAdvertisementData", ng-dblclick="vm.editPopUpAdvertisement(item._id)", id="{{item._id}}")
+            span(style="vertical-align: -webkit-baseline-middle;") {{item.title}}
+            .tab-btngroup
+                button.btn.btn-primary(ng-if="item.isVisible" ng-click="item.isVisible = false") on
+                button.btn.btn-success(ng-if="!item.isVisible", ng-click="item.isVisible = true") off
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(item._id, vm.popUpAdvertisementData)")
+                    span.fa.fa-trash-o
+
+div.text-right(style="position: absolute; bottom: 0; right: 0;")
+    button.btn-danger.btn.btn-space(ng-click="vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button#popUpAdvSaveButton.btn-primary.btn(ng-click="vm.updatePopUpAdvertisementSetting()") {{'SAVE' | translate}}

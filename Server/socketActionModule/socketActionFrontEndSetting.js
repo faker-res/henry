@@ -11,6 +11,27 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        saveFrontEndPopUpAdvSetting: function saveFrontEndPopUpAdvSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndPopUpAdvSetting, [data], actionName, isValidData);
+        },
+
+        updatePopUpAdvertisementSetting: function updatePopUpAdvertisementSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updatePopUpAdvertisementSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
+        getFrontEndPopUpAdvertisementSetting: function getFrontEndPopUpAdvertisementSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndPopUpAdvertisementSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         saveSkinSetting: function saveSkinSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.device && data.name);
