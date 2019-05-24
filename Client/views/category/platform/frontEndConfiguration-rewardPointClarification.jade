@@ -3,13 +3,13 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         label {{'Setting For Reward Point Clarification' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewRewardPointClarification()")
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewRewardPointClarification(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'PC' | translate}}
     ul.connected-sortable
-        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 1")
-            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid white; text-align: center; position: relative;")
+        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 1", ng-dblclick="vm.editRewardPointClarification(item._id)")
+            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                 span(style="vertical-align: -webkit-baseline-middle;") {{item.title}}
                 div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
                     button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(item._id, vm.frontEndRewardPointClarificationData)")
@@ -17,8 +17,8 @@ div.col-md-4.fronendConfigDiv
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'H5' | translate}}
     ul.connected-sortable
-        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 2")
-            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid white; text-align: center; position: relative;")
+        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 2", ng-dblclick="vm.editRewardPointClarification(item._id)")
+            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                 span(style="vertical-align: -webkit-baseline-middle;") {{item.title}}
                 div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
                     button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(item._id, vm.frontEndRewardPointClarificationData)")
@@ -27,12 +27,13 @@ div.col-md-4.fronendConfigDiv
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'App' | translate}}
     ul.connected-sortable
-        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 3")
-            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid white; text-align: center; position: relative;")
+        li(ng-repeat="item in vm.frontEndRewardPointClarificationData", ng-if="item.device == 3", ng-dblclick="vm.editRewardPointClarification(item._id)")
+            div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                 span(style="vertical-align: -webkit-baseline-middle;") {{item.title}}
                 div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
                     button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(item._id, vm.frontEndRewardPointClarificationData)")
                         span.fa.fa-trash-o
 
 div.text-right
+    button.btn-danger.btn.btn-space(ng-click="vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
     button#testSave.btn-primary.btn(ng-click="vm.updateRewardPointClarification()") {{'SAVE' | translate}}

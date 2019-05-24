@@ -27,12 +27,12 @@ const dbPartnerCommission = {
         let parentChain = [];
         let isMainPartner = false;
         let mainPartner; // the partner of last obj id in partner Chain
-        let commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes;
+        let commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig;
         let activeDownLines = 0;
         let providerGroupConsumptionData, playerRawDetail;
         let bonusBased = false;
         let commissionRates = {};
-        let grossCommission = 0, rawCommissions = [];
+        let grossCommission = 0, grossDirectCommission = 0, rawCommissions = [];
         let totalReward = 0, totalTopUp = 0, totalWithdrawal = 0, depositCrewDetail = [], withdrawCrewDetail = [], bonusCrewDetail = [];
         let totalRewardFee = 0, totalTopUpFee = 0, totalWithdrawalFee = 0, totalPlatformFee = 0, totalWinLose = 0, nettCommission = 0;
         let parentCommissionDetail = {};
@@ -68,24 +68,16 @@ const dbPartnerCommission = {
                     providerGroups = providerGroupData || providerGroups;
                     partnerChain = partnerChainData || [];
 
-                    let mainPartnerObjId = partnerChain[partnerChain.length - 1];
+                    let mainPartnerObjId = partnerChain[partnerChain.length - 1] && partnerChain[partnerChain.length - 1]._id;
                     if (!mainPartnerObjId || String(mainPartnerObjId) === String(partnerObjId)) {
                         isMainPartner = true;
                     }
 
-                    if (isMainPartner) {
-                        return Promise.resolve(partner)
-                    }
+                    mainPartner = isMainPartner ? partner : partnerChain[partnerChain.length - 1];
 
-                    for (let i = partnerChain.length - 2; i >= 0; i--) {
+                    for (let i = 1; i < partnerChain.length; i++) {
                         parentChain.push(partnerChain[i]);
                     }
-
-                    return dbconfig.collection_partner.findOne(mainPartnerObjId).lean();
-                }
-            ).then(
-                mainPartnerData => {
-                    mainPartner = mainPartnerData || partner;
 
                     if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
                         return Promise.reject({message: "Please select a commission type"});
@@ -108,12 +100,13 @@ const dbPartnerCommission = {
                     let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
                     let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
                     let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
+                    let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
-                    return Promise.all([commConfigProm, commRateProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm]);
+                    return Promise.all([commConfigProm, commRateProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
                 }
             ).then(
-                ([commConfigData, commRateData, activePlayerRequirementData, paymentProposalTypesData, rewardProposalTypesData]) => {
-                    [commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes] = [commConfigData, commRateData, activePlayerRequirementData, paymentProposalTypesData, rewardProposalTypesData];
+                ([commConfigData, commRateData, activePlayerRequirementData, paymentProposalTypesData, rewardProposalTypesData, directCommConfigData]) => {
+                    [commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = [commConfigData, commRateData, activePlayerRequirementData, paymentProposalTypesData, rewardProposalTypesData, directCommConfigData];
                     return getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
                 }
             ).then(
@@ -126,13 +119,29 @@ const dbPartnerCommission = {
 
                     commConfig = commConfig || [];
 
+                    for (let i = 0; i < parentChain.length; i++) {
+                        let parent = parentChain[i];
+                        let objId = String(parent._id);
+                        parentCommissionDetail[objId] = parentCommissionDetail[objId] || {
+                            parentObjId: objId,
+                            parentName: partner.partnerName,
+                            grossCommission: 0
+
+                        };
+                    }
+
                     // normal calculation
                     commConfig.map(groupRate => {
                         let totalConsumption = bonusBased ? -providerGroupConsumptionData[groupRate.groupName].bonusAmount : providerGroupConsumptionData[groupRate.groupName].validAmount;
 
                         let totalBonusAmount = -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
+                        let directCommissionGroupRate = directCommConfig.find(group => {
+                            return groupRate.groupId == group.groupId;
+                        });
+
                         commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
+                        let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
 
                         let platformFeeRateData = {
                             rate : 0,
@@ -149,12 +158,13 @@ const dbPartnerCommission = {
                         }
 
                         let rawCommission = math.chain(totalConsumption).multiply(commissionRates[groupRate.groupName].commissionRate).round(2).done();
+                        let rawDirectCommission = math.chain(totalConsumption).multiply(directCommissionRate.commissionRate).round(2).done();
 
                         let platformFeeRate = platformFeeRateData.rate || 0;
                         let isCustomPlatformFeeRate = Boolean(platformFeeRateData.isCustom);
                         let platformFee = 0;
                         if (bonusBased) {
-                            platformFee = math.chain(platformFeeRate).multiply(totalBonusAmount).round(2);
+                            platformFee = math.chain(platformFeeRate).multiply(totalBonusAmount).divide(100).round(2).done();
                         }
                         totalPlatformFee += platformFee;
 
@@ -164,8 +174,10 @@ const dbPartnerCommission = {
                             groupName: groupRate.groupName,
                             groupId: groupRate.groupId,
                             amount: rawCommission,
+                            directAmount: rawDirectCommission,
                             totalConsumption: totalConsumption,
                             commissionRate: commissionRates[groupRate.groupName].commissionRate,
+                            directCommissionRate: directCommissionRate,
                             isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                             platformFee: platformFee,
                             platformFeeRate: platformFeeRate,
@@ -174,6 +186,7 @@ const dbPartnerCommission = {
                         });
 
                         grossCommission += rawCommission;
+                        grossDirectCommission += rawDirectCommission;
 
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
@@ -182,7 +195,6 @@ const dbPartnerCommission = {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
                                 let parentRatio = commissionRates[groupRate.groupName].parentRatios[i];
-                                parentCommissionDetail[objId] = parentCommissionDetail[objId] || {};
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
                                 let detail = {
                                     groupName: groupRate.groupName,
@@ -194,9 +206,6 @@ const dbPartnerCommission = {
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
                             }
                         }
-
-
-
                     });
 
                     playerRawDetail.map(player => {
@@ -229,16 +238,17 @@ const dbPartnerCommission = {
                         totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
                         totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
                         totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
-                        nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
+                        nettCommission = grossCommission + grossDirectCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
 
                     // if it is bonus based, calculate the nett parent commisssion as well
                     parentChain.map(parent => {
                         let parentComm = parentCommissionDetail[String(parent._id)];
+                        parentComm.grossCommission = parentComm.grossCommission || 0;
                         parentComm.nettCommission = parentComm.grossCommission;
-                        if (bonusBased) {
-                            parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done();
-                        }
+                        // if (bonusBased && grossCommission) {
+                        //     parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
+                        // }
                     });
 
                     let returnObj = {
@@ -266,6 +276,8 @@ const dbPartnerCommission = {
                         totalWithdrawalFee: totalWithdrawalFee,
                         withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
                         status: constPartnerCommissionLogStatus.PREVIEW,
+                        grossCommission: grossCommission,
+                        grossDirectCommission: grossDirectCommission,
                         nettCommission: nettCommission,
                         disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                         depositCrewDetail: depositCrewDetail,
@@ -282,8 +294,16 @@ const dbPartnerCommission = {
 
     },
 
-    generateCurrentPartnersCommissionDetail: function (partnerObjIds, startTime, endTime) {
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, startTime, endTime, commissionType) {
         let proms = [];
+        let parentPartnerCommissionDetail, downLinesRawCommissionDetail;
+
+        if (!startTime) {
+            commissionType = commissionType || constPartnerCommissionType.WEEKLY_CONSUMPTION;
+            let defaultTime = getTargetCommissionPeriod(commissionType, new Date());
+            startTime = defaultTime.startTime;
+            endTime = defaultTime.endTime;
+        }
 
         partnerObjIds.map(partnerObjId => {
             let commissionDetail = {};
@@ -296,9 +316,56 @@ const dbPartnerCommission = {
                 pastData => {
                     commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
                     commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
+
+                    commissionDetail.calcTime = new Date();
+                    parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail;
+                    delete commissionDetail.parentPartnerCommissionDetail;
+                    downLinesRawCommissionDetail = commissionDetail.downLinesRawCommissionDetail;
+                    delete commissionDetail.downLinesRawCommissionDetail;
+
+                    return dbconfig.collection_commCalc.findOneAndUpdate({partner: partnerObjId, commissionType, startTime}, commissionDetail, {new: true, upsert: true}).lean();
+                }
+            ).then(
+                commCalc => {
+                    if (!commCalc || !commCalc._id) {
+                        return false;
+                    }
+
+                    let parentCalcProms = [];
+
+                    for (let parentObjId in parentPartnerCommissionDetail) {
+                        if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
+                            let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
+                            commCalcParentData.commCalc = commCalc._id;
+
+                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({commCalc: commCalc._id, parentObjId}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
+                                console.log("commCalcParent save failed", commCalcParentData, err);
+                                return errorUtils.reportError(err);
+                            });
+                            parentCalcProms.push(prom);
+                        }
+                    }
+
+                    let playerCalcProms = downLinesRawCommissionDetail.map(playerCalc => {
+                        playerCalc.commCalc = commCalc._id;
+                        return dbconfig.collection_commCalcPlayer.findOneAndUpdate({commCalc: commCalc._id, name: playerCalc.name}, playerCalc, {upsert: true, new: true}).lean().catch(err => {
+                            console.log("commCalcPlayer save failed", playerCalc, err);
+                            return errorUtils.reportError(err);
+                        });
+                    });
+
+                    return Promise.all([Promise.all(parentCalcProms), Promise.all(playerCalcProms)]);
+                }
+            ).then(
+                () => {
+                    commissionDetail.parentPartnerCommissionDetail = parentPartnerCommissionDetail;
+                    commissionDetail.downLinesRawCommissionDetail = downLinesRawCommissionDetail
                     return commissionDetail;
                 }
-            ).catch(errorUtils.reportError);
+            ).catch(err => {
+                console.log('commCalc failure', err);
+                return errorUtils.reportError(err);
+            });
             proms.push(prom);
         });
 
@@ -309,38 +376,53 @@ const dbPartnerCommission = {
         let result = [];
         let query = {platform: platformObjId};
         commissionType = commissionType || constPartnerCommissionType.DAILY_CONSUMPTION;
+        let stream = Promise.resolve([]);
 
+        let findPartnerProm = Promise.resolve();
         if (partnerName) {
             query.partnerName = partnerName;
-        }
-        else {
-            query.commissionType = commissionType;
+            findPartnerProm = dbconfig.collection_partner.findOne(query, {_id:1, commissionType: 1}).lean();
         }
 
-        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
-
-        let balancer = new SettlementBalancer();
-        return balancer.initConns().then(function () {
-            return balancer.processStream(
-                {
-                    stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
-                    makeRequest: function (partners, request) {
-                        request("player", "generateCurrentPartnersCommissionDetail", {
-                            startTime: startTime,
-                            endTime: endTime,
-                            partnerObjIdArr: partners.map(function (partner) {
-                                return partner._id;
-                            })
-                        });
-                    },
-                    processResponse: function (record) {
-                        result = result.concat(record.data);
+        return findPartnerProm.then(
+            partner => {
+                if (partnerName) {
+                    if (!partner) {
+                        return;
                     }
+                    commissionType = partner.commissionType;
+                    stream = dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id:1}).cursor({batchSize: 100});
                 }
-            );
-        }).then(
+                else {
+                    query.commissionType = commissionType;
+                    stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+                }
+                let balancer = new SettlementBalancer();
+                return balancer.initConns().then(function () {
+                    return balancer.processStream(
+                        {
+                            stream: stream,
+                            batchSize: constSystemParam.BATCH_SIZE,
+                            makeRequest: function (partners, request) {
+                                request("player", "generateCurrentPartnersCommissionDetail", {
+                                    startTime: startTime,
+                                    endTime: endTime,
+                                    commissionType: commissionType,
+                                    partnerObjIdArr: partners.map(function (partner) {
+                                        return partner._id;
+                                    })
+                                });
+                            },
+                            processResponse: function (record) {
+                                result = result.concat(record.data);
+                            }
+                        }
+                    );
+                })
+            }
+        ).then(
             () => {
+                // todo :: change it to get data from db
                 return result;
             }
         )
@@ -967,17 +1049,20 @@ function getCommissionTables (partnerObjId, parentChain, commissionType, provide
                 return getCommissionTable(partnerConfig, parentConfigs, group);
             });
         }
-    )
+    );
 }
 
 function getCommissionTable (partnerConfig, parentConfigs, group) {
     // this function will assume the setting is done right and directly compare the number of index from parent to child
-
     let targetConfig = partnerConfig.find(config => {
         return String(config.provider) === String(group._id);
     });
     if (!targetConfig) {
-        return;
+        return {
+            groupId: group.providerGroupId,
+            groupName: group.name,
+            rateTable: []
+        };
     }
     let rateTable = targetConfig.commissionSetting;
 
@@ -994,17 +1079,20 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
         let previousPartnerRate = currentRequirement.commissionRate;
 
         currentRequirement.parentRatios = parentsRateTables.map(parentRateTable => {
-            if (!parentRateTable || !parentRateTable[i] || incompleteSetting) {
+            if (!parentRateTable || !parentRateTable.commissionSetting || !parentRateTable.commissionSetting[i] || incompleteSetting) {
                 incompleteSetting = true;
                 return;
             }
 
-            if (!parentRateTable[i].commissionRate || previousPartnerRate >= parentRateTable[i].commissionRate) {
+            let commSetting = parentRateTable.commissionSetting[i]
+
+            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
                 return 0;
             }
 
-            let currentRate = math.chain(parentRateTable[i].commissionRate).divide(previousPartnerRate).round(8).done();
-            previousPartnerRate = parentRateTable[i].commissionRate;
+            
+            let currentRate = math.chain(Number(commSetting.commissionRate) - Number(previousPartnerRate)).divide(currentRequirement.commissionRate).round(8).done();
+            previousPartnerRate = commSetting.commissionRate;
             return currentRate;
         });
     }
@@ -1070,4 +1158,108 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
             }
         }
     );
+}
+
+function getDirectCommissionRateTables (platformObjId, commissionType, partnerObjId, providerGroups) {
+    let proms = [];
+
+    if (providerGroups && providerGroups.length > 0) {
+        providerGroups.map(group => {
+            let prom = getDirectCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
+                rateTable => {
+                    return {
+                        groupId: group.providerGroupId,
+                        groupName: group.name,
+                        rateTable: rateTable
+                    }
+                }
+            );
+            proms.push(prom);
+        });
+    }
+
+    return Promise.all(proms);
+}
+
+function getDirectCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
+    providerGroupObjId = providerGroupObjId || {$exists: false};
+
+    let platformConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+        platform: platformObjId,
+        commissionType: commissionType,
+        provider: providerGroupObjId,
+        partner: {$exists: false}
+    }).lean();
+
+    let customConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+        platform: platformObjId,
+        commissionType: commissionType,
+        provider: providerGroupObjId,
+        partner: partnerObjId
+    }).lean();
+
+    return Promise.all([platformConfigProm, customConfigProm]).then(
+        data => {
+            let platformConfig = {};
+
+            if (!data[0]) {
+                platformConfig.commissionSetting = [];
+            } else {
+                platformConfig = data[0];
+            }
+
+            if (data[1]) {
+                let customConfig = data[1];
+                platformConfig.commissionSetting.map(platformRate => {
+                    customConfig.commissionSetting.map(customRate => {
+                        if (platformRate.playerConsumptionAmountFrom === customRate.playerConsumptionAmountFrom
+                            && platformRate.playerConsumptionAmountTo === customRate.playerConsumptionAmountTo
+                            && platformRate.activePlayerValueFrom === customRate.activePlayerValueFrom
+                            && platformRate.activePlayerValueTo === customRate.activePlayerValueTo
+                            && platformRate.commissionRate !== customRate.commissionRate) {
+                            platformRate.isCustom = true;
+                            platformRate.commissionRate = customRate.commissionRate;
+                        }
+                    });
+                });
+            }
+
+            return platformConfig.commissionSetting;
+        }
+    );
+}
+
+function getDirectCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
+    let lastValidCommissionRate = 0;
+    let isCustom = false;
+
+    if (consumptionAmount < 0) {
+        consumptionAmount *= -1;
+    }
+
+    commissionRateTable = commissionRateTable || [];
+
+    commissionRateTable = commissionRateTable.sort((requirementA, requirementB) => {
+        return requirementA.commissionRate - requirementB.commissionRate;
+    });
+
+    for (let i = 0; i < commissionRateTable.length; i++) {
+        let commissionRequirement = commissionRateTable[i];
+
+        if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
+            || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo
+            || commissionRequirement.activePlayerValueFrom && activeCount < commissionRequirement.activePlayerValueFrom
+            || commissionRequirement.activePlayerValueTo && activeCount > commissionRequirement.activePlayerValueTo
+        ) {
+            continue;
+        }
+
+        lastValidCommissionRate = commissionRequirement.commissionRate;
+        isCustom = Boolean(commissionRequirement.isCustom);
+    }
+
+    return {
+        commissionRate: lastValidCommissionRate,
+        isCustom: isCustom
+    };
 }

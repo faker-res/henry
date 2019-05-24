@@ -56,19 +56,19 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     label {{"Current Skin(PC)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.pcSkin' ng-change="vm.urlConfigShowMessage=''")
-            option(ng-repeat='(i,v) in vm.pcSkinSettingList', value='{{v._id}}') {{v.name}}
+            option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==1", value='{{v._id}}') {{v.name}}
 
 .full-width-input-block
     label {{"Current Skin(H5)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.h5Skin' ng-change="vm.urlConfigShowMessage=''")
-            option(ng-repeat='(i,v) in vm.h5SkinSettingList', value='{{v._id}}') {{v.name}}
+            option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==3", value='{{v._id}}') {{v.name}}
 
 .full-width-input-block
     label {{"Current Skin(APP)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.appSkin' ng-change="vm.urlConfigShowMessage=''")
-            option(ng-repeat='(i,v) in vm.appSkinSettingList', value='{{v._id}}') {{v.name}}
+            option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==2", value='{{v._id}}') {{v.name}}
 
 .full-width-input-block
     label

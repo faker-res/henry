@@ -4663,7 +4663,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'unlockProposalByAdmin', sendObj, function (data) {
                 $scope.$evalAsync(() => {
-                    let proposalObj = vm.paymentMonitorTotalData.filter(p => p.proposalId == proposalId);
+                    let proposalObj = vm.paymentMonitorTotalData.filter(p => p && p.proposalId && (p.proposalId === proposalId));
                     let textToDisplay = proposalObj && proposalObj[0].lockedButtonDisplay ? proposalObj[0].lockedButtonDisplay : "";
 
                     $('#' + linkId).empty();

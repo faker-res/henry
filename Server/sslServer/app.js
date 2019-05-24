@@ -20,6 +20,8 @@ const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
 const restartFPMSPath = "./public/restartFPMS";
 const fpmsKey = "Fr0m_FPM$!";
 const testKeyPairText = 'TEST ENCRYPTION';
+const ts = jwt.sign(fpmsKey, secret);
+const uh = crypto.createHash('md5').update(env.redisUrl).digest("hex");
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
@@ -248,8 +250,29 @@ http.createServer(function (req, res) {
         if (query && query.token) {
             jwt.verify(query.token, secret, (err, decoded) => {
                 if (!err && decoded && decoded === fpmsKey) {
-                    res.setHeader('Content-type', 'text/plain' );
-                    res.end(key);
+                    res.end(uh);
+                }
+
+                // Check if it's ciphered data
+                if (err && query.token) {
+                    const textParts = query.token.split(':');
+
+                    //extract the IV from the first half of the value
+                    const IV = Buffer.from(textParts.shift(), 'hex');
+
+                    //extract the encrypted text without the IV
+                    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+
+                    //decipher the string
+                    const decipher = crypto.createDecipheriv('aes-256-ctr', uh, IV);
+                    let decrypted = decipher.update(encryptedText,  'hex', 'utf8');
+                    decrypted += decipher.final('utf8');
+
+                    if (decrypted === fpmsKey) {
+                        res.end(key);
+                    } else {
+                        res.end();
+                    }
                 }
             });
         } else {
@@ -313,14 +336,23 @@ function getKeyFromOtherInstance () {
     ]);
 
     function getPrivateKey () {
-        return rp({
-            method: 'GET',
-            uri: getKeyUrl("playerPhone.key.pem")
-        }).then(
+        return rp(getKeyUrl("playerPhone.key.pem", ts)).then(
             data => {
                 if (data) {
-                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE', data);
-                    privateKey = data;
+                    let hash = cred.getHash(env.redisUrl);
+
+                    if (hash === data) {
+                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
+
+                        return rp(getKeyUrl("playerPhone.key.pem", secondVerification));
+                    }
+                }
+            }
+        ).then(
+            keyData => {
+                if (keyData) {
+                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE');
+                    privateKey = keyData;
                 }
             }
         ).catch(
@@ -329,14 +361,23 @@ function getKeyFromOtherInstance () {
     }
 
     function getReplPrivateKey () {
-        return rp({
-            method: 'GET',
-            uri: getKeyUrl("playerPhone.key.pem.bak")
-        }).then(
+        return rp(getKeyUrl("playerPhone.key.pem.bak", ts)).then(
             data => {
                 if (data) {
-                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE', data);
-                    replacedPrivateKey = data;
+                    let hash = cred.getHash(env.redisUrl);
+
+                    if (hash === data) {
+                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
+
+                        return rp(getKeyUrl("playerPhone.key.pem.bak", secondVerification));
+                    }
+                }
+            }
+        ).then(
+            keyData => {
+                if (keyData) {
+                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE');
+                    replacedPrivateKey = keyData;
                 }
             }
         ).catch(
@@ -345,14 +386,23 @@ function getKeyFromOtherInstance () {
     }
 
     function getPublicKey () {
-        return rp({
-            method: 'GET',
-            uri: getKeyUrl("playerPhone.pub")
-        }).then(
+        return rp(getKeyUrl("playerPhone.pub", ts)).then(
             data => {
                 if (data) {
-                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE', data);
-                    publicKey = data;
+                    let hash = cred.getHash(env.redisUrl);
+
+                    if (hash === data) {
+                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
+
+                        return rp(getKeyUrl("playerPhone.pub", secondVerification));
+                    }
+                }
+            }
+        ).then(
+            keyData => {
+                if (keyData) {
+                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE');
+                    publicKey = keyData;
                 }
             }
         ).catch(
@@ -361,14 +411,23 @@ function getKeyFromOtherInstance () {
     }
 
     function getReplPublicKey () {
-        return rp({
-            method: 'GET',
-            uri: getKeyUrl("playerPhone.pub.bak")
-        }).then(
+        return rp(getKeyUrl("playerPhone.pub.bak", ts)).then(
             data => {
                 if (data) {
-                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE', data);
-                    replacedPublicKey = data;
+                    let hash = cred.getHash(env.redisUrl);
+
+                    if (hash === data) {
+                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
+
+                        return rp(getKeyUrl("playerPhone.pub.bak", secondVerification));
+                    }
+                }
+            }
+        ).then(
+            keyData => {
+                if (keyData) {
+                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE');
+                    replacedPublicKey = keyData;
                 }
             }
         ).catch(
@@ -376,7 +435,7 @@ function getKeyFromOtherInstance () {
         )
     }
 
-    function getKeyUrl (dirName) {
+    function getKeyUrl (dirName, token) {
         let keyUrl = "http://".concat(theOtherEnv.redisUrl);
 
         if (theOtherEnv.redisPort) {
@@ -386,7 +445,7 @@ function getKeyFromOtherInstance () {
         keyUrl += "/";
         keyUrl += dirName;
         keyUrl += "?token=";
-        keyUrl += jwt.sign(fpmsKey, secret);
+        keyUrl += token;
 
         return keyUrl;
     }

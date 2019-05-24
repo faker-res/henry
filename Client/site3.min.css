@@ -4420,6 +4420,24 @@ hr {
     margin-bottom: 10px;
 }
 
+.eventSettingDiv {
+    padding: 10px;
+    margin: 10px;
+    position: relative;
+    border: 1px solid rgb(190,190,190);
+    border-radius: 10px;
+    min-height: 500px;
+    display: inline-block;
+}
+
+.eventSettingTab {
+    border: 1px solid rgb(190,190,190);
+    border-radius: 10px;
+    padding: .5em;
+    margin: 1em 0em;
+    overflow: scroll;
+}
+
 .navbar-right {
     padding-right: 10px !important;
 }
