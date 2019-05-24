@@ -40508,7 +40508,9 @@ define(['js/app'], function (myApp) {
                         vm.popularRecommendationSettingDeletedList.push(eventObjectId);
                         let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjectId.toString());
                         if (index != -1){
-                            vm.frontEndPopularRecommendationData.splice(index, 1);
+                            setTimeout(() => {
+                                vm.frontEndPopularRecommendationData.splice(index, 1);
+                            }, 0);
                         }
                     })
                 }
