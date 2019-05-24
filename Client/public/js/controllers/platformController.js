@@ -40736,13 +40736,14 @@ define(['js/app'], function (myApp) {
 
             vm.deleteFrontEndSetting = function (eventObjectId, holder){
                 if (eventObjectId){
-                    $scope.$evalAsync( () => {
-                        vm.frontEndDeletedList.push(eventObjectId);
-                        let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
-                        if (index != -1){
+                    vm.frontEndDeletedList.push(eventObjectId);
+                    let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
                             holder.splice(index, 1);
-                        }
-                    })
+                            $('#' + eventObjectId).hide();
+                        })
+                    }
                 }
             };
 

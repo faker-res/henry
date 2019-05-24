@@ -3129,9 +3129,9 @@ let dbPlayerReward = {
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
                     }).lean().then(
                         proposalType => {
-                            if(proposalType){
+                            if(proposalType && proposalType.length){
                                 let findQuery = {
-                                    type: proposalType._id,
+                                    type: {$in: proposalType.map(p => {return p._id})},
                                     'data.eventCode': 'KFSYHDM',
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
