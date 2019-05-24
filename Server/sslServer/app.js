@@ -46,7 +46,7 @@ http.createServer(function (req, res) {
             jwt.verify(req.headers['x-token'], env.socketSecret, function (err, decoded) {
                 if (err || !decoded) {
                     // Jwt token error
-                    console.log("jwt verify error - POST", err);
+                    console.log("jwt verify error - POST", req.headers['x-token'], env.socketSecret, err);
                     redirectToLoginPage();
                 } else {
                     // Log this action to system log
