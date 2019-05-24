@@ -3733,6 +3733,7 @@ let dbPartner = {
         );
     },
 
+    // deprecated
     calculatePartnersCommission: function (platformObjId, configData, partnerObjIds, startTime, endTime, settlementTimeToSave) {
         let proms = [];
         partnerObjIds.forEach(
@@ -3743,6 +3744,7 @@ let dbPartner = {
         return Q.all(proms);
     },
 
+    // deprecated
     calculatePartnerCommission: function (platformObjId, configData, partnerObjId, startTime, endTime, settlementTimeToSave) {
         let totalRewardAmount = 0;
         let serviceFee = 0;

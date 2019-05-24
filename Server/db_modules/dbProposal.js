@@ -3865,11 +3865,44 @@ var proposal = {
             );
         }
 
+        // specially made for proposal Player Minus Reward Points only - requested by Yuki
+        // remove proposal remark that contains player phone number and address
+        function removeRemarksContainPhoneAndAddress (results) {
+            let removeProposalRemark = [];
+            if (results && results.length) {
+                results.forEach(item => {
+                    if (item && item.type && item.type.name && item.type.name === constProposalType.PLAYER_MINUS_REWARD_POINTS) {
+                        if (item.data && item.data.remark) {
+                            let checkRemark = item.data.remark;
+                            let filterRemark = checkRemark.replace(/\D+/g, ''); //replace all characters other than numbers
+                            if (filterRemark && filterRemark.length > 10) { //phone number usually have 11 digits
+                                removeProposalRemark.push(item);
+                            }
+                        }
+                    }
+                })
+            }
+            if (removeProposalRemark && removeProposalRemark.length) {
+                removeProposalRemark.forEach(proposal => {
+                    let matchQuery = {
+                        _id: proposal._id
+                    };
+                    let updateObj = {
+                        $unset: {
+                            "data.remark": ''
+                        }
+                    };
+                    dbconfig.collection_proposal.update(matchQuery, updateObj).exec();
+                })
+            }
+        }
+
         return prom.then(
             function (data) {
                 data = resultArray;
                 let allProm = [];
                 if (data && data.length > 0) {
+                    removeRemarksContainPhoneAndAddress(data);
                     for (var i in data) {
                         if (data[i].data.playerId || data[i].data.playerId) {
                             try {
@@ -9184,6 +9217,7 @@ function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
                 if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
                     let topUpQuery = {
                         type: {$in: topUpProposalTypeIds},
+                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                         "data.playerName": proposalData.data.playerName,
                         createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)}
                     };

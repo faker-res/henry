@@ -203,7 +203,7 @@
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
 
 
-                    .col-md-12.well.scrollRecord(ng-if="!vm.isNewDisplay && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup')")
+                    .col-md-12.well.scrollRecord(ng-if="!vm.isNewDisplay && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup' && vm.showRewardTypeData.name !== 'PlayerFestivalRewardGroup')")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -294,7 +294,7 @@
                                     td
                                         input.form-control(ng-model="vm.rewardVisible[value.name].invisibleIfApplyCurrentReward" type="{{value.invisibleIfApplyCurrentReward.type}}" data-cond-name="{{value.invisibleIfApplyCurrentReward.name}}" ng-disabled="value.invisibleIfApplyCurrentReward.disabled")
 
-                    .col-md-12.well.scrollRecord(ng-if="vm.isNewDisplay && !vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup' && vm.showRewardTypeData.name !== 'PlayerFestivalRewardGroup')" style="height: 400px;")
+                    .col-md-12.well.scrollRecord(ng-if="vm.isNewDisplay && !vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup' && vm.showRewardTypeData.name !== 'PlayerFestivalRewardGroup')", style="height: 400px;")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -381,7 +381,7 @@
 
 
                     // part-2
-                    #platformRewardSetting.col-md-12.well(ng-if="vm.isNewDisplay && vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup')")
+                    #platformRewardSetting.col-md-12.well(ng-if="vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup')")
                         .div
                             button.btn.btn-primary.common-button(ng-click='vm.showFestivalRewardModal()') 特别节日设置
                         ul.nav.nav-tabs.common-nav-tabs(ng-if="vm.isPlayerLevelDiff")
@@ -710,7 +710,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType1})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
@@ -727,7 +727,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType2})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
@@ -746,7 +746,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.festivalType3})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
@@ -765,7 +765,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday1})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
@@ -782,7 +782,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday2})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
@@ -801,7 +801,7 @@
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.festivalRewardType.birthday3})' ng-if='!vm.platformRewardShowEdit()')
-                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                    i.fa.fa-minus(ng-click='cond.value.splice($index, 1);vm.repackageFestivalRewardGroup()' ng-if='!vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageFestivalRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select' && i=='festivalId'", style='width:-webkit-fill-available;')
