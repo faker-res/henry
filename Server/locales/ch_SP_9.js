@@ -192,7 +192,8 @@ var simplifiedChinese = {
     "Error creating player first top up proposal": "错误创建玩家首冲奖励提案",
     "Error finding db data": "发现错误DB数据",
     "Error searching consumption records": "错误搜索投注记录",
-
+    "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
+    "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No consumption records found": "没有投注记录",
     "No platform providers found": "发现没有平台供应商",
     "No player found matching query": "没有玩家找到匹配的查询",
@@ -334,6 +335,7 @@ var simplifiedChinese = {
     "The period of the reward has not yet opened": "本周期的场次尚未开放",
     "Player has applied for max reward times in event period": "您已经达到了该奖励周期内的申请上限",
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
+    "Player do not have permission for consumption return": "您好， 您目前暂无申请洗码的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Username should be alphanumeric and within 20 characters": "用户名只能为6-20位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",

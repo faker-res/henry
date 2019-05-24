@@ -349,7 +349,7 @@ var SettlementServiceImplement = function () {
 
     this.generateCurrentPartnersCommissionDetail.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.partnerObjIdArr);
-        let args = [data.partnerObjIdArr, data.startTime, data.endTime];
+        let args = [data.partnerObjIdArr, data.startTime, data.endTime, data.commissionType];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.generateCurrentPartnersCommissionDetail, args, isValidData);
     };
 };

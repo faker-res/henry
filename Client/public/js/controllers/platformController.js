@@ -54,9 +54,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.frontEndSettingDevices = {
-                "web": 1,
-                "iosApp": 2,
-                "androidApp": 3,
+                "Web": 1,
+                "IOS App": 2,
+                "Android App": 3,
                 "H5": 4,
             },
 
@@ -7734,15 +7734,17 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.forbidRewardEventPopover',
                             content: function () {
-                                var data = JSON.parse(this.dataset.row);
-                                vm.forbidRewardEventPopover = data;
-                                vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
-                                vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
-                                vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
-                                vm.forbidRewardEvents = [];
-                                vm.forbidRewardDisable = true;
-                                $scope.safeApply();
-                                return $compile($('#forbidRewardEventPopover').html())($scope);
+                                $scope.$evalAsync(()=>{
+                                    var data = JSON.parse(this.dataset.row);
+                                    vm.forbidRewardEventPopover = data;
+                                    vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                    vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
+                                    vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                    vm.forbidRewardEvents = [];
+                                    vm.forbidRewardDisable = true;
+                                    vm.selectedAllForbidRewardEvent = false;
+                                    return $compile($('#forbidRewardEventPopover').html())($scope);
+                                })
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
@@ -21417,7 +21419,7 @@ define(['js/app'], function (myApp) {
                     vm.showReward.condition.imageUrl = [""];
                 }
 
-                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "PlayerFestivalRewardGroup")) {
+                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup")) {
                     // set to the new display style
                     vm.isNewDisplay = true;
                 }
@@ -22508,6 +22510,9 @@ define(['js/app'], function (myApp) {
                             if (birthday1Header.title) {
                                 delete birthday1Header.title
                             }
+                            if (birthday1Header.amountPercent) {
+                                delete birthday1Header.amountPercent
+                            }
                             if (birthday1Header.topUpReturnReward) {
                                 delete birthday1Header.topUpReturnReward
                             }
@@ -22525,7 +22530,9 @@ define(['js/app'], function (myApp) {
                             if (birthday2Header.totalConsumptionInInterval) {
                                 delete birthday2Header.totalConsumptionInInterval
                             }
-
+                            if (birthday2Header.rewardAmount) {
+                                delete birthday2Header.rewardAmount
+                            }
                             if (birthday2Header.title) {
                                 delete birthday2Header.title
                             }
@@ -22544,9 +22551,8 @@ define(['js/app'], function (myApp) {
                             if (birthday3Header.minTopUpAmount) {
                                 delete birthday3Header.minTopUpAmount
                             }
-
-                            if (birthday3Header.applyTimes) {
-                                delete birthday3Header.applyTimes
+                            if (birthday3Header.amountPercent) {
+                                delete birthday3Header.amountPercent
                             }
 
                             if (birthday3Header.requiredConsumption) {
@@ -22585,6 +22591,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType1Header.title){
                                 delete festivalType1Header.title
                             }
+                            if(festivalType1Header.amountPercent){
+                                delete festivalType1Header.amountPercent
+                            }
                             if(festivalType1Header.topUpReturnReward){
                                 delete festivalType1Header.topUpReturnReward
                             }
@@ -22604,6 +22613,9 @@ define(['js/app'], function (myApp) {
                             if(festivalType2Header.totalConsumptionInInterval){
                                 delete festivalType2Header.totalConsumptionInInterval
                             }
+                            if(festivalType2Header.rewardAmount){
+                                delete festivalType2Header.rewardAmount
+                            }
                             if(festivalType2Header.title){
                                 delete festivalType2Header.title
                             }
@@ -22620,8 +22632,8 @@ define(['js/app'], function (myApp) {
                             if(festivalType3Header.minTopUpAmount){
                                 delete festivalType3Header.minTopUpAmount
                             }
-                            if(festivalType3Header.applyTimes){
-                                delete festivalType3Header.applyTimes
+                            if(festivalType3Header.amountPercent){
+                                delete festivalType3Header.amountPercent
                             }
                             if(festivalType3Header.requiredConsumption){
                                 delete festivalType3Header.requiredConsumption
@@ -22734,7 +22746,9 @@ define(['js/app'], function (myApp) {
                 if (festivalType1Header.minTopUpAmount) {
                     delete festivalType1Header.minTopUpAmount
                 }
-
+                if (festivalType1Header.amountPercent) {
+                    delete festivalType1Header.amountPercent
+                }
                 if (festivalType1Header.topUpReturnReward) {
                     delete festivalType1Header.topUpReturnReward
                 }
@@ -22754,10 +22768,12 @@ define(['js/app'], function (myApp) {
                 if(festivalType2Header.totalConsumptionInInterval){
                     delete festivalType2Header.totalConsumptionInInterval
                 }
+                if(festivalType2Header.rewardAmount){
+                    delete festivalType2Header.rewardAmount
+                }
                 if(festivalType2Header.title){
                     delete festivalType2Header.title
                 }
-
                 vm.remainMainParamTableFestival[idx].push({
                     header: festivalType2Header,
                     value: festivalType2Value
@@ -22771,9 +22787,6 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.minTopUpAmount){
                     delete festivalType3Header.minTopUpAmount
                 }
-                if(festivalType3Header.applyTimes){
-                    delete festivalType3Header.applyTimes
-                }
                 if(festivalType3Header.requiredConsumption){
                     delete festivalType3Header.requiredConsumption
                 }
@@ -22783,6 +22796,10 @@ define(['js/app'], function (myApp) {
                 if(festivalType3Header.topUpReturnReward){
                     delete festivalType3Header.topUpReturnReward
                 }
+                if(festivalType3Header.amountPercent){
+                    delete festivalType3Header.amountPercent
+                }
+
                 if(festivalType3Header.title){
                     delete festivalType3Header.title
                 }
@@ -22803,6 +22820,9 @@ define(['js/app'], function (myApp) {
                 if (birthday1Header.minTopUpAmount) {
                     delete birthday1Header.minTopUpAmount;
                 }
+                if (birthday1Header.amountPercent) {
+                    delete birthday1Header.amountPercent;
+                }
                 if (birthday1Header.topUpReturnReward) {
                     delete birthday1Header.topUpReturnReward;
                 }
@@ -22819,6 +22839,9 @@ define(['js/app'], function (myApp) {
                 let birthday2Header = Object.assign({}, vm.rewardMainParam.rewardParam);
                 if (birthday2Header.totalConsumptionInInterval) {
                     delete birthday2Header.totalConsumptionInInterval
+                }
+                if (birthday2Header.rewardAmount) {
+                    delete birthday2Header.rewardAmount
                 }
                 if (birthday2Header.title) {
                     delete birthday2Header.title;
@@ -22838,11 +22861,8 @@ define(['js/app'], function (myApp) {
                 if (birthday3Header.minTopUpAmount) {
                     delete birthday3Header.minTopUpAmount
                 }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
-                }
-                if (birthday3Header.applyTimes) {
-                    delete birthday3Header.applyTimes
+                if (birthday3Header.amountPercent) {
+                    delete birthday3Header.amountPercent
                 }
                 if (birthday3Header.expiredInDay) {
                     delete birthday3Header.expiredInDay
@@ -24719,24 +24739,70 @@ define(['js/app'], function (myApp) {
             };
 
             vm.frontEndSettingPlatform = function () {
+                vm.frontEndDeletedList = [];
                 switch (vm.selectedFrontEndSettingTab) {
+                    case 'rewardPointClarification':
+                        vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                        break;
+                    case 'popUpAdvertisement':
+                        vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                     case 'popularRecommendation':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'carouselConfiguration':
+                        vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
+                        vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                        vm.carouselSettingDeletedList = [];
+                        break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.urlConfigShowMessage = '';
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        break;
+                    case 'skinManagement':
+                        vm.skinSettingShowMessage = '';
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
-            }
+            };
 
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
+                    case 'rewardPointClarification':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                     case 'popularRecommendation':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'carouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'popUpAdvertisement':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'urlConfiguration':
+                        vm.frontEndUrlConfig = {};
+                        vm.frontEndSkinSetting = [];
+                        vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'skinManagement':
                         vm.filterFrontEndSettingPlatform = null;
-                        vm.frontEndSkinManagement = {};
+                        vm.frontEndSkinSetting = [];
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = '';
+                        break;
+                    case 'rewardSetting':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.newRewardtSetting = {};
+                        vm.rewardSettingData = [];
+
                         break;
                 }
             };
@@ -24744,7 +24810,52 @@ define(['js/app'], function (myApp) {
             vm.initFrontendConfiguration2 = function () {
                 $scope.$evalAsync( () => {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
-                    vm.selectedFrontEndSettingTab  = "popularRecommendation";
+                    utilService.actionAfterLoaded('#testSave', function () {
+                        $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                            connectWith: ".connected-sortable",
+                            stop: function () {
+                                let arr1 = $('.droppable-area1').sortable('toArray');
+                                let arr2 = $('.droppable-area2').sortable('toArray');
+                                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                                arr1.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr2.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+
+                                arr3.forEach (
+                                    (v, i) => {
+                                        if (v){
+                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    }
+                                );
+                            }
+                        });
+                    });
                 })
             };
 
@@ -24760,6 +24871,353 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
+            vm.addRewardCategory = function () {
+                vm.rewardSettingData.push({categoryName: vm.newRewardSetting});
+                console.log('vm.eventSettingData', vm.rewardSettingData);
+            }
+
+
+
+            //#region Frontend Configuration - Skin Management
+            vm.saveFrontEndSkinSetting = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
+                    name: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.name ? vm.newFrontEndSkinSetting.name : null,
+                    url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
+                };
+
+                return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
+                    console.log("saveSkinSetting success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.skinSettingShowMessage = "SUCCESS";
+                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('saveSkinSetting error: ', err);
+                    vm.skinSettingShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndSkinSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
+                    console.log('getSkinSetting', data.data);
+                    if (data && data.data) {
+                        vm.frontEndSkinSetting = data.data.map(item => {
+                            item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+
+                            return item;
+                        });
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getSkinSetting error: ', err);
+                }, true);
+            };
+
+            vm.removeFrontEndSkinSetting = function (objId) {
+                return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
+                    console.log("removeSkinSetting success:", data);
+                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('removeSkinSetting error: ', err);
+                });
+            }
+            //#endregion
+
+            //#region Frontend Configuration - Url Configuration
+            vm.saveFrontEndUrlConfig = function () {
+                let sendData = {
+                    platform: vm.filterFrontEndSettingPlatform,
+                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
+                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
+                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
+                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
+                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
+                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
+                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
+                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
+                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
+                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
+                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
+                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null
+                };
+
+                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
+                    console.log("saveUrlConfig success:", data);
+                    vm.newFrontEndSkinSetting = {};
+                    vm.urlConfigShowMessage = "SUCCESS";
+                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                    $scope.$evalAsync();
+                }, err => {
+                    console.error('saveUrlConfig error: ', err);
+                    vm.urlConfigShowMessage = "FAIL";
+                });
+            };
+
+            vm.getFrontEndUrlConfig = function (objId) {
+                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                    console.log('getUrlConfig', data.data);
+                    if (data && data.data) {
+                        vm.frontEndUrlConfig = data.data;
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getUrlConfig error: ', err);
+                }, true);
+            };
+            //#endregion
+
+            //#region Frontend Configuration - Carousel Configuration
+            vm.initCarouselSetting = function() {
+                vm.newFrontEndCarousel = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                };
+
+                vm.resetCarouselUploadFile();
+
+                $('#carouselSetting').modal();
+            };
+
+            vm.resetCarouselUploadFile = function(carouselObjId) {
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.carouselImageFile = {};
+                vm.carouselImageUrl = {};
+
+                document.querySelector('#carouselPcImageFile').value = "";
+                document.querySelector('#carouselPcNewPageFile').value = "";
+                document.querySelector('#carouselPcPageDetailFile').value = "";
+
+                document.querySelector('#carouselH5ImageFile').value = "";
+                document.querySelector('#carouselH5NewPageFile').value = "";
+                document.querySelector('#carouselH5PageDetailFile').value = "";
+
+                document.querySelector('#carouselAppImageFile').value = "";
+                document.querySelector('#carouselAppNewPageFile').value = "";
+                document.querySelector('#carouselAppPageDetailFile').value = "";
+
+                $('#carouselPCImage').attr("src","");
+                $('#carouselH5Image').attr("src","");
+                $('#carouselAPPImage').attr("src","");
+
+                if (carouselObjId) {
+                    let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
+                    if (index != -1){
+                        vm.newFrontEndCarousel = _.clone(vm.frontEndCarouselSetting[index]);
+                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
+                            $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                        }
+                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
+                            $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+                        }
+                        if( vm.newFrontEndCarousel &&  vm.newFrontEndCarousel.imageUrl) {
+                            $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                        }
+                    }
+                }
+
+                vm.refreshSPicker();
+
+                $("#carouselPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"carouselPCImage", vm.carouselImageFile);});
+                $("#carouselPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.carouselImageFile);});
+                $("#carouselPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.carouselImageFile);});
+
+                $("#carouselH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"carouselH5Image", vm.carouselImageFile);});
+                $("#carouselH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage", vm.carouselImageFile);});
+                $("#carouselH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail", vm.carouselImageFile);});
+
+                $("#carouselAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"carouselAPPImage", vm.carouselImageFile);});
+                $("#carouselAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage", vm.carouselImageFile);});
+                $("#carouselAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail", vm.carouselImageFile);});
+            };
+
+            vm.editCarouselSetting = function(carouselObjId) {
+                vm.resetCarouselUploadFile(carouselObjId);
+                $('#carouselSetting').modal();
+            };
+
+            vm.submitCarouselSettings = () => {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndCarouselUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.carouselImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr
+
+                if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '1') {
+                    promArr = [
+                        "carouselPCImage",
+                        "pcNewPage",
+                        "pcPageDetail"
+                    ];
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '2') {
+                    promArr = [
+                        "carouselAPPImage",
+                        "appNewPage",
+                        "appPageDetail"
+                    ];
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '3') {
+                    promArr = [
+                        "carouselH5Image",
+                        "H5NewPage",
+                        "H5PageDetail"
+                    ];
+                }
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.carouselImageFile, vm.carouselImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.carouselImageUrl", vm.carouselImageUrl);
+                        vm.newFrontEndCarousel.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.carouselImageUrl){
+                            if (vm.carouselImageUrl.carouselPCImage){
+                                vm.newFrontEndCarousel.imageUrl = vm.carouselImageUrl.carouselPCImage;
+                            }
+                            if (vm.carouselImageUrl.pcNewPage){
+                                vm.newFrontEndCarousel.newPageUrl = vm.carouselImageUrl.pcNewPage;
+                            }
+                            if (vm.carouselImageUrl.pcPageDetail){
+                                vm.newFrontEndCarousel.activityUrl = vm.carouselImageUrl.pcPageDetail;
+                            }
+                            if (vm.carouselImageUrl.carouselH5Image){
+                                vm.newFrontEndCarousel.imageUrl = vm.carouselImageUrl.carouselH5Image;
+                            }
+                            if (vm.carouselImageUrl.H5NewPage){
+                                vm.newFrontEndCarousel.newPageUrl = vm.carouselImageUrl.H5NewPage;
+                            }
+                            if (vm.carouselImageUrl.H5PageDetail){
+                                vm.newFrontEndCarousel.activityUrl = vm.carouselImageUrl.H5PageDetail;
+                            }
+                            if (vm.carouselImageUrl.carouselAPPImage){
+                                vm.newFrontEndCarousel.imageUrl = vm.carouselImageUrl.carouselAPPImage;
+                            }
+                            if (vm.carouselImageUrl.appNewPage){
+                                vm.newFrontEndCarousel.newPageUrl = vm.carouselImageUrl.appNewPage;
+                            }
+                            if (vm.carouselImageUrl.appPageDetail){
+                                vm.newFrontEndCarousel.activityUrl = vm.carouselImageUrl.appPageDetail;
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveCarouselSetting', vm.newFrontEndCarousel, function (data) {
+                                    console.log("saveCarouselSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndCarouselUploader').hide();
+                                    // close the modal
+                                    $('#carouselSetting').modal('hide');
+                                    // collect the latest setting
+                                    vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveCarouselSetting err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndCarouselUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndCarouselUploader').hide();
+                });
+            };
+
+            vm.getFrontEndCarouselSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
+                    console.log('getCarouselSetting', data.data);
+                    if (data && data.data) {
+                        vm.frontEndCarouselSetting = data.data.map(item => {
+                            item.device = item.device.toString();
+                            return item;
+                        });
+                    }
+                    $scope.$evalAsync();
+                }, function (err) {
+                    console.error('getCarouselSetting error: ', err);
+                }, true);
+            };
+
+            vm.deleteFrontEndCarouselSetting = function (carouselObjId){
+                if (carouselObjId){
+                    $scope.$evalAsync( () => {
+                        vm.carouselSettingDeletedList.push(carouselObjId);
+                        let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
+                        if (index != -1){
+                            setTimeout(() => {
+                                vm.frontEndCarouselSetting.splice(index, 1);
+                            }, 0);
+                        }
+                    })
+                }
+            };
+
+            vm.updateFrontEndCarouselSetting = function () {
+                let arr1 = $('.droppable-area1').sortable('toArray');
+                let arr2 = $('.droppable-area2').sortable('toArray');
+                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndCarouselSetting[index].device = 1;
+                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndCarouselSetting[index].device = 3;
+                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndCarouselSetting[index].device = 2;
+                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.carouselSettingDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateCarouselSetting is done', data);
+                            vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+            //#endregion
+
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
                 vm.rewardPointsEvent = [];
@@ -24772,7 +25230,8 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsLvlConfig = {};
                         vm.oldRewardPointsLvlConfigPeriod = null;
                         vm.oldRewardPointsLvlConfigCustomPeriodEndTime = null;
-                        Q.all([vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getPlatformProviderGroup()]).then(
+                        Q.all([vm.getRewardPointsLvlConfig(vm.rewardPointsSelectedPlatform),
+                            vm.getAllPlayerLevels(vm.rewardPointsSelectedPlatform), vm.getPlatformProviderGroup(vm.rewardPointsSelectedPlatform)]).then(
                             (data) => {
                                 // Check is all player level already set rewardPointsLvlConfig
                                 vm.allPlayerLvl.forEach((playerLvl) => {
@@ -24799,14 +25258,14 @@ define(['js/app'], function (myApp) {
                     case 'loginRewardPoints':
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
                         vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
                         vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'gameRewardPoints':
                         vm.allGameType = [];
@@ -24815,7 +25274,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game bet type
                         // vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getGameProviderToManuallyInsertGameId();
-                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
+                        vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
@@ -24901,6 +25360,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.insertRandomData = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.randomRewardPointsData = [];
                 for (let i = 0; i < vm.playerRankingRandom.length; i++) {
                     for (let j = 0; j < vm.playerRankingRandom[i].randomCount; j++) {
@@ -24909,7 +25369,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.randomRewardPointsData.map(item => {
-                    item.platformObjId = vm.selectedPlatform.id;
+                    item.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                     return item;
                 });
 
@@ -24923,7 +25383,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getRankingRandomConfig = function () {
-                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getRewardPointsRandomDataConfig', {platformObjId: getSelectedPlatform()._id || vm.selectedPlatform.id}, function (data) {
                     console.log('getRandomConfig', data.data);
                     if (data && data.data) {
                         vm.playerRankingRandom = data.data.condition;
@@ -24936,8 +25396,9 @@ define(['js/app'], function (myApp) {
             }
 
             vm.submitRankingRandomConfig = function () {
+                let selectedPlatform = getSelectedPlatform() || {};
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     condition: vm.playerRankingRandom
                 }
 
@@ -24962,6 +25423,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRanking = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRanking.index = isNewSearch ? 0 : (vm.playerRewardRanking.index || 0);
 
                 if (!vm.playerRewardRanking.sortCol) {
@@ -24975,8 +25437,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRanking.index,
                     limit: vm.playerRewardRanking.limit || 10,
                     sortCol: vm.playerRewardRanking.sortCol || {}
@@ -24993,6 +25455,7 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.ranking = vm.playerRewardRanking.totalCount - index - sendData.index;
                             }
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformObjId})[0].name;
                             return item;
                         })
                         , vm.playerRewardRanking.totalCount, {}, isNewSearch)
@@ -25012,6 +25475,7 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {title: $translate('REWARD_POINTS_RANKING'), data: "ranking"},
                         {title: $translate('PLAYER_NAME'), data: "playerName"},
                         {title: $translate('LEVEL'), data: "playerLevel.name"},
@@ -25033,6 +25497,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayerRewardPointsRankingRandom = function (isNewSearch) {
+                let selectedPlatform = getSelectedPlatform() || {};
                 vm.playerRewardRankingRandom.index = isNewSearch ? 0 : (vm.playerRewardRankingRandom.index || 0);
 
                 if (!vm.playerRewardRankingRandom.sortCol) {
@@ -25046,8 +25511,8 @@ define(['js/app'], function (myApp) {
 
 
                 // show
-                var sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                let sendData = {
+                    platformObjId: selectedPlatform._id || vm.selectedPlatform.id,
                     index: isNewSearch ? 0 : vm.playerRewardRankingRandom.index,
                     limit: vm.playerRewardRankingRandom.limit || 10,
                     sortCol: vm.playerRewardRankingRandom.sortCol || {}
@@ -25066,6 +25531,7 @@ define(['js/app'], function (myApp) {
                                 item.ranking = vm.playerRewardRankingRandom.totalCount - index - sendData.index;
                             }
                             item.lastUpdate = vm.dateReformat(item.lastUpdate);
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformObjId})[0].name;
                             return item;
                         })
                         , vm.playerRewardRankingRandom.totalCount, {}, isNewSearch)
@@ -25093,6 +25559,8 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {
                             "title": $translate('Multiselect'),
                             bSortable: false,
@@ -25328,15 +25796,17 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getRewardPointsLvlConfig = () => {
-                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: vm.selectedPlatform.id}).then((data) => {
+            vm.getRewardPointsLvlConfig = (platformObjId) => {
+                return $scope.$socketPromise('getRewardPointsLvlConfig', {platformObjId: platformObjId || vm.selectedPlatform.id || null}).then((data) => {
                     vm.rewardPointsLvlConfig = data.data;
                     $scope.safeApply();
                 });
             };
 
             vm.rewardPointsLvlConfigSubmit = () => {
-                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId : vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                vm.rewardPointsLvlConfig.platformObjId = vm.rewardPointsLvlConfig.platformObjId ? vm.rewardPointsLvlConfig.platformObjId
+                    : selectedPlatform._id || vm.selectedPlatform.id;
                 if (vm.rewardPointsLvlConfig.intervalPeriod == 6) {
                     vm.rewardPointsLvlConfig.customPeriodStartTime = vm.rewardPointsLvlConfig.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     vm.rewardPointsLvlConfig.customPeriodEndTime = vm.rewardPointsLvlConfig.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25417,10 +25887,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getRewardPointsEventByCategory = (category) => {
+            vm.getRewardPointsEventByCategory = (category, platformObjId) => {
                 vm.rewardPointsEvent = [];
                 return $scope.$socketPromise('getRewardPointsEventByCategory', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id || null,
                     category: category
                 }).then((data) => {
                     $scope.$evalAsync(()=>{
@@ -25438,7 +25908,8 @@ define(['js/app'], function (myApp) {
 
             vm.createRewardPointsEvent = (rewardPointsEvent) => {
                 delete rewardPointsEvent.isEditing;
-                rewardPointsEvent.platformObjId = vm.selectedPlatform.id;
+                let selectedPlatform = getSelectedPlatform() || {};
+                rewardPointsEvent.platformObjId = selectedPlatform._id || vm.selectedPlatform.id;
                 if (rewardPointsEvent.period == 6) {
                     rewardPointsEvent.customPeriodStartTime = rewardPointsEvent.customPeriodStartTime.data('datetimepicker').getLocalDate();
                     rewardPointsEvent.customPeriodEndTime = rewardPointsEvent.customPeriodEndTime.data('datetimepicker').getLocalDate();
@@ -25584,6 +26055,9 @@ define(['js/app'], function (myApp) {
                 vm.searchRewardPointsLog(newSearch ? 0 : vm.rewardPointsLogPageAASorting.index, vm.rewardPointsLogPageAASorting.limit).then(
                     (data) => {
                         $scope.safeApply();
+                        data.data.forEach(item => {
+                            item.$platformName = vm.allPlatformData.filter(platform=>{return platform._id == item.platformId})[0].name;
+                        });
                         vm.allRewardPointsLog = data;
                         console.log('vm.allRewardPointsLog', vm.allRewardPointsLog);
                         vm.drawRewardPointsLogTable(vm.allRewardPointsLog.data, vm.allRewardPointsLog.size, newSearch, {});
@@ -25593,11 +26067,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchRewardPointsLog = (index, limit) => {
+                let selectedPlatform = getSelectedPlatform() || {};
                 var startTime = $('#rpRecordStartDate').data('datetimepicker').getLocalDate();
                 var endTime = $('#rpRecordEndDate').data('datetimepicker').getLocalDate();
                 var sendQuery = {
                     query: {
-                        platformId: vm.selectedPlatform.id
+                        platformId: selectedPlatform._id || vm.selectedPlatform.id
                     },
                     index: index,
                     limit: limit || 10,
@@ -25663,6 +26138,7 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {title: $translate('PRODUCT_NAME'), data: "$platformName"},
                         {title: $translate('Reward Point ID'), data: "pointLogId"},
                         {title: $translate('Proposal Creator'), data: "creator"},
                         {
@@ -36611,8 +37087,16 @@ define(['js/app'], function (myApp) {
                                 vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                                 vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
                                 vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
+                                vm.isForbidPromoCode = false;
+                                vm.isForbidLevelUpReward = false;
+                                vm.isForbidLevelMaintainReward = false;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
+                                vm.selectedAllForbidRewardEvent = false;
+                                if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                                    vm.selectedAllForbidRewardEvent = true;
+                                }
+
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
                             },
                             callback: function () {
@@ -36650,12 +37134,6 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined) {
-                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
-                                        if (!ans) {
-                                            return
-                                        }
-                                    }
 
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
@@ -36675,8 +37153,12 @@ define(['js/app'], function (myApp) {
                                         forbidPromoCode: vm.forbidPromoCode,
                                         forbidLevelUpReward: vm.forbidLevelUpReward,
                                         forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        isForbidPromoCode: vm.isForbidPromoCode,
+                                        isForbidLevelUpReward: vm.isForbidLevelUpReward,
+                                        isForbidLevelMaintainReward: vm.isForbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
+
                                     // subcategory 1
                                     vm.batchPermitModifySucc = false;
                                     $(".forbidRewardEventPopover").popover('hide');
@@ -37030,6 +37512,32 @@ define(['js/app'], function (myApp) {
                     });
                 });
             };
+            vm.selectedAllForbidRewardEventToList = function() {
+                $scope.$evalAsync(() => {
+                    if (vm.selectedAllForbidRewardEvent) {
+                        vm.allRewardEvent.forEach( item => {
+                            vm.forbidRewardEventAddList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                        vm.forbidRewardEventRemoveList = [];
+                    } else {
+                        vm.allRewardEvent.forEach( item => {
+
+                            vm.forbidRewardEventRemoveList.push(item._id)
+                            $('#c-'+item._id).html($translate("ModifyIt"));
+                        })
+
+                        vm.forbidRewardEventAddList = [];
+                        $('#c-forbidPromoCode').html($translate("ModifyIt"));
+                        $('#c-forbidLevelUpReward').html($translate("ModifyIt"));
+                        $('#c-forbidLevelMaintainReward').html($translate("ModifyIt"));
+                    }
+                })
+
+            }
             vm.initBulkClearXIMAWithdraw = function() {
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
@@ -39939,41 +40447,79 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.addNewPopularRecommendationSetting = function() {
-                vm.popularRecommendationSetting = {
-                    pc: {},
-                    h5: {},
-                    app: {},
-                    isPlayerVisible: true,
-                    isPlayerWithRegisteredHpNoVisible: true,
-                };
+            vm.addNewPopularRecommendationSetting = function(isNew, eventObjId) {
+                //reset
+                document.querySelector('#popularRecommendationPcImageFile').value = "";
+                document.querySelector('#popularRecommendationPcNewPageFile').value = "";
+                document.querySelector('#popularRecommendationPcPageDetailFile').value = "";
+                document.querySelector('#popularRecommendationH5ImageFile').value = "";
+                document.querySelector('#popularRecommendationH5NewPageFile').value = "";
+                document.querySelector('#popularRecommendationH5PageDetailFile').value = "";
+                document.querySelector('#popularRecommendationAppImageFile').value = "";
+                document.querySelector('#popularRecommendationAppNewPageFile').value = "";
+                document.querySelector('#popularRecommendationAppPageDetailFile').value = "";
+
+                $('#pcImage').attr("src","");
+                $('#H5Image').attr("src","");
+                $('#appImage').attr("src","");
                 vm.popularRecommendationImageFile = {};
+                vm.popularRecommendationImageUrl = {};
 
+                if (isNew){
+                    vm.popularRecommendationSetting = {
+                        pc: {},
+                        h5: {},
+                        app: {},
+                        isPlayerVisible: true,
+                        isPlayerWithRegisteredHpNoVisible: true,
+                    };
+                }
+                else{
+                    if (eventObjId){
+                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        if (index != -1){
+                            vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
+                                $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
+                            }
+                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
+                                $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
+                            }
+                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
+                                $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
+                            }
+                        }
+                    }
+                }
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+
+                vm.refreshSPicker();
                 $('#popularRecommendationSetting').modal();
-                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage");});
-                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage");});
-                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail");});
+                $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.popularRecommendationImageFile);});
 
-                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image");});
-                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage");});
-                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail");});
+                $("#popularRecommendationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5Image", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5NewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"H5PageDetail", vm.popularRecommendationImageFile);});
 
-                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage");});
-                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage");});
-                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail");});
+                $("#popularRecommendationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appImage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"appNewPage", vm.popularRecommendationImageFile);});
+                $("#popularRecommendationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"appPageDetail", vm.popularRecommendationImageFile);});
             };
 
-            vm.readURL = (input, previewId) => {
+            vm.readURL = (input, previewId, holder) => {
                 console.log(input);
-                if (input.files && input.files[0]) {
+                if (input.files && input.files[0] && vm.selectedPlatformId) {
                     let reader1 = new FileReader();
                     let reader2 = new FileReader();
                     reader1.onload = function (e) {
                         $(`#${previewId}`).attr('src', e.target.result);
                     };
                     reader2.onload = function (e) {
-                        vm.popularRecommendationImageFile[previewId] = {
-                            platformId: 1,
+                        holder[previewId] = {
+                            platformId: vm.selectedPlatformId,
                             token: authService.getToken($cookies),
                             fileStream: e.target.result,
                             fileName: input.files[0].name
@@ -39986,94 +40532,568 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.resetOnClickSetting = function (holder, type, actionId) {
+                let tempImageUrl = null;
+                if (holder && holder[type]) {
+                    if (holder[type] && holder[type].imageUrl){
+                        tempImageUrl = holder[type].imageUrl
+                    }
+                    switch (actionId) {
+                        case 1:
+                            holder[type] = {};
+                            holder[type].onClickAction = 1;
+                            break;
+                        case 2:
+                            holder[type] = {};
+                            holder[type].onClickAction = 2;
+                            break;
+                        case 3:
+                            holder[type] = {};
+                            holder[type].onClickAction = 3;
+                            break;
+                        case 4:
+                            holder[type] = {};
+                            holder[type].onClickAction = 4;
+                            break;
+                        case 5:
+                            holder[type] = {};
+                            holder[type].onClickAction = 5;
+                            break;
+                        case 6:
+                            holder[type] = {};
+                            holder[type].onClickAction = 6;
+                            break;
+                    }
+
+                    holder[type].imageUrl = tempImageUrl
+                }
+            };
+
+            vm.editPopularRecommendationSetting = function(eventObjId) {
+                vm.addNewPopularRecommendationSetting(false, eventObjId);
+            };
+
             vm.submitPopularRecommendationSettings = () => {
-                $('#frontEndPopularRecommendationSetting').show();
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndPopularRecommendationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.popularRecommendationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
                 let promArr = [
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcImage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcNewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.pcPageDetail),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5Image),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5NewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.H5PageDetail),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appImage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appNewPage),
-                    vm.uploadToFtp(vm.popularRecommendationImageFile.appPageDetail)
+                    "pcImage",
+                    "pcNewPage",
+                    "pcPageDetail",
+                    "H5Image",
+                    "H5NewPage",
+                    "H5PageDetail",
+                    "appImage",
+                    "appNewPage",
+                    "appPageDetail",
                 ];
 
-                return Promise.all(promArr).then(
-                    data => {
-                        console.log("returned FTP data", data);
-                        if (data && data.length){
-                            let retPcImageUrl = data[0] && data[0].data && data[0].data.url ? data[0].data.url : null;
-                            let retPcNewPageUrl = data[1] && data[1].data && data[1].data.url ? data[1].data.url : null;
-                            let retPcActivityUrl = data[2] && data[2].data && data[2].data.url ? data[2].data.url : null;
-                            let retH5ImageUrl = data[3] && data[3].data && data[3].data.url ? data[3].data.url : null;
-                            let retH5NewPageUrl = data[4] && data[4].data && data[4].data.url ? data[4].data.url : null;
-                            let retH5ActivityUrl = data[5] && data[5].data && data[5].data.url ? data[5].data.url : null;
-                            let retAppImageUrl = data[6] && data[6].data && data[6].data.url ? data[6].data.url : null;
-                            let retAppNewPageUrl = data[7] && data[7].data && data[7].data.url ? data[7].data.url : null;
-                            let retAppActivityUrl = data[8] && data[8].data && data[8].data.url ? data[8].data.url : null;
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.popularRecommendationImageFile, vm.popularRecommendationImageUrl).then(removeFromList)});
+                    }
+                );
 
-                            vm.popularRecommendationSetting.platformObjId = vm.selectedPlatform.id;
-                            if (retPcImageUrl){
-                                vm.popularRecommendationSetting.pc.imageUrl = retPcImageUrl
+                return prom.then(
+                    () => {
+                        console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
+                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.popularRecommendationImageUrl){
+                            if (vm.popularRecommendationImageUrl.pcImage){
+                                vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
                             }
-                            if (retPcNewPageUrl){
-                                vm.popularRecommendationSetting.pc.newPageUrl = retPcNewPageUrl
+                            if (vm.popularRecommendationImageUrl.pcNewPage){
+                                vm.popularRecommendationSetting.pc.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
                             }
-                            if (retPcNewPageUrl){
-                                vm.popularRecommendationSetting.pc.activityUrl = retPcActivityUrl
+                            if (vm.popularRecommendationImageUrl.pcPageDetail){
+                                vm.popularRecommendationSetting.pc.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
                             }
-                            if (retH5ImageUrl){
-                                vm.popularRecommendationSetting.h5.imageUrl = retH5ImageUrl
+                            if (vm.popularRecommendationImageUrl.H5Image){
+                                vm.popularRecommendationSetting.h5.imageUrl = vm.popularRecommendationImageUrl.H5Image
                             }
-                            if (retH5NewPageUrl){
-                                vm.popularRecommendationSetting.h5.newPageUrl = retH5NewPageUrl
+                            if (vm.popularRecommendationImageUrl.H5NewPage){
+                                vm.popularRecommendationSetting.h5.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
                             }
-                            if (retH5ActivityUrl){
-                                vm.popularRecommendationSetting.h5.activityUrl = retH5ActivityUrl
+                            if (vm.popularRecommendationImageUrl.H5PageDetail){
+                                vm.popularRecommendationSetting.h5.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
                             }
-                            if (retAppImageUrl){
-                                vm.popularRecommendationSetting.app.imageUrl = retAppImageUrl
+                            if (vm.popularRecommendationImageUrl.appImage){
+                                vm.popularRecommendationSetting.app.imageUrl = vm.popularRecommendationImageUrl.appImage
                             }
-                            if (retAppNewPageUrl){
-                                vm.popularRecommendationSetting.app.newPageUrl = retAppNewPageUrl
+                            if (vm.popularRecommendationImageUrl.appNewPage){
+                                vm.popularRecommendationSetting.app.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
                             }
-                            if (retAppActivityUrl){
-                                vm.popularRecommendationSetting.app.activityUrl = retAppActivityUrl
+                            if (vm.popularRecommendationImageUrl.appPageDetail){
+                                vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
                             }
 
-                            socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
-                                console.log("saveFrontEndPopularRecommendationSetting ret", data);
-                                // stop the uploading loader
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                    console.log("saveFrontEndPopularRecommendationSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndPopularRecommendationUploader').hide();
+                                    // close the modal
+                                    $('#popularRecommendationSetting').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndPopularRecommendationSetting err", err);
+                                });
+                            }
+                            else {
                                 $('#frontEndPopularRecommendationUploader').hide();
-                                // close the modal
-                                $('#popularRecommendationSetting').modal('hide');
-                            }, function (err) {
-                                console.log("saveFrontEndPopularRecommendationSetting err", err);
-                            });
+                            }
                         }
                     }
                 ).catch(err=>{
                     console.log("err", err);
-                    $('#frontEndPopularRecommendationSetting').hide();
+                    $('#frontEndPopularRecommendationUploader').hide();
                 });
             };
 
-            vm.uploadToFtp = (sendQuery) => {
+            vm.uploadToFtp = (holderName, holder, retUrlHolder) => {
+                let sendQuery = holder[holderName];
+                let fileName = sendQuery && sendQuery.fileName ? sendQuery.fileName : null;
                 console.log("sendFileFTP query", sendQuery);
                 return new Promise((resolve, reject)=>{
                     if (!sendQuery){
                         return resolve();
                     }
-                    socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
+                    return socketService.$socket($scope.AppSocket, 'sendFileFTP', sendQuery, function (data) {
                         console.log("sendFileFTP ret", data);
+                        data.name = holderName;
+                        retUrlHolder[holderName] = data && data.data && data.data.url ? data.data.url : null;
+                        socketService.showConfirmMessage(fileName + " " + $translate("has been uploaded."), 10000);
                         return resolve(data);
                     }, function (err) {
                         console.log("sendFileFTP err", err);
-                        //add retry here
-                        return reject(err);
+                        vm.isFinishedUploadedToFTPServer  = false;
+                        return resolve();
                     });
+                });
+            };
+
+            vm.updatePopularRecommendationSetting = function () {
+                let arr1 = $('.droppable-area1').sortable('toArray');
+                let arr2 = $('.droppable-area2').sortable('toArray');
+                let arr3 = $('.droppable-area3').sortable('toArray');
+
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 1;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 2;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.frontEndPopularRecommendationData[index].category = 3;
+                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updatePopularRecommendationSetting is done', data);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.deleteFrontEndSetting = function (eventObjectId, holder){
+                if (eventObjectId){
+                    vm.frontEndDeletedList.push(eventObjectId);
+                    let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            holder.splice(index, 1);
+                            $('#' + eventObjectId).hide();
+                        })
+                    }
+                }
+            };
+
+            vm.addNewRewardPointClarification = function (isNew, eventObjId) {
+                //reset
+                document.querySelector('#rewardPointVipPrivilegeFile').value = "";
+                document.querySelector('#rewardPointClarificationFile').value = "";
+                document.querySelector('#rewardPointVoucherClarificationFile').value = "";
+
+                $('#vipPrivilegeFile').attr("src","");
+                $('#clarificationFile').attr("src","");
+                $('#voucherClarificationFile').attr("src","");
+                vm.rewardPointClarificationImageFile = {};
+                vm.rewardPointClarificationImageUrl = {};
+
+                if (isNew){
+                    vm.rewardPointClarification = {};
+                }
+                else{
+                    if(eventObjId){
+                        let index = vm.frontEndRewardPointClarificationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        if (index != -1){
+                            vm.rewardPointClarification = _.clone(vm.frontEndRewardPointClarificationData[index]);
+                            if (vm.rewardPointClarification && vm.rewardPointClarification.device){
+                                vm.rewardPointClarification.device = vm.rewardPointClarification.device.toString();
+                            }
+                            if( vm.rewardPointClarification && vm.rewardPointClarification.vipPrivilegeUrl) {
+                                $('#vipPrivilegeFile').attr("src",vm.rewardPointClarification.vipPrivilegeUrl);
+                            }
+                            if( vm.rewardPointClarification && vm.rewardPointClarification.rewardPointClarificationUrl) {
+                                $('#clarificationFile').attr("src",vm.rewardPointClarification.rewardPointClarificationUrl);
+                            }
+                            if( vm.rewardPointClarification && vm.rewardPointClarification.voucherClarificationUrl) {
+                                $('#voucherClarificationFile').attr("src",vm.rewardPointClarification.voucherClarificationUrl);
+                            }
+                        }
+                    }
+                }
+
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+
+                vm.refreshSPicker();
+                $('#rewardPointClarification').modal();
+                $("#rewardPointVipPrivilegeFile").change((ev)=>{vm.readURL(ev.currentTarget,"vipPrivilegeFile", vm.rewardPointClarificationImageFile);});
+                $("#rewardPointClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"clarificationFile", vm.rewardPointClarificationImageFile);});
+                $("#rewardPointVoucherClarificationFile").change((ev)=>{vm.readURL(ev.currentTarget,"voucherClarificationFile", vm.rewardPointClarificationImageFile);})
+            };
+
+            vm.submitRewardPointClarification = () => {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndRewardPointClarificationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.rewardPointClarificationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "vipPrivilegeFile",
+                    "clarificationFile",
+                    "voucherClarificationFile",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.rewardPointClarificationImageFile, vm.rewardPointClarificationImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.rewardPointClarificationImageUrl", vm.rewardPointClarificationImageUrl);
+                        vm.rewardPointClarification.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.rewardPointClarificationImageUrl){
+                            if (vm.rewardPointClarificationImageUrl.vipPrivilegeFile){
+                                vm.rewardPointClarification.vipPrivilegeUrl = vm.rewardPointClarificationImageUrl.vipPrivilegeFile
+                            }
+                            if (vm.rewardPointClarificationImageUrl.clarificationFile){
+                                vm.rewardPointClarification.rewardPointClarificationUrl = vm.rewardPointClarificationImageUrl.clarificationFile
+                            }
+                            if (vm.rewardPointClarificationImageUrl.voucherClarificationFile){
+                                vm.rewardPointClarification.voucherClarificationUrl = vm.rewardPointClarificationImageUrl.voucherClarificationFile
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndRewardPointClarification', vm.rewardPointClarification, function (data) {
+                                    console.log("saveFrontEndRewardPointClarification ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndRewardPointClarificationUploader').hide();
+                                    // close the modal
+                                    $('#rewardPointClarification').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndRewardPointClarification err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndRewardPointClarificationUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndRewardPointClarificationUploaders').hide();
+                });
+            };
+
+            vm.loadRewardPointClarificationData = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndRewardPointClarification', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndRewardPointClarification', data.data);
+                        if (data && data.data) {
+                            vm.frontEndRewardPointClarificationData = data.data;
+                        }
+                    })
+                }, function (err) {
+                    console.error('getFrontEndRewardPointClarification error: ', err);
+                }, true);
+            };
+
+            vm.updateRewardPointClarification = function () {
+                socketService.$socket($scope.AppSocket, 'updateRewardPointClarification', {deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateRewardPointClarification is done', data);
+                            vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.editRewardPointClarification = function (eventObjectId) {
+                vm.addNewRewardPointClarification(false, eventObjectId);
+            };
+
+            vm.loadPopUpAdvertisementSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopUpAdvertisementSetting', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndPopUpAdvertisementSetting', data.data);
+                        if (data && data.data) {
+                            vm.popUpAdvertisementData = data.data;
+                        }
+
+                        utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                            $(".popUpAdvModal .droppable-area1").sortable({
+                                connectWith: ".connected-sortable",
+                                stop: function () {
+                                    let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+                                    arr1.forEach(
+                                        (v, i) => {
+                                            if (v) {
+                                                let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                                                if (index != -1) {
+                                                    vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                                                }
+                                            }
+                                        }
+                                    );
+                                }
+                            })
+                        })
+                    })
+                }, function (err) {
+                    console.error('getFrontEndPopUpAdvertisementSetting error: ', err);
+                }, true);
+            };
+
+            vm.editPopUpAdvertisement = function (eventObjectId) {
+                vm.addNewPopUpAdvertisement(false, eventObjectId)
+            };
+
+            vm.updatePopUpAdvertisementSetting = function () {
+                let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                            }
+                        }
+                    }
+                );
+
+                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: vm.popUpAdvertisementData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updatePopUpAdvertisementSetting is done', data);
+                            vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.addNewPopUpAdvertisement = function (isNew, eventObjectId) {
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.popUpAdvImageFile = {};
+                vm.popUpAdvImageUrl = {};
+
+                //reset
+                document.querySelector('#popUpAdvPcImageFile').value = "";
+                document.querySelector('#popUpAdvPcNewPageFile').value = "";
+                document.querySelector('#popUpAdvPcPageDetailFile').value = "";
+                document.querySelector('#popUpAdvH5ImageFile').value = "";
+                document.querySelector('#popUpAdvH5NewPageFile').value = "";
+                document.querySelector('#popUpAdvH5PageDetailFile').value = "";
+                document.querySelector('#popUpAdvAppImageFile').value = "";
+                document.querySelector('#popUpAdvAppNewPageFile').value = "";
+                document.querySelector('#popUpAdvAppPageDetailFile').value = "";
+
+                $('#popUpAdvPcImage').attr("src","");
+                $('#popUpAdvH5Image').attr("src","");
+                $('#popUpAdvAppImage').attr("src","");
+
+                if (isNew) {
+                    vm.popUpAdvertisementSetting = {
+                        pc: {},
+                        h5: {},
+                        app: {},
+                        isPlayerVisible: true,
+                        isPlayerWithRegisteredHpNoVisible: true,
+                    };
+                }
+                else{
+                    if (eventObjectId) {
+                        let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                        if (index != -1) {
+                            vm.popUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
+
+                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.pc && vm.popUpAdvertisementSetting.pc.imageUrl) {
+                                $('#popUpAdvPcImage').attr("src", vm.popUpAdvertisementSetting.pc.imageUrl);
+                            }
+                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.h5 && vm.popUpAdvertisementSetting.h5.imageUrl) {
+                                $('#popUpAdvH5Image').attr("src", vm.popUpAdvertisementSetting.h5.imageUrl);
+                            }
+                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
+                                $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                            }
+                        }
+                    }
+                }
+
+                vm.refreshSPicker();
+                $('#popUpAdvertisementModal').modal();
+                $("#popUpAdvPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvPcImage", vm.popUpAdvImageFile);});
+                $("#popUpAdvPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvPcNewPage", vm.popUpAdvImageFile);});
+                $("#popUpAdvPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvPcPageDetail", vm.popUpAdvImageFile);});
+
+                $("#popUpAdvH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5Image", vm.popUpAdvImageFile);});
+                $("#popUpAdvH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5NewPage", vm.popUpAdvImageFile);});
+                $("#popUpAdvH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5PageDetail", vm.popUpAdvImageFile);});
+
+                $("#popUpAdvAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppImage", vm.popUpAdvImageFile);});
+                $("#popUpAdvAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppNewPage", vm.popUpAdvImageFile);});
+                $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
+            };
+
+            vm.submitPopUpAdvertisementSettings = () => {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndPopUpAdvUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.popUpAdvImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "popUpAdvPcImage",
+                    "popUpAdvPcNewPage",
+                    "popUpAdvPcPageDetail",
+                    "popUpAdvH5Image",
+                    "popUpAdvH5NewPage",
+                    "popUpAdvH5PageDetail",
+                    "popUpAdvAppImage",
+                    "popUpAdvAppNewPage",
+                    "popUpAdvAppPageDetail",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.popUpAdvImageFile, vm.popUpAdvImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.popUpAdvImageUrl", vm.popUpAdvImageUrl);
+                        vm.popUpAdvertisementSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.popUpAdvImageUrl){
+                            if (vm.popUpAdvImageUrl.popUpAdvPcImage){
+                                vm.popUpAdvertisementSetting.pc.imageUrl = vm.popUpAdvImageUrl.popUpAdvPcImage
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvPcNewPage){
+                                vm.popUpAdvertisementSetting.pc.newPageUrl = vm.popUpAdvImageUrl.popUpAdvPcNewPage
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvPcPageDetail){
+                                vm.popUpAdvertisementSetting.pc.activityUrl = vm.popUpAdvImageUrl.popUpAdvPcPageDetail
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvH5Image){
+                                vm.popUpAdvertisementSetting.h5.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvH5NewPage){
+                                vm.popUpAdvertisementSetting.h5.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvH5PageDetail){
+                                vm.popUpAdvertisementSetting.h5.activityUrl = vm.popUpAdvImageUrl.popUpAdvH5PageDetail
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvAppImage){
+                                vm.popUpAdvertisementSetting.app.imageUrl = vm.popUpAdvImageUrl.popUpAdvAppImage
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvAppNewPage){
+                                vm.popUpAdvertisementSetting.app.newPageUrl = vm.popUpAdvImageUrl.popUpAdvAppNewPage
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvAppPageDetail){
+                                vm.popUpAdvertisementSetting.app.activityUrl = vm.popUpAdvImageUrl.popUpAdvAppPageDetail
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopUpAdvSetting', vm.popUpAdvertisementSetting, function (data) {
+                                    console.log("saveFrontEndPopUpAdvSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndPopUpAdvUploader').hide();
+                                    // close the modal
+                                    $('#popUpAdvertisementModal').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndPopUpAdvSetting err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndPopUpAdvUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndPopUpAdvUploader').hide();
                 });
             };
 
@@ -40090,6 +41110,9 @@ define(['js/app'], function (myApp) {
                         } else if(vm.selectedAutoFeedbackTab.toLowerCase() == "overview") {
                             selectedPlatformObjId = vm.autoFeedbackMissionSearchDetail.platformObjId;
                         }
+                        break;
+                    case "rewardpoint":
+                        selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {

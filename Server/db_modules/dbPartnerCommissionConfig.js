@@ -60,7 +60,7 @@ const dbPartnerCommissionConfig = {
     },
 
     getPartnerParentChain: (partnerObjId) => {
-        // it will return an array of partners' obj id
+        // it will return an array of partners object
         // the first one will always be the partnerObjId inserted
         // the following will the parent of previous partner
         // the last one will always be the main partner that does not have parent
@@ -194,7 +194,6 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType, isSkipU
             providerGroups = providerGroupData;
 
             let proms = [];
-
             for (let i = 0; i < providerGroups.length; i++) {
                 if (!providerGroups[i] || !providerGroups[i]._id) {
                     continue;
@@ -229,6 +228,7 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType, isSkipU
                 }
                 delete defConfig.__v;
                 delete defConfig._id;
+                delete defConfig.__v;
                 defConfig.partner = partnerObjId;
                 dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 configs.push(defConfig);
@@ -239,9 +239,10 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType, isSkipU
     );
 }
 
+
 function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commissionType, isSkipUpdate) {
     let configs = [], providerGroups = [];
-    let configProm = dbconfig.collection_partnerDownLineCommConfig.find({platform: platformObjId, partner: partnerObjId, commissionType}).lean();
+    let configProm = dbconfig.collection_partnerDownLineCommConfig.find({partner: partnerObjId, commissionType}).lean();
     let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObjId} , {_id: 1}).lean();
 
     return Promise.all([configProm, providerGroupProm]).then(
@@ -285,10 +286,10 @@ function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commis
                 let defConfig = defConfigs[i];
 
                 if (!defConfig) {
-                    // this means platform haven't properly set default commission
                     continue;
                 }
                 delete defConfig._id;
+                delete defConfig.__v;
                 defConfig.partner = partnerObjId;
                 dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 configs.push(defConfig);
@@ -309,7 +310,7 @@ function getPartnerParentChain (parentObjId, chainArray) {
     return dbconfig.collection_partner.findOne({_id: parentObjId}).lean().then(
         partner => {
             if (partner) {
-                chainArray.push(String(partner._id));
+                chainArray.push(partner);
                 if (partner.parent) {
                     return getPartnerParentChain(partner.parent, chainArray);
                 }

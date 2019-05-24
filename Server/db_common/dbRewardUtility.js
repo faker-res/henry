@@ -817,6 +817,57 @@ const dbRewardUtility = {
         }
     },
 
+    checkRewardApplyTopupWithinInterval: (intervalTime, topupCreateTime) => {
+        if (intervalTime && !isDateWithinPeriod(topupCreateTime, intervalTime)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This top up did not happen within reward interval time"
+            });
+        }
+    },
+
+    checkRewardApplyAnyWithdrawAfterTopup: async (eventData, playerData, topupCreateTime) => {
+        let withdrawPropQuery = {
+            'data.platformId': playerData.platform._id,
+            'data.playerObjId': playerData._id,
+            createTime: {$gt: topupCreateTime},
+            status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
+        };
+        let withdrawAfterTopupProp = await dbPropUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery);
+
+        // Check withdrawal after top up condition
+        if (!eventData.condition.allowApplyAfterWithdrawal && withdrawAfterTopupProp) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "There is withdrawal after topup"
+            });
+        }
+    },
+
+    checkRewardApplyPlayerHasPhoneNumber: (eventData, playerData) => {
+        if (eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This player does not have phone number to apply this reward"
+            });
+        }
+    },
+
+    checkRewardApplyHasAppliedForbiddenReward: async (eventData, intervalTime, playerData) => {
+        let hasNotAppliedForbiddenReward = await dbRewardUtility.checkForbidReward(eventData, intervalTime, playerData);
+
+        if (!hasNotAppliedForbiddenReward) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "This player has applied for other reward in event period"
+            });
+        }
+    },
+
     // endregion
 
     // region Reward permission
@@ -929,3 +980,10 @@ const dbRewardUtility = {
 };
 
 module.exports = dbRewardUtility;
+
+function isDateWithinPeriod(date, period) {
+    if (period && period.startTime && period.endTime) {
+        return date > period.startTime && date < period.endTime;
+    }
+    return false;
+}

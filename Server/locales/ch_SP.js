@@ -189,7 +189,8 @@ var simplifiedChinese = {
     "CustomizePartnerCommRate": "客制化代理参数",
     "SettlePartnerCommission": "代理佣金",
     "PlayerRegistrationIntention": "玩家注册意向",
-
+    "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
+    "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -355,6 +356,7 @@ var simplifiedChinese = {
     "Player has applied for max reward times": "您已经达到了该奖励今日的申请上限",
     "Player has applied for max reward times in event period": "您已经达到了该奖励周期内的申请上限",
     "Player do not have permission for reward": "您好， 您目前暂无申请优惠的权限，请联系客服。",
+    "Player do not have permission for consumption return": "您好， 您目前暂无申请洗码的权限，请联系客服。",
     "Username should be alphanumeric and within 12 characters": "用户名只能为6-12位的数字和字母",
     "Username should be alphanumeric and within 20 characters": "用户名只能为6-20位的数字和字母",
     "Realname should be chinese character": "真实姓名必须为汉字",

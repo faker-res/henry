@@ -3129,9 +3129,9 @@ let dbPlayerReward = {
                         name: constProposalType.PLAYER_PROMO_CODE_REWARD
                     }).lean().then(
                         proposalType => {
-                            if(proposalType){
+                            if(proposalType && proposalType.length){
                                 let findQuery = {
-                                    type: proposalType._id,
+                                    type: {$in: proposalType.map(p => {return p._id})},
                                     'data.eventCode': 'KFSYHDM',
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
@@ -5843,6 +5843,7 @@ let dbPlayerReward = {
         let isPresetRandomReward = false;
         let isAnyRewardLeft;
         let forbidRewardProm = Promise.resolve(true);
+        let lastTopUpData;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -5852,6 +5853,8 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
         // Check whether top up record is dirty
         await dbRewardUtil.checkRewardApplyTopupRecordIsDirty(eventData, rewardData);
+        // Check if player has binded phone number
+        await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumber(eventData, playerData);
 
         // Set reward param for player level to use
         let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
@@ -5865,12 +5868,39 @@ let dbPlayerReward = {
         let topupInPeriodData = await dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         // Check top up count is sufficient for reward application
         await dbRewardUtil.checkRewardApplyEnoughTopupCount(eventData, topupInPeriodData.length);
+        // Get event applied count
+        let eventInPeriodData = await dbConfig.collection_proposal.find(eventQuery).lean();
+        let eventInPeriodCount = eventInPeriodData.length;
+        // Check if there's any other forbidden reward applied within period
+        await dbRewardUtil.checkRewardApplyHasAppliedForbiddenReward(eventData, intervalTime, playerData);
 
-        let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
-        let dailyMaxRewardPointProm;
 
-        // reward specific promise
-        if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+        let dailyRewardPointData;
+        let rewardAmountInPeriod = 0;
+
+        // reward specific check
+        if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                actualAmount = rewardData.selectedTopup.amount;
+
+                // Check top up is created within reward interval period
+                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
+                // Check if there is withdraw after top up
+                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Calculate the daily applied reward amount
+                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
+            }
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
@@ -5884,29 +5914,16 @@ let dbPlayerReward = {
                 };
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
 
-                if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
-                    // check is there consumption after the top up
-                    let consumptionPropQuery = {
-                        platformId: playerData.platform._id,
-                        playerId: playerData._id,
-                        createTime: {$gt: selectedTopUp.createTime},
-                    };
-                    promArr.push(dbConfig.collection_playerConsumptionRecord.findOne(consumptionPropQuery).lean());
+                // check is there consumption after the top up
+                let consumptionPropQuery = {
+                    platformId: playerData.platform._id,
+                    playerId: playerData._id,
+                    createTime: {$gt: selectedTopUp.createTime},
+                };
+                promArr.push(dbConfig.collection_playerConsumptionRecord.findOne(consumptionPropQuery).lean());
 
-                    // check the requirement
-                    promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp, selectedTopUp.topUpType));
-                }
-                if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
-                    // calculate the daily top up return reward; specifically for the daily max reward amount condition
-                    let dailyIntervalTime = dbUtility.getTodaySGTime();
-                    if (dailyIntervalTime) {
-                        eventQuery["$or"] = [
-                            {"data.applyTargetDate": {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}},
-                            {"data.applyTargetDate": {$exists: false}, createTime: {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}}
-                        ];
-                    }
-                    dailyMaxRewardPointProm = dbConfig.collection_proposal.find(eventQuery).lean();
-                }
+                // check the requirement
+                promArr.push(dbRewardUtil.checkApplyRetentionReward(playerData, eventData, applyAmount, null, selectedTopUp, selectedTopUp.topUpType));
 
                 forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
 
@@ -6091,7 +6108,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            console.log('MT --checking intervalTime', intervalTime);
             if (!rewardData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
@@ -6100,6 +6116,13 @@ let dbPlayerReward = {
                 return item.id == rewardData.festivalItemId;
             })
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+
+            let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
+            let festivalPeriod = getTimePeriod(0, festivalDate);
+            festivalPeriod.startTime = moment(festivalPeriod.startTime).toDate();
+            festivalPeriod.endTime = moment(festivalPeriod.endTime).toDate();
+            intervalTime = festivalPeriod;
+            console.log('MT --checking intervalTime', intervalTime);
 
             if (!selectedRewardParam || selectedRewardParam.length == 0) {
                 return Q.reject({name: "DataError", message: "The Festival Item is Not Exist"});
@@ -6119,7 +6142,7 @@ let dbPlayerReward = {
                     {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
                 ];
 
-                topupMatchQuery.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
+                topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             if (eventData.condition.consumptionProvider && eventData.condition.consumptionProvider.length > 0) {
@@ -6154,6 +6177,7 @@ let dbPlayerReward = {
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
             console.log('MT --checking festival topupMatchQuery', topupMatchQuery);
+            console.log('MT --checking festival consumptionMatchQuery', consumptionMatchQuery);
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
 
             // check reward apply restriction on ip, phone and IMEI
@@ -6185,7 +6209,7 @@ let dbPlayerReward = {
             promArr.push(requiredPhoneNumber);
         }
 
-        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
+        if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
             let promiseUsed = [];
             let calculateLosses;
 
@@ -6207,8 +6231,6 @@ let dbPlayerReward = {
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: dbUtility.getSGTimeOf(rewardData.previewDate)};
             }
 
-            console.log("checking in PLAYER_LOSE_RETURN_REWARD_GROUP --eventQuery", eventQuery)
-            console.log("checking in PLAYER_LOSE_RETURN_REWARD_GROUP --topupMatchQuery", topupMatchQuery)
 
             switch (eventData.condition.defineLoseValue) {
                 case "1":
@@ -6473,7 +6495,10 @@ let dbPlayerReward = {
                 default:
                 // reject error
             }
-            eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
+
+            // TODO:: Moving to subfunction
+            eventInPeriodData = await dbConfig.collection_proposal.find(eventQuery).lean();
+
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
 
             // check required phone number
@@ -6775,22 +6800,14 @@ let dbPlayerReward = {
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
-        return Promise.all([eventInPeriodProm, Promise.all(promArr), lastConsumptionProm, dailyMaxRewardPointProm, forbidRewardProm]).then(
+        return Promise.all([Promise.all(promArr), lastConsumptionProm, forbidRewardProm]).then(
             data => {
-                let eventInPeriodData = data[0];
-                let rewardSpecificData = data[1];
-                lastConsumptionRecord = data[2] && data[2][0] ? data[2][0] : {};
-                let eventInPeriodCount = eventInPeriodData.length;
-                console.log('MT --checking eventInPeriodDataCount',eventInPeriodCount);
-                let dailyRewardPointData = data[3];
-                let forbidRewardData = data[4];
+                eventInPeriodCount = eventInPeriodData.length;
+                let rewardSpecificData = data[0];
+                lastConsumptionRecord = data[1] && data[1][0] ? data[1][0] : {};
+                let forbidRewardData = data[2];
                 console.log('forbidRewardData check', forbidRewardData);
                 let matchRequiredPhoneNumber = null;
-
-                let rewardAmountInPeriod = 0;
-                if (dailyRewardPointData && dailyRewardPointData.length > 0) {
-                    rewardAmountInPeriod = dailyRewardPointData.reduce((a, b) => a + b.data.rewardAmount, 0);
-                }
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
@@ -6805,23 +6822,6 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "This top up did not happen within reward interval time"
-                                });
-                            }
-
-                            // Check withdrawal after top up condition
-                            if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "There is withdrawal after topup"
-                                });
-                            }
-
                             let lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
 
                             if (eventData.condition.allowOnlyLatestTopUp && lastTopUpRecord && rewardData && rewardData.selectedTopup) {
@@ -6832,24 +6832,6 @@ let dbPlayerReward = {
                                         message: "This is not the latest top up record"
                                     });
                                 }
-                            }
-
-                            if (!forbidRewardData) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: localization.localization.translate("This player has applied for other reward in event period")
-                                });
-                            }
-
-                            matchRequiredPhoneNumber = rewardSpecificData[1];
-
-                            if (!matchRequiredPhoneNumber) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: localization.localization.translate("This player does not have phone number to apply this reward")
-                                });
                             }
 
                             // check correct topup type
@@ -6930,13 +6912,7 @@ let dbPlayerReward = {
                                 isUpdateValidCredit = true;
                             }
                         }
-                        else {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "Invalid top up"
-                            });
-                        }
+
                         break;
 
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
@@ -7507,6 +7483,11 @@ let dbPlayerReward = {
                         let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + value.amount, 0) : 0;
                         let consumptionSum = consumptionData ? consumptionData.reduce((sum, value) => sum + value.validAmount, 0): 0
                         let applyRewardSum = periodData ? periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0): 0;
+
+                        if (topUpData && topUpData.length > 0) {
+                            lastTopUpData = topUpData && topUpData[topUpData.length - 1] ? topUpData[topUpData.length - 1] : null;
+                        }
+
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         if(topUpData && topUpData.length > 0){
@@ -8392,6 +8373,11 @@ let dbPlayerReward = {
                             }
                         }
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                            if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
+                                console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
+                                proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
+                            }
+
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
                             if (playerData.deviceId) {
@@ -8687,6 +8673,25 @@ let dbPlayerReward = {
             }
 
             return retObj;
+        }
+
+        async function getRewardAmountInInterval (eventQuery) {
+            let retAmt = 0;
+            let dailyIntervalTime = dbUtility.getTodaySGTime();
+
+            if (dailyIntervalTime) {
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: dailyIntervalTime.startTime, $lt: dailyIntervalTime.endTime}}
+                ];
+            }
+            dailyRewardPointData = await dbConfig.collection_proposal.find(eventQuery).lean();
+
+            if (dailyRewardPointData && dailyRewardPointData.length > 0) {
+                retAmt = dailyRewardPointData.reduce((a, b) => a + b.data.rewardAmount, 0);
+            }
+
+            return retAmt;
         }
     },
 
@@ -10285,19 +10290,9 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
         if (eventData.condition && eventData.condition.festivalType) {
 
             if (rewardData.festivalItemId) {
-                let festivalDate;
                 let festivalItem = selectedRewardParam;
                 console.log('MT --checking selectedRewardParam',festivalItem);
-                // if is birthday
-                if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
-                    let birthday = getBirthday(playerBirthday);
-                    console.log('MT --checking --birthday', birthday);
-                    festivalDate = birthday;
-                } else {
-                    // if is festival
-                    festivalDate = getFestivalRewardDate(festivalItem, eventData.param.others);
-                }
-
+                let festivalDate = getFestivalItem (selectedRewardParam, playerBirthday, eventData)
                 let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
                 if (isRightApplyTime) {
                     // if date match , check if the proposal match topup / consumption
@@ -10327,6 +10322,19 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
             )
         }
     })
+}
+
+function getFestivalItem (selectedRewardParam, playerBirthday, eventData) {
+    let result;
+    if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
+        let birthday = getBirthday(playerBirthday);
+        console.log('MT --checking --birthday', birthday);
+        result = birthday;
+    } else {
+        // if is festival
+        result = getFestivalRewardDate(selectedRewardParam, eventData.param.others);
+    }
+    return result;
 }
 
 function getBirthday(playerBirthday) {
@@ -10429,9 +10437,6 @@ function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, f
         .then( data => {
             if (data) {
                 // type 3 dont have attribute of applytimes, so make this default:1
-                if (rewardParam.rewardType == 3 || rewardParam.rewardType == 6) {
-                    rewardParam.applyTimes = 1;
-                }
                 console.log('***MT --checking rewardParam...', rewardParam);
                 if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
                     console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
@@ -10467,8 +10472,18 @@ function getFestivalName(id, rewardType,  festivals, DOB) {
     if (rewardType == 4 || rewardType == 5 || rewardType == 6) {
         month = new Date(DOB).getMonth() + 1;
         day =  new Date(DOB).getDate();
-        result = '会员生日' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+
     }
+    if (rewardType == 4) {
+        result = '会员生日 ' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    if (rewardType == 5) {
+        result = '会员生日 - 需最小充值额' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+    if (rewardType == 6) {
+        result = '会员生日 - 需累积总投注额' + '(' + getPlural(month) + '/' + getPlural(day) + ')';
+    }
+
     return result
 }
 

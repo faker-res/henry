@@ -52,6 +52,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionAuction'),
     require('./../socketActionModule/socketActionWinnerMonitor'),
     require('./../socketActionModule/socketActionPartnerCommission'),
+    require('./../socketActionModule/socketActionFrontEndSetting'),
 ];
 
 var socketActions = [
