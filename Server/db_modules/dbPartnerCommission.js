@@ -32,7 +32,7 @@ const dbPartnerCommission = {
         let providerGroupConsumptionData, playerRawDetail;
         let bonusBased = false;
         let commissionRates = {};
-        let grossCommission = 0, grossDirectCommission = 0, rawCommissions = [];
+        let grossCommission = 0, rawCommissions = [];
         let totalReward = 0, totalTopUp = 0, totalWithdrawal = 0, depositCrewDetail = [], withdrawCrewDetail = [], bonusCrewDetail = [];
         let totalRewardFee = 0, totalTopUpFee = 0, totalWithdrawalFee = 0, totalPlatformFee = 0, totalWinLose = 0, nettCommission = 0;
         let parentCommissionDetail = {};
@@ -140,6 +140,9 @@ const dbPartnerCommission = {
                             return groupRate.groupId == group.groupId;
                         });
 
+                        // f*** variable name, too much to change after Ken misdirect me the given requirement
+                        // just know that all "direct" commission are partner's commision, anything does not have
+                        // direct on it means its parent's stuff. deal? deal!
                         commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
                         let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
 
@@ -157,7 +160,7 @@ const dbPartnerCommission = {
                             });
                         }
 
-                        let rawCommission = math.chain(totalConsumption).multiply(commissionRates[groupRate.groupName].commissionRate).round(2).done();
+                        let rawCommission = math.chain(totalConsumption).multiply(commissionRates[groupRate.groupName].commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
                         let rawDirectCommission = math.chain(totalConsumption).multiply(directCommissionRate.commissionRate).round(2).done();
 
                         let platformFeeRate = platformFeeRateData.rate || 0;
@@ -173,11 +176,9 @@ const dbPartnerCommission = {
                             crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                             groupName: groupRate.groupName,
                             groupId: groupRate.groupId,
-                            amount: rawCommission,
-                            directAmount: rawDirectCommission,
+                            amount: rawDirectCommission, // direct amount
                             totalConsumption: totalConsumption,
-                            commissionRate: commissionRates[groupRate.groupName].commissionRate,
-                            directCommissionRate: directCommissionRate,
+                            commissionRate: directCommissionRate,
                             isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                             platformFee: platformFee,
                             platformFeeRate: platformFeeRate,
@@ -185,22 +186,30 @@ const dbPartnerCommission = {
                             siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                         });
 
-                        grossCommission += rawCommission;
-                        grossDirectCommission += rawDirectCommission;
+                        grossCommission += rawDirectCommission;
 
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
+                        let previousParentRate = 0;
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
                                 let parentRatio = commissionRates[groupRate.groupName].parentRatios[i];
+                                let parentRate = math.chain(commissionRates[groupRate.groupName].parentRate[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
+                                previousParentRate = commissionRates[groupRate.groupName].parentRate[i];
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
                                 let detail = {
                                     groupName: groupRate.groupName,
                                     groupId: groupRate.groupId,
+                                    parentRate: parentRate,
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
+                                if (i === 0) {
+                                    detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
+                                    // this is done to adjust that current level of multi level commission is also given to immediate parent
+                                    // if still not understand, can directly ask Huat
+                                }
                                 parentCommissionDetail[objId].grossCommission = parentCommissionDetail[objId].grossCommission || 0;
                                 parentCommissionDetail[objId].grossCommission += detail.amount;
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
@@ -238,7 +247,7 @@ const dbPartnerCommission = {
                         totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
                         totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
                         totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
-                        nettCommission = grossCommission + grossDirectCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
+                        nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
 
                     // if it is bonus based, calculate the nett parent commisssion as well
@@ -246,9 +255,9 @@ const dbPartnerCommission = {
                         let parentComm = parentCommissionDetail[String(parent._id)];
                         parentComm.grossCommission = parentComm.grossCommission || 0;
                         parentComm.nettCommission = parentComm.grossCommission;
-                        // if (bonusBased && grossCommission) {
-                        //     parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
-                        // }
+                        if (bonusBased && grossCommission) {
+                            parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
+                        }
                     });
 
                     let returnObj = {
@@ -277,7 +286,6 @@ const dbPartnerCommission = {
                         withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
                         status: constPartnerCommissionLogStatus.PREVIEW,
                         grossCommission: grossCommission,
-                        grossDirectCommission: grossDirectCommission,
                         nettCommission: nettCommission,
                         disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
                         depositCrewDetail: depositCrewDetail,
@@ -359,7 +367,7 @@ const dbPartnerCommission = {
             ).then(
                 () => {
                     commissionDetail.parentPartnerCommissionDetail = parentPartnerCommissionDetail;
-                    commissionDetail.downLinesRawCommissionDetail = downLinesRawCommissionDetail
+                    commissionDetail.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
                     return commissionDetail;
                 }
             ).catch(err => {
@@ -999,6 +1007,7 @@ function getTargetCommissionPeriod (commissionType, date) {
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let lastValidParentRatios = [];
+    let lastValidParentRate = [];
     let isCustom = false;
 
     if (consumptionAmount < 0) {
@@ -1022,12 +1031,14 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
 
         lastValidCommissionRate = commissionRequirement.commissionRate;
         lastValidParentRatios = commissionRequirement.parentRatios || [];
+        lastValidParentRate = commissionRequirement.parentRate || [];
         isCustom = Boolean(commissionRequirement.isCustom);
     }
 
     return {
         commissionRate: lastValidCommissionRate,
         parentRatios: lastValidParentRatios,
+        parentRate: lastValidParentRate,
         isCustom: isCustom
     };
 }
@@ -1077,6 +1088,7 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     for (let i = 0; i < rateTable.length; i++) {
         let currentRequirement = rateTable[i];
         let previousPartnerRate = currentRequirement.commissionRate;
+        currentRequirement.parentRate = [];
 
         currentRequirement.parentRatios = parentsRateTables.map(parentRateTable => {
             if (!parentRateTable || !parentRateTable.commissionSetting || !parentRateTable.commissionSetting[i] || incompleteSetting) {
@@ -1084,7 +1096,8 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
                 return;
             }
 
-            let commSetting = parentRateTable.commissionSetting[i]
+            let commSetting = parentRateTable.commissionSetting[i];
+            currentRequirement.parentRate.push(commSetting.commissionRate);
 
             if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
                 return 0;
