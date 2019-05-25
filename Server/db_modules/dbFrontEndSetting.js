@@ -24,7 +24,6 @@ var dbFrontEndSetting = {
     },
 
     saveFrontEndRewardSetting: (data) => {
-        console.log("checking == data", data)
         if (data) {
             if (data._id) {
                 let eventObjId = data._id;

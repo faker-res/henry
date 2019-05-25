@@ -50,7 +50,6 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
 
-            console.log("cheking ------ before data", data)
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardSetting, [data], actionName, isValidData);
         },
 
