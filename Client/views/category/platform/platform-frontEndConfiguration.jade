@@ -115,6 +115,139 @@ style.
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardSetting")')
                     include frontEndConfiguration-rewardSetting
 
+#rewardSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Reward Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.frontEndRewardCategory')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ENTRANCE IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPcImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'pc', vm.rewardSetting.pc.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.pc.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardPcNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.pc.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardPcPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ENTRANCE IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardH5ImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'h5', vm.rewardSetting.h5.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.h5.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardH5NewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.h5.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardH5PageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardAppImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'app', vm.rewardSetting.app.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.app.newPageDetail", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardAppNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.app.activityDetail", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardAppPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                        .col-md-6
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'PC Image Preview' | translate}}
+                                img#rewardPcImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'H5 Image Preview' | translate}}
+                                img#rewardH5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                label {{'APP Image Preview' | translate}}
+                                img#rewardAppImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardSettings()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndRewardUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
 #popUpAdvertisementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
@@ -281,7 +414,6 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#frontEndPopUpAdvUploader.collapse
                     i.fa.fa-spinner.fa-spin
-
 
 #popularRecommendationSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

@@ -23,6 +23,55 @@ var dbFrontEndSetting = {
         }
     },
 
+    saveFrontEndRewardSetting: (data) => {
+        console.log("checking == data", data)
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndRewardSetting(data);
+                return record.save();
+            }
+        }
+    },
+
+    saveFrontEndRewardCategory: (platformObjId, categoryName) => {
+        if (platformObjId && categoryName){
+            let dataObj ={
+                platformObjId: ObjectId(platformObjId),
+                categoryName: categoryName
+            }
+            let record = new dbConfig.collection_frontEndRewardCategory(dataObj);
+            return record.save();
+        }
+    },
+
+    getFrontEndRewardSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
+    getFrontEndRewardCategory: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+        }
+
+        return prom;
+    },
+
     updatePopUpAdvertisementSetting: (dataList, deletedList) => {
         let prom = [];
         if (dataList && dataList.length){

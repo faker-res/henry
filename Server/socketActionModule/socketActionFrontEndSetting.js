@@ -25,6 +25,35 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.updatePopUpAdvertisementSetting, [data.dataList, data.deletedList], actionName, isValidData);
         },
 
+        getFrontEndRewardCategory: function getFrontEndRewardCategory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndRewardCategory, [data.platformObjId], actionName, isValidData);
+        },
+
+        getFrontEndRewardSetting: function getFrontEndRewardSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndRewardSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        saveFrontEndRewardCategory: function saveFrontEndRewardCategory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.categoryName);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName], actionName, isValidData);
+        },
+
+        saveFrontEndRewardSetting: function saveFrontEndRewardSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            console.log("cheking ------ before data", data)
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardSetting, [data], actionName, isValidData);
+        },
+
         getFrontEndPopUpAdvertisementSetting: function getFrontEndPopUpAdvertisementSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);

@@ -3,16 +3,16 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         label {{'REWARD_EVENT' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
-    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);")
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.addNewRewardSetting(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 
 div.col-md-4(style="margin-top: 2em;")
     label {{'Add category' | translate}}:
-    input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardSetting" )
-    button.btn.btn-primary(ng-click ="vm.addRewardCategory()") {{'SUBMIT' | translate}}
+    input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardCategory" )
+    button.btn.btn-primary(ng-click ="vm.addRewardCategory(vm.newRewardCategory)") {{'SUBMIT' | translate}}
 
 div.col-xs-12.row(style="padding-right: 0;")
-    div.col-md-3(ng-repeat="data in vm.rewardSettingData")
+    div.col-md-3(ng-repeat="data in vm.frontEndRewardCategory")
         div.eventSettingDiv.col-md-12.text-center
             h3 {{data.categoryName}}
             p.text-danger 正式站、测试站点击可切换
