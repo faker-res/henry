@@ -7971,6 +7971,8 @@ define(['js/app'], function (myApp) {
                                                 playerPaymentData.invalid = true;
                                             }
 
+                                            playerPaymentData.alertMsg = null;
+                                            playerPaymentData.duplicatePlayerName = null;
                                             playerPaymentData.showAlert = false;
                                             $scope.$evalAsync();
 
