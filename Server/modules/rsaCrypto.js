@@ -138,10 +138,12 @@ module.exports = {
 function getKey (dirPath, fbPath) {
     return rp(getKeyUrl(dirPath, token)).then(
         data => {
+            console.log('data', data);
+
             if (data) {
                 let hash = getHash(env.redisUrl);
 
-                console.log('hash', hash, data);
+                console.log('hash', hash);
 
                 if (hash === data) {
                     let secondVerification = getCipherIV(hash, fpmsKey);

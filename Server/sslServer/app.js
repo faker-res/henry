@@ -436,7 +436,7 @@ function getKeyFromOtherInstance () {
     }
 
     function getKeyUrl (dirName, token) {
-        let keyUrl = "http://".concat(theOtherEnv.redisUrl);
+        let keyUrl = theOtherEnv.redisUrl;
 
         if (theOtherEnv.redisPort) {
             keyUrl += ":" + theOtherEnv.redisPort;
