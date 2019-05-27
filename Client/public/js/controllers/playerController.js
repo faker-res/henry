@@ -7958,7 +7958,7 @@ define(['js/app'], function (myApp) {
 
                                     socketService.$socket($scope.AppSocket, 'checkDuplicatedBankAccount', {
                                         bankAccount: playerPaymentData.newBankAccount,
-                                        platform: vm.selectedPlatform.id
+                                        platform: vm.isOneSelectedPlayer().platform || vm.selectedPlatform.id
                                     }, function (data) {
                                         if (data && data.data === true) {
                                             if (playerPaymentData.newBankAccount.length >= 16 && playerPaymentData.newBankAccount.length <= 19) {
