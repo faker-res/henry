@@ -24080,17 +24080,25 @@ let dbPlayerInfo = {
 
     checkDuplicatedBankAccount: function (bankAccount, platform) {
 
-        let sameBankAccountCountProm = dbconfig.collection_players.find({
+        // let sameBankAccountCountProm = dbconfig.collection_players.find({
+        //     bankAccount: bankAccount,
+        //     platform: ObjectId(platform),
+        //     'permission.forbidPlayerFromLogin': false
+        // }).lean().count();
+
+        let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
+            platformObjId: ObjectId(platform),
             bankAccount: bankAccount,
-            platform: ObjectId(platform),
-            'permission.forbidPlayerFromLogin': false
-        }).lean().count();
+        }).populate({
+            path: 'playerObjId',
+            model: dbconfig.collection_players
+        }).sort({createTime: -1}).lean();
 
         let platformProm =  dbconfig.collection_platform.findOne({
             _id: ObjectId(platform)
         });
 
-        return Promise.all([sameBankAccountCountProm, platformProm]).then(
+        return Promise.all([bankAccountBindingRecordProm, platformProm]).then(
             data => {
                 if (!data){
                     return Promise.reject({
@@ -24106,12 +24114,16 @@ let dbPlayerInfo = {
                     })
                 }
 
-                let sameBankAccountCount = data[0] || 0;
+                let bankAccountBindingRecord = data[0];
+                let bankAccountBindingRecordCount = bankAccountBindingRecord.length || 0;
                 let platformData = data[1];
 
-                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
-                    return Promise.resolve(false)
+                if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount){
+                    return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
                 }
+                // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
+                //     return Promise.resolve(false)
+                // }
                 return Promise.resolve(true);
             }
         )

@@ -194,6 +194,7 @@
   "NEXT_PAGE": "下一页",
   "FIRST_PAGE": "首页",
   "LAST_PAGE": "末页",
+  "Bank account has been bind with another player": "已有相同的银行账号绑定会员",
   "The same bank account has been registered": "已有相同的银行帐号",
   "The same bank account has been registered, please change a new bank card or contact our cs.": "已有相同的银行帐号， 请更换另一张银行卡或联络客服。",
   "not in bank type list": "不在银行类别列表中",
