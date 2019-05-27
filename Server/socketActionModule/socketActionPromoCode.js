@@ -43,6 +43,11 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypes, [data.platformObjId, data.deleteFlag], actionName, isValidData);
         },
 
+        getAllPromoCodeTypes: function getAllPromoCodeTypes(data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbPlayerReward.getAllPromoCodeTypes, [data.deleteFlag], actionName, true);
+        },
+
         getPromoCodeTypeByObjId: function getPromoCodeTypeByObjId(data) {
             let actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeTypeByObjId, [data], actionName, true);

@@ -1781,6 +1781,15 @@ let dbPlayerReward = {
         })
     }),
 
+    getAllPromoCodeTypes: (deleteFlag) => dbConfig.collection_promoCodeType.find({
+        $or: [
+            {deleteFlag: {$exists: false}},
+            {deleteFlag: deleteFlag}
+        ]
+    }).lean().then(promoCodeType => {
+        return promoCodeType;
+    }),
+
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
     promoCodeTemplateByObjId: (promoCodeTemplateObjId) => dbConfig.collection_promoCodeTemplate.findOne({_id: promoCodeTemplateObjId}).lean(),
