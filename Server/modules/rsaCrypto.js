@@ -136,7 +136,7 @@ module.exports = {
 };
 
 function getKey (dirPath, fbPath) {
-    return rp(getKeyUrl(dirPath, token)).then(
+    return rp(getKeyUrl(dirPath, jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY))).then(
         data => {
             console.log('data', data);
 
