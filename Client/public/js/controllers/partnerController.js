@@ -7571,7 +7571,8 @@ define(['js/app'], function (myApp) {
                 vm.editPartner.DOB = new Date(vm.editPartner.DOB);
                 vm.selectedCommissionTab(
                     $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
-                    selectedPartner._id
+                    selectedPartner._id,
+                    true
                 );
                 vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
@@ -11133,7 +11134,7 @@ define(['js/app'], function (myApp) {
                 return vm.getPartnerCommisionConfig();
             });
         }
-        vm.getPartnerCommissionConfigWithGameProviderConfig = function (partnerObjId) {
+        vm.getPartnerCommissionConfigWithGameProviderConfig = function (partnerObjId, isPartnerTable) {
             vm.isSettingExist = true;
             vm.partnerCommission = {
                 isCustomized: false
@@ -11142,6 +11143,7 @@ define(['js/app'], function (myApp) {
             vm.partnerCommission.isGameProviderIncluded = false;
 
             var sendData = {};
+            let socketAction = "getPartnerCommissionConfigWithGameProviderGroup";
             if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
                 let gameProviderGroupId = [];
                 vm.partnerCommission.isGameProviderIncluded = true;
@@ -11161,9 +11163,17 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
+                if (isPartnerTable && vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
+                    socketAction = "getPartnerCommConfig";
+                    sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        commissionType: String(vm.constPartnerCommisionType[vm.commissionSettingTab]),
+                        isSkipUpdate: vm.selectedSinglePartner.commissionType != vm.constPartnerCommisionType[vm.commissionSettingTab]
+                    }
+                }
             }
 
-            socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
+            socketService.$socket($scope.AppSocket, socketAction, sendData, function (data) {
                 $scope.$evalAsync(() => {
                     let existProviderCommissionSetting = [];
                     vm.customPartnerCommission = [];
@@ -11175,8 +11185,8 @@ define(['js/app'], function (myApp) {
                                     vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
                                     if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                         vm.partnerCommission.gameProviderGroup.filter(data => {
-                                            if (data._id == existSetting.provider && !existSetting.partner) {
-                                                data.srcConfig = existSetting;
+                                            if (String(data._id) == String(existSetting.provider) && (isPartnerTable || !existSetting.partner)) {
+                                                data.srcConfig = JSON.parse(JSON.stringify(existSetting));
                                                 data.showConfig = JSON.parse(JSON.stringify(existSetting));
                                             }
                                         });
@@ -11312,7 +11322,7 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        vm.switchCommissionTab = function (tab, commissionType) {
+        vm.switchCommissionTab = function (tab, commissionType, isPartnerTable) {
             let partnerObjId;
             let partner = vm.isOneSelectedPartner();
             let partnerCommissionType = (partner && partner.commissionType) ? partner.commissionType : null;
@@ -11320,10 +11330,10 @@ define(['js/app'], function (myApp) {
                 // only load the partner commission setting, if it match partner commissionType
                 partnerObjId = partner._id;
             }
-            vm.selectedCommissionTab(tab, partnerObjId);
+            vm.selectedCommissionTab(tab, partnerObjId, isPartnerTable);
         }
 
-        vm.selectedCommissionTab = function (tab, partnerObjId) {
+        vm.selectedCommissionTab = function (tab, partnerObjId, isPartnerTable) {
             let isGetConfig = true;
             vm.commissionSettingTab = tab ? tab : 'DAILY_CONSUMPTION';
             vm.partnerCommission.isEditing = false;
@@ -11361,7 +11371,7 @@ define(['js/app'], function (myApp) {
 
             if (isGetConfig) {
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                    vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
+                    vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId, isPartnerTable);
                 } else {
                     vm.getPartnerCommisionConfig();
                 }

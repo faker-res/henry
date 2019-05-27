@@ -3,7 +3,7 @@ let Schema = mongoose.Schema;
 
 //let constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 
-let partnerCommissionConfigSchema = new Schema({
+let partnerCommissionConfigSchema = new Schema({ //todo
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     //game provider group _id
