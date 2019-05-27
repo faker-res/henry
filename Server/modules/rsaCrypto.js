@@ -33,7 +33,7 @@ oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let fpmsKey = 'Fr0m_FPM$!';
 let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
-let host = "http://" + env.redisUrl;
+let host = env.redisUrl;
 let options = {
     timeout: 10000,
     hostname: env.redisUrl,
