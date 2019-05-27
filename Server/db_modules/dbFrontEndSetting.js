@@ -53,6 +53,40 @@ var dbFrontEndSetting = {
         }
     },
 
+    saveAllRewardSettingData: (platformObjId, categoryObjId) => {
+        if (platformObjId && categoryObjId){
+            let updateProm = [];
+
+            let dataObj = {
+                platformObjId: ObjectId(platformObjId),
+                _id: ObjectId(categoryObjId)
+            };
+            if (dataObj) {
+                let updateQuery = {
+                    status: 2,
+                };
+                return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate(dataObj, updateQuery).lean().then(
+                    () => {
+                        return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
+                            rewardList => {
+                                if (rewardList && rewardList.length){
+                                    rewardList.forEach(
+                                        reward => {
+                                            if (reward && reward._id){
+                                                updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                                            }
+                                        }
+                                    )
+                                }
+                                return Promise.all(updateProm)
+                            }
+                        )
+                    }
+                )
+            }
+        }
+    },
+
     getFrontEndRewardSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){

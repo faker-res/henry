@@ -4426,7 +4426,7 @@ hr {
     position: relative;
     border: 1px solid rgb(190,190,190);
     border-radius: 10px;
-    min-height: 500px;
+    max-height: 700px;
     display: inline-block;
 }
 
@@ -4435,7 +4435,6 @@ hr {
     border-radius: 10px;
     padding: .5em;
     margin: 1em 0em;
-    overflow: scroll;
 }
 
 .navbar-right {
