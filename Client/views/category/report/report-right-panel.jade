@@ -1625,7 +1625,7 @@
                     label {{"TOTAL_PLAYER_COUNT" | translate}} : {{vm.rewardProposalQuery.totalCount}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     table#rewardProposalTable.common-table.display.widthto100
                     #rewardProposalTablePage
-        div(ng-if='vm.currentRewardCode && vm.showPageName!="RewardReport"')
+        //div(ng-if='vm.currentRewardCode && vm.showPageName!="RewardReport"')
             .panel.panel-primary
                 .panel-heading
                     label {{'PROPOSAL' | translate}}
@@ -1652,7 +1652,7 @@
                     label(style="padding-left:15px;") {{"Total Number of Applicant" | translate}}: {{vm.generalRewardProposalQuery.totalApplicant|| 0}}
                     table#generalRewardProposalTable.common-table.display.widthto100
                     #generalRewardProposalTablePage
-        div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
+        //div(ng-if='vm.currentRewardTaskName && vm.showPageName!="RewardReport"')
             .panel.panel-primary
                 .panel-heading
                     label {{'Reward task' | translate}}
@@ -1672,6 +1672,67 @@
                     label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     table#generalRewardTaskTable.common-table.display.widthto100
                     #generalRewardTaskTablePage
+        div(ng-if='vm.showPageName==="OtherRewardReport"')
+            .row
+                .col-md-12
+                    .well.col-xs-12
+                        .search-filters-item
+                            label.control-label  {{'PRODUCT' | translate}}
+                            select.form-control(ng-model='vm.selectedRewardPlatform', ng-change='vm.getOtherRewardList()')
+                                option(value="")
+                                option(ng-repeat='v in vm.platformList', value='{{v._id}}') {{v.name|translate}}
+                        .search-filters-item(ng-if="vm.otherRewardList.length > 0")
+                            label.control-label  {{'REWARD' | translate}}
+                                select.form-control(ng-model='vm.selectedOtherReward', ng-change='vm.loadOtherRewardPage(vm.getPageNameByRewardObjId(vm.selectedOtherReward), vm.selectedOtherReward, vm.getRewardCodeByRewardObjId(vm.selectedOtherReward))' style="min-width:100%; display:inline-block;")
+                                    option(ng-repeat='v in vm.otherRewardList', value='{{v._id}}') {{v.name|translate}}
+                        .search-filters-item(ng-if="vm.selectedRewardPlatform && vm.otherRewardList.length == 0")
+                            span.text-danger  {{"No Reward Task" | translate}}
+                        .panel.panel-primary(ng-show='vm.currentRewardCode')
+                            .panel-heading
+                                label {{'PROPOSAL' | translate}}
+                            .panel-body
+                                #generalRewardProposalQuery.col-md-12.well
+                                    .search-filters-item
+                                        label {{"Start date"|translate}}
+                                        .startTime
+                                    .search-filters-item
+                                        label {{"End date"|translate}}
+                                        .endTime
+                                    .search-filters-item(ng-if="vm.currentRewardCode != 'ALL'")
+                                        label {{'Number_Of_Day_After_Receiving' | translate}}
+                                        input.form-control(type='number', ng-model='vm.generalRewardProposalQuery.dayAfterReceiving')
+                                    .search-filters-item
+                                        label {{'PLAYER_NAME' | translate}}
+                                        input.form-control(type='text', ng-model='vm.generalRewardProposalQuery.playerName')
+                                    .text-right.widthto100
+                                        button.btn.btn-success(ng-click='vm.generalRewardProposalSearch(true)') {{'SEARCH' | translate}}
+                                        span#generalRewardProposalTableSpin.collapse
+                                            i.fa.fa-spinner.fa-spin
+                                .clearfix
+                                label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                                label(style="padding-left:15px;") {{"Total Number of Applicant" | translate}}: {{vm.generalRewardProposalQuery.totalApplicant|| 0}}
+                                table#generalRewardProposalTable.common-table.display.widthto100
+                                #generalRewardProposalTablePage
+
+                        .panel.panel-primary(ng-show='vm.currentRewardTaskName')
+                            .panel-heading
+                                label {{'Reward task' | translate}}
+                            .panel-body
+                                #generalRewardTaskQuery.col-md-12.well
+                                    .search-filters-item
+                                        label {{"Start date"|translate}}
+                                        .startTime
+                                    .search-filters-item
+                                        label {{"End date"|translate}}
+                                        .endTime
+                                    .text-right.widthto100
+                                        button.btn.btn-success(ng-click='vm.searchGeneralRewardTask(true)') {{'SEARCH' | translate}}
+                                        span#generalRewardTaskSpin.collapse
+                                            i.fa.fa-spinner.fa-spin
+                                .clearfix
+                                label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                                table#generalRewardTaskTable.common-table.display.widthto100
+                                #generalRewardTaskTablePage
 
         div(ng-if='vm.showPageName=="RewardReport"')
             .panel.panel-primary
