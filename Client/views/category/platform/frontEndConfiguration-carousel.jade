@@ -13,7 +13,7 @@ div.col-md-4.fronendConfigDiv.carousel
             .tab-btngroup
                 button.btn.btn-primary(ng-if="pc.isVisible" ng-click="pc.isVisible = false") on
                 button.btn.btn-success(ng-if="!pc.isVisible", ng-click="pc.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndCarouselSetting(pc._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.frontEndCarouselSetting)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
@@ -24,7 +24,7 @@ div.col-md-4.fronendConfigDiv.carousel
             .tab-btngroup
                 button.btn.btn-primary(ng-if="h5.isVisible" ng-click="h5.isVisible = false") on
                 button.btn.btn-success(ng-if="!h5.isVisible", ng-click="h5.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndCarouselSetting(h5._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.frontEndCarouselSetting)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
@@ -35,7 +35,7 @@ div.col-md-4.fronendConfigDiv.carousel
             .tab-btngroup
                 button.btn.btn-primary(ng-if="app.isVisible" ng-click="app.isVisible = false") on
                 button.btn.btn-success(ng-if="!app.isVisible", ng-click="app.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndCarouselSetting(app._id)")
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.frontEndCarouselSetting)")
                     span.fa.fa-trash-o
 
 div.text-right
