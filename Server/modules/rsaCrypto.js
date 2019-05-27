@@ -220,7 +220,7 @@ function getReplPublicKeyFromService () {
 }
 
 function getKeyUrl (dirName, token) {
-    let keyUrl = "http://".concat(env.redisUrl);
+    let keyUrl = env.redisUrl;
 
     if (env.redisPort) {
         keyUrl += ":" + env.redisPort;
