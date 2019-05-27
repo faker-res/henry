@@ -5,7 +5,7 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         label.text-danger {{'CAROUSEL_CONFIGURATION_NOTE' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.initCarouselSetting()")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
-div.col-md-4.fronendConfigDiv
+div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'PC' | translate}}
     ul.connected-sortable.droppable-area1
         li.draggable-item(ng-repeat="pc in vm.frontEndCarouselSetting", ng-if="pc.device == 1", ng-dblclick="vm.editCarouselSetting(pc._id)", id="{{pc._id}}")
@@ -16,7 +16,7 @@ div.col-md-4.fronendConfigDiv
                 button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndCarouselSetting(pc._id)")
                     span.fa.fa-trash-o
 
-div.col-md-4.fronendConfigDiv
+div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'H5' | translate}}
     ul.connected-sortable.droppable-area2
         li.draggable-item(ng-repeat="h5 in vm.frontEndCarouselSetting", ng-if="h5.device == 3", ng-dblclick="vm.editCarouselSetting(h5._id)", id="{{h5._id}}")
@@ -27,7 +27,7 @@ div.col-md-4.fronendConfigDiv
                 button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndCarouselSetting(h5._id)")
                     span.fa.fa-trash-o
 
-div.col-md-4.fronendConfigDiv
+div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'App' | translate}}
     ul.connected-sortable.droppable-area3
         li.draggable-item(ng-repeat="app in vm.frontEndCarouselSetting", ng-if="app.device == 2", ng-dblclick="vm.editCarouselSetting(app._id)", id="{{app._id}}")
@@ -40,4 +40,4 @@ div.col-md-4.fronendConfigDiv
 
 div.text-right
     button.btn-danger.btn.btn-space(ng-click="vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
-    button#testSave.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndCarouselSetting()") {{'SAVE' | translate}}
+    button#carouselSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndCarouselSetting()") {{'SAVE' | translate}}
