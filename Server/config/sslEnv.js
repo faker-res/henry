@@ -8,15 +8,15 @@ var localConfig = {
 // dev-test
 var devConfig = {
     mode: "development",
-    redisUrl : 'fpms_sslserver_dev.neweb.me',
-    redisPort : '80',
+    redisUrl : '',
+    redisPort : '',
 };
 
 //for release production
 var prodConfig = {
     mode: "production",
-    redisUrl : 'fpms_sslserver_dev.neweb.me',
-    redisPort : '80',
+    redisUrl : '',
+    redisPort : '',
 };
 
 //env parameters
