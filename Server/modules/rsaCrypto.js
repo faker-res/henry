@@ -1,15 +1,24 @@
 'use strict';
 let http = require('http');
+let mainEnv = require('./../config/env').config();
 let env = require('./../config/sslEnv').config();
 let crypto = require('crypto');
 let jwt = require('jsonwebtoken');
 let constSystemParam = require('./../const/constSystemParam');
+let rp = require('request-promise');
 
 let fs = require('fs'), crt, key, replKey, replCrt;
 
-// SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+// Key selection based on env param
+if (!mainEnv.keyMode || (mainEnv.keyMode && mainEnv.keyMode !== 1)) {
+    key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+    crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+} else {
+    if (!key) { getPrivateKeyFromService(); }
+    if (!crt) { getPublicKeyFromService(); }
+    if (!replKey) { getReplPrivateKeyFromService(); }
+    if (!replCrt) { getReplPublicKeyFromService(); }
+}
 
 let oldKey, oldCert;
 
@@ -22,8 +31,9 @@ oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 // fkpKey = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem');
 // fkpCert = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub');
 
-let token = jwt.sign('Fr0m_FPM$!', constSystemParam.API_AUTH_SECRET_KEY);
-let host = "http://" + env.redisUrl;
+let fpmsKey = 'Fr0m_FPM$!';
+let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
+let host = env.redisUrl;
 let options = {
     timeout: 10000,
     hostname: env.redisUrl,
@@ -33,11 +43,6 @@ if (env.redisPort) {
     host += ":" + env.redisPort;
     options.port = env.redisPort;
 }
-
-if (!key) { getPrivateKeyFromService(); }
-if (!crt) { getPublicKeyFromService(); }
-if (!replKey) { getReplPrivateKeyFromService(); }
-if (!replCrt) { getReplPublicKeyFromService(); }
 
 module.exports = {
     encrypt: (msg) => {
@@ -130,30 +135,32 @@ module.exports = {
     }
 };
 
-function getKey (options, dirPath, fbPath) {
-    return new Promise((resolve, reject) => {
-        options.path = dirPath + '?token=' + token;
+function getKey (dirPath, fbPath) {
+    return rp(getKeyUrl(dirPath, token)).then(
+        data => {
+            if (data) {
+                let hash = getHash(env.redisUrl);
 
-        http.get(options, response => {
-            // handle http errors
-            if (response.statusCode < 200 || response.statusCode > 299) {
-                reject(new Error('Failed to load page, status code: ' + response.statusCode));
+                console.log('hash', hash, data);
+
+                if (hash === data) {
+                    let secondVerification = getCipherIV(hash, fpmsKey);
+
+                    return rp(getKeyUrl(dirPath, secondVerification));
+                }
+
             }
-            // temporary data holder
-            const body = [];
-            // on every content chunk, push it to the data array
-            response.on('data', (chunk) => body.push(chunk));
-            // we are done, resolve promise with those joined chunks
-            response.on('end', () => resolve(body.join('')));
-        }).on('error', (e) => {
-            console.log('getKey connection error', e);
-            resolve(fs.readFileSync(__dirname + fbPath));
-        })
-    }).catch(() => fs.readFileSync(__dirname + fbPath));
+        }
+    ).then(
+        keyData => {
+            console.log('getKey received', keyData);
+            return keyData;
+        }
+    ).catch(() => fs.readFileSync(__dirname + fbPath));
 }
 
 function getPrivateKeyFromService () {
-    return getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
+    return getKey("playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
                 console.log(`RT - Got key from ${options.hostname}`);
@@ -168,7 +175,7 @@ function getPrivateKeyFromService () {
 }
 
 function getPublicKeyFromService () {
-    return getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
+    return getKey("playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
                 console.log(`RT - Got cert from ${options.hostname}`);
@@ -183,7 +190,7 @@ function getPublicKeyFromService () {
 }
 
 function getReplPrivateKeyFromService () {
-    return getKey(options, "/playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
+    return getKey("playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl key from ${options.hostname}`);
@@ -199,7 +206,7 @@ function getReplPrivateKeyFromService () {
 }
 
 function getReplPublicKeyFromService () {
-    return getKey(options, "/playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
+    return getKey("playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl cert from ${options.hostname}`);
@@ -212,4 +219,31 @@ function getReplPublicKeyFromService () {
             }
         }
     );
+}
+
+function getKeyUrl (dirName, token) {
+    let keyUrl = env.redisUrl;
+
+    if (env.redisPort) {
+        keyUrl += ":" + env.redisPort;
+    }
+
+    keyUrl += "/";
+    keyUrl += dirName;
+    keyUrl += "?token=";
+    keyUrl += token;
+
+    return keyUrl;
+}
+
+function getHash (msg) {
+    return crypto.createHash('md5').update(msg).digest("hex");
+}
+
+function getCipherIV (key, msg) {
+    let iv = crypto.randomBytes(16);
+    let mykey = crypto.createCipheriv('aes-256-ctr', key, iv);
+    let mystr = mykey.update(msg, 'utf8', 'hex');
+    mystr += mykey.final('hex');
+    return `${iv.toString('hex')}:${mystr}`;
 }

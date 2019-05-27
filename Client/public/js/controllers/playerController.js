@@ -7960,7 +7960,7 @@ define(['js/app'], function (myApp) {
                                         bankAccount: playerPaymentData.newBankAccount,
                                         platform: vm.selectedPlatform.id
                                     }, function (data) {
-                                        if (data && data.data) {
+                                        if (data && data.data === true) {
                                             if (playerPaymentData.newBankAccount.length >= 16 && playerPaymentData.newBankAccount.length <= 19) {
                                                 playerPaymentData.invalid = false;
                                                 if (playerPaymentData.newBankAccount.match(/[a-z]/i)){
@@ -7977,8 +7977,9 @@ define(['js/app'], function (myApp) {
                                         }
                                         else {
                                             playerPaymentData.showAlert = true;
-                                            playerPaymentData.invalid = true;
-                                            playerPaymentData.alertMsg = "The same bank account has been registered";
+                                            playerPaymentData.invalid = false;
+                                            playerPaymentData.alertMsg = "Bank account has been bind with another player";
+                                            playerPaymentData.duplicatePlayerName = ` ${data.data.player}`;
                                             $scope.$evalAsync();
                                         }
 

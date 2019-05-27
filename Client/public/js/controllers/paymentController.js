@@ -426,7 +426,8 @@ define(['js/app'], function (myApp) {
                     "DISABLED": true,
                     "CLOSE": true,
                     "TOBEFOLLOWEDUP": true,
-                    "SUSPEND": true
+                    "SUSPEND": true,
+                    "TOBEUSED": true
                 }
             }
 
@@ -732,6 +733,17 @@ define(['js/app'], function (myApp) {
 
                 bank.show$ = show;
                 $scope.safeApply();
+            }
+        };
+
+        vm.changeBankCardsFilter = (flag) => {
+            if (vm.bankCardFilterOptions && vm.bankCardFilterOptions.status && Object.keys(vm.bankCardFilterOptions.status) && Object.keys(vm.bankCardFilterOptions.status).length > 0) {
+                for (let key in Object.keys(vm.bankCardFilterOptions.status)) {
+                    let status = Object.keys(vm.bankCardFilterOptions.status)[key];
+                    if (status) {
+                        vm.bankCardFilterOptions.status[status] = Boolean(flag);
+                    }
+                };
             }
         };
 

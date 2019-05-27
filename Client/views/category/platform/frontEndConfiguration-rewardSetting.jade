@@ -1,0 +1,34 @@
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div
+        label {{'REWARD_EVENT' | translate}}
+        br
+        label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.addNewRewardSetting(true)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+
+div.col-xs-12
+    .col-md-4(style="margin-top: 2em;")
+        label {{'Add category' | translate}}:
+        input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardCategory" )
+        button.btn.btn-primary(ng-click ="vm.addRewardCategory(vm.newRewardCategory)") {{'SUBMIT' | translate}}
+
+div.col-xs-12.row(style="padding-right: 0;")
+    div.col-md-3(ng-repeat="data in vm.frontEndRewardCategory")
+        div.eventSettingDiv.col-md-12.text-center
+            h3 {{data.categoryName}}
+            p.text-danger 正式站、测试站点击可切换
+                button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardCategory(data._id)")
+                    span.fa.fa-trash-o
+            hr
+            div.rewardDroppableArea.text-left(style="overflow: scroll; max-height: 550px; min-height: 70px;")
+                div.eventSettingTab.row.col-xs-12(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id")
+                    label {{event.title}}
+                    .tab-btngroup
+                        button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
+                        button.btn.btn-success(ng-if="!event.isVisible", ng-click="event.isVisible = true") off
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id)")
+                            span.fa.fa-trash-o
+
+div.text-right
+    button.btn-danger.btn.btn-space(ng-click="vm.loadRewardSetting(vm.filterFrontEndSettingPlatform); vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
+    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(ng-click="vm.updateAllRewardSettingData()") {{'SAVE' | translate}}

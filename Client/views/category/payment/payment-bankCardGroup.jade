@@ -523,3 +523,5 @@ style.
                             span {{status === "DISABLED" ? "DISABLE" : status | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.bankCardsFilter()") {{"FILTER" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeBankCardsFilter(true)") {{"Select All" | translate}}
+                button.btn.btn-info.common-button(ng-click="vm.changeBankCardsFilter(false)") {{"Clear All" | translate}}

@@ -3339,6 +3339,7 @@ let dbPlayerInfo = {
         let smsLogData;
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
+        let bankAccountBindingRecordCount = 0;
         let isfirstTimeRegistration = false;
 
         console.log('updatePlayerPayment updateData:', updateData);
@@ -3374,10 +3375,16 @@ let dbPlayerInfo = {
                         platform: platformObjId
                     }).lean().count();
 
-                    let sameBankAccountCountProm = dbconfig.collection_players.find({
+                    // let sameBankAccountCountProm = dbconfig.collection_players.find({
+                    //     bankAccount: updateData.bankAccount,
+                    //     platform: platformObjId,
+                    //     'permission.forbidPlayerFromLogin': false
+                    // }).lean().count();
+
+                    let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
+                        platformObjId: playerObj.platform,
                         bankAccount: updateData.bankAccount,
-                        platform: platformObjId,
-                        'permission.forbidPlayerFromLogin': false
+                        bankName: updateData.bankName
                     }).lean().count();
 
                     let propQuery = {
@@ -3395,7 +3402,7 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm])
+                    return Promise.all([realNameCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
                 }
                 else{
                     return Promise.reject({
@@ -3414,7 +3421,8 @@ let dbPlayerInfo = {
                 }
 
                 duplicatedRealNameCount = data[0] || 0;
-                sameBankAccountCount = data[1] || 0;
+                // sameBankAccountCount = data[1] || 0;
+                bankAccountBindingRecordCount = data[1] || 0;
 
                 if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
                     isfirstTimeRegistration = true;
@@ -3468,7 +3476,15 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
+                    // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
+                    //     return Q.reject({
+                    //         name: "DataError",
+                    //         code: constServerCode.INVALID_DATA,
+                    //         message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
+                    //     });
+                    // }
+                    // check if the limit of using the same bank account number
+                    if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
@@ -3542,6 +3558,22 @@ let dbPlayerInfo = {
 
                 dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
                 return updatedData;
+            }
+        ).then(
+            updatedData => {
+                if(playerObj.bankAccount != updateData.bankAccount) {
+                    let bankAccountBindingRecord = new dbconfig.collection_bankAccountBindingRecord({
+                        platformObjId: playerObj.platform,
+                        playerObjId: playerObj._id,
+                        bankAccount: updateData.bankAccount,
+                        bankName: updateData.bankName
+                    });
+                    return bankAccountBindingRecord.save().then(() => {
+                        return updatedData
+                    });
+                } else {
+                    return updatedData;
+                }
             }
         ).catch (
             err => {
@@ -10887,11 +10919,13 @@ let dbPlayerInfo = {
         const topupFieldsByPeriod = {
             DAY: 'dailyTopUpSum',
             WEEK: 'weeklyTopUpSum',
+            MONTH: 'pastMonthTopUpSum',
             NONE: 'topUpSum'
         };
         const consumptionFieldsByPeriod = {
             DAY: 'dailyConsumptionSum',
             WEEK: 'weeklyConsumptionSum',
+            MONTH: 'pastMonthConsumptionSum',
             NONE: 'consumptionSum'
         };
         skip = skip || 0;
@@ -24046,17 +24080,25 @@ let dbPlayerInfo = {
 
     checkDuplicatedBankAccount: function (bankAccount, platform) {
 
-        let sameBankAccountCountProm = dbconfig.collection_players.find({
+        // let sameBankAccountCountProm = dbconfig.collection_players.find({
+        //     bankAccount: bankAccount,
+        //     platform: ObjectId(platform),
+        //     'permission.forbidPlayerFromLogin': false
+        // }).lean().count();
+
+        let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
+            platformObjId: ObjectId(platform),
             bankAccount: bankAccount,
-            platform: ObjectId(platform),
-            'permission.forbidPlayerFromLogin': false
-        }).lean().count();
+        }).populate({
+            path: 'playerObjId',
+            model: dbconfig.collection_players
+        }).sort({createTime: -1}).lean();
 
         let platformProm =  dbconfig.collection_platform.findOne({
             _id: ObjectId(platform)
         });
 
-        return Promise.all([sameBankAccountCountProm, platformProm]).then(
+        return Promise.all([bankAccountBindingRecordProm, platformProm]).then(
             data => {
                 if (!data){
                     return Promise.reject({
@@ -24072,12 +24114,16 @@ let dbPlayerInfo = {
                     })
                 }
 
-                let sameBankAccountCount = data[0] || 0;
+                let bankAccountBindingRecord = data[0];
+                let bankAccountBindingRecordCount = bankAccountBindingRecord.length || 0;
                 let platformData = data[1];
 
-                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
-                    return Promise.resolve(false)
+                if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount){
+                    return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
                 }
+                // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
+                //     return Promise.resolve(false)
+                // }
                 return Promise.resolve(true);
             }
         )

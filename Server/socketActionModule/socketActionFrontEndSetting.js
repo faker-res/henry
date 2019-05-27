@@ -11,6 +11,62 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        saveFrontEndPopUpAdvSetting: function saveFrontEndPopUpAdvSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndPopUpAdvSetting, [data], actionName, isValidData);
+        },
+
+        updatePopUpAdvertisementSetting: function updatePopUpAdvertisementSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updatePopUpAdvertisementSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
+        getFrontEndRewardCategory: function getFrontEndRewardCategory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndRewardCategory, [data.platformObjId], actionName, isValidData);
+        },
+
+        getFrontEndRewardSetting: function getFrontEndRewardSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndRewardSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        saveFrontEndRewardCategory: function saveFrontEndRewardCategory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.categoryName);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName], actionName, isValidData);
+        },
+
+        saveAllRewardSettingData: function saveAllRewardSettingData (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.categoryObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveAllRewardSettingData, [data.platformObjId, data.categoryObjId], actionName, isValidData);
+        },
+
+        saveFrontEndRewardSetting: function saveFrontEndRewardSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardSetting, [data], actionName, isValidData);
+        },
+
+        getFrontEndPopUpAdvertisementSetting: function getFrontEndPopUpAdvertisementSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndPopUpAdvertisementSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         saveSkinSetting: function saveSkinSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.device && data.name);
@@ -44,7 +100,28 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.getUrlConfig, [data.platformObjId], actionName, isValidData);
-        }
+        },
+
+        saveCarouselSetting: function saveCarouselSetting (data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.device);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveCarouselSetting, [data], actionName, isValidData);
+        },
+
+        getCarouselSetting: function getCarouselSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateCarouselSetting: function updateCarouselSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
     };
     socketActionFrontEndSetting.actions = this.actions;
 }
