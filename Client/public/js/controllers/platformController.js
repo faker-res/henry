@@ -24587,6 +24587,7 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeNewRow(vm.newPromoCode3, 3);
                         break;
                     case 'history':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeQuery = {sortCol: {createTime: -1}};
 
                         utilService.actionAfterLoaded('#promoCodeQuery', function () {
@@ -24895,6 +24896,44 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.deleteRewardCategory = function (categoryObjId) {
+                if (categoryObjId){
+                    let index = vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.frontEndRewardCategory.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.deleteRewardSetting = function (id) {
+                if (id){
+                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.rewardSettingData.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.updateAllRewardSettingData = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    socketService.$socket($scope.AppSocket, 'saveAllRewardSettingData', {platformObjId: vm.filterFrontEndSettingPlatform, categoryObjId: categoryObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('saveAllRewardSettingData', data.data);
+                            if (data && data.data) {
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            }
+                        })
+                    }, function (err) {
+                        console.error('saveAllRewardSettingData error: ', err);
+                    }, true);
+                }
+            };
+
             vm.loadRewardCategory =  function (platformObjId) {
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardCategory', {platformObjId: platformObjId}, function (data) {
@@ -24907,6 +24946,13 @@ define(['js/app'], function (myApp) {
                     }, function (err) {
                         console.error('getFrontEndRewardCategory error: ', err);
                     }, true);
+
+                    utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
+                        $(".rewardDroppableArea").sortable({
+                            connectWith: ".rewardDroppableArea",
+                        })
+                    });
+
                 }
             };
 
@@ -26574,6 +26620,14 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
+            vm.getAllPromoCodeTypes = () => {
+                socketService.$socket($scope.AppSocket, 'getAllPromoCodeTypes', {deleteFlag: false}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allPromoCodeTypes = data.data;
+                    });
+                });
+            };
+
             vm.loadPromoCodeTypes = function (platformObjId) {
                 vm.promoCodeType1 = [];
                 vm.promoCodeType2 = [];
@@ -26979,13 +27033,19 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.checkAllPromoCodeSubType = function () {
+            vm.checkAllPromoCodeSubType = function (platformList) {
                 vm.promoCodeQuery.promoCodeSubType = [];
                 vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
-                if (vm.promoCodeQuery && vm.promoCodeTypes && vm.promoCodeTypes.length && vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType) {
-                    vm.promoCodeTypes.forEach(promoCode => {
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.allPromoCodeTypes && vm.allPromoCodeTypes.length) {
+                    vm.allPromoCodeTypes.forEach(promoCode => {
                         if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
-                            vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            if (platformList && platformList.length && promoCode.platformObjId) {
+                                if (platformList.includes(promoCode.platformObjId)) {
+                                    vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                                }
+                            } else {
+                                vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            }
                         }
                     });
                     vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;

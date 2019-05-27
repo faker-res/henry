@@ -23,7 +23,7 @@ form(name='form_playerPaymentInfo')
                 button.btn.btn-info.pull-right(ng-click='isEditingPlayerPaymentShowVerify=!isEditingPlayerPaymentShowVerify')
                     text(ng-if='isEditingPlayerPaymentShowVerify') {{::'CLOSE' | translate}}
                     text(ng-if='!isEditingPlayerPaymentShowVerify') {{::'VERIFY' | translate}}
-                label.text-disabled(ng-if="isEditingPlayerPayment && playerPayment.showAlert") {{ playerPayment.alertMsg | translate}}
+            label.text-disabled(ng-if="isEditingPlayerPayment && playerPayment.showAlert") {{ playerPayment.alertMsg | translate}} {{playerPayment.duplicatePlayerName}}
         div.col-sm-12
             .panel.panel-default.margin-top-10(ng-if='isEditingPlayerPaymentShowVerify')
                 .panel-body
