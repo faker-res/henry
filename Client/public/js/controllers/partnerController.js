@@ -7571,8 +7571,7 @@ define(['js/app'], function (myApp) {
                 vm.editPartner.DOB = new Date(vm.editPartner.DOB);
                 vm.selectedCommissionTab(
                     $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
-                    selectedPartner._id,
-                    true
+                    selectedPartner._id
                 );
                 vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
@@ -11134,7 +11133,7 @@ define(['js/app'], function (myApp) {
                 return vm.getPartnerCommisionConfig();
             });
         }
-        vm.getPartnerCommissionConfigWithGameProviderConfig = function (partnerObjId, isPartnerTable) {
+        vm.getPartnerCommissionConfigWithGameProviderConfig = function (partnerObjId, isMultiLevel) {
             vm.isSettingExist = true;
             vm.partnerCommission = {
                 isCustomized: false
@@ -11163,7 +11162,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
-                if (isPartnerTable && vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
+                if (isMultiLevel && vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
                     socketAction = "getPartnerCommConfig";
                     sendData = {
                         partnerObjId: vm.selectedSinglePartner._id,
@@ -11185,7 +11184,7 @@ define(['js/app'], function (myApp) {
                                     vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
                                     if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                         vm.partnerCommission.gameProviderGroup.filter(data => {
-                                            if (String(data._id) == String(existSetting.provider) && (isPartnerTable || !existSetting.partner)) {
+                                            if (String(data._id) == String(existSetting.provider) && (isMultiLevel || !existSetting.partner)) {
                                                 data.srcConfig = JSON.parse(JSON.stringify(existSetting));
                                                 data.showConfig = JSON.parse(JSON.stringify(existSetting));
                                             }
@@ -11322,7 +11321,7 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        vm.switchCommissionTab = function (tab, commissionType, isPartnerTable) {
+        vm.switchCommissionTab = function (tab, commissionType, isMultiLevel) {
             let partnerObjId;
             let partner = vm.isOneSelectedPartner();
             let partnerCommissionType = (partner && partner.commissionType) ? partner.commissionType : null;
@@ -11330,10 +11329,11 @@ define(['js/app'], function (myApp) {
                 // only load the partner commission setting, if it match partner commissionType
                 partnerObjId = partner._id;
             }
-            vm.selectedCommissionTab(tab, partnerObjId, isPartnerTable);
+            vm.isMultiLevelCommission = isMultiLevel? true: false;
+            vm.selectedCommissionTab(tab, partnerObjId, isMultiLevel);
         }
 
-        vm.selectedCommissionTab = function (tab, partnerObjId, isPartnerTable) {
+        vm.selectedCommissionTab = function (tab, partnerObjId, isMultiLevel) {
             let isGetConfig = true;
             vm.commissionSettingTab = tab ? tab : 'DAILY_CONSUMPTION';
             vm.partnerCommission.isEditing = false;
@@ -11371,7 +11371,7 @@ define(['js/app'], function (myApp) {
 
             if (isGetConfig) {
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                    vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId, isPartnerTable);
+                    vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId, isMultiLevel);
                 } else {
                     vm.getPartnerCommisionConfig();
                 }
