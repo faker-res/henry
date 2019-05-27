@@ -24587,6 +24587,7 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeNewRow(vm.newPromoCode3, 3);
                         break;
                     case 'history':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeQuery = {sortCol: {createTime: -1}};
 
                         utilService.actionAfterLoaded('#promoCodeQuery', function () {
@@ -26624,6 +26625,14 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
+            vm.getAllPromoCodeTypes = () => {
+                socketService.$socket($scope.AppSocket, 'getAllPromoCodeTypes', {deleteFlag: false}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allPromoCodeTypes = data.data;
+                    });
+                });
+            };
+
             vm.loadPromoCodeTypes = function (platformObjId) {
                 vm.promoCodeType1 = [];
                 vm.promoCodeType2 = [];
@@ -27029,13 +27038,19 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.checkAllPromoCodeSubType = function () {
+            vm.checkAllPromoCodeSubType = function (platformList) {
                 vm.promoCodeQuery.promoCodeSubType = [];
                 vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
-                if (vm.promoCodeQuery && vm.promoCodeTypes && vm.promoCodeTypes.length && vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType) {
-                    vm.promoCodeTypes.forEach(promoCode => {
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.allPromoCodeTypes && vm.allPromoCodeTypes.length) {
+                    vm.allPromoCodeTypes.forEach(promoCode => {
                         if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
-                            vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            if (platformList && platformList.length && promoCode.platformObjId) {
+                                if (platformList.includes(promoCode.platformObjId)) {
+                                    vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                                }
+                            } else {
+                                vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            }
                         }
                     });
                     vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
