@@ -46,6 +46,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName], actionName, isValidData);
         },
 
+        saveAllRewardSettingData: function saveAllRewardSettingData (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.categoryObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveAllRewardSettingData, [data.platformObjId, data.categoryObjId], actionName, isValidData);
+        },
+
         saveFrontEndRewardSetting: function saveFrontEndRewardSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);

@@ -124,9 +124,11 @@ const dbPartnerCommission = {
                         let objId = String(parent._id);
                         parentCommissionDetail[objId] = parentCommissionDetail[objId] || {
                             parentObjId: objId,
-                            parentName: partner.partnerName,
+                            parentName: parent.partnerName,
+                            startTime: startTime,
+                            partnerObjId: partner._id,
+                            partnerName: partner.partnerName,
                             grossCommission: 0
-
                         };
                     }
 
@@ -346,7 +348,7 @@ const dbPartnerCommission = {
                             let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
                             commCalcParentData.commCalc = commCalc._id;
 
-                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({commCalc: commCalc._id, parentObjId}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
+                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({parentObjId, partnerObjId: commCalc.partner, startTime: commCalc.startTime}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
                                 console.log("commCalcParent save failed", commCalcParentData, err);
                                 return errorUtils.reportError(err);
                             });
@@ -384,7 +386,8 @@ const dbPartnerCommission = {
         let result = [];
         let query = {platform: platformObjId};
         commissionType = commissionType || constPartnerCommissionType.DAILY_CONSUMPTION;
-        let stream = Promise.resolve([]);
+        let stream;
+        let partnerObjId, partnersLeftToCalc = [];
 
         let findPartnerProm = Promise.resolve();
         if (partnerName) {
@@ -398,13 +401,59 @@ const dbPartnerCommission = {
                     if (!partner) {
                         return;
                     }
+                    partnerObjId = partner._id;
+
                     commissionType = partner.commissionType;
                     stream = dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id:1}).cursor({batchSize: 100});
+                    return dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id: 1});
                 }
                 else {
                     query.commissionType = commissionType;
                     stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+                    return dbconfig.collection_partner.find(query, {_id: 1});
                 }
+            }
+        ).then(
+            partnersToCalc => {
+                if (!partnersToCalc || !partnersToCalc.length) {
+                    return [];
+                }
+
+                if (!startTime) {
+                    commissionType = commissionType || constPartnerCommissionType.WEEKLY_CONSUMPTION;
+                    let defaultTime = getTargetCommissionPeriod(commissionType, new Date());
+                    startTime = defaultTime.startTime;
+                    endTime = defaultTime.endTime;
+                }
+
+                let halfHourAgo = new Date(new Date().setMinutes(new Date().getMinutes() - 30));
+                let proms = partnersToCalc.map(partner => {
+                    return dbconfig.collection_commCalc.findOne({
+                        partner: partner._id,
+                        commissionType,
+                        startTime,
+                        calcTime: {$gte: new Date(halfHourAgo)}
+                    }, {_id: 1}).lean().then(
+                        found => {
+                            if (!found) {
+                                partnersLeftToCalc.push(partner._id);
+                            }
+                        }
+                    )
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            (promsResult) => {
+                if (!partnersLeftToCalc || !partnersLeftToCalc.length) {
+                    return;
+                }
+
+                if (promsResult.length !== partnersLeftToCalc.length && partnersLeftToCalc.length <= 10) {
+                    stream = dbconfig.collection_partner.find({_id: {$in: partnersLeftToCalc}}, {_id:1}).cursor({batchSize: 100});
+                }
+
                 let balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
                     return balancer.processStream(
@@ -430,8 +479,14 @@ const dbPartnerCommission = {
             }
         ).then(
             () => {
-                // todo :: change it to get data from db
-                return result;
+                if (partnerName) {
+                    if (!partnerObjId) {
+                        return result;
+                    }
+                    return getCalcPartnerByObjId(partnerObjId, startTime);
+                }
+
+                return getCalcPartnerByType(platformObjId, commissionType, startTime);
             }
         )
     },
@@ -1275,4 +1330,53 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
         commissionRate: lastValidCommissionRate,
         isCustom: isCustom
     };
+}
+
+function getCalcPartnerByObjId (partnerObjId, startTime) {
+    let commCalc;
+    return dbconfig.collection_commCalc.findOne({partner: partnerObjId, startTime}).lean().then(
+        commCalcData => {
+            if (!commCalcData) {
+                return [];
+            }
+            commCalc = commCalcData;
+
+            return getCommCalcDetail(commCalc);
+        }
+    ).then(
+        (commCalc) => {
+            return [commCalc];
+        }
+    )
+}
+
+function getCalcPartnerByType (platformObjId, commissionType, startTime) {
+    return dbconfig.collection_commCalc.find({platform: platformObjId, commissionType, startTime}).lean().then(
+        commCalcData => {
+            let proms = commCalcData.map(commCalc => {
+                return getCommCalcDetail(commCalc, startTime).catch(err => {
+                    console.log('getCommCalcDetail failure', commCalc, err);
+                    return errorUtils.reportError(err);
+                });
+            });
+
+            return Promise.all(proms);
+        }
+    );
+}
+
+function getCommCalcDetail (commCalc, startTime) {
+    let childCommProm = dbconfig.collection_commCalcParent.find({parentObjId: commCalc.partner, startTime}).lean();
+    let parentCommProm = dbconfig.collection_commCalcParent.find({commCalc: commCalc._id}).lean();
+    let playerDetailProm = dbconfig.collection_commCalcPlayer.find({commCalc: commCalc._id}).lean();
+
+    return Promise.all([childCommProm, parentCommProm, playerDetailProm]).then(
+        ([childCommData, parentCommData, playerDetailData]) => {
+            commCalc.childComm = childCommData;
+            commCalc.parentPartnerCommissionDetail = parentCommData;
+            commCalc.downLinesRawCommissionDetail = playerDetailData;
+
+            return commCalc;
+        }
+    );
 }

@@ -24888,6 +24888,44 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.deleteRewardCategory = function (categoryObjId) {
+                if (categoryObjId){
+                    let index = vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.frontEndRewardCategory.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.deleteRewardSetting = function (id) {
+                if (id){
+                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.rewardSettingData.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.updateAllRewardSettingData = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    socketService.$socket($scope.AppSocket, 'saveAllRewardSettingData', {platformObjId: vm.filterFrontEndSettingPlatform, categoryObjId: categoryObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('saveAllRewardSettingData', data.data);
+                            if (data && data.data) {
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            }
+                        })
+                    }, function (err) {
+                        console.error('saveAllRewardSettingData error: ', err);
+                    }, true);
+                }
+            };
+
             vm.loadRewardCategory =  function (platformObjId) {
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardCategory', {platformObjId: platformObjId}, function (data) {
@@ -24900,6 +24938,13 @@ define(['js/app'], function (myApp) {
                     }, function (err) {
                         console.error('getFrontEndRewardCategory error: ', err);
                     }, true);
+
+                    utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
+                        $(".rewardDroppableArea").sortable({
+                            connectWith: ".rewardDroppableArea",
+                        })
+                    });
+
                 }
             };
 
@@ -27084,6 +27129,13 @@ define(['js/app'], function (myApp) {
 
                             if (item.platformObjId) {
                                 let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
+
+                            if (item && item.data && item.data.platformId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.data.platformId.toString());
                                 if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }

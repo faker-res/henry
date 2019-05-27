@@ -33,7 +33,7 @@ oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 
 let fpmsKey = 'Fr0m_FPM$!';
 let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
-let host = "http://" + env.redisUrl;
+let host = env.redisUrl;
 let options = {
     timeout: 10000,
     hostname: env.redisUrl,
@@ -138,8 +138,12 @@ module.exports = {
 function getKey (dirPath, fbPath) {
     return rp(getKeyUrl(dirPath, token)).then(
         data => {
+            console.log('data', data);
+
             if (data) {
                 let hash = getHash(env.redisUrl);
+
+                console.log('hash', hash);
 
                 if (hash === data) {
                     let secondVerification = getCipherIV(hash, fpmsKey);
@@ -220,7 +224,7 @@ function getReplPublicKeyFromService () {
 }
 
 function getKeyUrl (dirName, token) {
-    let keyUrl = "http://".concat(env.redisUrl);
+    let keyUrl = env.redisUrl;
 
     if (env.redisPort) {
         keyUrl += ":" + env.redisPort;
