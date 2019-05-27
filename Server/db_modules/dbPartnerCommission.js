@@ -186,6 +186,7 @@ const dbPartnerCommission = {
                             platformFeeRate: platformFeeRate,
                             isCustomPlatformFeeRate: isCustomPlatformFeeRate,
                             siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                            noRate: Boolean(directCommissionRate.noRate),
                         });
 
                         grossCommission += rawDirectCommission;
@@ -205,6 +206,7 @@ const dbPartnerCommission = {
                                     groupName: groupRate.groupName,
                                     groupId: groupRate.groupId,
                                     parentRate: parentRate,
+                                    noRate: Boolean(commissionRates[groupRate.groupName].noRate),
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
                                 if (i === 0) {
@@ -1064,6 +1066,7 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
     let lastValidParentRatios = [];
     let lastValidParentRate = [];
     let isCustom = false;
+    let noRate = true;
 
     if (consumptionAmount < 0) {
         consumptionAmount *= -1;
@@ -1088,12 +1091,14 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
         lastValidParentRatios = commissionRequirement.parentRatios || [];
         lastValidParentRate = commissionRequirement.parentRate || [];
         isCustom = Boolean(commissionRequirement.isCustom);
+        noRate = false;
     }
 
     return {
         commissionRate: lastValidCommissionRate,
         parentRatios: lastValidParentRatios,
         parentRate: lastValidParentRate,
+        noRate: noRate,
         isCustom: isCustom
     };
 }
@@ -1300,6 +1305,7 @@ function getDirectCommissionRateTable (platformObjId, commissionType, partnerObj
 function getDirectCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
     let isCustom = false;
+    let noRate = true;
 
     if (consumptionAmount < 0) {
         consumptionAmount *= -1;
@@ -1324,10 +1330,12 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
 
         lastValidCommissionRate = commissionRequirement.commissionRate;
         isCustom = Boolean(commissionRequirement.isCustom);
+        noRate = false;
     }
 
     return {
         commissionRate: lastValidCommissionRate,
+        noRate: noRate,
         isCustom: isCustom
     };
 }
