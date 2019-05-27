@@ -141,6 +141,8 @@ function getKey (dirPath, fbPath) {
             if (data) {
                 let hash = getHash(env.redisUrl);
 
+                console.log('hash', hash, data);
+
                 if (hash === data) {
                     let secondVerification = getCipherIV(hash, fpmsKey);
 
