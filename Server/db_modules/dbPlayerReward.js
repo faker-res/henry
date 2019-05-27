@@ -7046,19 +7046,19 @@ let dbPlayerReward = {
                             })
                         }
 
-                        if (!rewardSpecificData || !rewardSpecificData[0]) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "No available consumption list for the reward"
-                            });
-                        }
-
                         if (!matchRequiredPhoneNumber) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("This player does not have phone number to apply this reward")
+                            });
+                        }
+
+                        if (!rewardSpecificData || !rewardSpecificData[0]) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "No available consumption list for the reward"
                             });
                         }
 
