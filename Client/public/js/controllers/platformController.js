@@ -24813,7 +24813,7 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable",
-                            stop: function () {
+                            drop: function () {
                                 let arr1 = $('.droppable-area1').sortable('toArray');
                                 let arr2 = $('.droppable-area2').sortable('toArray');
                                 let arr3 = $('.droppable-area3').sortable('toArray');
@@ -24854,18 +24854,44 @@ define(['js/app'], function (myApp) {
                                     }
                                 );
                             }
-                        });
+                        })
+                        // .disableSelection()
+                        $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
+
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                        })
+                        $('.droppable-area2').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                        })
+                        $('.droppable-area3').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                        })
+                        // $('.droppable-area2').sortable('toArray');
+                        // $('.droppable-area3').sortable('toArray');
+
+
+
                     });
                 })
             };
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndPopularRecommendationData = data.data;
-                    }
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log('getFrontEndPopularRecommendationSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndPopularRecommendationData = data.data;
+                            vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
+                            vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
+                            vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
+
+                        }
+                    })
+
+                    // $scope.safeApply();
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
@@ -40741,7 +40767,8 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             holder.splice(index, 1);
-                            $('#' + eventObjectId).hide();
+                            // $('#' + eventObjectId).hide();
+                            $('#'+eventObjectId).parent('.draggable-item').remove();
                         })
                     }
                 }

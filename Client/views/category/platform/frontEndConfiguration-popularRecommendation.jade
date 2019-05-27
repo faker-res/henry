@@ -13,7 +13,8 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
                 button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(one._id, vm.frontEndPopularRecommendationData)")
+                button.btn.btn-danger.btn-delete(id="{{one._id}}")
+                //(ng-click="vm.deleteFrontEndSetting(one._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
@@ -24,7 +25,8 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
                 button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(two._id, vm.frontEndPopularRecommendationData)")
+                button.btn.btn-danger.btn-delete(id="{{two._id}}")
+                //(ng-click="vm.deleteFrontEndSetting(two._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
@@ -35,7 +37,8 @@ div.col-md-4.fronendConfigDiv
             .tab-btngroup
                 button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
                 button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
-                button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(three._id, vm.frontEndPopularRecommendationData)")
+                button.btn.btn-danger.btn-delete(id="{{three._id}}")
+                //(ng-click="vm.deleteFrontEndSetting(three._id, vm.frontEndPopularRecommendationData)")
                     span.fa.fa-trash-o
 
 div.text-right
