@@ -27089,6 +27089,13 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
+                            if (item && item.data && item.data.platformId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.data.platformId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
+
                             // special handling for openPromoCode getting from proposal
                             if (item.data && item.data.templateId ){
                                 item.amount = item.data.amount$ || null;
