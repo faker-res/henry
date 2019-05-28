@@ -17546,6 +17546,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
             for (var i in vm.partnerDLCommDetailTotal){
                 delete vm.partnerDLCommDetailTotal[i];
             }
