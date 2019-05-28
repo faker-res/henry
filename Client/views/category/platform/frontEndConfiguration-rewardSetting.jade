@@ -21,7 +21,7 @@ div.col-xs-12.row(style="padding-right: 0;")
             hr
             div(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;" id="{{data._id}}")
                 ul.connected-sortable.droppable-area(style="min-height: 90%;")
-                    li.draggable-item(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
+                    li.draggable-item(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="vm.editRewardSetting(event._id)" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
                         span {{event.title}}
                         .tab-btngroup
                             button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
@@ -40,4 +40,4 @@ div.col-xs-12.row(style="padding-right: 0;")
 
 div.text-right
     button.btn-danger.btn.btn-space(style="margin-top: 15px;" ng-click="vm.loadRewardCategory(vm.filterFrontEndSettingPlatform); vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
-    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateAllRewardSettingData()") {{'SAVE' | translate}}
+    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateRewardSetting()") {{'SAVE' | translate}}
