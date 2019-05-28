@@ -73,11 +73,13 @@
                         div(ng-if="checkViewPermission('Report', 'Reward','Read')")
                             //li.text-center.margin-top-5
                                 label.text-success {{'REWARD_REPORT' | translate}}
-                            li.list-group-item(style='margin-bottom: 20px;', class="{{vm.seleDataType.RewardReport}}", ng-click='vm.loadPage("RewardReport")')
+                            li.list-group-item(class="{{vm.seleDataType.RewardReport}}", ng-click='vm.loadPage("RewardReport")')
                                 text {{"Reward Report" | translate}}
-                            li.list-group-item(ng-repeat='(i,v) in vm.rewardList', class="{{vm.seleDataType[v.name]}}", ng-click='vm.loadPage(vm.getPageNameByRewardName(v.type.name),v.name,v.code,v._id)')
+                            //li.list-group-item(ng-repeat='(i,v) in vm.rewardList', class="{{vm.seleDataType[v.name]}}", ng-click='vm.loadPage(vm.getPageNameByRewardName(v.type.name),v.name,v.code,v._id)')
                                 text {{v.name}}
-                            li.list-group-item.text-danger(ng-if='vm.rewardList.length==0') {{"NONE" | translate}} {{"Reward task" | translate}}
+                            //li.list-group-item.text-danger(ng-if='vm.rewardList.length==0') {{"NONE" | translate}} {{"Reward task" | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.OtherRewardReport}}", ng-click='vm.initOtherRewardReport("OtherRewardReport")')
+                                text {{"Other Reward Report" | translate}}
                             //li.list-group-item(class="{{vm.seleDataType.PLAYER_CONSUMPTION_RETURN_REPORT}}" ng-click='vm.loadPage("PLAYER_CONSUMPTION_RETURN_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'PlayerConsumption')")
                             //    text {{'PLAYER_CONSUMPTION_RETURN_REPORT' | translate}}
                             //li.list-group-item(class="{{vm.seleDataType.FULL_ATTENDANCE_REPORT}}" ng-click='vm.loadPage("FULL_ATTENDANCE_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'FullAttendance')")

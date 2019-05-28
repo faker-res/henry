@@ -20,8 +20,8 @@ div.col-xs-12.row(style="padding-right: 0;")
                 button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardCategory(data._id)")
                     span.fa.fa-trash-o
             hr
-            div.rewardDroppableArea.text-left(style="overflow: scroll; max-height: 550px; min-height: 70px;")
-                div.eventSettingTab.row.col-xs-12(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id")
+            div.rewardDroppableArea.text-left(style="overflow: scroll; max-height: 550px; min-height: 70px;" id="{{data._id}}")
+                div.eventSettingTab.row.col-xs-12(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="" id="{{event._id}}")
                     label {{event.title}}
                     .tab-btngroup
                         button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
