@@ -207,7 +207,7 @@ define(['js/app'], function (myApp) {
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
             }
-            else if (window.location.pathname != '/monitor/consumptionRecord' && window.location.pathname != '/monitor/attemptCreate'){
+            else if (window.location.pathname == '/monitor/paymentTotal'){
                 vm.preparePaymentMonitorTotalPage();
             }
         };
@@ -345,6 +345,32 @@ define(['js/app'], function (myApp) {
                 clearInterval(vm.countBySec);
             }
             $scope.$evalAsync();
+        }, 1000);
+
+        vm.paymentTotalRefreshTime = 30;
+        vm.paymentTotalCountBySec = setInterval (function () {
+                const checkBox = $('#paymentTotalAutoRefreshProposalFlag');
+                const isChecked = checkBox && checkBox.length > 0 && checkBox[0].checked;
+                const refresh = $('#timeLeftRefreshOperation')[0];
+                if (isChecked){
+                    $(refresh).parent().removeClass('hidden');
+                    if(vm.paymentTotalRefreshTime < 0){
+                        vm.paymentTotalRefreshTime = 30;
+                    }
+                    if(vm.paymentTotalRefreshTime === 0){
+                        vm.paymentTotalRefreshTime = 30;
+                        vm.getPaymentMonitorTotalRecord();
+                    }
+                    vm.paymentTotalRefreshTime--;
+                } else{
+                    vm.paymentTotalRefreshTime = -1;
+                    $(refresh).parent().addClass('hidden');
+                }
+
+                if (window.location.pathname != '/monitor/paymentTotal') {
+                    clearInterval(vm.paymentTotalCountBySec);
+                }
+                $scope.$evalAsync();
         }, 1000);
 
         function initPageParam() {
@@ -3308,7 +3334,7 @@ define(['js/app'], function (myApp) {
 
         };
         vm.preparePaymentMonitorTotalPage = function () {
-            $('#autoRefreshProposalFlag')[0].checked = true;
+            $('#paymentTotalAutoRefreshProposalFlag')[0].checked = true;
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.paymentMonitorTotalQuery = {};
             vm.paymentMonitorTotalCompletedQuery = {};
@@ -3802,7 +3828,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (isNewSearch) {
-                $('#autoRefreshProposalFlag').attr('checked', false);
+                $('#paymentTotalAutoRefreshProposalFlag').attr('checked', false);
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
@@ -3851,6 +3877,7 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
                 data => {
                     vm.paymentMonitorTotalQuery.querySearchTime = findQuerySearchTime(searchStartTime);
+                    $('#paymentMonitorTableSpin').hide();
                     $('#paymentMonitorTableASpin').hide();
                     $scope.$evalAsync(() => {
                         console.log('Payment Monitor Total Result', data);
@@ -3934,7 +3961,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (isNewSearch) {
-                $('#autoRefreshProposalFlag').attr('checked', false);
+                $('#paymentTotalAutoRefreshProposalFlag').attr('checked', false);
             }
             vm.paymentMonitorTotalQuery.platformId = vm.curPlatformId;
             $('#paymentMonitorTableSpin').show();
@@ -4050,17 +4077,21 @@ define(['js/app'], function (myApp) {
 
 
         vm.resetTopUpMonitorQuery = function () {
-            vm.paymentMonitorQuery = {};
-            vm.paymentMonitorQuery.mainTopupType = "";
-            vm.paymentMonitorQuery.topupType = "";
-            vm.paymentMonitorQuery.merchantGroup = "";
-            vm.paymentMonitorQuery.merchantNo = "";
-            vm.paymentMonitorQuery.orderId = "";
-            vm.paymentMonitorQuery.depositMethod = "";
-            vm.paymentMonitorQuery.playerName = "";
-            vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
-            vm.getPaymentMonitorRecord(true);
-            $('#autoRefreshProposalFlag')[0].checked = true;
+            if(window.location.pathname == "/monitor/payment") {
+                vm.paymentMonitorQuery = {};
+                vm.paymentMonitorQuery.mainTopupType = "";
+                vm.paymentMonitorQuery.topupType = "";
+                vm.paymentMonitorQuery.merchantGroup = "";
+                vm.paymentMonitorQuery.merchantNo = "";
+                vm.paymentMonitorQuery.orderId = "";
+                vm.paymentMonitorQuery.depositMethod = "";
+                vm.paymentMonitorQuery.playerName = "";
+                vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
+                vm.getPaymentMonitorRecord(true);
+                $('#autoRefreshProposalFlag')[0].checked = true;
+            } else if(window.location.pathname == "/monitor/paymentTotal") {
+                $('#paymentTotalAutoRefreshProposalFlag')[0].checked = true;
+            }
             $scope.safeApply();
         };
 
@@ -4429,7 +4460,7 @@ define(['js/app'], function (myApp) {
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
-                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
                             checkMerchantNotificationAlert(aData);
                         }
                         if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
@@ -4439,7 +4470,7 @@ define(['js/app'], function (myApp) {
 
                     if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
-                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
                             checkPlayerNotificationAlert(aData);
                         }
                         if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
@@ -4583,7 +4614,7 @@ define(['js/app'], function (myApp) {
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     if (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
-                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
                             checkMerchantNotificationAlert(aData);
                         }
                         if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
@@ -4593,7 +4624,7 @@ define(['js/app'], function (myApp) {
 
                     if (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
-                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
                             checkPlayerNotificationAlert(aData);
                         }
                         if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
