@@ -7958,7 +7958,7 @@ define(['js/app'], function (myApp) {
 
                                     socketService.$socket($scope.AppSocket, 'checkDuplicatedBankAccount', {
                                         bankAccount: playerPaymentData.newBankAccount,
-                                        platform: vm.selectedPlatform.id
+                                        platform: vm.isOneSelectedPlayer().platform || vm.selectedPlatform.id
                                     }, function (data) {
                                         if (data && data.data === true) {
                                             if (playerPaymentData.newBankAccount.length >= 16 && playerPaymentData.newBankAccount.length <= 19) {
@@ -8614,8 +8614,15 @@ define(['js/app'], function (myApp) {
         //Create new player
         vm.createNewPlayer = function () {
             vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
+
+            let calendarDate = $('#datepickerDOB input').val();
+            if (calendarDate) {
+                vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
+            } else {
+                vm.newPlayer.DOB = null;
+            }
+
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
