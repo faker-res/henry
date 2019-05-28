@@ -5942,6 +5942,12 @@ let dbPlayerReward = {
                     requiredPhoneNumber = Boolean(playerData.phoneNumber);
                 }
                 promArr.push(requiredPhoneNumber);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
             }
         }
 
