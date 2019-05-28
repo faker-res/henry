@@ -25,5 +25,3 @@ let commCalcPlayerSchema = new Schema({
 });
 
 module.exports = commCalcPlayerSchema;
-
-commCalcPlayerSchema.index({commCalc: 1, name: 1});
