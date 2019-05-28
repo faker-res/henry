@@ -2435,6 +2435,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
+        console.log('winRateReport - start');
         let participantsProm;
         const matchObj = {
             createTime: {
@@ -2490,6 +2491,7 @@ var dbPlayerConsumptionRecord = {
 
         return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
             data => {
+                console.log('winRateReport - first prom', data);
                 let participantNumber = 0;
                 let consumptionTimes = 0;
                 let totalAmount = 0;
