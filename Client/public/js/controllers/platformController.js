@@ -26673,13 +26673,13 @@ define(['js/app'], function (myApp) {
                         });
 
                         vm.allPromoCodeTypes.forEach(entry => {
-                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
+                            if (entry.type == 1) {
                                 vm.promoCodeType1.push(entry);
                                 vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 2) {
                                 vm.promoCodeType2.push(entry);
                                 vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 3) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
@@ -27110,8 +27110,12 @@ define(['js/app'], function (myApp) {
             vm.checkAllPromoCodeSubType = function (platformList) {
                 vm.promoCodeQuery.promoCodeSubType = [];
                 vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
-                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.allPromoCodeTypes && vm.allPromoCodeTypes.length) {
-                    vm.allPromoCodeTypes.forEach(promoCode => {
+                vm.historyPromoCodeTypes = vm.allPromoCodeTypes;
+                if (platformList && platformList.length) {
+                    vm.historyPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                }
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.historyPromoCodeTypes && vm.historyPromoCodeTypes.length) {
+                    vm.historyPromoCodeTypes.forEach(promoCode => {
                         if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
                             if (platformList && platformList.length && promoCode.platformObjId) {
                                 if (platformList.includes(promoCode.platformObjId)) {
@@ -27124,7 +27128,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
                 }
-            }
+            };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];

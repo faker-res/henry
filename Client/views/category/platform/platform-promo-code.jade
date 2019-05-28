@@ -335,7 +335,7 @@
                     #promoCodeQuery.col-md-12.well
                         .search-filters-item
                             label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                            select.form-control(ng-model='vm.promoCodeQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                            select.form-control(ng-model='vm.promoCodeQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.checkAllPromoCodeSubType(vm.promoCodeQuery.platformList)')
                         .search-filters-item
                             label {{"ACCOUNT" | translate}}
                             input.form-control(type='text', ng-model='vm.promoCodeQuery.playerName')
@@ -348,7 +348,7 @@
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
                         .search-filters-item(ng-if='vm.promoCodeQuery.promoCodeType')
                             label {{"PROMO_CODE_SUB_TYPE" | translate}}
-                            select.spicker.form-control#promoCodeSubMultiSelect(ng-model='vm.promoCodeQuery.promoCodeSubType', bsp, multiple, data-actions-box='true', ng-options="type.name as type.name for type in vm.allPromoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
+                            select.spicker.form-control#promoCodeSubMultiSelect(ng-model='vm.promoCodeQuery.promoCodeSubType', multiple, bsp, data-actions-box='true', ng-options="type.name as type.name for type in vm.historyPromoCodeTypes | filter: {type: vm.promoCodeQuery.promoCodeType}")
                         .search-filters-twoBoxes
                             label {{"STATUS" | translate}}
                             select.form-control(ng-model='vm.promoCodeQuery.status')
