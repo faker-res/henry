@@ -66,7 +66,7 @@
                     .endTime
                 .search-filters-item
                     label {{"Proposal No"|translate}}
-                    input.noGrey.form-control(ng-model="vm.queryTopup.proposalId", ng-change='vm.hideOtherConditions("#topUpReportQuery",vm.queryTopup.proposalId,".noGrey")')
+                    input#topupReportQueryProposalId.noGrey.form-control(ng-model="vm.queryTopup.proposalId", ng-change='vm.hideOtherConditions("#topUpReportQuery",vm.queryTopup.proposalId,".noGrey")')
                 .text-right.widthto100
                     label &nbsp;
                     button.btn.btn-success.btn-space(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
@@ -127,7 +127,7 @@
                     .endTime
                 .search-filters-item
                     label {{"Proposal No"|translate}}
-                    input.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
+                    input#proposalReportQueryProposalId.noGrey.form-control(type="text", ng-model="vm.proposalQuery.proposalId", ng-change='vm.hideOtherConditions("#proposalReportQuery",vm.proposalQuery.proposalId,".noGrey")')
                 .text-right.widthto100
                     label &nbsp;
                     button.btn.btn-success.btn-space(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
