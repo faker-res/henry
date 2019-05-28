@@ -3656,7 +3656,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.platform : null,
+                platformId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.platform : vm.allPlatformData.map(platform => platform._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
