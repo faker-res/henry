@@ -21,7 +21,7 @@ div.col-xs-12.row(style="padding-right: 0;")
                     span.fa.fa-trash-o
             hr
             div.rewardDroppableArea.text-left(style="overflow: scroll; max-height: 550px; min-height: 70px;" id="{{data._id}}")
-                div.eventSettingTab.row.col-xs-12(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="" id="{{event._id}}")
+                div.eventSettingTab.row.col-xs-12(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="vm.editRewardSetting(event._id)" id="{{event._id}}")
                     label {{event.title}}
                     .tab-btngroup
                         button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
@@ -31,4 +31,4 @@ div.col-xs-12.row(style="padding-right: 0;")
 
 div.text-right
     button.btn-danger.btn.btn-space(ng-click="vm.loadRewardSetting(vm.filterFrontEndSettingPlatform); vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
-    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(ng-click="vm.updateAllRewardSettingData()") {{'SAVE' | translate}}
+    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(ng-click="vm.updateRewardSetting()") {{'SAVE' | translate}}
