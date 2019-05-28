@@ -1787,7 +1787,15 @@ let dbPlayerReward = {
             {deleteFlag: deleteFlag}
         ]
     }).lean().then(promoCodeType => {
-        return promoCodeType;
+        let promoCodeTypeList = promoCodeType;
+        // get the auto promoCode template
+        let promoCodeTemplate = dbConfig.collection_promoCodeTemplate.find({}).lean();
+        let openPromoCodeTemplate = dbConfig.collection_openPromoCodeTemplate.find({}).lean();
+
+        return Promise.all([promoCodeTemplate, openPromoCodeTemplate]).then(result => {
+
+            return promoCodeTypeList.concat(result[0], result[1]);
+        })
     }),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
