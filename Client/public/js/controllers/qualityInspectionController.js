@@ -2008,19 +2008,15 @@ define(['js/app'], function (myApp) {
             }
 
             function updateConversationDefinition(srcData, platformId) {
-                return new Promise((resolve, reject) => {
-                    let sendData = {
-                        query: {_id: platformId},
-                        updateData: {
-                            'conversationDefinition.totalSec': srcData.totalSec,
-                            'conversationDefinition.askingSentence': srcData.askingSentence,
-                            'conversationDefinition.replyingSentence': srcData.replyingSentence
-                        }
-                    };
-                    socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                        resolve(data);
-                    });
-                })
+                let sendData = {
+                    query: {_id: platformId},
+                    updateData: {
+                        'conversationDefinition.totalSec': srcData.totalSec,
+                        'conversationDefinition.askingSentence': srcData.askingSentence,
+                        'conversationDefinition.replyingSentence': srcData.replyingSentence
+                    }
+                };
+                return $scope.$socketPromise('updatePlatform', sendData);
             }
 
             async function batchUpdateOvertimeSetting(srcData) {
@@ -2038,15 +2034,11 @@ define(['js/app'], function (myApp) {
             }
 
             function updateOvertimeSetting(srcData, platformId) {
-                return new Promise((resolve, reject) => {
-                    let sendData = {
-                        query: {_id: platformId},
-                        updateData: {overtimeSetting: srcData}
-                    };
-                    socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                        resolve(data);
-                    });
-                });
+                let sendData = {
+                    query: {_id: platformId},
+                    updateData: {overtimeSetting: srcData}
+                };
+                return $scope.$socketPromise('updatePlatform', sendData);
             }
 
 
