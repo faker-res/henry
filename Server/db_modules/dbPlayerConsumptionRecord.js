@@ -2481,6 +2481,7 @@ var dbPlayerConsumptionRecord = {
             {
                 $group: {
                     _id: groupById,
+                    playerId: { $addToSet: "$playerId" },
                     total_amount: { $sum: "$amount"},
                     validAmount: { $sum: "$validAmount"},
                     consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
