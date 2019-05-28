@@ -137,12 +137,8 @@ module.exports = {
 function getKey (dirPath, fbPath) {
     return rp(getKeyUrl(dirPath, token)).then(
         data => {
-            console.log('data', data);
-
             if (data) {
                 let hash = getHash(env.redisUrl);
-
-                console.log('hash', hash);
 
                 if (hash === data) {
                     let secondVerification = getCipherIV(hash, fpmsKey);
@@ -154,7 +150,7 @@ function getKey (dirPath, fbPath) {
         }
     ).then(
         keyData => {
-            console.log('getKey received', keyData);
+            console.log('getKey received', Boolean(keyData));
             return keyData;
         }
     ).catch(() => fs.readFileSync(__dirname + fbPath));
