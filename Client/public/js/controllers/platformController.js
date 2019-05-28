@@ -24770,8 +24770,8 @@ define(['js/app'], function (myApp) {
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'rewardSetting':
-                        vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                         vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                        vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                         break;
                 }
             };
@@ -24946,34 +24946,6 @@ define(['js/app'], function (myApp) {
                     }, function (err) {
                         console.error('getFrontEndRewardCategory error: ', err);
                     }, true);
-
-                    // utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
-                    //     $(".rewardDroppableArea").sortable({
-                    //         connectWith: ".rewardDroppableArea",
-                    //     })
-                    // });
-
-                    setTimeout (() => {
-                        $(".rewardDroppableArea").sortable({
-                            connectWith: ".rewardDroppableArea",
-                            stop: function () {
-                                let arr = {};
-                                vm.frontEndRewardCategory.forEach(cato => {
-                                    arr[cato._id] = $('#'+cato._id).sortable('toArray');
-                                    arr[cato._id].forEach((v, i) => {
-                                        if (v){
-                                            let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.rewardSettingData[index].categoryObjId = cato._id;
-                                                vm.rewardSettingData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    });
-                                });
-                                console.log("arr", arr);
-                            }
-                        })
-                    },4000);
                 }
             };
 
@@ -24985,6 +24957,29 @@ define(['js/app'], function (myApp) {
                             if (data && data.data) {
                                 vm.rewardSettingData = data.data;
                             }
+
+                            let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                            utilService.actionAfterLoaded('#' + tempId, function () {
+                                $(".droppable-area").sortable({
+                                    connectWith: ".connected-sortable",
+                                    stop: function () {
+                                        let arr = {};
+                                        vm.frontEndRewardCategory.forEach(cato => {
+                                            arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
+                                            arr[cato._id].forEach((v, i) => {
+                                                if (v){
+                                                    let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                                    if (index != -1){
+                                                        vm.rewardSettingData[index].categoryObjId = cato._id;
+                                                        vm.rewardSettingData[index].displayOrder = i + 1;
+                                                    }
+                                                }
+                                            });
+                                        });
+                                        console.log("arr", arr);
+                                    }
+                                })
+                            });
                         })
                     }, function (err) {
                         console.error('getFrontEndRewardSetting error: ', err);
