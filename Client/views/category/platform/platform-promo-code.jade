@@ -399,7 +399,7 @@
                     #promoCodeTypeBMonitorQuery.col-md-12.well
                         .search-filters-item
                             label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                            select.form-control(ng-model='vm.promoCodeTypeBMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                            select.form-control(ng-model='vm.promoCodeTypeBMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getAllPromoCodeTypes(vm.promoCodeTypeBMonitor.platformList)')
                         .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
@@ -423,7 +423,7 @@
                     #promoCodeMonitorQuery.col-md-12.well
                         .search-filters-item
                             label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                            select.form-control(ng-model='vm.promoCodeMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                            select.form-control(ng-model='vm.promoCodeMonitor.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getAllPromoCodeTypes(vm.promoCodeMonitor.platformList)')
                         .search-filters-item
                             label.control-label {{'START_ACCEPTED_TIME' | translate}}
                             .startAcceptedTime
@@ -432,7 +432,7 @@
                             .endAcceptedTime
                         .search-filters-item
                             label.control-label {{"PROMO_CODE_TYPE_3" | translate}}
-                            select.form-control(ng-model='vm.promoCodeMonitor.promoCodeTypeName' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: 3}", multiple, bsp, data-actions-box='true')
+                            select.form-control(ng-model='vm.promoCodeMonitor.promoCodeTypeName' ng-options="type.name as type.name group by type.platformName for type in vm.allPromoCodeTypes | filter: {type: 3}", multiple, bsp, data-actions-box='true')
                         .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.getPromoCodeMonitor(true)') {{'SEARCH' | translate}}
                             span#promoCodeMonitorTableSpin.collapse
@@ -875,7 +875,7 @@
                     #promoCodeAnalysisQuery.col-md-12.well
                         .search-filters-item
                             label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                            select.form-control(ng-model='vm.promoCodeAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+                            select.form-control(ng-model='vm.promoCodeAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getAllPromoCodeTypes(vm.promoCodeAnalysis.platformList)')
                         .search-filters-item
                             label.control-label {{'START_CREATE_TIME' | translate}}
                             .startCreateTime
@@ -894,7 +894,7 @@
                                 option(value='3') {{"PROMO_CODE_TYPE_3" | translate}}
                         div.search-filters-item(ng-if='vm.promoCodeAnalysis.promoCodeType')
                             label {{"PROMO_CODE_SUB_TYPE" | translate}}
-                            select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeSubType' ng-options="type.name as type.name for type in vm.promoCodeTypes | filter: {type: vm.promoCodeAnalysis.promoCodeType}")
+                            select.form-control(ng-model='vm.promoCodeAnalysis.promoCodeSubType' ng-options="type.name as type.name group by type.platformName for type in vm.allPromoCodeTypes | filter: {type: vm.promoCodeAnalysis.promoCodeType}")
                                 option(value='') {{'any' | translate}}
                         .text-right.widthto100
                             button.btn.btn-success(ng-click='vm.promoCodeAnalysis.searchType = 1; vm.getPromoCodeAnalysis(true); vm.getPromoCodeAnalysis2(true)') {{'SEARCH_CREATETIME' | translate}}

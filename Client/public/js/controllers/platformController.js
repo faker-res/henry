@@ -24620,6 +24620,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitorTypeB':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeTypeBMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeTypeBMonitorQuery', function () {
@@ -24640,6 +24641,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitor':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeMonitorQuery', function () {
@@ -24698,6 +24700,7 @@ define(['js/app'], function (myApp) {
                         vm.newUserBlockPromoCodeUserGroup = {};
                         break;
                     case 'promoCodeAnalysis':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeAnalysis = {};
                         vm.promoCodeAnalysis2 = {};
 
@@ -26641,10 +26644,58 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
-            vm.getAllPromoCodeTypes = () => {
+            vm.getAllPromoCodeTypes = (platformList) => {
+                vm.promoCodeType1 = [];
+                vm.promoCodeType2 = [];
+                vm.promoCodeType3 = [];
+                vm.promoCodeTypeB = [];
+
                 socketService.$socket($scope.AppSocket, 'getAllPromoCodeTypes', {deleteFlag: false}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.allPromoCodeTypes = data.data;
+
+                        if (platformList && platformList.length) {
+                            vm.allPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                        }
+
+                        vm.allPromoCodeTypes.map(type => {
+                            if (vm.allPlatformData && vm.allPlatformData.length) {
+                                vm.allPlatformData.forEach(platform => {
+                                    if (type && type.platformObjId && platform && platform._id && platform.name) {
+                                        if (type.platformObjId.toString() === platform._id.toString()) {
+                                            type.platformName = platform.name;
+                                        }
+                                    }
+                                })
+                            }
+                        });
+
+                        vm.allPromoCodeTypes.forEach(entry => {
+                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
+                                vm.promoCodeType1.push(entry);
+                                vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
+                                vm.promoCodeType2.push(entry);
+                                vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
+                                vm.promoCodeType3.push(entry);
+                                vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
+                            }
+                        });
+
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
                     });
                 });
             };
@@ -31498,9 +31549,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformCredibilityRemarks = (platformList) => {
-                let sendData = {
-                    platformList: platformList && platformList.length ? platformList : []
-                }
                 if (vm.allCredibilityRemarks) {
                     vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
                     if (platformList && platformList.length) {
