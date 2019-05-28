@@ -8488,7 +8488,7 @@ define(['js/app'], function (myApp) {
 
             var deferred = Q.defer();
             var query = {
-                platformId: vm.curPlatformId,
+                platformId: vm.selectedRewardPlatform || vm.curPlatformId,
                 startTime: startTime,
                 endTime: endTime,
                 type: vm.currentRewardTaskName,//'FIRST_TOP_UP'
