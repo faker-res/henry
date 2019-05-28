@@ -3641,6 +3641,7 @@ define(['js/app'], function (myApp) {
             return result
         }
         vm.getNewPlayerListByFilter = function (newSearch) {
+            $('#getNewPlayerListSpin').show();
             var selectedStatus;
 
             if (vm.queryPara.newPlayerList) {
@@ -3691,6 +3692,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerListRecords = data.data.data;
                 vm.newPlayerRecords.totalCount = data.data.size;
                 vm.newPlayerRecords.loading = false;
+                $('#getNewPlayerListSpin').hide();
                 console.log('new player list record', data);
 
                 var tableData = vm.newPlayerListRecords.map(
