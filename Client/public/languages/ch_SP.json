@@ -3802,6 +3802,7 @@
   "PlayerRandomRewardGroup": "随机抽奖（组）",
   "WORDS": "文字",
   "IMAGE": "图片",
+  "Add New Reward Setting": "添加新优惠活动",
   "ACTIVITY NAME": "活动名称",
   "ENTRANCE IMAGE": "入口图片",
   "ACTIVITY CATEGORY": "活动分类",
@@ -5681,5 +5682,8 @@
   "Page Detail(PC)": "PC详情页面",
   "Page Detail(H5)": "H5详情页面",
   "Page Detail(APP)": "APP详情页面",
-  "Add Carousel": "添加轮播"
+  "Add Carousel": "添加轮播",
+  "Other Reward Report": "其他优惠报表",
+  "OtherRewardReport": "其他优惠报表",
+  "No Reward Task": "无优惠任务"
 }

@@ -3656,7 +3656,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.platform : null,
+                platformId: vm.queryPara.newPlayerList ? vm.queryPara.newPlayerList.platform : vm.allPlatformData.map(platform => platform._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -8614,8 +8614,15 @@ define(['js/app'], function (myApp) {
         //Create new player
         vm.createNewPlayer = function () {
             vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
-            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
-            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
+
+            let calendarDate = $('#datepickerDOB input').val();
+            if (calendarDate) {
+                vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+                vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
+            } else {
+                vm.newPlayer.DOB = null;
+            }
+
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
