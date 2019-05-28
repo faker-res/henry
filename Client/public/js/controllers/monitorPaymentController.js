@@ -347,7 +347,7 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         }, 1000);
 
-        vm.paymentTotalRefreshTime = 30;
+        vm.paymentTotalRefreshTime = 120;
         vm.paymentTotalCountBySec = setInterval (function () {
                 const checkBox = $('#paymentTotalAutoRefreshProposalFlag');
                 const isChecked = checkBox && checkBox.length > 0 && checkBox[0].checked;
@@ -355,10 +355,10 @@ define(['js/app'], function (myApp) {
                 if (isChecked){
                     $(refresh).parent().removeClass('hidden');
                     if(vm.paymentTotalRefreshTime < 0){
-                        vm.paymentTotalRefreshTime = 30;
+                        vm.paymentTotalRefreshTime = 120;
                     }
                     if(vm.paymentTotalRefreshTime === 0){
-                        vm.paymentTotalRefreshTime = 30;
+                        vm.paymentTotalRefreshTime = 120;
                         vm.getPaymentMonitorTotalRecord();
                     }
                     vm.paymentTotalRefreshTime--;
