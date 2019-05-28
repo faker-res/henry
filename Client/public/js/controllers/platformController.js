@@ -24813,67 +24813,62 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable",
-                            drop: function () {
-                                let arr1 = $('.droppable-area1').sortable('toArray');
-                                let arr2 = $('.droppable-area2').sortable('toArray');
-                                let arr3 = $('.droppable-area3').sortable('toArray');
-
-                                arr1.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr2.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr3.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-                            }
-                        })
-                        // .disableSelection()
+                            // drop: function () {
+                            //     let arr1 = $('.droppable-area1').sortable('toArray');
+                            //     let arr2 = $('.droppable-area2').sortable('toArray');
+                            //     let arr3 = $('.droppable-area3').sortable('toArray');
+                            //
+                            //     arr1.forEach (
+                            //         (v, i) => {
+                            //             if (v){
+                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            //                 if (index != -1){
+                            //                     vm.frontEndPopularRecommendationData[index].category = 1;
+                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            //                 }
+                            //             }
+                            //         }
+                            //     );
+                            //
+                            //     arr2.forEach (
+                            //         (v, i) => {
+                            //             if (v){
+                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            //                 if (index != -1){
+                            //                     vm.frontEndPopularRecommendationData[index].category = 2;
+                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            //                 }
+                            //             }
+                            //         }
+                            //     );
+                            //
+                            //     arr3.forEach (
+                            //         (v, i) => {
+                            //             if (v){
+                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            //                 if (index != -1){
+                            //                     vm.frontEndPopularRecommendationData[index].category = 3;
+                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                            //                 }
+                            //             }
+                            //         }
+                            //     );
+                            // }
+                        }).disableSelection()
                         $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
-
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                            vm.deleteFrontEndSettingWay2(id);
                         })
                         $('.droppable-area2').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                            vm.deleteFrontEndSettingWay2(id);
                         })
                         $('.droppable-area3').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSetting(id, vm.frontEndPopularRecommendationData)
+                            vm.deleteFrontEndSettingWay2(id);
                         })
                         // $('.droppable-area2').sortable('toArray');
                         // $('.droppable-area3').sortable('toArray');
-
-
-
                     });
                 })
             };
@@ -24883,10 +24878,17 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
+                            // $('.droppable-area1').html('');
+                            // $('.droppable-area2').html('');
+                            // $('.droppable-area3').html('');
                             vm.frontEndPopularRecommendationData = data.data;
                             vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
                             vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
                             vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
+                            // $('.connected-sortable').sortable('refresh');
+                            $('.droppable-area1').sortable('refresh');
+                            $('.droppable-area2').sortable('refresh');
+                            $('.droppable-area3').sortable('refresh');
 
                         }
                     })
@@ -40712,14 +40714,18 @@ define(['js/app'], function (myApp) {
                 let arr1 = $('.droppable-area1').sortable('toArray');
                 let arr2 = $('.droppable-area2').sortable('toArray');
                 let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let updateFrontEndPopularRecommendationData = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                // vm.frontEndPopularRecommendationData[index].category = 1;
+                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 1;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -40730,8 +40736,13 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                // vm.frontEndPopularRecommendationData[index].category = 2;
+                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 2;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -40742,14 +40753,19 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                // vm.frontEndPopularRecommendationData[index].category = 3;
+                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 3;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
+                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
@@ -40773,6 +40789,12 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
+            vm.deleteFrontEndSettingWay2 = function (eventObjectId) {
+                vm.frontEndDeletedList.push(eventObjectId);
+                $('#' + eventObjectId).remove();
+                // $('#'+eventObjectId).parents('.draggable-item').eq(0).remove();
+            }
 
             vm.addNewRewardPointClarification = function (isNew, eventObjId) {
                 //reset
