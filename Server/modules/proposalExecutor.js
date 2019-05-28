@@ -939,10 +939,12 @@ var proposalExecutor = {
             executeUpdatePlayerBankInfo: function (proposalData, deferred) {
                 //valid data
                 let updateMultipleBankInfo = false;
+                let playerData;
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
                         function (data) {
+                            playerData = data;
                             if (data) {
                                 var playerUpdate = Object.assign({}, proposalData.data);
                                 delete playerUpdate.platformId;
@@ -1020,7 +1022,17 @@ var proposalExecutor = {
                         function (error) {
                             deferred.reject({name: "DBError", message: "Failed to find player info", error: error});
                         }
-                    ).then(
+                    ).then(data => {
+                        let bankAccountBindingRecord = new dbconfig.collection_bankAccountBindingRecord({
+                            platformObjId: playerData.platform,
+                            playerObjId: playerData._id,
+                            bankAccount: proposalData.data.bankAccount,
+                            bankName: proposalData.data.bankName
+                        });
+                        return bankAccountBindingRecord.save().then(() => {
+                            return data;
+                        });
+                    }).then(
                         function (data) {
                             let loggerInfo = {};
                             if (proposalData.data.bankName) {
