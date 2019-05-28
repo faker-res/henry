@@ -24864,10 +24864,17 @@ define(['js/app'], function (myApp) {
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
                     console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndPopularRecommendationData = data.data;
-                    }
-                    $scope.safeApply();
+                    $scope.$evalAsync( () => {
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.frontEndPopularRecommendationData = data.data;
+                            utilService.actionAfterLoaded('#testSave', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
+                                    item.parentElement.removeChild(item)
+                                });
+                            })
+                        }
+                    })
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
@@ -25402,12 +25409,14 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.frontEndCarouselSetting = data.data.map(item => {
                                 item.device = item.device.toString();
                                 return item;
                             });
 
                             utilService.actionAfterLoaded('#carouselSaveButton', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
                                     connectWith: ".connected-sortable",
                                     stop: function () {
@@ -25450,27 +25459,13 @@ define(['js/app'], function (myApp) {
                                             }
                                         );
                                     }
-                                })
+                                }).disableSelection()
                             })
                         }
                     })
                 }, function (err) {
                     console.error('getCarouselSetting error: ', err);
                 }, true);
-            };
-
-            vm.deleteFrontEndCarouselSetting = function (carouselObjId){
-                if (carouselObjId){
-                    $scope.$evalAsync( () => {
-                        vm.carouselSettingDeletedList.push(carouselObjId);
-                        let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
-                        if (index != -1){
-                            setTimeout(() => {
-                                vm.frontEndCarouselSetting.splice(index, 1);
-                            }, 0);
-                        }
-                    })
-                }
             };
 
             vm.updateFrontEndCarouselSetting = function () {
@@ -25514,7 +25509,7 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.carouselSettingDeletedList},
+                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
@@ -41070,7 +41065,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             holder.splice(index, 1);
-                            $('#' + eventObjectId).hide();
+                            $('#' + eventObjectId).remove();
                         })
                     }
                 }
@@ -41190,6 +41185,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndRewardPointClarification', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.frontEndRewardPointClarificationData = data.data;
                         }
                     })
@@ -41219,6 +41215,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndPopUpAdvertisementSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data;
                         }
 
@@ -41238,7 +41235,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     );
                                 }
-                            })
+                            }).disableSelection()
                         })
                     })
                 }, function (err) {
