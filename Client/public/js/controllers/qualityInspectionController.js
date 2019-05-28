@@ -1993,9 +1993,18 @@ define(['js/app'], function (myApp) {
             };
 
 
-            function updateConversationDefinition(srcData) {
+            async function batchEditConversationDefinition() {
+                vm.allPlatformData.forEach( async (item) => {
+                    await updateConversationDefinition(srcData, item._id);
+                })
+                console.log('update done!!!');
+            }
+
+            function updateConversationDefinition(srcData, platformId) {
+                console.log(platformId)
+                return;
                 let sendData = {
-                    query: {_id: vm.selectedPlatform.id},
+                    query: {_id: platformId},
                     updateData: {
                         'conversationDefinition.totalSec': srcData.totalSec,
                         'conversationDefinition.askingSentence': srcData.askingSentence,
@@ -2004,7 +2013,7 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     vm.loadPlatformData({loadAll: false});
-                    $scope.safeApply();
+                    // $scope.safeApply();
                 });
             }
 
