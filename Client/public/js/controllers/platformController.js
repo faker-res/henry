@@ -24744,6 +24744,9 @@ define(['js/app'], function (myApp) {
 
             vm.frontEndSettingPlatform = function () {
                 vm.frontEndDeletedList = [];
+                vm.rewardCategoryDeletedList = [];
+                vm.rewardDeletedList = [];
+
                 switch (vm.selectedFrontEndSettingTab) {
                     case 'rewardPointClarification':
                         vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
@@ -24901,7 +24904,8 @@ define(['js/app'], function (myApp) {
 
             vm.deleteRewardCategory = function (categoryObjId) {
                 if (categoryObjId){
-                    let index = vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    vm.rewardCategoryDeletedList.push(categoryObjId);
+                    let index =vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
@@ -24912,6 +24916,7 @@ define(['js/app'], function (myApp) {
 
             vm.deleteRewardSetting = function (id) {
                 if (id){
+                    vm.rewardDeletedList.push(id);
                     let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
@@ -24921,20 +24926,17 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.updateAllRewardSettingData = function (categoryObjId) {
-                if (categoryObjId && vm.filterFrontEndSettingPlatform){
-                    socketService.$socket($scope.AppSocket, 'saveAllRewardSettingData', {platformObjId: vm.filterFrontEndSettingPlatform, categoryObjId: categoryObjId}, function (data) {
+            vm.updateRewardSetting = function () {
+                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
+                    function (data) {
                         $scope.$evalAsync( () => {
-                            console.log('saveAllRewardSettingData', data.data);
-                            if (data && data.data) {
-                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                            }
+                            console.log('updateRewardSetting is done', data);
+                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                         })
                     }, function (err) {
-                        console.error('saveAllRewardSettingData error: ', err);
-                    }, true);
-                }
+                        console.log('err', err);
+                    });
             };
 
             vm.loadRewardCategory =  function (platformObjId) {
