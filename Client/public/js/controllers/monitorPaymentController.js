@@ -360,6 +360,7 @@ define(['js/app'], function (myApp) {
                     if(vm.paymentTotalRefreshTime === 0){
                         vm.paymentTotalRefreshTime = 120;
                         vm.getPaymentMonitorTotalRecord();
+                        vm.getPaymentMonitorTotalCompletedRecord();
                     }
                     vm.paymentTotalRefreshTime--;
                 } else{
@@ -3894,8 +3895,8 @@ define(['js/app'], function (myApp) {
                                                     : item.data.bankCardNo ? item.data.bankCardNo
                                                         : item.data.accountNo ? item.data.accountNo : null;
                                     //item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                                    item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                                    item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount + "/" + item.$playerAllCommonTopUpCount;
+                                    item.playerCount$ = item.$playerCurrentCount + " (" + item.$playerGapTime + ")";
+                                    item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount;
                                     item.status$ = $translate(item.status);
                                     item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
                                     item.website = item && item.data && item.data.platform && item.data.platformId ?
@@ -4317,7 +4318,7 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.paymentMonitorTotalQuery.aaSorting || [[15, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
                     {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
                     {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -4326,6 +4327,8 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('PRODUCT_NAME'),
                         data: "website",
+                        sClass: "wordWrap",
+                        width: "5%"
                     },
                     {
                         "title": $translate('proposalId'),
@@ -4333,14 +4336,18 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             // data = String(data);
                             return '<a ng-click="vm.showProposalModal(\'' + data + '\')">' + data + '</a>';
-                        }
+                        },
+                        sClass: "wordWrap",
+                        width: "5%"
                     },
                     {
                         "title": $translate('topupType'), "data": "type",
                         render: function (data, type, row) {
                             var text = $translate(row.type ? row.type.name : "");
                             return "<div>" + text + "</div>";
-                        }
+                        },
+                        sClass: "wordWrap",
+                        width: "5%"
                     },
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
@@ -4348,7 +4355,9 @@ define(['js/app'], function (myApp) {
                             let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
-                        }
+                        },
+                        sClass: "wordWrap",
+                        width: "5%"
                     },
                     {
                         "title": $translate('Online Topup Type'), "data": 'data.topupType',
@@ -4356,16 +4365,18 @@ define(['js/app'], function (myApp) {
                             var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
                         },
-                        sClass: 'merchantCount'
+                        sClass: 'merchantCount wordWrap',
+                        width: "5%"
                     },
-                    {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
+                    {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'wordWrap', width: "5%"},
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
                             var text = $translate(data ? vm.getDepositMethodbyId[data] : "");
                             return "<div>" + text + "</div>";
                         },
-                        sClass: 'merchantCount'
+                        sClass: 'wordWrap',
+                        width: "5%"
                     },
                     {
                         title: $translate('From Bank Type'), data: "data.bankTypeId",
@@ -4377,7 +4388,8 @@ define(['js/app'], function (myApp) {
                                 return "<div>" + '' + "</div>";
                             }
                         },
-                        sClass: 'merchantCount'
+                        sClass: 'wordWrap',
+                        width: "5%"
                     },
                     {
                         title: $translate('Business Acc/ Bank Acc'),
@@ -4388,19 +4400,20 @@ define(['js/app'], function (myApp) {
                             if( row.data.line && row.data.line == '2'){
                                 additional = '(MMM)';
                             }
-                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
+                            return '<div style = "width: 100%; word-break: break-all; white-space: normal">' + text + additional + '</div>'
                         },
-                        sClass: 'merchantCount',
-                        "width": "90px"},
+                        sClass: 'wordWrap',
+                        width: "7%"
+                    },
                     //{title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
-                    {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount"},
-                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText playerCount"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
-                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
-                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount"},
+                    {title: $translate('STATUS'), data: "status$", sClass: 'wordWrap', width: "5%"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount wordWrap", width: "5%"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "playerCount wordWrap", width: "5%"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "playerCount wordWrap", width: "5%"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount wordWrap" , width: "5%"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount wordWrap", width: "5%"},
 
-                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {title: $translate('START_TIME'), data: "startTime$", sClass: 'wordWrap', width: "5%"},
                     {
                         title: $translate('Admin_Locked'),
                         data: "lockedButtonDisplay",
@@ -4417,7 +4430,7 @@ define(['js/app'], function (myApp) {
                                 let linkId = "link" + row.proposalId;
                                 return "<div id=" + linkId + "><a ng-click='vm.lockProposal(" + JSON.stringify(row) + ")'>" + data + "</a></div>";
                             }
-                        }
+                        }, sClass: 'wordWrap', width: "5%"
                     },
                     {
                         title: $translate('Contact Customer'),
@@ -4436,12 +4449,12 @@ define(['js/app'], function (myApp) {
                             }));
                             return link.prop('outerHTML');
                         },
-                        "sClass": "alignLeft"
+                        "sClass": "alignLeft wordWrap", width: "3%"
                     },
                     {
                         title: $translate('Followup_Content'),
                         data: "remark$",
-                        "width": "200px",
+                        "width": "10%",
                         render: function(data, type, row){
                             if(row.data.lockedAdminId && authService.adminId == row.data.lockedAdminId && !row.data.followUpContent){
                                 let contentId = "content" + row.proposalId;
@@ -4455,7 +4468,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                 ],
-                "autoWidth": true,
+                "autoWidth": false,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
@@ -4488,7 +4501,11 @@ define(['js/app'], function (myApp) {
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTotalTable', tableOptions, {}, true);
 
-            $('#paymentMonitorTotalTable').resize();
+            $('#paymentMonitorTotalTable').resize(function () {
+                let table = $('#paymentMonitorTotalTable').DataTable();
+                table.columns.adjust();
+            });
+            $scope.$evalAsync();
 
             $('#paymentMonitorTotalTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
