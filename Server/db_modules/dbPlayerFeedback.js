@@ -411,7 +411,9 @@ var dbPlayerFeedback = {
                         },
                         processResponse: function (record) {
                             console.log('request result', record);
-                            result = result.concat(record.data);
+                            if(record.data) {
+                                result = result.concat(record.data);
+                            }
                         }
                     }
                 )
@@ -424,7 +426,6 @@ var dbPlayerFeedback = {
                     result.sort(function (a, b) {
                         console.log("result.sort", a);
                         console.log("result.sort", b);
-                        console.log("Object.keys(sortCol)[0] result.sort", a[Object.keys(sortCol)[0]]);
                         if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
                             return 1 * sortCol[Object.keys(sortCol)[0]];
                         } else {
