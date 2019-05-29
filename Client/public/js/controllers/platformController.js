@@ -25025,14 +25025,24 @@ define(['js/app'], function (myApp) {
                         let index = vm.rewardSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
                         if (index != -1){
                             vm.rewardSetting = _.clone(vm.rewardSettingData[index]);
-                            if( vm.rewardSetting && vm.rewardSetting.pc &&  vm.rewardSetting.pc.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.pc && vm.rewardSetting.pc.imageUrl) {
                                 $('#rewardPcImage').attr("src",vm.rewardSetting.pc.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.h5 &&  vm.rewardSetting.h5.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.h5 && vm.rewardSetting.h5.imageUrl) {
                                 $('#rewardH5Image').attr("src",vm.rewardSetting.h5.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.app &&  vm.rewardSetting.app.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.app && vm.rewardSetting.app.imageUrl) {
                                 $('#rewardAppImage').attr("src",vm.rewardSetting.app.imageUrl);
+                            }
+
+                            if (vm.rewardSetting && !vm.rewardSetting.pc){
+                                vm.rewardSetting.pc = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.h5){
+                                vm.rewardSetting.h5 = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.app){
+                                vm.rewardSetting.app = {};
                             }
                         }
                     }
@@ -25113,7 +25123,7 @@ define(['js/app'], function (myApp) {
                                 vm.rewardSetting.h5.activityUrl = vm.rewardImageUrl.rewardH5PageDetail
                             }
                             if (vm.rewardImageUrl.rewardAppImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
+                                vm.rewardSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
                             }
                             if (vm.rewardImageUrl.rewardAppNewPage){
                                 vm.rewardSetting.app.newPageUrl = vm.rewardImageUrl.rewardAppNewPage
@@ -40885,6 +40895,16 @@ define(['js/app'], function (myApp) {
                             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
                                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
                             }
+
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                                vm.popularRecommendationSetting.pc = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                                vm.popularRecommendationSetting.h5 = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                                vm.popularRecommendationSetting.app = {};
+                            }
                         }
                     }
                 }
@@ -41389,6 +41409,16 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
                                 $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                            }
+
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                                vm.popUpAdvertisementSetting.pc = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                                vm.popUpAdvertisementSetting.h5 = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                                vm.popUpAdvertisementSetting.app = {};
                             }
                         }
                     }

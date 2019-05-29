@@ -231,16 +231,15 @@ style.
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
 
                         .col-md-6
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}
-                                img#rewardPcImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#rewardPcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'H5 Image Preview' | translate}}
-                                img#rewardH5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#rewardH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'APP Image Preview' | translate}}
-                                img#rewardAppImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-
+                                img#rewardAppImage.frontendImagePreview(src="")
 
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardSettings()') {{"CONFIRM" | translate}}
@@ -398,15 +397,15 @@ style.
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}
-                                img#popUpAdvPcImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#popUpAdvPcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'H5 Image Preview' | translate}}
-                                img#popUpAdvH5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#popUpAdvH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'APP Image Preview' | translate}}
-                                img#popUpAdvAppImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+                                img#popUpAdvAppImage.frontendImagePreview(src="")
 
 
             .modal-footer
@@ -573,15 +572,15 @@ style.
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popularRecommendationSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}
-                                img#pcImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#pcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'H5 Image Preview' | translate}}
-                                img#H5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#H5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'APP Image Preview' | translate}}
-                                img#appImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+                                img#appImage.frontendImagePreview(src="")
 
 
             .modal-footer
@@ -623,15 +622,15 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input#rewardPointVoucherClarificationFile(type="file")
                         .col-md-6
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label VIP {{'Privilege File Preview (Resolution: 750*375)' | translate}}
-                                img#vipPrivilegeFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#vipPrivilegeFile.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'Reward Point Clarification Preview （Width: 750)' | translate}}
-                                img#clarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;")
+                                img#clarificationFile.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'Voucher Clarification Preview (Width: 750)' | translate}}
-                                img#voucherClarificationFile(src="", style="display: block; max-width: 200px; max-height: 360px; margin: auto;")
+                                img#voucherClarificationFile.frontendImagePreview(src="")
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardPointClarification()') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -793,15 +792,15 @@ style.
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;" ng-show="vm.newFrontEndCarousel.device==1")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}
-                                img#carouselPCImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;" ng-show="vm.newFrontEndCarousel.device==3")
+                                img#carouselPCImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'H5 Image Preview' | translate}}
-                                img#carouselH5Image(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
-                            .full-width-input-block(style="padding: 10px; border: 1px solid #aaa; text-align: center; max-height: 400px; min-height: 200px;" ng-show="vm.newFrontEndCarousel.device==2")
+                                img#carouselH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
                                 label {{'APP Image Preview' | translate}}
-                                img#carouselAPPImage(src="", style="display: block; max-width: 100%; max-height: 100%; margin: auto;")
+                                img#carouselAPPImage.frontendImagePreview(src="")
 
 
             .modal-footer
