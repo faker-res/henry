@@ -17481,6 +17481,31 @@ define(['js/app'], function (myApp) {
                                 }
                             });
 
+                            partner.childSummary = {
+                                grossCommission: 0
+                            };
+
+                            let numSum = {
+                                totalRewardFee: partner.totalRewardFee || 0,
+                                totalPlatformFee: partner.totalPlatformFee || 0,
+                                totalTopUpFee: partner.totalTopUpFee || 0,
+                                totalWithdrawalFee: partner.totalWithdrawalFee || 0,
+                                nettCommission: partner.nettCommission || 0,
+                            };
+
+                            if (partner.childComm && partner.childComm.length) {
+                                partner.childComm.forEach( childComm => {
+                                    partner.childSummary.grossCommission += childComm.grossCommission || 0;
+                                    numSum.totalRewardFee += childComm.totalRewardFee || 0;
+                                    numSum.totalPlatformFee += childComm.totalPlatformFee || 0;
+                                    numSum.totalTopUpFee += childComm.totalTopUpFee || 0;
+                                    numSum.totalWithdrawalFee += childComm.totalWithdrawalFee || 0;
+                                    numSum.nettCommission += childComm.nettCommission || 0;
+                                });
+                            }
+
+                            partner.numSum = numSum;
+
                             if (vm.realTimeCommissionQuery.partnerName && vm.selectedCommissionPeriod && vm.realTimeCommissionData.length == 1) {
                                 vm.showRealTimeCommissionSettlementButton = true;
                             }
@@ -17521,6 +17546,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
             for (var i in vm.partnerDLCommDetailTotal){
                 delete vm.partnerDLCommDetailTotal[i];
             }

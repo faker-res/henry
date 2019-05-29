@@ -1984,39 +1984,61 @@ define(['js/app'], function (myApp) {
             vm.configSubmitUpdate = function (choice) {
                 switch (choice) {
                     case 'definition':
-                        updateConversationDefinition(vm.conversationDefinition);
+                        batchUpdateConversationDefinition(vm.conversationDefinition);
                         break;
                     case 'setting':
-                        updateOvertimeSetting(vm.overtimeSetting);
+                        batchUpdateOvertimeSetting(vm.overtimeSetting);
                         break;
                 }
             };
 
 
-            function updateConversationDefinition(srcData) {
+            async function batchUpdateConversationDefinition(srcData) {
+                if (!vm.platformList || vm.platformList.length == 0) {
+                    vm.loadPlatformData({loadAll: false});
+                    return;
+                }
+                let promises = vm.platformList.map((item) => {
+                    return updateConversationDefinition(srcData, item.id);
+                })
+                await Promise.all(promises);
+                $scope.$evalAsync(() => {
+                    vm.loadPlatformData({loadAll: false});
+                })
+            }
+
+            function updateConversationDefinition(srcData, platformId) {
                 let sendData = {
-                    query: {_id: vm.selectedPlatform.id},
+                    query: {_id: platformId},
                     updateData: {
                         'conversationDefinition.totalSec': srcData.totalSec,
                         'conversationDefinition.askingSentence': srcData.askingSentence,
                         'conversationDefinition.replyingSentence': srcData.replyingSentence
                     }
                 };
-                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
-                    $scope.safeApply();
-                });
+                return $scope.$socketPromise('updatePlatform', sendData);
             }
 
-            function updateOvertimeSetting(srcData) {
+            async function batchUpdateOvertimeSetting(srcData) {
+                if (!vm.platformList || vm.platformList.length == 0){
+                    vm.loadPlatformData({loadAll: false});
+                    return;
+                }
+                let promises = vm.platformList.map((item) => {
+                    return updateOvertimeSetting(srcData, item.id);
+                })
+                await Promise.all(promises);
+                $scope.$evalAsync(()=>{
+                    vm.loadPlatformData({loadAll: false});
+                })
+            }
+
+            function updateOvertimeSetting(srcData, platformId) {
                 let sendData = {
-                    query: {_id: vm.selectedPlatform.id},
+                    query: {_id: platformId},
                     updateData: {overtimeSetting: srcData}
                 };
-                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                    vm.loadPlatformData({loadAll: false});
-                    $scope.safeApply();
-                });
+                return $scope.$socketPromise('updatePlatform', sendData);
             }
 
 

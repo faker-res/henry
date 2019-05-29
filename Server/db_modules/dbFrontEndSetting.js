@@ -53,37 +53,77 @@ var dbFrontEndSetting = {
         }
     },
 
-    saveAllRewardSettingData: (platformObjId, categoryObjId) => {
-        if (platformObjId && categoryObjId){
-            let updateProm = [];
-
-            let dataObj = {
-                platformObjId: ObjectId(platformObjId),
-                _id: ObjectId(categoryObjId)
-            };
-            if (dataObj) {
-                let updateQuery = {
-                    status: 2,
-                };
-                return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate(dataObj, updateQuery).lean().then(
-                    () => {
-                        return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
-                            rewardList => {
-                                if (rewardList && rewardList.length){
-                                    rewardList.forEach(
-                                        reward => {
-                                            if (reward && reward._id){
-                                                updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
-                                            }
-                                        }
-                                    )
-                                }
-                                return Promise.all(updateProm)
-                            }
-                        )
+    updateRewardSetting: (dataList, deletedList, deletedCategoryList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            categoryObjId: data.categoryObjId,
+                            isVisible: data.isVisible,
+                            displayOrder: data.displayOrder
+                        };
+                        prom.push(getAndUpdateRewardSetting (ObjectId(data._id), updateQuery))
                     }
-                )
-            }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateRewardSetting (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        if (deletedCategoryList && deletedCategoryList.length){
+            deletedCategoryList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateRewardCategory (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdateRewardSetting (eventObjectId, updateQuery) {
+            return dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
+
+        function getAndUpdateRewardCategory (eventObjectId, updateQuery) {
+            let updateProm = [];
+            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean().then(
+                () => {
+                    return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
+                        rewardList => {
+                            if (rewardList && rewardList.length){
+                                rewardList.forEach(
+                                    reward => {
+                                        if (reward && reward._id){
+                                            updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                                        }
+                                    }
+                                )
+                            }
+                            return Promise.all(updateProm)
+                        }
+                    )
+                }
+            )
         }
     },
 
