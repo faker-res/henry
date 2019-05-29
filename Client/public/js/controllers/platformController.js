@@ -24883,33 +24883,29 @@ define(['js/app'], function (myApp) {
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
-<<<<<<< HEAD
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
                             vm.clearAllDropArea();
-                            vm.frontEndPopularRecommendationData = data.data;
-                            vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
-                            vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
-                            vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
-                        }
-                    })
-
-                    // $scope.safeApply();
-=======
-                    console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    $scope.$evalAsync( () => {
-                        if (data && data.data) {
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
-                            utilService.actionAfterLoaded('#testSave', function () {
-                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
-                                    item.parentElement.removeChild(item)
-                                });
-                            })
+                            // vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
+                            // vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
+                            // vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
                         }
                     })
->>>>>>> upstream/develop-1.1
+                    // console.log('getFrontEndPopularRecommendationSetting', data.data);
+                    // $scope.$evalAsync( () => {
+                    //     if (data && data.data) {
+                    //         vm.frontEndDeletedList = [];
+                    //         vm.frontEndPopularRecommendationData = data.data;
+                    //         utilService.actionAfterLoaded('#testSave', function () {
+                    //             document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
+                    //                 item.parentElement.removeChild(item)
+                    //             });
+                    //         })
+                    //     }
+                    // })
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
