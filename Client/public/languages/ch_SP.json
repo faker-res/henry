@@ -5239,6 +5239,8 @@
   "RemoveCtiUrl": "删除CTI线路",
   "Fail on sending message,Because The phone number is not in the right format": "电话格式错误。请检查电话格式是否正确 或 电话头三个号码是否为可播电号码（可跟OM Bubble确认）",
   "Fail to get CTI data twice, click search to try again": "连续两次获取CTI数据失败，点击搜索以再度尝试",
+  "COMMISSION_CONTRIBUTED": "佣金贡献",
+  "MULTI_LAYER_PARTNER_COMMISSION_TOTAL": "多级代理佣金总计",
 
   "WinnerMonitor": "盈利监控",
   "winnerMonitor": "盈利监控",

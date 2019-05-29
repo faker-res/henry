@@ -55,11 +55,11 @@ table.simple-table#realTimeComissionTable
             td
                 a(ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[0]; vm.partnerCommVar.selectTab=0; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')" data-toggle="modal" data-target='#modalCommDetail') {{v.grossCommission | number : 2}}
             td
-                a(ng-click="vm.curCommCalc = v") {{v.childSummary.grossCommission | number : 2}}
+                a(ng-click="vm.partnerCommVar.partner=i;" data-toggle="modal", data-target='#modalChildComm') {{v.childSummary.grossCommission | number : 2}}
             td
                 a(data-toggle="modal", data-target='#modalRewardFeeTablea', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{v.numSum.totalRewardFee | number : 2}}
             td
-                a(data-toggle="modal", data-target='#modalCommDetail', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[vm.partnerCommVar.platformFeeTab]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.numSum.totalPlatformFee | number : 2}}
+                a(data-toggle="modal", data-target='#modalCommDetail', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[0]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.numSum.totalPlatformFee | number : 2}}
             td
                 a(data-toggle="modal", data-target='#modalTopUpFeeTablea', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.numSum.totalTopUpFee | number : 2}}
             td
@@ -87,7 +87,7 @@ div
                 .panel-primary(style='margin-top:20px')
                     .panel-heading.common-left-panel-heading
                         ul.nav.nav-tabs.common-nav-tabs
-                            li(ng-click="vm.partnerCommVar.selectTab = $index", ng-class="{'active': $index == vm.partnerCommVar.selectTab}", ng-repeat="grp in vm.curCommCalc.rawCommissions")
+                            li(ng-click="vm.partnerCommVar.selectTab = $index", ng-class="{'active': $index == vm.partnerCommVar.selectTab}", ng-repeat="grp in vm.realTimeCommissionData[vm.partnerCommVar.partner].rawCommissions")
                                 a.common-tab(data-toggle="tab", href="#", ng-click="vm.partnerCommVar.group = grp")
                                     text.span {{grp.groupName | translate}}
 
@@ -119,6 +119,30 @@ div
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee | noRoundTwoDecimalToFix}}
                                     text.span {{'/'}}
                                     text.span(ng-style='vm.realTimeCommissionData[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.realTimeCommissionData[vm.partnerCommVar.partner].totalPlatformFee | noRoundTwoDecimalToFix}}
+
+#modalChildComm.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog.widthto100
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.realTimeCommissionData[vm.partnerCommVar.partner].childComm.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'Child Partner' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'COMMISSION_CONTRIBUTED' | translate}}
+                        tbody
+                            tr(ng-if="vm.realTimeCommissionData[vm.partnerCommVar.partner].childComm.length > 0", ng-repeat="v in vm.realTimeCommissionData[vm.partnerCommVar.partner].childComm")
+                                td {{v.parentName}}
+                                td {{v.parentRealName}}
+                                td(title="{{v}}") {{v.grossCommission | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{'MULTI_LAYER_PARTNER_COMMISSION_TOTAL' | translate}}
+                                td {{vm.realTimeCommissionData[vm.partnerCommVar.partner].childSummary.grossCommission | noRoundTwoDecimalToFix}}
+
 
 #modalRewardFeeTablea.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog.widthto100

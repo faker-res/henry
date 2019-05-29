@@ -86,7 +86,7 @@ div
                         text#timeLeftRefreshOperation {{vm.paymentTotalRefreshTime }}
                         text s
             label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.paymentMonitorTotalQuery.querySearchTime}} {{"Seconds" | translate}}
-            table#paymentMonitorTotalTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            table#paymentMonitorTotalTable.common-table.display(style="width:100% ;table-layout:fixed;overflow: scroll")
             #paymentMonitorTotalTablePage
         br
         br
