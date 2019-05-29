@@ -873,6 +873,7 @@ define(['js/app'], function (myApp) {
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
             vm.getCredibilityRemarks();
+            vm.getAllCredibilityRemarks();
             vm.partnerAdvanceSearchQuery = {
                 creditsOperator: ">=",
                 dailyActivePlayerOperator: ">=",
@@ -5168,16 +5169,16 @@ define(['js/app'], function (myApp) {
                             let output = initOutput;
                             let remarkMatches = false;
                             data.map(function (remarkId) {
-                                for (let i = 0; i < vm.credibilityRemarks.length; i++) {
-                                    if (vm.credibilityRemarks[i]._id === remarkId) {
+                                for (let i = 0; i < vm.allCredibilityRemarks.length; i++) {
+                                    if (vm.allCredibilityRemarks[i]._id === remarkId) {
                                         if (output && output !== initOutput) {
                                             output += "<br>";
                                         }
-                                        output += vm.credibilityRemarks[i].name;
+                                        output += vm.allCredibilityRemarks[i].name;
                                         remarkMatches = true;
                                     }
 
-                                    if (vm.credibilityRemarks[i]._id === remarkId && vm.credibilityRemarks[i].name === '黑名单IP' && vm.credibilityRemarks[i].isFixed === true) {
+                                    if (vm.allCredibilityRemarks[i]._id === remarkId && vm.allCredibilityRemarks[i].name === '黑名单IP' && vm.allCredibilityRemarks[i].isFixed === true) {
                                         output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
                                         output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
                                         output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
@@ -20442,6 +20443,39 @@ define(['js/app'], function (myApp) {
                     reject(err);
                 });
             });
+        };
+
+        vm.getAllCredibilityRemarks = () => {
+            return new Promise((resolve, reject) => {
+                socketService.$socket($scope.AppSocket, 'getAllCredibilityRemarks', {}, function (data) {
+                    console.log('all credibilityRemarks', data);
+                    vm.allCredibilityRemarks = data.data;
+                    vm.getPlatformCredibilityRemarks();
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
+            });
+        };
+
+        vm.getPlatformCredibilityRemarks = (platformList) => {
+            if (vm.allCredibilityRemarks) {
+                vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
+                if (platformList && platformList.length) {
+                    vm.platformCredibilityRemarks = vm.allCredibilityRemarks.filter(remark => { return platformList.includes(remark.platform) });
+                }
+                vm.platformCredibilityRemarks.map(remark => {
+                    if (vm.allPlatformData && vm.allPlatformData.length) {
+                        vm.allPlatformData.forEach(platform => {
+                            if (remark && remark.platform && platform && platform._id && platform.name) {
+                                if (remark.platform.toString() === platform._id.toString()) {
+                                    remark.platformName = platform.name;
+                                }
+                            }
+                        })
+                    }
+                });
+            }
         };
 
         vm.getPlatformProviderGroup = () => {

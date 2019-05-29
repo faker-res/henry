@@ -6741,7 +6741,7 @@ let dbPartner = {
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
                 commissionRateTables.map(groupRate => {
-                    let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
+                    let totalConsumption = Number(commissionType) === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 

@@ -9,7 +9,7 @@
     .col-md-12.search-filters-container#playerTable-search-filter.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.selectLevelOnProductChange()', multiple, bsp, data-actions-box='true')
+            select#productName.form-control(ng-model='vm.playerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.selectLevelOnProductChange();vm.getPlatformCredibilityRemarks(vm.playerAdvanceSearchQuery.platformList);', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
@@ -69,7 +69,8 @@
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.loginIps', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filters-item
             label {{'CREDIBILITY_REMARK' | translate}}
-            select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+            //select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks', ng-options='remark._id as remark.name | translate group by remark.platformName for remark in vm.platformCredibilityRemarks', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)' multiple, bsp, data-actions-box='true')
         .search-filters-threeBoxes
             label.control-label {{'LOCAL_AMOUNT' | translate}}
             div

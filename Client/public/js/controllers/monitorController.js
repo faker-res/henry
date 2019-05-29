@@ -49,6 +49,7 @@ define(['js/app'], function (myApp) {
             vm.hideLeftPanel = isSet;
             $cookies.put("reportShowLeft", vm.hideLeftPanel);
             $scope.resetTableSize('#monitorRightTable','#paymentMonitorTable');
+            $scope.resetTableSize('#monitorRightTable','#paymentMonitorTotalTable');
         };
 
         vm.selectStoredPlatform = function () {
