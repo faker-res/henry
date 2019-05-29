@@ -20120,7 +20120,7 @@ let dbPlayerInfo = {
 
                         if (data && data.length) {
                             data = data.filter(result => {
-                                return result !== "" && result !== null;
+                                return result !== "";
                             });
 
 
@@ -20134,7 +20134,9 @@ let dbPlayerInfo = {
                                         }
                                     }
                                     else {
-                                        retArr.push(e);
+                                        if(e) {
+                                            retArr.push(e);
+                                        }
                                     }
                                 }
                             );
