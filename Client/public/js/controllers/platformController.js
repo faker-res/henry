@@ -24909,6 +24909,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
+                            $('#' + categoryObjId).remove();
                         })
                     }
                 }
@@ -24921,6 +24922,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.rewardSettingData.splice(index, 1);
+                            $('#' + id).remove();
                         })
                     }
                 }
@@ -24946,6 +24948,7 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.newRewardCategory = null;
                             }
                         })
                     }, function (err) {

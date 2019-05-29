@@ -62,7 +62,7 @@ var dbFrontEndSetting = {
                         let updateQuery = {
                             categoryObjId: data.categoryObjId,
                             isVisible: data.isVisible,
-                            displayOrder: data.displayOrder
+                            displayOrder: data.displayOrder || 1,
                         };
                         prom.push(getAndUpdateRewardSetting (ObjectId(data._id), updateQuery))
                     }
@@ -107,21 +107,25 @@ var dbFrontEndSetting = {
         function getAndUpdateRewardCategory (eventObjectId, updateQuery) {
             let updateProm = [];
             return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean().then(
-                () => {
-                    return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
-                        rewardList => {
-                            if (rewardList && rewardList.length){
-                                rewardList.forEach(
-                                    reward => {
-                                        if (reward && reward._id){
-                                            updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                category => {
+                    if (category && category._id && category.platformObjId){
+                        let platformObjId = category.platformObjId;
+                        let categoryObjId =  category._id;
+                        return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
+                            rewardList => {
+                                if (rewardList && rewardList.length){
+                                    rewardList.forEach(
+                                        reward => {
+                                            if (reward && reward._id){
+                                                updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
+                                return Promise.all(updateProm)
                             }
-                            return Promise.all(updateProm)
-                        }
-                    )
+                        )
+                    }
                 }
             )
         }
