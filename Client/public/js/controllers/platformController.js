@@ -26754,13 +26754,13 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeTypeB = [];
 
                         vm.promoCodeTypes.forEach(entry => {
-                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
+                            if (entry.type == 1 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType1.push(entry);
                                 vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 2 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType2.push(entry);
                                 vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 3 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
