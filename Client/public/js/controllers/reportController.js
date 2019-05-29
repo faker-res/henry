@@ -8261,10 +8261,10 @@ define(['js/app'], function (myApp) {
             vm.rewardReportAmountAvg = {};
 
             let proposalNames
-            if (vm.rewardReportAnalysis.type == "rewardName") {
-                proposalNames = $('select#selectRewardAnalysisType').multipleSelect("getSelects");
+            if (vm.rewardReportAnalysis.type === "rewardName") {
+                proposalNames = vm.rewardReportAnalysis.promoName;
             } else {
-                proposalNames = $('select#selectRewardProposalType').multipleSelect("getSelects");
+                proposalNames = vm.rewardReportAnalysis.proposalTypeName;
             }
 
 
@@ -8273,7 +8273,8 @@ define(['js/app'], function (myApp) {
                 period: vm.rewardReportAnalysis.periodText,
                 startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.rewardReportAnalysis.platformList,
                 type: vm.rewardReportAnalysis.type,
                 proposalNameArr: proposalNames
             }
@@ -10392,14 +10393,17 @@ define(['js/app'], function (myApp) {
                     vm.rewardReportAnalysis = {periodText: "day"};
                     vm.reportSearchTime = 0;
 
-                    vm.allRewardProposalType = [];
-                    if (vm.allProposalType && vm.allProposalType.length) {
-                        vm.allProposalType.forEach(item => {
-                            if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
-                                vm.allRewardProposalType.push(item);
-                            }
-                        })
-                    }
+                    // vm.allRewardProposalType = [];
+                    // if (vm.allProposalType && vm.allProposalType.length) {
+                    //     vm.allProposalType.forEach(item => {
+                    //         if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
+                    //             vm.allRewardProposalType.push(item);
+                    //         }
+                    //     })
+                    // }
+
+                    vm.getAllProposalTypeByPlatform();
+
                     utilService.actionAfterLoaded(('#rewardReportAnalysis'), function () {
                         $('select#selectRewardProposalType').multipleSelect({
                             allSelected: $translate("All Selected"),
@@ -11383,6 +11387,61 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         }
         //#endregion
+
+        //#region All Reward Report
+        vm.getRewardFilterItemChanged = function(choice) {
+            vm.allRewardList = [];
+            if (choice === 'rewardName') {
+                let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: {platform: {$in: vm.rewardReportAnalysis.platformList}}} : {platform: null};
+
+                socketService.$socket($scope.AppSocket, 'getRewardByPlatform', query, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allRewardList = data.data;
+                        console.log('vm.allRewardList', vm.allRewardList);
+
+                        vm.rewardReportAnalysis.promoName = [];
+
+                        vm.allRewardList.forEach(item => {
+                            if (item && item.name) {
+                                vm.rewardReportAnalysis.promoName.push(item.name);
+                            }
+                        })
+                    });
+                });
+                delete vm.rewardReportAnalysis.proposalTypeName
+            } else {
+                delete vm.rewardReportAnalysis.promoName;
+                vm.getAllProposalTypeByPlatform();
+            }
+        };
+
+        vm.getAllProposalTypeByPlatform = function () {
+            vm.allProposalTypeList = [];
+            vm.allRewardProposalTypeList = [];
+
+            let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: vm.rewardReportAnalysis.platformList} : {platform: null};
+
+            socketService.$socket($scope.AppSocket, 'getAllProposalTypeByPlatform', query, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.allProposalTypeList = data.data;
+
+                    if (vm.allProposalTypeList && vm.allProposalTypeList.length) {
+                        vm.allProposalTypeList.forEach(item => {
+                            if (vm.getProposalTypeOptionValue(item, false) === "Reward Proposal") {
+                                let index = vm.allRewardProposalTypeList.findIndex(x => x === item.name);
+
+                                if (index === -1) {
+                                    vm.allRewardProposalTypeList.push(item.name);
+                                }
+                            }
+                        })
+
+                        vm.rewardReportAnalysis.proposalTypeName = vm.allRewardProposalTypeList;
+                    }
+                });
+            });
+        };
+        //endregion
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

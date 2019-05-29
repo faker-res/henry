@@ -1744,7 +1744,7 @@
                     .col-md-12.well
                         .search-filters-item
                             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                            select.form-control.spicker(ng-model='vm.rewardReportAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                            select.form-control.spicker(ng-model='vm.rewardReportAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true' ng-change='vm.getRewardFilterItemChanged(vm.rewardReportAnalysis.type)')
                         .threeBoxes
                             label {{'PERIOD' | translate}}
                             select.form-control(ng-model='vm.rewardReportAnalysis.periodText')
@@ -1759,15 +1759,15 @@
                             .endTime
                         .search-filters-item
                             label {{'ITEM_FILTER' | translate}}
-                            select.form-control(ng-init='vm.rewardReportAnalysis.type="rewardType"' ng-model='vm.rewardReportAnalysis.type')
+                            select.form-control(ng-init='vm.rewardReportAnalysis.type="rewardType"' ng-model='vm.rewardReportAnalysis.type' ng-change='vm.getRewardFilterItemChanged(vm.rewardReportAnalysis.type)')
                                 option(value='rewardType') {{"PROPOSAL_TYPE"|translate}}
                                 option(value='rewardName') {{"CUSTOM_REWARD"|translate}}
                         .search-filters-item(ng-hide='vm.rewardReportAnalysis.type != "rewardType"')
                             label {{'Proposal Type'|translate}}
-                            select.form-control#selectRewardProposalType(multiple="multiple", ng-options='i._id as i.name | translate for (k,i) in ( vm.allRewardProposalType | unique: "name" ) track by i.name', ng-model='abc')
+                            select.form-control(ng-model='vm.rewardReportAnalysis.proposalTypeName', ng-options='type as type | translate for type in vm.allRewardProposalTypeList', multiple, bsp, data-actions-box='true')
                         .search-filters-item(ng-hide='vm.rewardReportAnalysis.type != "rewardName"')
                             label {{"CUSTOMIZED_PROMO_NAME"|translate}}
-                            select.form-control#selectRewardAnalysisType(multiple="multiple", ng-options='i._id as i.name for (k,i) in ( vm.rewardList | unique: "name" ) track by i.name', ng-model='bbc')
+                            select.form-control(ng-model='vm.rewardReportAnalysis.promoName', ng-options='reward.name as reward.name group by reward.platform.name for reward in vm.allRewardList', multiple, bsp, data-actions-box='true')
                         .text-right.widthto100
                             button.btn.btn-primary(ng-click='vm.drawRewardReportAnalysis();') {{'SEARCH' | translate}}
                     .row
@@ -1779,24 +1779,25 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
-                                    thead
-                                        tr
-                                            th(ng-click="vm.dataArraySort('rewardReportPlayer', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
-                                            th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
+                                div(style='width:100%;overflow-x:auto;height:100%;overflow-y:auto')
+                                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100(style="width:100%;")
+                                        thead
+                                            tr
+                                                th(ng-click="vm.dataArraySort('rewardReportPlayer', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
+                                                th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
 
-                                    tbody
-                                        tr
-                                            td
-                                                span {{ "average value" | translate }}
-                                            td(ng-repeat='(i, v) in vm.rewardReportPlayerAvg track by $index')
-                                                span {{ v }}
+                                        tbody
+                                            tr
+                                                td
+                                                    span {{ "average value" | translate }}
+                                                td(ng-repeat='(i, v) in vm.rewardReportPlayerAvg track by $index')
+                                                    span {{ v }}
 
-                                        tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportPlayer')
-                                            td
-                                                span {{ v.date | date:"yyyy-MM-dd" }}
-                                            td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
-                                                span {{ item.player }}
+                                            tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportPlayer')
+                                                td
+                                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                                td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
+                                                    span {{ item.player }}
 
                     .row
                         .col-md-6
@@ -1807,24 +1808,25 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
-                                    thead
-                                        tr
-                                            th(ng-click="vm.dataArraySort('rewardReportProposal', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
-                                            th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
+                                div(style='width:100%;overflow-x:auto;height:100%;overflow-y:auto')
+                                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100(style="width:100%;")
+                                        thead
+                                            tr
+                                                th(ng-click="vm.dataArraySort('rewardReportProposal', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
+                                                th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
 
-                                    tbody
-                                        tr
-                                            td
-                                                span {{ "average value" | translate }}
-                                            td(ng-repeat='(i, v) in vm.rewardReportProposalAvg track by $index')
-                                                span {{ v }}
+                                        tbody
+                                            tr
+                                                td
+                                                    span {{ "average value" | translate }}
+                                                td(ng-repeat='(i, v) in vm.rewardReportProposalAvg track by $index')
+                                                    span {{ v }}
 
-                                        tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportProposal')
-                                            td
-                                                span {{ v.date | date:"yyyy-MM-dd" }}
-                                            td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
-                                                span {{ item.proposalCount }}
+                                            tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportProposal')
+                                                td
+                                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                                td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
+                                                    span {{ item.proposalCount }}
 
                     .row
                         .col-md-6
@@ -1835,24 +1837,25 @@
                         .col-md-6
                             label &nbsp;
                             .graph
-                                table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100
-                                    thead
-                                        tr
-                                            th(ng-click="vm.dataArraySort('rewardReportAmount', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
-                                            th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
+                                div(style='width:100%;overflow-x:auto;height:100%;overflow-y:auto')
+                                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center.widthto100(style="width:100%;")
+                                        thead
+                                            tr
+                                                th(ng-click="vm.dataArraySort('rewardReportAmount', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
+                                                th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
 
-                                    tbody
-                                        tr
-                                            td
-                                                span {{ "average value" | translate }}
-                                            td(ng-repeat='(i, v) in vm.rewardReportAmountAvg track by $index')
-                                                span {{ v | noRoundTwoDecimalPlaces}}
+                                        tbody
+                                            tr
+                                                td
+                                                    span {{ "average value" | translate }}
+                                                td(ng-repeat='(i, v) in vm.rewardReportAmountAvg track by $index')
+                                                    span {{ v | noRoundTwoDecimalPlaces}}
 
-                                        tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportAmount')
-                                            td
-                                                span {{ v.date | date:"yyyy-MM-dd" }}
-                                            td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
-                                                span {{ item.amount | noRoundTwoDecimalPlaces}}
+                                            tr(ng-repeat='(i, v) in vm.rewardReportAnalysisData | orderBy: vm.dataSort.rewardReportAmount')
+                                                td
+                                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                                td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
+                                                    span {{ item.amount | noRoundTwoDecimalPlaces}}
 
 
         //MISCELLANEOUS_REPORT
