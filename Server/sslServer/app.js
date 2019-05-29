@@ -237,6 +237,8 @@ http.createServer(function (req, res) {
         }
     } else if (req.method === 'OPTIONS') {
         res.end();
+    } else if (req.method === 'HEAD') {
+        res.end('ok');
     }
 
     function redirectToLoginPage() {
