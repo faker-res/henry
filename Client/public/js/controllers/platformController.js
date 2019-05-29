@@ -24897,7 +24897,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardSetting = function () {
-                return new Promise((resolve, reject) =>{
                     let arr = {};
                     let updateSetting = [];
 
@@ -24917,9 +24916,8 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     console.log("arr", arr);
-
-                    socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
-                        function (data) {
+                    return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
+                        (data) =>{
                             $scope.$evalAsync( () => {
 
                                 console.log('updateRewardSetting is done', data);
@@ -24930,8 +24928,6 @@ define(['js/app'], function (myApp) {
                         }, function (err) {
                             console.log('err', err);
                         });
-
-                })
 
             };
 
@@ -25040,6 +25036,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
+                // we will save the collection changer before create another new item.
                 await vm.updateRewardSetting();
                 let promArr = [
                     "rewardPcImage",
@@ -40963,6 +40960,7 @@ define(['js/app'], function (myApp) {
                     "appNewPage",
                     "appPageDetail",
                 ];
+                // we will save the collection changer before create another new item.
                 await vm.updatePopularRecommendationSetting();
                 let prom = Promise.resolve();
                 promArr.forEach(
@@ -41051,72 +41049,63 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePopularRecommendationSetting = function () {
-                return new Promise((resolve, reject) => {
 
-                    let arr1 = $('.droppable-area1').sortable('toArray');
-                    let arr2 = $('.droppable-area2').sortable('toArray');
-                    let arr3 = $('.droppable-area3').sortable('toArray');
-                    let updateFrontEndPopularRecommendationData = [];
-                    arr1.forEach (
-                        (v, i) => {
-                            if (v){
-                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                if (index != -1){
-                                    // vm.frontEndPopularRecommendationData[index].category = 1;
-                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                    selectedPopularRecommendation.category = 1;
-                                    selectedPopularRecommendation.displayOrder = i + 1;
-                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
-                                }
+                let arr1 = $('.droppable-area1').sortable('toArray');
+                let arr2 = $('.droppable-area2').sortable('toArray');
+                let arr3 = $('.droppable-area3').sortable('toArray');
+                let updateFrontEndPopularRecommendationData = [];
+                arr1.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 1;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
-                    );
+                    }
+                );
 
-                    arr2.forEach (
-                        (v, i) => {
-                            if (v){
-                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                if (index != -1){
-                                    // vm.frontEndPopularRecommendationData[index].category = 2;
-                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-
-                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                    selectedPopularRecommendation.category = 2;
-                                    selectedPopularRecommendation.displayOrder = i + 1;
-                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
-                                }
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 2;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
-                    );
+                    }
+                );
 
-                    arr3.forEach (
-                        (v, i) => {
-                            if (v){
-                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                if (index != -1){
-                                    // vm.frontEndPopularRecommendationData[index].category = 3;
-                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                    selectedPopularRecommendation.category = 3;
-                                    selectedPopularRecommendation.displayOrder = i + 1;
-                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
-                                }
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 3;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
-                    );
+                    }
+                );
+                return $scope.$socketPromise('updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList}).then(
+                    (data) => {
+                        $scope.$evalAsync( () => {
+                            console.log('updatePopularRecommendationSetting is done', data);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            resolve();
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
 
-                    socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
-                        function (data) {
-                            $scope.$evalAsync( () => {
-                                console.log('updatePopularRecommendationSetting is done', data);
-                                vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
-                                resolve();
-                            })
-                        }, function (err) {
-                            console.log('err', err);
-                        });
-                })
             };
             vm.clearAllDropArea = function () {
                 $('.droppable-area1').children().remove();
@@ -41139,7 +41128,6 @@ define(['js/app'], function (myApp) {
             vm.deleteFrontEndSettingWay2 = function (eventObjectId) {
                 vm.frontEndDeletedList.push(eventObjectId);
                 $('#' + eventObjectId).remove();
-                // $('#'+eventObjectId).parents('.draggable-item').eq(0).remove();
             }
 
             vm.addNewRewardPointClarification = function (isNew, eventObjId) {
