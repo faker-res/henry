@@ -1813,5 +1813,6 @@
   "SAVE_SETTING": "SAVE",
   "carouselConfiguration": "Carousel Configuration",
   "CAROUSEL_CONFIGURATION": "Carousel Configuration",
-  "CAROUSEL_CONFIGURATION_NOTE": "Note: only allow to add, delete, move, double click to edit"
+  "CAROUSEL_CONFIGURATION_NOTE": "Note: only allow to add, delete, move, double click to edit",
+  "OtherRewardReport": "Other Reward Report"
 }

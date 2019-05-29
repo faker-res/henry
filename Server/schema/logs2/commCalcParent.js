@@ -9,13 +9,22 @@ let commCalcParentSchema = new Schema({
     parentObjId: {type: Schema.ObjectId, ref: 'partner'},
     // parent name
     parentName: {type: String},
+    // current partner object id
+    partnerObjId: {type: Schema.ObjectId, ref: 'partner'},
+    // current partner name
+    partnerName: {type: String},
     // gross commission
     grossCommission: {type: Number},
     // nett commission
     nettCommission: {type: Number},
+    // raw commissions detail
+    rawCommissions: [],
+    // commCalc startTime to determine which batch it is
+    startTime: {type: Date},
 
 });
 
 module.exports = commCalcParentSchema;
 
-commCalcParentSchema.index({commCalc: 1, parentObjId: 1});
+commCalcParentSchema.index({parentObjId:1, startTime: 1});
+commCalcParentSchema.index({parentObjId:1, partnerObjId:1, startTime: 1});

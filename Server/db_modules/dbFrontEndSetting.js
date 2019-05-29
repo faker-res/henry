@@ -23,6 +23,128 @@ var dbFrontEndSetting = {
         }
     },
 
+    saveFrontEndRewardSetting: (data) => {
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndRewardSetting(data);
+                return record.save();
+            }
+        }
+    },
+
+    saveFrontEndRewardCategory: (platformObjId, categoryName) => {
+        if (platformObjId && categoryName){
+            let dataObj ={
+                platformObjId: ObjectId(platformObjId),
+                categoryName: categoryName
+            }
+            let record = new dbConfig.collection_frontEndRewardCategory(dataObj);
+            return record.save();
+        }
+    },
+
+    updateRewardSetting: (dataList, deletedList, deletedCategoryList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            categoryObjId: data.categoryObjId,
+                            isVisible: data.isVisible,
+                            displayOrder: data.displayOrder
+                        };
+                        prom.push(getAndUpdateRewardSetting (ObjectId(data._id), updateQuery))
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateRewardSetting (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        if (deletedCategoryList && deletedCategoryList.length){
+            deletedCategoryList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateRewardCategory (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdateRewardSetting (eventObjectId, updateQuery) {
+            return dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
+
+        function getAndUpdateRewardCategory (eventObjectId, updateQuery) {
+            let updateProm = [];
+            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean().then(
+                () => {
+                    return dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
+                        rewardList => {
+                            if (rewardList && rewardList.length){
+                                rewardList.forEach(
+                                    reward => {
+                                        if (reward && reward._id){
+                                            updateProm.push(dbConfig.collection_frontEndRewardSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                                        }
+                                    }
+                                )
+                            }
+                            return Promise.all(updateProm)
+                        }
+                    )
+                }
+            )
+        }
+    },
+
+    getFrontEndRewardSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRewardSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
+    getFrontEndRewardCategory: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+        }
+
+        return prom;
+    },
+
     updatePopUpAdvertisementSetting: (dataList, deletedList) => {
         let prom = [];
         if (dataList && dataList.length){

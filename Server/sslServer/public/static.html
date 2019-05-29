@@ -130,7 +130,7 @@
     function updateFPMS() {
         let serv = webEnv[0];
         let url = 'restartFPMS';
-        let ajaxUrl = 'http://' + serv.nodeUrl;
+        let ajaxUrl = serv.nodeUrl;
 
         if (serv.nodePort) {
             ajaxUrl += ':' + serv.nodePort + '/' + url;

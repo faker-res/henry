@@ -24587,6 +24587,7 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeNewRow(vm.newPromoCode3, 3);
                         break;
                     case 'history':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeQuery = {sortCol: {createTime: -1}};
 
                         utilService.actionAfterLoaded('#promoCodeQuery', function () {
@@ -24619,6 +24620,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitorTypeB':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeTypeBMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeTypeBMonitorQuery', function () {
@@ -24639,6 +24641,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitor':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeMonitorQuery', function () {
@@ -24697,6 +24700,7 @@ define(['js/app'], function (myApp) {
                         vm.newUserBlockPromoCodeUserGroup = {};
                         break;
                     case 'promoCodeAnalysis':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeAnalysis = {};
                         vm.promoCodeAnalysis2 = {};
 
@@ -24740,6 +24744,9 @@ define(['js/app'], function (myApp) {
 
             vm.frontEndSettingPlatform = function () {
                 vm.frontEndDeletedList = [];
+                vm.rewardCategoryDeletedList = [];
+                vm.rewardDeletedList = [];
+
                 switch (vm.selectedFrontEndSettingTab) {
                     case 'rewardPointClarification':
                         vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
@@ -24767,6 +24774,10 @@ define(['js/app'], function (myApp) {
                     case 'skinManagement':
                         vm.skinSettingShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        break;
+                    case 'rewardSetting':
+                        vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                        vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                         break;
                 }
             };
@@ -24800,9 +24811,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardSetting':
                         vm.filterFrontEndSettingPlatform = null;
-                        vm.newRewardtSetting = {};
-                        vm.rewardSettingData = [];
-
                         break;
                 }
             };
@@ -24875,6 +24883,7 @@ define(['js/app'], function (myApp) {
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+<<<<<<< HEAD
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
@@ -24887,17 +24896,310 @@ define(['js/app'], function (myApp) {
                     })
 
                     // $scope.safeApply();
+=======
+                    console.log('getFrontEndPopularRecommendationSetting', data.data);
+                    $scope.$evalAsync( () => {
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.frontEndPopularRecommendationData = data.data;
+                            utilService.actionAfterLoaded('#testSave', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
+                                    item.parentElement.removeChild(item)
+                                });
+                            })
+                        }
+                    })
+>>>>>>> upstream/develop-1.1
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
             };
 
-            vm.addRewardCategory = function () {
-                vm.rewardSettingData.push({categoryName: vm.newRewardSetting});
-                console.log('vm.eventSettingData', vm.rewardSettingData);
-            }
+            vm.addRewardCategory = function (categoryName) {
+                if (categoryName && vm.filterFrontEndSettingPlatform){
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('saveFrontEndRewardCategory', data.data);
+                            if (data && data.data) {
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            }
+                        })
+                    }, function (err) {
+                        console.error('saveFrontEndRewardCategory error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.deleteRewardCategory = function (categoryObjId) {
+                if (categoryObjId){
+                    vm.rewardCategoryDeletedList.push(categoryObjId);
+                    let index =vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.frontEndRewardCategory.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.deleteRewardSetting = function (id) {
+                if (id){
+                    vm.rewardDeletedList.push(id);
+                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
+                    if (index != -1){
+                        $scope.$evalAsync( () => {
+                            vm.rewardSettingData.splice(index, 1);
+                        })
+                    }
+                }
+            };
+
+            vm.updateRewardSetting = function () {
+                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateRewardSetting is done', data);
+                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            };
+
+            vm.loadRewardCategory =  function (platformObjId) {
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getFrontEndRewardCategory', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getFrontEndRewardCategory', data.data);
+                            if (data && data.data) {
+                                vm.frontEndRewardCategory = data.data;
+                            }
+                        })
+                    }, function (err) {
+                        console.error('getFrontEndRewardCategory error: ', err);
+                    }, true);
+
+                    // utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
+                    //     $(".rewardDroppableArea").sortable({
+                    //         connectWith: ".rewardDroppableArea",
+                    //     })
+                    // });
+
+                    setTimeout (() => {
+                        $(".rewardDroppableArea").sortable({
+                            connectWith: ".rewardDroppableArea",
+                            stop: function () {
+                                let arr = {};
+                                vm.frontEndRewardCategory.forEach(cato => {
+                                    arr[cato._id] = $('#'+cato._id).sortable('toArray');
+                                    arr[cato._id].forEach((v, i) => {
+                                        if (v){
+                                            let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.rewardSettingData[index].categoryObjId = cato._id;
+                                                vm.rewardSettingData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    });
+                                });
+                                console.log("arr", arr);
+                            }
+                        })
+                    },4000);
+                }
+            };
+
+            vm.loadRewardSetting = function (platformObjId) {
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getFrontEndRewardSetting', data.data);
+                            if (data && data.data) {
+                                vm.rewardSettingData = data.data;
+                            }
+                        })
+                    }, function (err) {
+                        console.error('getFrontEndRewardSetting error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.addNewRewardSetting = function (isNew, eventObjId) {
+                //reset
+                document.querySelector('#rewardPcImageFile').value = "";
+                document.querySelector('#rewardPcNewPageFile').value = "";
+                document.querySelector('#rewardPcPageDetailFile').value = "";
+                document.querySelector('#rewardH5ImageFile').value = "";
+                document.querySelector('#rewardH5NewPageFile').value = "";
+                document.querySelector('#rewardH5PageDetailFile').value = "";
+                document.querySelector('#rewardAppImageFile').value = "";
+                document.querySelector('#rewardAppNewPageFile').value = "";
+                document.querySelector('#rewardAppPageDetailFile').value = "";
+
+                $('#rewardPcImage').attr("src","");
+                $('#rewardH5Image').attr("src","");
+                $('#rewardAppImage').attr("src","");
+                vm.rewardImageFile = {};
+                vm.rewardImageUrl = {};
+
+                if (isNew){
+                    vm.rewardSetting = {
+                        pc: {},
+                        h5: {},
+                        app: {},
+                    };
+                }
+                else{
+                    if (eventObjId){
+                        let index = vm.rewardSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        if (index != -1){
+                            vm.rewardSetting = _.clone(vm.rewardSettingData[index]);
+                            if( vm.rewardSetting && vm.rewardSetting.pc &&  vm.rewardSetting.pc.imageUrl) {
+                                $('#rewardPcImage').attr("src",vm.rewardSetting.pc.imageUrl);
+                            }
+                            if( vm.rewardSetting && vm.rewardSetting.h5 &&  vm.rewardSetting.h5.imageUrl) {
+                                $('#rewardH5Image').attr("src",vm.rewardSetting.h5.imageUrl);
+                            }
+                            if( vm.rewardSetting && vm.rewardSetting.app &&  vm.rewardSetting.app.imageUrl) {
+                                $('#rewardAppImage').attr("src",vm.rewardSetting.app.imageUrl);
+                            }
+                        }
+                    }
+                }
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+
+                vm.refreshSPicker();
+                $('#rewardSettingModal').modal();
+                $("#rewardPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardPcImage", vm.rewardImageFile);});
+                $("#rewardPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardPcNewPage", vm.rewardImageFile);});
+                $("#rewardPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardPcPageDetail", vm.rewardImageFile);});
+
+                $("#rewardH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardH5Image", vm.rewardImageFile);});
+                $("#rewardH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardH5NewPage", vm.rewardImageFile);});
+                $("#rewardH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardH5PageDetail", vm.rewardImageFile);});
+
+                $("#rewardAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardAppImage", vm.rewardImageFile);});
+                $("#rewardAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardAppNewPage", vm.rewardImageFile);});
+                $("#rewardAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"rewardAppPageDetail", vm.rewardImageFile);});
+            };
+
+            vm.editRewardSetting = function(eventObjId) {
+                vm.addNewRewardSetting(false, eventObjId);
+            };
+
+            vm.submitRewardSettings = () => {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndRewardUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.rewardImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "rewardPcImage",
+                    "rewardPcNewPage",
+                    "rewardPcPageDetail",
+                    "rewardH5Image",
+                    "rewardH5NewPage",
+                    "rewardH5PageDetail",
+                    "rewardAppImage",
+                    "rewardAppNewPage",
+                    "rewardAppPageDetail",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.rewardImageFile, vm.rewardImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.rewardImageUrl", vm.rewardImageUrl);
+                        vm.rewardSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.rewardImageUrl){
+                            if (vm.rewardImageUrl.rewardPcImage){
+                                vm.rewardSetting.pc.imageUrl = vm.rewardImageUrl.rewardPcImage
+                            }
+                            if (vm.rewardImageUrl.rewardPcNewPage){
+                                vm.rewardSetting.pc.newPageUrl = vm.rewardImageUrl.rewardPcNewPage
+                            }
+                            if (vm.rewardImageUrl.rewardPcPageDetail){
+                                vm.rewardSetting.pc.activityUrl = vm.rewardImageUrl.rewardPcPageDetail
+                            }
+                            if (vm.rewardImageUrl.rewardH5Image){
+                                vm.rewardSetting.h5.imageUrl = vm.rewardImageUrl.rewardH5Image
+                            }
+                            if (vm.rewardImageUrl.rewardH5NewPage){
+                                vm.rewardSetting.h5.newPageUrl = vm.rewardImageUrl.rewardH5NewPage
+                            }
+                            if (vm.rewardImageUrl.rewardH5PageDetail){
+                                vm.rewardSetting.h5.activityUrl = vm.rewardImageUrl.rewardH5PageDetail
+                            }
+                            if (vm.rewardImageUrl.rewardAppImage){
+                                vm.popularRecommendationSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
+                            }
+                            if (vm.rewardImageUrl.rewardAppNewPage){
+                                vm.rewardSetting.app.newPageUrl = vm.rewardImageUrl.rewardAppNewPage
+                            }
+                            if (vm.rewardImageUrl.rewardAppPageDetail){
+                                vm.rewardSetting.app.activityUrl = vm.rewardImageUrl.rewardAppPageDetail
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndRewardSetting', vm.rewardSetting, function (data) {
+                                    console.log("saveFrontEndRewardSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndRewardUploader').hide();
+                                    // close the modal
+                                    $('#rewardSettingModal').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndRewardSetting err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndRewardUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndRewardUploader').hide();
+                });
+            };
 
 
+            vm.readURL = (input, previewId, holder) => {
+                console.log(input);
+                if (input.files && input.files[0] && vm.selectedPlatformId) {
+                    let reader1 = new FileReader();
+                    let reader2 = new FileReader();
+                    reader1.onload = function (e) {
+                        $(`#${previewId}`).attr('src', e.target.result);
+                    };
+                    reader2.onload = function (e) {
+                        holder[previewId] = {
+                            platformId: vm.selectedPlatformId,
+                            token: authService.getToken($cookies),
+                            fileStream: e.target.result,
+                            fileName: input.files[0].name
+                        };
+                    };
+                    // for preview purpose
+                    reader1.readAsDataURL(input.files[0]);
+                    // for upload to ftp server purpose
+                    reader2.readAsArrayBuffer(input.files[0]);
+                }
+            };
 
             //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function () {
@@ -25159,31 +25461,66 @@ define(['js/app'], function (myApp) {
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getCarouselSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndCarouselSetting = data.data.map(item => {
-                            item.device = item.device.toString();
-                            return item;
-                        });
-                    }
-                    $scope.$evalAsync();
+                    $scope.$evalAsync( () => {
+                        console.log('getCarouselSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.frontEndCarouselSetting = data.data.map(item => {
+                                item.device = item.device.toString();
+                                return item;
+                            });
+
+                            utilService.actionAfterLoaded('#carouselSaveButton', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
+                                $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                                    connectWith: ".connected-sortable",
+                                    stop: function () {
+                                        let arr1 = $('.carousel .droppable-area1').sortable('toArray');
+                                        let arr2 = $('.carousel .droppable-area2').sortable('toArray');
+                                        let arr3 = $('.carousel .droppable-area3').sortable('toArray');
+                                        arr1.forEach(
+                                            (v, i) => {
+                                                if (v) {
+                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                                                    if (index != -1) {
+                                                        vm.frontEndCarouselSetting[index].device = 1;
+                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                                    }
+                                                }
+                                            }
+                                        );
+
+                                        arr2.forEach(
+                                            (v, i) => {
+                                                if (v) {
+                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                                                    if (index != -1) {
+                                                        vm.frontEndCarouselSetting[index].device = 3;
+                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                                    }
+                                                }
+                                            }
+                                        );
+
+                                        arr3.forEach(
+                                            (v, i) => {
+                                                if (v) {
+                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
+                                                    if (index != -1) {
+                                                        vm.frontEndCarouselSetting[index].device = 2;
+                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                                    }
+                                                }
+                                            }
+                                        );
+                                    }
+                                }).disableSelection()
+                            })
+                        }
+                    })
                 }, function (err) {
                     console.error('getCarouselSetting error: ', err);
                 }, true);
-            };
-
-            vm.deleteFrontEndCarouselSetting = function (carouselObjId){
-                if (carouselObjId){
-                    $scope.$evalAsync( () => {
-                        vm.carouselSettingDeletedList.push(carouselObjId);
-                        let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
-                        if (index != -1){
-                            setTimeout(() => {
-                                vm.frontEndCarouselSetting.splice(index, 1);
-                            }, 0);
-                        }
-                    })
-                }
             };
 
             vm.updateFrontEndCarouselSetting = function () {
@@ -25227,7 +25564,7 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.carouselSettingDeletedList},
+                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
@@ -26338,6 +26675,62 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
+            vm.getAllPromoCodeTypes = (platformList) => {
+                vm.promoCodeType1 = [];
+                vm.promoCodeType2 = [];
+                vm.promoCodeType3 = [];
+                vm.promoCodeTypeB = [];
+
+                socketService.$socket($scope.AppSocket, 'getAllPromoCodeTypes', {deleteFlag: false}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allPromoCodeTypes = data.data;
+
+                        if (platformList && platformList.length) {
+                            vm.allPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                        }
+
+                        vm.allPromoCodeTypes.map(type => {
+                            if (vm.allPlatformData && vm.allPlatformData.length) {
+                                vm.allPlatformData.forEach(platform => {
+                                    if (type && type.platformObjId && platform && platform._id && platform.name) {
+                                        if (type.platformObjId.toString() === platform._id.toString()) {
+                                            type.platformName = platform.name;
+                                        }
+                                    }
+                                })
+                            }
+                        });
+
+                        vm.allPromoCodeTypes.forEach(entry => {
+                            if (entry.type == 1) {
+                                vm.promoCodeType1.push(entry);
+                                vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 2) {
+                                vm.promoCodeType2.push(entry);
+                                vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 3) {
+                                vm.promoCodeType3.push(entry);
+                                vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
+                            }
+                        });
+
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
+                    });
+                });
+            };
+
             vm.loadPromoCodeTypes = function (platformObjId) {
                 vm.promoCodeType1 = [];
                 vm.promoCodeType2 = [];
@@ -26743,18 +27136,28 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.checkAllPromoCodeSubType = function () {
+            vm.checkAllPromoCodeSubType = function (platformList) {
                 vm.promoCodeQuery.promoCodeSubType = [];
                 vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
-                if (vm.promoCodeQuery && vm.promoCodeTypes && vm.promoCodeTypes.length && vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType) {
-                    vm.promoCodeTypes.forEach(promoCode => {
+                vm.historyPromoCodeTypes = vm.allPromoCodeTypes;
+                if (platformList && platformList.length) {
+                    vm.historyPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                }
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.historyPromoCodeTypes && vm.historyPromoCodeTypes.length) {
+                    vm.historyPromoCodeTypes.forEach(promoCode => {
                         if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
-                            vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            if (platformList && platformList.length && promoCode.platformObjId) {
+                                if (platformList.includes(promoCode.platformObjId)) {
+                                    vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                                }
+                            } else {
+                                vm.promoCodeQuery.promoCodeSubType.push(promoCode.name);
+                            }
                         }
                     });
                     vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
                 }
-            }
+            };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];
@@ -26843,6 +27246,13 @@ define(['js/app'], function (myApp) {
 
                             if (item.platformObjId) {
                                 let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platformObjId.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
+
+                            if (item && item.data && item.data.platformId) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.data.platformId.toString());
                                 if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }
@@ -31174,9 +31584,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformCredibilityRemarks = (platformList) => {
-                let sendData = {
-                    platformList: platformList && platformList.length ? platformList : []
-                }
                 if (vm.allCredibilityRemarks) {
                     vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
                     if (platformList && platformList.length) {
@@ -40783,8 +41190,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             holder.splice(index, 1);
-                            // $('#' + eventObjectId).hide();
-                            $('#'+eventObjectId).parent('.draggable-item').remove();
+                            $('#' + eventObjectId).remove();
                         })
                     }
                 }
@@ -40910,6 +41316,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndRewardPointClarification', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.frontEndRewardPointClarificationData = data.data;
                         }
                     })
@@ -40939,6 +41346,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndPopUpAdvertisementSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data;
                         }
 
@@ -40958,7 +41366,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     );
                                 }
-                            })
+                            }).disableSelection()
                         })
                     })
                 }, function (err) {

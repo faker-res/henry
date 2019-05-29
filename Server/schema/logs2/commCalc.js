@@ -45,10 +45,6 @@ var commCalcSchema = new Schema({
     totalWithdrawal: {type: Number},
     // total withdrawal fee
     totalWithdrawalFee: {type: Number},
-    // gross multilayer commission (NEW!!)
-    grossCommission: {type: Number},
-    // gross direct commission (NEW!!)
-    grossDirectCommission: {type: Number},
     // nett commission
     nettCommission: {type: Number},
     // parent partner commission (OUTDATED) - used ""
@@ -66,6 +62,8 @@ var commCalcSchema = new Schema({
 });
 
 commCalcSchema.index({partner: 1, commissionType: 1, startTime: 1, calcTime: 1});
+commCalcSchema.index({partner: 1, startTime: 1});
+commCalcSchema.index({platform: 1, commissionType: 1, startTime: 1});
 
 module.exports = commCalcSchema;
 

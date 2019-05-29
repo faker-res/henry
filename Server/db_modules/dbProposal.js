@@ -6433,7 +6433,7 @@ var proposal = {
                 }
             ).then(
                 proposalData => {
-                    return checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime);
+                    return checkIsFoundTopUpAfterInMonitor(proposalData, endTime);
                 }
             )
         }
@@ -9210,8 +9210,8 @@ function getTopUpTypeIdsWithoutCommonTopUp(platformList) {
     );
 }
 
-function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
-    if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+function checkIsFoundTopUpAfterInMonitor(proposalData, endTime) {
+    if (proposalData && proposalData.proposalId) {
         return getTopUpTypeIdsWithoutCommonTopUp([proposalData.data.platformId]).then(
             topUpProposalTypeIds => {
                 if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
@@ -9219,7 +9219,8 @@ function checkIsFoundTopUpAfterCommonTopUpInMonitor(proposalData, endTime) {
                         type: {$in: topUpProposalTypeIds},
                         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                         "data.playerName": proposalData.data.playerName,
-                        createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)}
+                        createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)},
+                        "data.platformId": ObjectId(proposalData.data.platformId)
                     };
 
                     return dbconfig.collection_proposal.findOne(topUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean().then(

@@ -8,6 +8,8 @@ let constSystemParam = require('./../const/constSystemParam');
 let rp = require('request-promise');
 
 let fs = require('fs'), crt, key, replKey, replCrt;
+let fpmsKey = 'Fr0m_FPM$!';
+let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
 
 // Key selection based on env param
 if (!mainEnv.keyMode || (mainEnv.keyMode && mainEnv.keyMode !== 1)) {
@@ -30,10 +32,7 @@ oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
 // let fkpKey, fkpCert;
 // fkpKey = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem');
 // fkpCert = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub');
-
-let fpmsKey = 'Fr0m_FPM$!';
-let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
-let host = "http://" + env.redisUrl;
+let host = env.redisUrl;
 let options = {
     timeout: 10000,
     hostname: env.redisUrl,
@@ -151,7 +150,7 @@ function getKey (dirPath, fbPath) {
         }
     ).then(
         keyData => {
-            console.log('getKey received', keyData);
+            console.log('getKey received', Boolean(keyData));
             return keyData;
         }
     ).catch(() => fs.readFileSync(__dirname + fbPath));
@@ -220,7 +219,7 @@ function getReplPublicKeyFromService () {
 }
 
 function getKeyUrl (dirName, token) {
-    let keyUrl = "http://".concat(env.redisUrl);
+    let keyUrl = env.redisUrl;
 
     if (env.redisPort) {
         keyUrl += ":" + env.redisPort;
