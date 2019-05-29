@@ -422,10 +422,7 @@ var dbPlayerFeedback = {
             () => {
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
-                    console.log("Object.keys(sortCol)[0] ", Object.keys(sortCol)[0]);
                     result.sort(function (a, b) {
-                        console.log("result.sort", a);
-                        console.log("result.sort", b);
                         if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
                             return 1 * sortCol[Object.keys(sortCol)[0]];
                         } else {
