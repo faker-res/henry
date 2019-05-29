@@ -25309,14 +25309,16 @@ define(['js/app'], function (myApp) {
                     let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
                     if (index != -1){
                         vm.newFrontEndCarousel = _.clone(vm.frontEndCarouselSetting[index]);
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
-                        }
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
-                        }
-                        if( vm.newFrontEndCarousel &&  vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            if (vm.newFrontEndCarousel.device == 1){
+                                $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==2){
+                                $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==3){
+                                $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
                         }
                     }
                 }
