@@ -4862,6 +4862,8 @@
   "IP_DOMAIN_ANALYSIS_EXPLAIN": "*訪問者此次瀏覽網站次數+1，本次切換頁面不重複計算，但刷新會重新計算。",
   "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "*該訪問的IP此次瀏覽網站次數+1，本次切換頁面、刷新都不重複計算。",
   "UpdateCardGroupType": "派卡逻辑修改",
+  "MULTI_LEVEL_PARTNER": "多级代理",
+  "DIRECT_DOWN_LINE": "直属下线",
 
   "Please enter the player name that you wanted to update bank info:": "请输入您需要银行资料修改的玩家帐号：",
   "Please enter your account's phone number, note that you wil receive SMS verification code afterward.": "请输入该帐号绑定电话号码，将发送短信验证码",

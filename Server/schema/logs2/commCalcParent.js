@@ -14,11 +14,25 @@ let commCalcParentSchema = new Schema({
     // current partner name
     partnerName: {type: String},
     // gross commission
-    grossCommission: {type: Number},
+    grossCommission: {type: Number, default: 0},
     // nett commission
-    nettCommission: {type: Number},
+    nettCommission: {type: Number, default: 0},
     // raw commissions detail
     rawCommissions: [],
+
+    totalRewardFee: {type: Number, default: 0},
+
+    totalTopUpFee: {type: Number, default: 0},
+
+    totalWithdrawalFee: {type: Number, default: 0},
+
+    totalPlatformFee: {type: Number, default: 0},
+
+    rewardFeeRate: {type: Number, default: 0},
+
+    topUpFeeRate: {type: Number, default: 0},
+
+    withdrawalFeeRate: {type: Number, default: 0},
     // commCalc startTime to determine which batch it is
     startTime: {type: Date},
 

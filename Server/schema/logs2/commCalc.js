@@ -45,6 +45,8 @@ var commCalcSchema = new Schema({
     totalWithdrawal: {type: Number},
     // total withdrawal fee
     totalWithdrawalFee: {type: Number},
+    // gross commission
+    grossCommission: {type: Number},
     // nett commission
     nettCommission: {type: Number},
     // parent partner commission (OUTDATED) - used ""
