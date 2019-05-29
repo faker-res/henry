@@ -4707,7 +4707,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    getRewardProposalReport: function (platformId, startTime, endTime, status, playerName, dayCountAfterRedeemPromo) {
+    getRewardProposalReport: function (reqData, startTime, endTime, status, playerName, dayCountAfterRedeemPromo) {
         let proposalTypeData = null;
         let proposalRewardData = null;
         let latestRewardData = null;
@@ -4717,11 +4717,14 @@ var proposal = {
         let totalPlayer = 0;
         let result = {};
         let matchObj = {};
-        let proposalQuery = {
-            $and: [{
-                platformId: platformId,
-            }]
-        };
+        let proposalQuery = {};
+        let platformListQuery;
+        let platformData = null;
+
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item => { return ObjectId(item)})};
+            proposalQuery.platformId = platformListQuery;
+        }
 
         return dbconfig.collection_proposalType.find(proposalQuery).lean().then(proposalType => {
             if (proposalType) {
@@ -4733,9 +4736,12 @@ var proposal = {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
-                mainType: constProposalMainType['PlayerConsumptionReturn'],
-                "data.platformId": platformId
+                mainType: constProposalMainType['PlayerConsumptionReturn']
             };
+
+            if(reqData.platformList && reqData.platformList.length > 0) {
+                matchObj["data.platformId"] = platformListQuery;
+            }
 
             if (status && status != 'all') {
                 if (status == constProposalStatus.SUCCESS) {
@@ -4761,7 +4767,7 @@ var proposal = {
                 { $match: {$and: [matchObj]}},
                 {
                     $group: {
-                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName"},
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName", "platform": "$data.platformId"},
                         sumReturnAmount: {$sum: "$data.returnAmount"},
                         sumRewardAmount: {$sum: "$data.rewardAmount"},
                         sumAmount: {$sum: "$data.amount"},
@@ -4770,7 +4776,7 @@ var proposal = {
                 },
                 {
                     $group: {
-                        _id: {"type": "$_id.type", "eventName": "$_id.eventName"},
+                        _id: {"type": "$_id.type", "eventName": "$_id.eventName", "platform": "$_id.platform"},
                         playerObjId: {$addToSet: "$_id.playerObjId"},
                         playerName: {$addToSet: "$_id.playerName"},
                         sumTotalReturnAmount: {$sum: "$sumReturnAmount"},
@@ -4786,6 +4792,7 @@ var proposal = {
                         type: "$_id.type",
                         playerObjId: 1,
                         playerName: 1,
+                        platform: "$_id.platform",
                         sumTotalReturnAmount: 1,
                         sumTotalRewardAmount: 1,
                         sumTotalAmount: 1,
@@ -4802,7 +4809,7 @@ var proposal = {
                 },
                 {
                     $group: {
-                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName"},
+                        _id: {"type": "$type", "eventName": "$data.eventName", "playerObjId": "$data.playerObjId", "playerName": "$data.playerName", "platform": "$data.platformId"},
                         lastRewardTime: {$last: "$createTime"}
                     }
                 },
@@ -4813,6 +4820,7 @@ var proposal = {
                         type: "$_id.type",
                         playerObjId: "$_id.playerObjId",
                         playerName: "$_id.playerName",
+                        platform: "$_id.platform",
                         lastRewardTime: 1
                     }
                 }
@@ -4851,7 +4859,10 @@ var proposal = {
                 }
             ]).read("secondaryPreferred");
 
-            return Promise.all([rewardProposalProm, latestRewardProm, countRewardAppliedProm, countTotalPlayerProm])
+            let platformQuery = platformListQuery ? {_id: platformListQuery} : {};
+            let platformProm = dbconfig.collection_platform.find(platformQuery, {_id: 1, name: 1}).lean();
+
+            return Promise.all([rewardProposalProm, latestRewardProm, countRewardAppliedProm, countTotalPlayerProm, platformProm])
 
         }).then(data => {
             let promArr = []
@@ -4859,11 +4870,12 @@ var proposal = {
             latestRewardData = data && data[1] ? data[1] : null;
             countRewardAppliedData = data && data[2] ? data[2] : null;
             totalPlayer = data && data[3] && data[3] && data[3][0] && data[3][0] && data[3][0].count ? data[3][0].count : 0;
+            platformData = data && data[4] ? data[4] : null;
 
             if (dayCountAfterRedeemPromo && dayCountAfterRedeemPromo > 0) {
-                promArr = getTopupProposalData(latestRewardData, dayCountAfterRedeemPromo, platformId)
+                promArr = getTopupProposalData(latestRewardData, dayCountAfterRedeemPromo, platformListQuery)
             } else {
-                promArr = getTopupProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformId, startTime, endTime)
+                promArr = getTopupProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformListQuery, startTime, endTime)
             }
 
             return Promise.all(promArr);
@@ -4874,9 +4886,9 @@ var proposal = {
             totalTopupRecord = filterTopupData(totalTopupData, dayCountAfterRedeemPromo);
 
             if (dayCountAfterRedeemPromo && dayCountAfterRedeemPromo > 0) {
-                promArr = getBonusProposalData(latestRewardData, dayCountAfterRedeemPromo, platformId)
+                promArr = getBonusProposalData(latestRewardData, dayCountAfterRedeemPromo, platformListQuery)
             } else {
-                promArr = getBonusProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformId, startTime, endTime)
+                promArr = getBonusProposalData(proposalRewardData, dayCountAfterRedeemPromo, platformListQuery, startTime, endTime)
             }
 
             return Promise.all(promArr);
@@ -4943,10 +4955,17 @@ var proposal = {
                             reward.name = proposalTypeData[idx].name;
                         }
                     }
+
+                    if (reward.platform && platformData && platformData.length > 0) {
+                        let idx = platformData.findIndex(x => x._id && (x._id.toString() == reward.platform.toString()));
+                        if (idx > -1) {
+                            reward.platformName = platformData[idx].name;
+                        }
+                    }
                 })
             }
 
-            result = {data: proposalRewardData, totalPlayer: totalPlayer}
+            result = {data: proposalRewardData, totalPlayer: totalPlayer};
 
             return result;
         })
@@ -9275,7 +9294,7 @@ function convertStringNumber(Arr) {
     return result;
 }
 
-function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime) {
+function getTopupProposalData(itemArr, dayCount, platformQuery, startTime, endTime) {
     let promArr = [];
 
     if (itemArr && itemArr.length > 0) {
@@ -9304,7 +9323,6 @@ function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime)
 
                 matchQuery = {
                     playerId: el.playerObjId,
-                    platformId: platformId,
                     createTime: {
                         $gte: newStartDate,
                         $lt: newEndDate
@@ -9315,12 +9333,17 @@ function getTopupProposalData(itemArr, dayCount, platformId, startTime, endTime)
             if (!dayCount && el && el.playerObjId && el.playerObjId.length > 0) {
                 matchQuery = {
                     playerId: {$in: el.playerObjId},
-                    platformId: platformId,
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
                     }
                 }
+            }
+
+            if (el.platform) {
+                matchQuery.platformId = ObjectId(el.platform);
+            } else if (platformQuery) {
+                matchQuery.platformId = platformQuery;
             }
 
             promArr.push(
@@ -9403,7 +9426,7 @@ function filterTopupData(itemArr, dayCount) {
     return topupRecord;
 }
 
-function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime) {
+function getBonusProposalData(itemArr, dayCount, platformQuery, startTime, endTime) {
     let promArr = [];
 
     if (itemArr && itemArr.length > 0) {
@@ -9436,8 +9459,7 @@ function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime)
                     createTime: {
                         $gte: newStartDate,
                         $lt: newEndDate
-                    },
-                    "data.platformId": platformId
+                    }
                 }
             }
 
@@ -9448,18 +9470,32 @@ function getBonusProposalData(itemArr, dayCount, platformId, startTime, endTime)
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
-                    },
-                    "data.platformId": platformId
+                    }
                 }
             }
 
+            if (el.platform) {
+                matchQuery["data.platformId"] = ObjectId(el.platform);
+            } else if (platformQuery) {
+                matchQuery["data.platformId"] = platformQuery;
+            }
+
+            let proposalTypeQuery = {
+                name: constProposalType.PLAYER_BONUS
+            };
+
+            if (el && el.platform) {
+                proposalTypeQuery.platformId = el.platform;
+            } else if (platformQuery) {
+                proposalTypeQuery.platformId = platformQuery;
+            }
 
             promArr.push(
-                dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_BONUS}).then(
+                dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
                     proposalType => {
                         if (proposalType){
-                            if (proposalType._id) {
-                                matchQuery.type = proposalType._id;
+                            if (proposalType && proposalType.length > 0) {
+                                matchQuery.type = {$in: proposalType.map(type => type._id)};
                             }
 
                             return dbconfig.collection_proposal.aggregate([
