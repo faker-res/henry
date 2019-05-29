@@ -24782,6 +24782,14 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardSettingInit = function () {
+                setTimeout (() => {
+                    $(".rewardDroppableArea").sortable({
+                        connectWith: ".rewardDroppableArea"
+                    })
+                },20);
+            }
+
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
@@ -24821,47 +24829,6 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable",
-                            // drop: function () {
-                            //     let arr1 = $('.droppable-area1').sortable('toArray');
-                            //     let arr2 = $('.droppable-area2').sortable('toArray');
-                            //     let arr3 = $('.droppable-area3').sortable('toArray');
-                            //
-                            //     arr1.forEach (
-                            //         (v, i) => {
-                            //             if (v){
-                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            //                 if (index != -1){
-                            //                     vm.frontEndPopularRecommendationData[index].category = 1;
-                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                            //                 }
-                            //             }
-                            //         }
-                            //     );
-                            //
-                            //     arr2.forEach (
-                            //         (v, i) => {
-                            //             if (v){
-                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            //                 if (index != -1){
-                            //                     vm.frontEndPopularRecommendationData[index].category = 2;
-                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                            //                 }
-                            //             }
-                            //         }
-                            //     );
-                            //
-                            //     arr3.forEach (
-                            //         (v, i) => {
-                            //             if (v){
-                            //                 let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            //                 if (index != -1){
-                            //                     vm.frontEndPopularRecommendationData[index].category = 3;
-                            //                     vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                            //                 }
-                            //             }
-                            //         }
-                            //     );
-                            // }
                         }).disableSelection()
                         $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
@@ -24875,8 +24842,6 @@ define(['js/app'], function (myApp) {
                             let id = $(event.currentTarget).attr('id');
                             vm.deleteFrontEndSettingWay2(id);
                         })
-                        // $('.droppable-area2').sortable('toArray');
-                        // $('.droppable-area3').sortable('toArray');
                     });
                 })
             };
@@ -24889,23 +24854,8 @@ define(['js/app'], function (myApp) {
                             vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
-                            // vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
-                            // vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
-                            // vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
                         }
                     })
-                    // console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    // $scope.$evalAsync( () => {
-                    //     if (data && data.data) {
-                    //         vm.frontEndDeletedList = [];
-                    //         vm.frontEndPopularRecommendationData = data.data;
-                    //         utilService.actionAfterLoaded('#testSave', function () {
-                    //             document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
-                    //                 item.parentElement.removeChild(item)
-                    //             });
-                    //         })
-                    //     }
-                    // })
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
@@ -24942,26 +24892,47 @@ define(['js/app'], function (myApp) {
             vm.deleteRewardSetting = function (id) {
                 if (id){
                     vm.rewardDeletedList.push(id);
-                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            vm.rewardSettingData.splice(index, 1);
-                        })
-                    }
+                    $('#'+id).remove();
                 }
             };
 
             vm.updateRewardSetting = function () {
-                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
-                    function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('updateRewardSetting is done', data);
-                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                        })
-                    }, function (err) {
-                        console.log('err', err);
+                return new Promise((resolve, reject) =>{
+                    let arr = {};
+                    let updateSetting = [];
+
+                    vm.frontEndRewardCategory.forEach(cato => {
+                        console.log(cato);
+                        arr[cato._id] = $('#'+cato._id).sortable('toArray');
+                        arr[cato._id].forEach((v, i) => {
+                            if (v){
+                                let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    let selectSetting = vm.rewardSettingData[index];
+                                    selectSetting.categoryObjId = cato._id;
+                                    selectSetting.displayOrder = i + 1;
+                                    updateSetting.push(selectSetting);
+                                }
+                            }
+                        });
                     });
+                    console.log("arr", arr);
+
+                    socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
+                        function (data) {
+                            $scope.$evalAsync( () => {
+
+                                console.log('updateRewardSetting is done', data);
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                                resolve();
+                            })
+                        }, function (err) {
+                            console.log('err', err);
+                        });
+
+                })
+
             };
 
             vm.loadRewardCategory =  function (platformObjId) {
@@ -24971,39 +24942,12 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.rewardSettingInit();
                             }
                         })
                     }, function (err) {
                         console.error('getFrontEndRewardCategory error: ', err);
                     }, true);
-
-                    // utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
-                    //     $(".rewardDroppableArea").sortable({
-                    //         connectWith: ".rewardDroppableArea",
-                    //     })
-                    // });
-
-                    setTimeout (() => {
-                        $(".rewardDroppableArea").sortable({
-                            connectWith: ".rewardDroppableArea",
-                            stop: function () {
-                                let arr = {};
-                                vm.frontEndRewardCategory.forEach(cato => {
-                                    arr[cato._id] = $('#'+cato._id).sortable('toArray');
-                                    arr[cato._id].forEach((v, i) => {
-                                        if (v){
-                                            let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.rewardSettingData[index].categoryObjId = cato._id;
-                                                vm.rewardSettingData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    });
-                                });
-                                console.log("arr", arr);
-                            }
-                        })
-                    },4000);
                 }
             };
 
@@ -25086,7 +25030,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewRewardSetting(false, eventObjId);
             };
 
-            vm.submitRewardSettings = () => {
+            vm.submitRewardSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndRewardUploader').show();
                 function removeFromList(data) {
@@ -25096,7 +25040,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                await vm.updateRewardSetting();
                 let promArr = [
                     "rewardPcImage",
                     "rewardPcNewPage",

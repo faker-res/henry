@@ -30,5 +30,5 @@ div.col-xs-12.row(style="padding-right: 0;")
                             span.fa.fa-trash-o
 
 div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.loadRewardSetting(vm.filterFrontEndSettingPlatform); vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
+    button.btn-danger.btn.btn-space(ng-click="vm.rewardCategoryDeletedList=[];vm.rewardDeletedList=[];vm.loadRewardSetting(vm.filterFrontEndSettingPlatform); vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
     button#rewardSettingSaveBtn.btn-primary.btn.btn-space(ng-click="vm.updateRewardSetting()") {{'SAVE' | translate}}
