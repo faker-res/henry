@@ -78,7 +78,7 @@ const dbPartnerCommissionConfig = {
         )
     },
 
-    updateMainPartnerCommissionData: async function (parentObjId, partnerObjId, platformObjId, commissionType)/*(partnerObjId, platformObjId, commissionType, isSkipUpdate)*/ {
+    updateMainPartnerCommissionData: async function (parentObjId, partnerObjId, platformObjId, commissionType) {
         let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
         if ((!providerGroups && providerGroups.length)) {
             return;
@@ -111,8 +111,272 @@ const dbPartnerCommissionConfig = {
                         provider: defConfig.provider
                     }, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 }
-                updateDownLineCommConfig(partnerObjId, platformObjId, commissionType, defConfigs);
+                updateDownLineCommConfig(partnerObjId, platformObjId, commissionType, defConfigs, true);
             }
+    },
+
+    resetPartnerMultiLvlCommissionData: async function (proposalData) {
+        let queryConfig = {
+            platform: proposalData.data.platformObjId,
+            commissionType: proposalData.data.commissionType,
+            // provider: oldConfig.provider,
+            // partner: proposalData.data.partnerObjId
+        };
+
+
+        let defCommConfig;
+        let updateSchema;
+        if (proposalData.data.parentObjId) {
+            queryConfig.partner = proposalData.data.parentObjId;
+            defCommConfig = await dbconfig.collection_partnerDefDownLineCommConfig.find(queryConfig).lean();
+            updateSchema = dbconfig.collection_partnerDownLineCommConfig;
+        } else {
+            defCommConfig = await dbconfig.collection_platformPartnerCommConfig.find(queryConfig).lean();
+            updateSchema = dbconfig.collection_partnerMainCommConfig;
+        }
+
+        if (!(defCommConfig && defCommConfig.length)) {
+            return;
+        }
+
+        for (let i = 0; i < defCommConfig.length; i++) {
+            delete defCommConfig[i].__v;
+            delete defCommConfig[i]._id;
+
+            if (!(defCommConfig[i] && defCommConfig[i].partner)) {
+                defCommConfig[i].partner = proposalData.data.partnerObjId;
+            }
+
+            updateSchema.findOneAndUpdate({
+                platform: defCommConfig[i].platform,
+                partner: defCommConfig[i].partner,
+                provider: defCommConfig[i].provider
+            }, defCommConfig[i]).lean().catch(errorUtils.reportError);
+        }
+
+        updateDownLineCommConfig(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.commissionType, defCommConfig, true);
+
+    },
+
+    updatePartnerMultiLvlCommissionConfig: (proposalData) => {
+        let qObj = {
+            platform: proposalData.data.newRate.platform,
+            provider: proposalData.data.newRate.provider,
+            partner: proposalData.data.partnerObjId
+        };
+
+        if (proposalData.data.isRevert) {
+            // multi level cannot reset by this action
+            // if (proposalData.data.parentObjId) {
+            //     return dbconfig.collection_partnerDownLineCommConfig.findOneAndRemove(qObj)
+            // } else {
+            //     return dbconfig.collection_partnerMainCommConfig.findOneAndRemove(qObj)
+            // }
+        } else {
+            proposalData.data.newRate.partner = proposalData.data.partnerObjId;
+            delete proposalData.data.newRate._id;
+            delete proposalData.data.newRate.__v;
+
+            if (proposalData.data.parentObjId) {
+                return dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {
+                    new: true,
+                    upsert: true
+                }).lean().then(
+                    data => {
+                        if (proposalData.data.isUpdateChild) {
+                            updateDownLineCommConfig(qObj.partner, qObj.platform, proposalData.data.commissionType, [data], true);
+                        }
+                        return data;
+                    }
+                )
+            } else {
+                return dbconfig.collection_partnerMainCommConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {
+                    new: true,
+                    upsert: true
+                }).lean().then(
+                    data => {
+                        if (proposalData.data.isUpdateChild) {
+                            updateDownLineCommConfig(qObj.partner, qObj.platform, proposalData.data.commissionType, [data], true);
+                        }
+                        return data;
+                    }
+                )
+            }
+        }
+    },
+
+    updateAllMultiLvlCustomizeCommissionRate: function (proposalData) {
+        let proms = [];
+
+        if (proposalData && proposalData.data && proposalData.data.newConfigArr && proposalData.data.newConfigArr.length > 0) {
+            proposalData.data.newConfigArr.forEach(newConfig => {
+                if (newConfig) {
+                    let qObj = {
+                        platform: newConfig.platform,
+                        provider: newConfig.provider,
+                        // commissionType: newConfig.commissionType,
+                        partner: proposalData.data.partnerObjId
+                    };
+
+                    newConfig.partner = proposalData.data.partnerObjId;
+                    delete newConfig._id;
+                    delete newConfig.__v;
+
+
+
+                    if (proposalData.data.parentObjId) {
+                        let prom = dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate(qObj, newConfig, {
+                            new: true,
+                            upsert: true
+                        }).lean().then(
+                            data => {
+                                if (proposalData.data.isUpdateChild) {
+                                    updateDownLineCommConfig(qObj.partner, qObj.platform, newConfig.commissionType, [data], true);
+                                }
+                                return data;
+                            }
+                        )
+                        proms.push(prom);
+                    } else {
+                        let prom = dbconfig.collection_partnerMainCommConfig.findOneAndUpdate(qObj, newConfig, {
+                            new: true,
+                            upsert: true
+                        }).lean().then(
+                            data => {
+                                if (proposalData.data.isUpdateChild) {
+                                    updateDownLineCommConfig(qObj.partner, qObj.platform, newConfig.commissionType, [data], true);
+                                }
+                                return data;
+                            }
+                        )
+                        proms.push(prom);
+                    }
+
+
+
+                    // proms.push(dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(qObj, newConfig, {
+                    //     new: true,
+                    //     upsert: true
+                    // }))
+                }
+            });
+
+            return Promise.all(proms).then(
+                data => {
+                    return data;
+                },
+                error => {
+                    return error;
+                }
+            )
+        }
+    },
+
+    checkAllProvidersIsCommRateValid: async function (partnerObjId, oldConfigArr, newConfigArr, isParentMainPartner, parentObjId) {
+        let childPartnerObjs = await dbconfig.collection_partner.find({parent: partnerObjId}, {_id: 1}).lean();
+        let promArr = [];
+        let isUpdateChild = false;
+        for (let i = 0; i < newConfigArr.length; i++) {
+            promArr.push(dbPartnerCommissionConfig.checkIsCommRateValid(partnerObjId, oldConfigArr[i], newConfigArr[i], isParentMainPartner, parentObjId, childPartnerObjs));
+        }
+        return Promise.all(promArr).then(
+            data => {
+                if (data && data.length) {
+                    for (let j = 0; j < data.length; j++) {
+                        if (data[j] && data[j].isUpdateChild) {
+                            isUpdateChild = true;
+                            break;
+                        }
+                    }
+                }
+                return {isUpdateChild: isUpdateChild};
+            }
+        )
+
+    },
+
+
+    /**
+     *
+     * @param partnerObjId
+     * @param oldConfig
+     * @param newConfig
+     * @param isParentMainPartner - is partner's parent top level of partner
+     * @param parentObjId
+     * @returns {Promise}
+     */
+    checkIsCommRateValid: async function (partnerObjId, oldConfig, newConfig, isParentMainPartner, parentObjId, childPartnerObjs) {
+        if (!oldConfig.platform || !oldConfig.provider) {
+            return Promise.reject({name: "DataError", message: "Invalid update data"});
+        }
+        let childPartner;
+        if (childPartnerObjs) {
+            childPartner = childPartnerObjs;
+        } else {
+            childPartner = await dbconfig.collection_partner.find({parent: partnerObjId}, {_id: 1}).lean();
+        }
+        let commConfigData = [];
+        if (childPartner && childPartner.length) {
+            let query = {
+                platform: oldConfig.platform,
+                provider: oldConfig.provider,
+                partner: {$in: childPartner.map(partner => partner._id)}
+            };
+            commConfigData = await dbconfig.collection_partnerDownLineCommConfig.find(query).lean();
+        }
+        if (parentObjId) {
+            let parentConfigData;
+            let queryConfig = {
+                platform: oldConfig.platform,
+                provider: oldConfig.provider,
+                partner: parentObjId
+            };
+            if (isParentMainPartner) {
+                parentConfigData = await dbconfig.collection_partnerMainCommConfig.find(queryConfig).lean();
+            } else {
+                parentConfigData = await dbconfig.collection_partnerDownLineCommConfig.find(queryConfig).lean();
+            }
+            if (parentConfigData && parentConfigData.length) {
+                parentConfigData = parentConfigData.map(
+                    parentConfig => {
+                        parentConfig.isHigherPartner = true;
+                        return parentConfig;
+                    }
+                )
+                commConfigData = commConfigData.concat(parentConfigData);
+            }
+        }
+        if (commConfigData && commConfigData.length) {
+            for (let j = 0; j < commConfigData.length; j++) {
+                let commConfig = commConfigData[j].commissionSetting;
+                if (!commConfig) {
+                    continue;
+                }
+
+                if (commConfig.length != newConfig.commissionSetting.length) {
+                    return Promise.resolve({isUpdateChild: true});
+                    // commission config suppose to be same when update commissioin 1 by 1
+                }
+
+                for (let k = 0; k < commConfig.length; k++) {
+                    if (commConfigData[j].isHigherPartner) {
+                        if (commConfig[k]["commissionRate"] < newConfig.commissionSetting[k]["commissionRate"]) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Commission rate cannot higher than parent partner"
+                            });
+                        }
+                    } else {
+                        if (commConfig[k]["commissionRate"] > newConfig.commissionSetting[k]["commissionRate"]) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Commission rate cannot lower than child partner"
+                            });
+                        }
+                    }
+                }
+            }
+        }
     }
 };
 
@@ -120,7 +384,7 @@ function clearParent (partnerObjId, platformObjId) {
     return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObjId, platform: platformObjId}, {$unset: {parent: ""}}, {new:true}).lean();
 }
 
-async function updateDownLineCommConfig (parentObjId, platformObjId, commissionType, commConfigObj)/*(partnerObjId, platformObjId, parentObjId, commissionType, isSkipUpdate)*/ {
+async function updateDownLineCommConfig (parentObjId, platformObjId, commissionType, commConfigObj, isResetCommission) {
     // if (!parentObjId && !commConfigObj) {
     if (!parentObjId || !commConfigObj || !commConfigObj.length) {
         return;
@@ -135,16 +399,21 @@ async function updateDownLineCommConfig (parentObjId, platformObjId, commissionT
 
     let commConfigData = JSON.parse(JSON.stringify(commConfigObj));
 
-    commConfigData = commConfigData.map(commConfig => {
-        commConfig.commissionSetting = commConfig.commissionSetting.map(commSetting => {
-            commSetting.commissionRate -= 0.01;
-            if (commSetting.commissionRate < 0.01) {
-                commSetting.commissionRate = 0.01;
+    if (isResetCommission) {
+        commConfigData = commConfigData.map(commConfig => {
+            if (commConfig.commissionSetting) {
+                commConfig.commissionSetting = commConfig.commissionSetting.map(commSetting => {
+                    let originalRate = commSetting.commissionRate;
+                    commSetting.commissionRate -= 0.01;
+                    if (commSetting.commissionRate < 0) {
+                        commSetting.commissionRate = originalRate;
+                    }
+                    return commSetting;
+                })
             }
-            return commSetting;
-        })
-        return commConfig;
-    });
+            return commConfig;
+        });
+    }
 
     partnersObj.map(partner=> {
         for (let i = 0; i < commConfigData.length; i++) {
@@ -173,7 +442,7 @@ async function updateDownLineCommConfig (parentObjId, platformObjId, commissionT
             }, commConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
         }
 
-        updateDownLineCommConfig(partner._id, platformObjId, commissionType, commConfigData);
+        updateDownLineCommConfig(partner._id, platformObjId, commissionType, commConfigData, isResetCommission);
     })
 
 }
@@ -226,7 +495,6 @@ function getMainCommConfig (partnerObjId, platformObjId, commissionType, isSkipU
                     // this means platform haven't properly set default commission
                     continue;
                 }
-                delete defConfig.__v;
                 delete defConfig._id;
                 delete defConfig.__v;
                 defConfig.partner = partnerObjId;

@@ -7563,6 +7563,7 @@ define(['js/app'], function (myApp) {
             vm.prepareEditPartnerPayment();
             vm.tabClicked(selectedTab);
             vm.partnerValidity = {};
+            vm.isMultiLevelCommission = false;
             dialogDetails();
 
             function dialogDetails() {
@@ -7623,6 +7624,8 @@ define(['js/app'], function (myApp) {
                         customizeCommissionRate: vm.customizeCommissionRate,
                         customizeCommissionRateAll: vm.customizeCommissionRateAll,
                         isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
+                        commissionSettingDeleteRow: vm.commissionSettingDeleteRow,
+                        commissionSettingNewRow: vm.commissionSettingNewRow,
                         updateAllCustomizeCommissionRate: vm.updateAllCustomizeCommissionRate,
                         resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                         customizePartnerRate: vm.customizePartnerRate,
@@ -7722,6 +7725,10 @@ define(['js/app'], function (myApp) {
         vm.partnerPaymentKeys = [
             "bankName", "bankAccount", "encodedBankAccount", "bankAccountName", "bankAccountType", "bankAccountProvince", "bankAccountCity", "bankAccountDistrict", "bankAddress", "bankBranch"
         ];
+
+        vm.checkIsChildPartner = function () {
+           return Boolean(vm.selectedSinglePartner && vm.selectedSinglePartner.parent);
+        }
 
         vm.prepareEditPartnerPayment = function () {
             return new Promise(function (resolve) {
@@ -11330,6 +11337,7 @@ define(['js/app'], function (myApp) {
                 partnerObjId = partner._id;
             }
             vm.isMultiLevelCommission = isMultiLevel? true: false;
+            vm.commissionSettingIsEditAll = {};
             vm.selectedCommissionTab(tab, partnerObjId, isMultiLevel);
         }
 
@@ -11643,7 +11651,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            if (isRevert) {
+            if (isRevert && !vm.isMultiLevelCommission) {
                 let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
                 newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
                 isRevert = --customCount === 0;
@@ -11664,15 +11672,22 @@ define(['js/app'], function (myApp) {
                     newConfig: newConfig,
                     isRevert: isRevert,
                     isPlatformRate: false,
-                    commissionType: setting.srcConfig.commissionType
+                    commissionType: setting.srcConfig.commissionType,
+                    isMultiLevel: vm.isMultiLevelCommission
                 };
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                         vm.getPlatformPartnersData();
                     });
-                });
+                },
+                    () => {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                            vm.getPlatformPartnersData();
+                        });
+                    });
             }
         };
 
@@ -11700,16 +11715,17 @@ define(['js/app'], function (myApp) {
                     partnerObjId: vm.selectedSinglePartner._id,
                     commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
                     oldConfigArr: oldConfigArr,
-                    newConfigArr: newConfigArr
+                    newConfigArr: newConfigArr,
+                    isMultiLevel: vm.isMultiLevelCommission
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                         vm.getPlatformPartnersData();
                     });
                 }, function (err) {
-                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                     vm.getPlatformPartnersData();
                 });
             }
@@ -11758,12 +11774,13 @@ define(['js/app'], function (myApp) {
                 partnerObjId: vm.selectedSinglePartner._id,
                 field: "Reset all commission rate",
                 isResetAll: true,
-                commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                isMultiLevel: vm.isMultiLevelCommission
             };
 
             socketService.$socket($scope.AppSocket, 'resetAllCustomizedCommissionRate', sendData, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                     vm.getPlatformPartnersData();
                 });
             });

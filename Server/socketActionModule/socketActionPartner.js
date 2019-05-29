@@ -474,7 +474,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }, data.commissionType], actionName, isValidData);
+            }, data.commissionType, data.isMultiLevel], actionName, isValidData);
         },
 
         updateAllCustomizeCommissionRate: function updateAllCustomizeCommissionRate (data) {
@@ -484,7 +484,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.isMultiLevel], actionName, isValidData);
         },
 
         resetAllCustomizedCommissionRate: function resetAllCustomizedCommissionRate (data) {
@@ -494,7 +494,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.isMultiLevel], actionName, isValidData);
         },
 
         getPartnerCommissionLog: function getPartnerCommissionLog (data) {
