@@ -4404,14 +4404,22 @@ hr {
 
 .fronendConfigDiv {
     background: #d3d3d34d;
+    box-sizing: border-box;
     padding: 10px;
     margin: 10px;
     position: relative;
     border: 1px solid rgb(190,190,190);
     border-radius: 10px;
+    height: 90vh;
     min-height: 500px;
     display: inline-block;
     width: calc(100% / 3 - 20px);
+    text-align: center;
+}
+
+.fronendConfigScrollDiv {
+    height: calc(100% - 20px);
+    overflow: auto;
 }
 
 .frontendConfigSeperator {
@@ -4422,7 +4430,7 @@ hr {
 
 .eventSettingDiv {
     padding: 10px;
-    margin: 10px;
+    /*margin: 10px;*/
     position: relative;
     border: 1px solid rgb(190,190,190);
     border-radius: 10px;
@@ -4436,7 +4444,6 @@ hr {
     padding: .5em;
     margin: 1em 0em;
 }
-
 .navbar-right {
     padding-right: 10px !important;
 }
