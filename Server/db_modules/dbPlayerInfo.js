@@ -20115,11 +20115,12 @@ let dbPlayerInfo = {
                 ).then(
                     data => {
                         console.log('getConsumptionDetailOfPlayers - end');
+                        console.log('getConsumptionDetailOfPlayers data', data);
                         let retArr = [];
 
                         if (data && data.length) {
                             data = data.filter(result => {
-                                return result !== "";
+                                return result !== "" && result !== null;
                             });
 
 
