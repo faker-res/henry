@@ -947,6 +947,8 @@ include modalGameCreditLog
                                     option(value='',) {{'any' | translate}}
                             .widthto100.text-right
                                 button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
+                                span#getNewPlayerListSpin.collapse
+                                    i.fa.fa-spinner.fa-spin
                         .well
                             .row
                                 .col-md-12

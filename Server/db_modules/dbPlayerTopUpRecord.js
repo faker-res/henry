@@ -1817,9 +1817,9 @@ var dbPlayerTopUpRecord = {
                     return Promise.reject({name: "DataError", message: "Top up type is forbidden for this player"});
                 }
                 //check player merchant group
-                if (!player.merchantGroup || !player.merchantGroup.merchants) {
-                    return Promise.reject({name: "DataError", message: "Player does not have valid merchant data"});
-                }
+                // if (!player.merchantGroup || !player.merchantGroup.merchants) {
+                //     return Promise.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                // }
 
                 // Check segregated merchant min max amount
                 // if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {

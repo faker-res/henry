@@ -76,14 +76,14 @@ div
             .proposalMessage
                 text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
                 label.text-danger.newProposalAlert
-                a(ng-click='vm.getPaymentMonitorRecord()')
+                a(ng-click='vm.getPaymentMonitorTotalRecord();vm.getPaymentMonitorTotalCompletedRecord()')
                     .fa.fa-refresh
                 .pull-right
                     label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
-                        input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                        input#paymentTotalAutoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
                     .inlineBlk.hidden
                         text {{"Time left until next refresh" | translate}} :&nbsp;
-                        text#timeLeftRefreshOperation
+                        text#timeLeftRefreshOperation {{vm.paymentTotalRefreshTime }}
                         text s
             label {{"Total" | translate}} {{vm.paymentMonitorTotalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.paymentMonitorTotalQuery.querySearchTime}} {{"Seconds" | translate}}
             table#paymentMonitorTotalTable.common-table.display(style="min-width:100% ;overflow: scroll")

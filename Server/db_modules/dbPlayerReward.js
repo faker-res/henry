@@ -1787,7 +1787,15 @@ let dbPlayerReward = {
             {deleteFlag: deleteFlag}
         ]
     }).lean().then(promoCodeType => {
-        return promoCodeType;
+        let promoCodeTypeList = promoCodeType;
+        // get the auto promoCode template
+        let promoCodeTemplate = dbConfig.collection_promoCodeTemplate.find({}).lean();
+        let openPromoCodeTemplate = dbConfig.collection_openPromoCodeTemplate.find({}).lean();
+
+        return Promise.all([promoCodeTemplate, openPromoCodeTemplate]).then(result => {
+
+            return promoCodeTypeList.concat(result[0], result[1]);
+        })
     }),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
@@ -5942,6 +5950,12 @@ let dbPlayerReward = {
                     requiredPhoneNumber = Boolean(playerData.phoneNumber);
                 }
                 promArr.push(requiredPhoneNumber);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
             }
         }
 
@@ -7046,19 +7060,19 @@ let dbPlayerReward = {
                             })
                         }
 
-                        if (!rewardSpecificData || !rewardSpecificData[0]) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "No available consumption list for the reward"
-                            });
-                        }
-
                         if (!matchRequiredPhoneNumber) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
                                 message: localization.localization.translate("This player does not have phone number to apply this reward")
+                            });
+                        }
+
+                        if (!rewardSpecificData || !rewardSpecificData[0]) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "No available consumption list for the reward"
                             });
                         }
 

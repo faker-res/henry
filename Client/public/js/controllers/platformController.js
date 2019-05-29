@@ -24620,6 +24620,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitorTypeB':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeTypeBMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeTypeBMonitorQuery', function () {
@@ -24640,6 +24641,7 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case 'monitor':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeMonitor = {};
 
                         utilService.actionAfterLoaded('#promoCodeMonitorQuery', function () {
@@ -24698,6 +24700,7 @@ define(['js/app'], function (myApp) {
                         vm.newUserBlockPromoCodeUserGroup = {};
                         break;
                     case 'promoCodeAnalysis':
+                        vm.getAllPromoCodeTypes();
                         vm.promoCodeAnalysis = {};
                         vm.promoCodeAnalysis2 = {};
 
@@ -24741,6 +24744,9 @@ define(['js/app'], function (myApp) {
 
             vm.frontEndSettingPlatform = function () {
                 vm.frontEndDeletedList = [];
+                vm.rewardCategoryDeletedList = [];
+                vm.rewardDeletedList = [];
+
                 switch (vm.selectedFrontEndSettingTab) {
                     case 'rewardPointClarification':
                         vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
@@ -24864,10 +24870,17 @@ define(['js/app'], function (myApp) {
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
                     console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndPopularRecommendationData = data.data;
-                    }
-                    $scope.safeApply();
+                    $scope.$evalAsync( () => {
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.frontEndPopularRecommendationData = data.data;
+                            utilService.actionAfterLoaded('#testSave', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
+                                    item.parentElement.removeChild(item)
+                                });
+                            })
+                        }
+                    })
                 }, function (err) {
                     console.error('getFrontEndPopularRecommendationSetting error: ', err);
                 }, true);
@@ -24891,7 +24904,8 @@ define(['js/app'], function (myApp) {
 
             vm.deleteRewardCategory = function (categoryObjId) {
                 if (categoryObjId){
-                    let index = vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    vm.rewardCategoryDeletedList.push(categoryObjId);
+                    let index =vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
@@ -24902,6 +24916,7 @@ define(['js/app'], function (myApp) {
 
             vm.deleteRewardSetting = function (id) {
                 if (id){
+                    vm.rewardDeletedList.push(id);
                     let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
@@ -24911,20 +24926,17 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.updateAllRewardSettingData = function (categoryObjId) {
-                if (categoryObjId && vm.filterFrontEndSettingPlatform){
-                    socketService.$socket($scope.AppSocket, 'saveAllRewardSettingData', {platformObjId: vm.filterFrontEndSettingPlatform, categoryObjId: categoryObjId}, function (data) {
+            vm.updateRewardSetting = function () {
+                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
+                    function (data) {
                         $scope.$evalAsync( () => {
-                            console.log('saveAllRewardSettingData', data.data);
-                            if (data && data.data) {
-                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                            }
+                            console.log('updateRewardSetting is done', data);
+                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                         })
                     }, function (err) {
-                        console.error('saveAllRewardSettingData error: ', err);
-                    }, true);
-                }
+                        console.log('err', err);
+                    });
             };
 
             vm.loadRewardCategory =  function (platformObjId) {
@@ -24940,12 +24952,33 @@ define(['js/app'], function (myApp) {
                         console.error('getFrontEndRewardCategory error: ', err);
                     }, true);
 
-                    utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
+                    // utilService.actionAfterLoaded('#rewardSettingSaveBtn', function () {
+                    //     $(".rewardDroppableArea").sortable({
+                    //         connectWith: ".rewardDroppableArea",
+                    //     })
+                    // });
+
+                    setTimeout (() => {
                         $(".rewardDroppableArea").sortable({
                             connectWith: ".rewardDroppableArea",
+                            stop: function () {
+                                let arr = {};
+                                vm.frontEndRewardCategory.forEach(cato => {
+                                    arr[cato._id] = $('#'+cato._id).sortable('toArray');
+                                    arr[cato._id].forEach((v, i) => {
+                                        if (v){
+                                            let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                            if (index != -1){
+                                                vm.rewardSettingData[index].categoryObjId = cato._id;
+                                                vm.rewardSettingData[index].displayOrder = i + 1;
+                                            }
+                                        }
+                                    });
+                                });
+                                console.log("arr", arr);
+                            }
                         })
-                    });
-
+                    },4000);
                 }
             };
 
@@ -25402,12 +25435,14 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.frontEndCarouselSetting = data.data.map(item => {
                                 item.device = item.device.toString();
                                 return item;
                             });
 
                             utilService.actionAfterLoaded('#carouselSaveButton', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
                                     connectWith: ".connected-sortable",
                                     stop: function () {
@@ -25450,27 +25485,13 @@ define(['js/app'], function (myApp) {
                                             }
                                         );
                                     }
-                                })
+                                }).disableSelection()
                             })
                         }
                     })
                 }, function (err) {
                     console.error('getCarouselSetting error: ', err);
                 }, true);
-            };
-
-            vm.deleteFrontEndCarouselSetting = function (carouselObjId){
-                if (carouselObjId){
-                    $scope.$evalAsync( () => {
-                        vm.carouselSettingDeletedList.push(carouselObjId);
-                        let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
-                        if (index != -1){
-                            setTimeout(() => {
-                                vm.frontEndCarouselSetting.splice(index, 1);
-                            }, 0);
-                        }
-                    })
-                }
             };
 
             vm.updateFrontEndCarouselSetting = function () {
@@ -25514,7 +25535,7 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.carouselSettingDeletedList},
+                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
@@ -26625,10 +26646,58 @@ define(['js/app'], function (myApp) {
                 return allNames.includes(name);
             };
 
-            vm.getAllPromoCodeTypes = () => {
+            vm.getAllPromoCodeTypes = (platformList) => {
+                vm.promoCodeType1 = [];
+                vm.promoCodeType2 = [];
+                vm.promoCodeType3 = [];
+                vm.promoCodeTypeB = [];
+
                 socketService.$socket($scope.AppSocket, 'getAllPromoCodeTypes', {deleteFlag: false}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.allPromoCodeTypes = data.data;
+
+                        if (platformList && platformList.length) {
+                            vm.allPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                        }
+
+                        vm.allPromoCodeTypes.map(type => {
+                            if (vm.allPlatformData && vm.allPlatformData.length) {
+                                vm.allPlatformData.forEach(platform => {
+                                    if (type && type.platformObjId && platform && platform._id && platform.name) {
+                                        if (type.platformObjId.toString() === platform._id.toString()) {
+                                            type.platformName = platform.name;
+                                        }
+                                    }
+                                })
+                            }
+                        });
+
+                        vm.allPromoCodeTypes.forEach(entry => {
+                            if (entry.type == 1) {
+                                vm.promoCodeType1.push(entry);
+                                vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 2) {
+                                vm.promoCodeType2.push(entry);
+                                vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
+                            } else if (entry.type == 3) {
+                                vm.promoCodeType3.push(entry);
+                                vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
+                            }
+                        });
+
+                        vm.promoCodeTypeB = JSON.parse(JSON.stringify(vm.promoCodeType1.concat(vm.promoCodeType2)));
+                        if (vm.promoCodeTypeB && vm.promoCodeTypeB.length) {
+                            vm.promoCodeTypeB.forEach(item=> {
+                                if (item.type) {
+                                    if (item.type == 1) {
+                                        item.groupName = $translate("DEPOSIT_REQUIRED");
+                                    } else if (item.type == 2) {
+                                        item.groupName = $translate("NO_DEPOSIT_REQUIRED");
+                                    }
+
+                                }
+                            })
+                        }
                     });
                 });
             };
@@ -27041,8 +27110,12 @@ define(['js/app'], function (myApp) {
             vm.checkAllPromoCodeSubType = function (platformList) {
                 vm.promoCodeQuery.promoCodeSubType = [];
                 vm.promoCodeQuery.promoCodeSubTypeTotal = 0;
-                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.allPromoCodeTypes && vm.allPromoCodeTypes.length) {
-                    vm.allPromoCodeTypes.forEach(promoCode => {
+                vm.historyPromoCodeTypes = vm.allPromoCodeTypes;
+                if (platformList && platformList.length) {
+                    vm.historyPromoCodeTypes = vm.allPromoCodeTypes.filter(type => { return platformList.includes(type.platformObjId) });
+                }
+                if (vm.promoCodeQuery && vm.promoCodeQuery.promoCodeType && vm.historyPromoCodeTypes && vm.historyPromoCodeTypes.length) {
+                    vm.historyPromoCodeTypes.forEach(promoCode => {
                         if (promoCode.name && promoCode.type == vm.promoCodeQuery.promoCodeType) {
                             if (platformList && platformList.length && promoCode.platformObjId) {
                                 if (platformList.includes(promoCode.platformObjId)) {
@@ -27055,7 +27128,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.promoCodeQuery.promoCodeSubTypeTotal = vm.promoCodeQuery.promoCodeSubType.length;
                 }
-            }
+            };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
                 vm.selectedPromoCodes = [];
@@ -31482,9 +31555,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPlatformCredibilityRemarks = (platformList) => {
-                let sendData = {
-                    platformList: platformList && platformList.length ? platformList : []
-                }
                 if (vm.allCredibilityRemarks) {
                     vm.platformCredibilityRemarks = vm.allCredibilityRemarks;
                     if (platformList && platformList.length) {
@@ -41070,7 +41140,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             holder.splice(index, 1);
-                            $('#' + eventObjectId).hide();
+                            $('#' + eventObjectId).remove();
                         })
                     }
                 }
@@ -41190,6 +41260,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndRewardPointClarification', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.frontEndRewardPointClarificationData = data.data;
                         }
                     })
@@ -41219,6 +41290,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndPopUpAdvertisementSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data;
                         }
 
@@ -41238,7 +41310,7 @@ define(['js/app'], function (myApp) {
                                         }
                                     );
                                 }
-                            })
+                            }).disableSelection()
                         })
                     })
                 }, function (err) {
