@@ -411,7 +411,9 @@ var dbPlayerFeedback = {
                         },
                         processResponse: function (record) {
                             console.log('request result', record);
-                            result = result.concat(record.data);
+                            if(record.data) {
+                                result = result.concat(record.data);
+                            }
                         }
                     }
                 )
