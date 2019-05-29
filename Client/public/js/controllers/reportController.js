@@ -7932,7 +7932,8 @@ define(['js/app'], function (myApp) {
             vm["#rewardProposalQuery"].startTime = startTime;
             vm["#rewardProposalQuery"].endTime = endTime;
             var sendData = {
-                platformId: vm.curPlatformId || vm.selectedPlatform._id,
+                //platformId: vm.curPlatformId || vm.selectedPlatform._id,
+                platformList: vm.rewardProposalQuery.platformList,
                 startTime: startTime,
                 endTime: endTime,
                 status: vm.rewardProposalQuery.status,
@@ -7979,6 +7980,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
                     {title: $translate('PROPOSAL_TYPE'), data: "name", sClass:"AllPagesLabel"},
                     {title: $translate('event name'), data: "eventName"},
                     {title: $translate('CountRewardApplied'), data: "countRewardApplied" , sClass:"sumFloat alignRight"},
