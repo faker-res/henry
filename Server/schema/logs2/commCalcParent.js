@@ -9,6 +9,8 @@ let commCalcParentSchema = new Schema({
     parentObjId: {type: Schema.ObjectId, ref: 'partner'},
     // parent name
     parentName: {type: String},
+    // parent real name
+    parentRealName: {type: String},
     // current partner object id
     partnerObjId: {type: Schema.ObjectId, ref: 'partner'},
     // current partner name
