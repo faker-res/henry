@@ -13,6 +13,8 @@ var frontEndRewardSettingSchema = new Schema({
     status: {type: Number, default: 1, index: true},
     // whether the setting is showing up
     isVisible: {type: Boolean, default: true},
+    // display order based on individual category
+    displayOrder: {type: Number, index: true},
     pc: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
         onClickAction: {type: Number},

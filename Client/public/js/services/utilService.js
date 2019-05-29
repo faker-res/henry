@@ -1240,10 +1240,10 @@ define([], function () {
             if (userAgent == '') {
                 registrationInterface = 1;
             } else {
-                if (userAgent.browser.name && (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
+                if (userAgent && userAgent.browser && userAgent.browser.name && (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
                     registrationInterface = 2;
                 }
-                else if (userAgent.os.name && (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1)) {
+                else if (userAgent && userAgent.os && userAgent.os.name && (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1)) {
                     registrationInterface = 3;
                 } else {
                     registrationInterface = 1;
