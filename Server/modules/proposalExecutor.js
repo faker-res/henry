@@ -3908,17 +3908,29 @@ var proposalExecutor = {
                         if (proposalData.data.isPlatformRate) {
                             prom = updatePartnerCommRateConfig(proposalData);
                         } else {
-                            prom = updatePartnerCommissionConfig(proposalData);
+                            if (proposalData.data.isMultiLevel) {
+                                prom = dbPartnerCommissionConfig.updatePartnerMultiLvlCommissionConfig(proposalData);
+                            } else {
+                                prom = updatePartnerCommissionConfig(proposalData);
+                            }
                         }
                     }
 
                     if (proposalData.data.isResetAll) {
-                        prom = resetAllCustomizedCommissionRate(proposalData);
+                        if (proposalData.data.isMultiLevel) {
+                            prom = dbPartnerCommissionConfig.resetPartnerMultiLvlCommissionData(proposalData);
+                        } else {
+                            prom = resetAllCustomizedCommissionRate(proposalData);
+                        }
                     }
 
                     if (proposalData.data.isEditAll) {
                         if (proposalData.data.newConfigArr && proposalData.data.newConfigArr.length > 0) {
-                            prom = updateAllCustomizeCommissionRate(proposalData);
+                            if (proposalData.data.isMultiLevel) {
+                                prom = dbPartnerCommissionConfig.updateAllMultiLvlCustomizeCommissionRate(proposalData);
+                            } else {
+                                prom = updateAllCustomizeCommissionRate(proposalData);
+                            }
                         }
                     }
 
