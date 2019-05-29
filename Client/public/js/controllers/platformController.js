@@ -24878,18 +24878,11 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
-                            // $('.droppable-area1').html('');
-                            // $('.droppable-area2').html('');
-                            // $('.droppable-area3').html('');
+                            vm.clearAllDropArea();
                             vm.frontEndPopularRecommendationData = data.data;
                             vm.frontEndPopularRecommendationData1 = data.data ? data.data.filter(item=>{ return item.category == 1}) : [];
                             vm.frontEndPopularRecommendationData2 = data.data ? data.data.filter(item=>{ return item.category == 2}) : [];
                             vm.frontEndPopularRecommendationData3 = data.data ? data.data.filter(item=>{ return item.category == 3}) : [];
-                            // $('.connected-sortable').sortable('refresh');
-                            $('.droppable-area1').sortable('refresh');
-                            $('.droppable-area2').sortable('refresh');
-                            $('.droppable-area3').sortable('refresh');
-
                         }
                     })
 
@@ -40601,7 +40594,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewPopularRecommendationSetting(false, eventObjId);
             };
 
-            vm.submitPopularRecommendationSettings = () => {
+            vm.submitPopularRecommendationSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -40623,7 +40616,7 @@ define(['js/app'], function (myApp) {
                     "appNewPage",
                     "appPageDetail",
                 ];
-
+                await vm.updatePopularRecommendationSetting();
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -40711,71 +40704,78 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePopularRecommendationSetting = function () {
-                let arr1 = $('.droppable-area1').sortable('toArray');
-                let arr2 = $('.droppable-area2').sortable('toArray');
-                let arr3 = $('.droppable-area3').sortable('toArray');
-                let updateFrontEndPopularRecommendationData = [];
-                arr1.forEach (
-                    (v, i) => {
-                        if (v){
-                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            if (index != -1){
-                                // vm.frontEndPopularRecommendationData[index].category = 1;
-                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                selectedPopularRecommendation.category = 1;
-                                selectedPopularRecommendation.displayOrder = i + 1;
-                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                return new Promise((resolve, reject) => {
+
+                    let arr1 = $('.droppable-area1').sortable('toArray');
+                    let arr2 = $('.droppable-area2').sortable('toArray');
+                    let arr3 = $('.droppable-area3').sortable('toArray');
+                    let updateFrontEndPopularRecommendationData = [];
+                    arr1.forEach (
+                        (v, i) => {
+                            if (v){
+                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    // vm.frontEndPopularRecommendationData[index].category = 1;
+                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                    selectedPopularRecommendation.category = 1;
+                                    selectedPopularRecommendation.displayOrder = i + 1;
+                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                                }
                             }
                         }
-                    }
-                );
+                    );
 
-                arr2.forEach (
-                    (v, i) => {
-                        if (v){
-                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            if (index != -1){
-                                // vm.frontEndPopularRecommendationData[index].category = 2;
-                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                    arr2.forEach (
+                        (v, i) => {
+                            if (v){
+                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    // vm.frontEndPopularRecommendationData[index].category = 2;
+                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
 
-                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                selectedPopularRecommendation.category = 2;
-                                selectedPopularRecommendation.displayOrder = i + 1;
-                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                    selectedPopularRecommendation.category = 2;
+                                    selectedPopularRecommendation.displayOrder = i + 1;
+                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                                }
                             }
                         }
-                    }
-                );
+                    );
 
-                arr3.forEach (
-                    (v, i) => {
-                        if (v){
-                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                            if (index != -1){
-                                // vm.frontEndPopularRecommendationData[index].category = 3;
-                                // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-
-                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
-                                selectedPopularRecommendation.category = 3;
-                                selectedPopularRecommendation.displayOrder = i + 1;
-                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                    arr3.forEach (
+                        (v, i) => {
+                            if (v){
+                                let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    // vm.frontEndPopularRecommendationData[index].category = 3;
+                                    // vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                    let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                    selectedPopularRecommendation.category = 3;
+                                    selectedPopularRecommendation.displayOrder = i + 1;
+                                    updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
+                                }
                             }
                         }
-                    }
-                );
+                    );
 
-                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
-                    function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('updatePopularRecommendationSetting is done', data);
-                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
-                        })
-                    }, function (err) {
-                        console.log('err', err);
-                    });
+                    socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
+                        function (data) {
+                            $scope.$evalAsync( () => {
+                                console.log('updatePopularRecommendationSetting is done', data);
+                                vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                                resolve();
+                            })
+                        }, function (err) {
+                            console.log('err', err);
+                        });
+                })
             };
-
+            vm.clearAllDropArea = function () {
+                $('.droppable-area1').children().remove();
+                $('.droppable-area2').children().remove();
+                $('.droppable-area3').children().remove();
+            }
             vm.deleteFrontEndSetting = function (eventObjectId, holder){
                 if (eventObjectId){
                     vm.frontEndDeletedList.push(eventObjectId);
