@@ -288,7 +288,7 @@
                                     td
                                         input.form-control(ng-model="vm.rewardVisible[value.name].visibleIfCreditLessThan" type="{{value.visibleIfCreditLessThan.type}}" data-cond-name="{{value.visibleIfCreditLessThan.name}}" ng-disabled="value.visibleIfCreditLessThan.disabled")
                                     td
-                                        select.form-control(ng-model="vm.rewardVisible[value.name].visibleIfAppliedFollowingReward" ng-options="i as v | translate for (i,v) in value.visibleIfAppliedFollowingReward.options" data-cond-name="{{value.visibleIfAppliedFollowingReward.name}}" ng-disabled="value.visibleIfAppliedFollowingReward.disabled", multiple, bsp)
+                                        select.spicker.form-control(ng-model="vm.rewardVisible[value.name].visibleIfAppliedFollowingReward" ng-options="i as v | translate for (i,v) in value.visibleIfAppliedFollowingReward.options" data-cond-name="{{value.visibleIfAppliedFollowingReward.name}}" ng-disabled="value.visibleIfAppliedFollowingReward.disabled", multiple, bsp)
                                     td
                                         input.form-control(ng-model="vm.rewardVisible[value.name].visibleIfTopUpCountMoreThan" type="{{value.visibleIfTopUpCountMoreThan.type}}" data-cond-name="{{value.visibleIfTopUpCountMoreThan.name}}" ng-disabled="value.visibleIfTopUpCountMoreThan.disabled")
                                     td

@@ -2435,7 +2435,6 @@ var dbPlayerConsumptionRecord = {
     },
 
     winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
-        console.log('winRateReport - start');
         let participantsProm;
         const matchObj = {
             createTime: {
@@ -2462,17 +2461,13 @@ var dbPlayerConsumptionRecord = {
                 {
                     $group: {
                         _id: groupById,
-                        playerId: { $addToSet: "$playerId" },
-                        total_amount: { $sum: "$amount"},
-                        validAmount: { $sum: "$validAmount"},
-                        consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
-                        bonusAmount: { $sum: "$bonusAmount" }
+                        playerId: { $addToSet: "$playerId" }
                     }
                 }
             ]).read("secondaryPreferred");
         } else {
             //find the number of player consumption (non-repeat), include all providers
-            // participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
+            participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         }
 
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
@@ -2481,7 +2476,6 @@ var dbPlayerConsumptionRecord = {
             {
                 $group: {
                     _id: groupById,
-                    playerId: { $addToSet: "$playerId" },
                     total_amount: { $sum: "$amount"},
                     validAmount: { $sum: "$validAmount"},
                     consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
@@ -2494,26 +2488,24 @@ var dbPlayerConsumptionRecord = {
             return (data && data.gameProviders) ? data.gameProviders : [];
         })
 
-        return Promise.all([totalAmountProm, gameProviderProm]).then(
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
             data => {
-                console.log('winRateReport - first prom', data);
                 let participantNumber = 0;
                 let consumptionTimes = 0;
                 let totalAmount = 0;
                 let validAmount = 0;
                 let bonusAmount = 0;
                 let returnData = [];
-                let totalSumData = data[0] ? data[0] : [];
-                let gameProviders = data[1];
-                let participantData =
-                    totalSumData && totalSumData[0] && totalSumData[0].playerId ? totalSumData[0].playerId : [];
+                let totalSumData = data[1] ? data[1] : [];
+                let gameProviders = data[2];
+                let participantData = data[0] ? data[0] : [];
 
-                if (!listAll && data && data[0] && data[0][0]) {
-                    participantNumber = participantData.length;
-                    consumptionTimes = data[0][0].consumptionTimes;
-                    totalAmount = data[0][0].total_amount;
-                    validAmount = data[0][0].validAmount;
-                    bonusAmount = data[0][0].bonusAmount;
+                if (!listAll && data && data[0] && data[1] && data[1][0]) {
+                    participantNumber = data[0].length;
+                    consumptionTimes = data[1][0].consumptionTimes;
+                    totalAmount = data[1][0].total_amount;
+                    validAmount = data[1][0].validAmount;
+                    bonusAmount = data[1][0].bonusAmount;
                     // return sum of "all" provider winrate data
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {

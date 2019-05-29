@@ -1600,6 +1600,9 @@
                 .panel-body
                     #rewardProposalQuery.col-md-12.well
                         .search-filters-item
+                            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                            select.form-control.spicker(ng-model='vm.rewardProposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                        .search-filters-item
                             label {{"Start date"|translate}}
                             .startTime
                         .search-filters-item
@@ -1681,12 +1684,10 @@
                             select.form-control(ng-model='vm.selectedRewardPlatform', ng-change='vm.getOtherRewardList()')
                                 option(value="")
                                 option(ng-repeat='v in vm.platformList', value='{{v._id}}') {{v.name|translate}}
-                        .search-filters-item(ng-if="vm.otherRewardList.length > 0")
+                        .search-filters-item
                             label.control-label  {{'REWARD' | translate}}
                                 select.form-control(ng-model='vm.selectedOtherReward', ng-change='vm.loadOtherRewardPage(vm.getPageNameByRewardObjId(vm.selectedOtherReward), vm.selectedOtherReward, vm.getRewardCodeByRewardObjId(vm.selectedOtherReward))' style="min-width:100%; display:inline-block;")
                                     option(ng-repeat='v in vm.otherRewardList', value='{{v._id}}') {{v.name|translate}}
-                        .search-filters-item(ng-if="vm.selectedRewardPlatform && vm.otherRewardList.length == 0")
-                            span.text-danger  {{"No Reward Task" | translate}}
                         .panel.panel-primary(ng-show='vm.currentRewardCode')
                             .panel-heading
                                 label {{'PROPOSAL' | translate}}
@@ -1741,6 +1742,9 @@
                 .panel-body
                    #rewardReportAnalysis
                     .col-md-12.well
+                        .search-filters-item
+                            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                            select.form-control.spicker(ng-model='vm.rewardReportAnalysis.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                         .threeBoxes
                             label {{'PERIOD' | translate}}
                             select.form-control(ng-model='vm.rewardReportAnalysis.periodText')

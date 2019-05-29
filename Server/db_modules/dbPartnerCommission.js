@@ -125,6 +125,7 @@ const dbPartnerCommission = {
                         parentCommissionDetail[objId] = parentCommissionDetail[objId] || {
                             parentObjId: objId,
                             parentName: parent.partnerName,
+                            parentRealName: parent.realName,
                             startTime: startTime,
                             partnerObjId: partner._id,
                             partnerName: partner.partnerName,
@@ -180,7 +181,7 @@ const dbPartnerCommission = {
                             groupId: groupRate.groupId,
                             amount: rawDirectCommission, // direct amount
                             totalConsumption: totalConsumption,
-                            commissionRate: directCommissionRate,
+                            commissionRate: directCommissionRate.commissionRate,
                             isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                             platformFee: platformFee,
                             platformFeeRate: platformFeeRate,
@@ -259,6 +260,13 @@ const dbPartnerCommission = {
                         parentComm.nettCommission = parentComm.grossCommission;
                         if (bonusBased && grossCommission) {
                             parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
+                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
+                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
+                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
+                            parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
+                            parentComm.rewardFeeRate = commRate.rateAfterRebatePromo;
+                            parentComm.topUpFeeRate = commRate.rateAfterRebateTotalDeposit;
+                            parentComm.withdrawalFeeRate = commRate.rateAfterRebateTotalWithdrawal;
                         }
                     });
 

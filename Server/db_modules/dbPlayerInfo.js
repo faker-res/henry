@@ -20115,6 +20115,7 @@ let dbPlayerInfo = {
                 ).then(
                     data => {
                         console.log('getConsumptionDetailOfPlayers - end');
+                        console.log('getConsumptionDetailOfPlayers data', data);
                         let retArr = [];
 
                         if (data && data.length) {
@@ -20133,7 +20134,9 @@ let dbPlayerInfo = {
                                         }
                                     }
                                     else {
-                                        retArr.push(e);
+                                        if(e) {
+                                            retArr.push(e);
+                                        }
                                     }
                                 }
                             );
