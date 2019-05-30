@@ -56,12 +56,12 @@ const apis = {
         game: services.getContentProviderAPIClientForGame,
     },
 
-    PaymentAPI: {
-        real: services.getPaymentManagementClient,
-        mock: mockedPaymentApiClientSpec,
-        store: serverInstance.setPaymentAPIClient,
-        disabled: env.disablePaymentAPI
-    },
+    // PaymentAPI: {
+    //     real: services.getPaymentManagementClient,
+    //     mock: mockedPaymentApiClientSpec,
+    //     store: serverInstance.setPaymentAPIClient,
+    //     disabled: env.disablePaymentAPI
+    // },
 
     SMSAPI: {
         real: services.getSMSAPIClient,
