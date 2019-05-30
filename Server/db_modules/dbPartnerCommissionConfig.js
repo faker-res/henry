@@ -143,9 +143,7 @@ const dbPartnerCommissionConfig = {
             delete defCommConfig[i].__v;
             delete defCommConfig[i]._id;
 
-            if (!(defCommConfig[i] && defCommConfig[i].partner)) {
-                defCommConfig[i].partner = proposalData.data.partnerObjId;
-            }
+            defCommConfig[i].partner = proposalData.data.partnerObjId;
 
             updateSchema.findOneAndUpdate({
                 platform: defCommConfig[i].platform,
