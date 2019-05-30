@@ -1491,14 +1491,22 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.partnerObjId && proposalData.data.updateChildPartnerName) {
                     let childPartnerData = [];
                     let removedChildPartnerArr = [];
+                    let newChildPartnerArr = [];
                     let proms = [];
 
-                    let query = {
-                        partnerName: {$in: proposalData.data.updateChildPartnerName},
-                        platform: proposalData.data.platformId
-                    };
+                    let partnerProm = Promise.resolve();
 
-                    dbconfig.collection_partner.find(query, {_id: 1}).lean().then(childPartner => {
+                    if (proposalData.data.updateChildPartnerName.length) {
+                        let query = {
+                            partnerName: {$in: proposalData.data.updateChildPartnerName},
+                            platform: proposalData.data.platformId
+                        };
+                        partnerProm = dbconfig.collection_partner.find(query, {_id: 1}).lean();
+
+                        newChildPartnerArr = proposalData.data.updateChildPartnerName.filter((x) => proposalData.data.curChildPartnerName.indexOf(x) === -1);
+                    }
+
+                    partnerProm.then(childPartner => {
                         childPartnerData = childPartner ? childPartner : [];
 
                         if (proposalData.data.curChildPartnerName && proposalData.data.curChildPartnerName.length > 0) {
@@ -1556,6 +1564,8 @@ var proposalExecutor = {
                                 );
                             }
                         }
+
+                        proms.push(dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr));
 
                         if (proms && proms.length > 0) {
                             Q.all(proms).then(
