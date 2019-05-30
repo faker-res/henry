@@ -16177,7 +16177,9 @@ define(['js/app'], function (myApp) {
             vm.updateChildPartner = [];
             if (vm.childPartnerList && vm.childPartnerList.length > 0) {
                 for (let i = 0, len = vm.childPartnerList.length; i < len; i++) {
-                    vm.updateChildPartner.push(vm.childPartnerList[i].partnerName);
+                    if (vm.childPartnerList[i].partnerName) {
+                        vm.updateChildPartner.push(vm.childPartnerList[i].partnerName);
+                    }
                 }
             }
         };
@@ -16208,6 +16210,7 @@ define(['js/app'], function (myApp) {
                 partnerId: vm.selectedSinglePartner.partnerId,
                 partnerName: vm.selectedSinglePartner.partnerName,
                 partnerObjId: vm.selectedSinglePartner._id,
+                commissionType: vm.selectedSinglePartner.commissionType,
                 curChildPartnerHeadCount: vm.curChildPartner ? vm.curChildPartner.length : 0,
                 updateChildPartnerHeadCount: countUpdateChildPartner,
                 curChildPartnerName: vm.curChildPartner,

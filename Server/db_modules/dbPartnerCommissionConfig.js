@@ -78,6 +78,66 @@ const dbPartnerCommissionConfig = {
         )
     },
 
+    assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {
+        if (!(proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.commissionType
+            && proposalData.data.platformId && (removedChildPartnerArr.length || newChildPartnerArr.length))) {
+            return Q.reject({name: "DataError", message: "Invalid proposal data"});
+        }
+
+
+        if (newChildPartnerArr.length) {
+            let query = {
+                partnerName: {$in: newChildPartnerArr},
+                platform: proposalData.data.platformId
+            };
+
+            let partnerObjs = await dbconfig.collection_partner.find(query, {_id: 1}).lean();
+            if (!(partnerObjs && partnerObjs.length)) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner"});
+            }
+            let parentCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(proposalData.data.partnerObjId, proposalData.data.commissionType);
+            if (!(parentCommConfig && parentCommConfig.length)) {
+                return Promise.reject({name: "DataError", message: "Cannot find commission config"});
+            }
+
+            partnerObjs.map(partner => {
+                dbconfig.collection_partnerMainCommConfig.remove({
+                    partner: partner._id,
+                    platform: proposalData.data.platformId
+                }).catch(errorUtils.reportError);
+            });
+
+            updateDownLineCommConfig(proposalData.data.partnerObjId, proposalData.data.platformId, proposalData.data.commissionType, parentCommConfig, true, partnerObjs);
+        }
+
+        if (removedChildPartnerArr.length) {
+            if (proposalData.data.updateChildPartnerHeadCount == 0) {
+                dbconfig.collection_partnerDefDownLineCommConfig.remove({
+                    partner: proposalData.data.partnerObjId,
+                    platform: proposalData.data.platformId
+                }).catch(errorUtils.reportError);
+            }
+
+            let query = {
+                partnerName: {$in: removedChildPartnerArr},
+                platform: proposalData.data.platformId
+            };
+
+            let partnerObjs = await dbconfig.collection_partner.find(query, {_id: 1}).lean();
+            if (!(partnerObjs && partnerObjs.length)) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner"});
+            }
+
+            partnerObjs.map(partner => {
+                dbconfig.collection_partnerDownLineCommConfig.remove({
+                    platform: proposalData.data.platformId,
+                    partner: partner._id,
+                }).catch(errorUtils.reportError);
+            });
+        }
+
+    },
+
     updateMainPartnerCommissionData: async function (parentObjId, partnerObjId, platformObjId, commissionType) {
         let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: platformObjId}, {_id: 1}).lean();
         if ((!providerGroups && providerGroups.length)) {
@@ -87,32 +147,32 @@ const dbPartnerCommissionConfig = {
         if (parentObjId) { // checking - only update main partner commission
             return;
         }
-            let defConfigs = await dbconfig.collection_platformPartnerCommConfig.find({
-                // provider: providerGroups[i]._id,
-                provider: {$in: providerGroups.map(provider => provider._id)},
-                platform: platformObjId,
-                commissionType
-            }).lean();
+        let defConfigs = await dbconfig.collection_platformPartnerCommConfig.find({
+            // provider: providerGroups[i]._id,
+            provider: {$in: providerGroups.map(provider => provider._id)},
+            platform: platformObjId,
+            commissionType
+        }).lean();
 
-            if (defConfigs && defConfigs.length) {
-                for (let i = 0; i < defConfigs.length; i++) {
-                    let defConfig = defConfigs[i];
+        if (defConfigs && defConfigs.length) {
+            for (let i = 0; i < defConfigs.length; i++) {
+                let defConfig = defConfigs[i];
 
-                    if (!defConfig) {
-                        // this means platform haven't properly set default commission
-                        continue;
-                    }
-                    delete defConfig.__v;
-                    delete defConfig._id;
-                    defConfig.partner = partnerObjId;
-                    dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
-                        platform: platformObjId,
-                        partner: partnerObjId,
-                        provider: defConfig.provider
-                    }, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
+                if (!defConfig) {
+                    // this means platform haven't properly set default commission
+                    continue;
                 }
-                updateDownLineCommConfig(partnerObjId, platformObjId, commissionType, defConfigs, true);
+                delete defConfig.__v;
+                delete defConfig._id;
+                defConfig.partner = partnerObjId;
+                dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
+                    platform: platformObjId,
+                    partner: partnerObjId,
+                    provider: defConfig.provider
+                }, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
             }
+            updateDownLineCommConfig(partnerObjId, platformObjId, commissionType, defConfigs, true);
+        }
     },
 
     resetPartnerMultiLvlCommissionData: async function (proposalData) {
@@ -382,13 +442,19 @@ function clearParent (partnerObjId, platformObjId) {
     return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObjId, platform: platformObjId}, {$unset: {parent: ""}}, {new:true}).lean();
 }
 
-async function updateDownLineCommConfig (parentObjId, platformObjId, commissionType, commConfigObj, isResetCommission) {
+async function updateDownLineCommConfig (parentObjId, platformObjId, commissionType, commConfigObj, isResetCommission, partnersObjArr) {
     // if (!parentObjId && !commConfigObj) {
     if (!parentObjId || !commConfigObj || !commConfigObj.length) {
         return;
     }
 
-    let partnersObj = await dbconfig.collection_partner.find({parent: parentObjId}, {_id: 1, commissionType: 1}).lean();
+    let partnersObj;
+    if (partnersObjArr && partnersObjArr.length) {
+        partnersObj = partnersObjArr;
+    } else {
+        partnersObj = await dbconfig.collection_partner.find({parent: parentObjId}, {_id: 1, commissionType: 1}).lean();
+    }
+
     if (!partnersObj || !partnersObj.length) {
         return;
     }
