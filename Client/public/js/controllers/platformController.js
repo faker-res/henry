@@ -41340,6 +41340,8 @@ define(['js/app'], function (myApp) {
                             vm.popUpAdvertisementData = data.data;
                         }
 
+                        $('.popUpAdvModal .droppable-area1').children().remove();
+
                         utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
                             $(".popUpAdvModal .droppable-area1").sortable({
                                 connectWith: ".connected-sortable",
@@ -41370,19 +41372,21 @@ define(['js/app'], function (myApp) {
 
             vm.updatePopUpAdvertisementSetting = function () {
                 let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
-
+                let updateArr = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                                let selectedAdv = vm.popUpAdvertisementData[index];
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
                             }
                         }
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: vm.popUpAdvertisementData, deletedList: vm.frontEndDeletedList},
+                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopUpAdvertisementSetting is done', data);
