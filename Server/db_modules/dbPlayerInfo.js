@@ -22317,7 +22317,8 @@ let dbPlayerInfo = {
                      platformId: playerData.platform,
                      playerObjId: playerData._id,
                      playerName: playerData.name,
-                     DOB: data.DOB
+                     DOB: data.DOB,
+                     remark:localization.localization.translate("DOB")
                  }
              }
              if (playerData.DOB) {
