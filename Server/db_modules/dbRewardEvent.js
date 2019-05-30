@@ -2850,6 +2850,10 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEvent.find(query).populate({
             path: "type",
             model: dbconfig.collection_rewardType
+        }).populate({
+            path: "platform",
+            model: dbconfig.collection_platform,
+            select: "_id name platformId"
         }).sort({updateTime: -1}).lean().exec();
     },
 

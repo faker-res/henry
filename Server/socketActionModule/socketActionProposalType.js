@@ -199,7 +199,16 @@ function socketActionProposalType(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
             socketUtil.emitter(self.socket, dbProposalTypeProcessStep.deleteProposalTypeProcessStep, [data._ids], actionName, isValidData);
-        }
+        },
+
+        /**
+         * Get proposal types by platforms
+         */
+        getAllProposalTypeByPlatform: function getAllProposalTypeByPlatform(data) {
+            var isValidData = Boolean(data);
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbProposalType.getProposalTypeByPlatformId, [data.platform], actionName, isValidData);
+        },
     };
     socketActionProposalType.actions = this.actions;
 };
