@@ -24909,6 +24909,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
+                            $('#' + categoryObjId).remove();
                         })
                     }
                 }
@@ -24921,6 +24922,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.rewardSettingData.splice(index, 1);
+                            $('#' + id).remove();
                         })
                     }
                 }
@@ -24946,6 +24948,7 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.newRewardCategory = null;
                             }
                         })
                     }, function (err) {
@@ -25022,14 +25025,24 @@ define(['js/app'], function (myApp) {
                         let index = vm.rewardSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
                         if (index != -1){
                             vm.rewardSetting = _.clone(vm.rewardSettingData[index]);
-                            if( vm.rewardSetting && vm.rewardSetting.pc &&  vm.rewardSetting.pc.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.pc && vm.rewardSetting.pc.imageUrl) {
                                 $('#rewardPcImage').attr("src",vm.rewardSetting.pc.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.h5 &&  vm.rewardSetting.h5.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.h5 && vm.rewardSetting.h5.imageUrl) {
                                 $('#rewardH5Image').attr("src",vm.rewardSetting.h5.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.app &&  vm.rewardSetting.app.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.app && vm.rewardSetting.app.imageUrl) {
                                 $('#rewardAppImage').attr("src",vm.rewardSetting.app.imageUrl);
+                            }
+
+                            if (vm.rewardSetting && !vm.rewardSetting.pc){
+                                vm.rewardSetting.pc = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.h5){
+                                vm.rewardSetting.h5 = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.app){
+                                vm.rewardSetting.app = {};
                             }
                         }
                     }
@@ -25110,7 +25123,7 @@ define(['js/app'], function (myApp) {
                                 vm.rewardSetting.h5.activityUrl = vm.rewardImageUrl.rewardH5PageDetail
                             }
                             if (vm.rewardImageUrl.rewardAppImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
+                                vm.rewardSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
                             }
                             if (vm.rewardImageUrl.rewardAppNewPage){
                                 vm.rewardSetting.app.newPageUrl = vm.rewardImageUrl.rewardAppNewPage
@@ -25296,15 +25309,43 @@ define(['js/app'], function (myApp) {
                     let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
                     if (index != -1){
                         vm.newFrontEndCarousel = _.clone(vm.frontEndCarouselSetting[index]);
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            vm.newFrontEndCarousel.device = vm.newFrontEndCarousel.device.toString();
                         }
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            if (vm.newFrontEndCarousel.device == 1){
+                                $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==2){
+                                $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==3){
+                                $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
                         }
-                        if( vm.newFrontEndCarousel &&  vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
-                        }
+                    }
+                }
+
+                if (vm.newFrontEndCarousel){
+                    if (vm.newFrontEndCarousel.onClickAction){
+                       vm.newFrontEndCarousel.onClickAction = null;
+                    }
+                    if (vm.newFrontEndCarousel.newPageDetail){
+                        vm.newFrontEndCarousel.newPageDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.activityDetail){
+                       vm.newFrontEndCarousel.activityDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.rewardEventObjId){
+                        vm.newFrontEndCarousel.rewardEventObjId = null;
+                    }
+                    if (vm.newFrontEndCarousel.route){
+                        vm.newFrontEndCarousel.route = null;
+                    }
+                    if (vm.newFrontEndCarousel.gameCode){
+                        vm.newFrontEndCarousel.gameCode = null;
                     }
                 }
 
@@ -26713,13 +26754,13 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeTypeB = [];
 
                         vm.promoCodeTypes.forEach(entry => {
-                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
+                            if (entry.type == 1 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType1.push(entry);
                                 vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 2 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType2.push(entry);
                                 vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 3 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
@@ -40882,6 +40923,16 @@ define(['js/app'], function (myApp) {
                             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
                                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
                             }
+
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                                vm.popularRecommendationSetting.pc = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                                vm.popularRecommendationSetting.h5 = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                                vm.popularRecommendationSetting.app = {};
+                            }
                         }
                     }
                 }
@@ -41386,6 +41437,16 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
                                 $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                            }
+
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                                vm.popUpAdvertisementSetting.pc = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                                vm.popUpAdvertisementSetting.h5 = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                                vm.popUpAdvertisementSetting.app = {};
                             }
                         }
                     }

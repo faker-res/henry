@@ -3376,3 +3376,17 @@ hr {
     padding: .5em;
     margin: 1em 0em;
 }
+
+.frontendImagePreviewPanel {
+    padding: 10px;
+    border: 1px solid #aaa;
+    text-align: center;
+    height: 300px;
+}
+
+.frontendImagePreview {
+    display: block;
+    max-height: calc(100% - 30px);
+    margin: auto;
+}
+

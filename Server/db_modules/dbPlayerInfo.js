@@ -20133,7 +20133,9 @@ let dbPlayerInfo = {
                                         }
                                     }
                                     else {
-                                        retArr.push(e);
+                                        if(e) {
+                                            retArr.push(e);
+                                        }
                                     }
                                 }
                             );
