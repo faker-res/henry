@@ -25272,6 +25272,27 @@ define(['js/app'], function (myApp) {
                 $('#carouselH5Image').attr("src","");
                 $('#carouselAPPImage').attr("src","");
 
+                if (vm.newFrontEndCarousel){
+                    if (vm.newFrontEndCarousel.onClickAction){
+                        vm.newFrontEndCarousel.onClickAction = null;
+                    }
+                    if (vm.newFrontEndCarousel.newPageDetail){
+                        vm.newFrontEndCarousel.newPageDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.activityDetail){
+                        vm.newFrontEndCarousel.activityDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.rewardEventObjId){
+                        vm.newFrontEndCarousel.rewardEventObjId = null;
+                    }
+                    if (vm.newFrontEndCarousel.route){
+                        vm.newFrontEndCarousel.route = null;
+                    }
+                    if (vm.newFrontEndCarousel.gameCode){
+                        vm.newFrontEndCarousel.gameCode = null;
+                    }
+                }
+
                 if (carouselObjId) {
                     let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
                     if (index != -1){
@@ -25292,27 +25313,6 @@ define(['js/app'], function (myApp) {
                                 $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
                             }
                         }
-                    }
-                }
-
-                if (vm.newFrontEndCarousel){
-                    if (vm.newFrontEndCarousel.onClickAction){
-                       vm.newFrontEndCarousel.onClickAction = null;
-                    }
-                    if (vm.newFrontEndCarousel.newPageDetail){
-                        vm.newFrontEndCarousel.newPageDetail = null;
-                    }
-                    if (vm.newFrontEndCarousel.activityDetail){
-                       vm.newFrontEndCarousel.activityDetail = null;
-                    }
-                    if (vm.newFrontEndCarousel.rewardEventObjId){
-                        vm.newFrontEndCarousel.rewardEventObjId = null;
-                    }
-                    if (vm.newFrontEndCarousel.route){
-                        vm.newFrontEndCarousel.route = null;
-                    }
-                    if (vm.newFrontEndCarousel.gameCode){
-                        vm.newFrontEndCarousel.gameCode = null;
                     }
                 }
 
@@ -40912,38 +40912,57 @@ define(['js/app'], function (myApp) {
 
             vm.resetOnClickSetting = function (holder, type, actionId) {
                 let tempImageUrl = null;
-                if (holder && holder[type]) {
-                    if (holder[type] && holder[type].imageUrl){
-                        tempImageUrl = holder[type].imageUrl
-                    }
-                    switch (actionId) {
-                        case 1:
-                            holder[type] = {};
-                            holder[type].onClickAction = 1;
-                            break;
-                        case 2:
-                            holder[type] = {};
-                            holder[type].onClickAction = 2;
-                            break;
-                        case 3:
-                            holder[type] = {};
-                            holder[type].onClickAction = 3;
-                            break;
-                        case 4:
-                            holder[type] = {};
-                            holder[type].onClickAction = 4;
-                            break;
-                        case 5:
-                            holder[type] = {};
-                            holder[type].onClickAction = 5;
-                            break;
-                        case 6:
-                            holder[type] = {};
-                            holder[type].onClickAction = 6;
-                            break;
-                    }
+                if (type && actionId) {
+                    if (holder && holder[type]) {
+                        if (holder[type] && holder[type].imageUrl) {
+                            tempImageUrl = holder[type].imageUrl
+                        }
+                        switch (actionId) {
+                            case 1:
+                                holder[type] = {};
+                                holder[type].onClickAction = 1;
+                                break;
+                            case 2:
+                                holder[type] = {};
+                                holder[type].onClickAction = 2;
+                                break;
+                            case 3:
+                                holder[type] = {};
+                                holder[type].onClickAction = 3;
+                                break;
+                            case 4:
+                                holder[type] = {};
+                                holder[type].onClickAction = 4;
+                                break;
+                            case 5:
+                                holder[type] = {};
+                                holder[type].onClickAction = 5;
+                                break;
+                            case 6:
+                                holder[type] = {};
+                                holder[type].onClickAction = 6;
+                                break;
+                        }
 
-                    holder[type].imageUrl = tempImageUrl
+                        holder[type].imageUrl = tempImageUrl
+                    }
+                }
+                else{
+                    if (holder['newPageDetail']){
+                        holder['newPageDetail'] = null;
+                    }
+                    if (holder['activityDetail']){
+                        holder['activityDetail'] = null;
+                    }
+                    if (holder['rewardEventObjId']){
+                        holder['rewardEventObjId']= null;
+                    }
+                    if (holder['route']){
+                        holder['route'] = null;
+                    }
+                    if (holder['gameCode']){
+                        holder['gameCode'] = null;
+                    }
                 }
             };
 
