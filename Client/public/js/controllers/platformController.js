@@ -24784,10 +24784,10 @@ define(['js/app'], function (myApp) {
 
             vm.rewardSettingInit = function () {
                 setTimeout (() => {
-                    $(".rewardDroppableArea").sortable({
-                        connectWith: ".rewardDroppableArea"
+                    $(".droppable-area").sortable({
+                        connectWith: ".droppable-area"
                     })
-                },20);
+                },0);
             }
 
             vm.frontEndSettingTabClicked = function (choice) {
@@ -24884,6 +24884,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
+                            $('#' + categoryObjId).remove();
                         })
                     }
                 }
@@ -24902,7 +24903,7 @@ define(['js/app'], function (myApp) {
 
                     vm.frontEndRewardCategory.forEach(cato => {
                         console.log(cato);
-                        arr[cato._id] = $('#'+cato._id).sortable('toArray');
+                        arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
                         arr[cato._id].forEach((v, i) => {
                             if (v){
                                 let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
@@ -24919,11 +24920,9 @@ define(['js/app'], function (myApp) {
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
                             $scope.$evalAsync( () => {
-
                                 console.log('updateRewardSetting is done', data);
                                 vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                                 vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                                resolve();
                             })
                         }, function (err) {
                             console.log('err', err);
@@ -24938,6 +24937,7 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.newRewardCategory = null;
                                 vm.rewardSettingInit();
                             }
                         })
@@ -24950,39 +24950,18 @@ define(['js/app'], function (myApp) {
             vm.loadRewardSetting = function (platformObjId) {
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('getFrontEndRewardSetting', data.data);
-                            if (data && data.data) {
-                                vm.rewardSettingData = data.data;
-                            }
-
-                            let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
-                            utilService.actionAfterLoaded('#' + tempId, function () {
-                                $(".droppable-area").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr = {};
-                                        vm.frontEndRewardCategory.forEach(cato => {
-                                            arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
-                                            arr[cato._id].forEach((v, i) => {
-                                                if (v){
-                                                    let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1){
-                                                        vm.rewardSettingData[index].categoryObjId = cato._id;
-                                                        vm.rewardSettingData[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            });
-                                        });
-                                        console.log("arr", arr);
-                                    }
-                                })
-                            });
-                        })
+                      $scope.$evalAsync( () => {
+                          console.log('getFrontEndRewardSetting', data.data);
+                          if (data && data.data) {
+                              vm.rewardSettingData = data.data;
+                              vm.rewardSettingInit();
+                          }
+                      })
                     }, function (err) {
-                        console.error('getFrontEndRewardSetting error: ', err);
+                      console.error('getFrontEndRewardSetting error: ', err);
                     }, true);
                 }
+
             };
 
             vm.addNewRewardSetting = function (isNew, eventObjId) {
@@ -25015,14 +24994,24 @@ define(['js/app'], function (myApp) {
                         let index = vm.rewardSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
                         if (index != -1){
                             vm.rewardSetting = _.clone(vm.rewardSettingData[index]);
-                            if( vm.rewardSetting && vm.rewardSetting.pc &&  vm.rewardSetting.pc.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.pc && vm.rewardSetting.pc.imageUrl) {
                                 $('#rewardPcImage').attr("src",vm.rewardSetting.pc.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.h5 &&  vm.rewardSetting.h5.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.h5 && vm.rewardSetting.h5.imageUrl) {
                                 $('#rewardH5Image').attr("src",vm.rewardSetting.h5.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.app &&  vm.rewardSetting.app.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.app && vm.rewardSetting.app.imageUrl) {
                                 $('#rewardAppImage').attr("src",vm.rewardSetting.app.imageUrl);
+                            }
+
+                            if (vm.rewardSetting && !vm.rewardSetting.pc){
+                                vm.rewardSetting.pc = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.h5){
+                                vm.rewardSetting.h5 = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.app){
+                                vm.rewardSetting.app = {};
                             }
                         }
                     }
@@ -25104,7 +25093,7 @@ define(['js/app'], function (myApp) {
                                 vm.rewardSetting.h5.activityUrl = vm.rewardImageUrl.rewardH5PageDetail
                             }
                             if (vm.rewardImageUrl.rewardAppImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
+                                vm.rewardSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
                             }
                             if (vm.rewardImageUrl.rewardAppNewPage){
                                 vm.rewardSetting.app.newPageUrl = vm.rewardImageUrl.rewardAppNewPage
@@ -25290,15 +25279,43 @@ define(['js/app'], function (myApp) {
                     let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
                     if (index != -1){
                         vm.newFrontEndCarousel = _.clone(vm.frontEndCarouselSetting[index]);
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            vm.newFrontEndCarousel.device = vm.newFrontEndCarousel.device.toString();
                         }
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            if (vm.newFrontEndCarousel.device == 1){
+                                $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==2){
+                                $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==3){
+                                $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
                         }
-                        if( vm.newFrontEndCarousel &&  vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
-                        }
+                    }
+                }
+
+                if (vm.newFrontEndCarousel){
+                    if (vm.newFrontEndCarousel.onClickAction){
+                       vm.newFrontEndCarousel.onClickAction = null;
+                    }
+                    if (vm.newFrontEndCarousel.newPageDetail){
+                        vm.newFrontEndCarousel.newPageDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.activityDetail){
+                       vm.newFrontEndCarousel.activityDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.rewardEventObjId){
+                        vm.newFrontEndCarousel.rewardEventObjId = null;
+                    }
+                    if (vm.newFrontEndCarousel.route){
+                        vm.newFrontEndCarousel.route = null;
+                    }
+                    if (vm.newFrontEndCarousel.gameCode){
+                        vm.newFrontEndCarousel.gameCode = null;
                     }
                 }
 
@@ -40876,6 +40893,16 @@ define(['js/app'], function (myApp) {
                             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
                                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
                             }
+
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                                vm.popularRecommendationSetting.pc = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                                vm.popularRecommendationSetting.h5 = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                                vm.popularRecommendationSetting.app = {};
+                            }
                         }
                     }
                 }
@@ -41398,6 +41425,16 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
                                 $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                            }
+
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                                vm.popUpAdvertisementSetting.pc = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                                vm.popUpAdvertisementSetting.h5 = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                                vm.popUpAdvertisementSetting.app = {};
                             }
                         }
                     }
