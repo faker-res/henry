@@ -6095,7 +6095,7 @@ define(['js/app'], function (myApp) {
                 "order": vm.financialQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', 'aTargets': [1]},
-                    {'sortCol': 'createTime', 'aTargets': [9]}
+                    {'sortCol': 'createTime', 'aTargets': [10]}
                 ],
                 columns: [
                     {
