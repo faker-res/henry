@@ -199,13 +199,13 @@ function getContentProviderAPIClientForGame (options) {
     return connectToServer([env.cpAPIUrlForGame], allServicesIn(cpmsServices), null, options);
 }
 
-function getPaymentManagementClient (options) {
-    if (env.disablePaymentAPI) {
-        throw Error("You may not create this client: PaymentAPI is disabled.");
-    }
-    var loginData =  { name: 'testApiUser', password: '123' };
-    return connectToServer([env.paymentAPIUrl], allServicesIn(PaymentManagementServices), loginData, options);
-}
+// function getPaymentManagementClient (options) {
+//     if (env.disablePaymentAPI) {
+//         throw Error("You may not create this client: PaymentAPI is disabled.");
+//     }
+//     var loginData =  { name: 'testApiUser', password: '123' };
+//     return connectToServer([env.paymentAPIUrl], allServicesIn(PaymentManagementServices), loginData, options);
+// }
 
 function getSMSAPIClient (options) {
     if (env.disableSMSAPI) {
@@ -220,7 +220,7 @@ module.exports = {
     getProviderClient: getProviderClient,
     getPaymentClient: getPaymentClient,
     getClientClient: getClientClient,
-    getPaymentManagementClient: getPaymentManagementClient,
+    // getPaymentManagementClient: getPaymentManagementClient,
     getContentProviderAPIClient: getContentProviderAPIClient,
     getContentProviderAPIClientForGame: getContentProviderAPIClientForGame,
     getSMSAPIClient: getSMSAPIClient,

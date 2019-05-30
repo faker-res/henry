@@ -671,7 +671,7 @@ const dbPlayerPayment = {
                         }
                     } else {
                         proposal = proposalObj;
-                        let paymentUrl = env.paymentHTTPAPIUrl;
+                        let paymentUrl;
 
                         if (player && player.platform && player.platform.topUpSystemType && extConfig
                             && extConfig[player.platform.topUpSystemType]
