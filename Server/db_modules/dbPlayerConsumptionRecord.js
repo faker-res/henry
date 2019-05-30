@@ -31,6 +31,7 @@ let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 let dbPlatform = require("../db_modules/dbPlatform.js");
 const dbPlayerConsumptionHourSummary = require("../db_modules/dbPlayerConsumptionHourSummary");
+const dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -2309,7 +2310,7 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReportFromSummary: function (startTime, endTime, providerId, platformId, listAll) {
+    winRateReportFromSummary: async function (startTime, endTime, providerId, platformId, listAll) {
         let participantsProm;
         let groupById = null;
         let returnedObj;
@@ -2325,6 +2326,32 @@ var dbPlayerConsumptionRecord = {
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
         }
+
+        // go through start time to end time to check whether summary exist or not
+        function checkSummaryIsExist (startTime, endTime, data) {
+            return dbconfig.collection_winRateReportDataDaySummary.findOne({
+                createTime: {$gte: startTime, $lt: endTime}
+            }).lean().then(
+                res => {
+                    if (!res) {
+                        return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
+                    }
+
+                    return true;
+                }
+            );
+        }
+
+        console.log('start executeFunctionByDaysInterval');
+        let args = {
+            platformId: platformId
+        };
+        await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
+        console.log('end executeFunctionByDaysInterval');
+
+        // if not exist, go and summarize
+
+
 
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
