@@ -144,7 +144,13 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardEvent.getRandomRewardDetail, [data], actionName, isValidData);
-        }
+        },
+
+        getRewardByPlatform: function getRewardByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardEvent.getRewardEvents, [data.platform], actionName, isValidData);
+        },
     };
     socketActionRewardEvent.actions = this.actions;
 };

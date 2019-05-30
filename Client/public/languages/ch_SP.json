@@ -3824,6 +3824,7 @@
   "Setting For Pop-up Advertisement": "弹窗广告配置",
   "Note: can be inter-switchable between CS Test and Production": "注：项目可切换测试站和正式站",
   "Note: only allow to add, delete, move, double click to edit": "注：项目只可添加、删除、移动、双击编辑",
+  "Note: only allow to add, delete, double click to edit": "注：项目只可添加、删除、双击编辑",
   "FrontEndConfiguration2": "前端设置2",
   "POPULAR_RECOMMENDATION": "热门推荐",
   "PC Image Preview": "上传PC图片预览",

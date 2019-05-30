@@ -4218,6 +4218,7 @@ var proposal = {
         sortObj = sortObj || {};
 
         let proposalTypeArr = [];
+        let platformListQuery;
 
         if (reqData.financialPointsType && reqData.financialPointsType.length) {
             for (let i = 0; i < reqData.financialPointsType.length; i++) {
@@ -4261,10 +4262,13 @@ var proposal = {
             }
         }
 
-        let proposalTypeQ = {
-            platformId: reqData.platformId
-        }
+        let proposalTypeQ = {};
         let proposalProm;
+
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item => { return ObjectId(item)})};
+            proposalTypeQ.platformId = platformListQuery;
+        }
 
         if (proposalTypeArr.length > 1) {
             proposalTypeQ.name = {$in: proposalTypeArr};
@@ -4301,7 +4305,7 @@ var proposal = {
                 let proposalData = dbconfig.collection_proposal.find(proposalQuery).sort(sortObj).skip(index).limit(count).populate({
                     path: "process",
                     model: dbconfig.collection_proposalProcess
-                }).populate({path: "type", model: dbconfig.collection_proposalType});
+                }).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(populateProposalsWithPlatformData);
                 let proposalSummary = dbconfig.collection_proposal.aggregate([
                     {
                         $match: proposalQuery
@@ -6704,7 +6708,7 @@ var proposal = {
         )
     },
 
-    getRewardAnalysisProposal: (startDate, endDate, period, platformObjId, type, proposalNameArr) => {
+    getRewardAnalysisProposal: (startDate, endDate, period, platformList, type, proposalNameArr) => {
         let proposalArr = [];
 
         var dayStartTime = startDate;
@@ -6740,9 +6744,22 @@ var proposal = {
         let allRewardObjId = [];
         let allRewardObj = {};
         let prom;
+        let platformListQuery;
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        let query = {
+            name: {$in: proposalNameArr}
+        };
 
         if (type == "rewardName") {
-            prom = dbconfig.collection_rewardEvent.find({platform: ObjectId(platformObjId), name: {$in: proposalNameArr}}).lean()
+            if (platformListQuery) {
+                query.platform = platformListQuery;
+            }
+
+            prom = dbconfig.collection_rewardEvent.find(query).lean();
         } else {
             // let proposalNameArr = [];
             // for (let key in constProposalMainType) {
@@ -6750,12 +6767,11 @@ var proposal = {
             //         proposalNameArr.push(key);
             //     }
             // }
-            prom = dbconfig.collection_proposalType.find(
-                {
-                    platformId: ObjectId(platformObjId),
-                    name: {$in: proposalNameArr}
-                }
-            ).lean()
+            if (platformListQuery) {
+                query.platformId = platformListQuery;
+            }
+
+            prom = dbconfig.collection_proposalType.find(query).lean();
         }
 
         return prom.then(
@@ -6786,15 +6802,20 @@ var proposal = {
 
 
                     let matchObj = {
-                        "data.platformId": ObjectId(platformObjId),
+                        //"data.platformId": ObjectId(platformObjId),
                         // mainType: "Reward",
                         type: {$in: allRewardObjId},
                         createTime: {$gte: dayStartTime, $lt: dayEndTime},
                         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                     };
 
+                    if (platformListQuery) {
+                        matchObj["data.platformId"] = platformListQuery;
+                    }
+
                     let groupObj = {
-                        _id: "$type",
+                        //_id: "$type",
+                        _id: {"type": "$type", "platform": "$data.platformId"},
                         proposalCount: {$sum: 1},
                         player: {$addToSet: "$data.playerObjId"},
                         amount: {$sum: "$data.rewardAmount"}
@@ -6822,7 +6843,7 @@ var proposal = {
                                     if (type == "rewardName") {
                                         key = String(item._id);
                                     } else {
-                                        key = allRewardObj[String(item._id)];
+                                        key = allRewardObj[String(item._id.type)];
                                     }
                                     if (returnObj.hasOwnProperty(key)) {
                                         returnObj[key].proposalCount += item.proposalCount;

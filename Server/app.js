@@ -135,14 +135,14 @@ services.getContentProviderAPIClient({autoReconnect: true}).then(
     }
 );
 
-services.getPaymentManagementClient({autoReconnect: true}).then(
-    pClient => {
-        serverInstance.setPaymentAPIClient(pClient);
-        if( serverInstance.getPaymentAPIClient() ){
-            serverInstance.getPaymentAPIClient().startHeartBeat();
-        }
-    }
-);
+// services.getPaymentManagementClient({autoReconnect: true}).then(
+//     pClient => {
+//         serverInstance.setPaymentAPIClient(pClient);
+//         if( serverInstance.getPaymentAPIClient() ){
+//             serverInstance.getPaymentAPIClient().startHeartBeat();
+//         }
+//     }
+// );
 
 // var dbPlatform = require("./db_modules/dbPlatform");
 // clientApiInstances.createSMSAPI().then(

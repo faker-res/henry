@@ -1980,7 +1980,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initAddRemarkRejectMultipleProposal = function () {
-            vm.rejectMultipleRemark = ""
+            vm.rejectMultipleRemark = "";
+            vm.rejectRemark = "";
         };
 
         vm.updateMultiselectProposal = function () {
