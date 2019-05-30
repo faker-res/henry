@@ -6056,6 +6056,281 @@ var dbPlatform = {
 
     },
 
+    getFrontEndConfig: function (platformId, code, clientType) {
+        let prom = Promise.resolve([]);
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1}).lean().then(
+            platform => {
+                if (platform && platform._id){
+                    let platformObjId = platform._id;
+                    if (code){
+                        code = code.trim();
+                    }
+                    switch (code) {
+                        case 'recommendation':
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            break;
+                        case 'reward':
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            break;
+                        case 'advertisement':
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            break;
+                        case 'rewardPoint':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
+                        case 'carousel':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
+                        case 'pageSetting':
+                            prom = getPageSetting(platformObjId, clientType);
+                            break;
+                        case 'skin':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
+                        default:
+                            prom = Promise.reject({
+                                name: "DataError",
+                                message: "The code is not available"
+                            })
+                    }
+                }
+                return prom;
+            }
+        );
+
+        function getFrontEndSettingType1 (platformObjId, clientType, code) {
+            let query = querySetUp(platformObjId, clientType, 1);
+            if (!query) {
+                return [];
+            }
+
+            let prom = Promise.resolve();
+
+            if (code == 'recommendation'){
+                prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "reward"){
+                prom = dbconfig.collection_frontEndRewardSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "categoryObjId",
+                    model: dbconfig.collection_frontEndRewardCategory
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "advertisement"){
+                prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
+            }
+
+            return prom.then(
+                settingList => {
+                    if (settingList && settingList.length) {
+                        settingList.map(
+                            setting => {
+                                setting.device = clientType;
+                                if (clientType == 1) {
+                                    return settingCleanUp(setting, 'pc');
+                                } else if (clientType == 2) {
+                                    return settingCleanUp(setting, 'h5');
+                                } else if (clientType == 4) {
+                                    return settingCleanUp(setting, 'app');
+                                }
+                            }
+                        )
+                        return settingList
+                    } else {
+                        return []
+                    }
+                }
+            );
+        }
+
+        function getFrontEndSettingType2 (platformObjId, clientType, code) {
+            let query = querySetUp(platformObjId, clientType, 2, code);
+            if (!query) {
+                return [];
+            }
+
+            let prom = Promise.resolve();
+
+            if (code == 'rewardPoint'){
+                prom = dbconfig.collection_frontEndRewardPointClarification.find(query).lean()
+            }
+            else if (code == "carousel"){
+                prom = dbconfig.collection_frontEndCarouselConfiguration.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "skin"){
+                prom = dbconfig.collection_frontEndSkinSetting.find(query).lean()
+            }
+
+            return prom.then(
+                settingList => {
+                    if (settingList && settingList.length) {
+                        settingList.map(
+                            setting => {
+                               if (setting && setting.rewardEventObjId){
+                                   setting.rewardCode = setting.rewardEventObjId && setting.rewardEventObjId.code ? setting.rewardEventObjId.code : null;
+                                   delete setting.rewardEventObjId;
+                               }
+
+                               return setting
+                            }
+                        )
+                        return settingList
+                    } else {
+                        return []
+                    }
+                }
+            );
+        }
+
+        function getPageSetting(platformObjId, clientType) {
+            let query = {
+                platformObjId: platformObjId
+            };
+
+            return dbconfig.collection_frontEndUrlConfiguration.find(query).populate({
+                path: "pcSkin",
+                model: dbconfig.collection_frontEndSkinSetting
+            }).populate({
+                path: "h5Skin",
+                model: dbconfig.collection_frontEndSkinSetting
+            }).populate({
+                path: "appSkin",
+                model: dbconfig.collection_frontEndSkinSetting
+            }).lean().then(
+                configList => {
+                    if (configList && configList.length) {
+                        configList.map(
+                            setting => {
+                                if (clientType == 1){
+                                   setting.skin = setting.pcSkin;
+                                }
+                                else if (clientType == 2){
+                                    setting.skin = setting.h5Skin;
+                                }
+                                else if (clientType == 4){
+                                    setting.skin = setting.appSkin;
+                                }
+
+                                if (setting.hasOwnProperty('pcSkin') ){
+                                    delete setting.pcSkin;
+                                }
+                                if (setting.hasOwnProperty('h5Skin')){
+                                    delete setting.h5Skin;
+                                }
+                                if (setting.hasOwnProperty('appSkin')){
+                                    delete setting.appSkin;
+                                }
+
+                                return setting
+                            }
+                        )
+                        return configList
+                    } else {
+                        return []
+                    }
+                }
+            )
+        }
+
+        function settingCleanUp (setting, holder) {
+            if (setting[holder]){
+                if (setting[holder].imageUrl){
+                    setting.imageUrl = setting[holder].imageUrl;
+                }
+                if (setting[holder].newPageDetail){
+                    setting.newPageDetail = setting[holder].newPageDetail;
+                }
+                if (setting[holder].newPageUrl){
+                    setting.newPageUrl = setting[holder].newPageUrl;
+                }
+                if (setting[holder].activityDetail){
+                    setting.activityDetail = setting[holder].activityDetail;
+                }
+                if (setting[holder].activityUrl){
+                    setting.activityUrl = setting[holder].activityUrl;
+                }
+                if (setting[holder].rewardEventObjId){
+                    setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
+                }
+                if (setting[holder].route){
+                    setting.route = setting[holder].route;
+                }
+                if (setting[holder].gameCode){
+                    setting.gameCode = setting[holder].gameCode;
+                }
+            }
+            if (setting.pc) {
+                delete setting.pc;
+            }
+            if (setting.h5) {
+                delete setting.h5;
+            }
+            if (setting.app) {
+                delete setting.app;
+            }
+            return setting
+        }
+
+        function querySetUp (platformObjId, clientType, setUpType, code) {
+            let query = {
+                platformObjId: ObjectId(platformObjId),
+                status: 1,
+            };
+
+            if (setUpType == 1){
+                if (clientType == 1){
+                    query.pc = {$exists: true};
+                }
+                else if (clientType == 2){
+                    query.h5 = {$exists: true};
+                }
+                else if (clientType == 4){
+                    query.app = {$exists: true};
+                }
+                else {
+                    query = null;
+                }
+            }
+            else if (setUpType == 2){
+                query.device = clientType;
+                if (code && code == "skin"){
+                    delete query.status;
+                }
+            }
+
+            return query;
+        }
+    },
+
     getPaymentSystemConfigByPlatform: function(platformObjId, platformId) {
         let paymentSystemConfig = [];
 
