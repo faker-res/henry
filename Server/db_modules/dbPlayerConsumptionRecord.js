@@ -2316,7 +2316,7 @@ var dbPlayerConsumptionRecord = {
         let returnedObj;
 
         const matchObj = {
-            createTime: {
+            date: {
                 $gte: startTime,
                 $lt: endTime
             },
@@ -2330,7 +2330,8 @@ var dbPlayerConsumptionRecord = {
         // go through start time to end time to check whether summary exist or not
         function checkSummaryIsExist (startTime, endTime, data) {
             return dbconfig.collection_winRateReportDataDaySummary.findOne({
-                createTime: {$gte: startTime, $lt: endTime}
+                platformId: data.platformId,
+                date: {$gte: startTime, $lt: endTime}
             }).lean().then(
                 res => {
                     if (!res) {
@@ -2346,7 +2347,7 @@ var dbPlayerConsumptionRecord = {
         let args = {
             platformId: platformId
         };
-        await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
+        // await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
         console.log('end executeFunctionByDaysInterval');
 
         // if not exist, go and summarize
