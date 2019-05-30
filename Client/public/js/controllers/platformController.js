@@ -25285,10 +25285,10 @@ define(['js/app'], function (myApp) {
                             if (vm.newFrontEndCarousel.device == 1){
                                 $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
                             }
-                            else if (vm.newFrontEndCarousel.device ==2){
+                            else if (vm.newFrontEndCarousel.device ==4){
                                 $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
                             }
-                            else if (vm.newFrontEndCarousel.device ==3){
+                            else if (vm.newFrontEndCarousel.device ==2){
                                 $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
                             }
                         }
@@ -25355,13 +25355,13 @@ define(['js/app'], function (myApp) {
                         "pcNewPage",
                         "pcPageDetail"
                     ];
-                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '2') {
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '4') {
                     promArr = [
                         "carouselAPPImage",
                         "appNewPage",
                         "appPageDetail"
                     ];
-                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '3') {
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '2') {
                     promArr = [
                         "carouselH5Image",
                         "H5NewPage",
@@ -25483,7 +25483,7 @@ define(['js/app'], function (myApp) {
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
                                 let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
-                                selectedfrontEndCarousel.device = 3;
+                                selectedfrontEndCarousel.device = 2;
                                 selectedfrontEndCarousel.displayOrder = i + 1;
                                 updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
@@ -25497,7 +25497,7 @@ define(['js/app'], function (myApp) {
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
                                 let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
-                                selectedfrontEndCarousel.device = 2;
+                                selectedfrontEndCarousel.device = 4;
                                 selectedfrontEndCarousel.displayOrder = i + 1;
                                 updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }

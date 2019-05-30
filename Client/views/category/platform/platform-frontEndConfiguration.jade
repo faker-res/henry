@@ -651,7 +651,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"CAROUSEL_DEVICE"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control(ng-model='vm.newFrontEndCarousel.device' ng-change='vm.resetCarouselUploadFile()')
+                                    select.form-control(ng-model='vm.newFrontEndCarousel.device' ng-change='vm.resetCarouselUploadFile(vm.newFrontEndCarousel._id)')
                                         option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
                             .full-width-input-block
                                 label(style="width: 30%;") {{"CAROUSEL_NAME"|translate}}
