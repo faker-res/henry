@@ -6043,7 +6043,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 financialPointsType: financialPointsType,
-                platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 5000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
@@ -6094,10 +6094,14 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.financialQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [9]}
+                    {'sortCol': 'proposalId', 'aTargets': [1]},
+                    {'sortCol': 'createTime', 'aTargets': [10]}
                 ],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {

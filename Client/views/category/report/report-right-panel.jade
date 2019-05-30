@@ -143,6 +143,9 @@
          div(ng-if='vm.showPageName=="FINANCIAL_POINTS_REPORT"')
             #financialPointsReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.form-control.spicker(ng-model='vm.financialQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
                     label {{"FINANCIAL_POINTS_TYPE"|translate}}
                     select.form-control#selectFinancialPointsType(multiple="multiple", ng-model='bbca')
                         option(ng-repeat='(i,v) in vm.financialPointsType', value='{{v}}') {{i | translate}}

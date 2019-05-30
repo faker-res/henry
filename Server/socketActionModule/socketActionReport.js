@@ -53,9 +53,9 @@ function socketActionReport(socketIO, socket) {
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
             data ["startTime"] = startTime;
             data["endTime"] = endTime;
-            if (data.platformId) {
-                data.platformId = ObjectId(data.platformId);
-            }
+            // if (data.platformId) {
+            //     data.platformId = ObjectId(data.platformId);
+            // }
 
             socketUtil.emitter(self.socket, dbProposal.getFinancialPointsReport, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
         },

@@ -4218,6 +4218,7 @@ var proposal = {
         sortObj = sortObj || {};
 
         let proposalTypeArr = [];
+        let platformListQuery;
 
         if (reqData.financialPointsType && reqData.financialPointsType.length) {
             for (let i = 0; i < reqData.financialPointsType.length; i++) {
@@ -4261,10 +4262,13 @@ var proposal = {
             }
         }
 
-        let proposalTypeQ = {
-            platformId: reqData.platformId
-        }
+        let proposalTypeQ = {};
         let proposalProm;
+
+        if(reqData.platformList && reqData.platformList.length > 0) {
+            platformListQuery = {$in: reqData.platformList.map(item => { return ObjectId(item)})};
+            proposalTypeQ.platformId = platformListQuery;
+        }
 
         if (proposalTypeArr.length > 1) {
             proposalTypeQ.name = {$in: proposalTypeArr};
@@ -4301,7 +4305,7 @@ var proposal = {
                 let proposalData = dbconfig.collection_proposal.find(proposalQuery).sort(sortObj).skip(index).limit(count).populate({
                     path: "process",
                     model: dbconfig.collection_proposalProcess
-                }).populate({path: "type", model: dbconfig.collection_proposalType});
+                }).populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(populateProposalsWithPlatformData);
                 let proposalSummary = dbconfig.collection_proposal.aggregate([
                     {
                         $match: proposalQuery
