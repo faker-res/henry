@@ -3380,7 +3380,8 @@ define(['js/app'], function (myApp) {
             vm.playerAlipayAccReport.index = 0;
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                // platformObjId: vm.selectedPlatform._id,
+                platformList: vm.playerAlipayAccReport.platformList,
                 startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -3418,6 +3419,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformId.name"},
                     {title: $translate('Proposal No'), data: "proposalId"},
                     {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
                     {title: $translate('RELATED_AMOUNT'), data: "data.amount"},

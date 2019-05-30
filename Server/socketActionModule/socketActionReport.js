@@ -666,9 +666,9 @@ function socketActionReport(socketIO, socket) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime));
 
-            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname, data.alipayRemark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [data.platformList, startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname, data.alipayRemark], actionName, isValidData);
         },
 
         getFinancialReportByDay: function getFinancialReportByDay(data) {

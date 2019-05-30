@@ -11,15 +11,23 @@ const ObjectId = mongoose.Types.ObjectId;
 const dbPropUtil = require('./../db_common/dbProposalUtility');
 
 let dbReport = {
-    getPlayerAlipayAccReport: function (platformObjId, startTime, endTime, playerName, alipayAcc, alipayName, alipayNickname, alipayRemark) {
+    getPlayerAlipayAccReport: function (platformList, startTime, endTime, playerName, alipayAcc, alipayName, alipayNickname, alipayRemark) {
+        let platformListQuery;
+
         let query = {
-            'data.platformId': platformObjId,
+            //'data.platformId': platformObjId,
             createTime: {$gte: startTime, $lt: endTime},
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         };
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item => { return ObjectId(item)})};
+            query['data.platformId'] = platformListQuery;
+        }
+
         let retFields = {
             proposalId: 1, 'data.playerName': 1, 'data.amount': 1, createTime: 1, 'data.remark': 1,
-            'data.alipayerAccount': 1, 'data.alipayer': 1, 'data.alipayerNickName': 1, 'data.alipayRemark': 1
+            'data.alipayerAccount': 1, 'data.alipayer': 1, 'data.alipayerNickName': 1, 'data.alipayRemark': 1, 'data.platformId': 1
         };
 
         if (playerName) { query['data.playerName'] = playerName }
@@ -42,7 +50,7 @@ let dbReport = {
         if (alipayNickname) { query['data.alipayerNickName'] = alipayNickname }
         if (alipayRemark) { query['$or'] = [{'data.alipayRemark': alipayRemark}, {'data.remark': alipayRemark}] }
 
-        return dbPropUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_ALIPAY_TOP_UP, query, retFields);
+        return dbPropUtil.getProposalDataOfTypeByPlatforms(platformListQuery, constProposalType.PLAYER_ALIPAY_TOP_UP, query, retFields);
     },
 
     getPaymentMonitorReport: (data, index, limit, sortCol) => {
