@@ -439,6 +439,30 @@
     </div>
 </div>
 
+<h3>Get Frontend Configuration (获取前端設置数据接口)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId" type="number">
+        </label>
+    </div>
+    <div>
+        <label> Code
+            <input name="code" type="text">
+        </label>
+    </div>
+    <div>
+        <label> Client Type
+            <input name="clientType" type="number">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getFrontEndConfig">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {
