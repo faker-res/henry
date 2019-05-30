@@ -2347,7 +2347,7 @@ var dbPlayerConsumptionRecord = {
         let args = {
             platformId: platformId
         };
-        // await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
+        await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
         console.log('end executeFunctionByDaysInterval');
 
         // if not exist, go and summarize
