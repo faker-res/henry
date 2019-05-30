@@ -24781,15 +24781,7 @@ define(['js/app'], function (myApp) {
                         break;
                 }
             };
-
-            vm.rewardSettingInit = function () {
-                setTimeout (() => {
-                    $(".droppable-area").sortable({
-                        connectWith: ".droppable-area"
-                    })
-                },0);
-            }
-
+            
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
@@ -24938,7 +24930,6 @@ define(['js/app'], function (myApp) {
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
                                 vm.newRewardCategory = null;
-                                vm.rewardSettingInit();
                             }
                         })
                     }, function (err) {
@@ -24954,8 +24945,14 @@ define(['js/app'], function (myApp) {
                           console.log('getFrontEndRewardSetting', data.data);
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
-                              vm.rewardSettingInit();
                           }
+
+                          let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                          utilService.actionAfterLoaded('#' + tempId, function () {
+                              $(".droppable-area").sortable({
+                                  connectWith: ".connected-sortable"
+                              })
+                          });
                       })
                     }, function (err) {
                       console.error('getFrontEndRewardSetting error: ', err);
