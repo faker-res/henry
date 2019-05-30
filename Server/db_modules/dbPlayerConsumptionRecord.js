@@ -2334,6 +2334,7 @@ var dbPlayerConsumptionRecord = {
                 date: {$gte: startTime, $lt: endTime}
             }).lean().then(
                 res => {
+                    console.log('res', res);
                     if (!res) {
                         return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
                     }

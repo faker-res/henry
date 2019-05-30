@@ -1742,7 +1742,7 @@ var dbUtility = {
 
         let diffInDays = dbUtility.getNumberOfDays(startTime, endTime);
 
-        for(let i = 0; i <= diffInDays; i ++){
+        for(let i = 0; i <= diffInDays - 1; i ++){
             let startDate = new Date();
             startDate.setDate(startTime.getDate() + i);
             startDate = dbUtility.getDayStartTime(startDate);
