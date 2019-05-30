@@ -1731,6 +1731,35 @@ var dbUtility = {
         }
         return propArray;
     },
+
+    executeFunctionByDaysInterval: (start, end, execFunc, args) => {
+        let promArr = [];
+        let startTime = new Date(start);
+        let endTime = new Date(end);
+
+        startTime.setHours(0, 0, 0, 0);
+        endTime.setHours(0, 0, 0, 0);
+
+        let diffInDays = dbUtility.getNumberOfDays(startTime, endTime);
+
+        for(let i = 0; i <= diffInDays - 1; i ++){
+            let startDate = new Date();
+            startDate.setDate(startTime.getDate() + i);
+            startDate = dbUtility.getDayStartTime(startDate);
+            let endDate = new Date();
+            endDate.setDate(startTime.getDate() + (i + 1));
+            endDate = dbUtility.getDayStartTime(endDate);
+
+            promArr.push(execFunc.call(this, startDate, endDate, args));
+        }
+
+        return Promise.all(promArr).then(
+            result => {
+                console.log('executeFunctionByDaysInterval result', result);
+                return result;
+            }
+        );
+    }
 };
 
 var proto = dbUtilityFunc.prototype;

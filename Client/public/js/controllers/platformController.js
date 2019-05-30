@@ -24821,64 +24821,31 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable",
-                            stop: function () {
-                                let arr1 = $('.droppable-area1').sortable('toArray');
-                                let arr2 = $('.droppable-area2').sortable('toArray');
-                                let arr3 = $('.droppable-area3').sortable('toArray');
-
-                                arr1.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr2.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr3.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-                            }
-                        });
+                        }).disableSelection()
+                        $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
+                        $('.droppable-area2').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
+                        $('.droppable-area3').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
                     });
                 })
             };
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    $scope.$evalAsync( () => {
+                    $scope.$evalAsync(() => {
+                        console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
+                            vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
-                            utilService.actionAfterLoaded('#testSave', function () {
-                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
-                                    item.parentElement.removeChild(item)
-                                });
-                            })
                         }
                     })
                 }, function (err) {
@@ -24918,27 +24885,41 @@ define(['js/app'], function (myApp) {
             vm.deleteRewardSetting = function (id) {
                 if (id){
                     vm.rewardDeletedList.push(id);
-                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            vm.rewardSettingData.splice(index, 1);
-                            $('#' + id).remove();
-                        })
-                    }
+                    $('#'+id).remove();
                 }
             };
 
             vm.updateRewardSetting = function () {
-                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
-                    function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('updateRewardSetting is done', data);
-                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                        })
-                    }, function (err) {
-                        console.log('err', err);
+                    let arr = {};
+                    let updateSetting = [];
+
+                    vm.frontEndRewardCategory.forEach(cato => {
+                        console.log(cato);
+                        arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
+                        arr[cato._id].forEach((v, i) => {
+                            if (v){
+                                let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    let selectSetting = vm.rewardSettingData[index];
+                                    selectSetting.categoryObjId = cato._id;
+                                    selectSetting.displayOrder = i + 1;
+                                    updateSetting.push(selectSetting);
+                                }
+                            }
+                        });
                     });
+                    console.log("arr", arr);
+                    return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
+                        (data) =>{
+                            $scope.$evalAsync( () => {
+                                console.log('updateRewardSetting is done', data);
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            })
+                        }, function (err) {
+                            console.log('err', err);
+                        });
+
             };
 
             vm.loadRewardCategory =  function (platformObjId) {
@@ -24960,39 +24941,24 @@ define(['js/app'], function (myApp) {
             vm.loadRewardSetting = function (platformObjId) {
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('getFrontEndRewardSetting', data.data);
-                            if (data && data.data) {
-                                vm.rewardSettingData = data.data;
-                            }
+                      $scope.$evalAsync( () => {
+                          console.log('getFrontEndRewardSetting', data.data);
+                          if (data && data.data) {
+                              vm.rewardSettingData = data.data;
+                          }
 
-                            let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
-                            utilService.actionAfterLoaded('#' + tempId, function () {
-                                $(".droppable-area").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr = {};
-                                        vm.frontEndRewardCategory.forEach(cato => {
-                                            arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
-                                            arr[cato._id].forEach((v, i) => {
-                                                if (v){
-                                                    let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1){
-                                                        vm.rewardSettingData[index].categoryObjId = cato._id;
-                                                        vm.rewardSettingData[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            });
-                                        });
-                                        console.log("arr", arr);
-                                    }
-                                })
-                            });
-                        })
+                          let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                          utilService.actionAfterLoaded('#' + tempId, function () {
+                              $(".droppable-area").sortable({
+                                  connectWith: ".connected-sortable"
+                              })
+                          });
+                      })
                     }, function (err) {
-                        console.error('getFrontEndRewardSetting error: ', err);
+                      console.error('getFrontEndRewardSetting error: ', err);
                     }, true);
                 }
+
             };
 
             vm.addNewRewardSetting = function (isNew, eventObjId) {
@@ -25069,7 +25035,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewRewardSetting(false, eventObjId);
             };
 
-            vm.submitRewardSettings = () => {
+            vm.submitRewardSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndRewardUploader').show();
                 function removeFromList(data) {
@@ -25079,7 +25045,8 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                // we will save the collection changer before create another new item.
+                await vm.updateRewardSetting();
                 let promArr = [
                     "rewardPcImage",
                     "rewardPcNewPage",
@@ -25369,7 +25336,7 @@ define(['js/app'], function (myApp) {
                 $('#carouselSetting').modal();
             };
 
-            vm.submitCarouselSettings = () => {
+            vm.submitCarouselSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndCarouselUploader').show();
                 function removeFromList(data) {
@@ -25379,7 +25346,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                await vm.updateFrontEndCarouselSetting();
                 let promArr
 
                 if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '1') {
@@ -25467,6 +25434,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
+                vm.clearAllDropArea();
                 socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
@@ -25480,48 +25448,8 @@ define(['js/app'], function (myApp) {
                             utilService.actionAfterLoaded('#carouselSaveButton', function () {
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr1 = $('.carousel .droppable-area1').sortable('toArray');
-                                        let arr2 = $('.carousel .droppable-area2').sortable('toArray');
-                                        let arr3 = $('.carousel .droppable-area3').sortable('toArray');
-                                        arr1.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 1;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr2.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 3;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr3.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 2;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-                                    }
-                                }).disableSelection()
+                                    connectWith: ".connected-sortable"
+                                }).disableSelection();
                             })
                         }
                     })
@@ -25531,17 +25459,19 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateFrontEndCarouselSetting = function () {
-                let arr1 = $('.droppable-area1').sortable('toArray');
-                let arr2 = $('.droppable-area2').sortable('toArray');
-                let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let arr1 = $('.fronendConfigScrollDiv .droppable-area1').sortable('toArray');
+                let arr2 = $('.fronendConfigScrollDiv .droppable-area2').sortable('toArray');
+                let arr3 = $('.fronendConfigScrollDiv .droppable-area3').sortable('toArray');
+                let updateFrontEndCarouselData = []
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 1;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 1;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25552,8 +25482,10 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 3;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 3;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25564,15 +25496,16 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 2;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 2;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
                 );
-
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
-                    function (data) {
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
                             vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -41018,7 +40951,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewPopularRecommendationSetting(false, eventObjId);
             };
 
-            vm.submitPopularRecommendationSettings = () => {
+            vm.submitPopularRecommendationSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -41040,7 +40973,8 @@ define(['js/app'], function (myApp) {
                     "appNewPage",
                     "appPageDetail",
                 ];
-
+                // we will save the collection changer before create another new item.
+                await vm.updatePopularRecommendationSetting();
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -41128,17 +41062,20 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePopularRecommendationSetting = function () {
+
                 let arr1 = $('.droppable-area1').sortable('toArray');
                 let arr2 = $('.droppable-area2').sortable('toArray');
                 let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let updateFrontEndPopularRecommendationData = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 1;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -41149,8 +41086,10 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 2;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -41161,34 +41100,35 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 3;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
                 );
-
-                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
-                    function (data) {
+                return $scope.$socketPromise('updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList}).then(
+                    (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
                             vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            resolve();
                         })
                     }, function (err) {
                         console.log('err', err);
                     });
-            };
 
+            };
+            vm.clearAllDropArea = function () {
+                $('.droppable-area1').children().remove();
+                $('.droppable-area2').children().remove();
+                $('.droppable-area3').children().remove();
+            }
             vm.deleteFrontEndSetting = function (eventObjectId, holder){
                 if (eventObjectId){
                     vm.frontEndDeletedList.push(eventObjectId);
-                    let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            holder.splice(index, 1);
-                            $('#' + eventObjectId).remove();
-                        })
-                    }
+                    $('#' + eventObjectId).remove();
                 }
             };
 

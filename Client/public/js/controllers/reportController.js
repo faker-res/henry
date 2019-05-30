@@ -3380,7 +3380,8 @@ define(['js/app'], function (myApp) {
             vm.playerAlipayAccReport.index = 0;
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                // platformObjId: vm.selectedPlatform._id,
+                platformList: vm.playerAlipayAccReport.platformList,
                 startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -3418,6 +3419,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformId.name"},
                     {title: $translate('Proposal No'), data: "proposalId"},
                     {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
                     {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
@@ -6043,7 +6045,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 financialPointsType: financialPointsType,
-                platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 5000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
@@ -6094,10 +6096,14 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.financialQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [9]}
+                    {'sortCol': 'proposalId', 'aTargets': [1]},
+                    {'sortCol': 'createTime', 'aTargets': [10]}
                 ],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {
@@ -8261,10 +8267,10 @@ define(['js/app'], function (myApp) {
             vm.rewardReportAmountAvg = {};
 
             let proposalNames
-            if (vm.rewardReportAnalysis.type == "rewardName") {
-                proposalNames = $('select#selectRewardAnalysisType').multipleSelect("getSelects");
+            if (vm.rewardReportAnalysis.type === "rewardName") {
+                proposalNames = vm.rewardReportAnalysis.promoName;
             } else {
-                proposalNames = $('select#selectRewardProposalType').multipleSelect("getSelects");
+                proposalNames = vm.rewardReportAnalysis.proposalTypeName;
             }
 
 
@@ -8273,7 +8279,8 @@ define(['js/app'], function (myApp) {
                 period: vm.rewardReportAnalysis.periodText,
                 startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.rewardReportAnalysis.platformList,
                 type: vm.rewardReportAnalysis.type,
                 proposalNameArr: proposalNames
             }
@@ -10392,14 +10399,17 @@ define(['js/app'], function (myApp) {
                     vm.rewardReportAnalysis = {periodText: "day"};
                     vm.reportSearchTime = 0;
 
-                    vm.allRewardProposalType = [];
-                    if (vm.allProposalType && vm.allProposalType.length) {
-                        vm.allProposalType.forEach(item => {
-                            if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
-                                vm.allRewardProposalType.push(item);
-                            }
-                        })
-                    }
+                    // vm.allRewardProposalType = [];
+                    // if (vm.allProposalType && vm.allProposalType.length) {
+                    //     vm.allProposalType.forEach(item => {
+                    //         if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
+                    //             vm.allRewardProposalType.push(item);
+                    //         }
+                    //     })
+                    // }
+
+                    vm.getAllProposalTypeByPlatform();
+
                     utilService.actionAfterLoaded(('#rewardReportAnalysis'), function () {
                         $('select#selectRewardProposalType').multipleSelect({
                             allSelected: $translate("All Selected"),
@@ -11383,6 +11393,61 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         }
         //#endregion
+
+        //#region All Reward Report
+        vm.getRewardFilterItemChanged = function(choice) {
+            vm.allRewardList = [];
+            if (choice === 'rewardName') {
+                let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: {platform: {$in: vm.rewardReportAnalysis.platformList}}} : {platform: null};
+
+                socketService.$socket($scope.AppSocket, 'getRewardByPlatform', query, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allRewardList = data.data;
+                        console.log('vm.allRewardList', vm.allRewardList);
+
+                        vm.rewardReportAnalysis.promoName = [];
+
+                        vm.allRewardList.forEach(item => {
+                            if (item && item.name) {
+                                vm.rewardReportAnalysis.promoName.push(item.name);
+                            }
+                        })
+                    });
+                });
+                delete vm.rewardReportAnalysis.proposalTypeName
+            } else {
+                delete vm.rewardReportAnalysis.promoName;
+                vm.getAllProposalTypeByPlatform();
+            }
+        };
+
+        vm.getAllProposalTypeByPlatform = function () {
+            vm.allProposalTypeList = [];
+            vm.allRewardProposalTypeList = [];
+
+            let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: vm.rewardReportAnalysis.platformList} : {platform: null};
+
+            socketService.$socket($scope.AppSocket, 'getAllProposalTypeByPlatform', query, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.allProposalTypeList = data.data;
+
+                    if (vm.allProposalTypeList && vm.allProposalTypeList.length) {
+                        vm.allProposalTypeList.forEach(item => {
+                            if (vm.getProposalTypeOptionValue(item, false) === "Reward Proposal") {
+                                let index = vm.allRewardProposalTypeList.findIndex(x => x === item.name);
+
+                                if (index === -1) {
+                                    vm.allRewardProposalTypeList.push(item.name);
+                                }
+                            }
+                        })
+
+                        vm.rewardReportAnalysis.proposalTypeName = vm.allRewardProposalTypeList;
+                    }
+                });
+            });
+        };
+        //endregion
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

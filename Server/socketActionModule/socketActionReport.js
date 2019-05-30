@@ -53,9 +53,9 @@ function socketActionReport(socketIO, socket) {
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
             data ["startTime"] = startTime;
             data["endTime"] = endTime;
-            if (data.platformId) {
-                data.platformId = ObjectId(data.platformId);
-            }
+            // if (data.platformId) {
+            //     data.platformId = ObjectId(data.platformId);
+            // }
 
             socketUtil.emitter(self.socket, dbProposal.getFinancialPointsReport, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
@@ -376,10 +376,10 @@ function socketActionReport(socketIO, socket) {
 
         getRewardAnalysisProposal: function getRewardAnalysisProposal(data) {
             let actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.platformObjId && data.type && data.proposalNameArr && data.proposalNameArr.length);
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.period && data.type && data.proposalNameArr && data.proposalNameArr.length);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getRewardAnalysisProposal, [startTime, endTime, data.period, data.platformObjId, data.type, data.proposalNameArr], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getRewardAnalysisProposal, [startTime, endTime, data.period, data.platformList, data.type, data.proposalNameArr], actionName, isValidData);
         },
 
         getPlayerReport: function getPlayerReport(data) {
@@ -666,9 +666,9 @@ function socketActionReport(socketIO, socket) {
             let actionName = arguments.callee.name;
             let startTime = new Date(data.startTime);
             let endTime = new Date(data.endTime);
-            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime));
 
-            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname, data.alipayRemark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [data.platformList, startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname, data.alipayRemark], actionName, isValidData);
         },
 
         getFinancialReportByDay: function getFinancialReportByDay(data) {
