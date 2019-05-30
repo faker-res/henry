@@ -24781,7 +24781,7 @@ define(['js/app'], function (myApp) {
                         break;
                 }
             };
-            
+
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
@@ -24824,15 +24824,15 @@ define(['js/app'], function (myApp) {
                         }).disableSelection()
                         $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSettingWay2(id);
+                            vm.deleteFrontEndSetting(id);
                         })
                         $('.droppable-area2').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSettingWay2(id);
+                            vm.deleteFrontEndSetting(id);
                         })
                         $('.droppable-area3').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
-                            vm.deleteFrontEndSettingWay2(id);
+                            vm.deleteFrontEndSetting(id);
                         })
                     });
                 })
@@ -25336,7 +25336,7 @@ define(['js/app'], function (myApp) {
                 $('#carouselSetting').modal();
             };
 
-            vm.submitCarouselSettings = () => {
+            vm.submitCarouselSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndCarouselUploader').show();
                 function removeFromList(data) {
@@ -25346,7 +25346,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                await vm.updateFrontEndCarouselSetting();
                 let promArr
 
                 if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '1') {
@@ -25434,6 +25434,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
+                vm.clearAllDropArea();
                 socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
@@ -25447,48 +25448,8 @@ define(['js/app'], function (myApp) {
                             utilService.actionAfterLoaded('#carouselSaveButton', function () {
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr1 = $('.carousel .droppable-area1').sortable('toArray');
-                                        let arr2 = $('.carousel .droppable-area2').sortable('toArray');
-                                        let arr3 = $('.carousel .droppable-area3').sortable('toArray');
-                                        arr1.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 1;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr2.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 3;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr3.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 2;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-                                    }
-                                }).disableSelection()
+                                    connectWith: ".connected-sortable"
+                                }).disableSelection();
                             })
                         }
                     })
@@ -25498,17 +25459,19 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateFrontEndCarouselSetting = function () {
-                let arr1 = $('.droppable-area1').sortable('toArray');
-                let arr2 = $('.droppable-area2').sortable('toArray');
-                let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let arr1 = $('.fronendConfigScrollDiv .droppable-area1').sortable('toArray');
+                let arr2 = $('.fronendConfigScrollDiv .droppable-area2').sortable('toArray');
+                let arr3 = $('.fronendConfigScrollDiv .droppable-area3').sortable('toArray');
+                let updateFrontEndCarouselData = []
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 1;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 1;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25519,8 +25482,10 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 3;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 3;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25531,15 +25496,16 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 2;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 2;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
                 );
-
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
-                    function (data) {
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
                             vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -41162,20 +41128,9 @@ define(['js/app'], function (myApp) {
             vm.deleteFrontEndSetting = function (eventObjectId, holder){
                 if (eventObjectId){
                     vm.frontEndDeletedList.push(eventObjectId);
-                    let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            holder.splice(index, 1);
-                            $('#' + eventObjectId).remove();
-                        })
-                    }
+                    $('#' + eventObjectId).remove();
                 }
             };
-
-            vm.deleteFrontEndSettingWay2 = function (eventObjectId) {
-                vm.frontEndDeletedList.push(eventObjectId);
-                $('#' + eventObjectId).remove();
-            }
 
             vm.addNewRewardPointClarification = function (isNew, eventObjId) {
                 //reset
