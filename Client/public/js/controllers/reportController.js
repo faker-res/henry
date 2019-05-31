@@ -2581,6 +2581,19 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
+        vm.reCalculateWinRateReportSummary = function (){
+            $('#winRateTableSpin').show();
+            var sendquery = {
+                platformId: vm.curPlatformId,
+                start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
+                end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
+            };
+
+            socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
+                $('#winRateTableSpin').hide();
+            });
+        };
+
         vm.getWinRateAllPlatformReport = function (listAll) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
