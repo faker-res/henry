@@ -5467,10 +5467,18 @@ let dbPlayerInfo = {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
 
-        //todo encrytion ?
         if (data && data.phoneNumber) {
-            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), rsaCrypto.oldEncrypt(data.phoneNumber), data.phoneNumber]};
+            data.phoneNumber = {
+                $in: [
+                    rsaCrypto.encrypt(data.phoneNumber),
+                    rsaCrypto.oldEncrypt(data.phoneNumber),
+                    rsaCrypto.legacyEncrypt(data.phoneNumber),
+                    data.phoneNumber
+                ]
+            };
         }
+
+        console.log('data.phoneNumber', data.phoneNumber);
 
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
