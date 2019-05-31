@@ -1970,6 +1970,7 @@
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.getWinRateReportData()') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("winRateSummaryTable", "WINRATE_REPORT")') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.reCalculateWinRateReportSummary()') {{'RECALCULATE' | translate}}
                     span#winRateTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
