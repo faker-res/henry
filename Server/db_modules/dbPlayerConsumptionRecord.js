@@ -3043,7 +3043,7 @@ var dbPlayerConsumptionRecord = {
                     consumptionDetails.forEach(
                         consumption => {
                             curConsumption = consumption;
-                            if (consumption && consumption._id && consumption._id.playerId) {
+                            if (consumption && consumption._id && consumption._id.playerId && consumption._id.cpGameType && consumption._id.providerId) {
                                 let indexNo = playerReportDaySummary && playerReportDaySummary.length ?
                                     playerReportDaySummary.findIndex(p => {
                                         curP = p;
@@ -3060,8 +3060,8 @@ var dbPlayerConsumptionRecord = {
                                         consumptionAmount: consumption.amount,
                                         consumptionValidAmount: consumption.validAmount,
                                         consumptionBonusAmount: consumption.bonusAmount,
-                                        cpGameType: consumption.cpGameType,
-                                        providerId: consumption.providerId
+                                        cpGameType: consumption._id.cpGameType,
+                                        providerId: consumption._id.providerId
                                     });
                                 } else {
                                     if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
