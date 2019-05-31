@@ -103,7 +103,7 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = crypto.privateEncrypt(oldKey, Buffer.from(msg, 'base64'));
+            encrypted = crypto.privateEncrypt(oldKey, Buffer.from(msg, 'utf8'));
         } catch (e) {
             encrypted = msg;
         }
