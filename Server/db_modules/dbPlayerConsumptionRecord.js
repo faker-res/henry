@@ -2097,7 +2097,7 @@ var dbPlayerConsumptionRecord = {
         startTime = new Date(startTime);
         endTime = new Date(endTime);
 
-        let returnProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
                     $match: {
@@ -2122,7 +2122,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             $match: {
                                 createTime: {$gte: startTime, $lt: endTime},
-                                mainType: {$in: ["TopUp", "PlayerBonus", "Reward"]},
+                                mainType: {$in: ["TopUp", "PlayerBonus"]},
                                 "data.platformId": platformId,
                                 "data.playerObjId": {$nin: consumptionPlayerObjIdList}
                             }
@@ -2144,8 +2144,6 @@ var dbPlayerConsumptionRecord = {
                 return consumptionPlayerObjIdList.concat(proposalPlayerObjIdList)
             }
         );
-
-        return returnProm;
     },
 
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
