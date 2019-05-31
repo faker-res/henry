@@ -6,6 +6,7 @@ var simplifiedChinese = {
     "Authentication Fails": "验证失败, 请先登录",
     "Verification code invalid": "无效验证码",
     "User not found OR Invalid Password": "用户没有发现或无效密码",
+    "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
     "Captcha code invalid": "图形验证码无效",
     "SUBMIT": "提交",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
