@@ -244,7 +244,7 @@ var dbPlayerFeedback = {
                     return test * val;
                 });
 
-                if (topUpTimesValue) {
+                if (topUpTimesValue || topUpTimesValue == 0) {
                     switch (topUpTimesOperator) {
                         case '<=':
                             finalData = finalData.filter(p => {return p.topupTimes <= topUpTimesValue});
