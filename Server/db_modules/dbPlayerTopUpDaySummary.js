@@ -164,14 +164,48 @@ var dbPlayerTopUpDaySummary = {
 
     },
 
+    reCalculateWinRateReportSummary: function(platformId, start, end){
+        if(!platformId || !start || ! end){
+            return;
+        }
+
+        let calculateSummaryProm = [];
+        let startTime = new Date(start);
+        let endTime = new Date(end);
+
+        startTime.setHours(0, 0, 0, 0);
+        endTime.setHours(0, 0, 0, 0);
+
+        let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+
+        for(let i = 0; i <= diffInDays; i ++){
+            let startDate = new Date();
+            startDate.setDate(startTime.getDate() + i);
+            startDate = dbutility.getDayStartTime(startDate);
+            let endDate = new Date();
+            endDate.setDate(startTime.getDate() + (i + 1));
+            endDate = dbutility.getDayStartTime(endDate);
+
+            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+        }
+
+        return Promise.all(calculateSummaryProm).then(
+            result => {
+                return result;
+            }
+        );
+
+    },
+
     calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId, isReSummarized) {
-        console.log("LH check player report test data 1");
+        console.log("LH check player report test data 1", startTime, endTime, platformId, isReSummarized);
         var balancer = new SettlementBalancer();
 
         return balancer.initConns().then(function () {
 
             return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
                 playerObjIds => {
+                    console.log('playerObjIds.length', playerObjIds.length);
                     var stream = dbconfig.collection_players.aggregate(
                         [
                             {
@@ -220,6 +254,47 @@ var dbPlayerTopUpDaySummary = {
                     }
 
 
+                }
+            )
+        });
+    },
+
+    calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
+        let balancer = new SettlementBalancer();
+
+        return balancer.initConns().then(function () {
+            return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
+                playerObjIds => {
+                    console.log('calculateWinRateReportDaySummaryForTimeFrame playerObjIds.length', playerObjIds.length);
+                    let stream = dbconfig.collection_players.aggregate(
+                        [
+                            {
+                                $match: {
+                                    "_id": {$in: playerObjIds}
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: '$_id'
+                                }
+                            }
+                        ]
+                    ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+                    return Q(
+                        balancer.processStream({
+                            stream: stream,
+                            batchSize: constSystemParam.BATCH_SIZE,
+                            makeRequest: function (playerIdObjs, request) {
+                                request("player", "winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers", {
+                                    startTime: startTime,
+                                    endTime: endTime,
+                                    platformId: platformId,
+                                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                                });
+                            }
+                        })
+                    );
                 }
             )
         });
