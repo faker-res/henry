@@ -2585,8 +2585,8 @@ define(['js/app'], function (myApp) {
             $('#winRateTableSpin').show();
             var sendquery = {
                 platformId: vm.curPlatformId,
-                start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
-                end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
+                start: vm.winRateQuery.start.data('datetimepicker').getLocalDate(),
+                end: vm.winRateQuery.end.data('datetimepicker').getLocalDate()
             };
 
             socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
