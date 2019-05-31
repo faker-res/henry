@@ -5478,6 +5478,8 @@ let dbPlayerInfo = {
             };
         }
 
+        console.log('data.phoneNumber', data.phoneNumber);
+
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
