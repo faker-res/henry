@@ -22296,6 +22296,37 @@ let dbPlayerInfo = {
         )
     },
 
+
+        /**
+         * Create new Proposal to update player birthday(DOB)
+         * @param {json} data - proposal data
+         */
+         createPlayerBirthdayProposal: function (playerData, data, inputDevice) {
+             let proposalData = {
+                 creator: {
+                     type: 'player',
+                     name: playerData.name,
+                     id: playerData._id
+                 },
+                 entryType: constProposalEntryType.CLIENT,
+                 userType: constProposalUserType.PLAYERS,
+                 inputDevice: inputDevice ? inputDevice : 0,
+                 data: {
+                     _id: playerData._id,
+                     playerId: playerData.playerId,
+                     platformId: playerData.platform,
+                     playerObjId: playerData._id,
+                     playerName: playerData.name,
+                     DOB: data.DOB,
+                     remark:localization.localization.translate("DOB")
+                 }
+             }
+             if (playerData.DOB) {
+                 proposalData.data.curData = {DOB: playerData.DOB};
+             }
+             return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData);
+         },
+
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
         if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {
             return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
@@ -23627,17 +23658,20 @@ let dbPlayerInfo = {
             });
     },
 
-    changeBirthdayDate: function (playerObjId, date) {
-        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1}).lean().then(
+    changeBirthdayDate: function (playerObjId, date, inputDevice) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1, name:1, platform:1, playerId:1}).lean().then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find player"})
                 }
                 if (playerData.DOB) {
                     return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
-                } else {
-                    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean()
                 }
+                return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean().then(
+                    data => {
+                        return dbPlayerInfo.createPlayerBirthdayProposal(playerData, {DOB: new Date(date)}, inputDevice);
+                    }
+                )
             }
         )
 

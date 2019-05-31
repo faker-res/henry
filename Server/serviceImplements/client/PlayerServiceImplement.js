@@ -1288,7 +1288,8 @@ let PlayerServiceImplement = function () {
 
     this.changeBirthdayDate.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerObjId && data && data.date);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.changeBirthdayDate, [conn.playerObjId, data.date], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.changeBirthdayDate, [conn.playerObjId, data.date, inputDevice], isValidData);
     };
 
     this.getClientData.onRequest = function (wsFunc, conn, data) {
