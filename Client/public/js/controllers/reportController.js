@@ -2589,7 +2589,7 @@ define(['js/app'], function (myApp) {
                 end: vm.winRateQuery.endTime.data('datetimepicker').getLocalDate()
             };
 
-            socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
+            socketService.$socket($scope.AppSocket, 'reCalculateWinRateReportSummary', sendquery, function (data) {
                 $('#winRateTableSpin').hide();
             });
         };
