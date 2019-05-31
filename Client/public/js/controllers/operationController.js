@@ -1203,6 +1203,22 @@ define(['js/app'], function (myApp) {
                         v.data.redRemark$ = true;
                     }
 
+                    if (v.data && v.data.autoAuditRemarkChinese) {
+                        if (v.remark$) {
+                            v.remark$ += v.data.autoAuditRemarkChinese;
+                        } else {
+                            v.remark$ = v.data.autoAuditRemarkChinese;
+                        }
+                    }
+
+                    if (v.data && v.data.rejectRemark) {
+                        if (v.remark$) {
+                            v.remark$ += v.data.rejectRemark;
+                        } else {
+                            v.remark$ = v.data.rejectRemark;
+                        }
+                    }
+
                     tableData.push(v);
                 }
             });
