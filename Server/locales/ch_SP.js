@@ -556,7 +556,8 @@ var simplifiedChinese = {
     "Not the Period of this Reward": "不在此优惠的申请时间中",
     "Over the apply limit already": "超过了此优惠的申请上限",
     "Not allowed to transfer from test environment.": "只允许测试账号操作转入",
-    "DOB": "生日"
+    "DOB": "生日",
+    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
     //todo::add missing messages here
 
     /*

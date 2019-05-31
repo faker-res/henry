@@ -6283,7 +6283,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.findOne(
+                                    let playerProm = dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -6293,10 +6293,53 @@ let dbPlayerInfo = {
                                             platform: platformData._id
                                         }
                                     ).lean();
+
+                                    let checkPlayerDeviceExistProm = Promise.resolve(true);
+
+                                    if (loginData.deviceId) {
+                                        checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
+                                            {
+                                                platform: platformData._id,
+                                                $or: [
+                                                    {deviceId: loginData.deviceId},
+                                                    {deviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                    {deviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                                ],
+                                            }
+                                        ).lean().then(
+                                            dataExist => {
+                                                if (dataExist) {
+                                                    return false;
+                                                } else {
+                                                    return true;
+                                                }
+                                            }
+                                        );
+                                    }
+
+                                    return Promise.all([playerProm, checkPlayerDeviceExistProm]);
+
+                                    // return dbconfig.collection_players.findOne(
+                                    //     {
+                                    //         $or: [
+                                    //             {phoneNumber: encryptedPhoneNumber},
+                                    //             {phoneNumber: loginData.phoneNumber},
+                                    //             {phoneNumber: enOldPhoneNumber}
+                                    //         ],
+                                    //         platform: platformData._id
+                                    //     }
+                                    // ).lean();
                                 }
                             }
                         ).then(
-                            player => {
+                            data => {
+                                let player = data && data[0] ? data[0] : null;
+                                let playerDeviceNotExist = data && data[1] ? data[1] : true;
+
+                                if (!playerDeviceNotExist) {
+                                    return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
+                                }
+
                                 if (player) {
                                     if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
