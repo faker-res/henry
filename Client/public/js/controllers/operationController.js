@@ -2264,7 +2264,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay[provinceField];
-                    vm.selectedProposalDetailForDisplay[provinceField] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text ? text : vm.selectedProposalDetailForDisplay[provinceField];
                     $scope.$evalAsync();
                 });
             }
@@ -2314,7 +2314,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.data ? data.data.data.name : val;
-                    vm.selectedProposalDetailForDisplay[provinceField] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text ? text : vm.selectedProposalDetailForDisplay[provinceField];
                     $scope.$evalAsync();
                 });
             }
