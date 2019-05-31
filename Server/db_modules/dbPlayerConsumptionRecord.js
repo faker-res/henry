@@ -3008,6 +3008,7 @@ var dbPlayerConsumptionRecord = {
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
         let curConsumption = 'wtf';
+        let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -3045,7 +3046,7 @@ var dbPlayerConsumptionRecord = {
                             if (consumption && consumption._id && consumption._id.playerId) {
                                 let indexNo = playerReportDaySummary && playerReportDaySummary.length ?
                                     playerReportDaySummary.findIndex(p => {
-                                        console.log('p', p);
+                                        curP = p;
                                         return p.playerId.toString() === consumption._id.playerId.toString()
                                     && p.providerId.toString() === consumption._id.providerId.toString()
                                     && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
@@ -3108,7 +3109,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).catch(
             error => {
-                console.log("win rate report data summary error - ", error, curConsumption);
+                console.log("win rate report data summary error - ", error, curP, curConsumption);
                 return error;
             }
         );
