@@ -383,9 +383,6 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValue" )
                         div.symbol(ng-if="vm.playerQuery.topUpAmountOperator === 'range'") ~
                         input.threeBoxes.form-control(type="number" ng-model="vm.playerQuery.topUpAmountValueTwo" ng-if="vm.playerQuery.topUpAmountOperator === 'range'")
-                .search-filters-twoBoxes
-                    input.symbol(type="checkbox", ng-model='vm.playerQuery.searchBySummaryData')
-                    label {{'测试数据'}}
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
