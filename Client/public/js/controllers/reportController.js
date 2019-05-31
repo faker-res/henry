@@ -6490,6 +6490,21 @@ define(['js/app'], function (myApp) {
                         }
                         item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 
+                        if (item.data && item.data.autoAuditRemarkChinese) {
+                            if (item.remark$) {
+                                item.remark$ += item.data.autoAuditRemarkChinese;
+                            } else {
+                                item.remark$ = item.data.autoAuditRemarkChinese;
+                            }
+                        }
+
+                        if (item.data && item.data.rejectRemark) {
+                            if (item.remark$) {
+                                item.remark$ += item.data.rejectRemark;
+                            } else {
+                                item.remark$ = item.data.rejectRemark;
+                            }
+                        }
                         return item;
                     })
 
