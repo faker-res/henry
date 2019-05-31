@@ -593,6 +593,8 @@ let dbPlayerInfo = {
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
+        console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
+        console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -25403,6 +25405,7 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
 }
 
 function determineRegistrationInterface(inputData) {
+    console.log("checking inputData.userAgent when determineRegistrationInterface", inputData.userAgent || "undefined");
     if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }
