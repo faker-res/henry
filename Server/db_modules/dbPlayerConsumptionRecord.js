@@ -3007,7 +3007,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
-        let curConsumption;
+        let curConsumption = 'wtf';
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
