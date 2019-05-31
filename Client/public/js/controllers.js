@@ -969,8 +969,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.frontEndSettingDevice = {
         1: "PC",
-        2: "APP",
-        3: "H5"
+        2: "H5",
+        4: "App"
     };
 
     // $scope.consumptionRecordProviderName = {
