@@ -3041,7 +3041,7 @@ var dbPlayerConsumptionRecord = {
                     consumptionDetails.forEach(
                         consumption => {
                             if (consumption && consumption._id && consumption._id.playerId) {
-                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() === consumption._id.playerId.toString()
+                                let indexNo = playerReportDaySummary.findIndex(p => p && p.playerId.toString() === consumption._id.playerId.toString()
                                     && p.providerId.toString() === consumption._id.providerId.toString()
                                     && p.cpGameType.toString() === consumption._id.cpGameType.toString());
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);

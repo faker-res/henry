@@ -334,7 +334,7 @@ var dbPlayerConsumptionDaySummary = {
                 if (data && data.length > 0) {
                     return data;
                 } else {
-                    return Promise.reject({name: "DBError", message: "Get win rate report day summary failed!", error: error});
+                    return Promise.reject({name: "DBError", message: "Get win rate report day summary failed!"});
                 }
             },
             function (error) {
