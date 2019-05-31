@@ -6283,7 +6283,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    let playerProm = dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -6293,52 +6293,10 @@ let dbPlayerInfo = {
                                             platform: platformData._id
                                         }
                                     ).lean();
-
-                                    let checkPlayerDeviceExistProm = Promise.resolve(true);
-
-                                    if (loginData.deviceId) {
-                                        checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
-                                            {
-                                                platform: platformData._id,
-                                                $or: [
-                                                    {deviceId: loginData.deviceId},
-                                                    {deviceId: rsaCrypto.encrypt(loginData.deviceId)},
-                                                    {deviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
-                                                ],
-                                            }
-                                        ).lean().then(
-                                            dataExist => {
-                                                if (dataExist) {
-                                                    return false;
-                                                } else {
-                                                    return true;
-                                                }
-                                            }
-                                        );
-                                    }
-
-                                    return Promise.all([playerProm, checkPlayerDeviceExistProm]);
-
-                                    // return dbconfig.collection_players.findOne(
-                                    //     {
-                                    //         $or: [
-                                    //             {phoneNumber: encryptedPhoneNumber},
-                                    //             {phoneNumber: loginData.phoneNumber},
-                                    //             {phoneNumber: enOldPhoneNumber}
-                                    //         ],
-                                    //         platform: platformData._id
-                                    //     }
-                                    // ).lean();
                                 }
                             }
                         ).then(
-                            data => {
-                                let player = data && data[0] ? data[0] : null;
-                                let playerDeviceNotExist = data && data[1] ? data[1] : true;
-
-                                if (!playerDeviceNotExist) {
-                                    return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
-                                }
+                            player => {
 
                                 if (player) {
                                     if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
@@ -6385,7 +6343,38 @@ let dbPlayerInfo = {
                                                 return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
                                             else {
-                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                let checkPlayerDeviceExistProm = Promise.resolve(true);
+
+                                                if (loginData.deviceId) {
+                                                    checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
+                                                        {
+                                                            platform: platformObjId,
+                                                            $or: [
+                                                                {guestDeviceId: loginData.deviceId},
+                                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                                            ],
+                                                        }
+                                                    ).lean().then(
+                                                        dataExist => {
+                                                            if (dataExist) {
+                                                                return false;
+                                                            } else {
+                                                                return true;
+                                                            }
+                                                        }
+                                                    );
+                                                }
+
+                                                return checkPlayerDeviceExistProm.then(
+                                                    playerDeviceNotExist => {
+                                                        if (!playerDeviceNotExist) {
+                                                            return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
+                                                        } else {
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                        }
+                                                    }
+                                                )
                                             }
                                         }
                                     ).then(
