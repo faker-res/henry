@@ -2104,7 +2104,8 @@ var dbPlayerConsumptionRecord = {
                 {
                     $match: {
                         createTime: {$gte: startTime, $lt: endTime},
-                        platformId: platformId
+                        platformId: platformId,
+                        isDuplicate: {$ne: true}
                     }
                 },
                 {

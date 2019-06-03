@@ -190,7 +190,9 @@ var dbPlayerTopUpDaySummary = {
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+            if (startDate.getTime() < end.getTime()) {
+                calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+            }
         }
 
         return Promise.all(calculateSummaryProm).then(
