@@ -3007,7 +3007,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
-        let curConsumption = 'wtf';
+        let curConsumption;
         let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -3039,6 +3039,8 @@ var dbPlayerConsumptionRecord = {
                 let consumptionDetails = result[0];
                 let playerReportDaySummary = [];
 
+                console.log('getWinRateReportDataForTimeFrame', startTime, endTime, playerIds.length, consumptionDetails.length);
+
                 if (consumptionDetails && consumptionDetails.length > 0) {
                     consumptionDetails.forEach(
                         consumption => {
@@ -3048,8 +3050,8 @@ var dbPlayerConsumptionRecord = {
                                     playerReportDaySummary.findIndex(p => {
                                         curP = p;
                                         return p.playerId.toString() === consumption._id.playerId.toString()
-                                    && p.providerId.toString() === consumption._id.providerId.toString()
-                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
+                                    && p.providerId && p.providerId.toString() === consumption._id.providerId.toString()
+                                    && p.cpGameType && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
 
                                 if (indexNo === -1) {
@@ -3088,17 +3090,17 @@ var dbPlayerConsumptionRecord = {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
-                                    //     playerReportDaySummary[indexNo].cpGameType = null;
-                                    // } else {
-                                    //     playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
-                                    // }
-                                    //
-                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
-                                    //     playerReportDaySummary[indexNo].providerId = null;
-                                    // } else {
-                                    //     playerReportDaySummary[indexNo].providerId = consumption.providerId;
-                                    // }
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
+                                        playerReportDaySummary[indexNo].cpGameType = null;
+                                    } else {
+                                        playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
+                                    }
+
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
+                                        playerReportDaySummary[indexNo].providerId = null;
+                                    } else {
+                                        playerReportDaySummary[indexNo].providerId = consumption.providerId;
+                                    }
                                 }
                             }
                         }
