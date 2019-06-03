@@ -3016,8 +3016,6 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
-        let curConsumption;
-        let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -3032,14 +3030,11 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: {gameId: "$gameId", playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
-                    gameId: {"$first": "$gameId"},
-                    providerId: {"$first": "$providerId"},
+                    _id: {playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
                     count: {$sum: {$cond: ["$count", "$count", 1]}},
                     amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
-                    bonusAmount: {$sum: "$bonusAmount"},
-                    cpGameType: {"$first": "$cpGameType"}
+                    bonusAmount: {$sum: "$bonusAmount"}
                 }
             }
         ]).read("secondaryPreferred").allowDiskUse(true);
@@ -3054,15 +3049,12 @@ var dbPlayerConsumptionRecord = {
                 if (consumptionDetails && consumptionDetails.length > 0) {
                     consumptionDetails.forEach(
                         consumption => {
-                            curConsumption = consumption;
-                            if (consumption && consumption._id && consumption._id.playerId && consumption._id.cpGameType && consumption._id.providerId) {
-                                let indexNo = playerReportDaySummary && playerReportDaySummary.length ?
-                                    playerReportDaySummary.findIndex(p => {
-                                        curP = p;
-                                        return p.playerId.toString() === consumption._id.playerId.toString()
-                                    && p.providerId && p.providerId.toString() === consumption._id.providerId.toString()
-                                    && p.cpGameType && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
-                                consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
+                            if (consumption && consumption._id && consumption._id.playerId) {
+                                let indexNo = playerReportDaySummary.findIndex(p =>
+                                    p.playerId == consumption._id.playerId
+                                    && p.providerId == consumption._id.providerId
+                                    && p.cpGameType == consumption._id.cpGameType
+                                );
 
                                 if (indexNo === -1) {
                                     playerReportDaySummary.push({
@@ -3117,11 +3109,13 @@ var dbPlayerConsumptionRecord = {
                     )
                 }
 
+                console.log('playerReportDaySummary.length', playerReportDaySummary.length);
+
                 return playerReportDaySummary;
             }
         ).catch(
             error => {
-                console.log("win rate report data summary error - ", error, curP, curConsumption);
+                console.log("win rate report data summary error - ", error);
                 return error;
             }
         );
