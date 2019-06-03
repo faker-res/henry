@@ -3028,15 +3028,15 @@ var dbPlayerConsumptionRecord = {
                     isDuplicate: {$ne: true}
                 }
             },
-            {
-                $group: {
-                    _id: {playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
-                    count: {$sum: {$cond: ["$count", "$count", 1]}},
-                    amount: {$sum: "$amount"},
-                    validAmount: {$sum: "$validAmount"},
-                    bonusAmount: {$sum: "$bonusAmount"}
-                }
-            }
+            // {
+            //     $group: {
+            //         _id: {playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
+            //         count: {$sum: {$cond: ["$count", "$count", 1]}},
+            //         amount: {$sum: "$amount"},
+            //         validAmount: {$sum: "$validAmount"},
+            //         bonusAmount: {$sum: "$bonusAmount"}
+            //     }
+            // }
         ]).read("secondaryPreferred").allowDiskUse(true);
 
         return consumptionProm.then(
