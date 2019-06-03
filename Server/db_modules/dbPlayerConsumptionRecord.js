@@ -2103,8 +2103,7 @@ var dbPlayerConsumptionRecord = {
             [
                 {
                     $match: {
-                        createTime: {$gte: startTime, $lt: endTime},
-                        platformId: ObjectId(platformId)
+                        createTime: {$gte: startTime, $lt: endTime}
                     }
                 },
                 {
