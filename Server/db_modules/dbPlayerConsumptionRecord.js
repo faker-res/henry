@@ -3039,7 +3039,7 @@ var dbPlayerConsumptionRecord = {
             }
         ]).read("secondaryPreferred").allowDiskUse(true);
 
-        return Promise.all([consumptionProm]).then(
+        return consumptionProm.then(
             result => {
                 let consumptionDetails = result[0];
                 let playerReportDaySummary = [];
@@ -3092,17 +3092,17 @@ var dbPlayerConsumptionRecord = {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
-                                        playerReportDaySummary[indexNo].cpGameType = null;
-                                    } else {
-                                        playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
-                                    }
-
-                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
-                                        playerReportDaySummary[indexNo].providerId = null;
-                                    } else {
-                                        playerReportDaySummary[indexNo].providerId = consumption.providerId;
-                                    }
+                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
+                                    //     playerReportDaySummary[indexNo].cpGameType = null;
+                                    // } else {
+                                    //     playerReportDaySummary[indexNo].cpGameType = consumption._id.cpGameType;
+                                    // }
+                                    //
+                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
+                                    //     playerReportDaySummary[indexNo].providerId = null;
+                                    // } else {
+                                    //     playerReportDaySummary[indexNo].providerId = consumption._id.providerId;
+                                    // }
                                 }
                             }
                         }
