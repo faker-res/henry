@@ -3339,7 +3339,7 @@ let dbPlayerReward = {
         ).catch(errorUtils.reportError);
     },
 
-    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
@@ -3357,6 +3357,12 @@ let dbPlayerReward = {
                     }))
                 }
                 else {
+                    if (!entry._id && !entry.adminId) { // for new entry
+                        entry.adminId = adminInfo.id;
+                    }
+                    if (!entry._id && !entry.adminName) { // for new entry
+                        entry.adminName = adminInfo.name;
+                    }
 
                     if (entry._id) {
                         delete entry._id;
