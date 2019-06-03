@@ -2097,6 +2097,8 @@ var dbPlayerConsumptionRecord = {
         startTime = new Date(startTime);
         endTime = new Date(endTime);
 
+        console.log('streamPlayersWithConsumptionAndProposalInTimeFrame', startTime, endTime, platformId);
+
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
@@ -2113,6 +2115,9 @@ var dbPlayerConsumptionRecord = {
             ]
         ).then(
             consumptionPlayerList => {
+
+                console.log('consumptionPlayerList', consumptionPlayerList.length);
+
                 if(consumptionPlayerList && consumptionPlayerList.length > 0){
                     consumptionPlayerObjIdList = consumptionPlayerList.map(c => c._id);
                 }
@@ -2137,6 +2142,9 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             proposalPlayerList => {
+
+                console.log('proposalPlayerList', proposalPlayerList.length);
+
                 if(proposalPlayerList && proposalPlayerList.length > 0){
                     proposalPlayerObjIdList = proposalPlayerList.map(p => p._id);
                 }
@@ -3007,7 +3015,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
-        let curConsumption = 'wtf';
+        let curConsumption;
         let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -3039,6 +3047,8 @@ var dbPlayerConsumptionRecord = {
                 let consumptionDetails = result[0];
                 let playerReportDaySummary = [];
 
+                console.log('getWinRateReportDataForTimeFrame', startTime, endTime, playerIds.length, consumptionDetails.length);
+
                 if (consumptionDetails && consumptionDetails.length > 0) {
                     consumptionDetails.forEach(
                         consumption => {
@@ -3048,8 +3058,8 @@ var dbPlayerConsumptionRecord = {
                                     playerReportDaySummary.findIndex(p => {
                                         curP = p;
                                         return p.playerId.toString() === consumption._id.playerId.toString()
-                                    && p.providerId.toString() === consumption._id.providerId.toString()
-                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
+                                    && p.providerId && p.providerId.toString() === consumption._id.providerId.toString()
+                                    && p.cpGameType && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
 
                                 if (indexNo === -1) {
@@ -3064,37 +3074,37 @@ var dbPlayerConsumptionRecord = {
                                         providerId: consumption._id.providerId
                                     });
                                 } else {
-                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionTimes)) {
                                         playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionAmount)) {
                                         playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionValidAmount)) {
                                         playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionBonusAmount)) {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].cpGameType !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
                                         playerReportDaySummary[indexNo].cpGameType = null;
                                     } else {
                                         playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].providerId !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
                                         playerReportDaySummary[indexNo].providerId = null;
                                     } else {
                                         playerReportDaySummary[indexNo].providerId = consumption.providerId;
@@ -3113,6 +3123,10 @@ var dbPlayerConsumptionRecord = {
                 return error;
             }
         );
+
+        function isNullOrUndefined (e) {
+            return typeof e === "undefined" || e === null
+        }
     },
 
     markDuplicatedConsumptionRecords: dupsSummaries => {
