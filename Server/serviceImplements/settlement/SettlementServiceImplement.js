@@ -300,7 +300,14 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionActivePlayerAfterTopupQueryMatch, args, isValidData);
     };
 
+    this.settlePartnersComm.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
+        let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime, data.isSkip];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.settlePartnersCommission, args, isValidData);
+    };
+
     this.settlePartnersCommission.onRequest = (wsFunc, conn, data) => {
+        // deprecated, use settlePartnersComm instead
         let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
         let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime, data.isSkip];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersCommission, args, isValidData);

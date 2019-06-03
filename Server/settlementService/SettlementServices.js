@@ -69,6 +69,7 @@
                 "generatePromoCodes",
                 "tsPhoneCheckIsExistsAllPlatform",
                 "generateCurrentPartnersCommissionDetail",
+                "settlePartnersComm",
                 "topupRecordInsertRepeatCount"
             ];
             addServiceFunctions(sinonet, this, functionNames);

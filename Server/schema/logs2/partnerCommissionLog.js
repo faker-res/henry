@@ -7,11 +7,11 @@ var partnerCommissionLog = new Schema({
     // platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // commissionType
-    commissionType: {type: String, index: true},
+    commissionType: {type: String},
     // start time of period
-    startTime: {type: Date, index: true},
+    startTime: {type: Date},
     // end time of period
-    endTime: {type: Date, index: true},
+    endTime: {type: Date},
     // partnerId
     partnerId: {type: String},
     // partner name
@@ -44,7 +44,7 @@ var partnerCommissionLog = new Schema({
     totalWithdrawalFee: {type: Number},
     // nett commission
     nettCommission: {type: Number},
-    // parent partner commission
+    // parent partner commission (DEPRECATED)
     parentPartnerCommissionDetail: {},
     // activeDownLines of last 3 period
     pastActiveDownLines: [],
@@ -52,8 +52,12 @@ var partnerCommissionLog = new Schema({
     pastNettCommission: [],
     // status, from constPartnerCommissionLogStatus
     status: {type: Number, default: 0},
+    // calculate time
+    calcTime: {type: Date, default: Date.now},
     // remarks
     remarks: {type: String, default: ""},
 });
 
 module.exports = partnerCommissionLog;
+
+partnerCommissionLog.index({platform: 1, commissionType: 1, startTime: 1});

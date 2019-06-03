@@ -311,7 +311,10 @@ var roleChecker = {
                 PLAYERPARTNER_REPORT: [],
                 PARTNERPLAYERBOUNS_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: [],
-
+            },
+            "Settlement": {
+                PREVIEW: [],
+                SETTLEMENT: [],
             },
         },
         Platform: {

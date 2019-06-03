@@ -978,14 +978,11 @@ define(['js/app'], function (myApp) {
                 status: 'ready'
             };
 
-            let modes = [1, 2, 3, 4, 5];
+            let modes = [2, 7];
             /* flags to disable settlement mode button after submit sucessfully*/
             vm.partnerSettlementSubmitted = {
-                1: false,
                 2: false,
-                3: false,
-                4: false,
-                5: false
+                7: false,
             };
 
             $scope.$socketPromise("getPlatformPartnerSettLog", {
@@ -995,10 +992,9 @@ define(['js/app'], function (myApp) {
                 logs => {
                     $scope.$evalAsync(() => {
                         vm.partnerCommissionSettlement.data = logs.data;
-                        $('#partnerCommissionSettlementModal').modal('show');
                     })
                 }
-            )
+            );
 
             getAllPartnerCommSettPreview();
         };
@@ -1008,7 +1004,8 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedPlatform.id,
                 settMode: modeObj.mode,
                 startTime: modeObj.settStartTime,
-                endTime: modeObj.settEndTime
+                endTime: modeObj.settEndTime,
+                useNew: true,
             }).then(
                 () => {
                     vm.startPlatformPartnerCommissionSettlement()
@@ -1088,6 +1085,7 @@ define(['js/app'], function (myApp) {
                 endTime: prev.endTime
             }).then(
                 partnerCommObj => {
+                    console.log('getPartnerCommissionLog', partnerCommObj)
                     $scope.$evalAsync(() => {
                         vm.partnerCommissionLog = partnerCommObj.data;
                         vm.partnerCommissionLog.forEach(partner => {
@@ -16876,11 +16874,15 @@ define(['js/app'], function (myApp) {
             switch (tab) {
                 case 'Config':
                     vm.selectedConfigTab = '';
+                    break;
                 case 'Report':
-
+                    break;
+                case 'Settlement':
+                    vm.settlePlatform = '';
+                    vm.showPreviewOption = false;
                     break;
             }
-        }
+        };
 
         // region report
         vm.loadPage = function (choice, pageName, code, eventObjId, isReset) {
