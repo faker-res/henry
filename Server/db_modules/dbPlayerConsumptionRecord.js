@@ -3026,6 +3026,7 @@ var dbPlayerConsumptionRecord = {
                         $lt: new Date(endTime)
                     },
                     playerId: {$in: playerIds},
+                    isDuplicate: {$ne: true}
                 }
             },
             {
