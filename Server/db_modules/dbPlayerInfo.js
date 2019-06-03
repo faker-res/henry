@@ -494,9 +494,9 @@ let dbPlayerInfo = {
                                     if (deviceData) {
                                         guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
                                     }
-                                    console.log("checking guestPlayerData.userAgent", guestPlayerData.userAgent)
+                                    console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
                                     guestPlayerData = determineRegistrationInterface(guestPlayerData);
-                                    console.log("checking guestPlayerData.registrationInterface", guestPlayerData.registrationInterface)
+                                    console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
