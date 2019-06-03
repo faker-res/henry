@@ -49,6 +49,28 @@ const dbProposalUtility = {
         )
     },
 
+    getProposalDataOfTypeByPlatforms: (platformList, proposalType, proposalQuery, fields = {}) => {
+        let query = {
+            name: proposalType
+        };
+
+        if (platformList) {
+            query.platformId = platformList
+        }
+
+        return dbConfig.collection_proposalType.find(query).lean().then(
+            proposalType => {
+                proposalQuery.type = {$in: proposalType.map(item => { return item._id})};
+
+                return dbConfig.collection_proposal.find(proposalQuery, fields).populate(
+                    {path: "process", model: dbConfig.collection_proposalProcess}
+                ).populate(
+                    {path: "data.platformId", model: dbConfig.collection_platform}
+                ).lean();
+            }
+        )
+    },
+
     getTotalRewardAmtFromProposal: (platformObjId, playerObjId, startTime, endTime) => {
         let returnAmt = 0;
 

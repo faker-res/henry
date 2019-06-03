@@ -24,6 +24,7 @@
                 "playerConsumption_calculatePlatformWeekSummaryForPlayers",
                 "playerTopUpDaySummary_calculatePlatformDaySummaryForPlayers",
                 "playerReportDaySummary_calculatePlatformDaySummaryForPlayers",
+                "winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers",
                 "calculateDaySummary",
                 "playerTopUpDaySummary_calculatePlatformDaySummaryForActiveValidPlayer",
                 "playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers",
@@ -68,6 +69,7 @@
                 "generatePromoCodes",
                 "tsPhoneCheckIsExistsAllPlatform",
                 "generateCurrentPartnersCommissionDetail",
+                "settlePartnersComm",
                 "topupRecordInsertRepeatCount"
             ];
             addServiceFunctions(sinonet, this, functionNames);

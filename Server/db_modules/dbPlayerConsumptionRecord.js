@@ -31,6 +31,7 @@ let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 let dbPlatform = require("../db_modules/dbPlatform.js");
 const dbPlayerConsumptionHourSummary = require("../db_modules/dbPlayerConsumptionHourSummary");
+const dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -2096,12 +2097,15 @@ var dbPlayerConsumptionRecord = {
         startTime = new Date(startTime);
         endTime = new Date(endTime);
 
-        let returnProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+        console.log('streamPlayersWithConsumptionAndProposalInTimeFrame', startTime, endTime, platformId);
+
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
                     $match: {
                         createTime: {$gte: startTime, $lt: endTime},
-                        platformId: platformId
+                        platformId: platformId,
+                        isDuplicate: {$ne: true}
                     }
                 },
                 {
@@ -2112,6 +2116,9 @@ var dbPlayerConsumptionRecord = {
             ]
         ).then(
             consumptionPlayerList => {
+
+                console.log('consumptionPlayerList', consumptionPlayerList.length);
+
                 if(consumptionPlayerList && consumptionPlayerList.length > 0){
                     consumptionPlayerObjIdList = consumptionPlayerList.map(c => c._id);
                 }
@@ -2121,7 +2128,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             $match: {
                                 createTime: {$gte: startTime, $lt: endTime},
-                                mainType: {$in: ["TopUp", "PlayerBonus", "Reward"]},
+                                mainType: {$in: ["TopUp", "PlayerBonus"]},
                                 "data.platformId": platformId,
                                 "data.playerObjId": {$nin: consumptionPlayerObjIdList}
                             }
@@ -2136,6 +2143,9 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             proposalPlayerList => {
+
+                console.log('proposalPlayerList', proposalPlayerList.length);
+
                 if(proposalPlayerList && proposalPlayerList.length > 0){
                     proposalPlayerObjIdList = proposalPlayerList.map(p => p._id);
                 }
@@ -2143,8 +2153,6 @@ var dbPlayerConsumptionRecord = {
                 return consumptionPlayerObjIdList.concat(proposalPlayerObjIdList)
             }
         );
-
-        return returnProm;
     },
 
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
@@ -2309,13 +2317,13 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReportFromSummary: function (startTime, endTime, providerId, platformId, listAll) {
+    winRateReportFromSummary: async function (startTime, endTime, providerId, platformId, listAll) {
         let participantsProm;
         let groupById = null;
         let returnedObj;
 
         const matchObj = {
-            createTime: {
+            date: {
                 $gte: startTime,
                 $lt: endTime
             },
@@ -2325,6 +2333,34 @@ var dbPlayerConsumptionRecord = {
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
         }
+
+        // go through start time to end time to check whether summary exist or not
+        function checkSummaryIsExist (startTime, endTime, data) {
+            return dbconfig.collection_winRateReportDataDaySummary.findOne({
+                platformId: data.platformId,
+                date: {$gte: startTime, $lt: endTime}
+            }).lean().then(
+                res => {
+                    console.log('res', res);
+                    if (!res) {
+                        return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
+                    }
+
+                    return true;
+                }
+            );
+        }
+
+        console.log('start executeFunctionByDaysInterval');
+        let args = {
+            platformId: platformId
+        };
+        await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
+        console.log('end executeFunctionByDaysInterval');
+
+        // if not exist, go and summarize
+
+
 
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
@@ -2435,7 +2471,6 @@ var dbPlayerConsumptionRecord = {
     },
 
     winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
-        console.log('winRateReport - start');
         let participantsProm;
         const matchObj = {
             createTime: {
@@ -2462,17 +2497,13 @@ var dbPlayerConsumptionRecord = {
                 {
                     $group: {
                         _id: groupById,
-                        playerId: { $addToSet: "$playerId" },
-                        total_amount: { $sum: "$amount"},
-                        validAmount: { $sum: "$validAmount"},
-                        consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
-                        bonusAmount: { $sum: "$bonusAmount" }
+                        playerId: { $addToSet: "$playerId" }
                     }
                 }
             ]).read("secondaryPreferred");
         } else {
             //find the number of player consumption (non-repeat), include all providers
-            // participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
+            participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         }
 
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
@@ -2481,7 +2512,6 @@ var dbPlayerConsumptionRecord = {
             {
                 $group: {
                     _id: groupById,
-                    playerId: { $addToSet: "$playerId" },
                     total_amount: { $sum: "$amount"},
                     validAmount: { $sum: "$validAmount"},
                     consumptionTimes: { $sum: { $cond: ["$count", "$count", 1] }},
@@ -2494,26 +2524,24 @@ var dbPlayerConsumptionRecord = {
             return (data && data.gameProviders) ? data.gameProviders : [];
         })
 
-        return Promise.all([totalAmountProm, gameProviderProm]).then(
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
             data => {
-                console.log('winRateReport - first prom', data);
                 let participantNumber = 0;
                 let consumptionTimes = 0;
                 let totalAmount = 0;
                 let validAmount = 0;
                 let bonusAmount = 0;
                 let returnData = [];
-                let totalSumData = data[0] ? data[0] : [];
-                let gameProviders = data[1];
-                let participantData =
-                    totalSumData && totalSumData[0] && totalSumData[0].playerId ? totalSumData[0].playerId : [];
+                let totalSumData = data[1] ? data[1] : [];
+                let gameProviders = data[2];
+                let participantData = data[0] ? data[0] : [];
 
-                if (!listAll && data && data[0] && data[0][0]) {
-                    participantNumber = participantData.length;
-                    consumptionTimes = data[0][0].consumptionTimes;
-                    totalAmount = data[0][0].total_amount;
-                    validAmount = data[0][0].validAmount;
-                    bonusAmount = data[0][0].bonusAmount;
+                if (!listAll && data && data[0] && data[1] && data[1][0]) {
+                    participantNumber = data[0].length;
+                    consumptionTimes = data[1][0].consumptionTimes;
+                    totalAmount = data[1][0].total_amount;
+                    validAmount = data[1][0].validAmount;
+                    bonusAmount = data[1][0].bonusAmount;
                     // return sum of "all" provider winrate data
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
@@ -2988,6 +3016,8 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
+        let curConsumption;
+        let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -2997,6 +3027,7 @@ var dbPlayerConsumptionRecord = {
                         $lt: new Date(endTime)
                     },
                     playerId: {$in: playerIds},
+                    isDuplicate: {$ne: true}
                 }
             },
             {
@@ -3018,13 +3049,19 @@ var dbPlayerConsumptionRecord = {
                 let consumptionDetails = result[0];
                 let playerReportDaySummary = [];
 
+                console.log('getWinRateReportDataForTimeFrame', startTime, endTime, playerIds.length, consumptionDetails.length);
+
                 if (consumptionDetails && consumptionDetails.length > 0) {
                     consumptionDetails.forEach(
                         consumption => {
-                            if (consumption && consumption._id && consumption._id.playerId) {
-                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() === consumption._id.playerId.toString()
-                                    && p.providerId.toString() === consumption._id.providerId.toString()
-                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString());
+                            curConsumption = consumption;
+                            if (consumption && consumption._id && consumption._id.playerId && consumption._id.cpGameType && consumption._id.providerId) {
+                                let indexNo = playerReportDaySummary && playerReportDaySummary.length ?
+                                    playerReportDaySummary.findIndex(p => {
+                                        curP = p;
+                                        return p.playerId.toString() === consumption._id.playerId.toString()
+                                    && p.providerId && p.providerId.toString() === consumption._id.providerId.toString()
+                                    && p.cpGameType && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
 
                                 if (indexNo === -1) {
@@ -3035,41 +3072,41 @@ var dbPlayerConsumptionRecord = {
                                         consumptionAmount: consumption.amount,
                                         consumptionValidAmount: consumption.validAmount,
                                         consumptionBonusAmount: consumption.bonusAmount,
-                                        cpGameType: consumption.cpGameType,
-                                        providerId: consumption.providerId
+                                        cpGameType: consumption._id.cpGameType,
+                                        providerId: consumption._id.providerId
                                     });
                                 } else {
-                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionTimes)) {
                                         playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionAmount)) {
                                         playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionValidAmount)) {
                                         playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionBonusAmount)) {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].cpGameType !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
                                         playerReportDaySummary[indexNo].cpGameType = null;
                                     } else {
                                         playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].providerId !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
                                         playerReportDaySummary[indexNo].providerId = null;
                                     } else {
                                         playerReportDaySummary[indexNo].providerId = consumption.providerId;
@@ -3084,10 +3121,14 @@ var dbPlayerConsumptionRecord = {
             }
         ).catch(
             error => {
-                console.log("win rate report data summary error - ", error);
+                console.log("win rate report data summary error - ", error, curP, curConsumption);
                 return error;
             }
         );
+
+        function isNullOrUndefined (e) {
+            return typeof e === "undefined" || e === null
+        }
     },
 
     markDuplicatedConsumptionRecords: dupsSummaries => {

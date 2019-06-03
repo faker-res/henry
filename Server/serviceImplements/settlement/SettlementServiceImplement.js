@@ -78,6 +78,13 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpDaySummary.playerReportDaySummary_calculatePlatformDaySummaryForPlayers, args, isValidData);
     };
 
+    this.winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers.expectsData = 'platformId, startTime: Date, endTime: Date, playerObjIds: []';
+    this.winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && data.playerObjIds);
+        let args = [new Date(data.startTime), new Date(data.endTime), ObjectId(data.platformId), mapIdsToMongooseIds(data.playerObjIds)];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionDaySummary.winRateReportDaySummary_calculateWinRateReportDaySummaryForPlayers, args, isValidData);
+    };
+
     this.calculateDaySummary.expectsData = 'platformId, startTime: Date, endTime: Date, playerObjIds: []';
     this.calculateDaySummary.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.startTime && data.endTime && data.platformId && data.playerObjIds);
@@ -293,7 +300,14 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionActivePlayerAfterTopupQueryMatch, args, isValidData);
     };
 
+    this.settlePartnersComm.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
+        let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime, data.isSkip];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.settlePartnersCommission, args, isValidData);
+    };
+
     this.settlePartnersCommission.onRequest = (wsFunc, conn, data) => {
+        // deprecated, use settlePartnersComm instead
         let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
         let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime, data.isSkip];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersCommission, args, isValidData);

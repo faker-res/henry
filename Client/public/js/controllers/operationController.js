@@ -1203,6 +1203,22 @@ define(['js/app'], function (myApp) {
                         v.data.redRemark$ = true;
                     }
 
+                    if (v.data && v.data.autoAuditRemarkChinese) {
+                        if (v.remark$) {
+                            v.remark$ += v.data.autoAuditRemarkChinese;
+                        } else {
+                            v.remark$ = v.data.autoAuditRemarkChinese;
+                        }
+                    }
+
+                    if (v.data && v.data.rejectRemark) {
+                        if (v.remark$) {
+                            v.remark$ += v.data.rejectRemark;
+                        } else {
+                            v.remark$ = v.data.rejectRemark;
+                        }
+                    }
+
                     tableData.push(v);
                 }
             });
@@ -1980,7 +1996,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initAddRemarkRejectMultipleProposal = function () {
-            vm.rejectMultipleRemark = ""
+            vm.rejectMultipleRemark = "";
+            vm.rejectRemark = "";
         };
 
         vm.updateMultiselectProposal = function () {
@@ -2263,7 +2280,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.data ? data.data.data.name : vm.selectedProposalDetailForDisplay[provinceField];
-                    vm.selectedProposalDetailForDisplay[provinceField] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text ? text : vm.selectedProposalDetailForDisplay[provinceField];
                     $scope.$evalAsync();
                 });
             }
@@ -2313,7 +2330,7 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.data ? data.data.data.name : val;
-                    vm.selectedProposalDetailForDisplay[provinceField] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text ? text : vm.selectedProposalDetailForDisplay[provinceField];
                     $scope.$evalAsync();
                 });
             }

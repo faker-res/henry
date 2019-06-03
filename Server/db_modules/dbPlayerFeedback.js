@@ -244,7 +244,7 @@ var dbPlayerFeedback = {
                     return test * val;
                 });
 
-                if (topUpTimesValue) {
+                if (topUpTimesValue || topUpTimesValue == 0) {
                     switch (topUpTimesOperator) {
                         case '<=':
                             finalData = finalData.filter(p => {return p.topupTimes <= topUpTimesValue});
@@ -411,7 +411,9 @@ var dbPlayerFeedback = {
                         },
                         processResponse: function (record) {
                             console.log('request result', record);
-                            result = result.concat(record.data);
+                            if(record.data) {
+                                result = result.concat(record.data);
+                            }
                         }
                     }
                 )

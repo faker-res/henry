@@ -450,7 +450,9 @@ var generalCond = {
         visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
         visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
         invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
-    }
+    },
+    requiredBankCard: {index: 56, type: "checkbox", des: "Is a registered bank card required when applying reward", detail: "Check if player has a registered bank card when applying the reward"}
+
 };
 
 var topUpCond = {

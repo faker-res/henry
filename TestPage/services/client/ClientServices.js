@@ -148,7 +148,8 @@
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
                 "getFrontEndData",
-                "sendFileFTP"
+                "sendFileFTP",
+                "getFrontEndConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

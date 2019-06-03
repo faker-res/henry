@@ -97,16 +97,20 @@ var proposalType = {
             constProposalType.PLAYER_CONSECUTIVE_CONSUMPTION_REWARD,
             constProposalType.PLAYER_PACKET_RAIN_REWARD,
         ];
-        return dbconfig.collection_proposalType.find(
-            {
-                platformId: {
-                    $in: platformId
-                },
-                name: {
-                    $nin: hideProposalType
-                }
+
+        let query = {
+            name: {
+                $nin: hideProposalType
             }
-        ).exec();
+        };
+
+        if (platformId) {
+            query.platformId = {
+                $in: platformId
+            }
+        }
+
+        return dbconfig.collection_proposalType.find(query).exec();
     },
 
     /**

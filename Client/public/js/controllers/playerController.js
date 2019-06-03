@@ -11430,6 +11430,27 @@ define(['js/app'], function (myApp) {
                     item.mainType$ = $translate(item.mainType || "Unknown");
                     item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
+
+                    if (item.data && item.data.remark) {
+                        item.remark$ = item.data.remark;
+                    }
+
+                    if (item.data && item.data.autoAuditRemarkChinese) {
+                        if (item.remark$) {
+                            item.remark$ += item.data.autoAuditRemarkChinese;
+                        } else {
+                            item.remark$ = item.data.autoAuditRemarkChinese;
+                        }
+                    }
+
+                    if (item.data && item.data.rejectRemark) {
+                        if (item.remark$) {
+                            item.remark$ += item.data.rejectRemark;
+                        } else {
+                            item.remark$ = item.data.rejectRemark;
+                        }
+                    }
+
                     return item;
                 })
                 vm.playerProposal.totalCount = data.data.size;
@@ -11555,7 +11576,7 @@ define(['js/app'], function (myApp) {
                         orderable: false,
                     },
                     {
-                        title: "<div>" + $translate('REMARKS'), data: "data.remark",
+                        title: "<div>" + $translate('REMARKS'), data: "remark$",
                         orderable: false,
                     }
 
@@ -19486,13 +19507,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }
@@ -19568,13 +19589,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }

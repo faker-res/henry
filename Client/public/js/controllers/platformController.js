@@ -24851,64 +24851,31 @@ define(['js/app'], function (myApp) {
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
                             connectWith: ".connected-sortable",
-                            stop: function () {
-                                let arr1 = $('.droppable-area1').sortable('toArray');
-                                let arr2 = $('.droppable-area2').sortable('toArray');
-                                let arr3 = $('.droppable-area3').sortable('toArray');
-
-                                arr1.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr2.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-
-                                arr3.forEach (
-                                    (v, i) => {
-                                        if (v){
-                                            let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
-                                            if (index != -1){
-                                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
-                                            }
-                                        }
-                                    }
-                                );
-                            }
-                        });
+                        }).disableSelection()
+                        $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
+                        $('.droppable-area2').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
+                        $('.droppable-area3').on('click', '.draggable-item .btn-delete', function(event){
+                            let id = $(event.currentTarget).attr('id');
+                            vm.deleteFrontEndSetting(id);
+                        })
                     });
                 })
             };
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
                 socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getFrontEndPopularRecommendationSetting', data.data);
-                    $scope.$evalAsync( () => {
+                    $scope.$evalAsync(() => {
+                        console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
+                            vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
-                            utilService.actionAfterLoaded('#testSave', function () {
-                                document.querySelectorAll(".col-md-4.fronendConfigDiv > ul > li").forEach(item => {
-                                    item.parentElement.removeChild(item)
-                                });
-                            })
                         }
                     })
                 }, function (err) {
@@ -24939,6 +24906,7 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         $scope.$evalAsync( () => {
                             vm.frontEndRewardCategory.splice(index, 1);
+                            $('#' + categoryObjId).remove();
                         })
                     }
                 }
@@ -24947,26 +24915,41 @@ define(['js/app'], function (myApp) {
             vm.deleteRewardSetting = function (id) {
                 if (id){
                     vm.rewardDeletedList.push(id);
-                    let index = vm.rewardSettingData.findIndex( p => p._id.toString() == id.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            vm.rewardSettingData.splice(index, 1);
-                        })
-                    }
+                    $('#'+id).remove();
                 }
             };
 
             vm.updateRewardSetting = function () {
-                socketService.$socket($scope.AppSocket, 'updateRewardSetting', {dataList: vm.rewardSettingData, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList},
-                    function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('updateRewardSetting is done', data);
-                            vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                            vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                        })
-                    }, function (err) {
-                        console.log('err', err);
+                    let arr = {};
+                    let updateSetting = [];
+
+                    vm.frontEndRewardCategory.forEach(cato => {
+                        console.log(cato);
+                        arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
+                        arr[cato._id].forEach((v, i) => {
+                            if (v){
+                                let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    let selectSetting = vm.rewardSettingData[index];
+                                    selectSetting.categoryObjId = cato._id;
+                                    selectSetting.displayOrder = i + 1;
+                                    updateSetting.push(selectSetting);
+                                }
+                            }
+                        });
                     });
+                    console.log("arr", arr);
+                    return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
+                        (data) =>{
+                            $scope.$evalAsync( () => {
+                                console.log('updateRewardSetting is done', data);
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            })
+                        }, function (err) {
+                            console.log('err', err);
+                        });
+
             };
 
             vm.loadRewardCategory =  function (platformObjId) {
@@ -24976,6 +24959,7 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.newRewardCategory = null;
                             }
                         })
                     }, function (err) {
@@ -24987,39 +24971,24 @@ define(['js/app'], function (myApp) {
             vm.loadRewardSetting = function (platformObjId) {
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('getFrontEndRewardSetting', data.data);
-                            if (data && data.data) {
-                                vm.rewardSettingData = data.data;
-                            }
+                      $scope.$evalAsync( () => {
+                          console.log('getFrontEndRewardSetting', data.data);
+                          if (data && data.data) {
+                              vm.rewardSettingData = data.data;
+                          }
 
-                            let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
-                            utilService.actionAfterLoaded('#' + tempId, function () {
-                                $(".droppable-area").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr = {};
-                                        vm.frontEndRewardCategory.forEach(cato => {
-                                            arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
-                                            arr[cato._id].forEach((v, i) => {
-                                                if (v){
-                                                    let index = vm.rewardSettingData.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1){
-                                                        vm.rewardSettingData[index].categoryObjId = cato._id;
-                                                        vm.rewardSettingData[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            });
-                                        });
-                                        console.log("arr", arr);
-                                    }
-                                })
-                            });
-                        })
+                          let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                          utilService.actionAfterLoaded('#' + tempId, function () {
+                              $(".droppable-area").sortable({
+                                  connectWith: ".connected-sortable"
+                              })
+                          });
+                      })
                     }, function (err) {
-                        console.error('getFrontEndRewardSetting error: ', err);
+                      console.error('getFrontEndRewardSetting error: ', err);
                     }, true);
                 }
+
             };
 
             vm.addNewRewardSetting = function (isNew, eventObjId) {
@@ -25052,14 +25021,24 @@ define(['js/app'], function (myApp) {
                         let index = vm.rewardSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
                         if (index != -1){
                             vm.rewardSetting = _.clone(vm.rewardSettingData[index]);
-                            if( vm.rewardSetting && vm.rewardSetting.pc &&  vm.rewardSetting.pc.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.pc && vm.rewardSetting.pc.imageUrl) {
                                 $('#rewardPcImage').attr("src",vm.rewardSetting.pc.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.h5 &&  vm.rewardSetting.h5.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.h5 && vm.rewardSetting.h5.imageUrl) {
                                 $('#rewardH5Image').attr("src",vm.rewardSetting.h5.imageUrl);
                             }
-                            if( vm.rewardSetting && vm.rewardSetting.app &&  vm.rewardSetting.app.imageUrl) {
+                            if( vm.rewardSetting && vm.rewardSetting.app && vm.rewardSetting.app.imageUrl) {
                                 $('#rewardAppImage').attr("src",vm.rewardSetting.app.imageUrl);
+                            }
+
+                            if (vm.rewardSetting && !vm.rewardSetting.pc){
+                                vm.rewardSetting.pc = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.h5){
+                                vm.rewardSetting.h5 = {};
+                            }
+                            if (vm.rewardSetting && !vm.rewardSetting.app){
+                                vm.rewardSetting.app = {};
                             }
                         }
                     }
@@ -25086,7 +25065,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewRewardSetting(false, eventObjId);
             };
 
-            vm.submitRewardSettings = () => {
+            vm.submitRewardSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndRewardUploader').show();
                 function removeFromList(data) {
@@ -25096,7 +25075,8 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                // we will save the collection changer before create another new item.
+                await vm.updateRewardSetting();
                 let promArr = [
                     "rewardPcImage",
                     "rewardPcNewPage",
@@ -25140,7 +25120,7 @@ define(['js/app'], function (myApp) {
                                 vm.rewardSetting.h5.activityUrl = vm.rewardImageUrl.rewardH5PageDetail
                             }
                             if (vm.rewardImageUrl.rewardAppImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
+                                vm.rewardSetting.app.imageUrl = vm.rewardImageUrl.rewardAppImage
                             }
                             if (vm.rewardImageUrl.rewardAppNewPage){
                                 vm.rewardSetting.app.newPageUrl = vm.rewardImageUrl.rewardAppNewPage
@@ -25322,18 +25302,46 @@ define(['js/app'], function (myApp) {
                 $('#carouselH5Image').attr("src","");
                 $('#carouselAPPImage').attr("src","");
 
+                if (vm.newFrontEndCarousel){
+                    if (vm.newFrontEndCarousel.onClickAction){
+                        vm.newFrontEndCarousel.onClickAction = null;
+                    }
+                    if (vm.newFrontEndCarousel.newPageDetail){
+                        vm.newFrontEndCarousel.newPageDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.activityDetail){
+                        vm.newFrontEndCarousel.activityDetail = null;
+                    }
+                    if (vm.newFrontEndCarousel.rewardEventObjId){
+                        vm.newFrontEndCarousel.rewardEventObjId = null;
+                    }
+                    if (vm.newFrontEndCarousel.route){
+                        vm.newFrontEndCarousel.route = null;
+                    }
+                    if (vm.newFrontEndCarousel.gameCode){
+                        vm.newFrontEndCarousel.gameCode = null;
+                    }
+                }
+
                 if (carouselObjId) {
                     let index = vm.frontEndCarouselSetting.findIndex( p => p._id.toString() == carouselObjId.toString());
                     if (index != -1){
                         vm.newFrontEndCarousel = _.clone(vm.frontEndCarouselSetting[index]);
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            vm.newFrontEndCarousel.device = vm.newFrontEndCarousel.device.toString();
                         }
-                        if( vm.newFrontEndCarousel && vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
-                        }
-                        if( vm.newFrontEndCarousel &&  vm.newFrontEndCarousel.imageUrl) {
-                            $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+
+                        if (vm.newFrontEndCarousel && vm.newFrontEndCarousel.device){
+                            if (vm.newFrontEndCarousel.device == 1){
+                                $('#carouselPCImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==4){
+                                $('#carouselAPPImage').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
+                            else if (vm.newFrontEndCarousel.device ==2){
+                                $('#carouselH5Image').attr("src",vm.newFrontEndCarousel.imageUrl);
+                            }
                         }
                     }
                 }
@@ -25358,7 +25366,7 @@ define(['js/app'], function (myApp) {
                 $('#carouselSetting').modal();
             };
 
-            vm.submitCarouselSettings = () => {
+            vm.submitCarouselSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndCarouselUploader').show();
                 function removeFromList(data) {
@@ -25368,7 +25376,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-
+                await vm.updateFrontEndCarouselSetting();
                 let promArr
 
                 if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '1') {
@@ -25377,13 +25385,13 @@ define(['js/app'], function (myApp) {
                         "pcNewPage",
                         "pcPageDetail"
                     ];
-                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '2') {
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '4') {
                     promArr = [
                         "carouselAPPImage",
                         "appNewPage",
                         "appPageDetail"
                     ];
-                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '3') {
+                } else if (vm.newFrontEndCarousel.device && vm.newFrontEndCarousel.device === '2') {
                     promArr = [
                         "carouselH5Image",
                         "H5NewPage",
@@ -25456,6 +25464,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
+                vm.clearAllDropArea();
                 socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
@@ -25469,48 +25478,8 @@ define(['js/app'], function (myApp) {
                             utilService.actionAfterLoaded('#carouselSaveButton', function () {
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".carousel .droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                                    connectWith: ".connected-sortable",
-                                    stop: function () {
-                                        let arr1 = $('.carousel .droppable-area1').sortable('toArray');
-                                        let arr2 = $('.carousel .droppable-area2').sortable('toArray');
-                                        let arr3 = $('.carousel .droppable-area3').sortable('toArray');
-                                        arr1.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 1;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr2.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 3;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-
-                                        arr3.forEach(
-                                            (v, i) => {
-                                                if (v) {
-                                                    let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
-                                                    if (index != -1) {
-                                                        vm.frontEndCarouselSetting[index].device = 2;
-                                                        vm.frontEndCarouselSetting[index].displayOrder = i + 1;
-                                                    }
-                                                }
-                                            }
-                                        );
-                                    }
-                                }).disableSelection()
+                                    connectWith: ".connected-sortable"
+                                }).disableSelection();
                             })
                         }
                     })
@@ -25520,17 +25489,19 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateFrontEndCarouselSetting = function () {
-                let arr1 = $('.droppable-area1').sortable('toArray');
-                let arr2 = $('.droppable-area2').sortable('toArray');
-                let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let arr1 = $('.fronendConfigScrollDiv .droppable-area1').sortable('toArray');
+                let arr2 = $('.fronendConfigScrollDiv .droppable-area2').sortable('toArray');
+                let arr3 = $('.fronendConfigScrollDiv .droppable-area3').sortable('toArray');
+                let updateFrontEndCarouselData = []
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 1;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 1;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25541,8 +25512,10 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 3;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 2;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
@@ -25553,15 +25526,16 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndCarouselSetting.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndCarouselSetting[index].device = 2;
-                                vm.frontEndCarouselSetting[index].displayOrder = i + 1;
+                                let selectedfrontEndCarousel = Object.assign({}, vm.frontEndCarouselSetting[index]);
+                                selectedfrontEndCarousel.device = 4;
+                                selectedfrontEndCarousel.displayOrder = i + 1;
+                                updateFrontEndCarouselData.push(selectedfrontEndCarousel);
                             }
                         }
                     }
                 );
-
-                socketService.$socket($scope.AppSocket, 'updateCarouselSetting', {dataList: vm.frontEndCarouselSetting, deletedList: vm.frontEndDeletedList},
-                    function (data) {
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
                             vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -26743,13 +26717,13 @@ define(['js/app'], function (myApp) {
                         vm.promoCodeTypeB = [];
 
                         vm.promoCodeTypes.forEach(entry => {
-                            if (entry.type == 1 && entry.hasOwnProperty("smsTitle")) {
+                            if (entry.type == 1 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType1.push(entry);
                                 vm.promoCodeType1BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 2 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 2 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType2.push(entry);
                                 vm.promoCodeType2BeforeEdit.push($.extend({}, entry));
-                            } else if (entry.type == 3 && entry.hasOwnProperty("smsTitle")) {
+                            } else if (entry.type == 3 && entry.hasOwnProperty("deleteFlag") && !entry.deleteFlag) {
                                 vm.promoCodeType3.push(entry);
                                 vm.promoCodeType3BeforeEdit.push($.extend({}, entry));
                             }
@@ -27412,13 +27386,13 @@ define(['js/app'], function (myApp) {
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                             //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                             commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                             });
                         }
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                             //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                             commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                             });
                         }
                     }
@@ -27549,13 +27523,13 @@ define(['js/app'], function (myApp) {
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                             // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                             commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                             });
                         }
                         if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                             // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                             commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                                vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                             });
                         }
                     }
@@ -40912,6 +40886,16 @@ define(['js/app'], function (myApp) {
                             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
                                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
                             }
+
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                                vm.popularRecommendationSetting.pc = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                                vm.popularRecommendationSetting.h5 = {};
+                            }
+                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                                vm.popularRecommendationSetting.app = {};
+                            }
                         }
                     }
                 }
@@ -40958,38 +40942,57 @@ define(['js/app'], function (myApp) {
 
             vm.resetOnClickSetting = function (holder, type, actionId) {
                 let tempImageUrl = null;
-                if (holder && holder[type]) {
-                    if (holder[type] && holder[type].imageUrl){
-                        tempImageUrl = holder[type].imageUrl
-                    }
-                    switch (actionId) {
-                        case 1:
-                            holder[type] = {};
-                            holder[type].onClickAction = 1;
-                            break;
-                        case 2:
-                            holder[type] = {};
-                            holder[type].onClickAction = 2;
-                            break;
-                        case 3:
-                            holder[type] = {};
-                            holder[type].onClickAction = 3;
-                            break;
-                        case 4:
-                            holder[type] = {};
-                            holder[type].onClickAction = 4;
-                            break;
-                        case 5:
-                            holder[type] = {};
-                            holder[type].onClickAction = 5;
-                            break;
-                        case 6:
-                            holder[type] = {};
-                            holder[type].onClickAction = 6;
-                            break;
-                    }
+                if (type && actionId) {
+                    if (holder && holder[type]) {
+                        if (holder[type] && holder[type].imageUrl) {
+                            tempImageUrl = holder[type].imageUrl
+                        }
+                        switch (actionId) {
+                            case 1:
+                                holder[type] = {};
+                                holder[type].onClickAction = 1;
+                                break;
+                            case 2:
+                                holder[type] = {};
+                                holder[type].onClickAction = 2;
+                                break;
+                            case 3:
+                                holder[type] = {};
+                                holder[type].onClickAction = 3;
+                                break;
+                            case 4:
+                                holder[type] = {};
+                                holder[type].onClickAction = 4;
+                                break;
+                            case 5:
+                                holder[type] = {};
+                                holder[type].onClickAction = 5;
+                                break;
+                            case 6:
+                                holder[type] = {};
+                                holder[type].onClickAction = 6;
+                                break;
+                        }
 
-                    holder[type].imageUrl = tempImageUrl
+                        holder[type].imageUrl = tempImageUrl
+                    }
+                }
+                else{
+                    if (holder['newPageDetail']){
+                        holder['newPageDetail'] = null;
+                    }
+                    if (holder['activityDetail']){
+                        holder['activityDetail'] = null;
+                    }
+                    if (holder['rewardEventObjId']){
+                        holder['rewardEventObjId']= null;
+                    }
+                    if (holder['route']){
+                        holder['route'] = null;
+                    }
+                    if (holder['gameCode']){
+                        holder['gameCode'] = null;
+                    }
                 }
             };
 
@@ -40997,7 +41000,7 @@ define(['js/app'], function (myApp) {
                 vm.addNewPopularRecommendationSetting(false, eventObjId);
             };
 
-            vm.submitPopularRecommendationSettings = () => {
+            vm.submitPopularRecommendationSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -41019,7 +41022,8 @@ define(['js/app'], function (myApp) {
                     "appNewPage",
                     "appPageDetail",
                 ];
-
+                // we will save the collection changer before create another new item.
+                await vm.updatePopularRecommendationSetting();
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -41107,17 +41111,20 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updatePopularRecommendationSetting = function () {
+
                 let arr1 = $('.droppable-area1').sortable('toArray');
                 let arr2 = $('.droppable-area2').sortable('toArray');
                 let arr3 = $('.droppable-area3').sortable('toArray');
-
+                let updateFrontEndPopularRecommendationData = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 1;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 1;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -41128,8 +41135,10 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 2;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 2;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
@@ -41140,34 +41149,35 @@ define(['js/app'], function (myApp) {
                         if (v){
                             let index = vm.frontEndPopularRecommendationData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.frontEndPopularRecommendationData[index].category = 3;
-                                vm.frontEndPopularRecommendationData[index].displayOrder = i + 1;
+                                let selectedPopularRecommendation = Object.assign({}, vm.frontEndPopularRecommendationData[index]);
+                                selectedPopularRecommendation.category = 3;
+                                selectedPopularRecommendation.displayOrder = i + 1;
+                                updateFrontEndPopularRecommendationData.push(selectedPopularRecommendation);
                             }
                         }
                     }
                 );
-
-                socketService.$socket($scope.AppSocket, 'updatePopularRecommendationSetting', {dataList: vm.frontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList},
-                    function (data) {
+                return $scope.$socketPromise('updatePopularRecommendationSetting', { dataList: updateFrontEndPopularRecommendationData, deletedList: vm.frontEndDeletedList}).then(
+                    (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
                             vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            resolve();
                         })
                     }, function (err) {
                         console.log('err', err);
                     });
-            };
 
+            };
+            vm.clearAllDropArea = function () {
+                $('.droppable-area1').children().remove();
+                $('.droppable-area2').children().remove();
+                $('.droppable-area3').children().remove();
+            }
             vm.deleteFrontEndSetting = function (eventObjectId, holder){
                 if (eventObjectId){
                     vm.frontEndDeletedList.push(eventObjectId);
-                    let index = holder.findIndex( p => p._id.toString() == eventObjectId.toString());
-                    if (index != -1){
-                        $scope.$evalAsync( () => {
-                            holder.splice(index, 1);
-                            $('#' + eventObjectId).remove();
-                        })
-                    }
+                    $('#' + eventObjectId).remove();
                 }
             };
 
@@ -41319,6 +41329,8 @@ define(['js/app'], function (myApp) {
                             vm.popUpAdvertisementData = data.data;
                         }
 
+                        $('.popUpAdvModal .droppable-area1').children().remove();
+
                         utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
                             $(".popUpAdvModal .droppable-area1").sortable({
                                 connectWith: ".connected-sortable",
@@ -41349,19 +41361,21 @@ define(['js/app'], function (myApp) {
 
             vm.updatePopUpAdvertisementSetting = function () {
                 let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
-
+                let updateArr = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                                let selectedAdv = vm.popUpAdvertisementData[index];
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
                             }
                         }
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: vm.popUpAdvertisementData, deletedList: vm.frontEndDeletedList},
+                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopUpAdvertisementSetting is done', data);
@@ -41416,6 +41430,16 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
                                 $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                            }
+
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                                vm.popUpAdvertisementSetting.pc = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                                vm.popUpAdvertisementSetting.h5 = {};
+                            }
+                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                                vm.popUpAdvertisementSetting.app = {};
                             }
                         }
                     }

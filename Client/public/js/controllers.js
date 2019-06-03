@@ -889,7 +889,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "WEEKLY_BONUS_AMOUNT",
         3: "BIWEEKLY_BONUS_AMOUNT",
         4: "MONTHLY_BONUS_AMOUNT",
-        5: "WEEKLY_CONSUMPTION"
+        5: "WEEKLY_CONSUMPTION",
+        7: "DAILY_CONSUMPTION",
     };
 
     $scope.constCallOutMissionStatus = {
@@ -969,8 +970,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.frontEndSettingDevice = {
         1: "PC",
-        2: "APP",
-        3: "H5"
+        2: "H5",
+        4: "App"
     };
 
     // $scope.consumptionRecordProviderName = {

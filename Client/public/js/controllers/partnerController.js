@@ -5,7 +5,7 @@ define(['js/app'], function (myApp) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
-
+        $scope.fixModalScrollIssue();
 
         // For debugging:
         window.VM = vm;
@@ -978,14 +978,11 @@ define(['js/app'], function (myApp) {
                 status: 'ready'
             };
 
-            let modes = [1, 2, 3, 4, 5];
+            let modes = [2, 7];
             /* flags to disable settlement mode button after submit sucessfully*/
             vm.partnerSettlementSubmitted = {
-                1: false,
                 2: false,
-                3: false,
-                4: false,
-                5: false
+                7: false,
             };
 
             $scope.$socketPromise("getPlatformPartnerSettLog", {
@@ -995,10 +992,9 @@ define(['js/app'], function (myApp) {
                 logs => {
                     $scope.$evalAsync(() => {
                         vm.partnerCommissionSettlement.data = logs.data;
-                        $('#partnerCommissionSettlementModal').modal('show');
                     })
                 }
-            )
+            );
 
             getAllPartnerCommSettPreview();
         };
@@ -1008,7 +1004,8 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedPlatform.id,
                 settMode: modeObj.mode,
                 startTime: modeObj.settStartTime,
-                endTime: modeObj.settEndTime
+                endTime: modeObj.settEndTime,
+                useNew: true,
             }).then(
                 () => {
                     vm.startPlatformPartnerCommissionSettlement()
@@ -1088,6 +1085,7 @@ define(['js/app'], function (myApp) {
                 endTime: prev.endTime
             }).then(
                 partnerCommObj => {
+                    console.log('getPartnerCommissionLog', partnerCommObj)
                     $scope.$evalAsync(() => {
                         vm.partnerCommissionLog = partnerCommObj.data;
                         vm.partnerCommissionLog.forEach(partner => {
@@ -1106,6 +1104,31 @@ define(['js/app'], function (myApp) {
                                     });
                                 }
 
+                                partner.childSummary = {
+                                    grossCommission: 0
+                                };
+
+                                let numSum = {
+                                    totalRewardFee: partner.totalRewardFee || 0,
+                                    totalPlatformFee: partner.totalPlatformFee || 0,
+                                    totalTopUpFee: partner.totalTopUpFee || 0,
+                                    totalWithdrawalFee: partner.totalWithdrawalFee || 0,
+                                    nettCommission: partner.nettCommission || 0,
+                                };
+
+                                if (partner.childComm && partner.childComm.length) {
+                                    partner.childComm.forEach( childComm => {
+                                        partner.childSummary.grossCommission += childComm.grossCommission || 0;
+                                        numSum.totalRewardFee += childComm.totalRewardFee || 0;
+                                        numSum.totalPlatformFee += childComm.totalPlatformFee || 0;
+                                        numSum.totalTopUpFee += childComm.totalTopUpFee || 0;
+                                        numSum.totalWithdrawalFee += childComm.totalWithdrawalFee || 0;
+                                        numSum.nettCommission += childComm.nettCommission || 0;
+                                    });
+                                }
+
+                                partner.numSum = numSum;
+
                                 // Round to 2 dp
                                 for (let key in partner) {
                                     if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
@@ -1118,6 +1141,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         });
+                        vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
                 }
@@ -10103,13 +10127,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }
@@ -10174,13 +10198,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         //vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE")
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         //vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }
@@ -16876,11 +16900,15 @@ define(['js/app'], function (myApp) {
             switch (tab) {
                 case 'Config':
                     vm.selectedConfigTab = '';
+                    break;
                 case 'Report':
-
+                    break;
+                case 'Settlement':
+                    vm.settlePlatform = '';
+                    vm.showPreviewOption = false;
                     break;
             }
-        }
+        };
 
         // region report
         vm.loadPage = function (choice, pageName, code, eventObjId, isReset) {
@@ -17511,6 +17539,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    vm.currentUseCommDetail = vm.realTimeCommissionData;
                 });
             }, function (error) {
                 loadingSpinner.hide();

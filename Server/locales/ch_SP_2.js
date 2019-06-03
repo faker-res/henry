@@ -17,6 +17,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",
@@ -513,6 +514,7 @@ var simplifiedChinese = {
     "Phone number already set": "电话号码已设置",
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
+    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
 
     //todo::add missing messages here
 

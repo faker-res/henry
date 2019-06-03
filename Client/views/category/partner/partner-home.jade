@@ -13,6 +13,10 @@
                             a.common-tab(data-toggle="tab", href="#Config", ng-click="vm.loadTab('Config');")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"CONFIG" | translate}}
+                        li(ng-if="checkViewPermission('Partner', 'Settlement')")
+                            a.common-tab(data-toggle="tab", href="#Settlement", ng-click="vm.loadTab('Settlement');")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"SETTLEMENT" | translate}}
                         li(ng-if="checkViewPermission('Partner', 'Report')")
                             a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.loadTab('Report');")
                                 .fa.fa-volume-control-phone.margin-right-5
@@ -27,11 +31,18 @@
                             include ./platform-partner
                         #Config.tab-pane.fade.in
                             include ./partner-config
+                        #Settlement.tab-pane.fade.in
+                            include ./partner-settlement
                         #Report.tab-pane.fade.in
                             include ./report/partner-report-home
 
+// modals (maybe move to a separate file?)
 
-
+include modals/partner-common-modal
+include modals/partner-commission-modal
+include partner-feedback-popup
+include ../common-widget/telephone-popover
+include ../common-widget/modalYesNo
 
 
 

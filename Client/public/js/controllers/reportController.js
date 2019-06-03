@@ -351,13 +351,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }
@@ -2581,6 +2581,19 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
+        vm.reCalculateWinRateReportSummary = function (){
+            $('#winRateTableSpin').show();
+            var sendquery = {
+                platformId: vm.curPlatformId,
+                start: vm.winRateQuery.startTime.data('datetimepicker').getLocalDate(),
+                end: vm.winRateQuery.endTime.data('datetimepicker').getLocalDate()
+            };
+
+            socketService.$socket($scope.AppSocket, 'reCalculateWinRateReportSummary', sendquery, function (data) {
+                $('#winRateTableSpin').hide();
+            });
+        };
+
         vm.getWinRateAllPlatformReport = function (listAll) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
@@ -3380,7 +3393,8 @@ define(['js/app'], function (myApp) {
             vm.playerAlipayAccReport.index = 0;
 
             let sendQuery = {
-                platformObjId: vm.selectedPlatform._id,
+                // platformObjId: vm.selectedPlatform._id,
+                platformList: vm.playerAlipayAccReport.platformList,
                 startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -3418,6 +3432,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "data.platformId.name"},
                     {title: $translate('Proposal No'), data: "proposalId"},
                     {title: $translate('RELATED_ACCOUNT'), data: "data.playerName"},
                     {title: $translate('RELATED_AMOUNT'), data: "data.amount"},
@@ -4397,215 +4412,104 @@ define(['js/app'], function (myApp) {
                 isExport: isExport
             };
             console.log('sendquery', sendquery);
-            if(!vm.playerQuery.searchBySummaryData){
-                socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
+
+            socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('test player report summary data', data);
+                    findReportSearchTime();
+                    vm.playerQuery.totalCount = data.data.size;
                     $('#loadingPlayerReportTableSpin').hide();
+                    // get game data.then(
+                    // map
+                    vm.drawPlayerReport(data.data.data.map(item => {
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                        item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                        item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                        item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                        item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                        item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                        item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                        item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                        item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                        item.registrationAgent$ = item.csOfficer || null;
 
-                    if (isExport) {
-                        window.saveAs(new Blob([data.data]), "玩家报表.csv");
-                    } else {
-                        $scope.$evalAsync(() => {
-                            findReportSearchTime();
-                            console.log('retData', data);
-                            vm.playerQuery.totalCount = data.data.size;
-                            $('#loadingPlayerReportTableSpin').hide();
-                            // get game data.then(
-                            // map
-                            vm.drawPlayerReport(data.data.data.map(item => {
-                                item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                                item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                                item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                                item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                                item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                                item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                                item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                                item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                                item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                                item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                                item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                                item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                                item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                                item.registrationAgent$ = item.csOfficer || null;
-
-                                item.playerLevel$ = "";
-                                if (vm.playerLvlData[item.playerLevel]) {
-                                    item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
-                                }
-                                else {
-                                    item.playerLevel$ = "";
-                                }
-
-                                item.credibility$ = "";
-                                if (item.credibilityRemarks) {
-                                    for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                                        if (item.credibilityRemarks[i]) {
-                                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                                if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                                    item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                item.providerArr = [];
-                                for (var key in item.providerDetail) {
-                                    if (item.providerDetail.hasOwnProperty(key)) {
-                                        item.providerDetail[key].providerId = key;
-                                        item.providerArr.push(item.providerDetail[key]);
-                                    }
-                                }
-
-                                item.provider$ = "";
-                                if (item.providerDetail) {
-                                    for (let i = 0; i < item.providerArr.length; i++) {
-                                        item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                                        item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                                        item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                                        item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                        for (let j = 0; j < vm.allProviders.length; j++) {
-                                            if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                                item.providerArr[i].name = vm.allProviders[j].name;
-                                                item.provider$ += vm.allProviders[j].name + "<br>";
-                                            }
-                                        }
-                                    }
-                                }
-
-                                item.profit$ = 0;
-                                if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                                    item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                                }
-
-                                if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
-                                    let detailArr = [];
-                                    item.onlineTopUpFeeDetail.forEach((detail, index) => {
-                                        if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
-                                            let orderNo = index ? index + 1 : 1;
-                                            detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
-                                        }
-                                    });
-
-                                    item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
-                                } else {
-                                    item.onlineTopUpFeeDetail$ = '';
-                                }
-                                item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
-
-                                if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                                    item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
-                                }
-
-                                return item;
-                            }), data.data.total, data.data.size, newSearch, isExport);
-                        });
-                    }
-
-
-
-
-
-                });
-
-            }else{
-                socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log('test player report summary data', data);
-                        findReportSearchTime();
-                        vm.playerQuery.totalCount = data.data.size;
-                        $('#loadingPlayerReportTableSpin').hide();
-                        // get game data.then(
-                        // map
-                        vm.drawPlayerReport(data.data.data.map(item => {
-                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                            item.registrationAgent$ = item.csOfficer || null;
-
+                        item.playerLevel$ = "";
+                        if (vm.playerLvlData[item.playerLevel]) {
+                            item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                        }
+                        else {
                             item.playerLevel$ = "";
-                            if (vm.playerLvlData[item.playerLevel]) {
-                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
-                            }
-                            else {
-                                item.playerLevel$ = "";
-                            }
+                        }
 
-                            item.credibility$ = "";
-                            if (item.credibilityRemarks) {
-                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                                    if (item.credibilityRemarks[i]) {
-                                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                            if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                                item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                            }
+                        item.credibility$ = "";
+                        if (item.credibilityRemarks) {
+                            for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                if (item.credibilityRemarks[i]) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            item.providerArr = [];
-                            for (var key in item.providerDetail) {
-                                if (item.providerDetail.hasOwnProperty(key)) {
-                                    item.providerDetail[key].providerId = key;
-                                    item.providerArr.push(item.providerDetail[key]);
-                                }
+                        item.providerArr = [];
+                        for (var key in item.providerDetail) {
+                            if (item.providerDetail.hasOwnProperty(key)) {
+                                item.providerDetail[key].providerId = key;
+                                item.providerArr.push(item.providerDetail[key]);
                             }
+                        }
 
-                            item.provider$ = "";
-                            if (item.providerDetail) {
-                                for (let i = 0; i < item.providerArr.length; i++) {
-                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                                    for (let j = 0; j < vm.allProviders.length; j++) {
-                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                            item.providerArr[i].name = vm.allProviders[j].name;
-                                            item.provider$ += vm.allProviders[j].name + "<br>";
-                                        }
+                        item.provider$ = "";
+                        if (item.providerDetail) {
+                            for (let i = 0; i < item.providerArr.length; i++) {
+                                item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                        item.providerArr[i].name = vm.allProviders[j].name;
+                                        item.provider$ += vm.allProviders[j].name + "<br>";
                                     }
                                 }
                             }
+                        }
 
-                            item.profit$ = 0;
-                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                            }
+                        item.profit$ = 0;
+                        if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                            item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                        }
 
-                            if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
-                                let detailArr = [];
-                                item.onlineTopUpFeeDetail.forEach((detail, index) => {
-                                    if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
-                                        let orderNo = index ? index + 1 : 1;
-                                        detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
-                                    }
-                                });
+                        if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                            let detailArr = [];
+                            item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                    let orderNo = index ? index + 1 : 1;
+                                    detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                }
+                            });
 
-                                item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
-                            } else {
-                                item.onlineTopUpFeeDetail$ = '';
-                            }
-                            item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+                            item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                        } else {
+                            item.onlineTopUpFeeDetail$ = '';
+                        }
+                        item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
-                            if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                                item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
-                            }
+                        if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                        }
 
-                            return item;
-                        }), data.data.total, data.data.size, newSearch, isExport);
-                    });
+                        return item;
+                    }), data.data.total, data.data.size, newSearch, isExport);
                 });
-            }
+            });
         };
 
         vm.reCalculatePlayerReportSummary = function (){
@@ -6043,7 +5947,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 financialPointsType: financialPointsType,
-                platformId: vm.curPlatformId,
+                platformList: newproposalQuery.platformList,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 5000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
@@ -6094,10 +5998,14 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.financialQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', 'aTargets': [0]},
-                    {'sortCol': 'createTime', 'aTargets': [9]}
+                    {'sortCol': 'proposalId', 'aTargets': [1]},
+                    {'sortCol': 'createTime', 'aTargets': [10]}
                 ],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "data.platformId.name"
+                    },
                     {
                         title: $translate('PROPOSAL ID'), data: "proposalId",
                         render: function (data, type, row) {
@@ -6484,6 +6392,21 @@ define(['js/app'], function (myApp) {
                         }
                         item.status$ = $translate(item.type.name === "BulkExportPlayerData" || item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 
+                        if (item.data && item.data.autoAuditRemarkChinese) {
+                            if (item.remark$) {
+                                item.remark$ += item.data.autoAuditRemarkChinese;
+                            } else {
+                                item.remark$ = item.data.autoAuditRemarkChinese;
+                            }
+                        }
+
+                        if (item.data && item.data.rejectRemark) {
+                            if (item.remark$) {
+                                item.remark$ += item.data.rejectRemark;
+                            } else {
+                                item.remark$ = item.data.rejectRemark;
+                            }
+                        }
                         return item;
                     })
 
@@ -8261,10 +8184,10 @@ define(['js/app'], function (myApp) {
             vm.rewardReportAmountAvg = {};
 
             let proposalNames
-            if (vm.rewardReportAnalysis.type == "rewardName") {
-                proposalNames = $('select#selectRewardAnalysisType').multipleSelect("getSelects");
+            if (vm.rewardReportAnalysis.type === "rewardName") {
+                proposalNames = vm.rewardReportAnalysis.promoName;
             } else {
-                proposalNames = $('select#selectRewardProposalType').multipleSelect("getSelects");
+                proposalNames = vm.rewardReportAnalysis.proposalTypeName;
             }
 
 
@@ -8273,7 +8196,8 @@ define(['js/app'], function (myApp) {
                 period: vm.rewardReportAnalysis.periodText,
                 startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
-                platformObjId: vm.selectedPlatform._id,
+                //platformObjId: vm.selectedPlatform._id,
+                platformList: vm.rewardReportAnalysis.platformList,
                 type: vm.rewardReportAnalysis.type,
                 proposalNameArr: proposalNames
             }
@@ -9061,13 +8985,13 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]) {
                         // vm.getProvinceName(vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"], "RECEIVE_BANK_ACC_PROVINCE" )
                         commonService.getProvinceName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE" ] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_PROVINCE"];
                         });
                     }
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         // vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                         commonService.getCityName($scope, vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]).catch(err => Promise.resolve('')).then(data => {
-                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data;
+                            vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"] = data ? data : vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"];
                         });
                     }
                 }
@@ -10392,14 +10316,17 @@ define(['js/app'], function (myApp) {
                     vm.rewardReportAnalysis = {periodText: "day"};
                     vm.reportSearchTime = 0;
 
-                    vm.allRewardProposalType = [];
-                    if (vm.allProposalType && vm.allProposalType.length) {
-                        vm.allProposalType.forEach(item => {
-                            if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
-                                vm.allRewardProposalType.push(item);
-                            }
-                        })
-                    }
+                    // vm.allRewardProposalType = [];
+                    // if (vm.allProposalType && vm.allProposalType.length) {
+                    //     vm.allProposalType.forEach(item => {
+                    //         if (vm.getProposalTypeOptionValue(item, false) == "Reward Proposal") {
+                    //             vm.allRewardProposalType.push(item);
+                    //         }
+                    //     })
+                    // }
+
+                    vm.getAllProposalTypeByPlatform();
+
                     utilService.actionAfterLoaded(('#rewardReportAnalysis'), function () {
                         $('select#selectRewardProposalType').multipleSelect({
                             allSelected: $translate("All Selected"),
@@ -11383,6 +11310,61 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         }
         //#endregion
+
+        //#region All Reward Report
+        vm.getRewardFilterItemChanged = function(choice) {
+            vm.allRewardList = [];
+            if (choice === 'rewardName') {
+                let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: {platform: {$in: vm.rewardReportAnalysis.platformList}}} : {platform: null};
+
+                socketService.$socket($scope.AppSocket, 'getRewardByPlatform', query, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allRewardList = data.data;
+                        console.log('vm.allRewardList', vm.allRewardList);
+
+                        vm.rewardReportAnalysis.promoName = [];
+
+                        vm.allRewardList.forEach(item => {
+                            if (item && item.name) {
+                                vm.rewardReportAnalysis.promoName.push(item.name);
+                            }
+                        })
+                    });
+                });
+                delete vm.rewardReportAnalysis.proposalTypeName
+            } else {
+                delete vm.rewardReportAnalysis.promoName;
+                vm.getAllProposalTypeByPlatform();
+            }
+        };
+
+        vm.getAllProposalTypeByPlatform = function () {
+            vm.allProposalTypeList = [];
+            vm.allRewardProposalTypeList = [];
+
+            let query = vm.rewardReportAnalysis && vm.rewardReportAnalysis.platformList && vm.rewardReportAnalysis.platformList.length > 0 ? {platform: vm.rewardReportAnalysis.platformList} : {platform: null};
+
+            socketService.$socket($scope.AppSocket, 'getAllProposalTypeByPlatform', query, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.allProposalTypeList = data.data;
+
+                    if (vm.allProposalTypeList && vm.allProposalTypeList.length) {
+                        vm.allProposalTypeList.forEach(item => {
+                            if (vm.getProposalTypeOptionValue(item, false) === "Reward Proposal") {
+                                let index = vm.allRewardProposalTypeList.findIndex(x => x === item.name);
+
+                                if (index === -1) {
+                                    vm.allRewardProposalTypeList.push(item.name);
+                                }
+                            }
+                        })
+
+                        vm.rewardReportAnalysis.proposalTypeName = vm.allRewardProposalTypeList;
+                    }
+                });
+            });
+        };
+        //endregion
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

@@ -494,7 +494,9 @@ let dbPlayerInfo = {
                                     if (deviceData) {
                                         guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
                                     }
-
+                                    console.log("checking guestPlayerData.userAgent", guestPlayerData.userAgent)
+                                    guestPlayerData = determineRegistrationInterface(guestPlayerData);
+                                    console.log("checking guestPlayerData.registrationInterface", guestPlayerData.registrationInterface)
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
@@ -593,6 +595,8 @@ let dbPlayerInfo = {
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
+        console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
+        console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -5467,9 +5471,15 @@ let dbPlayerInfo = {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
 
-        //todo encrytion ?
         if (data && data.phoneNumber) {
-            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), rsaCrypto.oldEncrypt(data.phoneNumber), data.phoneNumber]};
+            data.phoneNumber = {
+                $in: [
+                    rsaCrypto.encrypt(data.phoneNumber),
+                    rsaCrypto.oldEncrypt(data.phoneNumber),
+                    rsaCrypto.legacyEncrypt(data.phoneNumber),
+                    data.phoneNumber
+                ]
+            };
         }
 
         function getRewardData(thisPlayer) {
@@ -6289,6 +6299,7 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             player => {
+
                                 if (player) {
                                     if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
@@ -6334,7 +6345,38 @@ let dbPlayerInfo = {
                                                 return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
                                             else {
-                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                let checkPlayerDeviceExistProm = Promise.resolve(true);
+
+                                                if (loginData.deviceId) {
+                                                    checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
+                                                        {
+                                                            platform: platformObjId,
+                                                            $or: [
+                                                                {guestDeviceId: loginData.deviceId},
+                                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                                            ],
+                                                        }
+                                                    ).lean().then(
+                                                        dataExist => {
+                                                            if (dataExist) {
+                                                                return false;
+                                                            } else {
+                                                                return true;
+                                                            }
+                                                        }
+                                                    );
+                                                }
+
+                                                return checkPlayerDeviceExistProm.then(
+                                                    playerDeviceNotExist => {
+                                                        if (!playerDeviceNotExist) {
+                                                            return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
+                                                        } else {
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                        }
+                                                    }
+                                                )
                                             }
                                         }
                                     ).then(
@@ -20133,7 +20175,9 @@ let dbPlayerInfo = {
                                         }
                                     }
                                     else {
-                                        retArr.push(e);
+                                        if(e) {
+                                            retArr.push(e);
+                                        }
                                     }
                                 }
                             );
@@ -22294,6 +22338,37 @@ let dbPlayerInfo = {
         )
     },
 
+
+        /**
+         * Create new Proposal to update player birthday(DOB)
+         * @param {json} data - proposal data
+         */
+         createPlayerBirthdayProposal: function (playerData, data, inputDevice) {
+             let proposalData = {
+                 creator: {
+                     type: 'player',
+                     name: playerData.name,
+                     id: playerData._id
+                 },
+                 entryType: constProposalEntryType.CLIENT,
+                 userType: constProposalUserType.PLAYERS,
+                 inputDevice: inputDevice ? inputDevice : 0,
+                 data: {
+                     _id: playerData._id,
+                     playerId: playerData.playerId,
+                     platformId: playerData.platform,
+                     playerObjId: playerData._id,
+                     playerName: playerData.name,
+                     DOB: data.DOB,
+                     remark:localization.localization.translate("DOB")
+                 }
+             }
+             if (playerData.DOB) {
+                 proposalData.data.curData = {DOB: playerData.DOB};
+             }
+             return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData);
+         },
+
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
         if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {
             return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(
@@ -23625,17 +23700,20 @@ let dbPlayerInfo = {
             });
     },
 
-    changeBirthdayDate: function (playerObjId, date) {
-        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1}).lean().then(
+    changeBirthdayDate: function (playerObjId, date, inputDevice) {
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {DOB: 1, name:1, platform:1, playerId:1}).lean().then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find player"})
                 }
                 if (playerData.DOB) {
                     return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
-                } else {
-                    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean()
                 }
+                return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean().then(
+                    data => {
+                        return dbPlayerInfo.createPlayerBirthdayProposal(playerData, {DOB: new Date(date)}, inputDevice);
+                    }
+                )
             }
         )
 
@@ -25359,6 +25437,7 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
 }
 
 function determineRegistrationInterface(inputData) {
+    console.log("checking inputData.userAgent when determineRegistrationInterface", inputData.userAgent || "undefined");
     if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }

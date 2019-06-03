@@ -5872,7 +5872,8 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyTopupRecordIsDirty(eventData, rewardData);
         // Check if player has binded phone number
         await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumber(eventData, playerData);
-
+        // check if player has a binded bank card
+        await dbRewardUtil.checkRewardApplyHasBankCard(eventData, playerData);
         // Set reward param for player level to use
         let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
         // Get interval time

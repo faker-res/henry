@@ -6593,7 +6593,7 @@ let dbPartner = {
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
                 commissionRateTables.map(groupRate => {
-                    let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
+                    let totalConsumption = Number(commissionType) === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
@@ -8930,15 +8930,28 @@ let dbPartner = {
             partnerCommissionLogs => {
                 let proms = [];
                 partnerCommissionLogs.map(partnerCommissionLog => {
-                    let prom = Promise.resolve(partnerCommissionLog);
-                    if (!partnerCommissionLog.downLinesRawCommissionDetail || partnerCommissionLog.downLinesRawCommissionDetail.length == 0) {
-                        prom = dbconfig.collection_downLinesRawCommissionDetail.find({platform: partnerCommissionLog.platform, partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred").then(
-                            downLinesRawCommissionDetail => {
-                                partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
-                                return Promise.resolve(partnerCommissionLog)
+                    let downLineProm = dbconfig.collection_downLinesRawCommissionDetail.find({partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred");
+                    let parentProm = dbconfig.collection_parentPartnerCommissionDetail.find({partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred");
+                    let childProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: partnerCommissionLog.partner, startTime: partnerCommissionLog.startTime}).lean().read("secondaryPreferred");
+
+                    let prom = Promise.all([downLineProm, parentProm, childProm]).then(
+                        ([downLineData, parentData, childData]) => {
+                            if (downLineData && downLineData.length) {
+                                partnerCommissionLog.downLinesRawCommissionDetail = downLineData;
                             }
-                        );
-                    }
+                            partnerCommissionLog.downLinesRawCommissionDetail = partnerCommissionLog.downLinesRawCommissionDetail || [];
+                            if (parentData && parentData.length) {
+                                partnerCommissionLog.parentPartnerCommissionDetail = parentData;
+                            }
+                            partnerCommissionLog.parentPartnerCommissionDetail = partnerCommissionLog.parentPartnerCommissionDetail || [];
+                            if (childData && childData.length) {
+                                partnerCommissionLog.childComm = childData;
+                            }
+                            partnerCommissionLog.childComm = partnerCommissionLog.childComm || [];
+
+                            return partnerCommissionLog;
+                        }
+                    );
                     proms.push(prom)
                 });
 

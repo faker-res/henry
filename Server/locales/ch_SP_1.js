@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
+    "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "Insufficient amount to enter game": "本次带入额度不足，请充值后进入游戏",
     "SUBMIT": "提交",
@@ -513,6 +514,7 @@ var simplifiedChinese = {
     "Phone number already set": "电话号码已设置",
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
+    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
 
     //todo::add missing messages here
 
