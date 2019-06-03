@@ -14,13 +14,15 @@
                             tr
                                 th {{'PARTNER_NAME' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
+                                //th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
+                                th {{'DIRECT_DOWN_LINE' | translate}}
+                                th {{'MULTI_LEVEL_PARTNER' | translate}}
                                 th {{'TOTAL_REWARD_FEE' | translate}}
                                 th {{'TOTAL_PLATFORM_FEE' | translate}}
                                 th {{'TOTAL_TOPUP_FEE' | translate}}
                                 th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
                                 th {{'NET_COMMISSION' | translate}}
-                                th {{'parentPartnerCommission' | translate}}
+                                //th {{'parentPartnerCommission' | translate}}
                                 th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
                                 th {{'ACTIVE_DOWNLINES' | translate}}
                                 th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
@@ -31,19 +33,23 @@
                             tr(ng-repeat="(i,v) in vm.partnerCommissionLog", ng-click="vm.partnerCommVar.highlightRow = $index", ng-class="{'sn-selected': $index == vm.partnerCommVar.highlightRow}")
                                 td {{v.partnerName}}
                                 td {{v.partnerRealName}}
-                                td(ng-repeat= "(igrp, grp) in v.rawCommissions")
-                                    a(ng-style='grp.isCustomCommissionRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=grp; vm.partnerCommVar.selectTab=igrp; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{grp.amount}}
+                                //td(ng-repeat= "(igrp, grp) in v.rawCommissions")
+                                //    a(ng-style='grp.isCustomCommissionRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=grp; vm.partnerCommVar.selectTab=igrp; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{grp.amount}}
                                 td
-                                    a(data-toggle="modal", data-target='#modalRewardFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{v.totalRewardFee}}
+                                    a(ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[0]; vm.partnerCommVar.selectTab=0; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')" data-toggle="modal" data-target='#modalCommDetail') {{v.grossCommission | number : 2}}
                                 td
-                                    a(ng-style='v.isAnyCustomPlatformFeeRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[vm.partnerCommVar.platformFeeTab]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.totalPlatformFee}}
+                                    a(ng-click="vm.partnerCommVar.partner=i;" data-toggle="modal", data-target='#modalChildComm') {{v.childSummary.grossCommission | number : 2}}
                                 td
-                                    a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.totalTopUpFee}}
+                                    a(data-toggle="modal", data-target='#modalRewardFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{v.totalRewardFee| number : 2}}
                                 td
-                                    a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee}}
-                                td {{v.nettCommission}}
-                                td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0}}
-                                td {{v.partnerCredit}}
+                                    a(ng-style='v.isAnyCustomPlatformFeeRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[vm.partnerCommVar.platformFeeTab]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.totalPlatformFee| number : 2}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.totalTopUpFee| number : 2}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee| number : 2}}
+                                td {{v.nettCommission| number : 2}}
+                                //td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0}}
+                                td {{v.partnerCredit| number : 2}}
                                 td
                                     a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
                                 td
