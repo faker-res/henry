@@ -2307,6 +2307,12 @@ let dbPlayerInfo = {
                 if (data.phoneNumber) {
                     data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
+
+                // if there is guestDeviceId, the registrationInterface has to be APP
+                if (data.guestDeviceId){
+                    data.registrationInterface = 5;
+                }
+
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
