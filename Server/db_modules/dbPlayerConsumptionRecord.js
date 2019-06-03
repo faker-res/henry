@@ -3041,7 +3041,7 @@ var dbPlayerConsumptionRecord = {
 
         return consumptionProm.then(
             result => {
-                let consumptionDetails = result[0];
+                let consumptionDetails = result;
                 let playerReportDaySummary = [];
 
                 console.log('getWinRateReportDataForTimeFrame', startTime, endTime, playerIds.length, consumptionDetails.length);
