@@ -45,7 +45,7 @@ let promoCodeTemplateSchema = new Schema({
     // set to true if the inherited promoCodeType is deleted
     isDeleted: {type: Boolean, default: false},
     //admin id, that create this promo code
-    adminId: {type: Schema.ObjectId},
+    adminId: {type: Schema.ObjectId, ref: 'admin'},
     //admin name, that create this promo code
     adminName: {type: String},
     // Promo Code Active Flag
