@@ -262,6 +262,8 @@ var dbPlayerTopUpDaySummary = {
     calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
         let balancer = new SettlementBalancer();
 
+        console.log('calculateWinRateReportDaySummaryForTimeFrame', startTime, endTime);
+
         return balancer.initConns().then(function () {
             return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
                 playerObjIds => {
