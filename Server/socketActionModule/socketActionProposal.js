@@ -707,6 +707,14 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.forcePairingWithReferenceNumber, [data.platformId, data.proposalObjId, data.proposalId, data.referenceNumber, getAdminName(), getAdminId()], actionName, isValidData);
         },
 
+        getAllOnlineTopupAnalysis: function getAllOnlineTopupAnalysis(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getAllOnlineTopupAnalysis, [data.platformList, startTime, endTime, data.analysisCategory, data.operator, data.timesValue, data.timesValueTwo], actionName, isValidData);
+        },
+
     };
     socketActionProposal.actions = this.actions;
 }
