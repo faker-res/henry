@@ -856,6 +856,16 @@ const dbRewardUtility = {
         }
     },
 
+    checkRewardApplyHasBankCard: (eventData, playerData) => {
+        if (eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Player must have a registered bank card to apply this reward"
+            });
+        }
+    },
+
     checkRewardApplyHasAppliedForbiddenReward: async (eventData, intervalTime, playerData) => {
         let hasNotAppliedForbiddenReward = await dbRewardUtility.checkForbidReward(eventData, intervalTime, playerData);
 

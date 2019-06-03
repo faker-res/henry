@@ -593,6 +593,8 @@ let dbPlayerInfo = {
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
+        console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
+        console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -5467,9 +5469,15 @@ let dbPlayerInfo = {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
 
-        //todo encrytion ?
         if (data && data.phoneNumber) {
-            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), rsaCrypto.oldEncrypt(data.phoneNumber), data.phoneNumber]};
+            data.phoneNumber = {
+                $in: [
+                    rsaCrypto.encrypt(data.phoneNumber),
+                    rsaCrypto.oldEncrypt(data.phoneNumber),
+                    rsaCrypto.legacyEncrypt(data.phoneNumber),
+                    data.phoneNumber
+                ]
+            };
         }
 
         function getRewardData(thisPlayer) {
@@ -6289,6 +6297,7 @@ let dbPlayerInfo = {
                             }
                         ).then(
                             player => {
+
                                 if (player) {
                                     if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
@@ -6334,7 +6343,38 @@ let dbPlayerInfo = {
                                                 return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
                                             else {
-                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                let checkPlayerDeviceExistProm = Promise.resolve(true);
+
+                                                if (loginData.deviceId) {
+                                                    checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
+                                                        {
+                                                            platform: platformObjId,
+                                                            $or: [
+                                                                {guestDeviceId: loginData.deviceId},
+                                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                                            ],
+                                                        }
+                                                    ).lean().then(
+                                                        dataExist => {
+                                                            if (dataExist) {
+                                                                return false;
+                                                            } else {
+                                                                return true;
+                                                            }
+                                                        }
+                                                    );
+                                                }
+
+                                                return checkPlayerDeviceExistProm.then(
+                                                    playerDeviceNotExist => {
+                                                        if (!playerDeviceNotExist) {
+                                                            return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
+                                                        } else {
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                        }
+                                                    }
+                                                )
                                             }
                                         }
                                     ).then(
@@ -25395,6 +25435,7 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
 }
 
 function determineRegistrationInterface(inputData) {
+    console.log("checking inputData.userAgent when determineRegistrationInterface", inputData.userAgent || "undefined");
     if (inputData.domain && inputData.domain.indexOf('fpms8') !== -1) {
         inputData.registrationInterface = constPlayerRegistrationInterface.BACKSTAGE;
     }

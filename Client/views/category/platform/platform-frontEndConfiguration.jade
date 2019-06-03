@@ -666,7 +666,7 @@ style.
                                 .full-width-input-block
                                     label(style="width: 30%;") {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null)")
                                 .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
                                     label(style="width: 30%;") {{"Page Detail(PC)"|translate}}
                                     div.inline-block(style="width: 70%;")
@@ -690,7 +690,7 @@ style.
                                     div.inline-block(style="width: 70%;")
                                         input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
 
-                            div(ng-show="vm.newFrontEndCarousel.device==3")
+                            div(ng-show="vm.newFrontEndCarousel.device==2")
                                 .full-width-input-block
                                     label(style="width: 30%;") H5 {{"IMAGE"|translate}}
                                     div.inline-block(style="width: 70%;")
@@ -698,7 +698,7 @@ style.
                                 .full-width-input-block
                                     label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null)")
                                 .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")
@@ -722,7 +722,7 @@ style.
                                     div.inline-block(style="width: 70%;")
                                         input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
 
-                            div(ng-show="vm.newFrontEndCarousel.device==2")
+                            div(ng-show="vm.newFrontEndCarousel.device==4")
                                 .full-width-input-block
                                     label(style="width: 30%;") APP {{"IMAGE"|translate}}
                                     div.inline-block(style="width: 70%;")
@@ -730,7 +730,7 @@ style.
                                 .full-width-input-block
                                     label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction')
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null")
                                 .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")

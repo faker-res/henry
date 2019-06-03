@@ -6057,6 +6057,12 @@ var dbPlatform = {
     },
 
     getFrontEndConfig: function (platformId, code, clientType) {
+        if (clientType && (clientType != 1 && clientType != 2 && clientType != 4)){
+            return Promise.reject({
+                name: "DataError",
+                message: "ClientType is not available"
+            })
+        }
         let prom = Promise.resolve([]);
         return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1}).lean().then(
             platform => {

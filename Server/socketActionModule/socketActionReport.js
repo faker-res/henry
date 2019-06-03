@@ -406,6 +406,14 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculatePlayerReportSummary, [platformId, data.start, data.end], actionName, isValidData);
         },
 
+        reCalculateWinRateReportSummary: function reCalculateWinRateReportSummary(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            var platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculateWinRateReportSummary, [platformId, data.start, data.end], actionName, isValidData);
+        },
+
         getPlayerDepositAnalysisReport: function getPlayerDepositAnalysisReport(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.platformId);

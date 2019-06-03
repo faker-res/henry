@@ -2097,7 +2097,7 @@ var dbPlayerConsumptionRecord = {
         startTime = new Date(startTime);
         endTime = new Date(endTime);
 
-        let returnProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
                     $match: {
@@ -2122,7 +2122,7 @@ var dbPlayerConsumptionRecord = {
                         {
                             $match: {
                                 createTime: {$gte: startTime, $lt: endTime},
-                                mainType: {$in: ["TopUp", "PlayerBonus", "Reward"]},
+                                mainType: {$in: ["TopUp", "PlayerBonus"]},
                                 "data.platformId": platformId,
                                 "data.playerObjId": {$nin: consumptionPlayerObjIdList}
                             }
@@ -2144,8 +2144,6 @@ var dbPlayerConsumptionRecord = {
                 return consumptionPlayerObjIdList.concat(proposalPlayerObjIdList)
             }
         );
-
-        return returnProm;
     },
 
     streamPlayersWithTopUpDaySummaryInTimeFrame: function streamPlayersWithTopUpDaySummaryInTimeFrame(startTime, endTime, platformId) {
@@ -3009,6 +3007,8 @@ var dbPlayerConsumptionRecord = {
     },
 
     getWinRateReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
+        let curConsumption = 'wtf';
+        let curP;
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -3042,10 +3042,14 @@ var dbPlayerConsumptionRecord = {
                 if (consumptionDetails && consumptionDetails.length > 0) {
                     consumptionDetails.forEach(
                         consumption => {
-                            if (consumption && consumption._id && consumption._id.playerId) {
-                                let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() === consumption._id.playerId.toString()
+                            curConsumption = consumption;
+                            if (consumption && consumption._id && consumption._id.playerId && consumption._id.cpGameType && consumption._id.providerId) {
+                                let indexNo = playerReportDaySummary && playerReportDaySummary.length ?
+                                    playerReportDaySummary.findIndex(p => {
+                                        curP = p;
+                                        return p.playerId.toString() === consumption._id.playerId.toString()
                                     && p.providerId.toString() === consumption._id.providerId.toString()
-                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString());
+                                    && p.cpGameType.toString() === consumption._id.cpGameType.toString()}) : -1;
                                 consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
 
                                 if (indexNo === -1) {
@@ -3056,8 +3060,8 @@ var dbPlayerConsumptionRecord = {
                                         consumptionAmount: consumption.amount,
                                         consumptionValidAmount: consumption.validAmount,
                                         consumptionBonusAmount: consumption.bonusAmount,
-                                        cpGameType: consumption.cpGameType,
-                                        providerId: consumption.providerId
+                                        cpGameType: consumption._id.cpGameType,
+                                        providerId: consumption._id.providerId
                                     });
                                 } else {
                                     if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
@@ -3105,7 +3109,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).catch(
             error => {
-                console.log("win rate report data summary error - ", error);
+                console.log("win rate report data summary error - ", error, curP, curConsumption);
                 return error;
             }
         );
