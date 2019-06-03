@@ -4135,7 +4135,7 @@ var dbPlatform = {
         )
     },
 
-    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false, multiVer = false) => {
         if (toLatest) {
             let currentCycle = getPartnerCommNextSettDate(settMode, getPartnerCommNextSettDate(settMode, new Date()));
             currentCycle = getPartnerCommNextSettDate(settMode, currentCycle.startTime.getTime() - 1);
@@ -4148,7 +4148,7 @@ var dbPlatform = {
         return dbconfig.collection_partner.find({platform: platformObjId, commissionType: settMode}).count().then(
             partnerCount => {
                 if (partnerCount && partnerCount > 0) {
-                    calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
+                    calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip, multiVer).catch(errorUtils.reportError);
 
                     return dbconfig.collection_partnerCommSettLog.update({
                         platform: platformObjId,
@@ -6834,6 +6834,7 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
 function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfYear()) {
     switch (settMode) {
         case 1:
+        case 7:
             return dbUtility.getDayTime(curTime);
         case 2:
         case 5:
@@ -6848,11 +6849,14 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
     }
 }
 
-function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime, endTime, isSkip) {
+function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime, endTime, isSkip, multiVer) {
     let stream = dbconfig.collection_partner.find({
         platform: platformObjId,
         commissionType: commissionType
     }, {_id: 1}).cursor({batchSize: 100});
+
+    // todo :: remove this variable and multiVer param once confirm deprecated partner functions will not be used again
+    let apiUsed = multiVer ? "settlePartnersComm" : "settlePartnersCommission";
 
     let balancer = new SettlementBalancer();
     return balancer.initConns().then(function () {
@@ -6861,7 +6865,7 @@ function calculatePartnerCommissionInfo(platformObjId, commissionType, startTime
                 stream: stream,
                 batchSize: 100,
                 makeRequest: function (partners, request) {
-                    request("player", "settlePartnersCommission", {
+                    request("player", apiUsed, {
                         commissionType: commissionType,
                         startTime: startTime,
                         endTime: endTime,
