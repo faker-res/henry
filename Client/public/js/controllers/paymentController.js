@@ -72,6 +72,11 @@ define(['js/app'], function (myApp) {
             vm.showPlatformSpin = true;
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 console.log('all platform data', data.data);
+                $scope.$evalAsync(() => {
+                    vm.allPlatformData = data.data;
+                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
+                });
+
                 vm.showPlatformSpin = false;
                 vm.buildPlatformList(data.data);
 
@@ -123,6 +128,7 @@ define(['js/app'], function (myApp) {
         //set selected platform node
         vm.selectPlatformNode = function (node, option) {
             vm.selectedPlatform = node;
+            vm.selectedPaymentPlatform = vm.selectedPlatform;
             vm.curPlatformText = node.text;
             console.log("vm.selectedPlatform", vm.selectedPlatform);
             $cookies.put("platform", node.text);
@@ -176,6 +182,56 @@ define(['js/app'], function (myApp) {
                     vm.merchantFilterOptions = {};
                 });
             });
+        };
+
+        vm.getPaymentPlatformData = function(selectedPlatform){
+            vm.curPlatformText = null;
+            vm.selectedPlatform = {};
+
+            if (selectedPlatform) {
+                vm.selectedPlatform.id = selectedPlatform._id;
+                vm.selectedPlatform.data = selectedPlatform;
+                vm.curPlatformText = selectedPlatform.name;
+
+                vm.bankCardGroupPMS = "false";
+                vm.merchantGroupPMS = "false";
+                vm.wechatPayGroupPMS = "false";
+                vm.aliPayGroupPMS = "false";
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    if (vm.selectedPlatform.data.bankCardGroupIsPMS) {
+                        vm.bankCardGroupPMS = "true";
+                    }
+                    if (vm.selectedPlatform.data.merchantGroupIsPMS) {
+                        vm.merchantGroupPMS = "true";
+                    }
+                    if (vm.selectedPlatform.data.wechatPayGroupIsPMS) {
+                        vm.wechatPayGroupPMS = "true";
+                    }
+                    if (vm.selectedPlatform.data.aliPayGroupIsPMS) {
+                        vm.aliPayGroupPMS = "true";
+                    }
+                }
+
+                // Initial Loading
+                $scope.$evalAsync(() => {
+                    commonService.getPaymentSystemName($scope, vm.selectedPlatform.data.topUpSystemType).catch(err => Promise.resolve('')).then(v => {
+                        vm.paymentSystemName = v;
+                        vm.allMerchantList = [];
+                        vm.allAlipayList = [];
+                        vm.allWechatList = [];
+                        vm.loadBankCardGroupData();
+                        vm.loadMerchantGroupData();
+                        vm.loadAlipayGroupData();
+                        vm.loadWechatPayGroupData();
+                        vm.getAllPlayerLevels();
+                        vm.loadQuickPayGroupData();
+                        vm.getAllBankCard();
+                        vm.getProvince();
+                        vm.bankCardFilterOptions = {};
+                        vm.merchantFilterOptions = {};
+                    });
+                });
+            }
         };
 
         //create platform node for platform list
