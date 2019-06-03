@@ -2092,23 +2092,28 @@ define(['js/app'], function (myApp) {
             vm.importPhoneResult = '';
         };
 
-        vm.getAllDxMission = function () {
+        vm.getAllDxMission = function (platformId) {
             let sendData = {
                 platform: vm.selectedPlatform.id
             };
 
+            if (platformId) {
+                sendData.platform = platformId;
+            }
+
             socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
-                vm.allDxMission = data.data;
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.allDxMission = data.data;
+                })
             });
         };
 
         // import phone number to system
-        vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+        vm.importDiffPhoneNum = function (diffPhoneNum, dxMission, platformId) {
             vm.selectedDxMission = '';
 
             let sendData = {
-                platform: vm.selectedPlatform.id,
+                platform: platformId,
                 phoneNumber: diffPhoneNum,
                 dxMission: dxMission
             };

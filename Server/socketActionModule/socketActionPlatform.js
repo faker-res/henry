@@ -830,13 +830,13 @@ function socketActionPlatform(socketIO, socket) {
         generatePartnerCommSettPreview: function generatePartnerCommSettPreview(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime, undefined, undefined, Boolean(data.useNew)], actionName, isValidData);
         },
 
         skipNextPartnerCommissionPeriod: function skipNextPartnerCommissionPeriod(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime, true, data.toLatest], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime, true, data.toLatest, Boolean(data.useNew)], actionName, isValidData);
         },
 
         getAllPartnerCommSettPreview: function getAllPartnerCommSettPreview(data) {
