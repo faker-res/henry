@@ -6297,7 +6297,7 @@ function resetAllCustomizedCommissionRate (proposalData) {
                     if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
                         customConfig.forEach(cConfig => {
                             if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
-                                if (dConfig.provider.toString() === cConfig.provider.toString()) {
+                                if (String(dConfig.provider) === String(cConfig.provider)) {
                                     //custom config will be removed
                                     dbconfig.collection_partnerCommissionConfig.remove({
                                         partner: proposalData.data.partnerObjId,

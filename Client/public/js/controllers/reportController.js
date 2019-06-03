@@ -279,7 +279,8 @@ define(['js/app'], function (myApp) {
         'manualDailyProviderSettlement',
         'updateGame',
         'createDxMission',
-        'comparePhoneNum'];
+        'comparePhoneNum',
+        'resetAllPartnerCustomizedCommissionRate'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
