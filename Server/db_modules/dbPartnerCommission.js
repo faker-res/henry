@@ -516,11 +516,11 @@ const dbPartnerCommission = {
                         prom = dbconfig.collection_downLinesRawCommissionDetail.find({platform: partnerCommissionLog.platform, partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred").then(
                             downLinesRawCommissionDetail => {
                                 partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
-                                return Promise.resolve(partnerCommissionLog)
+                                return Promise.resolve(partnerCommissionLog);
                             }
                         );
                     }
-                    proms.push(prom)
+                    proms.push(prom);
                 });
 
                 return Promise.all(proms);
@@ -607,7 +607,7 @@ const dbPartnerCommission = {
                             let params = parentPartnerCommissionDetail[parentObjId];
                             params.partnerCommissionLog = partnerCommissionLog._id;
 
-                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId, partnerObjId: partnerCommissionLog.partner, startTime: parentPartnerCommissionDetail.startTime}, params, {upsert: true, new: true}).lean().catch(err => {
+                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId, partnerObjId: partnerCommissionLog.partner, startTime: partnerCommissionLog.startTime}, params, {upsert: true, new: true}).lean().catch(err => {
                                 console.log("parentPartnerCommissionDetail died with param:", params, err);
                                 return errorUtils.reportError(err);
                             });
