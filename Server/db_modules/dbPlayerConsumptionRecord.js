@@ -2097,6 +2097,8 @@ var dbPlayerConsumptionRecord = {
         startTime = new Date(startTime);
         endTime = new Date(endTime);
 
+        console.log('streamPlayersWithConsumptionAndProposalInTimeFrame', startTime, endTime, platformId);
+
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
@@ -2113,6 +2115,9 @@ var dbPlayerConsumptionRecord = {
             ]
         ).then(
             consumptionPlayerList => {
+
+                console.log('consumptionPlayerList', consumptionPlayerList.length);
+
                 if(consumptionPlayerList && consumptionPlayerList.length > 0){
                     consumptionPlayerObjIdList = consumptionPlayerList.map(c => c._id);
                 }
@@ -2137,6 +2142,9 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             proposalPlayerList => {
+
+                console.log('proposalPlayerList', proposalPlayerList.length);
+
                 if(proposalPlayerList && proposalPlayerList.length > 0){
                     proposalPlayerObjIdList = proposalPlayerList.map(p => p._id);
                 }
