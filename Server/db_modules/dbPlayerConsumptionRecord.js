@@ -3064,41 +3064,41 @@ var dbPlayerConsumptionRecord = {
                                         providerId: consumption._id.providerId
                                     });
                                 } else {
-                                    if (typeof playerReportDaySummary[indexNo].consumptionTimes !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionTimes)) {
                                         playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionAmount)) {
                                         playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionValidAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionValidAmount)) {
                                         playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].consumptionBonusAmount !== "undefined") {
+                                    if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionBonusAmount)) {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
                                     } else {
                                         playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
                                     }
 
-                                    if (typeof playerReportDaySummary[indexNo].cpGameType !== "undefined") {
-                                        playerReportDaySummary[indexNo].cpGameType = null;
-                                    } else {
-                                        playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
-                                    }
-
-                                    if (typeof playerReportDaySummary[indexNo].providerId !== "undefined") {
-                                        playerReportDaySummary[indexNo].providerId = null;
-                                    } else {
-                                        playerReportDaySummary[indexNo].providerId = consumption.providerId;
-                                    }
+                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].cpGameType)) {
+                                    //     playerReportDaySummary[indexNo].cpGameType = null;
+                                    // } else {
+                                    //     playerReportDaySummary[indexNo].cpGameType = consumption.cpGameType;
+                                    // }
+                                    //
+                                    // if (!isNullOrUndefined(playerReportDaySummary[indexNo].providerId)) {
+                                    //     playerReportDaySummary[indexNo].providerId = null;
+                                    // } else {
+                                    //     playerReportDaySummary[indexNo].providerId = consumption.providerId;
+                                    // }
                                 }
                             }
                         }
@@ -3113,6 +3113,10 @@ var dbPlayerConsumptionRecord = {
                 return error;
             }
         );
+
+        function isNullOrUndefined (e) {
+            return typeof e === "undefined" || e === null
+        }
     },
 
     markDuplicatedConsumptionRecords: dupsSummaries => {
