@@ -1104,6 +1104,31 @@ define(['js/app'], function (myApp) {
                                     });
                                 }
 
+                                partner.childSummary = {
+                                    grossCommission: 0
+                                };
+
+                                let numSum = {
+                                    totalRewardFee: partner.totalRewardFee || 0,
+                                    totalPlatformFee: partner.totalPlatformFee || 0,
+                                    totalTopUpFee: partner.totalTopUpFee || 0,
+                                    totalWithdrawalFee: partner.totalWithdrawalFee || 0,
+                                    nettCommission: partner.nettCommission || 0,
+                                };
+
+                                if (partner.childComm && partner.childComm.length) {
+                                    partner.childComm.forEach( childComm => {
+                                        partner.childSummary.grossCommission += childComm.grossCommission || 0;
+                                        numSum.totalRewardFee += childComm.totalRewardFee || 0;
+                                        numSum.totalPlatformFee += childComm.totalPlatformFee || 0;
+                                        numSum.totalTopUpFee += childComm.totalTopUpFee || 0;
+                                        numSum.totalWithdrawalFee += childComm.totalWithdrawalFee || 0;
+                                        numSum.nettCommission += childComm.nettCommission || 0;
+                                    });
+                                }
+
+                                partner.numSum = numSum;
+
                                 // Round to 2 dp
                                 for (let key in partner) {
                                     if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
@@ -1116,6 +1141,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         });
+                        vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
                 }
@@ -17513,6 +17539,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    vm.currentUseCommDetail = vm.realTimeCommissionData;
                 });
             }, function (error) {
                 loadingSpinner.hide();
