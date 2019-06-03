@@ -169,6 +169,8 @@ var dbPlayerTopUpDaySummary = {
             return;
         }
 
+        console.log('reCalculateWinRateReportSummary', start, end);
+
         let calculateSummaryProm = [];
         let startTime = new Date(start);
         let endTime = new Date(end);
@@ -178,11 +180,13 @@ var dbPlayerTopUpDaySummary = {
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
 
+        console.log('reCalculateWinRateReportSummary - 2', startTime, endTime);
+
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date();
+            let startDate = startTime;
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date();
+            let endDate = endTime;
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
