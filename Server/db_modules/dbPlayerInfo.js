@@ -25459,6 +25459,14 @@ function determineRegistrationInterface(inputData) {
                 inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
             }
         }
+        else if (userAgent.os == "" && userAgent.browser == "" && userAgent.device =="") {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+            }
+        }
         else {
             if (inputData.partner) {
                 inputData.registrationInterface = constPlayerRegistrationInterface.WEB_AGENT;
