@@ -2335,28 +2335,28 @@ var dbPlayerConsumptionRecord = {
         }
 
         // go through start time to end time to check whether summary exist or not
-        function checkSummaryIsExist (startTime, endTime, data) {
-            return dbconfig.collection_winRateReportDataDaySummary.findOne({
-                platformId: data.platformId,
-                date: {$gte: startTime, $lt: endTime}
-            }).lean().then(
-                res => {
-                    console.log('res', res);
-                    if (!res) {
-                        return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
-                    }
-
-                    return true;
-                }
-            );
-        }
-
-        console.log('start executeFunctionByDaysInterval');
-        let args = {
-            platformId: platformId
-        };
-        await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
-        console.log('end executeFunctionByDaysInterval');
+        // function checkSummaryIsExist (startTime, endTime, data) {
+        //     return dbconfig.collection_winRateReportDataDaySummary.findOne({
+        //         platformId: data.platformId,
+        //         date: {$gte: startTime, $lt: endTime}
+        //     }).lean().then(
+        //         res => {
+        //             console.log('res', res);
+        //             if (!res) {
+        //                 return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
+        //             }
+        //
+        //             return true;
+        //         }
+        //     );
+        // }
+        //
+        // console.log('start executeFunctionByDaysInterval');
+        // let args = {
+        //     platformId: platformId
+        // };
+        // await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
+        // console.log('end executeFunctionByDaysInterval');
 
         // if not exist, go and summarize
 
@@ -2412,6 +2412,8 @@ var dbPlayerConsumptionRecord = {
                 let gameProviders = data[2];
                 let participantData = data[0] ? data[0] : [];
 
+                console.log('totalSumData', totalSumData);
+
                 if (!listAll && data && data[0] && data[1] && data[1][0]) {
                     participantNumber = data[0].length;
                     consumptionTimes = data[1][0].consumptionTimes;
@@ -2439,6 +2441,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             twoDaysWinRateReportData => {
+                console.log('twoDaysWinRateReportData', twoDaysWinRateReportData && twoDaysWinRateReportData.length);
                 if (twoDaysWinRateReportData && twoDaysWinRateReportData.length > 0) {
                     twoDaysWinRateReportData.forEach(
                         twoDaysData => {
@@ -2977,6 +2980,7 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             twoDaysWinRateReportData => {
+                console.log('twoDaysWinRateReportData', twoDaysWinRateReportData && twoDaysWinRateReportData.length);
                 if (twoDaysWinRateReportData && twoDaysWinRateReportData.data && twoDaysWinRateReportData.data.length > 0) {
                     twoDaysWinRateReportData.data.forEach(
                         twoDaysData => {
@@ -3041,7 +3045,7 @@ var dbPlayerConsumptionRecord = {
 
         return consumptionProm.then(
             result => {
-                let consumptionDetails = result[0];
+                let consumptionDetails = result;
                 let playerReportDaySummary = [];
 
                 console.log('getWinRateReportDataForTimeFrame', startTime, endTime, playerIds.length, consumptionDetails.length);
