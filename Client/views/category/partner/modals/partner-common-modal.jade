@@ -1,0 +1,329 @@
+#modalPartnerCommPreview.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title
+                    |{{ constPartnerCommissionSettlementType[vm.selectedSettlePartnerCommPrev.settMode] | translate }}
+                    | ( {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.startTime) }} -
+                    | {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.endTime) }} )
+            .modal-body
+                div(ng-if="vm.partnerCommissionLog && vm.partnerCommissionLog.length > 0")
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
+                                th {{'TOTAL_REWARD_FEE' | translate}}
+                                th {{'TOTAL_PLATFORM_FEE' | translate}}
+                                th {{'TOTAL_TOPUP_FEE' | translate}}
+                                th {{'TOTAL_WITHDRAWAL_FEE' | translate}}
+                                th {{'NET_COMMISSION' | translate}}
+                                th {{'parentPartnerCommission' | translate}}
+                                th {{'PARTNER_ACCOUNT_BALANCE' | translate}}
+                                th {{'ACTIVE_DOWNLINES' | translate}}
+                                th {{'PREVIOUS_THREE_INTERVAL_ACTIVE_DOWNLINES' | translate}}
+                                th {{'PREVIOUS_THREE_INTERVAL_NET_COMMISSSION' | translate}}
+                                th(width="10%") {{'ACTION_BUTTON' | translate}}
+                                th(width="15%") {{'REMARKS' | translate}}
+                        tbody
+                            tr(ng-repeat="(i,v) in vm.partnerCommissionLog", ng-click="vm.partnerCommVar.highlightRow = $index", ng-class="{'sn-selected': $index == vm.partnerCommVar.highlightRow}")
+                                td {{v.partnerName}}
+                                td {{v.partnerRealName}}
+                                td(ng-repeat= "(igrp, grp) in v.rawCommissions")
+                                    a(ng-style='grp.isCustomCommissionRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=grp; vm.partnerCommVar.selectTab=igrp; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{grp.amount}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalRewardFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'rewardDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{v.totalRewardFee}}
+                                td
+                                    a(ng-style='v.isAnyCustomPlatformFeeRate ? {color:"red"} : {}', data-toggle="modal", data-target='#modalCommissionTable', ng-click="vm.partnerCommVar.partner=i; vm.partnerCommVar.group=v.rawCommissions[vm.partnerCommVar.platformFeeTab]; vm.partnerCommVar.selectTab=vm.partnerCommVar.platformFeeTab; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'consumptionDetail')") {{v.totalPlatformFee}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.totalTopUpFee}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.totalWithdrawalFee}}
+                                td {{v.nettCommission}}
+                                td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0}}
+                                td {{v.partnerCredit}}
+                                td
+                                    a(data-toggle="modal", data-target='#modalActivePlayerTable', ng-click="vm.partnerCommVar.partner=i") {{v.activeDownLines}}
+                                td
+                                    text.span {{v.pastActiveDownLines[0]? v.pastActiveDownLines[0] : "-" | translate}} {{","}} {{v.pastActiveDownLines[1]? v.pastActiveDownLines[1] : "-" | translate}} {{","}} {{v.pastActiveDownLines[2]? v.pastActiveDownLines[2] : "-" | translate}}
+                                td
+                                    text.span {{calculateTotalSum(v.pastNettCommission, "", "")}} {{" ("}} {{v.pastNettCommission[0]? v.pastNettCommission[0] : "-" | translate}} {{","}} {{v.pastNettCommission[1]? v.pastNettCommission[1] : "-" | translate}} {{","}} {{v.pastNettCommission[2]? v.pastNettCommission[2] : "-" | translate}} {{")"}}
+                                td
+                                    select.form-control(ng-model='v.settleMethod', ng-init="v.settleMethod='1'")
+                                        option(value='1', ) {{'NORMAL_EXECUTED' | translate}}
+                                        option(value='2', ) {{'RESET_THEN_EXECUTED' | translate}}
+                                        option(value='3', ) {{'EXECUTED_THEN_RESET' | translate}}
+                                        option(value='4', ) {{'SKIP_CURRENT_PERIOD' | translate}}
+                                td(ng-init="v.editRemark = false", ng-click="v.editRemark = true")
+                                    a(href='', ng-if="!v.editRemark") {{v.remarks ? v.remarks : ""}}
+                                    textarea.form-control(ng-if="v.editRemark", type="textarea", name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="v.remarks")
+            .modal-footer
+                label.control-label.colorRed.btn-space(ng-if="vm.partnerCommVar.checkedRemark") {{vm.partnerCommVar.checkedRemark | translate}}
+                button.btn.btn-primary.btn-space(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode]") {{"SUBMIT_COMMISSION" | translate}}
+                button.btn.btn-danger.btn-space(data-dismiss="modal") {{"CLOSE" | translate}}
+                button.btn.btn-warning.btn-space(data-dismiss="modal" ng-click="vm.cancelPreview()" ) {{"CANCEL PREVIEW" | translate}}
+
+#modalRewardFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'SYSTEM_REWARD' | translate}}
+                                th {{'MANUAL_REWARD' | translate}}
+                                th {{'CONSUMPTION_RETURN_REWARD' | translate}}
+                                th {{'LIMITED_OFFER' | translate}}
+                                th {{'REWARD_CODE' | translate}}
+                                th {{'POINT_CONVERSION' | translate}}
+                                th(width="15%") {{'TOTAL_REWARD' | translate}}
+                        tbody
+                            tr(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.rewardDetail.systemReward}}
+                                td {{v.rewardDetail.manualReward}}
+                                td {{v.rewardDetail.consumptionReturn}}
+                                td {{v.rewardDetail.limitedOffer}}
+                                td {{v.rewardDetail.promoCode}}
+                                td {{v.rewardDetail.pointConversion}}
+                                td {{v.rewardDetail.total}}
+                            tr
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.systemReward ? vm.partnerDLCommDetailTotal.systemReward : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.manualReward ? vm.partnerDLCommDetailTotal.manualReward : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.consumptionReturn ? vm.partnerDLCommDetailTotal.consumptionReturn : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.limitedOffer ? vm.partnerDLCommDetailTotal.limitedOffer : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.promoCode ? vm.partnerDLCommDetailTotal.promoCode : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.pointConversion ? vm.partnerDLCommDetailTotal.pointConversion : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.total ? vm.partnerDLCommDetailTotal.total : "0"}}
+                            tr
+                                td.text-bold(colspan="8") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
+                                td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalRewardFee}}
+
+#modalTopUpFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOPUPMANUAL' | translate}}
+                                th {{'TOPUPONLINE' | translate}}
+                                th {{'ALIPAY' | translate}}
+                                th {{'WECHATPAY' | translate}}
+                                th(width="15%") {{'TOTAL_TOPUP' | translate}}
+                        tbody
+                            tr(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.topUpDetail.manualTopUpAmount}}
+                                td {{v.topUpDetail.onlineTopUpAmount}}
+                                td {{v.topUpDetail.aliPayTopUpAmount}}
+                                td {{v.topUpDetail.weChatTopUpAmount}}
+                                td {{v.topUpDetail.topUpAmount}}
+                            tr
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.manualTopUpAmount ? vm.partnerDLCommDetailTotal.manualTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount ? vm.partnerDLCommDetailTotal.onlineTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount ? vm.partnerDLCommDetailTotal.aliPayTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount ? vm.partnerDLCommDetailTotal.weChatTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.topUpAmount ? vm.partnerDLCommDetailTotal.topUpAmount: "0"}}
+                            tr
+                                td.text-bold(colspan="6") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
+                                td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalTopUpFee}}
+
+#modalWithdrawalFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th(width="15%") {{'WITHDRAW_AMOUNT' | translate}}
+                        tbody
+                            tr(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.withdrawalDetail.withdrawalAmount}}
+                            tr
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.withdrawalAmount ? vm.partnerDLCommDetailTotal.withdrawalAmount : "0"}}
+                            tr
+                                td.text-bold(colspan="2") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
+                                td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalWithdrawalFee}}
+
+#modalActivePlayerTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].activeDownLines}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'TOP_UP_AMOUNT' | translate}}
+                                th {{'TIMES_CONSUMED' | translate}}
+                                th {{'VALID_CONSUMPTION' | translate}}
+                        tbody(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0")
+                            tr(ng-if="v.active", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.topUpDetail.topUpTimes}}
+                                td {{v.topUpDetail.topUpAmount}}
+                                td {{v.consumptionDetail.consumptionTimes}}
+                                td {{v.consumptionDetail.validAmount}}
+
+#modalCommissionTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                .panel-primary(style='margin-top:20px')
+                    .panel-heading.common-left-panel-heading
+                        ul.nav.nav-tabs.common-nav-tabs
+                            li(ng-click="vm.partnerCommVar.selectTab = $index", ng-class="{'active': $index == vm.partnerCommVar.selectTab}", ng-repeat="grp in vm.partnerCommissionLog[vm.partnerCommVar.partner].rawCommissions")
+                                a.common-tab(data-toggle="tab", href="#", ng-click="vm.partnerCommVar.group = grp")
+                                    text.span {{grp.groupName | translate}}
+
+                h4.modal-title.margin-top-10 {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'EXPENSE' | translate}} {{' ('}} {{'BONUS_WINLOSE' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
+                        tbody
+                            tr(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount}}
+                            tr
+                                td.text-bold(colspan="2") {{'Total Consumption' | translate}}
+                                td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount}}
+                            tr
+                                td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.commissionRate}} {{'%)'}}
+                                td(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.amount}}
+                            tr
+                                td.text-bold(colspan="2") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFeeRate ? vm.partnerCommVar.group.platformFeeRate : "0"}} {{'%)'}}
+                                td
+                                    div(ng-if='!vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
+                                        text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
+                                        text.span {{'/'}}
+                                        text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
+                                    div(ng-if='vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
+                                        text.span.colorRed {{vm.partnerCommVar.group.platformFee}}
+                                        br
+                                        text.span.colorRed ({{'Forced 0' | translate}}/{{vm.partnerCommVar.group.forcePlatformFeeToZeroBy.name}})
+
+                br
+                div.alignRight
+                    button.btn.btn-danger.common-button(data-dismiss="modal", ng-disabled="vm.partnerCommissionLog[vm.partnerCommVar.partner] && vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee == 0", ng-click="vm.forceTotalPlatformFeeToZero(vm.partnerCommissionLog[vm.partnerCommVar.partner])") {{"Force Total Platform Fee To 0" | translate}}
+
+#modalPlayerDetailsSummaryTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.playerDetailsSummary.totalCount}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'TOTAL_CHILDREN_COUNT' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOPUPMANUAL' | translate}}
+                                th {{'TOPUPONLINE' | translate}}
+                                th {{'ALIPAY' | translate}}
+                                th {{'WECHATPAY' | translate}}
+                                th {{'TOTAL_TOPUP' | translate}}
+                                th {{'TOTAL_BONUS' | translate}}
+                                th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
+                                th {{'TOTAL_CHILDREN_BALANCE' | translate}}
+                        tbody
+                            tr(ng-if="vm.playerDetailsSummary.length == 0")
+                                td(colspan = 10) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.playerDetailsSummary.length > 0", ng-repeat="v in vm.playerDetailsSummary")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.manualTopUp | noRoundTwoDecimalPlaces}}
+                                td {{v.onlineTopUp | noRoundTwoDecimalPlaces}}
+                                td {{v.aliPayTopUp | noRoundTwoDecimalPlaces}}
+                                td {{v.wechatTopUp | noRoundTwoDecimalPlaces}}
+                                td {{v.topUpSum | noRoundTwoDecimalPlaces}}
+                                td {{v.totalBonus | noRoundTwoDecimalPlaces}}
+                                td {{v.totalDepositAmount | noRoundTwoDecimalPlaces}}
+                                td {{v.validCredit | noRoundTwoDecimalPlaces}}
+                            tr(ng-if="vm.playerDetailsSummary.length > 0")
+                                td(colspan=2) {{"Totalsum" | translate}}
+                                td {{vm.playerDetailsSummary.sumOfManualTopUp | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfOnlineTopUp | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfAliPayTopUp | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfWechatTopUp | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfTotalTopUp | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfTotalBonus | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfTotalDeposit | noRoundTwoDecimalPlaces}}
+                                td {{vm.playerDetailsSummary.sumOfTotalBalance | noRoundTwoDecimalPlaces}}
+
+#modalActivePartnerInfo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"totalCount" | translate}} {{": "}} {{vm.selectedPartnerObjArr.size}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{ vm.selectedPartnerObjArr.title | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'TOP_UP_TIMES' | translate}}
+                                th {{'TOP_UP_AMOUNT' | translate}}
+                                th {{'TIMES_CONSUMED' | translate}}
+                                th {{'VALID_CONSUMPTION' | translate}}
+                                th {{'PlayerValue' | translate}}
+                        tbody
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length == 0")
+                                td(colspan = 7) {{ 'No data available in table' | translate }}
+                            tr(ng-if="vm.selectedPartnerObjArr.data.length > 0", ng-repeat="v in vm.selectedPartnerObjArr.data")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.topUpCount}}
+                                td {{v.topUpAmount}}
+                                td {{v.consumptionCount}}
+                                td {{v.consumptionAmount}}
+                                td {{v.valueScore}}
