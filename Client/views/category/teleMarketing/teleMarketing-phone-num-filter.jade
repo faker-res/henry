@@ -231,12 +231,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
+                                    label {{"Platform" | translate}}
+                                    select.form-control(ng-model="vm.importPlatformForTXT" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForTXT)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.selectedDxMission)")
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.selectedDxMission, vm.importPlatformForTXT)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
@@ -255,12 +257,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
+                                    label {{"Platform" | translate}}
+                                    select.form-control(ng-model="vm.importPlatform" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatform)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.selectedDxMission)")
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.selectedDxMission, vm.importPlatform)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
