@@ -11126,6 +11126,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
                     {group: "PARTNER", text: "generatePartnerCommSettPreview", action: "generatePartnerCommSettPreview"},
                     {group: "PARTNER", text: "cancelPartnerCommissionPreview", action: "cancelPartnerCommissionPreview"},
+                    {group: "PARTNER", text: "resetAllPartnerCustomizedCommissionRate", action: "resetAllPartnerCustomizedCommissionRate"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
