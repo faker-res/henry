@@ -3802,6 +3802,7 @@
   "PlayerRandomRewardGroup": "随机抽奖（组）",
   "WORDS": "文字",
   "IMAGE": "图片",
+  "registrationInterface": "开户设备",
   "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
   "Is a registered bank card required when applying reward": "（领优惠中）是否有绑定提款资料",
   "Check if player has a registered bank card when applying the reward": "会员在领取优惠时，是否有绑定了提款银行资料",

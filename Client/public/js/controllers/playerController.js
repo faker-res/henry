@@ -7653,6 +7653,9 @@ define(['js/app'], function (myApp) {
                     } else {
                         vm.selectedSinglePlayer.$displayDomain = vm.selectedSinglePlayer.domain || null;
                     }
+
+                    vm.selectedSinglePlayer = utilService.determineRegistrationDevice(vm.selectedSinglePlayer);
+
                 })
                 deferred.resolve();
             }, function (err) {

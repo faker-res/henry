@@ -494,9 +494,9 @@ let dbPlayerInfo = {
                                     if (deviceData) {
                                         guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
                                     }
-                                    console.log("checking guestPlayerData.userAgent", guestPlayerData.userAgent)
+                                    console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
                                     guestPlayerData = determineRegistrationInterface(guestPlayerData);
-                                    console.log("checking guestPlayerData.registrationInterface", guestPlayerData.registrationInterface)
+                                    console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
@@ -2307,6 +2307,12 @@ let dbPlayerInfo = {
                 if (data.phoneNumber) {
                     data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
+
+                // if there is guestDeviceId, the registrationInterface has to be APP
+                if (data.guestDeviceId){
+                    data.registrationInterface = 5;
+                }
+
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
@@ -25457,6 +25463,14 @@ function determineRegistrationInterface(inputData) {
             }
             else {
                 inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+            }
+        }
+        else if (userAgent.os == "" && userAgent.browser == "" && userAgent.device =="") {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
             }
         }
         else {

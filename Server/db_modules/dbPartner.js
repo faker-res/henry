@@ -10872,6 +10872,57 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
     );
 }
 
+function applyMultiLevelCommissionSettlement (commissionLog, statusApply, adminInfo, remark) {
+    let childDetailProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).lean().read("secondaryPreferred");
+    let proposalTypeProm = dbconfig.collection_proposalType.findOne({name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().lean().read("secondaryPreferred");
+
+    return Promise.all([childDetailProm, proposalTypeProm]).then(
+        ([childDetail, proposalType]) => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            let proms = [];
+
+            for (let i = 0; i < childDetail.length; i++) {
+                let detail = childDetail[i];
+
+                let proposalData = {
+                    type: proposalType._id,
+                    creator: adminInfo,
+                    data: {
+                        partnerObjId: commissionLog.partner,
+                        platformObjId: commissionLog.platform,
+                        partnerId: commissionLog.partnerId,
+                        partnerName: commissionLog.partnerName,
+                        // parentCommissionRate: commissionLog.parentPartnerCommissionDetail.parentCommissionRate,
+                        amount: detail.nettCommission,
+                        childPartnerName: detail.partnerName,
+                        // childPartnerTotalDownLines: commissionLog.parentPartnerCommissionDetail.totaldownLines,
+                        childPartnerCommissionType: commissionLog.commissionType,
+                        // childPlayerTotalWinLose: commissionLog.parentPartnerCommissionDetail.totalWinLose,
+                        // relatedProposalId: proposalId,
+                        settleType: statusApply,
+                        remark: remark
+                    },
+                    entryType: constProposalEntryType.ADMIN,
+                    userType: constProposalUserType.PARTNERS
+                };
+
+                let prom = dbProposal.createProposalWithTypeId(proposalType._id, proposalData).catch(err => {
+                    console.log('multilevel commission error', err, commissionLog.partnerName, detail);
+                });
+
+                proms.push(prom);
+            }
+
+            return Promise.all(proms);
+        }
+    )
+}
+
 function updateParentPartnerCommission(commissionLog, adminInfo, proposalId) {
     // find proposal type
     return dbconfig.collection_proposalType.findOne({name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().then(
@@ -11739,14 +11790,18 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
             }
 
             if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
-                return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+                return applyMultiLevelCommissionSettlement(log, settleType, adminInfo, remark).then(() => {
+                    return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+                });
             }
         }
     ).then(
         proposal => {
 
             if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
-                && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED) {
+                && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
+                && !(log.parentPartnerCommissionDetail instanceof Array)
+            ) {
                 updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
                     console.trace("Update parent partner commission");
                     return errorUtils.reportError(error);
