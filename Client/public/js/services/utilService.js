@@ -68,6 +68,27 @@ define([], function () {
             return result;
         }
 
+        this.determineRegistrationDevice = function (data){
+          if (data && data.guestDeviceId){
+              data.registrationInterface$ = "APP"
+          }
+          else{
+              if (data && data.hasOwnProperty('registrationInterface')){
+                  if (data.registrationInterface == 0){
+                      data.registrationInterface$ = "BACKSTAGE"
+                  }
+                  else if (data.registrationInterface == 1){
+                      data.registrationInterface$ = "WEB"
+                  }
+                  else if (data.registrationInterface == 3){
+                      data.registrationInterface$ = "H5"
+                  }
+              }
+          }
+
+          return data;
+        }
+
         this.$createArray = function (min, max) {
             let newArrayObj = {};
             let upper = 0, lower = 0;

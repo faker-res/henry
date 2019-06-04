@@ -941,6 +941,7 @@
                                         th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
                                         th {{"SMS_INTERMAIL" | translate}}
                                         th {{"REMARKS" | translate}}
+                                        th {{"CREATED_BY" | translate}}
 
                                 tbody
                                    tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 1} track by $index')
@@ -987,9 +988,11 @@
                                            input.form-control(type='text', value='{{promoCode.smsContent}}', ng-model='promoCode.smsContent', ng-disabled="!vm.promoCodeTemplateEdit")
                                        td
                                            input.form-control(type='text', ng-model="promoCode.remark", ng-disabled="!vm.promoCodeTemplateEdit")
+                                       td
+                                           span {{promoCode.adminName}}
 
                                    tr(ng-if='vm.promoCodeTemplateEdit')
-                                       td(colspan=13) {{'ADD' | translate}}
+                                       td(colspan=14) {{'ADD' | translate}}
                                    tr(ng-if='vm.promoCodeTemplateEdit')
                                        td
                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate1, 1); vm.initNewPromoCodeTemplate(1); ')
@@ -1033,6 +1036,8 @@
                                            input.form-control(type='text', ng-model='vm.newPromoCodeTemplate1.smsContent')
                                        td
                                            input.form-control(type='text', ng-model="vm.newPromoCodeTemplate1.remark")
+                                       td
+
                             table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
                                 thead
                                     tr
@@ -1049,6 +1054,7 @@
                                         th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
                                         th {{"SMS_INTERMAIL" | translate}}
                                         th {{"REMARKS" | translate}}
+                                        th {{"CREATED_BY" | translate}}
 
                                 tbody
                                     tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 2} track by $index')
@@ -1091,9 +1097,11 @@
                                             input.form-control(type='text', value='{{promoCode.smsContent}}', ng-model='promoCode.smsContent', ng-disabled="!vm.promoCodeTemplateEdit")
                                         td
                                             input.form-control(type='text', ng-model="promoCode.remark", ng-disabled="!vm.promoCodeTemplateEdit")
+                                        td
+                                            span {{promoCode.adminName}}
 
                                     tr(ng-if='vm.promoCodeTemplateEdit')
-                                        td(colspan=13) {{'ADD' | translate}}
+                                        td(colspan=14) {{'ADD' | translate}}
                                     tr(ng-if='vm.promoCodeTemplateEdit')
                                         td
                                             i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate2, 2); vm.initNewPromoCodeTemplate(2); ')
@@ -1135,6 +1143,8 @@
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate2.smsContent')
                                         td
                                             input.form-control(type='text', ng-model="vm.newPromoCodeTemplate2.remark")
+                                        td
+
                             table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
                                 thead
                                     tr
@@ -1153,6 +1163,7 @@
                                         th(style="width:10%") {{"INTERMAIL_TITLE" | translate}}
                                         th {{"SMS_INTERMAIL" | translate}}
                                         th {{"REMARKS" | translate}}
+                                        th {{"CREATED_BY" | translate}}
 
                                 tbody
                                     tr(ng-repeat= 'promoCode in vm.promoCodeTemplateData | filter: {type: 3} track by $index')
@@ -1199,9 +1210,11 @@
                                             input.form-control(type='text', value='{{promoCode.smsContent}}', ng-model='promoCode.smsContent', ng-disabled="!vm.promoCodeTemplateEdit")
                                         td
                                             input.form-control(type='text', ng-model="promoCode.remark", ng-disabled="!vm.promoCodeTemplateEdit")
+                                        td
+                                            span {{promoCode.adminName}}
 
                                     tr(ng-if='vm.promoCodeTemplateEdit')
-                                        td(colspan=13) {{'ADD' | translate}}
+                                        td(colspan=14) {{'ADD' | translate}}
                                     tr(ng-if='vm.promoCodeTemplateEdit')
                                         td
                                             i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate3, 3); vm.initNewPromoCodeTemplate(3); ')
@@ -1247,6 +1260,7 @@
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.smsContent')
                                         td
                                             input.form-control(type='text', ng-model="vm.newPromoCodeTemplate3.remark")
+                                        td
                             br
                             .pull-right
                                button.btn.btn-primary.common-button(ng-if="!vm.promoCodeTemplateEdit && checkViewPermission('Platform', 'promoCode', 'promoCodeTemplate')", ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.initNewPromoCodeTemplate(1); vm.initNewPromoCodeTemplate(2); vm.initNewPromoCodeTemplate(3)')

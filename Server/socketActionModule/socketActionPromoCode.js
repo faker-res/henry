@@ -78,8 +78,8 @@ function socketActionPromoCode(socketIO, socket) {
         
         updatePromoCodeTemplate: function updatePromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.promoCodeTemplate );
-            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.promoCodeTemplate && adminInfo && adminInfo.id);
+            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate, adminInfo], actionName, isValidData);
         },
 
         updateOpenPromoCodeTemplate: function updateOpenPromoCodeTemplate(data) {

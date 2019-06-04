@@ -1,9 +1,24 @@
 let crypto = require('crypto');
-let savedCred = require('./key.json');
+let rp = require('request-promise');
+let keyAddress = require('./env').getKeyAddress();
 
 let credFunc = {
-    getAdmin: (adminName) => {
-        if (savedCred.name === adminName) {
+    getAdminInfo: () => {
+        return rp(keyAddress).then(
+            data => {
+                try {
+                    return JSON.parse(data);
+                } catch (e) {
+                    return {}
+                }
+            }
+        )
+    },
+
+    getAdmin: async (adminName) => {
+        let savedCred = await credFunc.getAdminInfo();
+
+        if (savedCred && savedCred.name === adminName) {
             return savedCred;
         }
 

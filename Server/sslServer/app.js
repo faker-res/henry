@@ -151,14 +151,14 @@ http.createServer(function (req, res) {
 
             req.on('data', data => {
                 inputData.push(data);
-            }).on('end', () => {
+            }).on('end', async () => {
                 buffer = Buffer.concat(inputData);
 
                 try {
                     let loginInfo = JSON.parse(buffer.toString());
 
                     if (loginInfo.username && loginInfo.password) {
-                        let adminInfo = cred.getAdmin(loginInfo.username.toLowerCase());
+                        let adminInfo = await cred.getAdmin(loginInfo.username.toLowerCase());
 
                         if (!adminInfo) {
                             res.end(JSON.stringify({
