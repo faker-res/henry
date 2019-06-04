@@ -7403,7 +7403,7 @@ let dbPlayerReward = {
                     case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                         selectedRewardParam = selectedRewardParam[0];
 
-                        if (selectedRewardParam.rewardAmount && selectedRewardParam.spendingTimes) {
+                        if (selectedRewardParam.rewardAmount) {
                             // console.log('rewardSpecificData[0]',rewardSpecificData[0]); --- check 3 test results, need [1, 1, 1] to pass checking
                             let matchPlayerId = rewardSpecificData[0][0];
                             let matchIPAddress = rewardSpecificData[0][1];
@@ -7469,7 +7469,7 @@ let dbPlayerReward = {
                         }
 
                         rewardAmount = selectedRewardParam.rewardAmount;
-                        spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
+                        spendingAmount = selectedRewardParam.rewardAmount * (selectedRewardParam.spendingTimes || 0);
                         break;
 
                     case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
