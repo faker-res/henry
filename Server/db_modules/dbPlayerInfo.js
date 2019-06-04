@@ -9160,8 +9160,12 @@ let dbPlayerInfo = {
                 appliedFollowingRewardProm = dbPlayerInfo.checkVisibleIfAppliedFollowingReward(playerObjId, rewardEventCondition.visibleIfAppliedFollowingReward);
             }
 
-            if(typeof rewardEventCondition.visibleIfTopUpCountMoreThan != "undefined" && rewardEventCondition.visibleIfTopUpCountMoreThan != null){
-                topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCountMoreThan(playerObjId, rewardEventCondition.visibleIfTopUpCountMoreThan);
+            // if(typeof rewardEventCondition.visibleIfTopUpCountMoreThan != "undefined" && rewardEventCondition.visibleIfTopUpCountMoreThan != null){
+            //     topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCountMoreThan(playerObjId, rewardEventCondition.visibleIfTopUpCountMoreThan);
+            // }
+
+            if(rewardEventCondition.hasOwnProperty('topUpCountOperator') && rewardEventCondition.topUpCountOperator != 0){
+                topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCount(playerObjId, rewardEventCondition.topUpCountOperator, rewardEventCondition.topUpCount1, rewardEventCondition.topUpCount2);
             }
 
             if(rewardEventCondition.invisibleIfApplyCurrentReward){
@@ -9346,15 +9350,32 @@ let dbPlayerInfo = {
         );
     },
 
-    checkVisibleIfTopUpCountMoreThan: function(playerObjId, visibleIfTopUpCountMoreThan){
-
+    checkVisibleIfTopUpCount: function(playerObjId, operator, count1, count2){
         return dbconfig.collection_playerTopUpRecord.find({playerId: playerObjId}).count().then(
             playerTopUpRecordCount => {
-                if(typeof playerTopUpRecordCount != "undefined" && typeof visibleIfTopUpCountMoreThan != "undefined" && playerTopUpRecordCount >= visibleIfTopUpCountMoreThan){
-                    return true;
+                let isVisible = false;
+                if (typeof playerTopUpRecordCount != "undefined" && typeof count1 != "undefined"){
+                    switch (operator) {
+                        case '1':
+                            isVisible = playerTopUpRecordCount >= count1;
+                            break;
+                        case '2':
+                            isVisible = playerTopUpRecordCount <= count1;
+                            break;
+                        case '3':
+                            isVisible = playerTopUpRecordCount == count1;
+                            break;
+                        case '4':
+                            if (typeof count2 != "undefined") {
+                                isVisible = playerTopUpRecordCount >= count1 && playerTopUpRecordCount <= count2;
+                            }
+                            break;
+                    }
                 }else{
-                    return false;
+                    isVisible = false;
                 }
+
+                return isVisible
             }
         );
     },

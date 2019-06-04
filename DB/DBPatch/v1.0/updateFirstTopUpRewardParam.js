@@ -422,8 +422,10 @@ var generalCond = {
         visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
         visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
         visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
-        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+        topUpCount1: {index: 9, type: "number"},
+        topUpCount2: {index: 10, type: "number"},
+        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
     },
     visibleFromRewardEntry: {
         index: 53,
@@ -435,8 +437,10 @@ var generalCond = {
         visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
         visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
         visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
-        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+        topUpCount1: {index: 9, type: "number"},
+        topUpCount2: {index: 10, type: "number"},
+        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
     },
     visibleFromRewardList: {
         index: 54,
@@ -448,8 +452,10 @@ var generalCond = {
         visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
         visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
         visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        visibleIfTopUpCountMoreThan: {index: 8, type: "number", des: "Is visible if topup count more than"},
-        invisibleIfApplyCurrentReward: {index: 9, type: "checkbox", des: "Is invisible if apply current reward"},
+        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+        topUpCount1: {index: 9, type: "number", des: "Min top-up count"},
+        topUpCount2: {index: 10, type: "number", des: "Max top-up count"},
+        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
     },
     requiredBankCard: {index: 56, type: "checkbox", des: "Is a registered bank card required when applying reward", detail: "Check if player has a registered bank card when applying the reward"}
 
