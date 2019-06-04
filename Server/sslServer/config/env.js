@@ -88,6 +88,21 @@ var env = {
         }
     },
 
+    getNonGatewayConfig: () => {
+        let selfMode = this.config().mode;
+
+        return Object.keys(envConf).filter(isNonGatewayConfig).map(o => envConf[o]);
+
+        function isNonGatewayConfig (o) {
+            if (
+                envConf[o].mode === selfMode
+                && envConf[o].isGateway !== true
+            ) {
+                return true;
+            }
+        }
+    },
+
     getKeyAddress: () => keyAddress,
 };
 
