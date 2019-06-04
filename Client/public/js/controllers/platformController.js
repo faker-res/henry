@@ -670,16 +670,6 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.showPlatformFilterByPlatform = function (platformObjId) {
-                vm.showPlatformDetailTab(null);
-                let findPlatform = vm.allPlatformData.filter(e => e._id.toString() === platformObjId.toString());
-                if (findPlatform && findPlatform.length > 0) {
-                    vm.showPlatform = {};
-                    findPlatform = findPlatform[0];
-                    vm.showPlatform = commonService.convertDepartment(findPlatform);
-                }
-            };
-
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
                     if (authService.checkViewPermission('Platform', 'BackstageSettings','Read')) {
@@ -1925,7 +1915,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 $scope.$socketPromise("getPlatformPartnerSettLog", {
-                    platformObjId: vm.filterPlatformSettingsPlatform,
+                    platformObjId: vm.selectedPlatform.id,
                     modes: modes
                 }).then(
                     logs => {
@@ -1936,7 +1926,7 @@ define(['js/app'], function (myApp) {
                     }
                 )
 
-                commonService.getAllPartnerCommSettPreview($scope, vm.filterPlatformSettingsPlatform).then(
+                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).then(
                     previewData => {
                         vm.allPartnerCommSettPreview = previewData;
                     }
@@ -2442,7 +2432,7 @@ define(['js/app'], function (myApp) {
 
                 let socketActionLvlUp = '';
                 let socketActionLvlDown = '';
-                switch (vm.showPlatform.playerLevelUpPeriod) {
+                switch (vm.selectedPlatform.data.playerLevelUpPeriod) {
                     case vm.allPlayerLevelUpPeriod.DAY:
                         socketActionLvlUp = 'getYesterdaySGTime';
                         break;
@@ -2454,7 +2444,7 @@ define(['js/app'], function (myApp) {
                         break;
                 }
 
-                switch (vm.showPlatform.playerLevelDownPeriod) {
+                switch (vm.selectedPlatform.data.playerLevelDownPeriod) {
                     case vm.allPlayerLevelUpPeriod.DAY:
                         socketActionLvlDown = 'getYesterdaySGTime';
                         break;
@@ -2588,17 +2578,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.cancelUpdatePlatformConfig = function () {
-                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
-                    vm.allPlatformData = data.data;
-                    if (data.data) {
-                        buildPlatformList(data.data);
-                        commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
-                    }
-                });
                 vm.isNotAllowEdit = true;
-                vm.showPlatformFilterByPlatform(vm.filterPlatformSettingsPlatform);
-
-                // vm.bindSelectedPlatformData();
+                vm.bindSelectedPlatformData();
                 // if (vm.isCreateNewPlatform) {
                 //     vm.bindSelectedPlatformData();
                 // }
@@ -2658,25 +2639,18 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
-                        query: {_id: vm.filterPlatformSettingsPlatform},
+                        query: {_id: vm.selectedPlatform.id},
                         updateData: vm.showPlatform,
                         isUpdatePlatform: true
                     },
                     function (data) {
-                        $scope.$evalAsync(() => {
-                            vm.curPlatformText = vm.showPlatform.name;
-                            loadPlatformData({loadAll: false});
-                            setTimeout(function () {
-                                vm.showPlatformFilterByPlatform(vm.filterPlatformSettingsPlatform);
-                            }, 500);
-                            vm.isNotAllowEdit = true;
-                            vm.editFrontEndDisplay = false;
-                            vm.getFrontEndPresetModuleSetting();
-                            vm.getFrontEndSpecialModuleSetting(data);
-                            vm.syncPlatform();
-                        });
-                    }
-                );
+                        vm.curPlatformText = vm.showPlatform.name;
+                        loadPlatformData({loadAll: false});
+                        vm.editFrontEndDisplay = false;
+                        vm.getFrontEndPresetModuleSetting();
+                        vm.getFrontEndSpecialModuleSetting(data);
+                        vm.syncPlatform();
+                    });
             };
 
             vm.initSendMultiMessage = function () {
@@ -10872,10 +10846,6 @@ define(['js/app'], function (myApp) {
             vm.initPlayerDisplayDataModal = function () {
                 $('#customerServiceTab').addClass('active');
                 $('#advertisementTab').removeClass('active');
-                $('#mainPageAdvertisementTab').removeClass('active');
-                $('#firstEntryAdvertisementTab').removeClass('active');
-                $('#firstLoginAdvertisementTab').removeClass('active');
-                $('#rewardShopAdvertisementTab').removeClass('active');
                 $scope.safeApply();
                 vm.playerDisplayDataTab = "customerServicePanel";
                 vm.showAdvertisementRecord = true;
@@ -36453,7 +36423,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.duplicateOrderNo && !vm.duplicateAdCode) {
                     if (vm.playerAdvertisementGroup) {
                         let query = {
-                            platformId: vm.filterPlatformSettingsPlatform,
+                            platformId: vm.selectedPlatform.id,
                             orderNo: vm.playerAdvertisementGroup.orderNo ? vm.playerAdvertisementGroup.orderNo : 0,
                             showInRealServer: vm.playerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.playerAdvertisementGroup.advertisementCode ? vm.playerAdvertisementGroup.advertisementCode : "",
@@ -36586,7 +36556,7 @@ define(['js/app'], function (myApp) {
 
             vm.playerAdvertisementList = function () {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     inputDevice: vm.playerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
@@ -38117,7 +38087,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode) {
                     if (vm.partnerAdvertisementGroup) {
                         let query = {
-                            platformId: vm.filterPlatformSettingsPlatform,
+                            platformId: vm.selectedPlatform.id,
                             orderNo: vm.partnerAdvertisementGroup.orderNo ? vm.partnerAdvertisementGroup.orderNo : 0,
                             showInRealServer: vm.partnerAdvertisementGroup.showInRealServer,
                             advertisementCode: vm.partnerAdvertisementGroup.advertisementCode ? vm.partnerAdvertisementGroup.advertisementCode : "",
@@ -38246,7 +38216,7 @@ define(['js/app'], function (myApp) {
 
             vm.partnerAdvertisementList = function () {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     inputDevice: vm.partnerAdvertisementWebDevice ? vm.inputDevice["WEB_PLAYER"] : vm.inputDevice["H5_PLAYER"]
                 };
 
@@ -39680,7 +39650,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     orderNo: vm.newMainPageAd.orderNo,
                     type: vm.newMainPageAd.type,
                     advertisementType: vm.newMainPageAd.advertisementType,
@@ -39718,7 +39688,7 @@ define(['js/app'], function (myApp) {
 
             vm.getMainPageAdvertisement = () => {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     type: vm.constXBETAdvertisementType.MAIN_PAGE_AD
                 }
                 socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
@@ -39859,7 +39829,7 @@ define(['js/app'], function (myApp) {
 
             vm.getFirstEntryAdvertisement = () => {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     type: vm.constXBETAdvertisementType.FIRST_TIME_AD
                 }
                 socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
@@ -39896,7 +39866,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     orderNo: vm.newFirstEntryAd.orderNo,
                     type: vm.newFirstEntryAd.type,
                     title: vm.newFirstEntryAd.title,
@@ -39963,7 +39933,7 @@ define(['js/app'], function (myApp) {
 
             vm.getFirstLoginAdvertisement = () => {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     type: vm.constXBETAdvertisementType.LOGIN_AD
                 }
                 socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
@@ -40000,7 +39970,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     orderNo: vm.newFirstLoginAd.orderNo,
                     type: vm.newFirstLoginAd.type,
                     title: vm.newFirstLoginAd.title,
@@ -40067,7 +40037,7 @@ define(['js/app'], function (myApp) {
 
             vm.getRewardShopAdvertisement = () => {
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     type: vm.constXBETAdvertisementType.REWARD_POINTS_AD
                 }
                 socketService.$socket($scope.AppSocket, 'getXBETAdvertisement', sendData, function (data) {
@@ -40104,7 +40074,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 let sendData = {
-                    platformId: vm.filterPlatformSettingsPlatform,
+                    platformId: vm.selectedPlatform.id,
                     orderNo: vm.newRewardShopAd.orderNo,
                     type: vm.newRewardShopAd.type,
                     title: vm.newRewardShopAd.title,
