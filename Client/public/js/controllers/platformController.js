@@ -1945,7 +1945,7 @@ define(['js/app'], function (myApp) {
 
             vm.generatePartnerCommSettPreview = (modeObj) => {
                 $scope.$socketPromise("generatePartnerCommSettPreview", {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.filterPlatformSettingsPlatform,
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
@@ -1974,7 +1974,7 @@ define(['js/app'], function (myApp) {
                 }
                 else {
                     $scope.$socketPromise("skipNextPartnerCommissionPeriod", {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.filterPlatformSettingsPlatform,
                         settMode: modeObj.mode,
                         startTime: modeObj.settStartTime,
                         endTime: modeObj.settEndTime,
@@ -2202,17 +2202,27 @@ define(['js/app'], function (myApp) {
 
                 let p = Promise.resolve();
 
-                vm.allRewardEvent.map(event => {
-                    if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
-                        p = p.then(() => {
-                          getConsumptionReturnPeriodTime(event);
-                        }
-                      )}
+                vm.platformProviderList = vm.showPlatform.gameProviderDetails;
+
+                let sendData = {
+                    platform: vm.filterPlatformSettingsPlatform
+                }
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.allRewardEvent = data.data;
+
+                        vm.allRewardEvent.map(event => {
+                            if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                                p = p.then(() => {
+                                        getConsumptionReturnPeriodTime(event);
+                                    }
+                                )}
+                        });
+
+                        $('#playerConsumptionReturnSettlementModal').modal('show');
+                    });
                 });
-
-                $('#playerConsumptionReturnSettlementModal').modal('show');
-
-
             };
 
             vm.startPlatformRTGEventSettlement = function (event) {
@@ -2356,8 +2366,8 @@ define(['js/app'], function (myApp) {
             }
             vm.compareConsumptionReturn = function (startTime, endTime, providerId, providerObjId, index){
                 let sendQuery = {
-                    platformId: vm.selectedPlatform.data.platformId,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformId: vm.showPlatform.platformId,
+                    platformObjId: vm.filterPlatformSettingsPlatform,
                     startTime: startTime,
                     endTime: endTime,
                     providerId: providerId,
@@ -2368,7 +2378,7 @@ define(['js/app'], function (myApp) {
             vm.syncBetRecord = function(startTime, endTime, providerId, index){
 
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: vm.showPlatform.platformId,
                     providerId: providerId,
                     startTime: startTime,
                     endTime: endTime
@@ -2394,7 +2404,7 @@ define(['js/app'], function (myApp) {
 
             vm.performPlayerConsumptionReturnSettlement = function () {
                 let eventArr = [];
-                let socketParam = {platformId: vm.selectedPlatform.id};
+                let socketParam = {platformId: vm.filterPlatformSettingsPlatform};
 
                 vm.playerConsumptionReturnSettlement.status = 'processing';
 
@@ -2493,7 +2503,7 @@ define(['js/app'], function (myApp) {
             vm.performPlayerLevelSettlement = function (upOrDown) {
                 vm.playerLevelSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
-                    {platformId: vm.selectedPlatform.id, upOrDown: upOrDown},
+                    {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
                     function (data) {
                         console.log('playerLevelSettlement', data);
                         vm.playerLevelSettlement.status = 'completed';
