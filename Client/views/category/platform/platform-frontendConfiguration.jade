@@ -1,0 +1,13 @@
+.row
+    .col-md-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.filterFrontendConfigurationPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.initFrontendConfiguration()')
+.text-center(ng-if="!vm.filterFrontendConfigurationPlatform")
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+.row(ng-if="vm.filterFrontendConfigurationPlatform")
+    .col-md-12
+        div.tab-pane
+            iframe(ng-src="{{vm.frontendConfigurationUrl}}" style='height: -webkit-fill-available;' width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")

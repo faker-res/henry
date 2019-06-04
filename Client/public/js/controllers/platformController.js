@@ -39619,15 +39619,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initFrontendConfiguration = function() {
-                vm.frontendConfigurationUrl = "";
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName && vm.selectedPlatform.data.platformId && authService.token) {
-                    let domainName = vm.selectedPlatform.data.frontendConfigurationDomainName.trim();
-                    let token = authService.token;
-                    let platformId = vm.selectedPlatform.data.platformId;
-                    let url = domainName + '?token=' + token + '&platformId=' + platformId;
-
-                    vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                if (!vm.filterFrontendConfigurationPlatform) { // when not yet selected any platform
+                    return;
                 }
+                vm.frontendConfigurationUrl = "";
+                let sendData = {
+                    _id: vm.filterFrontendConfigurationPlatform
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('initFrontendConfiguration--getPlatform', data.data);
+                        vm.selectedFrontendConfigurationPlatform = data.data;
+                        if (vm.selectedFrontendConfigurationPlatform && vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName && vm.selectedFrontendConfigurationPlatform.platformId && authService.token) {
+                            let domainName = vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName.trim();
+                            let token = authService.token;
+                            let platformId = vm.selectedFrontendConfigurationPlatform.platformId;
+                            let url = domainName + '?token=' + token + '&platformId=' + platformId;
+
+                            vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                        }
+                    });
+                });
             };
 
             // region XBET advertisement
