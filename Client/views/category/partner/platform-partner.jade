@@ -169,9 +169,9 @@ p
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
             text {{"CREATE" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
-            text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
-            .fa.fa-book
+        //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
+        //    text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
+        //    .fa.fa-book
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Delete')",ng-disabled="vm.selectedPartnerCount==0", data-toggle="modal", data-target='#modalDeletePartner')
             text {{"DELETE" | translate}}
             img.img-delete
