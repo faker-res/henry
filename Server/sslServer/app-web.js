@@ -1,25 +1,18 @@
 const http = require('http');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 const env = require("./config/env").config();
 const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
-const secret = "$ap1U5eR$";
 const crypto = require('crypto');
 const rp = require('request-promise');
-
-const privateKeyPath = "./public/playerPhone.key.pem";
-const replacedPrivateKeyPath = "./public/playerPhone.key.pem.bak";
 const publicKeyPath = "./public/playerPhone.pub";
 const replacedPublicKeyPath = "./public/playerPhone.pub.bak";
 const restartFPMSPath = "./public/restartFPMS";
-const fpmsKey = "Fr0m_FPM$!";
 const testKeyPairText = 'TEST ENCRYPTION';
-const ts = jwt.sign(fpmsKey, secret);
-const uh = crypto.createHash('md5').update(env.redisUrl).digest("hex");
-
-let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);
@@ -71,9 +64,6 @@ http.createServer(function (req, res) {
                                         decryptedText = privateDecrypted.toString();
 
                                         if (decryptedText === testKeyPairText) {
-                                            privateKey = inEffectKeyPair.privateKey;
-                                            publicKey = inEffectKeyPair.publicKey;
-
                                             if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
                                                 let theOtherUrl = theOtherEnv.redisUrl;
 
@@ -90,9 +80,8 @@ http.createServer(function (req, res) {
                                                         'x-token': req.headers['x-token']
                                                     },
                                                     body: {
-                                                        privateKey: privateKey,
-                                                        publicKey: publicKey,
-                                                        isFromAnotherInstance: true
+                                                        privateKey: inEffectKeyPair.privateKey,
+                                                        publicKey: inEffectKeyPair.publicKey,
                                                     },
                                                     json: true
                                                 }).then(
@@ -133,9 +122,6 @@ http.createServer(function (req, res) {
                                         decryptedText = privateDecrypted.toString();
 
                                         if (decryptedText === testKeyPairText) {
-                                            replacedPrivateKey = inEffectKeyPair.privateKey;
-                                            replacedPublicKey = inEffectKeyPair.publicKey;
-
                                             if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
                                                 let theOtherUrl = theOtherEnv.redisUrl;
 
@@ -152,9 +138,8 @@ http.createServer(function (req, res) {
                                                         'x-token': req.headers['x-token']
                                                     },
                                                     body: {
-                                                        privateKey: replacedPrivateKey,
-                                                        publicKey: replacedPublicKey,
-                                                        isFromAnotherInstance: true
+                                                        privateKey: inEffectKeyPair.privateKey,
+                                                        publicKey: inEffectKeyPair.publicKey
                                                     },
                                                     json: true
                                                 }).then(
@@ -178,48 +163,117 @@ http.createServer(function (req, res) {
                             break;
                         case restartFPMSPath:
                             console.log('REQUEST TO RESTART FPMS');
-                            rp({
-                                method: 'POST',
-                                uri: env.fpmsUpdateKeyAddress,
-                                body: {
-                                    token: jwt.sign("Restart server", env.socketSecret),
-                                    privateKey: Boolean(privateKey),
-                                    publicKey: Boolean(publicKey),
-                                    replPrivateKey: Boolean(replacedPrivateKey),
-                                    replPublicKey: Boolean(replacedPublicKey)
-                                },
-                                json: true
-                            }).then(
-                                () => {
-                                    res.end('Success');
+                            if (theOtherEnv && theOtherEnv.redisUrl) {
+                                let theOtherUrl = theOtherEnv.redisUrl;
+
+                                if (theOtherEnv.redisPort) {
+                                    theOtherUrl += ":" + theOtherEnv.redisPort;
                                 }
-                            );
+
+                                theOtherUrl += req.url;
+
+                                rp({
+                                    method: 'POST',
+                                    uri: theOtherUrl,
+                                    headers: {
+                                        'x-token': req.headers['x-token']
+                                    }
+                                }).then(
+                                    () => {
+                                        res.end('Success');
+                                    }
+                                );
+
+                            } else {
+                                res.end('Failed');
+                            }
                             break;
                     }
                 }
             });
+        } else {
+            // login verification
+            let inputData = [];
+            let buffer;
+
+            req.on('data', data => {
+                inputData.push(data);
+            }).on('end', async () => {
+                buffer = Buffer.concat(inputData);
+
+                try {
+                    let loginInfo = JSON.parse(buffer.toString());
+
+                    if (loginInfo.username && loginInfo.password) {
+                        let adminInfo = await cred.getAdmin(loginInfo.username.toLowerCase());
+
+                        if (!adminInfo) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Wrong credential!'}
+                            }));
+                        } else if (!validateHash(adminInfo.password, loginInfo.password)) {
+                            res.end(JSON.stringify({
+                                success: false,
+                                error: {name: "InvalidPassword", message: 'Password or user name is not correct!'}
+                            }));
+                        } else {
+                            // Valid credential
+                            let payload = {
+                                adminInfo: adminInfo,
+                                loginTime: new Date()
+                            };
+
+                            res.end(JSON.stringify({
+                                success: true,
+                                token: jwt.sign(payload, env.socketSecret)
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.log('error', err);
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: {name: "InvalidPassword", message: 'Error occured!'}
+                    }));
+                }
+            })
         }
     } else if (req.method === 'GET') {
         // GET
         switch(pathname) {
-            case privateKeyPath:
-                verifyAndSendKey(query, res, privateKey);
+            case './public/login.html':
+                readFile(pathname, res);
                 break;
-            case replacedPrivateKeyPath:
-                verifyAndSendKey(query, res, replacedPrivateKey);
+            case './public/static.html':
+                if (query && query.token) {
+                    jwt.verify(query.token, env.socketSecret, function (err, decoded) {
+                        if (err || !decoded) {
+                            // Jwt token error
+                            console.log("jwt verify error", err);
+                            redirectToLoginPage();
+                        } else {
+                            // Log this action to system log
+                            console.log(`${decoded.adminName} ${req.method} ${req.url}`);
+
+                            readFile(pathname, res)
+                        }
+                    });
+                } else {
+                    redirectToLoginPage();
+                }
                 break;
-            case publicKeyPath:
-                verifyAndSendKey(query, res, publicKey);
+            case './public/static.htm': // to prevent people viewing source code
+            case './':
+                redirectToLoginPage();
                 break;
-            case replacedPublicKeyPath:
-                verifyAndSendKey(query, res, replacedPublicKey);
+            default:
+                readFile(pathname, res);
         }
     } else if (req.method === 'OPTIONS') {
         res.end();
     } else if (req.method === 'HEAD') {
-        if (privateKey && publicKey) {
-            res.end('ok');
-        }
+        res.end('ok');
     }
 
     function redirectToLoginPage() {
@@ -229,171 +283,45 @@ http.createServer(function (req, res) {
         res.end();
     }
 
-    function verifyAndSendKey(query, res, key) {
-        if (query && query.token) {
-            jwt.verify(query.token, secret, (err, decoded) => {
-                if (!err && decoded && decoded === fpmsKey) {
-                    res.end(uh);
-                }
+    function readFile(pathName, res) {
+        const ext = path.parse(pathName).ext;
+        // maps file extention to MIME typere
+        const map = {
+            '.ico': 'image/x-icon',
+            '.html': 'text/html',
+            '.js': 'text/javascript',
+            '.json': 'application/json',
+            '.css': 'text/css',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.wav': 'audio/wav',
+            '.mp3': 'audio/mpeg',
+            '.svg': 'image/svg+xml',
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword'
+        };
 
-                // Check if it's ciphered data
-                if (err && query.token) {
-                    const textParts = query.token.split(':');
+        fs.exists(pathName, function (exist) {
+            console.log('exist', exist);
+            if(!exist) {
+                // if the file is not found, return 404
+                pathName = 'public/login.html';
+            }
 
-                    //extract the IV from the first half of the value
-                    const IV = Buffer.from(textParts.shift(), 'hex');
-
-                    //extract the encrypted text without the IV
-                    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-
-                    //decipher the string
-                    const decipher = crypto.createDecipheriv('aes-256-ctr', uh, IV);
-                    let decrypted = decipher.update(encryptedText,  'hex', 'utf8');
-                    decrypted += decipher.final('utf8');
-
-                    if (decrypted === fpmsKey) {
-                        res.end(key);
-                    } else {
-                        res.end();
-                    }
+            // read file from file system
+            fs.readFile(pathName, function(err, data){
+                if(err){
+                    res.statusCode = 500;
+                    res.end(`Error getting the file: ${err}.`);
+                } else {
+                    // if the file is found, set Content-type and send data
+                    res.setHeader('Content-type', map[ext] || 'text/plain' );
+                    res.end(data);
                 }
             });
-        } else {
-            redirectToLoginPage();
-        }
+        });
     }
 }).listen(parseInt(port));
-
-getKeyFromOtherInstance();
-
-function getKeyFromOtherInstance () {
-    let privateKeyProm = privateKey ? Promise.resolve(privateKey) : getPrivateKey();
-    let replPrivateKeyProm = replacedPrivateKey ? Promise.resolve(replacedPrivateKey) : getReplPrivateKey();
-    let publicKeyProm = publicKey ? Promise.resolve(publicKey) : getPublicKey();
-    let replPublicKeyProm = replacedPublicKey ? Promise.resolve(replacedPublicKey) : getReplPublicKey();
-
-    return Promise.all([
-        privateKeyProm,
-        replPrivateKeyProm,
-        publicKeyProm,
-        replPublicKeyProm
-    ]);
-
-    function getPrivateKey () {
-        return rp(getKeyUrl("playerPhone.key.pem", ts)).then(
-            data => {
-                if (data) {
-                    let hash = cred.getHash(env.redisUrl);
-
-                    if (hash === data) {
-                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
-
-                        return rp(getKeyUrl("playerPhone.key.pem", secondVerification));
-                    }
-                }
-            }
-        ).then(
-            keyData => {
-                if (keyData) {
-                    console.log('SETTING PRIVATE KEY FROM ANOTHER INSTANCE');
-                    privateKey = keyData;
-                }
-            }
-        ).catch(
-            err => privateKey
-        )
-    }
-
-    function getReplPrivateKey () {
-        return rp(getKeyUrl("playerPhone.key.pem.bak", ts)).then(
-            data => {
-                if (data) {
-                    let hash = cred.getHash(env.redisUrl);
-
-                    if (hash === data) {
-                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
-
-                        return rp(getKeyUrl("playerPhone.key.pem.bak", secondVerification));
-                    }
-                }
-            }
-        ).then(
-            keyData => {
-                if (keyData) {
-                    console.log('SETTING REPL PRIVATE KEY FROM ANOTHER INSTANCE');
-                    replacedPrivateKey = keyData;
-                }
-            }
-        ).catch(
-            err => replacedPrivateKey
-        )
-    }
-
-    function getPublicKey () {
-        return rp(getKeyUrl("playerPhone.pub", ts)).then(
-            data => {
-                if (data) {
-                    let hash = cred.getHash(env.redisUrl);
-
-                    if (hash === data) {
-                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
-
-                        return rp(getKeyUrl("playerPhone.pub", secondVerification));
-                    }
-                }
-            }
-        ).then(
-            keyData => {
-                if (keyData) {
-                    console.log('SETTING PUBLIC KEY FROM ANOTHER INSTANCE');
-                    publicKey = keyData;
-                }
-            }
-        ).catch(
-            err => publicKey
-        )
-    }
-
-    function getReplPublicKey () {
-        return rp(getKeyUrl("playerPhone.pub.bak", ts)).then(
-            data => {
-                if (data) {
-                    let hash = cred.getHash(env.redisUrl);
-
-                    if (hash === data) {
-                        let secondVerification = cred.getCipherIV(hash, fpmsKey);
-
-                        return rp(getKeyUrl("playerPhone.pub.bak", secondVerification));
-                    }
-                }
-            }
-        ).then(
-            keyData => {
-                if (keyData) {
-                    console.log('SETTING REPL PUBLIC KEY FROM ANOTHER INSTANCE');
-                    replacedPublicKey = keyData;
-                }
-            }
-        ).catch(
-            err => replacedPublicKey
-        )
-    }
-
-    function getKeyUrl (dirName, token) {
-        let keyUrl = theOtherEnv.redisUrl;
-
-        if (theOtherEnv.redisPort) {
-            keyUrl += ":" + theOtherEnv.redisPort;
-        }
-
-        keyUrl += "/";
-        keyUrl += dirName;
-        keyUrl += "?token=";
-        keyUrl += token;
-
-        return keyUrl;
-    }
-}
 
 function validateHash (hashed, plain) {
     let hashingPlain = crypto.createHash('md5').update(plain).digest('hex');

@@ -719,7 +719,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.bonusDoubledDefination = {
         1: "Win-lose credit/Tranferred-in credit"
-    }
+    };
 
     $scope.intervalType = {
         1: "Greater and equal to (>=)",
@@ -728,6 +728,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "Interval (>=, <)"
     };
 
+    $scope.operatorType = {
+        1: ">=",
+        2: "<=",
+        3: "=",
+        4: "~"
+    };
 
     $scope.weekDay = {
         "": "",
