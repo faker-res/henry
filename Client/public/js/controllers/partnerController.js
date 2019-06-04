@@ -7704,6 +7704,8 @@ define(['js/app'], function (myApp) {
                     this.filterBankName = vm.filterBankName;
                     this.isEditingPartnerPaymentShowVerify = vm.isEditingPartnerPaymentShowVerify;
                 };
+
+                $("body").append("<div class='modal-backdrop fade in'></div>");
                 $('#dialogEditPartner').floatingDialog(option);
                 $('#dialogEditPartner').focus();
                 $scope.safeApply();
