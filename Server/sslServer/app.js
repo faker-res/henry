@@ -5,7 +5,6 @@ const path = require('path');
 const env = require("./config/env").config();
 const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
-const webEnv = require('./public/js/webEnv');
 const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
@@ -78,7 +77,36 @@ http.createServer(function (req, res) {
                                             privateKey = inEffectKeyPair.privateKey;
                                             publicKey = inEffectKeyPair.publicKey;
 
-                                            res.end('Success');
+                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = theOtherEnv.redisUrl;
+
+                                                if (theOtherEnv.redisPort) {
+                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                }
+
+                                                theOtherUrl += req.url;
+
+                                                rp({
+                                                    method: 'POST',
+                                                    uri: theOtherUrl,
+                                                    headers: {
+                                                        'x-token': req.headers['x-token']
+                                                    },
+                                                    body: {
+                                                        privateKey: privateKey,
+                                                        publicKey: publicKey,
+                                                        isFromAnotherInstance: true
+                                                    },
+                                                    json: true
+                                                }).then(
+                                                    () => {
+                                                        res.end('Success');
+                                                    }
+                                                );
+
+                                            } else {
+                                                res.end('Success');
+                                            }
                                         } else {
                                             res.end('Invalid RSA Key Pair!')
                                         }
@@ -111,7 +139,36 @@ http.createServer(function (req, res) {
                                             replacedPrivateKey = inEffectKeyPair.privateKey;
                                             replacedPublicKey = inEffectKeyPair.publicKey;
 
-                                            res.end('Success');
+                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = theOtherEnv.redisUrl;
+
+                                                if (theOtherEnv.redisPort) {
+                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                }
+
+                                                theOtherUrl += req.url;
+
+                                                rp({
+                                                    method: 'POST',
+                                                    uri: theOtherUrl,
+                                                    headers: {
+                                                        'x-token': req.headers['x-token']
+                                                    },
+                                                    body: {
+                                                        privateKey: replacedPrivateKey,
+                                                        publicKey: replacedPublicKey,
+                                                        isFromAnotherInstance: true
+                                                    },
+                                                    json: true
+                                                }).then(
+                                                    () => {
+                                                        res.end('Success');
+                                                    }
+                                                );
+
+                                            } else {
+                                                res.end('Success');
+                                            }
                                         } else {
                                             res.end('Invalid RSA Key Pair!')
                                         }
