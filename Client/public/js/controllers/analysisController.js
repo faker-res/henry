@@ -326,6 +326,7 @@ define(['js/app'], function (myApp) {
                             vm.queryPara.allOnlineTopupSuccessRate.timeOperator = '>=';
                             vm.queryPara.allOnlineTopupSuccessRate.platformList = vm.platformObjIdList;
                             vm.getMerchantType();
+                            vm.getAllPlatformMerchantList();
                             $scope.$evalAsync();
                         });
 
@@ -1456,6 +1457,12 @@ define(['js/app'], function (myApp) {
                 vm.merchantTypes = data.data.merchantTypes;
                 console.log('vm.merchantTypes',vm.merchantTypes);
                 $scope.safeApply();
+            });
+        };
+
+        vm.getAllPlatformMerchantList = () => {
+            return $scope.$socketPromise('getAllPlatformMerchantList', {}).then(function (data) {
+                vm.allPlatformMerchantList = data.data;
             });
         };
         // online topup success rate end =============================================
@@ -6711,31 +6718,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    if(vm.queryPara.allOnlineTopupSuccessRate.analysisCategory !== 'onlineTopupType') {
-                        // add merchantTypeId & merchantTypeName to data
-                        vm.allPlatformOnlineTopupAnalysisData = vm.allPlatformOnlineTopupAnalysisData.map(
-                            data1 => {
-                                data1[0] = data1[0].map(
-                                    data2 => {
-                                        if (data2 && data2.merchantData) {
-                                            data2.merchantData = data2.merchantData.map(
-                                                data3 => {
-                                                    let merchant = vm.merchantList.merchants.filter(merchant => merchant.merchantNo == data3._id);
-                                                    data3.merchantTypeId = merchant && merchant[0] ? merchant[0].merchantTypeId : '';
-                                                    let merchantType = vm.merchantTypes.filter(merchantType => merchantType.merchantTypeId == data3.merchantTypeId);
-                                                    data3.merchantTypeName = merchantType && merchantType[0] ? merchantType[0].name  : '';
-                                                    return data3;
-                                                }
-                                            );
-                                        }
-                                        return data2;
-                                    }
-                                );
-                                return data1;
-                            }
-                        );
-                    }
-
                     Object.keys($scope.userAgentType).forEach(
                         userAgentTypeKey => {
                             if (vm.allPlatformOnlineTopupAnalysisCategory === 'thirdPartyPlatform') {
@@ -6744,7 +6726,7 @@ define(['js/app'], function (myApp) {
                                     vm.merchantTypes.forEach(
                                         merchantType => {
                                             if(merchantType.name && userAgentTypeKey != 0){
-                                                let calculatedData = vm.calculateAllOnlineTopupTypeData(key, userAgentTypeKey-1, merchantType.merchantTypeId);
+                                                let calculatedData = vm.calculateAllOnlineTopupTypeData(key, userAgentTypeKey-1, merchantType.name);
                                                 if(calculatedData.totalCount) // if no data dont show
                                                     vm.allPlatformOnlineTopupAnalysisByType.push(calculatedData);
                                             }
@@ -6752,10 +6734,9 @@ define(['js/app'], function (myApp) {
                                     );
                                 });
                             } else if(vm.allPlatformOnlineTopupAnalysisCategory === 'merchantNo') {
-                                // merchantNo
                                 let merchantListWithoutRepeatMerchantNo = [];
                                 let existMerchantNoArr = [];
-                                vm.merchantList.merchants.forEach(
+                                vm.allPlatformMerchantList.forEach(
                                     merchant => {
                                         if(!existMerchantNoArr.includes(merchant.merchantNo)){
                                             existMerchantNoArr.push(merchant.merchantNo);
@@ -6767,7 +6748,7 @@ define(['js/app'], function (myApp) {
                                     merchantListWithoutRepeatMerchantNo.forEach(
                                         merchant => {
                                             if (userAgentTypeKey == 0) return;
-                                            let calculatedData = vm.calculateAllOnlineTopupTypeData(key, userAgentTypeKey-1, merchant.merchantTypeId, merchant.merchantNo);
+                                            let calculatedData = vm.calculateAllOnlineTopupTypeData(key, userAgentTypeKey-1, null, merchant.merchantNo);
                                             if(calculatedData.totalCount) // if no data dont show
                                                 vm.allPlatformOnlineTopupAnalysisByType.push(calculatedData);
                                         }
@@ -6794,10 +6775,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.allPlatformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId, userAgent, type, totalAmount, totalUser) => {
+        vm.allPlatformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId, userAgent, type, totalAmount, totalUser, merchantNo, merchantTypeName) => {
             vm.allPlatformOnlineTopupDetailDataByType = [];
             vm.allPlatformOnlineTopupAnalysisDetailMerchantId = merchantTopupTypeId;
             vm.allPlatformOnlineTopupAnalysisDetailUserAgent = userAgent;
+            vm.allPlatformOnlineTopupAnalysisDetailMerchantNo = merchantNo || '';
+            vm.allPlatformOnlineTopupAnalysisDetailMerchantName = merchantTypeName || '';
 
             vm.allPlatformOnlineTopupDetailData.forEach(
                 data => {
@@ -6914,13 +6897,14 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.calculateAllOnlineTopupTypeData = (merchantTopupTypeId, userAgent, merchantTypeId, merchantNo) => {
+        vm.calculateAllOnlineTopupTypeData = (merchantTopupTypeId, userAgent, merchantTypeName, merchantNo) => {
             let proposalArr = null;
             let typeData = vm.allPlatformOnlineTopupAnalysisData[userAgent][0].filter(data => data._id == merchantTopupTypeId)[0];
-            if(merchantTypeId && !merchantNo) {
+            if(merchantTypeName && !merchantNo) {
                 // third party platform analysis
-                typeData = typeData ? typeData.merchantData.filter(data => data.merchantTypeId == merchantTypeId) : typeData;
-                if(typeData && typeData[0]) {
+                typeData = typeData && typeData.merchantData ? typeData.merchantData.filter(data => data && data._id && data._id.merchantUseName && data._id.merchantUseName === merchantTypeName) : typeData;
+
+                if(typeData) {
                     let successUserIds = [];
                     let proposalArrList = [];
                     // remove repeat user among different merchantNo to get merchant platform unique user
@@ -6938,15 +6922,14 @@ define(['js/app'], function (myApp) {
                         _id: merchantTopupTypeId,
                         count: typeData.reduce((a, data) => a + data.count, 0),
                         successCount: typeData.reduce((a, data) => a + data.successCount, 0),
-                        merchantTypeName: typeData[0].merchantTypeName,
                         proposalArr: proposalArrList
                     };
                 } else {
                     typeData = null; // empty array is not false, so set to null then later will set default object to typeData
                 }
-            } else if(merchantTypeId && merchantNo && typeData) {
+            } else if(merchantNo && typeData) {
                 // merchantNo analysis
-                let merchantNoData = typeData.merchantData.filter(data => data._id == merchantNo)[0];
+                let merchantNoData = typeData.merchantData.filter(data => data._id.merchantNo == merchantNo)[0];
                 typeData = merchantNoData ?  merchantNoData : null;
             }
 
@@ -6966,8 +6949,8 @@ define(['js/app'], function (myApp) {
                 userCount: typeData.successUserCount,
                 userCountRatio: vm.allPlatformOnlineTopupAnalysisDataTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((typeData.successUserCount / vm.allPlatformOnlineTopupAnalysisDataTotalUserCount) * 100),
             };
-            if(typeData.merchantTypeName) returnObj.merchantTypeName = typeData.merchantTypeName;
-            if(merchantTypeId) returnObj.merchantTypeId = merchantTypeId;
+            if(typeData && typeData._id && typeData._id.merchantUseName) returnObj.merchantTypeName = typeData._id.merchantUseName;
+            if(merchantTypeName) returnObj.merchantTypeName = merchantTypeName;
             if(merchantNo) returnObj.merchantNo = merchantNo;
 
             if (proposalArr){

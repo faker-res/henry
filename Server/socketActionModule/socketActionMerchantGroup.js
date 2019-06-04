@@ -180,7 +180,13 @@ function socketActionMerchantGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updateServiceChargeSetting, [data.platformObjId, data.pmsServiceCharge, data.fpmsServiceCharge], actionName, isValidData);
-        }
+        },
+
+        getAllPlatformMerchantList: function getAllPlatformMerchantList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getAllPlatformMerchantList, [], actionName, isValidData);
+        },
     };
     socketActionMerchantGroup.actions = this.actions;
 };

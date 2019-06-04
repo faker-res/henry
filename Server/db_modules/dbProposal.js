@@ -8613,15 +8613,15 @@ var proposal = {
                                                 }, {
                                                     $project: projectQ
                                                 }, {
-                                                    $group: Object.assign({}, groupByObj, {_id: "$data.merchantNo"})
+                                                    $group: Object.assign({}, groupByObj, {_id: {"merchantNo": "$data.merchantNo", "merchantUseName": "$data.merchantUseName"}})
                                                 }
                                             ).read("secondaryPreferred").then(
                                                 merchantData => {
                                                     let searchQ = Object.assign({}, matchObj, {status: "Success"}, {
                                                         'data.merchantNo': {
                                                             $in: merchantData.map(p => {
-                                                                if (p && p._id) {
-                                                                    return p._id
+                                                                if (p && p._id && p._id.merchantNo) {
+                                                                    return p._id.merchantNo
                                                                 }
                                                             })
                                                         }
@@ -8653,7 +8653,7 @@ var proposal = {
                                                             }
                                                         }, {
                                                             $group: {
-                                                                _id: "$data.merchantNo",
+                                                                _id: {"merchantNo": "$data.merchantNo", "merchantUseName": "$data.merchantUseName"},
                                                                 userIds: {$addToSet: "$data.playerObjId"},
                                                             }
                                                         }
@@ -8672,7 +8672,10 @@ var proposal = {
                                                                     delete merchant.userIds; // save bandwidth
                                                                     successMerchantData.forEach(
                                                                         successMerchant => {
-                                                                            if (merchant && merchant._id && successMerchant && successMerchant._id && (merchant._id === successMerchant._id)) {
+                                                                            if (merchant && merchant._id && successMerchant && successMerchant._id && merchant._id.merchantNo && merchant._id.merchantUseName
+                                                                                && successMerchant._id.merchantNo && successMerchant._id.merchantUseName
+                                                                                && (merchant._id.merchantNo === successMerchant._id.merchantNo)
+                                                                                && (merchant._id.merchantUseName === successMerchant._id.merchantUseName)) {
                                                                                 merchant.successUserCount = successMerchant.userIds.length;
                                                                                 merchant.successUserIds = successMerchant.userIds; // frontend need this to get unique user
                                                                             }
@@ -8681,7 +8684,8 @@ var proposal = {
 
                                                                     // append in the proposal in the interval filter
                                                                     proposalInInterval.forEach(proposal => {
-                                                                        if (proposal && proposal.data && proposal.data.merchantNo && proposal.data.merchantNo == merchant._id) {
+                                                                        if (proposal && proposal.data && proposal.data.merchantNo && merchant &&merchant._id && merchant._id.merchantNo
+                                                                        && proposal.data.merchantNo === merchant._id.merchantNo) {
 
                                                                             proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime())) / (1000 * 60);
                                                                             merchant.proposalArr.push(proposal);
