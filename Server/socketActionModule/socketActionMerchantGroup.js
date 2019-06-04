@@ -112,8 +112,8 @@ function socketActionMerchantGroup(socketIO, socket) {
          */
         getMerchantTypeList: function getMerchantTypeList(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantTypeList, [data.platform], actionName, isValidData);
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantTypeList, [data], actionName, isValidData);
         },
 
         getMerchantList: function getMerchantList(data) {
