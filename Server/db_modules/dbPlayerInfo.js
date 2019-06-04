@@ -494,7 +494,9 @@ let dbPlayerInfo = {
                                     if (deviceData) {
                                         guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
                                     }
-
+                                    console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
+                                    guestPlayerData = determineRegistrationInterface(guestPlayerData);
+                                    console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
@@ -2305,6 +2307,12 @@ let dbPlayerInfo = {
                 if (data.phoneNumber) {
                     data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
+
+                // if there is guestDeviceId, the registrationInterface has to be APP
+                if (data.guestDeviceId){
+                    data.registrationInterface = 5;
+                }
+
                 data.email = dbUtility.encodeEmail(data.email);
                 if (data.bankAccount) {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
@@ -6283,7 +6291,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    let playerProm = dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -6293,52 +6301,10 @@ let dbPlayerInfo = {
                                             platform: platformData._id
                                         }
                                     ).lean();
-
-                                    let checkPlayerDeviceExistProm = Promise.resolve(true);
-
-                                    if (loginData.deviceId) {
-                                        checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
-                                            {
-                                                platform: platformData._id,
-                                                $or: [
-                                                    {deviceId: loginData.deviceId},
-                                                    {deviceId: rsaCrypto.encrypt(loginData.deviceId)},
-                                                    {deviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
-                                                ],
-                                            }
-                                        ).lean().then(
-                                            dataExist => {
-                                                if (dataExist) {
-                                                    return false;
-                                                } else {
-                                                    return true;
-                                                }
-                                            }
-                                        );
-                                    }
-
-                                    return Promise.all([playerProm, checkPlayerDeviceExistProm]);
-
-                                    // return dbconfig.collection_players.findOne(
-                                    //     {
-                                    //         $or: [
-                                    //             {phoneNumber: encryptedPhoneNumber},
-                                    //             {phoneNumber: loginData.phoneNumber},
-                                    //             {phoneNumber: enOldPhoneNumber}
-                                    //         ],
-                                    //         platform: platformData._id
-                                    //     }
-                                    // ).lean();
                                 }
                             }
                         ).then(
-                            data => {
-                                let player = data && data[0] ? data[0] : null;
-                                let playerDeviceNotExist = data && data[1] ? data[1] : true;
-
-                                if (!playerDeviceNotExist) {
-                                    return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
-                                }
+                            player => {
 
                                 if (player) {
                                     if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
@@ -6385,7 +6351,38 @@ let dbPlayerInfo = {
                                                 return dbconfig.collection_players.update({_id: registeredPlayer._id, platform: registeredPlayer.platform}, {phoneNumber: rsaCrypto.encrypt(loginData.phoneNumber)});
                                             }
                                             else {
-                                                return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                let checkPlayerDeviceExistProm = Promise.resolve(true);
+
+                                                if (loginData.deviceId) {
+                                                    checkPlayerDeviceExistProm = dbconfig.collection_players.findOne(
+                                                        {
+                                                            platform: platformObjId,
+                                                            $or: [
+                                                                {guestDeviceId: loginData.deviceId},
+                                                                {guestDeviceId: rsaCrypto.encrypt(loginData.deviceId)},
+                                                                {guestDeviceId: rsaCrypto.oldEncrypt(loginData.deviceId)}
+                                                            ],
+                                                        }
+                                                    ).lean().then(
+                                                        dataExist => {
+                                                            if (dataExist) {
+                                                                return false;
+                                                            } else {
+                                                                return true;
+                                                            }
+                                                        }
+                                                    );
+                                                }
+
+                                                return checkPlayerDeviceExistProm.then(
+                                                    playerDeviceNotExist => {
+                                                        if (!playerDeviceNotExist) {
+                                                            return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
+                                                        } else {
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                        }
+                                                    }
+                                                )
                                             }
                                         }
                                     ).then(
@@ -9163,8 +9160,8 @@ let dbPlayerInfo = {
                 appliedFollowingRewardProm = dbPlayerInfo.checkVisibleIfAppliedFollowingReward(playerObjId, rewardEventCondition.visibleIfAppliedFollowingReward);
             }
 
-            if(typeof rewardEventCondition.visibleIfTopUpCountMoreThan != "undefined" && rewardEventCondition.visibleIfTopUpCountMoreThan != null){
-                topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCountMoreThan(playerObjId, rewardEventCondition.visibleIfTopUpCountMoreThan);
+            if(rewardEventCondition.hasOwnProperty('topUpCountOperator') && rewardEventCondition.topUpCountOperator != 0){
+                topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCount(playerObjId, rewardEventCondition.topUpCountOperator, rewardEventCondition.topUpCount1, rewardEventCondition.topUpCount2);
             }
 
             if(rewardEventCondition.invisibleIfApplyCurrentReward){
@@ -9349,15 +9346,32 @@ let dbPlayerInfo = {
         );
     },
 
-    checkVisibleIfTopUpCountMoreThan: function(playerObjId, visibleIfTopUpCountMoreThan){
-
+    checkVisibleIfTopUpCount: function(playerObjId, operator, count1, count2){
         return dbconfig.collection_playerTopUpRecord.find({playerId: playerObjId}).count().then(
             playerTopUpRecordCount => {
-                if(typeof playerTopUpRecordCount != "undefined" && typeof visibleIfTopUpCountMoreThan != "undefined" && playerTopUpRecordCount >= visibleIfTopUpCountMoreThan){
-                    return true;
+                let isVisible = false;
+                if (typeof playerTopUpRecordCount != "undefined" && typeof count1 != "undefined"){
+                    switch (operator) {
+                        case '1':
+                            isVisible = playerTopUpRecordCount >= count1;
+                            break;
+                        case '2':
+                            isVisible = playerTopUpRecordCount <= count1;
+                            break;
+                        case '3':
+                            isVisible = playerTopUpRecordCount == count1;
+                            break;
+                        case '4':
+                            if (typeof count2 != "undefined") {
+                                isVisible = playerTopUpRecordCount >= count1 && playerTopUpRecordCount <= count2;
+                            }
+                            break;
+                    }
                 }else{
-                    return false;
+                    isVisible = false;
                 }
+
+                return isVisible
             }
         );
     },
@@ -25466,6 +25480,14 @@ function determineRegistrationInterface(inputData) {
             }
             else {
                 inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
+            }
+        }
+        else if (userAgent.os == "" && userAgent.browser == "" && userAgent.device =="") {
+            if (inputData.partner) {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+            }
+            else {
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
             }
         }
         else {

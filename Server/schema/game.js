@@ -43,6 +43,8 @@ var gameSchema = new Schema({
     // sourceURL to add in front of images url if CDN not set up
     sourceURL: {type: String},
     // game display : 1.horizontal 2.vertical 3. horizontal/vertical 4. no need setup
+    webp: {type: String},
+    // webp image format url
     gameDisplay: {type: String},
     // orientation: 1=landscape , 2=Portrait 3=default
     orientation: {type: String},

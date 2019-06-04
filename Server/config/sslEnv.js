@@ -1,7 +1,7 @@
 // local
 var localConfig = {
     mode: "local",
-    redisUrl : 'localhost',
+    redisUrl : 'http://localhost',
     redisPort : '1802',
 };
 

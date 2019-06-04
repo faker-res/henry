@@ -169,7 +169,7 @@ var dbPlayerTopUpDaySummary = {
             return;
         }
 
-        let calculateSummaryProm = [];
+        let p = Promise.resolve();
         let startTime = new Date(start);
         let endTime = new Date(end);
 
@@ -179,22 +179,19 @@ var dbPlayerTopUpDaySummary = {
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date();
+            let startDate = new Date(start);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date();
+            let endDate = new Date(end);
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+            if (startDate.getTime() < new Date(end).getTime()) {
+                p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+            }
         }
 
-        return Promise.all(calculateSummaryProm).then(
-            result => {
-                return result;
-            }
-        );
-
+        return p;
     },
 
     calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId, isReSummarized) {
@@ -261,6 +258,8 @@ var dbPlayerTopUpDaySummary = {
 
     calculateWinRateReportDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
         let balancer = new SettlementBalancer();
+
+        console.log('calculateWinRateReportDaySummaryForTimeFrame', startTime, endTime);
 
         return balancer.initConns().then(function () {
             return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(

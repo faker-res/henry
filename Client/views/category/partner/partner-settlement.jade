@@ -1,0 +1,34 @@
+div(ng-if="!vm.showPreviewOption")
+    text.inline-block.margin-right-5 {{'PLATFORM' | translate}}
+    select.inline-block( ng-model="vm.settlePlatform" ng-change="vm.getPlatformInSetting()")
+        option(ng-repeat='(i,j) in vm.platformList', value= '{{j.data && j.data.platformId}}') {{j.data && j.data.platformId || ""}} - {{j.text | translate}}
+    .btn.btn-primary.margin-left-5(ng-disabled="!vm.settlePlatform" ng-click="vm.showPreviewOption = true; vm.startPlatformPartnerCommissionSettlement();") {{'PREVIEW' | translate}}
+
+div(ng-if="vm.showPreviewOption")
+    table#partnerCommissionSettlementTbl.common-table.playerLvlTable
+        thead
+            th {{"COMMISSION_TYPE" | translate}}
+            th {{"Last Settlement Period" | translate}}
+            th {{"Next Settlement Period" | translate}}
+            th {{"ACTION_BUTTON" | translate}}
+        tbody(ng-repeat='modeObj in vm.partnerCommissionSettlement.data')
+            tr
+                td {{constPartnerCommissionSettlementType[modeObj.mode] | translate}}
+                td {{modeObj.lastSettDate}}
+                td {{modeObj.nextSettDate}}
+                td
+                    div(ng-if="modeObj.nextSettDate !== '-' && !modeObj.isPreview")
+                        a(ng-click="vm.generatePartnerCommSettPreview(modeObj);vm.showPreviewOption = false;") {{"PREVIEW" | translate}}/
+                        a(ng-click="vm.skipNextPartnerCommissionPeriod(modeObj);vm.showPreviewOption = false;") {{"Skip next settlement" | translate}}/
+                        a(ng-click="vm.skipNextPartnerCommissionPeriod(modeObj, true);vm.showPreviewOption = false;") {{"Back to previous settlement" | translate}}
+                    div(ng-if="modeObj.nextSettDate !== '-' && modeObj.isPreview")
+                        text(style="color: red") ( {{"In Preview" | translate}} )
+                    div(ng-if="modeObj.nextSettDate === '-'")
+                        text -
+    .btn.btn-warning.margin-top-5(ng-click="vm.showPreviewOption = false") {{'Closed' | translate}}
+
+hr
+
+button.margin-top-10.btn.btn-primary.common-button(ng-if="checkViewPermission('Partner', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
+    text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
+    .fa.fa-book
