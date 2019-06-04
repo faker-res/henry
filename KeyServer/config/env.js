@@ -1,5 +1,13 @@
 var envConf = {
     // Local
+    local_web: {
+        mode: "local",
+        redisUrl: "http://localhost",
+        redisPort: "7200",
+        socketSecret: "aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE",
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair',
+        isGateway: true
+    },
     local: {
         mode: "local",
         redisUrl : 'http://localhost',
@@ -73,6 +81,7 @@ var env = {
                 envConf[o].mode === selfMode
                 && envConf[o].redisUrl === selfUrl
                 && envConf[o].redisPort !== selfPort
+                && envConf[o].isGateway !== true
             ) {
                 return true;
             }
