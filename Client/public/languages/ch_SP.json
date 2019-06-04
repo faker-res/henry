@@ -226,6 +226,7 @@
   "Is visible if credit less than": "(前端可见)账户余额低于X元会员可见",
   "Is visible if applied following reward": "(前端可见)领取过以下优惠会员可见",
   "Is visible if topup count": "(前端可见) 当存款笔数",
+  "Max top-up count is only applicable when the top-up operator is ~": "最高存款笔数只用于当存款笔数过滤器是 （~）",
   "Min top-up count": "最低存款笔数",
   "Max top-up count": "最高存款笔数",
   "Is invisible if apply current reward": "(前端可见)领取当下优惠不可见",
