@@ -9159,11 +9159,7 @@ let dbPlayerInfo = {
             if(rewardEventCondition.visibleIfAppliedFollowingReward && rewardEventCondition.visibleIfAppliedFollowingReward.length){
                 appliedFollowingRewardProm = dbPlayerInfo.checkVisibleIfAppliedFollowingReward(playerObjId, rewardEventCondition.visibleIfAppliedFollowingReward);
             }
-
-            // if(typeof rewardEventCondition.visibleIfTopUpCountMoreThan != "undefined" && rewardEventCondition.visibleIfTopUpCountMoreThan != null){
-            //     topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCountMoreThan(playerObjId, rewardEventCondition.visibleIfTopUpCountMoreThan);
-            // }
-
+            
             if(rewardEventCondition.hasOwnProperty('topUpCountOperator') && rewardEventCondition.topUpCountOperator != 0){
                 topUpCountMoreThanProm = dbPlayerInfo.checkVisibleIfTopUpCount(playerObjId, rewardEventCondition.topUpCountOperator, rewardEventCondition.topUpCount1, rewardEventCondition.topUpCount2);
             }
