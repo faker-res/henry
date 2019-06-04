@@ -21731,9 +21731,10 @@ define(['js/app'], function (myApp) {
 
                                     cond.visibleForPlayerLevel.options = playerLevels;
                                     cond.visibleIfAppliedFollowingReward.options = rewardEvents;
+                                    cond.topUpCountOperator.options = $scope.operatorType;
 
                                     if(vm.showReward && vm.showReward.condition && vm.showReward.condition[el]){
-                                        vm.rewardVisible[el] = vm.showReward.condition[el];
+                                        vm.rewardVisible[el] = Object.assign({},vm.showReward.condition[el]);
                                     }
 
                                     vm.rewardVisibleCondition.push(cond);
