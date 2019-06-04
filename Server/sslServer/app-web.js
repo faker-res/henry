@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
 const cred = require("./config/cred");
-const theOtherEnv = require("./config/env").getAnotherConfig()[0];
+const nonGatewayEnv = require('./config/env').getNonGatewayConfig()[0];
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -64,11 +64,11 @@ http.createServer(function (req, res) {
                                         decryptedText = privateDecrypted.toString();
 
                                         if (decryptedText === testKeyPairText) {
-                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
-                                                let theOtherUrl = theOtherEnv.redisUrl;
+                                            if (nonGatewayEnv && nonGatewayEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = nonGatewayEnv.redisUrl;
 
-                                                if (theOtherEnv.redisPort) {
-                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                if (nonGatewayEnv.redisPort) {
+                                                    theOtherUrl += ":" + nonGatewayEnv.redisPort;
                                                 }
 
                                                 theOtherUrl += req.url;
@@ -122,11 +122,11 @@ http.createServer(function (req, res) {
                                         decryptedText = privateDecrypted.toString();
 
                                         if (decryptedText === testKeyPairText) {
-                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
-                                                let theOtherUrl = theOtherEnv.redisUrl;
+                                            if (nonGatewayEnv && nonGatewayEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = nonGatewayEnv.redisUrl;
 
-                                                if (theOtherEnv.redisPort) {
-                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                if (nonGatewayEnv.redisPort) {
+                                                    theOtherUrl += ":" + nonGatewayEnv.redisPort;
                                                 }
 
                                                 theOtherUrl += req.url;
@@ -163,11 +163,11 @@ http.createServer(function (req, res) {
                             break;
                         case restartFPMSPath:
                             console.log('REQUEST TO RESTART FPMS');
-                            if (theOtherEnv && theOtherEnv.redisUrl) {
-                                let theOtherUrl = theOtherEnv.redisUrl;
+                            if (nonGatewayEnv && nonGatewayEnv.redisUrl) {
+                                let theOtherUrl = nonGatewayEnv.redisUrl;
 
-                                if (theOtherEnv.redisPort) {
-                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                if (nonGatewayEnv.redisPort) {
+                                    theOtherUrl += ":" + nonGatewayEnv.redisPort;
                                 }
 
                                 theOtherUrl += req.url;
