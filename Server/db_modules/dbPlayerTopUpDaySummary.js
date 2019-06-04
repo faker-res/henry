@@ -169,9 +169,7 @@ var dbPlayerTopUpDaySummary = {
             return;
         }
 
-        console.log('reCalculateWinRateReportSummary', start, end);
-
-        let calculateSummaryProm = [];
+        let p = Promise.resolve();
         let startTime = new Date(start);
         let endTime = new Date(end);
 
@@ -179,8 +177,6 @@ var dbPlayerTopUpDaySummary = {
         endTime.setHours(0, 0, 0, 0);
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
-
-        console.log('reCalculateWinRateReportSummary - 2', startTime, endTime);
 
         for(let i = 0; i <= diffInDays; i ++){
             let startDate = new Date(start);
@@ -191,16 +187,11 @@ var dbPlayerTopUpDaySummary = {
             endDate = dbutility.getDayStartTime(endDate);
 
             if (startDate.getTime() < new Date(end).getTime()) {
-                calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+                p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
             }
         }
 
-        return Promise.all(calculateSummaryProm).then(
-            result => {
-                return result;
-            }
-        );
-
+        return p;
     },
 
     calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId, isReSummarized) {
