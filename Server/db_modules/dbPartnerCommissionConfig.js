@@ -95,7 +95,7 @@ const dbPartnerCommissionConfig = {
             if (!(partnerObjs && partnerObjs.length)) {
                 return Promise.reject({name: "DataError", message: "Cannot find partner"});
             }
-            let parentCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(proposalData.data.partnerObjId, proposalData.data.commissionType);
+            let parentCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(proposalData.data.partnerObjId, proposalData.data.commissionType, false, true);
             if (!(parentCommConfig && parentCommConfig.length)) {
                 return Promise.reject({name: "DataError", message: "Cannot find commission config"});
             }
@@ -123,7 +123,7 @@ const dbPartnerCommissionConfig = {
                 platform: proposalData.data.platformId
             };
 
-            let partnerObjs = await dbconfig.collection_partner.find(query, {_id: 1}).lean();
+            let partnerObjs = await dbconfig.collection_partner.find(query, {_id: 1, parent: 1}).lean();
             if (!(partnerObjs && partnerObjs.length)) {
                 return Promise.reject({name: "DataError", message: "Cannot find partner"});
             }
@@ -132,7 +132,15 @@ const dbPartnerCommissionConfig = {
                 dbconfig.collection_partnerDownLineCommConfig.remove({
                     platform: proposalData.data.platformId,
                     partner: partner._id,
-                }).catch(errorUtils.reportError);
+                }).then(
+                    () => {
+                        return dbPartnerCommissionConfig.getPartnerCommConfig(partner._id, proposalData.data.commissionType, false, true);
+                    }
+                ).then(
+                    commConfig => {
+                        updateDownLineCommConfig(partner._id, proposalData.data.platformId, proposalData.data.commissionType, commConfig, true);
+                    }
+                ).catch(errorUtils.reportError);
             });
         }
 
