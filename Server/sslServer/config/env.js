@@ -48,6 +48,8 @@ var envConf = {
     }
 };
 
+let keyAddress = '';
+
 //env parameters
 var env = {
     //cur server message client
@@ -76,6 +78,8 @@ var env = {
             }
         }
     },
+
+    getKeyAddress: () => keyAddress,
 };
 
 module.exports = env;
