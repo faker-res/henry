@@ -36911,11 +36911,14 @@ define(['js/app'], function (myApp) {
 
             // Batch Permit Edit
             vm.initBatchPermit = function () {
-                setTimeout(() => {
-                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
-                    vm.initBatchParams();
-                    vm.drawBatchPermitTable();
-                }, 0);
+                let platform = getSelectedPlatform();
+                if(platform && platform._id) {
+                    setTimeout(() => {
+                        vm.prepareCredibilityConfig(platform._id || vm.selectedPlatform.id || null);
+                        vm.initBatchParams();
+                        vm.drawBatchPermitTable();
+                    }, 0);
+                }
             };
 
             vm.initBatchParams = function(){
@@ -36937,7 +36940,7 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
-            }
+            };
 
             vm.resetBatchEditUI = function(){
                 vm.initBatchParams();
@@ -36945,6 +36948,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.localRemarkUpdate = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {
@@ -36961,7 +36966,7 @@ define(['js/app'], function (myApp) {
                 let playerNames = vm.splitBatchPermit();
                 let sendQuery = {
                     admin: authService.adminName,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerNames: playerNames,
                     remarks: {
                         'addList': vm.forbidCredibilityAddList,
@@ -36975,7 +36980,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                        vm.prepareCredibilityConfig(platformObjId || vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -37032,6 +37037,8 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.drawBatchPermitTable = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
 
                 vm.selectedPlayers = {};
                 vm.selectedPlayersCount = 0;
@@ -37441,7 +37448,7 @@ define(['js/app'], function (myApp) {
                                     vm.batchPermitModifySucc = false;
                                     socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
                                         query: {
-                                            platformObjId: vm.selectedPlatform.id,
+                                            platformObjId: platformObjId || vm.selectedPlatform.id,
                                             playerNames: playerNames
                                         },
                                         admin: authService.adminId,
@@ -37451,7 +37458,7 @@ define(['js/app'], function (myApp) {
                                         if (changeObj.banReward != undefined) {
                                             let sendData = {
                                                 query: {
-                                                    platformObjId: vm.selectedPlatform.id,
+                                                    platformObjId: platformObjId || vm.selectedPlatform.id,
                                                     name: "Main Permission Disabled (default)", //hard code name
                                                     isBlockByMainPermission: true,
                                                     color: "lightgrey"
@@ -37553,7 +37560,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidRewardEvents: {
                                             'addList': vm.forbidRewardEventAddList,
@@ -37637,7 +37644,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidProviders: {
                                             'addList': vm.forbidGameAddList,
@@ -37717,7 +37724,7 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         query: {
                                             playerNames: playerNames,
-                                            platformObjId: vm.selectedPlatform.id
+                                            platformObjId: platformObjId || vm.selectedPlatform.id
                                         },
                                         updateData: {
                                             forbidTopUpType: {
@@ -37794,7 +37801,7 @@ define(['js/app'], function (myApp) {
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
                                         playerNames: playerNames,
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         forbidRewardPointsEvent: {
                                             'addList': vm.forbidRewardPointsAddList,
                                             'removeList': vm.forbidRewardPointsRemoveList
@@ -37864,6 +37871,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.initiating = false;
             };
             vm.initiateBulkCreditClearOutList = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 vm.bulkCreditClearOut.initiating = true;
                 vm.bulkCreditClearOutTriggered = true;
                 vm.bulkCreditClearOut.total = 0;
@@ -37888,7 +37897,7 @@ define(['js/app'], function (myApp) {
 
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -37946,14 +37955,16 @@ define(['js/app'], function (myApp) {
                     }
                 })
 
-            }
+            };
             vm.initBulkClearXIMAWithdraw = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
                 playerNames.forEach((playerName, i) => {
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("clearPlayerXIMAWithdraw", sendData);
@@ -38028,6 +38039,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data = [];
             };
             vm.singleCreditClearOut = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let player = vm.bulkCreditClearOut.data[index];
                 let initialStatus = player.status;
                 let totalCredit = Number(player.totalCredit);
@@ -38035,7 +38048,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                     player.status = "Transferring Out";
                     return $scope.$socketPromise("playerCreditClearOut", {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: platformObjId || vm.selectedPlatform.id,
                         playerName: player.playerName
                     }).then(data => {
                         console.log("playerCreditClearOut ret", data);
@@ -38093,6 +38106,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data.splice(index,1);
             };
             vm.refreshPlayerCreditInCreditClearOutList = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                 vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = "? (" + $translate("Requesting Data") + ")";
                 vm.bulkCreditClearOut.data[index].localTotalCredit = "? (" + $translate("Requesting Data") + ")";
@@ -38100,7 +38115,7 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data[index].actionable = false;
                 let player = vm.bulkCreditClearOut.data[index];
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerName: player.playerName
                 };
                 return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -41574,6 +41589,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "rewardpoint":
                         selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
+                        break;
+                    case "batchpermit":
+                        selectedPlatformObjId = vm.batchSettingSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {
