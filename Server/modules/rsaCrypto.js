@@ -10,11 +10,13 @@ let rp = require('request-promise');
 let fs = require('fs'), crt, key, replKey, replCrt;
 let fpmsKey = 'Fr0m_FPM$!';
 let token = jwt.sign(fpmsKey, constSystemParam.API_AUTH_SECRET_KEY);
+const legacyPrivateKeyPath = "/../ssl/playerPhone.key.pem";
+const legacyPublicKeyPath = "/../ssl/playerPhone.pub";
 
 // Key selection based on env param
 if (!mainEnv.keyMode || (mainEnv.keyMode && mainEnv.keyMode !== 1)) {
-    key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-    crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+    key = fs.readFileSync(__dirname + legacyPrivateKeyPath);
+    crt = fs.readFileSync(__dirname + legacyPublicKeyPath);
 } else {
     if (!key) { getPrivateKeyFromService(); }
     if (!crt) { getPublicKeyFromService(); }
@@ -25,8 +27,8 @@ if (!mainEnv.keyMode || (mainEnv.keyMode && mainEnv.keyMode !== 1)) {
 let oldKey, oldCert;
 
 // Legacy key and cert - fallback plan
-oldKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+oldKey = fs.readFileSync(__dirname + legacyPrivateKeyPath);
+oldCert = fs.readFileSync(__dirname + legacyPublicKeyPath);
 
 // 3rd party payment system key
 // let fkpKey, fkpCert;
@@ -157,7 +159,7 @@ function getKey (dirPath, fbPath) {
 }
 
 function getPrivateKeyFromService () {
-    return getKey("playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
+    return getKey("playerPhone.key.pem", legacyPrivateKeyPath).then(
         data => {
             if (data) {
                 console.log(`RT - Got key from ${options.hostname}`);
@@ -165,6 +167,8 @@ function getPrivateKeyFromService () {
                 return true;
             } else {
                 console.log('getPrivateKeyFromService no data', host);
+                console.log('Setting as legacy private key..');
+                key = fs.readFileSync(__dirname + legacyPrivateKeyPath);
                 return false;
             }
         }
@@ -172,7 +176,7 @@ function getPrivateKeyFromService () {
 }
 
 function getPublicKeyFromService () {
-    return getKey("playerPhone.pub", "/../ssl/playerPhone.pub").then(
+    return getKey("playerPhone.pub", legacyPublicKeyPath).then(
         data => {
             if (data) {
                 console.log(`RT - Got cert from ${options.hostname}`);
@@ -180,6 +184,8 @@ function getPublicKeyFromService () {
                 return true;
             } else {
                 console.log('getPublicKeyFromService no data', host);
+                console.log('Setting as legacy public key..');
+                crt = fs.readFileSync(__dirname + legacyPublicKeyPath);
                 return false;
             }
         }
