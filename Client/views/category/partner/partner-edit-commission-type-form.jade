@@ -204,6 +204,6 @@ form(name="form_edit_partner_commission_type", novalidate)
     .pull-right
         button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && !commissionRateIsEditAll() && newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7 && !vmm.checkIsChildPartner()" ng-click = "commissionRateEditAll(true)") {{"EDIT_ALL_FEE_RATE" | translate}}
         button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && commissionRateIsEditAll()" ng-click = "commissionRateEditAll(false); customizePartnerRate(commissionRateConfig)") {{"UPDATE" | translate}}
-        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"EXIT" | translate}}
         button.btn.btn-primary.common-button(ng-if="!partnerCommission.isCustomized" data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"SUBMIT_CHANGES" | translate}}
         button.btn.btn-danger.common-button(ng-if="!partnerCommission.isCustomized && newPartner.commissionType == vmm.selectedSinglePartner.commissionType" ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}
