@@ -6308,41 +6308,33 @@ let dbPlayerReward = {
                     let totalTopupMatchQuery = {
                         playerId: playerData._id,
                         platformId: playerData.platform._id,
-                        date: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
                     if (intervalTime) {
-                        totalTopupMatchQuery.date = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                     }
 
                     if (rewardData.previewDate){
-                        totalTopupMatchQuery.date = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
                     }
 
                     console.log("checking totalTopupMatchQuery", totalTopupMatchQuery)
 
 
-                    let totalTopupProm = dbConfig.collection_playerReportDataDaySummary.aggregate(
+                    let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: totalTopupMatchQuery
                         },
                         {
                             $group: {
                                 _id: {playerId: "$playerId"},
-                                manualTopUpAmount: {$sum: "$manualTopUpAmount"},
-                                onlineTopUpAmount: {$sum: "$onlineTopUpAmount"},
-                                aliPayTopUpAmount: {$sum: "$alipayTopUpAmount"},
-                                weChatTopUpAmount: {$sum: "$wechatpayTopUpAmount"}
+                                amount: {$sum: "$amount"}
                             }
                         }
                     ).then(
                         summary => {
                             if (summary && summary[0]) {
-                                let manual = parseFloat(summary[0].manualTopUpAmount);
-                                let online = parseFloat(summary[0].onlineTopUpAmount);
-                                let alipay = parseFloat(summary[0].aliPayTopUpAmount);
-                                let wechat = parseFloat(summary[0].weChatTopUpAmount);
-                                let topUpAmount = manual + online + alipay + wechat;
-                                return topUpAmount;
+                                return summary[0].amount;
                             }
                             else {
                                 // No topup record will return 0
