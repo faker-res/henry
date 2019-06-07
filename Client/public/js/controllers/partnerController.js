@@ -11769,6 +11769,15 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (vm.isMultiLevelCommission) {
+                for (let i = 0; i < newConfig.commissionSetting.length; i++) {
+                    if (!newConfig.commissionSetting[i].commissionRate || newConfig.commissionSetting[i].commissionRate < 1) {
+                        socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
+                        return;
+                    }
+                }
+            }
+
             if (isRevert && !vm.isMultiLevelCommission) {
                 let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
                 newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
@@ -11818,6 +11827,7 @@ define(['js/app'], function (myApp) {
         vm.updateAllCustomizeCommissionRate = (setting) => {
             let oldConfigArr = [];
             let newConfigArr = [];
+            let isValidCommissionRate = true;
             if (setting && setting.length > 0) {
                 setting.forEach(providerGroup => {
                     let tempConfig = providerGroup.showConfig;
@@ -11829,6 +11839,9 @@ define(['js/app'], function (myApp) {
 
                                 tempConfig.commissionSetting.splice(i, 1);
                             }
+                            if (vm.isMultiLevelCommission && tempConfig.commissionSetting[i] && (!tempConfig.commissionSetting[i].commissionRate || tempConfig.commissionSetting[i].commissionRate < 1)) {
+                                isValidCommissionRate = false;
+                            }
                         }
                     }
                     if (providerGroup.showConfig && providerGroup.srcConfig && providerGroup.showConfig.hasOwnProperty('isDetectChangeCustomizeRate')) {
@@ -11839,24 +11852,37 @@ define(['js/app'], function (myApp) {
                 });
             }
             if (oldConfigArr && newConfigArr && oldConfigArr.length > 0 && newConfigArr.length > 0) {
-                let sendData = {
-                    partnerObjId: vm.selectedSinglePartner._id,
-                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
-                    oldConfigArr: oldConfigArr,
-                    newConfigArr: newConfigArr,
-                    isMultiLevel: vm.isMultiLevelCommission
-                };
+                if (vm.isMultiLevelCommission && !isValidCommissionRate) {
+                    socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
+                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                    vm.getPlatformPartnersData();
+                } else {
 
-                socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
-                    $scope.$evalAsync(() => {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr,
+                        isMultiLevel: vm.isMultiLevelCommission
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                            vm.getPlatformPartnersData();
+                        });
+                    }, function (err) {
                         vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                         vm.getPlatformPartnersData();
                     });
-                }, function (err) {
-                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
-                    vm.getPlatformPartnersData();
-                });
+                }
+            } else {
+                // reload data, avoid empty provider cannot be add
+                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                vm.getPlatformPartnersData();
             }
+
+            vm.commissionSettingEditAll(setting, false);
         }
 
         vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
@@ -17055,6 +17081,7 @@ define(['js/app'], function (myApp) {
             }
 
             let promChain = Promise.resolve();
+            let isValidCommissionRate = true;
 
             let gameProviderGroups = vm.partnerCommission.gameProviderGroup;
 
@@ -17077,8 +17104,11 @@ define(['js/app'], function (myApp) {
                     if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
                         (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
                         (tempShowConfig.commissionSetting[i].commissionRate == '' || tempShowConfig.commissionSetting[i].commissionRate == null)) {
-
                         tempShowConfig.commissionSetting.splice(i, 1);
+                    }
+
+                    if (vm.isMultiLevelCommission && tempShowConfig.commissionSetting[i] && (!tempShowConfig.commissionSetting[i].commissionRate || tempShowConfig.commissionSetting[i].commissionRate < 0.01)) {
+                        isValidCommissionRate = false;
                     }
                 }
 
@@ -17089,6 +17119,11 @@ define(['js/app'], function (myApp) {
                 let sendData = {};
 
                 if (vm.isMultiLevelCommission) {
+                    if (!isValidCommissionRate) {
+                        socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
+                        return;
+                    }
+
                     sendData = {
                         platformObjId: tempShowConfig.platform ? tempShowConfig.platform : vm.platformInSetting._id,
                         commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
@@ -17119,6 +17154,10 @@ define(['js/app'], function (myApp) {
                     });
                 }
             });
+
+            if (!isValidCommissionRate) {
+                promChain = Promise.resolve();
+            }
 
             return promChain.then(() => {
                 vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
