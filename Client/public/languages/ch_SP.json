@@ -4544,6 +4544,8 @@
   "createUpdateTopUpGroupLog": "编辑充值分组",
   "customizePartnerCommission": "客制化代理参数",
   "customizeMultiLevelPartnerCommission": "客制化多级代理参数",
+  "Bind referral player": "绑定下线玩家",
+  "Multi level partner architecture": "多层级代理架构",
   "isMultiLevel": "是否多级代理",
   "updatePartnerPermission": "变更代理主权限",
   "createPlayerFeedbackResult": "添加回访结果",

@@ -575,6 +575,18 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getTotalSettledCommission, [data.data], actionName, isValidData);
         },
 
+        getReferralPlayerCount: function getReferralPlayerCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getReferralPlayerCount, [data.partnerObjId], actionName, isValidData);
+        },
+
+        getPlayerByNameWithoutParent: function getPlayerByNameWithoutParent (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerName && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPlayerByNameWithoutParent, [data.playerName, data.platformObjId], actionName, isValidData);
+        },
+
         getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);

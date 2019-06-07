@@ -1565,12 +1565,19 @@ var proposalExecutor = {
                             }
                         }
 
-                        proms.push(dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr));
+                        // proms.push(dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr));
 
                         if (proms && proms.length > 0) {
                             Q.all(proms).then(
-                                function (data) {
-                                    deferred.resolve(data);
+                                async function (data) {
+                                    return dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr).then(
+                                        () => {
+                                            deferred.resolve(data);
+                                        },
+                                        error => {
+                                            deferred.reject({name: "DBError", message: "Failed to update child partner commission", error: error});
+                                        }
+                                    );
                                 },
                                 function (error) {
                                     deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
