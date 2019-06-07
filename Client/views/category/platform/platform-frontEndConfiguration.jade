@@ -230,6 +230,12 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
 
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"PromoCode"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
+
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}

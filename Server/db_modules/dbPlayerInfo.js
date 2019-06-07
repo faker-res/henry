@@ -435,15 +435,18 @@ let dbPlayerInfo = {
                     $or: [
                         {guestDeviceId: String(inputData.guestDeviceId)},
                         {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
-                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))}
+                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))},
+                        {guestDeviceId: rsaCrypto.legacyEncrypt(String(inputData.guestDeviceId))},
                     ]
-                }
+                };
 
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+                    let enLegacyPhoneNumber = rsaCrypto.legacyEncrypt(inputData.phoneNumber);
                     playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
                     playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
+                    playerQuery.$or.push({phoneNumber: enLegacyPhoneNumber});
                 }
 
                 return dbconfig.collection_players.findOne(playerQuery).populate({

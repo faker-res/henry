@@ -10,6 +10,7 @@ const constProposalType = require('./../const/constProposalType');
 const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 const constRewardType = require('./../const/constRewardType');
 const constServerCode = require('./../const/constServerCode');
+const localization = require("../modules/localization");
 
 const dbRewardUtility = {
     // region Reward operation
@@ -846,7 +847,15 @@ const dbRewardUtility = {
         }
     },
 
-    checkRewardApplyPlayerHasPhoneNumber: (eventData, playerData) => {
+    checkRewardApplyPlayerHasPhoneNumberAndBankCard: (eventData, playerData) => {
+        if (eventData.condition && eventData.condition.requiredPhoneNumber && eventData.condition.requiredBankCard && !Boolean(playerData.phoneNumber) && !Boolean(playerData.bankAccount)){
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: localization.localization.translate("Please register phone number and bank card before applying this reward, thank you.")
+            });
+        }
+
         if (eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -854,9 +863,7 @@ const dbRewardUtility = {
                 message: "This player does not have phone number to apply this reward"
             });
         }
-    },
 
-    checkRewardApplyHasBankCard: (eventData, playerData) => {
         if (eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
