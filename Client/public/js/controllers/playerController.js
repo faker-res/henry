@@ -6832,32 +6832,6 @@ define(['js/app'], function (myApp) {
             }
             //MARK!!!
             $compile(nRow)($scope);
-            //set player color according to status
-            var status = aData.status;
-            var cellColor = '';
-            var statusKey = '';
-            $.each(vm.allPlayersStatusString, function (key, val) {
-                if (status == val) {
-                    statusKey = key;
-                    return true;
-                }
-            })
-            var colorObj = {
-                NORMAL: '#337ab7',
-                FORBID: 'red',
-                FORBID_GAME: '#D2691E',
-                CHEAT_NEW_ACCOUNT_REWARD: '#800000',
-                TOPUP_ATTENTION: '#800000',
-                HEDGING: '#800000',
-                TOPUP_BONUS_SPAM: '#800000',
-                MULTIPLE_ACCOUNT: '#800000',
-                BANNED: 'red',
-                FORBID_ONLINE_TOPUP: '#800000',
-                BAN_PLAYER_BONUS: '#800000'
-            }
-            $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
-                $(v).find('a').eq(0).css('color', colorObj[statusKey]);
-            })
 
             // Row click
             $(nRow).off('click');
