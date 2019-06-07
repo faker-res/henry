@@ -735,16 +735,20 @@ var dbPlatformMerchantGroup = {
         );
     },
 
-    getMerchantTypeList: function (platformObjId) {
+    getMerchantTypeList: function (data) {
         let paymentSystemId;
-        return dbconfig.collection_platform.findOne({_id: platformObjId}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData.topUpSystemType) {
-                    paymentSystemId = platformData.topUpSystemType;
-                }
+        if (data && data.platform) {
+            return dbconfig.collection_platform.findOne({_id: data.platform}, {topUpSystemType: 1, platformId: 1, name: 1}).lean().then(
+                platformData => {
+                    if (platformData && platformData.topUpSystemType) {
+                        paymentSystemId = platformData.topUpSystemType;
+                    }
 
-                return RESTUtils.getPMS2Services("postMerchantTypeList", {}, paymentSystemId);
-        });
+                    return RESTUtils.getPMS2Services("postMerchantTypeList", {}, paymentSystemId);
+                });
+        } else {
+            return RESTUtils.getPMS2Services("postMerchantTypeList", {});
+        }
     },
 
     getPMSMerchantGroup: function (platformId, topUpSystemType) {

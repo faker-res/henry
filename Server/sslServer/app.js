@@ -1,12 +1,8 @@
 const http = require('http');
 const url = require('url');
-const fs = require('fs');
-const path = require('path');
 const env = require("./config/env").config();
 const cred = require("./config/cred");
 const theOtherEnv = require("./config/env").getAnotherConfig()[0];
-const webEnv = require('./public/js/webEnv');
-const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
 const secret = "$ap1U5eR$";
@@ -78,7 +74,36 @@ http.createServer(function (req, res) {
                                             privateKey = inEffectKeyPair.privateKey;
                                             publicKey = inEffectKeyPair.publicKey;
 
-                                            res.end('Success');
+                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = theOtherEnv.redisUrl;
+
+                                                if (theOtherEnv.redisPort) {
+                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                }
+
+                                                theOtherUrl += req.url;
+
+                                                rp({
+                                                    method: 'POST',
+                                                    uri: theOtherUrl,
+                                                    headers: {
+                                                        'x-token': req.headers['x-token']
+                                                    },
+                                                    body: {
+                                                        privateKey: privateKey,
+                                                        publicKey: publicKey,
+                                                        isFromAnotherInstance: true
+                                                    },
+                                                    json: true
+                                                }).then(
+                                                    () => {
+                                                        res.end('Success');
+                                                    }
+                                                );
+
+                                            } else {
+                                                res.end('Success');
+                                            }
                                         } else {
                                             res.end('Invalid RSA Key Pair!')
                                         }
@@ -111,7 +136,36 @@ http.createServer(function (req, res) {
                                             replacedPrivateKey = inEffectKeyPair.privateKey;
                                             replacedPublicKey = inEffectKeyPair.publicKey;
 
-                                            res.end('Success');
+                                            if (theOtherEnv && theOtherEnv.redisUrl && !inEffectKeyPair.isFromAnotherInstance) {
+                                                let theOtherUrl = theOtherEnv.redisUrl;
+
+                                                if (theOtherEnv.redisPort) {
+                                                    theOtherUrl += ":" + theOtherEnv.redisPort;
+                                                }
+
+                                                theOtherUrl += req.url;
+
+                                                rp({
+                                                    method: 'POST',
+                                                    uri: theOtherUrl,
+                                                    headers: {
+                                                        'x-token': req.headers['x-token']
+                                                    },
+                                                    body: {
+                                                        privateKey: replacedPrivateKey,
+                                                        publicKey: replacedPublicKey,
+                                                        isFromAnotherInstance: true
+                                                    },
+                                                    json: true
+                                                }).then(
+                                                    () => {
+                                                        res.end('Success');
+                                                    }
+                                                );
+
+                                            } else {
+                                                res.end('Success');
+                                            }
                                         } else {
                                             res.end('Invalid RSA Key Pair!')
                                         }
@@ -144,53 +198,6 @@ http.createServer(function (req, res) {
                     }
                 }
             });
-        } else {
-            // login verification
-            let inputData = [];
-            let buffer;
-
-            req.on('data', data => {
-                inputData.push(data);
-            }).on('end', async () => {
-                buffer = Buffer.concat(inputData);
-
-                try {
-                    let loginInfo = JSON.parse(buffer.toString());
-
-                    if (loginInfo.username && loginInfo.password) {
-                        let adminInfo = await cred.getAdmin(loginInfo.username.toLowerCase());
-
-                        if (!adminInfo) {
-                            res.end(JSON.stringify({
-                                success: false,
-                                error: {name: "InvalidPassword", message: 'Wrong credential!'}
-                            }));
-                        } else if (!validateHash(adminInfo.password, loginInfo.password)) {
-                            res.end(JSON.stringify({
-                                success: false,
-                                error: {name: "InvalidPassword", message: 'Password or user name is not correct!'}
-                            }));
-                        } else {
-                            // Valid credential
-                            let payload = {
-                                adminInfo: adminInfo,
-                                loginTime: new Date()
-                            };
-
-                            res.end(JSON.stringify({
-                                success: true,
-                                token: jwt.sign(payload, env.socketSecret)
-                            }));
-                        }
-                    }
-                } catch (err) {
-                    console.log('error', err);
-                    res.end(JSON.stringify({
-                        success: false,
-                        error: {name: "InvalidPassword", message: 'Error occured!'}
-                    }));
-                }
-            })
         }
     } else if (req.method === 'GET') {
         // GET
@@ -206,34 +213,6 @@ http.createServer(function (req, res) {
                 break;
             case replacedPublicKeyPath:
                 verifyAndSendKey(query, res, replacedPublicKey);
-                break;
-            case './public/login.html':
-                readFile(pathname, res);
-                break;
-            case './public/static.html':
-                if (query && query.token) {
-                    jwt.verify(query.token, env.socketSecret, function (err, decoded) {
-                        if (err || !decoded) {
-                            // Jwt token error
-                            console.log("jwt verify error", err);
-                            redirectToLoginPage();
-                        } else {
-                            // Log this action to system log
-                            console.log(`${decoded.adminName} ${req.method} ${req.url}`);
-
-                            readFile(pathname, res)
-                        }
-                    });
-                } else {
-                    redirectToLoginPage();
-                }
-                break;
-            case './public/static.htm': // to prevent people viewing source code
-            case './':
-                redirectToLoginPage();
-                break;
-            default:
-                readFile(pathname, res);
         }
     } else if (req.method === 'OPTIONS') {
         res.end();
@@ -282,45 +261,6 @@ http.createServer(function (req, res) {
         } else {
             redirectToLoginPage();
         }
-    }
-
-    function readFile(pathName, res) {
-        const ext = path.parse(pathName).ext;
-        // maps file extention to MIME typere
-        const map = {
-            '.ico': 'image/x-icon',
-            '.html': 'text/html',
-            '.js': 'text/javascript',
-            '.json': 'application/json',
-            '.css': 'text/css',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.wav': 'audio/wav',
-            '.mp3': 'audio/mpeg',
-            '.svg': 'image/svg+xml',
-            '.pdf': 'application/pdf',
-            '.doc': 'application/msword'
-        };
-
-        fs.exists(pathName, function (exist) {
-            console.log('exist', exist);
-            if(!exist) {
-                // if the file is not found, return 404
-                pathName = 'public/login.html';
-            }
-
-            // read file from file system
-            fs.readFile(pathName, function(err, data){
-                if(err){
-                    res.statusCode = 500;
-                    res.end(`Error getting the file: ${err}.`);
-                } else {
-                    // if the file is found, set Content-type and send data
-                    res.setHeader('Content-type', map[ext] || 'text/plain' );
-                    res.end(data);
-                }
-            });
-        });
     }
 }).listen(parseInt(port));
 

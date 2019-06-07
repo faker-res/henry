@@ -1,15 +1,23 @@
 var envConf = {
     // Local
+    local_web: {
+        mode: "local",
+        redisUrl: "http://localhost",
+        redisPort: "7200",
+        socketSecret: "aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE",
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair',
+        isGateway: true
+    },
     local: {
         mode: "local",
-        redisUrl : 'localhost',
+        redisUrl : 'http://localhost',
         redisPort : '1802',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
         fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
     },
     local_2: {
         mode: "local",
-        redisUrl : 'localhost',
+        redisUrl : 'http://localhost',
         redisPort : '1804',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
         fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
@@ -73,6 +81,22 @@ var env = {
                 envConf[o].mode === selfMode
                 && envConf[o].redisUrl === selfUrl
                 && envConf[o].redisPort !== selfPort
+                && envConf[o].isGateway !== true
+            ) {
+                return true;
+            }
+        }
+    },
+
+    getNonGatewayConfig: () => {
+        let selfMode = this.config().mode;
+
+        return Object.keys(envConf).filter(isNonGatewayConfig).map(o => envConf[o]);
+
+        function isNonGatewayConfig (o) {
+            if (
+                envConf[o].mode === selfMode
+                && envConf[o].isGateway !== true
             ) {
                 return true;
             }
