@@ -6269,6 +6269,9 @@ var dbPlatform = {
 
         function settingCleanUp (setting, holder) {
             if (setting[holder]){
+                if (setting[holder].hasOwnProperty('onClickAction')) {
+                    setting.onClickAction = setting[holder].onClickAction;
+                }
                 if (setting[holder].imageUrl){
                     setting.imageUrl = setting[holder].imageUrl;
                 }
