@@ -522,11 +522,11 @@ async function updateDownLineCommConfig (parentObjId, platformObjId, commissionT
         commConfigData = commConfigData.map(commConfig => {
             if (commConfig.commissionSetting) {
                 commConfig.commissionSetting = commConfig.commissionSetting.map(commSetting => {
-                    let originalRate = commSetting.commissionRate;
-                    commSetting.commissionRate -= 0.01;
-                    if (commSetting.commissionRate < 0) {
-                        commSetting.commissionRate = originalRate;
-                    }
+                    // let originalRate = commSetting.commissionRate;
+                    commSetting.commissionRate = 0.01;
+                    // if (commSetting.commissionRate < 0) {
+                    //     commSetting.commissionRate = originalRate;
+                    // }
                     return commSetting;
                 })
             }
