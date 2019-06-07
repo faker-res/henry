@@ -395,7 +395,12 @@ p
                                         label {{"Parent Partner Name" | translate}}
                                     .col-sm-7
                                         text {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
-                                .col-sm-offset-6.col-sm-2
+                                .col-sm-3
+                                    .col-sm-5
+                                        label {{'REFERRAL_PLAYER' | translate}}{{'HEAD_COUNT' | translate}}
+                                    .col-sm-7
+                                        text {{vm.selectedPartnerPlayerCount}}
+                                .col-sm-offset-3.col-sm-2
                                     button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Partner', 'Partner', 'EditChildPartner')", data-toggle="modal", ng-click='vm.initEditChildPartner()', data-target='#modalEditChildPartner') {{"EDIT" | translate}}
 
                             div.col-xs-12
@@ -993,7 +998,21 @@ p
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Partner Architecture" | translate}}: {{vm.selectedSinglePartner.partnerName}}
             .modal-body
+                .col-md-12
+                    .col-md-6
+                        label {{"Bind referral player" | translate}}
+                        i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='display:none;')
+                        i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='display:none;')
+                        input.form-control(type='text', ng-model='vm.updatePlayerName', ng-change='vm.checkPlayerValid()')
+                        br
+                        .pull-right
+                            button.btn.btn-primary.common-button(ng-disabled='vm.disableUpdateReferralPlayer', ng-click='vm.updatePartnerRefferalPlayer()', data-dismiss="modal") {{"UPDATE" | translate}}
+                .col-md-12
+                    br
+                hr(style='border: 1px solid black')
+                br
                 div
+                    label {{"Multi level partner architecture" | translate}}
                     table.simple-table
                         thead
                             tr

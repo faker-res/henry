@@ -6000,6 +6000,18 @@ let dbPartner = {
         })
     },
 
+    getReferralPlayerCount: (partnerObjId) => {
+      return dbconfig.collection_players.find({partner: partnerObjId}).count();
+    },
+
+    getPlayerByNameWithoutParent: (playerName, platformObjId) => {
+        return dbconfig.collection_players.findOne({
+            name: playerName,
+            platform: platformObjId,
+            partner: null
+        }, {name: 1}).lean();
+    },
+
     getTotalSettledCommission: (partnerArr)  => {
         let totalSettledCommissionAmount = [];
 

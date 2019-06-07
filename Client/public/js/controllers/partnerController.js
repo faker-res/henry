@@ -6010,7 +6010,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             let link = $('<a>', {
                                 'class': (row.permission.forbidPartnerFromLogin === true ? "text-danger" : "text-primary"),
-                                'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                'ng-click': 'vm.showPartnerInfoModal("' + data + '", "' + row._id + '")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6152,7 +6152,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "", //"visible": false,
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '")'
+                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '", "' + row._id + '")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6248,7 +6248,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '")'
+                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '", "' + row._id + '")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6883,11 +6883,15 @@ define(['js/app'], function (myApp) {
             }
         }
         //show partner info modal
-        vm.showPartnerInfoModal = function (partnerName) {
+        vm.showPartnerInfoModal = function (partnerName, partnerObjId) {
             $('#modalPartnerInfo').modal().show();
             $scope.$evalAsync(() => {
                 vm.selectedPartnerCommissionPreview = false;
             });
+
+            socketService.$socket($scope.AppSocket, 'getReferralPlayerCount', {partnerObjId: partnerObjId}, function (data) {
+                vm.selectedPartnerPlayerCount = data.data
+            })
             $scope.$socketPromise('getSelectedPartnerCommissionPreview', {
                 platformObjId: vm.selectedPlatform.id,
                 partnerName: partnerName
@@ -7601,8 +7605,8 @@ define(['js/app'], function (myApp) {
                 vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                 vm.partnerCommissionObj = {data:{}};
-                // vm.partnerCommissionObj.data = commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission);
-                vm.partnerCommissionObj.data = vm.partnerCommission;
+                vm.partnerCommissionObj.data = commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission);
+                // vm.partnerCommissionObj.data = vm.partnerCommission;
                 vm.commissionSettingIsEditAll = {};
                 vm.commissionRateIsEditAll = false;
 
@@ -7753,6 +7757,53 @@ define(['js/app'], function (myApp) {
 
         vm.checkIsChildPartner = function () {
            return Boolean(vm.selectedSinglePartner && vm.selectedSinglePartner.parent);
+        }
+
+        vm.checkPlayerValid = $scope.debounce(function refreshReferral() {
+            return getPlayerByName(vm.updatePlayerName);
+        }, 500);
+
+        function getPlayerByName(playerName) {
+            if (!playerName) {
+                vm.disableUpdateReferralPlayer = true;
+                $('.referralValidTrue').hide();
+                $('.referralValidFalse').hide();
+                vm.updatePlayerObjId = null;
+                $scope.$evalAsync();
+                return;
+            }
+            socketService.$socket($scope.AppSocket, 'getPlayerByNameWithoutParent', {playerName: playerName, platformObjId: vm.selectedPlatform.id}, function (data) {
+                if (data.data) {
+                    vm.updatePlayerObjId = data.data._id;
+                    $('.referralValidTrue').show();
+                    $('.referralValidFalse').hide();
+                    vm.disableUpdateReferralPlayer = false;
+                } else {
+                    vm.updatePlayerObjId = null;
+                    $('.referralValidTrue').hide();
+                    $('.referralValidFalse').show();
+                    vm.disableUpdateReferralPlayer = true;
+                }
+                $scope.$evalAsync();
+            });
+        }
+
+
+        vm.updatePartnerRefferalPlayer = function () {
+            let updateDataPartner = {
+                _id: vm.updatePlayerObjId,
+                playerName: vm.updatePlayerName,
+                remark: "代理上线",
+                partner: vm.selectedSinglePartner._id,
+                newPartnerName: vm.selectedSinglePartner.partnerName
+            }
+
+            socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                data: updateDataPartner,
+                platformId: vm.selectedPlatform.id
+            }, function (data) {});
+
         }
 
         vm.prepareEditPartnerPayment = function () {
@@ -16163,6 +16214,11 @@ define(['js/app'], function (myApp) {
 
         // Edit Child Partner
         vm.initEditChildPartner = function () {
+            vm.updatePlayerName = "";
+            vm.updatePlayerObjId = null;
+            vm.disableUpdateReferralPlayer = true;
+            $('.referralValidTrue').hide();
+            $('.referralValidFalse').hide();
             vm.isChildPartnerEditing = false;
             vm.disableEditChildPartner = true;
             vm.totalChildPartner = vm.selectedSinglePartner.childrencount || 0;
