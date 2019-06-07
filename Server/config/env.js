@@ -239,7 +239,7 @@ var prodConfig = {
     paymentAPIServerUrl: "ws://10.167.11.108:9480",
     messageServerUrl: "ws://10.167.11.108:9580",
    
-    cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    cpAPIUrl : "ws://cpapi77.cpms8.me:7124/websocketapi",
     cpAPIUrl2: "",
     cpAPIUrlList : {
         4: "ws://10.167.11.153:8661/websocketapi",
