@@ -8138,8 +8138,8 @@ define(['js/app'], function (myApp) {
                     return vm.getReferralPlayer(option.childScope.playerBeingEdited, "change");
                 }, 500);
 
-                let debounceGetPartnerInPlayer = $scope.debounce(function () {
-                    return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change");
+                let debounceGetPartnerInPlayer = $scope.debounce(function (form) {
+                    return vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "change", form);
                 }, 500, false);
 
                 option.childScope.playerBeforeEditing.smsSetting = _.clone(editPlayer.smsSetting);
@@ -8147,8 +8147,9 @@ define(['js/app'], function (myApp) {
                 option.childScope.changeReferral = function () {
                     debounceGetReferralPlayer();
                 };
-                option.childScope.changePartner = function () {
-                    debounceGetPartnerInPlayer();
+                option.childScope.changePartner = function (form) {
+                    form.$setValidity('validPartner', false);
+                    debounceGetPartnerInPlayer(form);
                 };
 
                 vm.partnerChange = false;
@@ -8222,10 +8223,16 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getPartnerinPlayer = function (editObj, type) {
+        vm.getPartnerinPlayer = function (editObj, type, form) {
             var sendData = null;
-            if (type === 'change' && editObj.partnerName == '') {
+            if (editObj.partnerName == '') {
                 editObj.partner = null;
+                $('.partnerValidTrue').hide();
+                $('.partnerValidFalse').hide();
+                $scope.$evalAsync(() => {
+                    form.$setValidity('validPartner', true);
+                });
+                return;
             }
             if (type === 'change' && editObj.partnerName) {
                 sendData = {partnerName: editObj.partnerName}
@@ -8234,7 +8241,9 @@ define(['js/app'], function (myApp) {
             }
             if (sendData) {
                 sendData.platform = vm.selectedPlatform.id;
+                console.log('getPartner sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'getPartner', sendData, function (retData) {
+                    console.log('getPartner', retData)
                     var partner = retData.data;
                     if (partner && partner.name !== editObj.name) {
                         $('.partnerValidTrue').show();
@@ -8244,6 +8253,9 @@ define(['js/app'], function (myApp) {
                         if (type === 'new') {
                             $('.partnerValue').val(partner.partnerName);
                         }
+                        $scope.$evalAsync(() => {
+                            form.$setValidity('validPartner', true);
+                        });
                     } else {
                         $('.partnerValidTrue').hide();
                         $('.partnerValidFalse').show();
