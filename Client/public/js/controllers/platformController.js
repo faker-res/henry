@@ -6486,6 +6486,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                 }
+                utilService.clearPopovers();
                 if (table) {
                     table.draw();
                 }
@@ -6848,8 +6849,8 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || '';
-                                var playerObjId = row._id ? row._id : "";
-                                var link = $('<div>', {});
+                                let playerObjId = row._id ? row._id : "";
+                                let link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
                                     'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
@@ -37151,7 +37152,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
 
-                                var link = $('<a>', {
+                                let link = $('<a>', {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
@@ -39687,15 +39688,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initFrontendConfiguration = function() {
-                vm.frontendConfigurationUrl = "";
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName && vm.selectedPlatform.data.platformId && authService.token) {
-                    let domainName = vm.selectedPlatform.data.frontendConfigurationDomainName.trim();
-                    let token = authService.token;
-                    let platformId = vm.selectedPlatform.data.platformId;
-                    let url = domainName + '?token=' + token + '&platformId=' + platformId;
-
-                    vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                if (!vm.filterFrontendConfigurationPlatform) { // when not yet selected any platform
+                    return;
                 }
+                vm.frontendConfigurationUrl = "";
+                let sendData = {
+                    _id: vm.filterFrontendConfigurationPlatform
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('initFrontendConfiguration--getPlatform', data.data);
+                        vm.selectedFrontendConfigurationPlatform = data.data;
+                        if (vm.selectedFrontendConfigurationPlatform && vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName && vm.selectedFrontendConfigurationPlatform.platformId && authService.token) {
+                            let domainName = vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName.trim();
+                            let token = authService.token;
+                            let platformId = vm.selectedFrontendConfigurationPlatform.platformId;
+                            let url = domainName + '?token=' + token + '&platformId=' + platformId;
+
+                            vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                        }
+                    });
+                });
             };
 
             // region XBET advertisement

@@ -278,6 +278,8 @@ define(['js/app'], function (myApp) {
                 vm.rightPanelTitle = 'APPROVAL_PROPOSAL';
                 vm.showProposalIndicator = {};
                 vm.multiProposalSelected = [];
+                vm.rejectMultipleRemark = "";
+                vm.rejectRemark = "";
                 vm.loadProposalAuditQueryData(true);
             }
         }
@@ -2026,6 +2028,8 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform._id,
                 rejectRemark: vm.rejectMultipleRemark || ""
             }, function (data) {
+                vm.rejectMultipleRemark = "";
+                vm.rejectRemark = "";
                 deferred.resolve(true);
             }, function (error) {
                 deferred.reject(error);
@@ -2046,6 +2050,8 @@ define(['js/app'], function (myApp) {
                 );
                 Q.all(proms).then(
                     data => {
+                        vm.rejectMultipleRemark = "";
+                        vm.rejectRemark = "";
                         console.log("updateMultiProposal done:", data);
                         vm.multiProposalSelected = [];
                         setTimeout(vm.loadProposalQueryData, 500);
@@ -2526,6 +2532,8 @@ define(['js/app'], function (myApp) {
                 rejectRemark: vm.rejectRemark || ""
             }, function (data) {
                 console.log(data.data);
+                vm.rejectMultipleRemark = "";
+                vm.rejectRemark = "";
                 vm.loadProposalQueryData();
             });
         };
