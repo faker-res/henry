@@ -11251,7 +11251,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                                 if (proposalData && proposalData.length > 0) {
                                     proposalData.forEach(proposal => {
                                         if(proposal && proposal.data && proposal.data.topupType && proposal.data.platformId && item._id.platformObjId
-                                            && proposal.data.topupType.toString() === item._id.topupType && proposal.data.platformId.toString() === item._id.platformObjId.toString()) {
+                                            && proposal.data.topupType.toString() === item._id.topupType.toString() && proposal.data.platformId.toString() === item._id.platformObjId.toString()) {
                                             proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime()))/(1000*60);
                                             if (item && item.proposalArr && item.proposalArr.length) {
                                                 item.proposalArr.push(proposal);
