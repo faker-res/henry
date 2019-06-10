@@ -22964,9 +22964,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
-                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)
-                    && vm.isPromoNameExist(entry.title) && !entry.templateObjId){
-                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)){
+                    if (vm.isPromoNameExist(entry.title) && !entry.templateObjId) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                    }
+
+                    if (!entry.expiredInDay) {
+                        return socketService.showErrorMessage($translate('expiredInDay has to be filled up'));
+                    }
                 }
                 newEntryData.id = createObjectId();
                 row.push(newEntryData);
@@ -23898,9 +23903,17 @@ define(['js/app'], function (myApp) {
 
                         // sum up all the possibilities and ensure the sum is not exceeded 100%
                         let total = 0;
+                        let isExpiredInDayValid = true;
                         vm.rewardMainParamTable[0].value.forEach( row => {
-                            total = total + (row.possibility || 0)
+                            total = total + (row.possibility || 0);
+                            if (row && row.rewardType && (row.rewardType == 2 || row.rewardType == 3 || row.rewardType == 4) && !row.expiredInDay){
+                                isExpiredInDayValid = false;
+                            }
                         })
+
+                        if(!isExpiredInDayValid){
+                            return socketService.showErrorMessage($translate('expiredInDay has to be filled up'));
+                        }
 
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
@@ -24171,9 +24184,17 @@ define(['js/app'], function (myApp) {
                         vm.repackageRandomRewardGroup();
                         // sum up all the possibilities and ensure the sum is not exceeded 100%
                         let total = 0;
+                        let isExpiredInDayValid = true;
                         vm.rewardMainParamTable[0].value.forEach( row => {
-                            total = total + (row.possibility || 0)
+                            total = total + (row.possibility || 0);
+                            if (row && row.rewardType && (row.rewardType == 2 || row.rewardType == 3 || row.rewardType == 4) && !row.expiredInDay){
+                                isExpiredInDayValid = false;
+                            }
                         })
+
+                        if(!isExpiredInDayValid){
+                            return socketService.showErrorMessage($translate('expiredInDay has to be filled up'));
+                        }
 
                         if($noRoundTwoDecimalPlaces(total) > 1){
                             return socketService.showErrorMessage($translate('The overall probability cannot be higher than 100%'));
