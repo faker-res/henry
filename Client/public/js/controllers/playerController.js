@@ -3299,12 +3299,12 @@ define(['js/app'], function (myApp) {
             vm.newPlayerRecords = {totalCount: 0};
             vm.initQueryTimeFilter('newPlayerRecords', function () {
                 // $('#modalNewPla').modal();
-                if ( !firstLoad ){
-                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
-                    });
+                vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
+                });
+                if (!firstLoad) {
+                    vm.getNewPlayerListByFilter(true);
                 }
-                vm.getNewPlayerListByFilter(true);
 
             });
         };
@@ -3891,16 +3891,16 @@ define(['js/app'], function (myApp) {
             let createTime = Date.parse(aData.createTime);
             switch (true) {
                 case ((aData.status == vm.constProposalStatus.PENDING) && (aData.$playerAllCount - aData.$playerCurrentCount == 0 && createTime >= smsExpiredDate)): {
-                    $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
+                    $(nRow).context.style.backgroundColor = 'rgba(255, 153, 153, 100)';
                     //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
                 case ((aData.status == vm.constProposalStatus.PENDING) && (aData.$playerAllCount - aData.$playerCurrentCount > 0 || createTime < smsExpiredDate)): {
-                    $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
+                    $(nRow).context.style.backgroundColor = 'rgba(153, 153, 153, 100)';
                     break;
                 }
                 default: {
-                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    $(nRow).context.style.backgroundColor = 'rgba(255, 255, 255, 100)';
                     break;
                 }
             }
