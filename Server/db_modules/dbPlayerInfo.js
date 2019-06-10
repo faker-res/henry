@@ -22404,7 +22404,8 @@ let dbPlayerInfo = {
                      playerObjId: playerData._id,
                      playerName: playerData.name,
                      DOB: data.DOB,
-                     remark:localization.localization.translate("DOB")
+                     remark: localization.localization.translate("DOB"),
+                     isIgnoreAudit: true
                  }
              }
              if (playerData.DOB) {
@@ -23753,11 +23754,7 @@ let dbPlayerInfo = {
                 if (playerData.DOB) {
                     return Promise.reject({name: "DataError", message: "Birthday only can be set once"})
                 }
-                return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId}, {DOB: new Date(date)}, {new: true}).lean().then(
-                    data => {
-                        return dbPlayerInfo.createPlayerBirthdayProposal(playerData, {DOB: new Date(date)}, inputDevice);
-                    }
-                )
+                return dbPlayerInfo.createPlayerBirthdayProposal(playerData, {DOB: new Date(date)}, inputDevice);
             }
         )
 
