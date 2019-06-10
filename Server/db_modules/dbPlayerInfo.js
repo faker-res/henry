@@ -8929,7 +8929,6 @@ let dbPlayerInfo = {
                                 }
                             }
 
-
                             if (!rewardEventItem.hasOwnProperty("groupName")) {
                                 rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.DEFAULT);
                             }
@@ -9038,15 +9037,15 @@ let dbPlayerInfo = {
             deviceList.forEach(
                 device => {
                     if (condition && condition[device] && condition[device].visibleFromHomePage && condition[device].visibleFromHomePage.visible){
-                        homePopupProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device, 'home'));
+                        homePopupProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device));
                     }
 
                     if (condition && condition[device] && condition[device].visibleFromRewardEntry && condition[device].visibleFromRewardEntry.visible){
-                        rewardEntryProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device, 'entry'));
+                        rewardEntryProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device));
                     }
 
                     if (condition && condition[device] && condition[device].visibleFromRewardList && condition[device].visibleFromRewardList.visible){
-                        rewardListProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device, 'list'));
+                        rewardListProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device));
                     }
                 }
             );
