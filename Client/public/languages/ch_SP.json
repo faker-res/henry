@@ -4142,6 +4142,8 @@
   "PushNotification": "推送APP消息",
   "addPushNotification": "添加推送信息",
   "PromoCode": "优惠代码",
+  "expiredInDay has to be filled up": "期限(Z)天 必须填上",
+  "Is visible for RegistrationInterface": "开户设备可见",
   "(Forbid main permissions are not sync here but will take effect)": "（主权限禁用不在此同步但会生效）",
   "Player does not have permission for this limited offer. Please contact cs for more detail.": "玩家无参加秒杀礼包的权限，详情请联系客服。",
   "Convert reward points amount must greater than 0": "兑换积分的数量必须大于0",

@@ -3295,15 +3295,16 @@ define(['js/app'], function (myApp) {
             // vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
         };
 
-        vm.newPlayerList = function () {
+        vm.newPlayerList = function (firstLoad) {
             vm.newPlayerRecords = {totalCount: 0};
             vm.initQueryTimeFilter('newPlayerRecords', function () {
                 // $('#modalNewPla').modal();
                 vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
                 });
-
-                vm.getNewPlayerListByFilter(true);
+                if (!firstLoad) {
+                    vm.getNewPlayerListByFilter(true);
+                }
 
             });
         };
@@ -3852,7 +3853,9 @@ define(['js/app'], function (myApp) {
                 paging: false,
                 autoWidth: true,
                 fnInitComplete: function(settings){
-                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    setTimeout(() => {
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }, 50);
                 },
                 fnRowCallback: vm.playerListTableRow
             });
@@ -3888,16 +3891,16 @@ define(['js/app'], function (myApp) {
             let createTime = Date.parse(aData.createTime);
             switch (true) {
                 case ((aData.status == vm.constProposalStatus.PENDING) && (aData.$playerAllCount - aData.$playerCurrentCount == 0 && createTime >= smsExpiredDate)): {
-                    $(nRow).css('background-color', 'rgba(255, 153, 153, 100)', 'important');
+                    $(nRow).context.style.backgroundColor = 'rgba(255, 153, 153, 100)';
                     //$(nRow).css('background-color > .sorting_1', 'rgba(255, 209, 202, 100)','important');
                     break;
                 }
                 case ((aData.status == vm.constProposalStatus.PENDING) && (aData.$playerAllCount - aData.$playerCurrentCount > 0 || createTime < smsExpiredDate)): {
-                    $(nRow).css('background-color', 'rgba(153, 153, 153, 100)', 'important');
+                    $(nRow).context.style.backgroundColor = 'rgba(153, 153, 153, 100)';
                     break;
                 }
                 default: {
-                    $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
+                    $(nRow).context.style.backgroundColor = 'rgba(255, 255, 255, 100)';
                     break;
                 }
             }
@@ -5565,6 +5568,15 @@ define(['js/app'], function (myApp) {
 
                             let perm = (row && row.permission) ? row.permission : {};
 
+                            if (row.forbidRewardEvents && row.forbidRewardEvents.length && vm.allXimaID && vm.allXimaID.length) {
+                                vm.allXimaID.forEach(id => {
+                                    // if xima in secondary permission is forbidden, then forbid xima in main permission will be true
+                                    if (row.forbidRewardEvents.includes(id)) {
+                                        perm.forbidPlayerConsumptionReturn = true;
+                                    }
+                                })
+                            }
+
                             if (row.isRealPlayer) {
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
@@ -6423,6 +6435,7 @@ define(['js/app'], function (myApp) {
                                     changeObj.disableWechatPay = false;
                                     changeObj.topUpCard = false;
                                     changeObj.banReward = false;
+                                    changeObj.forbidPlayerConsumptionReturn = false;
                                     changeObj.rewardPointsTask = false;
                                     changeObj.levelChange = false;
 
@@ -6434,6 +6447,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOn.disableWechatPay').addClass('hide');
                                     $(thisPopover + ' .permitOn.topUpCard').addClass('hide');
                                     $(thisPopover + ' .permitOn.banReward').addClass('hide');
+                                    $(thisPopover + ' .permitOn.forbidPlayerConsumptionReturn').addClass('hide');
                                     $(thisPopover + ' .permitOn.rewardPointsTask').addClass('hide');
                                     $(thisPopover + ' .permitOn.levelChange').addClass('hide');
 
@@ -6445,6 +6459,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOff.disableWechatPay').removeClass('hide');
                                     $(thisPopover + ' .permitOff.topUpCard').removeClass('hide');
                                     $(thisPopover + ' .permitOff.banReward').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.forbidPlayerConsumptionReturn').removeClass('hide');
                                     $(thisPopover + ' .permitOff.rewardPointsTask').removeClass('hide');
                                     $(thisPopover + ' .permitOff.levelChange').removeClass('hide');
                                 }
@@ -6475,6 +6490,7 @@ define(['js/app'], function (myApp) {
                                     changeObj.disableWechatPay = true;
                                     changeObj.topUpCard = true;
                                     changeObj.banReward = true;
+                                    changeObj.forbidPlayerConsumptionReturn = true;
                                     changeObj.rewardPointsTask = true;
                                     changeObj.levelChange = true;
 
@@ -6486,6 +6502,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOn.disableWechatPay').removeClass('hide');
                                     $(thisPopover + ' .permitOn.topUpCard').removeClass('hide');
                                     $(thisPopover + ' .permitOn.banReward').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.forbidPlayerConsumptionReturn').removeClass('hide');
                                     $(thisPopover + ' .permitOn.rewardPointsTask').removeClass('hide');
                                     $(thisPopover + ' .permitOn.levelChange').removeClass('hide');
 
@@ -6497,6 +6514,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOff.disableWechatPay').addClass('hide');
                                     $(thisPopover + ' .permitOff.topUpCard').addClass('hide');
                                     $(thisPopover + ' .permitOff.banReward').addClass('hide');
+                                    $(thisPopover + ' .permitOff.forbidPlayerConsumptionReturn').addClass('hide');
                                     $(thisPopover + ' .permitOff.rewardPointsTask').addClass('hide');
                                     $(thisPopover + ' .permitOff.levelChange').addClass('hide');
                                 }
@@ -6552,6 +6570,7 @@ define(['js/app'], function (myApp) {
                                 vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;
                                 vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;
                                 vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;
+                                vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;
 
                                 let selectedMainPermission = $selectedMainPermission.val() ? $selectedMainPermission.val() : "";
                                 let status = selectedMainPermission && vm.permissionPlayer.permission ? vm.permissionPlayer.permission[selectedMainPermission] : "";
@@ -9527,7 +9546,7 @@ define(['js/app'], function (myApp) {
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
                 vm.playerModalTab = "newPlayerListPanel";
-                vm.newPlayerList();
+                vm.newPlayerList(true);
             })
         };
 
@@ -16870,6 +16889,13 @@ define(['js/app'], function (myApp) {
                     vm.allRewardEventNoXima = vm.allRewardEvent.filter(event => {
                         // don't display xima at player secondary permission
                         if (event && event.type && event.type.name && event.type.name !== 'PlayerConsumptionReturn') {
+                            return event;
+                        }
+                    })
+                    vm.allXimaID = [];
+                    vm.allRewardEventIsXima = vm.allRewardEvent.filter(event => {
+                        if (event && event.type && event.type.name && event.type.name === 'PlayerConsumptionReturn') {
+                            vm.allXimaID.push(event._id);
                             return event;
                         }
                     })

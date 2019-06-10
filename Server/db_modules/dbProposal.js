@@ -8461,6 +8461,8 @@ var proposal = {
         let proposalTypeQuery = {
             name: constProposalType.PLAYER_TOP_UP
         };
+        let platformQuery = {};
+        let platformRecord = null;
 
         if (platformList && platformList.length > 0) {
             platformListQuery = {
@@ -8469,9 +8471,16 @@ var proposal = {
                 })
             };
             proposalTypeQuery.platformId = platformListQuery;
+            platformQuery._id = platformListQuery;
         }
 
-        return dbconfig.collection_proposalType.find(proposalTypeQuery).read("secondaryPreferred").lean().then(
+        return dbconfig.collection_platform.find(platformQuery, {name: 1}).lean().then(
+            platformData => {
+                platformRecord = platformData;
+
+                return dbconfig.collection_proposalType.find(proposalTypeQuery).read("secondaryPreferred").lean();
+            }
+        ).then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
@@ -8547,6 +8556,7 @@ var proposal = {
                                     if (data1 && data1.length > 0) {
                                         let proposalArrData = data1[0];
                                         let topUpTypeData = data1[1];
+                                        proposalData = data1[0];
 
                                         data.map(a => {
                                             a.proposalArr = [];
@@ -8603,15 +8613,15 @@ var proposal = {
                                                 }, {
                                                     $project: projectQ
                                                 }, {
-                                                    $group: Object.assign({}, groupByObj, {_id: "$data.merchantNo"})
+                                                    $group: Object.assign({}, groupByObj, {_id: {"merchantNo": "$data.merchantNo", "merchantUseName": "$data.merchantUseName"}})
                                                 }
                                             ).read("secondaryPreferred").then(
                                                 merchantData => {
                                                     let searchQ = Object.assign({}, matchObj, {status: "Success"}, {
                                                         'data.merchantNo': {
                                                             $in: merchantData.map(p => {
-                                                                if (p && p._id) {
-                                                                    return p._id
+                                                                if (p && p._id && p._id.merchantNo) {
+                                                                    return p._id.merchantNo
                                                                 }
                                                             })
                                                         }
@@ -8643,7 +8653,7 @@ var proposal = {
                                                             }
                                                         }, {
                                                             $group: {
-                                                                _id: "$data.merchantNo",
+                                                                _id: {"merchantNo": "$data.merchantNo", "merchantUseName": "$data.merchantUseName"},
                                                                 userIds: {$addToSet: "$data.playerObjId"},
                                                             }
                                                         }
@@ -8662,7 +8672,10 @@ var proposal = {
                                                                     delete merchant.userIds; // save bandwidth
                                                                     successMerchantData.forEach(
                                                                         successMerchant => {
-                                                                            if (merchant && merchant._id && successMerchant && successMerchant._id && (merchant._id === successMerchant._id)) {
+                                                                            if (merchant && merchant._id && successMerchant && successMerchant._id && merchant._id.merchantNo && merchant._id.merchantUseName
+                                                                                && successMerchant._id.merchantNo && successMerchant._id.merchantUseName
+                                                                                && (merchant._id.merchantNo === successMerchant._id.merchantNo)
+                                                                                && (merchant._id.merchantUseName === successMerchant._id.merchantUseName)) {
                                                                                 merchant.successUserCount = successMerchant.userIds.length;
                                                                                 merchant.successUserIds = successMerchant.userIds; // frontend need this to get unique user
                                                                             }
@@ -8671,7 +8684,8 @@ var proposal = {
 
                                                                     // append in the proposal in the interval filter
                                                                     proposalInInterval.forEach(proposal => {
-                                                                        if (proposal && proposal.data && proposal.data.merchantNo && proposal.data.merchantNo == merchant._id) {
+                                                                        if (proposal && proposal.data && proposal.data.merchantNo && merchant &&merchant._id && merchant._id.merchantNo
+                                                                        && proposal.data.merchantNo === merchant._id.merchantNo) {
 
                                                                             proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime())) / (1000 * 60);
                                                                             merchant.proposalArr.push(proposal);
@@ -8724,8 +8738,10 @@ var proposal = {
                             }
                         }
                     );
+                    let proposalData;
+                    let topupAnalysisByTypeAndPlatformProm = getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRecord, proposalData, operator, timesValue, timesValueTwo);
 
-                    proms.push(Q.all([prom, userAgentUserCountProm]));
+                    proms.push(Q.all([prom, userAgentUserCountProm, topupAnalysisByTypeAndPlatformProm]));
                 }
 
                 return Q.all(proms).then(
@@ -8759,43 +8775,6 @@ var proposal = {
                 );
             }
         )
-
-        function timeIntervalFiltering(item, operator, timesValue, timesValueTwo) {
-            switch (operator) {
-                case '<=':
-                    item = item.filter(p => {
-                        if (p && p.data && p.data.timeDifferenceInMins){
-                            return p.data.timeDifferenceInMins <= timesValue
-                        }
-                    });
-                    return item;
-                    break;
-                case '>=':
-                    item = item.filter(p => {
-                        if (p && p.data && p.data.timeDifferenceInMins){
-                            return p.data.timeDifferenceInMins >= timesValue
-                        }
-                    });
-                    return item;
-                    break;
-                case '=':
-                    item = item.filter(p => {
-                        if (p && p.data && p.data.timeDifferenceInMins){
-                            return p.data.timeDifferenceInMins == timesValue
-                        }
-                    });
-                    return item;
-                    break;
-                case 'range':
-                    item = item.filter(p => {
-                        if (p && p.data && p.data.timeDifferenceInMins){
-                            return p.data.timeDifferenceInMins <= timesValueTwo && p.data.timeDifferenceInMins >= timesValue
-                        }
-                    });
-                    return item;
-                    break;
-            }
-        }
     }
 };
 
@@ -11170,6 +11149,152 @@ function populateProposalsWithPlatformData (proposals) {
 
         return proposals;
     });
+}
+
+function timeIntervalFiltering(item, operator, timesValue, timesValueTwo) {
+    switch (operator) {
+        case '<=':
+            item = item.filter(p => {
+                if (p && p.data && p.data.timeDifferenceInMins){
+                    return p.data.timeDifferenceInMins <= timesValue
+                }
+            });
+            return item;
+            break;
+        case '>=':
+            item = item.filter(p => {
+                if (p && p.data && p.data.timeDifferenceInMins){
+                    return p.data.timeDifferenceInMins >= timesValue
+                }
+            });
+            return item;
+            break;
+        case '=':
+            item = item.filter(p => {
+                if (p && p.data && p.data.timeDifferenceInMins){
+                    return p.data.timeDifferenceInMins == timesValue
+                }
+            });
+            return item;
+            break;
+        case 'range':
+            item = item.filter(p => {
+                if (p && p.data && p.data.timeDifferenceInMins){
+                    return p.data.timeDifferenceInMins <= timesValueTwo && p.data.timeDifferenceInMins >= timesValue
+                }
+            });
+            return item;
+            break;
+    }
+}
+
+function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRecord, proposalData, operator, timesValue, timesValueTwo) {
+    let query = Object.assign({}, matchObj, {status: "Success"});
+
+    return dbconfig.collection_proposal.find(query, projectQ)
+        .populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime:-1}).lean().then(
+            data => {
+                proposalData = data;
+
+                return dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
+                    }, {
+                        $project: { 'data.topupType':1, 'data.playerObjId':1, 'data.platformId':1 }
+                    }, {
+                        $group: {
+                            _id: {"topupType": "$data.topupType", "platform": "$data.platformId"},
+                            userIds: { $addToSet: "$data.playerObjId" },
+                        }
+                    }
+                ).read("secondaryPreferred")
+            }
+        ).then(
+            topUpTypeAndPlatformData => {
+                return dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: matchObj
+                    },
+                    {
+                        $project: { createTime:1, type:1, inputDevice:1, status:1, 'data.playerObjId':1, 'data.topupType':1, 'data.amount':1, 'data.amountRatio':1, 'data.platformId': 1}
+                    },
+                    {
+                        $group: {
+                            _id: {topupType: "$data.topupType", platformObjId: "$data.platformId"},
+                            userIds: { $addToSet: "$data.playerObjId" },
+                            amount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.amount', 0]}},
+                            count: {$sum: 1},
+                            successCount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, 1, 0]}},
+                        }
+                    }
+                ).then(data => {
+                    let list = [];
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            if (item && item._id && item._id.topupType) {
+                                let index = list.findIndex(x => x.type === item._id.topupType);
+                                let platformIndex = platformRecord.findIndex(y => y && y._id && item && item._id && item._id.platformObjId && (y._id.toString() === item._id.platformObjId.toString()));
+
+                                item.successUserCount = 0;
+                                item.userCount = item.userIds.length;
+                                if (topUpTypeAndPlatformData && topUpTypeAndPlatformData.length > 0) {
+                                    topUpTypeAndPlatformData.forEach(
+                                        b => {
+                                            if(b && b._id && b._id.topupType && b._id.platform && item._id.platformObjId
+                                                && (item._id.topupType === b._id.topupType) && (item._id.platformObjId.toString() === b._id.platform.toString()))
+                                                item.successUserCount = b.userIds.length;
+                                        }
+                                    );
+                                }
+
+                                // append in the proposal in the interval filter
+                                if (proposalData && proposalData.length > 0) {
+                                    proposalData.forEach(proposal => {
+                                        if(proposal && proposal.data && proposal.data.topupType && proposal.data.platformId && item._id.platformObjId
+                                            && proposal.data.topupType.toString() === item._id.topupType.toString() && proposal.data.platformId.toString() === item._id.platformObjId.toString()) {
+                                            proposal.data.timeDifferenceInMins = (new Date(proposal.settleTime).getTime() - new Date(proposal.createTime.getTime()))/(1000*60);
+                                            if (item && item.proposalArr && item.proposalArr.length) {
+                                                item.proposalArr.push(proposal);
+                                            } else {
+                                                item.proposalArr = [];
+                                                item.proposalArr.push(proposal);
+                                            }
+
+                                        }
+                                    });
+
+                                    if (timesValue){
+                                        item.proposalArr = timeIntervalFiltering(item.proposalArr, operator, timesValue, timesValueTwo);
+                                    }
+                                }
+
+                                let data = {
+                                    platform: item._id.platformObjId,
+                                    amount: item.amount,
+                                    count: item.count,
+                                    successCount: item.successCount,
+                                    userCount: item.userCount,
+                                    successUserCount: item.successUserCount,
+                                    proposalArr: item.proposalArr
+                                };
+
+                                if (platformRecord && platformRecord[platformIndex] && platformRecord[platformIndex].name) {
+                                    data.platformName = platformRecord[platformIndex].name;
+                                }
+
+                                if (index > -1) {
+                                    list[index].data.push(data);
+                                } else {
+                                    list.push({type: item._id.topupType, data: [data]})
+                                }
+                            }
+                        })
+                    }
+
+                    return list;
+                });
+            }
+        );
 }
 
 var proto = proposalFunc.prototype;

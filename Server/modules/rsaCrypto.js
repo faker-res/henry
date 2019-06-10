@@ -136,7 +136,7 @@ module.exports = {
     }
 };
 
-function getKey (dirPath, fbPath) {
+function getKey (dirPath) {
     return rp(getKeyUrl(dirPath, token)).then(
         data => {
             if (data) {
@@ -155,11 +155,11 @@ function getKey (dirPath, fbPath) {
             console.log('getKey received', Boolean(keyData));
             return keyData;
         }
-    ).catch(() => fs.readFileSync(__dirname + fbPath));
+    ).catch(() => false);
 }
 
 function getPrivateKeyFromService () {
-    return getKey("playerPhone.key.pem", legacyPrivateKeyPath).then(
+    return getKey("playerPhone.key.pem").then(
         data => {
             if (data) {
                 console.log(`RT - Got key from ${options.hostname}`);
@@ -176,7 +176,7 @@ function getPrivateKeyFromService () {
 }
 
 function getPublicKeyFromService () {
-    return getKey("playerPhone.pub", legacyPublicKeyPath).then(
+    return getKey("playerPhone.pub").then(
         data => {
             if (data) {
                 console.log(`RT - Got cert from ${options.hostname}`);
@@ -193,7 +193,7 @@ function getPublicKeyFromService () {
 }
 
 function getReplPrivateKeyFromService () {
-    return getKey("playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
+    return getKey("playerPhone.key.pem.bak").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl key from ${options.hostname}`);
@@ -209,7 +209,7 @@ function getReplPrivateKeyFromService () {
 }
 
 function getReplPublicKeyFromService () {
-    return getKey("playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
+    return getKey("playerPhone.pub.bak").then(
         data => {
             if (data) {
                 console.log(`RT - Got repl cert from ${options.hostname}`);
