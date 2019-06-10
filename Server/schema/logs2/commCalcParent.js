@@ -44,5 +44,5 @@ let commCalcParentSchema = new Schema({
 
 module.exports = commCalcParentSchema;
 
-commCalcParentSchema.index({parentObjId:1, startTime: 1});
-commCalcParentSchema.index({parentObjId:1, partnerObjId:1, startTime: 1});
+commCalcParentSchema.index({parentObjId: 1, startTime: 1});
+commCalcParentSchema.index({parentObjId: 1, partnerObjId: 1, startTime: 1}, {unique: true});
