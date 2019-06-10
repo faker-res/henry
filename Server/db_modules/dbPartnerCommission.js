@@ -418,13 +418,22 @@ const dbPartnerCommission = {
                     partnerObjId = partner._id;
 
                     commissionType = partner.commissionType;
-                    stream = dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id:1}).cursor({batchSize: 100});
-                    return dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id: 1});
+                    // stream = dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id:1}).cursor({batchSize: 100});
+                    // return dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id: 1});
+                    // above code only cater for 1 layer, need to fix for multiple level of partners
+
+                    return getAllChildrenPartners(partnerObjId).then( // including partner himself
+                        allPartners => {
+                            let query = {_id: {$in: allPartners}};
+                            stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+                            return dbconfig.collection_partner.find(query, {_id: 1}).lean();
+                        }
+                    );
                 }
                 else {
                     query.commissionType = commissionType;
                     stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
-                    return dbconfig.collection_partner.find(query, {_id: 1});
+                    return dbconfig.collection_partner.find(query, {_id: 1}).lean();
                 }
             }
         ).then(
@@ -1550,6 +1559,42 @@ function updatePastThreeRecord (currentLog) {
                 pastActiveDownLines: pastThreeActiveDownLines,
                 pastNettCommission: pastThreeNettCommission,
             }).lean();
+        }
+    );
+}
+
+function getAllChildrenPartners (partnerObjId, holder, count) {
+    // mechanism to prevent infinite loop
+    count = count || 0;
+    count++;
+    if (count > 100) {
+        return;
+    }
+
+    // actual implementation
+    holder = holder || [String(partnerObjId)];
+    return dbconfig.collection_partner.find({parent: partnerObjId}, {_id: 1}).lean().then(
+        children => {
+            let proms = [];
+            if (children && children.length) {
+                for (let i = 0; i < children.length; i++) {
+                    let child = children[i];
+                    if (holder.includes(String(child._id))) {
+                        continue;
+                    }
+                    holder.push(String(child._id));
+                    let prom = getAllChildrenPartners(child._id, holder, count);
+                    proms.push(prom);
+                }
+            }
+            if (proms.length) {
+                return Promise.all(proms);
+            }
+            return Promise.resolve();
+        }
+    ).then(
+        () => {
+            return holder;
         }
     );
 }
