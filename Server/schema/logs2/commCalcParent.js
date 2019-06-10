@@ -15,6 +15,8 @@ let commCalcParentSchema = new Schema({
     partnerObjId: {type: Schema.ObjectId, ref: 'partner'},
     // current partner name
     partnerName: {type: String},
+    // partner real name
+    partnerRealName: {type: String},
     // gross commission
     grossCommission: {type: Number, default: 0},
     // nett commission
