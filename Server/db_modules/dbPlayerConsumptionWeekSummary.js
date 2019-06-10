@@ -468,6 +468,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         processedSummaries = processedSummaries.concat(thisPlayerSummaries);
                                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
+                                } else if (bRequest && returnAmount === 0) {
+                                    isLessThanEnoughReward = true;
                                 }
 
                                 return Promise.resolve(true);
