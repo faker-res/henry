@@ -6486,6 +6486,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                 }
+                utilService.clearPopovers();
                 if (table) {
                     table.draw();
                 }
@@ -6848,8 +6849,8 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || '';
-                                var playerObjId = row._id ? row._id : "";
-                                var link = $('<div>', {});
+                                let playerObjId = row._id ? row._id : "";
+                                let link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
                                     'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
@@ -21569,7 +21570,23 @@ define(['js/app'], function (myApp) {
                         vm.rewardMainTask = [];
                         vm.rewardMainCondition = {};
                         vm.rewardVisibleCondition = [];
-                        vm.rewardVisible = [];
+                        vm.rewardVisible = {
+                            app: {
+                                visibleFromHomePage: {},
+                                visibleFromRewardEntry: {},
+                                visibleFromRewardList: {}
+                            },
+                            h5: {
+                                visibleFromHomePage: {},
+                                visibleFromRewardEntry: {},
+                                visibleFromRewardList: {}
+                            },
+                            web: {
+                                visibleFromHomePage: {},
+                                visibleFromRewardEntry: {},
+                                visibleFromRewardList: {}
+                            },
+                        };
                         vm.rewardMainParam = {};
                         vm.isPlayerLevelDiff = false;
                         vm.isDynamicRewardAmt = false;
@@ -21749,8 +21766,8 @@ define(['js/app'], function (myApp) {
                                     }
 
                                 }
-
-                                if(el == "visibleFromHomePage" || el == "visibleFromRewardEntry" || el == "visibleFromRewardList"){
+                                
+                                if (el == "app" || el == "h5" || el == "web"){
                                     //get Player Level
                                     let playerLevels = {};
                                     if(vm.allPlayerLvl){
@@ -21769,15 +21786,31 @@ define(['js/app'], function (myApp) {
                                         }
                                     }
 
-                                    cond.visibleForPlayerLevel.options = playerLevels;
-                                    cond.visibleIfAppliedFollowingReward.options = rewardEvents;
-                                    cond.topUpCountOperator.options = $scope.operatorType;
+                                    Object.keys(cond).forEach(
+                                        visibleSetting => {
+                                           if (visibleSetting == "visibleFromHomePage" || visibleSetting == "visibleFromRewardEntry" || visibleSetting == "visibleFromRewardList") {
+                                               if ( cond[visibleSetting] && cond[visibleSetting].visibleForPlayerLevel && cond[visibleSetting].visibleForPlayerLevel.options ) {
+                                                   cond[visibleSetting].visibleForPlayerLevel.options = playerLevels;
+                                               }
+                                               if ( cond[visibleSetting] && cond[visibleSetting].visibleIfAppliedFollowingReward && cond[visibleSetting].visibleIfAppliedFollowingReward.options ) {
+                                                   cond[visibleSetting].visibleIfAppliedFollowingReward.options = rewardEvents;
+                                               }
+                                               if ( cond[visibleSetting] && cond[visibleSetting].topUpCountOperator && cond[visibleSetting].topUpCountOperator.options ) {
+                                                   cond[visibleSetting].topUpCountOperator.options =  $scope.operatorType;
+                                               }
 
-                                    if(vm.showReward && vm.showReward.condition && vm.showReward.condition[el]){
-                                        vm.rewardVisible[el] = Object.assign({},vm.showReward.condition[el]);
-                                    }
 
-                                    vm.rewardVisibleCondition.push(cond);
+                                               if(vm.showReward && vm.showReward.condition && vm.showReward.condition[el]){
+                                                   vm.rewardVisible[el] = Object.assign({},vm.showReward.condition[el]);
+                                               }
+
+                                               cond[visibleSetting].interface = el;
+
+                                               vm.rewardVisibleCondition.push(cond[visibleSetting]);
+                                           }
+                                        }
+
+                                    )
                                 }
 
                                 // Get value
@@ -37098,7 +37131,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
 
-                                var link = $('<a>', {
+                                let link = $('<a>', {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
@@ -39634,15 +39667,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initFrontendConfiguration = function() {
-                vm.frontendConfigurationUrl = "";
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName && vm.selectedPlatform.data.platformId && authService.token) {
-                    let domainName = vm.selectedPlatform.data.frontendConfigurationDomainName.trim();
-                    let token = authService.token;
-                    let platformId = vm.selectedPlatform.data.platformId;
-                    let url = domainName + '?token=' + token + '&platformId=' + platformId;
-
-                    vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                if (!vm.filterFrontendConfigurationPlatform) { // when not yet selected any platform
+                    return;
                 }
+                vm.frontendConfigurationUrl = "";
+                let sendData = {
+                    _id: vm.filterFrontendConfigurationPlatform
+                }
+                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('initFrontendConfiguration--getPlatform', data.data);
+                        vm.selectedFrontendConfigurationPlatform = data.data;
+                        if (vm.selectedFrontendConfigurationPlatform && vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName && vm.selectedFrontendConfigurationPlatform.platformId && authService.token) {
+                            let domainName = vm.selectedFrontendConfigurationPlatform.frontendConfigurationDomainName.trim();
+                            let token = authService.token;
+                            let platformId = vm.selectedFrontendConfigurationPlatform.platformId;
+                            let url = domainName + '?token=' + token + '&platformId=' + platformId;
+
+                            vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
+                        }
+                    });
+                });
             };
 
             // region XBET advertisement
