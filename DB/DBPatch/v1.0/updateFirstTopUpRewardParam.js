@@ -411,54 +411,367 @@ var generalCond = {
     // Is differentiate reward by player level
     isPlayerLevelDiff: {index: 9, type: "checkbox", des: "Reward differentiate by player level", default: false},
     visibleForDevice: {index: 51, type: "multiSelect", des: "Is visible for device", options: "deviceType",  detail: "REWARD_CLIENT_DEVICE_DETAIL"},
-    // Display in home page popup
-    visibleFromHomePage: {
-        index: 52,
-        name: "visibleFromHomePage",
-        visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
-        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
-        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
-        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
-        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
-        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
-        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
-        topUpCount1: {index: 9, type: "number"},
-        topUpCount2: {index: 10, type: "number"},
-        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
-    },
-    visibleFromRewardEntry: {
-        index: 53,
-        name: "visibleFromRewardEntry",
-        visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
-        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
-        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
-        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
-        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
-        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
-        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
-        topUpCount1: {index: 9, type: "number"},
-        topUpCount2: {index: 10, type: "number"},
-        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
-    },
-    visibleFromRewardList: {
-        index: 54,
-        name: "visibleFromRewardList",
-        visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
-        visibleForPhoneNumberBinding: {index: 2, type: "checkbox", des: "Is visible for phone number binding player"},
-        visibleForNewPlayer: {index: 3, type: "checkbox", des: "Is visible for new player", detail: "REWARD_CLIENT_NEW_PLAYER"},
-        visibleForFirstLogin: {index: 4, type: "checkbox", des: "Is visible for first login player", detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"},
-        visibleForPlayerLevel: {index: 5, type: "multiSelect", des: "Is visible for player level", options: "playerLevel"},
-        visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
-        visibleIfAppliedFollowingReward: {index: 7, type: "multiSelect", des: "Is visible if applied following reward", options: "allRewardEvent"},
-        topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
-        topUpCount1: {index: 9, type: "number"},
-        topUpCount2: {index: 10, type: "number"},
-        invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
-    },
-    requiredBankCard: {index: 56, type: "checkbox", des: "Is a registered bank card required when applying reward", detail: "Check if player has a registered bank card when applying the reward"}
 
+    web: {
+        // Display in home page popup
+        visibleFromHomePage: {
+            name: "visibleFromHomePage",
+            visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardEntry: {
+            name: "visibleFromRewardEntry",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardList: {
+            name: "visibleFromRewardList",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+
+    },
+    h5: {
+        // Display in home page popup
+        visibleFromHomePage: {
+            name: "visibleFromHomePage",
+            visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardEntry: {
+            name: "visibleFromRewardEntry",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardList: {
+            name: "visibleFromRewardList",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+
+    },
+    app: {
+        // Display in home page popup
+        visibleFromHomePage: {
+            name: "visibleFromHomePage",
+            visible: {index: 1, type: "checkbox", des: "Is visible in home page"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardEntry: {
+            name: "visibleFromRewardEntry",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward entry"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+        visibleFromRewardList: {
+            name: "visibleFromRewardList",
+            visible: {index: 1, type: "checkbox", des: "Is visible in reward list"},
+            visibleForPhoneNumberBinding: {
+                index: 2,
+                type: "checkbox",
+                des: "Is visible for phone number binding player"
+            },
+            visibleForNewPlayer: {
+                index: 3,
+                type: "checkbox",
+                des: "Is visible for new player",
+                detail: "REWARD_CLIENT_NEW_PLAYER"
+            },
+            visibleForFirstLogin: {
+                index: 4,
+                type: "checkbox",
+                des: "Is visible for first login player",
+                detail: "REWARD_CLIENT_FIRST_LOGIN_PLAYER"
+            },
+            visibleForPlayerLevel: {
+                index: 5,
+                type: "multiSelect",
+                des: "Is visible for player level",
+                options: "playerLevel"
+            },
+            visibleIfCreditLessThan: {index: 6, type: "number", des: "Is visible if credit less than"},
+            visibleIfAppliedFollowingReward: {
+                index: 7,
+                type: "multiSelect",
+                des: "Is visible if applied following reward",
+                options: "allRewardEvent"
+            },
+            topUpCountOperator: {index: 8, type: "select", options: "operatorType", des: "Is visible if topup count"},
+            topUpCount1: {index: 9, type: "number"},
+            topUpCount2: {index: 10, type: "number"},
+            invisibleIfApplyCurrentReward: {index: 11, type: "checkbox", des: "Is invisible if apply current reward"},
+        },
+
+    },
+    requiredBankCard: {
+        index: 56,
+        type: "checkbox",
+        des: "Is a registered bank card required when applying reward",
+        detail: "Check if player has a registered bank card when applying the reward"
+    }
 };
 
 var topUpCond = {

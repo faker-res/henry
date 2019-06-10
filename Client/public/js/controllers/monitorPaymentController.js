@@ -1107,7 +1107,9 @@ define(['js/app'], function (myApp) {
                 paging: false,
                 autoWidth: true,
                 fnInitComplete: function(settings){
-                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    setTimeout(() => {
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }, 50)
                 },
                 fnRowCallback: vm.playerListTableRow
             });

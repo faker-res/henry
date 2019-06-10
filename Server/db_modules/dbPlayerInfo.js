@@ -435,15 +435,18 @@ let dbPlayerInfo = {
                     $or: [
                         {guestDeviceId: String(inputData.guestDeviceId)},
                         {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
-                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))}
+                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))},
+                        {guestDeviceId: rsaCrypto.legacyEncrypt(String(inputData.guestDeviceId))},
                     ]
-                }
+                };
 
                 if (inputData.phoneNumber) {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+                    let enLegacyPhoneNumber = rsaCrypto.legacyEncrypt(inputData.phoneNumber);
                     playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
                     playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
+                    playerQuery.$or.push({phoneNumber: enLegacyPhoneNumber});
                 }
 
                 return dbconfig.collection_players.findOne(playerQuery).populate({
@@ -8797,6 +8800,7 @@ let dbPlayerInfo = {
     getRewardEventForPlatform: function (platformId, clientType, playerObjId) {
         var playerPlatformId = null;
         let routeSetting;
+        let rewardList;
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
             function (platform) {
                 if (platform) {
@@ -8925,7 +8929,6 @@ let dbPlayerInfo = {
                                 }
                             }
 
-
                             if (!rewardEventItem.hasOwnProperty("groupName")) {
                                 rewardEventItem.groupName = localization.localization.translate(constSystemRewardEventGroup.DEFAULT);
                             }
@@ -8961,127 +8964,168 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardEventList => {
-                if(playerObjId){
-                    let homePopupProm = [];
-                    let rewardEntryProm = [];
-                    let rewardListProm = [];
-
+                rewardList = rewardEventList;
+                if (playerObjId) {
+                    let checkVisibleArr = [];
                     //check homePopupShow, rewardEntryShow, and rewardListShow for each reward event
-                    if(rewardEventList && rewardEventList.length){
-                        rewardEventList.forEach(
+                    if (rewardList && rewardList.length) {
+                        rewardList.forEach(
                             rewardEvent => {
-                                if(rewardEvent && rewardEvent.condition){
-                                    if(rewardEvent.condition.visibleFromHomePage && rewardEvent.condition.visibleFromHomePage.visible){
-                                        homePopupProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromHomePage));
-                                    }
+                                rewardEvent.app = {
+                                    homePopupShow: false,
+                                    rewardEntryShow: false,
+                                    rewardListShow : false,
+                                };
+                                rewardEvent.h5 = {
+                                    homePopupShow: false,
+                                    rewardEntryShow: false,
+                                    rewardListShow : false,
+                                };
+                                rewardEvent.web = {
+                                    homePopupShow: false,
+                                    rewardEntryShow: false,
+                                    rewardListShow : false,
+                                };
 
-                                    if(rewardEvent.condition.visibleFromRewardEntry && rewardEvent.condition.visibleFromRewardEntry.visible){
-                                        rewardEntryProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromRewardEntry));
-                                    }
 
-                                    if(rewardEvent.condition.visibleFromRewardList && rewardEvent.condition.visibleFromRewardList.visible){
-                                        rewardListProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, rewardEvent._id, rewardEvent.condition.visibleFromRewardList));
-                                    }
-                                }
-
-                                rewardEvent.homePopupShow = false;
-                                rewardEvent.rewardEntryShow = false;
-                                rewardEvent.rewardListShow = false;
+                                checkVisibleArr.push(checkVisible(playerObjId, rewardEvent._id, rewardEvent.condition, rewardList))
                             }
                         )
                     }
 
-                    let homePopupPromiseAll = Promise.all(homePopupProm);
-
-                    let rewardEntryPromiseAll = Promise.all(rewardEntryProm);
-
-                    let rewardListPromiseAll = Promise.all(rewardListProm);
-
-                    return Promise.all([homePopupPromiseAll, rewardEntryPromiseAll, rewardListPromiseAll]).then(
-                        finalResult => {
-                            if(finalResult && finalResult.length){
-                                let homePopup = finalResult[0];
-                                let rewardEntry = finalResult[1];
-                                let rewardList = finalResult[2];
-
-                                if(homePopup && homePopup.length){
-                                    homePopup.forEach(
-                                        visibleResult => {
-                                            if(visibleResult && visibleResult.rewardEventId){
-                                                rewardEventList.map(
-                                                    reward => {
-                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
-                                                            reward.homePopupShow = visibleResult.isVisible;
-
-                                                            return reward;
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-
-                                if(rewardEntry && rewardEntry.length){
-                                    rewardEntry.forEach(
-                                        visibleResult => {
-                                            if(visibleResult && visibleResult.rewardEventId){
-                                                rewardEventList.map(
-                                                    reward => {
-                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
-                                                            reward.rewardEntryShow = visibleResult.isVisible;
-
-                                                            return reward;
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-
-                                if(rewardList && rewardList.length){
-                                    rewardList.forEach(
-                                        visibleResult => {
-                                            if(visibleResult && visibleResult.rewardEventId){
-                                                rewardEventList.map(
-                                                    reward => {
-                                                        if(reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
-                                                            reward.rewardListShow = visibleResult.isVisible;
-
-                                                            return reward;
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-
-                            }
-
-                            return rewardEventList;
-                        }
-                    )
-                }else{
-                    if(rewardEventList && rewardEventList.length) {
-                        rewardEventList.forEach(
+                    return Promise.all(checkVisibleArr);
+                }
+                else{
+                    if(rewardList && rewardList.length) {
+                        rewardList.forEach(
                             rewardEvent => {
                                 if(rewardEvent){
-                                    rewardEvent.homePopupShow = false;
-                                    rewardEvent.rewardEntryShow = false;
-                                    rewardEvent.rewardListShow = false;
+                                    rewardEvent.app = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
+                                    rewardEvent.h5 = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
+                                    rewardEvent.web = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
                                 }
                             }
                         )
                     }
 
-                    return rewardEventList;
+                    return rewardList;
                 }
-
+            }
+        ).then(
+            () => {
+                return rewardList
             }
         );
 
+        function checkVisible (playerObjId, eventObjId, condition, rewardEventList) {
+            let deviceList = ['app', 'h5', 'web'];
+            let homePopupProm = [];
+            let rewardEntryProm = [];
+            let rewardListProm = [];
+            deviceList.forEach(
+                device => {
+                    if (condition && condition[device] && condition[device].visibleFromHomePage && condition[device].visibleFromHomePage.visible){
+                        homePopupProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device));
+                    }
+
+                    if (condition && condition[device] && condition[device].visibleFromRewardEntry && condition[device].visibleFromRewardEntry.visible){
+                        rewardEntryProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device));
+                    }
+
+                    if (condition && condition[device] && condition[device].visibleFromRewardList && condition[device].visibleFromRewardList.visible){
+                        rewardListProm.push(dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device));
+                    }
+                }
+            );
+
+            return Promise.all([Promise.all(homePopupProm), Promise.all(rewardEntryProm), Promise.all(rewardListProm)]).then(
+                ret => {
+                    if(ret && ret.length){
+                        let homePopup = ret[0];
+                        let rewardEntry = ret[1];
+                        let rewardList = ret[2];
+
+                        if(homePopup && homePopup.length){
+                            homePopup.forEach(
+                                visibleResult => {
+                                    if(visibleResult && visibleResult.rewardEventId && visibleResult.device && visibleResult.isVisible){
+                                        rewardEventList.map(
+                                            reward => {
+                                                reward = setVisible(reward, visibleResult, 'homePopupShow');
+
+                                                return reward
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        if(rewardEntry && rewardEntry.length){
+                            rewardEntry.forEach(
+                                visibleResult => {
+                                    if(visibleResult && visibleResult.rewardEventId && visibleResult.device && visibleResult.isVisible){
+                                        rewardEventList.map(
+                                            reward => {
+                                                reward = setVisible(reward, visibleResult, 'rewardEntryShow');
+
+                                                return reward;
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        if(rewardList && rewardList.length){
+                            rewardList.forEach(
+                                visibleResult => {
+                                    if(visibleResult && visibleResult.rewardEventId && visibleResult.device && visibleResult.isVisible){
+                                        rewardEventList.map(
+                                            reward => {
+                                                reward = setVisible(reward, visibleResult, 'rewardListShow');
+
+                                                return reward;
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    return rewardEventList;
+                }
+            )
+        }
+
+        function setVisible(reward, visibleResult, mode) {
+            if(visibleResult && visibleResult.rewardEventId && visibleResult.device && reward && reward._id && reward._id.toString() == visibleResult.rewardEventId.toString()){
+                switch (visibleResult.device){
+                    case 'app':
+                        reward.app[mode] = visibleResult.isVisible;
+                        break;
+                    case 'h5':
+                        reward.h5[mode] = visibleResult.isVisible;
+                        break;
+                    case 'web':
+                        reward.web[mode] = visibleResult.isVisible;
+                        break;
+                }
+                return reward;
+            }
+        }
         function getExactLoginDateBasedOnInterval (value, eventData, loginMode, intervalMode) {
             //  remove extra param level when intervalMode == 3 (half-monthly) and 4 (monthly)
             value  = dbPlayerReward.checkRewardParamLevel(value, eventData, intervalMode);
@@ -9125,7 +9169,7 @@ let dbPlayerInfo = {
         }
     },
 
-    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition) {
+    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition, device) {
         let phoneNumberBindingProm;
         let newPlayerProm;
         let firstLoginProm;
@@ -9148,7 +9192,7 @@ let dbPlayerInfo = {
                 firstLoginProm = dbPlayerInfo.checkVisibleForFirstLogin(playerObjId);
             }
 
-            if(rewardEventCondition.visibleForPlayerLevel){
+            if(rewardEventCondition.visibleForPlayerLevel && rewardEventCondition.visibleForPlayerLevel.length){
                 playerLevelProm = dbPlayerInfo.checkVisibleForPlayerLevel(playerObjId, rewardEventCondition.visibleForPlayerLevel);
             }
 
@@ -9181,7 +9225,7 @@ let dbPlayerInfo = {
                         }
                     )
                 }
-                return {rewardEventId: rewardEventId, isVisible: isVisible};
+                return {rewardEventId: rewardEventId, isVisible: isVisible, device: device};
             }
         )
     },

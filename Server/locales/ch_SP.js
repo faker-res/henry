@@ -190,6 +190,7 @@ var simplifiedChinese = {
     "SettlePartnerCommission": "代理佣金",
     "PlayerRegistrationIntention": "玩家注册意向",
     "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
+    "Please register phone number and bank card before applying this reward, thank you.": "领取优惠请先绑定「电话」、「银行资料」， 谢谢。",
     "exists, please re-upload a new file.": "已存在， 请重新上载新的文档。",
     "exists, please re-upload a new image.": "已存在， 请重新上载新的图片。",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
