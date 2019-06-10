@@ -129,6 +129,7 @@ const dbPartnerCommission = {
                             startTime: startTime,
                             partnerObjId: partner._id,
                             partnerName: partner.partnerName,
+                            partnerRealName: partner.realName,
                             grossCommission: 0
                         };
                     }
