@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
     "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
+    "Please register phone number and bank card before applying this reward, thank you.": "领取优惠请先绑定「电话」、「银行资料」， 谢谢。",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",

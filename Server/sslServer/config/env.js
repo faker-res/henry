@@ -88,7 +88,7 @@ var env = {
         }
     },
 
-    getNonGatewayConfig: () => {
+    getNonGatewayConfig: function () {
         let selfMode = this.config().mode;
 
         return Object.keys(envConf).filter(isNonGatewayConfig).map(o => envConf[o]);

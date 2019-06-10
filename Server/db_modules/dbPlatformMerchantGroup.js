@@ -799,7 +799,11 @@ var dbPlatformMerchantGroup = {
             }
         )
 
-    }
+    },
+
+    getAllPlatformMerchantList: function () {
+        return dbconfig.collection_platformMerchantList.find({}).lean();
+    },
 };
 
 function getMerchantList(platformId, paymentSystemId) {
