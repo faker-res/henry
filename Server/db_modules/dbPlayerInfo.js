@@ -9001,9 +9001,21 @@ let dbPlayerInfo = {
                         rewardList.forEach(
                             rewardEvent => {
                                 if(rewardEvent){
-                                    rewardEvent.homePopupShow = false;
-                                    rewardEvent.rewardEntryShow = false;
-                                    rewardEvent.rewardListShow = false;
+                                    rewardEvent.app = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
+                                    rewardEvent.h5 = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
+                                    rewardEvent.web = {
+                                        homePopupShow: false,
+                                        rewardEntryShow: false,
+                                        rewardListShow : false,
+                                    };
                                 }
                             }
                         )
