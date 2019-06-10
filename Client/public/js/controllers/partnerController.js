@@ -16239,6 +16239,16 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.checkPartnerCommissionType = function () {
+            let isValid = false;
+            let validCommissionTypes = [vm.constPartnerCommisionType.DAILY_CONSUMPTION, vm.constPartnerCommisionType.WEEKLY_BONUS_AMOUNT]
+            if (vm.selectedSinglePartner && vm.selectedSinglePartner.commissionType && validCommissionTypes.includes(vm.selectedSinglePartner.commissionType)) {
+                isValid = true;
+            }
+
+            return isValid;
+        }
+
         // Edit Child Partner
         vm.initEditChildPartner = function () {
             vm.updatePlayerName = "";
@@ -16252,6 +16262,7 @@ define(['js/app'], function (myApp) {
             vm.childPartnerList = [];
             vm.curChildPartner = [];
             vm.updateChildPartner = [];
+            $("#editChildPartnerButton").prop('disabled', true);
 
             let sendData = {
                 platform: vm.selectedPlatform.id,
@@ -16261,6 +16272,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getChildPartnerRecords', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     console.log('child partner records', data);
+                    $("#editChildPartnerButton").prop('disabled', false); // avoid edit before data return
                     if (data && data.data && data.data.length > 0) {
                         vm.childPartnerList = data.data;
                         if (vm.childPartnerList && vm.childPartnerList.length > 0) {

@@ -1011,7 +1011,7 @@ p
                     br
                 hr(style='border: 1px solid black')
                 br
-                div
+                div(ng-if='vm.checkPartnerCommissionType()')
                     label {{"Multi level partner architecture" | translate}}
                     table.simple-table
                         thead
@@ -1074,10 +1074,12 @@ p
                                 td
                                     span.colorRed {{val.errorMessage}}
 
+                div(ng-if='!vm.checkPartnerCommissionType()')
+                    text.text-danger {{"Please set the commission type" | translate}}
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE/CANCEL" | translate}}
-                button.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="!vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
+                button#editChildPartnerButton.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="vm.checkPartnerCommissionType() && !vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.checkPartnerCommissionType() && vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 #modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog.modal-medium
