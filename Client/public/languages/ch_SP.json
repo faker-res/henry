@@ -4556,6 +4556,7 @@
   "Commission rate cannot higher than parent partner": "佣金比例不能高于上级代理",
   "Commission rate cannot lower than child partner": "佣金比例不能低于下级代理",
   "Commission rate cannot lower than 1%": "佣金比例不能低于1%",
+  "Please set the commission type": "请设置佣金模式",
 
   "Setting Item": "设定项目",
   "Name Of List (Required) (Unique)": "名单名称 (必填) (不可重复)",
