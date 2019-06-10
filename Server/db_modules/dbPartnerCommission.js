@@ -17,6 +17,8 @@ const Q = require('q');
 const constSystemParam = require('./../const/constSystemParam');
 const constServerCode = require('./../const/constServerCode');
 const constPartnerCommissionLogStatus = require('./../const/constPartnerCommissionLogStatus');
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 const dbPartnerCommission = {
     calculatePartnerCommission: (partnerObjId, startTime, endTime) => {
@@ -345,7 +347,7 @@ const dbPartnerCommission = {
                     downLinesRawCommissionDetail = commissionDetail.downLinesRawCommissionDetail;
                     delete commissionDetail.downLinesRawCommissionDetail;
 
-                    return dbconfig.collection_commCalc.findOneAndUpdate({partner: partnerObjId, commissionType, startTime}, commissionDetail, {new: true, upsert: true}).lean();
+                    return dbconfig.collection_commCalc.findOneAndUpdate({partner: ObjectId(partnerObjId), commissionType: Number(commissionType), startTime: new Date(startTime)}, commissionDetail, {new: true, upsert: true}).lean();
                 }
             ).then(
                 commCalc => {
@@ -360,7 +362,7 @@ const dbPartnerCommission = {
                             let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
                             commCalcParentData.commCalc = commCalc._id;
 
-                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({parentObjId, partnerObjId: commCalc.partner, startTime: commCalc.startTime}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
+                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(commCalc.partner), startTime: new Date(commCalc.startTime)}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
                                 console.log("commCalcParent save failed", commCalcParentData, err);
                                 return errorUtils.reportError(err);
                             });
@@ -370,7 +372,7 @@ const dbPartnerCommission = {
 
                     let playerCalcProms = downLinesRawCommissionDetail.map(playerCalc => {
                         playerCalc.commCalc = commCalc._id;
-                        return dbconfig.collection_commCalcPlayer.findOneAndUpdate({commCalc: commCalc._id, name: playerCalc.name}, playerCalc, {upsert: true, new: true}).lean().catch(err => {
+                        return dbconfig.collection_commCalcPlayer.findOneAndUpdate({commCalc: ObjectId(commCalc._id), name: String(playerCalc.name)}, playerCalc, {upsert: true, new: true}).lean().catch(err => {
                             console.log("commCalcPlayer save failed", playerCalc, err);
                             return errorUtils.reportError(err);
                         });
@@ -576,11 +578,11 @@ const dbPartnerCommission = {
                     }
 
                     return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                        partner: commissionDetail.partner,
-                        platform: commissionDetail.platform,
-                        startTime: startTime,
-                        endTime: endTime,
-                        commissionType: commissionType,
+                        partner: ObjectId(commissionDetail.partner),
+                        platform: ObjectId(commissionDetail.platform),
+                        startTime: new Date(startTime),
+                        endTime: new Date(endTime),
+                        commissionType: Number(commissionType),
                     }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
                         return Promise.reject(err);
                     })
@@ -598,7 +600,7 @@ const dbPartnerCommission = {
                         detail.platform = partnerCommissionLog.platform;
                         detail.partnerCommissionLog = partnerCommissionLog._id;
 
-                        let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: detail.platform, partnerCommissionLog: detail.partnerCommissionLog, name: detail.name}, detail, {upsert: true, new: true}).catch(err => {
+                        let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: ObjectId(detail.platform), partnerCommissionLog: ObjectId(detail.partnerCommissionLog), name: String(detail.name)}, detail, {upsert: true, new: true}).catch(err => {
                             console.error('downLinesRawCommissionDetail died with param:', detail, err);
                             errorUtils.reportError(err);
                         });
@@ -610,7 +612,7 @@ const dbPartnerCommission = {
                             let params = parentPartnerCommissionDetail[parentObjId];
                             params.partnerCommissionLog = partnerCommissionLog._id;
 
-                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId, partnerObjId: partnerCommissionLog.partner, startTime: partnerCommissionLog.startTime}, params, {upsert: true, new: true}).lean().catch(err => {
+                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(partnerCommissionLog.partner), startTime: new Date(partnerCommissionLog.startTime)}, params, {upsert: true, new: true}).lean().catch(err => {
                                 console.log("parentPartnerCommissionDetail died with param:", params, err);
                                 return errorUtils.reportError(err);
                             });
