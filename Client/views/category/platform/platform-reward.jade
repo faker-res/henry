@@ -278,7 +278,7 @@
                             tbody
                                 tr(ng-repeat="item in vm.rewardVisibleCondition")
                                     td(ng-if="item.name=='visibleFromHomePage'" rowspan = "3")
-                                        label {{item.interface.toUpperCase()}}
+                                        label {{item.interface.toUpperCase() | translate}}
                                     td
                                         input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visible" type="{{item.visible.type}}" data-cond-name="{{item.visible.name}}" ng-disabled="item.visible.disabled")
                                     td

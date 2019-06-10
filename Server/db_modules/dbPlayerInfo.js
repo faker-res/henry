@@ -8805,7 +8805,7 @@ let dbPlayerInfo = {
         let playerProm = Promise.resolve();
 
         if (playerObjId){
-            playerProm = dbconfig.collection_players.findOne({_id: ObjectId("5cfe0c37e6579f30cae491e7")}, {registrationInterface: 1, guestDeviceId: 1}).lean();
+            playerProm = dbconfig.collection_players.findOne({_id: ObjectId(playerObjId)}, {registrationInterface: 1, guestDeviceId: 1}).lean();
         }
         return playerProm.then(
             playerData => {
