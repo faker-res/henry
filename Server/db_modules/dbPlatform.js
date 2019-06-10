@@ -6725,6 +6725,7 @@ var dbPlatform = {
                         try {
                             let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
                             let decGuestDeviceId;
+                            let reEncPhoneNumber;
 
                             if (playerData.guestDeviceId) {
                                 decGuestDeviceId = rsaCrypto.decrypt(playerData.guestDeviceId);
@@ -6732,7 +6733,7 @@ var dbPlatform = {
 
 
                             if (decPhoneNumber && decPhoneNumber.length < 20) {
-                                let reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
+                                reEncPhoneNumber = rsaCrypto.encrypt(decPhoneNumber);
                                 let setObj = {
                                     phoneNumber: reEncPhoneNumber
                                 };
@@ -6750,7 +6751,7 @@ var dbPlatform = {
                                 }
                             }
 
-                            console.log("index", platformData.name, i);
+                            console.log("index", platformData.name, i, playerData.name, Boolean(reEncPhoneNumber), Boolean(decGuestDeviceId));
                             i++;
                         } catch (err) {
                             console.log('err', err);
