@@ -18438,6 +18438,9 @@ let dbPlayerInfo = {
                                     returnedObj.data[indexNo].onlineTopUpAmount += twoDaysData.onlineTopUpAmount;
                                     returnedObj.data[indexNo].aliPayTopUpAmount += twoDaysData.aliPayTopUpAmount;
                                     returnedObj.data[indexNo].weChatTopUpAmount += twoDaysData.weChatTopUpAmount;
+                                    returnedObj.data[indexNo].topUpAmount +=
+                                        twoDaysData.manualTopUpAmount + twoDaysData.onlineTopUpAmount
+                                        + twoDaysData.aliPayTopUpAmount + twoDaysData.weChatTopUpAmount;
                                     returnedObj.data[indexNo].topUpTimes += twoDaysData.topUpTimes;
                                     returnedObj.data[indexNo].bonusTimes += twoDaysData.bonusTimes;
                                     returnedObj.data[indexNo].bonusAmount += twoDaysData.bonusAmount;
