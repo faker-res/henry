@@ -6486,6 +6486,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                 }
+                utilService.clearPopovers();
                 if (table) {
                     table.draw();
                 }
@@ -6848,8 +6849,8 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || '';
-                                var playerObjId = row._id ? row._id : "";
-                                var link = $('<div>', {});
+                                let playerObjId = row._id ? row._id : "";
+                                let link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
                                     'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
@@ -37098,7 +37099,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
 
-                                var link = $('<a>', {
+                                let link = $('<a>', {
                                     'class': 'playerPermissionPopover',
                                     'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
                                     + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
