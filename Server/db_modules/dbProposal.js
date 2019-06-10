@@ -1079,7 +1079,7 @@ var proposal = {
                         addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
 
                         // Add playername if cancelled
-                        if (status === constProposalStatus.CANCEL) {
+                        if (status === constProposalStatus.CANCEL && (proposalObj.data && !proposalObj.data.cancelBy)) {
                             addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
                             addDetailToProp(updObj, 'settleTime', new Date());
                         }
