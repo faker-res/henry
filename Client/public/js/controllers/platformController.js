@@ -21586,6 +21586,11 @@ define(['js/app'], function (myApp) {
                                 visibleFromRewardEntry: {},
                                 visibleFromRewardList: {}
                             },
+                            backStage: {
+                                visibleFromHomePage: {},
+                                visibleFromRewardEntry: {},
+                                visibleFromRewardList: {}
+                            },
                         };
                         vm.rewardMainParam = {};
                         vm.isPlayerLevelDiff = false;
@@ -21767,7 +21772,7 @@ define(['js/app'], function (myApp) {
 
                                 }
                                 
-                                if (el == "app" || el == "h5" || el == "web"){
+                                if (el == "app" || el == "h5" || el == "web" || el == "backStage"){
                                     //get Player Level
                                     let playerLevels = {};
                                     if(vm.allPlayerLvl){
