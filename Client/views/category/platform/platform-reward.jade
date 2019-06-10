@@ -262,46 +262,49 @@
                         labe(style="color: red") * {{"Max top-up count is only applicable when the top-up operator is ~" | translate }}
                         table#visibleInFrontEndTable.simple-table.table-vertical-middle.limitOffersTB
                             thead
+                                th {{'Is visible for RegistrationInterface' | translate}}
                                 th
                                 th {{"frontEndVisiblePosition" | translate}}
                                 th {{"Is visible for phone number binding player" | translate}}
                                 th {{"Is visible for new player" | translate}}
                                 th {{"Is visible for first login player" | translate}}
-                                th {{"Is visible for player level" | translate}}
-                                th {{"Is visible if credit less than" | translate}}
-                                th {{"Is visible if applied following reward" | translate}}
-                                th {{"Is visible if topup count" | translate}}
-                                th {{"Min top-up count" | translate}}
-                                th {{"Max top-up count" | translate}}
+                                th(style="width: 8vw;") {{"Is visible for player level" | translate}}
+                                th(style="width: 8vw;") {{"Is visible if credit less than" | translate}}
+                                th(style="max-width: 12vw;") {{"Is visible if applied following reward" | translate}}
+                                th(style="width: 6vw;") {{"Is visible if topup count" | translate}}
+                                th(style="width: 6vw;") {{"Min top-up count" | translate}}
+                                th(style="width: 6vw;") {{"Max top-up count" | translate}}
                                 th {{"Is invisible if apply current reward" | translate}}
                             tbody
-                                tr(ng-repeat="value in vm.rewardVisibleCondition")
+                                tr(ng-repeat="item in vm.rewardVisibleCondition")
+                                    td(ng-if="item.name=='visibleFromHomePage'" rowspan = "3")
+                                        label {{item.interface.toUpperCase()}}
                                     td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].visible" type="{{value.visible.type}}" data-cond-name="{{value.visible.name}}" ng-disabled="value.visible.disabled")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visible" type="{{item.visible.type}}" data-cond-name="{{item.visible.name}}" ng-disabled="item.visible.disabled")
                                     td
-                                        label.control-label {{value.name | translate}}
+                                        label.control-label {{item.name | translate}}
                                     td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].visibleForPhoneNumberBinding" type="{{value.visibleForPhoneNumberBinding.type}}" data-cond-name="{{value.visibleForPhoneNumberBinding.name}}" ng-disabled="value.visibleForPhoneNumberBinding.disabled")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleForPhoneNumberBinding" type="{{item.visibleForPhoneNumberBinding.type}}" data-cond-name="{{item.visibleForPhoneNumberBinding.name}}" ng-disabled="item.visibleForPhoneNumberBinding.disabled")
                                     td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].visibleForNewPlayer" type="{{value.visibleForNewPlayer.type}}" data-cond-name="{{value.visibleForNewPlayer.name}}" ng-disabled="value.visibleForNewPlayer.disabled")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleForNewPlayer" type="{{item.visibleForNewPlayer.type}}" data-cond-name="{{item.visibleForNewPlayer.name}}" ng-disabled="item.visibleForNewPlayer.disabled")
                                     td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].visibleForFirstLogin" type="{{value.visibleForFirstLogin.type}}" data-cond-name="{{value.visibleForFirstLogin.name}}" ng-disabled="value.visibleForFirstLogin.disabled")
-                                    td
-                                        select.form-control(ng-model="vm.rewardVisible[value.name].visibleForPlayerLevel" ng-options="i as v | translate for (i,v) in value.visibleForPlayerLevel.options" data-cond-name="{{value.visibleForPlayerLevel.name}}" ng-disabled="value.visibleForPlayerLevel.disabled", multiple, bsp)
-                                    td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].visibleIfCreditLessThan" type="{{value.visibleIfCreditLessThan.type}}" data-cond-name="{{value.visibleIfCreditLessThan.name}}" ng-disabled="value.visibleIfCreditLessThan.disabled")
-                                    td
-                                        select.spicker.form-control(ng-model="vm.rewardVisible[value.name].visibleIfAppliedFollowingReward" ng-options="i as v | translate for (i,v) in value.visibleIfAppliedFollowingReward.options" data-cond-name="{{value.visibleIfAppliedFollowingReward.name}}" ng-disabled="value.visibleIfAppliedFollowingReward.disabled", multiple, bsp)
-                                    td
-                                        select.form-control(ng-model="vm.rewardVisible[value.name].topUpCountOperator" data-cond-name="{{value.topUpCountOperator.name}}" ng-disabled="value.topUpCountOperator.disabled")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleForFirstLogin" type="{{item.visibleForFirstLogin.type}}" data-cond-name="{{item.visibleForFirstLogin.name}}" ng-disabled="item.visibleForFirstLogin.disabled")
+                                    td(style="width: 8vw;")
+                                        select.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleForPlayerLevel" ng-options="i as v | translate for (i,v) in item.visibleForPlayerLevel.options" data-cond-name="{{item.visibleForPlayerLevel.name}}" ng-disabled="item.visibleForPlayerLevel.disabled", multiple, bsp)
+                                    td(style="width: 8vw;")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleIfCreditLessThan" type="{{item.visibleIfCreditLessThan.type}}" data-cond-name="{{item.visibleIfCreditLessThan.name}}" ng-disabled="item.visibleIfCreditLessThan.disabled")
+                                    td(style="max-width: 12vw;")
+                                        select.spicker.form-control(ng-model="vm.rewardVisible[item.interface][item.name].visibleIfAppliedFollowingReward" ng-options="i as v | translate for (i,v) in item.visibleIfAppliedFollowingReward.options" data-cond-name="{{item.visibleIfAppliedFollowingReward.name}}" ng-disabled="value.visibleIfAppliedFollowingReward.disabled", multiple, bsp)
+                                    td(style="width: 6vw;")
+                                        select.form-control(ng-model="vm.rewardVisible[item.interface][item.name].topUpCountOperator" data-cond-name="{{item.topUpCountOperator.name}}" ng-disabled="item.topUpCountOperator.disabled")
                                             option(value='0') {{""}}
-                                            option(ng-repeat='(i,v) in value.topUpCountOperator.options', value='{{i}}') {{v}}
+                                            option(ng-repeat='(i,v) in item.topUpCountOperator.options', value='{{i}}') {{v}}
+                                    td(style="width: 6vw;")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].topUpCount1" type="{{item.topUpCount1.type}}" data-cond-name="{{item.topUpCount1.name}}" ng-disabled="item.topUpCount1.disabled")
+                                    td(style="width: 6vw;")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].topUpCount2" type="{{item.topUpCount2.type}}" data-cond-name="{{item.topUpCount2.name}}" ng-disabled="item.topUpCount2.disabled || (vm.rewardVisible[item.interface][item.name].topUpCountOperator != '4' && vm.rewardVisible[item.interface][item.name].topUpCountOperator != '0')")
                                     td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].topUpCount1" type="{{value.topUpCount1.type}}" data-cond-name="{{value.topUpCount1.name}}" ng-disabled="value.topUpCount1.disabled")
-                                    td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].topUpCount2" type="{{value.topUpCount2.type}}" data-cond-name="{{value.topUpCount2.name}}" ng-disabled="value.topUpCount2.disabled || (vm.rewardVisible[value.name].topUpCountOperator != '4' && vm.rewardVisible[value.name].topUpCountOperator != '0')")
-                                    td
-                                        input.form-control(ng-model="vm.rewardVisible[value.name].invisibleIfApplyCurrentReward" type="{{value.invisibleIfApplyCurrentReward.type}}" data-cond-name="{{value.invisibleIfApplyCurrentReward.name}}" ng-disabled="value.invisibleIfApplyCurrentReward.disabled")
+                                        input.form-control(ng-model="vm.rewardVisible[item.interface][item.name].invisibleIfApplyCurrentReward" type="{{item.invisibleIfApplyCurrentReward.type}}" data-cond-name="{{item.invisibleIfApplyCurrentReward.name}}" ng-disabled="item.invisibleIfApplyCurrentReward.disabled")
 
                     .col-md-12.well.scrollRecord(ng-if="vm.isNewDisplay && !vm.isPlayerLevelDiff && (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name !== 'PlayerRandomRewardGroup' && vm.showRewardTypeData.name !== 'PlayerFestivalRewardGroup')", style="height: 400px;")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
