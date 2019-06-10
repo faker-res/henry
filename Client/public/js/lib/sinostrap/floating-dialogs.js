@@ -221,6 +221,7 @@
 
     $(document).on('click', '.dialog-dialog [data-dismiss=dialog]', function (e) {
         getData(this).close()
+        $('.modal-backdrop').remove();
     })
 
     $(document).on('click', '.dialog-dialog.windowed .dialog-header [data-toggle=minimize]', function (e) {

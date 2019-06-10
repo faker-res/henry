@@ -7745,6 +7745,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.partnerDialogOption = option;
+                $("body").append("<div class='modal-backdrop fade in'></div>");
                 $('#dialogEditPartner').floatingDialog(option);
                 $('#dialogEditPartner').focus();
                 $scope.safeApply();
