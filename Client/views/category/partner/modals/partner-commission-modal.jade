@@ -55,8 +55,8 @@
                                 th {{'COMMISSION_CONTRIBUTED' | translate}}
                         tbody
                             tr(ng-if="vm.currentUseCommDetail[vm.partnerCommVar.partner].childComm.length > 0", ng-repeat="v in vm.currentUseCommDetail[vm.partnerCommVar.partner].childComm")
-                                td {{v.parentName}}
-                                td {{v.parentRealName}}
+                                td {{v.partnerName}}
+                                td {{v.partnerRealName}}
                                 td(title="{{v}}") {{v.grossCommission | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'MULTI_LAYER_PARTNER_COMMISSION_TOTAL' | translate}}

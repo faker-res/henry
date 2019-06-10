@@ -129,6 +129,7 @@ const dbPartnerCommission = {
                             startTime: startTime,
                             partnerObjId: partner._id,
                             partnerName: partner.partnerName,
+                            partnerRealName: partner.realName,
                             grossCommission: 0
                         };
                     }
@@ -144,7 +145,7 @@ const dbPartnerCommission = {
                         });
 
                         // f*** variable name, too much to change after Ken misdirect me the given requirement
-                        // just know that all "direct" commission are partner's commision, anything does not have
+                        // just know that all "direct" commission are partner's commission, anything does not have
                         // direct on it means its parent's stuff. deal? deal!
                         commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
                         let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
@@ -1444,7 +1445,7 @@ function getCalcPartnerByObjId (partnerObjId, startTime) {
             }
             commCalc = commCalcData;
 
-            return getCommCalcDetail(commCalc);
+            return getCommCalcDetail(commCalc, startTime);
         }
     ).then(
         (commCalc) => {
