@@ -6786,7 +6786,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     if (data && data.userAgent && data.userAgent === type) {
                         data.data.forEach(item => {
-                            if (item && item.type && item.type === merchantTopupTypeId) {
+                            if (item && item.type && String(item.type) === String(merchantTopupTypeId)) {
                                 item.data.forEach(topupData => {
                                     vm.allPlatformOnlineTopupDetailDataByType.push({
                                         type: item.type,
