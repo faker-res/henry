@@ -3295,15 +3295,14 @@ define(['js/app'], function (myApp) {
             // vm.creditChange.finalValidAmount= Number(parseFloat(vm.selectedSinglePlayer.validCredit).toFixed(2)) + vm.creditChange.updateAmount;
         };
 
-        vm.newPlayerList = function (firstLoad) {
+        vm.newPlayerList = function () {
             vm.newPlayerRecords = {totalCount: 0};
             vm.initQueryTimeFilter('newPlayerRecords', function () {
                 // $('#modalNewPla').modal();
-                if ( !firstLoad ){
-                    vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
-                    });
-                }
+                vm.newPlayerRecords.pageObj = utilService.createPageForPagingTable("#newPlayerListTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "newPlayerRecords", vm.getNewPlayerListByFilter)
+                });
+
                 vm.getNewPlayerListByFilter(true);
 
             });
@@ -9518,7 +9517,7 @@ define(['js/app'], function (myApp) {
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
                 vm.playerModalTab = "newPlayerListPanel";
-                vm.newPlayerList(true);
+                vm.newPlayerList();
             })
         };
 
