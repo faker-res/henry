@@ -1,0 +1,816 @@
+style.
+    .connected-sortable {
+        /*margin: 0 auto;*/
+        list-style: none;
+        padding: 0px;
+        /*width: 90%;*/
+        min-height: 90%;
+    }
+    li.draggable-item {
+        width: inherit;
+        padding: 0.5em;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        margin: 1em 0;
+        border: 1px solid rgb(190, 190, 190);
+        text-align: center;
+        position: relative;
+        -webkit-transition: transform .25s ease-in-out;
+        -moz-transition: transform .25s ease-in-out;
+        -o-transition: transform .25s ease-in-out;
+        transition: transform .25s ease-in-out;
+
+        -webkit-transition: box-shadow .25s ease-in-out;
+        -moz-transition: box-shadow .25s ease-in-out;
+        -o-transition: box-shadow .25s ease-in-out;
+        transition: box-shadow .25s ease-in-out;
+    }
+    /* styles during drag */
+    li.draggable-item.ui-sortable-helper {
+        background-color: #e5e5e5;
+        -webkit-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        -moz-box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        box-shadow: 0 0 8px rgba(53, 41, 41, .8);
+        transform: scale(1.015);
+        z-index: 100;
+    }
+    li.draggable-item.ui-sortable-placeholder {
+        background-color: #ddd;
+        -moz-box-shadow: inset 0 0 10px #000000;
+        -webkit-box-shadow: inset 0 0 10px #000000;
+        box-shadow: inset 0 0 10px #000000;
+    }
+    .tab-btngroup {
+        display: inline-block;
+        position: absolute;
+        top: 50%;
+        right: 0;
+        z-index: 100;
+        transform: translateY(-50%);
+    }
+    .btn-delete {
+        border-radius: 100%!important;
+        margin: 0 .5em;
+    }
+.row
+    .col-md-12
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
+            span {{"POPULAR_RECOMMENDATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardPointClarification"}', ng-click='vm.frontEndSettingTabClicked("rewardPointClarification")')
+            span {{"REWARD_POINT_CLARIFICATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "carouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("carouselConfiguration")')
+            span {{"CAROUSEL_CONFIGURATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popUpAdvertisement"}', ng-click='vm.frontEndSettingTabClicked("popUpAdvertisement")')
+            span {{"POP_UP_ADVERTISEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
+            span {{"URL_CONFIGURATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
+            span {{"SKIN_MANAGEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardSetting"}', ng-click='vm.frontEndSettingTabClicked("rewardSetting")')
+            span {{"REWARD_SETTING" | translate}}
+
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"FrontendConfiguration" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedFrontEndSettingTab')
+                    label.text-danger {{'Please select a type' | translate}}
+
+                .row
+                    .col-md-12
+                        .well.col-xs-12
+                            .search-filters-item
+                                label {{'PRODUCT_NAME' | translate}}
+                                select.form-control(ng-model='vm.filterFrontEndSettingPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.frontEndSettingPlatform()')
+                .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
+                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+
+                // Tab - popular recommendation
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                    include frontEndConfiguration-popularRecommendation
+
+                // Tab - reward point briefing
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardPointClarification" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardPointClarification")')
+                    include frontEndConfiguration-rewardPointClarification
+
+                // Tab - url Configuration
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="carouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
+                    include frontEndConfiguration-carousel
+
+                // Tab - pop-up advertisement
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="popUpAdvertisement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popUpAdvertisement")')
+                    include frontEndConfiguration-popUpAdvertisement
+
+                // Tab - url Configuration
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
+                    include frontEndConfiguration-url
+
+                // Tab - skin management
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
+                    include frontEndConfiguration-skinManagement
+
+                // Tab - Event Setting
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardSetting")')
+                    include frontEndConfiguration-rewardSetting
+
+#rewardSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Reward Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.frontEndRewardCategory')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ENTRANCE IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPcImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'pc', vm.rewardSetting.pc.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.pc.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardPcNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.pc.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardPcPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ENTRANCE IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardH5ImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'h5', vm.rewardSetting.h5.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.h5.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardH5NewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.h5.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardH5PageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardAppImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'app', vm.rewardSetting.app.onClickAction)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.app.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#rewardAppNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardSetting.app.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#rewardAppPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.app.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"PromoCode"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
+
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'PC Image Preview' | translate}}
+                                img#rewardPcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'H5 Image Preview' | translate}}
+                                img#rewardH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'APP Image Preview' | translate}}
+                                img#rewardAppImage.frontendImagePreview(src="")
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardSettings()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndRewardUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+#popUpAdvertisementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Pop-up Advertisement Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE OF POP-UP WINDOW"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.title")
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popUpAdvPcImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'pc', vm.popUpAdvertisementSetting.pc.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.pc.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpAdvPcNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.pc.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popUpAdvPcPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popUpAdvH5ImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'h5', vm.popUpAdvertisementSetting.h5.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.h5.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpAdvH5NewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.h5.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popUpAdvH5PageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popUpAdvAppImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'app', vm.popUpAdvertisementSetting.app.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.app.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpAdvAppNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.app.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popUpAdvAppPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isPlayerWithRegisteredHpNoVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isNewPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR FIRST-TIME-LOGIN PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isFirstTimeLoginPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popUpAdvertisementSetting.visibleForBalanceBelow")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popUpAdvertisementSetting.visibleForTopUpTimeMoreThan")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
+
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'PC Image Preview' | translate}}
+                                img#popUpAdvPcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'H5 Image Preview' | translate}}
+                                img#popUpAdvH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'APP Image Preview' | translate}}
+                                img#popUpAdvAppImage.frontendImagePreview(src="")
+
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopUpAdvertisementSettings()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndPopUpAdvUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+#popularRecommendationSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Popular Recommendation Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.displayTitle")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"CATEGORY"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.category" ng-options='v as i | translate for (i, v) in vm.popularRecommendationCategory')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popularRecommendationPcImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popularRecommendationSetting, 'pc', vm.popularRecommendationSetting.pc.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationPcNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.pc.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationPcPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.pc.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popularRecommendationH5ImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popularRecommendationSetting, 'h5', vm.popularRecommendationSetting.h5.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationH5NewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.h5.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationH5PageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.h5.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#popularRecommendationAppImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popularRecommendationSetting, 'app', vm.popularRecommendationSetting.app.onClickAction)")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popularRecommendationAppNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.popularRecommendationSetting.app.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popularRecommendationAppPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.popularRecommendationSetting.app.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popularRecommendationSetting.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isPlayerWithRegisteredHpNoVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isNewPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR FIRST-TIME-LOGIN PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.popularRecommendationSetting.isFirstTimeLoginPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popularRecommendationSetting.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.visibleForBalanceBelow")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popularRecommendationSetting.visibleForTopUpTimeMoreThan")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popularRecommendationSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
+
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'PC Image Preview' | translate}}
+                                img#pcImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'H5 Image Preview' | translate}}
+                                img#H5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'APP Image Preview' | translate}}
+                                img#appImage.frontendImagePreview(src="")
+
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopularRecommendationSettings()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndPopularRecommendationUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+
+#rewardPointClarification.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Reward Point Clarification" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.rewardPointClarification.device')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.rewardPointClarification.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") VIP {{"PRIVILEGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVipPrivilegeFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REWARD POINT CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointClarificationFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VOUCHER CLARIFICATION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input#rewardPointVoucherClarificationFile(type="file")
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label VIP {{'Privilege File Preview (Resolution: 750*375)' | translate}}
+                                img#vipPrivilegeFile.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'Reward Point Clarification Preview （Width: 750)' | translate}}
+                                img#clarificationFile.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'Voucher Clarification Preview (Width: 750)' | translate}}
+                                img#voucherClarificationFile.frontendImagePreview(src="")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitRewardPointClarification()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndRewardPointClarificationUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+
+#carouselSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add Carousel" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"CAROUSEL_DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newFrontEndCarousel.device' ng-change='vm.resetCarouselUploadFile()')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"CAROUSEL_NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newFrontEndCarousel.name")
+
+                            div(ng-show="vm.newFrontEndCarousel.device==1")
+                                .full-width-input-block
+                                    label(style="width: 30%;") {{"Carousel Image(PC)"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input#carouselPcImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null)")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
+                                    label(style="width: 30%;") {{"Page Detail(PC)"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#carouselPcNewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 2")
+                                    label(style="width: 30%;") {{"Page Detail(PC)"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#carouselPcPageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div(ng-show="vm.newFrontEndCarousel.device==2")
+                                .full-width-input-block
+                                    label(style="width: 30%;") H5 {{"IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input#carouselH5ImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null)")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#carouselH5NewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 2")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#carouselH5PageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            div(ng-show="vm.newFrontEndCarousel.device==4")
+                                .full-width-input-block
+                                    label(style="width: 30%;") APP {{"IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input#carouselAppImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#carouselAppNewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 2")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newFrontEndCarousel.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#carouselAppPageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isPlayerWithRegisteredHpNoVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isNewPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR FIRST-TIME-LOGIN PLAYER"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isFirstTimeLoginPlayerVisible')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.newFrontEndCarousel.visibleForBalanceBelow")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.newFrontEndCarousel.visibleForTopUpTimeMoreThan")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
+
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'PC Image Preview' | translate}}
+                                img#carouselPCImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'H5 Image Preview' | translate}}
+                                img#carouselH5Image.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'APP Image Preview' | translate}}
+                                img#carouselAPPImage.frontendImagePreview(src="")
+
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitCarouselSettings()') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndCarouselUploader.collapse
+                    i.fa.fa-spinner.fa-spin
