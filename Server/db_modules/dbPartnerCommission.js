@@ -81,7 +81,7 @@ const dbPartnerCommission = {
                         parentChain.push(partnerChain[i]);
                     }
 
-                    mainPartner.commissionType = mainPartner.commissionType || commissionType;
+                    mainPartner.commissionType = commissionType || mainPartner.commissionType;
                     console.log('mainPartner.commissionType', mainPartner.commissionType)
                     if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
                         return Promise.reject({message: "Please select a commission type"});
