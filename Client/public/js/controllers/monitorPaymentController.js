@@ -3858,7 +3858,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList,
+                platformList: vm.paymentMonitorTotalQuery.platformList ? vm.paymentMonitorTotalQuery.platformList : vm.platformByAdminId.map(item => item._id),
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
                 currentPlatformId: vm.selectedPlatform._id,
                 failCount: vm.paymentMonitorTotalQuery.failCount
