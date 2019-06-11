@@ -18351,13 +18351,7 @@ let dbPlayerInfo = {
                     );
                     console.log("LH check player report summary 5");
                     if (Object.keys(sortCol).length > 0) {
-                        finalPlayerReportSummaryData.sort(function (a, b) {
-                            if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
-                                return 1 * sortCol[Object.keys(sortCol)[0]];
-                            } else {
-                                return -1 * sortCol[Object.keys(sortCol)[0]];
-                            }
-                        });
+                        finalPlayerReportSummaryData.sort((a, b) => sortBySortCol(a, b, sortCol));
                     }
                     else {
                         finalPlayerReportSummaryData.sort(function (a, b) {
@@ -18512,9 +18506,21 @@ let dbPlayerInfo = {
 
                 returnedObj.size = returnedObj.data.length;
 
+                // Slice array to input page amount
+                returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
+                returnedObj.data = returnedObj.data.slice(0, limit);
+
                 return returnedObj;
             }
         );
+
+        function sortBySortCol (a, b, sortCol) {
+            if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                return 1 * sortCol[Object.keys(sortCol)[0]];
+            } else {
+                return -1 * sortCol[Object.keys(sortCol)[0]];
+            }
+        }
     },
 
     getPlayerDepositAnalysisReport: function (platformObjId, query, index, limit, sortCol, dailyTotalDeposit, numberOfDays) {
