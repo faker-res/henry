@@ -18504,11 +18504,11 @@ let dbPlayerInfo = {
                     returnedObj.total.weChatTopUpAmount += twoDaysPlayerReportData.total.weChatTopUpAmount || 0;
                 }
 
-                returnedObj.size = returnedObj.data.length;
-
                 // Slice array to input page amount
                 returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
                 returnedObj.data = returnedObj.data.slice(0, limit);
+
+                returnedObj.size = returnedObj.data.length;
 
                 return returnedObj;
             }
