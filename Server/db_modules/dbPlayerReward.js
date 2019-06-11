@@ -6895,6 +6895,15 @@ let dbPlayerReward = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
+                            // Check reward apply limit in period
+                            if (selectedRewardParam && selectedRewardParam.playerLevelCountInRewardInterval && selectedRewardParam.playerLevelCountInRewardInterval <= eventInPeriodCount) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: localization.localization.translate("Player has applied for max reward times in event period")
+                                });
+                            }
+
                             if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
