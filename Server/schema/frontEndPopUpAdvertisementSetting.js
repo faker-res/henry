@@ -12,12 +12,8 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         onClickAction: {type: Number},
         //  ftp url for uploaded pc image
         imageUrl: {type: String},
-        // the detail for new page is selected
-        newPageDetail: {type: String},
         // the ftp url for uploaded new page image
         newPageUrl: {type: String},
-        // the activity detail
-        activityDetail: {type: String},
         // the ftp url for uploaded activity iframe url
         activityUrl: {type: String},
         // reward event ObjectId
@@ -32,12 +28,8 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         onClickAction: {type: Number},
         //  ftp url for uploaded pc image
         imageUrl: {type: String},
-        // the detail for new page is selected
-        newPageDetail: {type: String},
         // the ftp url for uploaded new page image
         newPageUrl: {type: String},
-        // the activity detail
-        activityDetail: {type: String},
         // the ftp url for uploaded activity iframe url
         activityUrl: {type: String},
         // reward event ObjectId
@@ -52,12 +44,8 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         onClickAction: {type: Number},
         //  ftp url for uploaded pc image
         imageUrl: {type: String},
-        // the detail for new page is selected
-        newPageDetail: {type: String},
         // the ftp url for uploaded new page image
         newPageUrl: {type: String},
-        // the activity detail
-        activityDetail: {type: String},
         // the ftp url for uploaded activity iframe url
         activityUrl: {type: String},
         // reward event ObjectId
