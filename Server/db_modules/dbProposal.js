@@ -6366,8 +6366,8 @@ var proposal = {
 
                 return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean()
-                    .populate({path: "data.platformId", model: dbconfig.collection_platform});
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+                    .populate({path: "data.platformId", model: dbconfig.collection_platform}).lean();
             }
         ).then(
             proposalData => {
