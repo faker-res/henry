@@ -5491,6 +5491,7 @@ let dbPlayerInfo = {
             };
         }
 
+        console.log('bbbb')
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
@@ -5564,10 +5565,12 @@ let dbPlayerInfo = {
             }
         }
 
+        console.log('cccc')
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
             platform => {
+                console.log('dddd')
                 isProviderGroup = Boolean(platform.useProviderGroup);
 
                 return dbconfig.collection_players
@@ -5620,6 +5623,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                console.log('eeee')
                 var a = dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
                     .sort(sortObj).skip(index).limit(limit)
@@ -5631,6 +5635,7 @@ let dbPlayerInfo = {
                     .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
+                            console.log('ffff')
                             var players = [];
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
@@ -5694,6 +5699,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('gggg')
                 return {data: data[0], size: data[1]}
             },
             err => {

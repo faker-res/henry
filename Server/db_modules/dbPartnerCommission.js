@@ -260,7 +260,7 @@ const dbPartnerCommission = {
                         nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
 
-                    // if it is bonus based, calculate the nett parent commisssion as well
+                    // if it is bonus based, calculate the nett parent commission as well
                     parentChain.map(parent => {
                         let parentComm = parentCommissionDetail[String(parent._id)];
                         parentComm.grossCommission = parentComm.grossCommission || 0;
