@@ -5511,6 +5511,7 @@ let dbPlayerInfo = {
                 status: {$in: [constRewardTaskStatus.STARTED]}
             }).then(
                 rewardGroupData => {
+                    console.log('2222b')
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
                         (arr, inc) => arr + inc.rewardAmt, 0
@@ -5635,9 +5636,10 @@ let dbPlayerInfo = {
                     .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
-                            console.log('ffff')
+                            console.log('ffff', playerData.length)
                             var players = [];
                             for (var ind in playerData) {
+                                console.log(ind, '1111')
                                 if (playerData[ind]) {
                                     let newInfo;
 
@@ -5652,6 +5654,7 @@ let dbPlayerInfo = {
                                     }
 
                                     if (isProviderGroup) {
+                                        console.log(ind, '2222')
                                         newInfo = getRewardGroupData(playerData[ind]);
                                     } else {
                                         newInfo = getRewardData(playerData[ind]);
@@ -5669,32 +5672,35 @@ let dbPlayerInfo = {
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
-
+                                    console.log(ind, '3333')
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
+                                    console.log(ind, '4444')
                                     if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
+                                    console.log(ind, '5555')
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
                                     if (playerData[ind].partner && playerData[ind].partner._id) {
                                         dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
                                     }
+                                    console.log(ind, '6666')
                                 }
                             }
+                            console.log('7777')
                             return Q.all(players)
                         }
                     );
                 var b = dbconfig.collection_players
                     .find({platform: platformId, $and: [data]}).count();
+                console.log('8888',a,b)
                 return Q.all([a, b]);
             }
         ).then(
