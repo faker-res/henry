@@ -407,7 +407,6 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data.query && data.platformId && data.index != null && data.limit);
             var query = utility.buildPlayerQueryString(data.query);
-            console.log('aaaa')
             socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [data.platformId, query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
         getPlayerForAttachGroup: function getPlayerForAttachGroup(data) {

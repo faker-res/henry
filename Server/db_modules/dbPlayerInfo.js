@@ -5491,7 +5491,6 @@ let dbPlayerInfo = {
             };
         }
 
-        console.log('bbbb')
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
                 playerId: thisPlayer._id,
@@ -5505,19 +5504,12 @@ let dbPlayerInfo = {
         }
 
         function getRewardGroupData(thisPlayer) {
-            console.log('1111', thisPlayer)
-            console.log('2222', {
-                platformId: thisPlayer.platform,
-                playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
-            })
             return dbconfig.collection_rewardTaskGroup.find({
                 platformId: thisPlayer.platform,
                 playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
+                status: constRewardTaskStatus.STARTED
             }).lean().then(
                 rewardGroupData => {
-                    console.log('3333')
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
                         (arr, inc) => arr + inc.rewardAmt, 0
@@ -5572,12 +5564,10 @@ let dbPlayerInfo = {
             }
         }
 
-        console.log('cccc')
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
             platform => {
-                console.log('dddd')
                 isProviderGroup = Boolean(platform.useProviderGroup);
 
                 return dbconfig.collection_players
@@ -5630,7 +5620,6 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                console.log('eeee')
                 var a = dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
                     .sort(sortObj).skip(index).limit(limit)
@@ -5642,7 +5631,6 @@ let dbPlayerInfo = {
                     .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
-                            console.log('ffff', playerData.length)
                             var players = [];
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
@@ -5703,7 +5691,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('gggg')
                 return {data: data[0], size: data[1]}
             },
             err => {
