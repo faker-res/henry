@@ -3901,8 +3901,8 @@ define(['js/app'], function (myApp) {
                                     item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount;
                                     item.status$ = $translate(item.status);
                                     item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                                    item.website = item && item.data && item.data.platform && item.data.platformId ?
-                                        item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
+                                    item.website = item && item.data && item.data.platform && item.data.platformId && item.data.platformId.name ?
+                                        item.data.platform + "." + item.data.platformId.name : "";
 
                                     if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
                                         let msgSplit = item.data.msg.split(" 单号:");
