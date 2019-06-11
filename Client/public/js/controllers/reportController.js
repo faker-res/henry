@@ -4626,7 +4626,7 @@ define(['js/app'], function (myApp) {
                 ],
                 "sScrollY": "80vh",
                 "bScrollCollapse": true,
-                "paging": false,
+                // "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
                 "language": {
                     "info": "Total _MAX_ records",
