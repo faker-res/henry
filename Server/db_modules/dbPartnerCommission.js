@@ -21,7 +21,7 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPartnerCommission = {
-    calculatePartnerCommission: (partnerObjId, startTime, endTime) => {
+    calculatePartnerCommission: (partnerObjId, startTime, endTime, commissionType) => {
         let platform, partner;
         // let players = [];
         let providerGroups = [];
@@ -81,6 +81,8 @@ const dbPartnerCommission = {
                         parentChain.push(partnerChain[i]);
                     }
 
+                    mainPartner.commissionType = mainPartner.commissionType || commissionType;
+                    console.log('mainPartner.commissionType', mainPartner.commissionType)
                     if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
                         return Promise.reject({message: "Please select a commission type"});
                     }
@@ -331,7 +333,7 @@ const dbPartnerCommission = {
 
         for (let i = 0; i < partnerObjIds.length; i++) {
             let partnerObjId = partnerObjIds[i];
-            let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime);
+            let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType);
 
             let pastData = await getPreviousThreeDetailIfExist(partnerObjId, commissionDetail.commissionType, commissionDetail.startTime);
 
