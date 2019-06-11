@@ -8,10 +8,8 @@ style.
             .panel-heading.panel-heading-sm
                 label {{"Batch Setting" | translate}}
             .panel-body.common-right-sub-panel-body
-                select.form-control(ng-model="vm.batchSettingSelectedPlatform" ng-options="v._id as v.name$ for v in vm.allPlatformData" ng-change="vm.initBatchPermit();")
-                    option(value="") {{"NO_PLATFORM_MESSAGE" | translate}}
                 table#batchPlayerDataTable(style="width:100%")
-                div(style="text-align:right" ng-show="vm.batchSettingSelectedPlatform")
+                div(style="text-align:right")
                     button.btn.btn-primary.common-button#bulkCreditClearOutButton(ng-click="vm.initiateBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Bulk Credit Clear Out" | translate}}
                     button.btn.btn-primary.common-button#bulkClearXIMAWithdrawButton(ng-click="vm.initBulkClearXIMAWithdraw()") {{"Bulk Clear XIMA Withdraw Amount" | translate}}
                     label.text-success(ng-if="vm.doneClearXIMAAMount") {{'SUCCESS' | translate}}
