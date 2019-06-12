@@ -13,12 +13,8 @@ var frontEndCarouselConfigurationSchema = new Schema({
     imageUrl: {type: String},
     // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
     onClickAction: {type: Number},
-    // the detail for new page is selected
-    newPageDetail: {type: String},
     // the ftp url for uploaded new page image
     newPageUrl: {type: String},
-    // the activity detail
-    activityDetail: {type: String},
     // the ftp url for uploaded activity iframe url
     activityUrl: {type: String},
     // reward event ObjectId

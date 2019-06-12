@@ -1079,7 +1079,7 @@ var proposal = {
                         addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
 
                         // Add playername if cancelled
-                        if (status === constProposalStatus.CANCEL) {
+                        if (status === constProposalStatus.CANCEL && (proposalObj.data && !proposalObj.data.cancelBy)) {
                             addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
                             addDetailToProp(updObj, 'settleTime', new Date());
                         }
@@ -6366,7 +6366,8 @@ var proposal = {
 
                 return dbconfig.collection_proposal.find(query).lean().sort(sort).limit(1000)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
-                    .populate({path: "data.playerObjId", model: dbconfig.collection_players}).lean();
+                    .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+                    .populate({path: "data.platformId", model: dbconfig.collection_platform}).lean();
             }
         ).then(
             proposalData => {
@@ -9571,8 +9572,8 @@ function getTopUpTypeIdsWithoutCommonTopUp(platformList) {
 }
 
 function checkIsFoundTopUpAfterInMonitor(proposalData, endTime) {
-    if (proposalData && proposalData.proposalId) {
-        return getTopUpTypeIdsWithoutCommonTopUp([proposalData.data.platformId]).then(
+    if (proposalData && proposalData.proposalId && proposalData.data && proposalData.data.platformId && proposalData.data.platformId._id) {
+        return getTopUpTypeIdsWithoutCommonTopUp([proposalData.data.platformId._id]).then(
             topUpProposalTypeIds => {
                 if (topUpProposalTypeIds && topUpProposalTypeIds.length > 0) {
                     let topUpQuery = {
@@ -9580,7 +9581,7 @@ function checkIsFoundTopUpAfterInMonitor(proposalData, endTime) {
                         status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                         "data.playerName": proposalData.data.playerName,
                         createTime: {$gte: new Date(proposalData.createTime), $lt: new Date(endTime)},
-                        "data.platformId": ObjectId(proposalData.data.platformId)
+                        "data.platformId": ObjectId(proposalData.data.platformId._id)
                     };
 
                     return dbconfig.collection_proposal.findOne(topUpQuery, {proposalId: 1, createTime: 1}).read("secondaryPreferred").sort({createTime: 1}).lean().then(
