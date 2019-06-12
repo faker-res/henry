@@ -2941,7 +2941,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['userInfoRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.externalUserRecordQuery.index,
                     limit: newSearch ? 10 : vm.externalUserRecordQuery.limit,
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: vm.externalUserRecordQuery.platformList,
                     sortCol: vm.externalUserRecordQuery.sortCol
                 };
 
@@ -2964,6 +2964,7 @@ define(['js/app'], function (myApp) {
                                     let numLength = item.phoneNumber.length;
                                     item.phoneNumber = item.phoneNumber.substring(0, 3) + "******" + item.phoneNumber.slice(-numLength + 9);
                                 }
+                                item.platformName = vm.allPlatformData.filter(platform=>{return platform.platformId == item.platformId})[0].name;
 
                                 return item;
                             }
@@ -2986,8 +2987,8 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {'title': $translate("PRODUCT_NAME"), data: 'platformName'},
                         {'title': $translate("User's Name"), data: 'name'},
-
                         {'title': $translate('Clicking Time'), data: 'createTime', bSortable: true},
                         {'title': $translate('phoneNumber'), data: 'phoneNumber'},
                     ],
