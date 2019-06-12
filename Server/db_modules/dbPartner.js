@@ -6231,28 +6231,7 @@ let dbPartner = {
         }
     },
 
-    customizePartnerCommission: async function (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo, commissionType, isMultiLevel) {
-        let isUpdateChild = false;
-        if (isMultiLevel && oldConfig.commissionSetting && newConfig.commissionSetting) {
-            let compareKey = ["activePlayerValueFrom", "activePlayerValueTo", "playerConsumptionAmountFrom", "playerConsumptionAmountTo"];
-            if (oldConfig.commissionSetting.length != newConfig.commissionSetting.length) {
-                isUpdateChild = true;
-            } else {
-                for (let i = 0; i < newConfig.commissionSetting.length; i++) {
-                    let oldCommSett = oldConfig.commissionSetting[i];
-                    let newCommSett = newConfig.commissionSetting[i];
-                    for (let key in newCommSett) {
-                        if (compareKey.includes(String(key)) && oldCommSett[key] != newCommSett[key]) {
-                            isUpdateChild = true;
-                            break;
-                        }
-                    }
-                    if (isUpdateChild) {
-                        break;
-                    }
-                }
-            }
-        }
+    customizePartnerCommission: async function (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo, commissionType, isMultiLevel, isUpdateChild) {
 
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
             path: "parent",
@@ -6261,72 +6240,51 @@ let dbPartner = {
         }).lean().then(
             partnerObj => {
                 if (partnerObj) {
-                    let checkIsCommValidProm = Promise.resolve();
-                    if (!isUpdateChild && isMultiLevel) {
-                        let parentObjId;
-                        let isParentMainPartner = true;
-                        if (partnerObj.parent) {
-                            if (partnerObj.parent.parent) {
-                                isParentMainPartner = false;
-                            }
-                            if (partnerObj.parent._id) {
-                                parentObjId = partnerObj.parent._id;
-                            }
-                        }
-
-                        checkIsCommValidProm = dbPartnerCommissionConfig.checkIsCommRateValid(partnerObjId, oldConfig, newConfig, isParentMainPartner, parentObjId);
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
                     }
 
-                    return checkIsCommValidProm.then(
-                        checkData => {
-                            if (checkData && checkData.isUpdateChild) {
-                                isUpdateChild = checkData.isUpdateChild
-                            }
-                            let creatorData = adminInfo || {
-                                type: 'partner',
-                                name: partnerObj.partnerName,
-                                id: partnerObj._id
-                            }
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        settingObjId: settingObjId,
+                        oldRate: oldConfig,
+                        newRate: newConfig,
+                        remark: localization.localization.translate(field),
+                        isRevert: isRevert,
+                        isPlatformRate: isPlatformRate,
+                        isDelete: isDelete,
+                        commissionType: commissionType,
+                        isMultiLevel: isMultiLevel
+                    };
 
-                            let proposalData = {
-                                creator: adminInfo || {
-                                    type: 'partner',
-                                    name: partnerObj.partnerName,
-                                    id: partnerObj._id
-                                },
-                                platformObjId: partnerObj.platform,
-                                partnerObjId: partnerObjId,
-                                partnerName: partnerObj.partnerName,
-                                settingObjId: settingObjId,
-                                oldRate: oldConfig,
-                                newRate: newConfig,
-                                remark: localization.localization.translate(field),
-                                isRevert: isRevert,
-                                isPlatformRate: isPlatformRate,
-                                isDelete: isDelete,
-                                commissionType: commissionType,
-                                isMultiLevel: isMultiLevel
-                            };
+                    if (partnerObj.parent && partnerObj.parent._id) {
+                        proposalData.parentObjId = partnerObj.parent._id;
+                    }
 
-                            if (partnerObj.parent && partnerObj.parent._id) {
-                                proposalData.parentObjId = partnerObj.parent._id;
-                            }
+                    if (isMultiLevel && isUpdateChild) {
+                        proposalData.isUpdateChild = isUpdateChild;
+                    }
 
-                            if (isMultiLevel && isUpdateChild) {
-                                proposalData.isUpdateChild = isUpdateChild;
-                            }
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
+                        creator: creatorData,
+                        data: proposalData
+                    });
 
-                            return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
-                                creator: creatorData,
-                                data: proposalData
-                            });
-                        })
                 }
             }
         );
     },
 
-    updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo, isMultiLevel) => {
+    updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo, isMultiLevel, isUpdateChild) => {
         if (newConfigArr && newConfigArr.length > 0) {
             newConfigArr.forEach(config => {
                 if (config && config.commissionSetting && config.commissionSetting.length > 0) {
@@ -6339,49 +6297,6 @@ let dbPartner = {
             });
         }
 
-        let isUpdateChild = false;
-        if (isMultiLevel) {
-            let compareKey = ["activePlayerValueFrom", "activePlayerValueTo", "playerConsumptionAmountFrom", "playerConsumptionAmountTo"];
-            if (oldConfigArr.length != newConfigArr.length) {
-                isUpdateChild = true;
-            } else {
-                if (oldConfigArr.length && newConfigArr.length) {
-                    for (let i = 0; i < newConfigArr.length; i++) {
-                        let oldCommSett = oldConfigArr[i].commissionSetting;
-                        let newCommSett = newConfigArr[i].commissionSetting;
-                        if (oldCommSett && newCommSett) {
-                            if (oldCommSett.length != newCommSett.length) {
-                                isUpdateChild = true;
-                                break;
-                            } else {
-                                for (let j = 0; j < newCommSett.length; j++) {
-                                    for (let key in newCommSett[j]) {
-                                        if (compareKey.includes(String(key)) && oldCommSett[j][key] != newCommSett[j][key]) {
-                                            isUpdateChild = true;
-                                            break;
-                                        }
-                                    }
-                                    if (isUpdateChild) {
-                                        break;
-                                    }
-                                }
-                            }
-                        } else {
-                            isUpdateChild = true;
-                            break;
-                        }
-                        if (isUpdateChild) {
-                            break;
-                        }
-                    }
-
-                } else {
-                    // skip update, no changes has made
-                    return Promise.resolve();
-                }
-            }
-        }
-
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
             path: "parent",
             model: dbconfig.collection_partner,
@@ -6389,63 +6304,42 @@ let dbPartner = {
         }).lean().then(
             partnerObj => {
                 if (partnerObj) {
-                    let checkIsCommValidProm = Promise.resolve();
-                    if (!isUpdateChild && isMultiLevel) {
-                        let parentObjId;
-                        let isParentMainPartner = true;
-                        if (partnerObj.parent) {
-                            if (partnerObj.parent.parent) {
-                                isParentMainPartner = false;
-                            }
-                            if (partnerObj.parent._id) {
-                                parentObjId = partnerObj.parent._id;
-                            }
-                        }
-                        checkIsCommValidProm = dbPartnerCommissionConfig.checkAllProvidersIsCommRateValid(partnerObjId, oldConfigArr, newConfigArr, isParentMainPartner, parentObjId);
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
+
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        commissionType: commissionType,
+                        remark: localization.localization.translate('commissionRate'),
+                        isEditAll: true,
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr,
+                        isMultiLevel: isMultiLevel
+                    };
+
+                    if (partnerObj.parent && partnerObj.parent._id) {
+                        proposalData.parentObjId = partnerObj.parent._id;
                     }
 
-                    return checkIsCommValidProm.then(
-                        checkData => {
-                            if (checkData && checkData.isUpdateChild) {
-                                isUpdateChild = checkData.isUpdateChild
-                            }
+                    if (isMultiLevel && isUpdateChild) {
+                        proposalData.isUpdateChild = isUpdateChild;
+                    }
 
-                            let creatorData = adminInfo || {
-                                type: 'partner',
-                                name: partnerObj.partnerName,
-                                id: partnerObj._id
-                            };
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
+                        creator: creatorData,
+                        data: proposalData
+                    });
 
-                            let proposalData = {
-                                creator: adminInfo || {
-                                    type: 'partner',
-                                    name: partnerObj.partnerName,
-                                    id: partnerObj._id
-                                },
-                                platformObjId: partnerObj.platform,
-                                partnerObjId: partnerObjId,
-                                partnerName: partnerObj.partnerName,
-                                commissionType: commissionType,
-                                remark: localization.localization.translate('commissionRate'),
-                                isEditAll: true,
-                                oldConfigArr: oldConfigArr,
-                                newConfigArr: newConfigArr,
-                                isMultiLevel: isMultiLevel
-                            };
-
-                            if (partnerObj.parent && partnerObj.parent._id) {
-                                proposalData.parentObjId = partnerObj.parent._id;
-                            }
-
-                            if (isMultiLevel && isUpdateChild) {
-                                proposalData.isUpdateChild = isUpdateChild;
-                            }
-
-                            return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
-                                creator: creatorData,
-                                data: proposalData
-                            });
-                        });
                 }
             }
         )
@@ -9216,32 +9110,8 @@ let dbPartner = {
     getChildPartnerRecords: (platformId, partnerObjId) => {
         let childPartnerData = [];
         let childPartnerNameArr = [];
-        let query = {
-            platform: mongoose.Types.ObjectId(platformId),
-            _id: mongoose.Types.ObjectId(partnerObjId)
-        }
 
-        return dbconfig.collection_partner.aggregate([
-            {$match: query},
-            {
-                $project: {
-                    "_id": 1,
-                    "children": 1
-                }
-            },
-        ]).then(aggr => {
-            let retData = [];
-            if (aggr && aggr[0] && aggr[0].children && aggr[0].children.length > 0) {
-                let childrenList = aggr[0].children || [];
-                for (let index in childrenList) {
-                    if (childrenList[index]) {
-                        let prom = dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(childrenList[index])}, {partnerName:1, _id: 1, partnerId: 1}).lean();
-                        retData.push(prom);
-                    }
-                }
-            }
-            return Promise.all(retData);
-        }).then(childPartner => {
+        return dbconfig.collection_partner.find({parent: partnerObjId, platform: platformId}, {partnerName: 1}).lean().then(childPartner => {
             if (childPartner && childPartner.length > 0) {
                 for (let i = 0, len = childPartner.length; i < len; i++) {
                     if (childPartner[i] && childPartner[i].partnerName) {
@@ -9263,32 +9133,28 @@ let dbPartner = {
                         if (childPartnerNameArr[i]) {
                             let matchQuery = {
                                 'data.platformId': mongoose.Types.ObjectId(platformId),
-                                'data.updateChildPartnerName': {$in: [childPartnerNameArr[i]]},
-                                'data.curChildPartnerName': {$nin: [childPartnerNameArr[i]]},
+                                'data.updateChildPartnerName': childPartnerNameArr[i],
+                                'data.curChildPartnerName': {$ne: childPartnerNameArr[i]},
                                 'data.partnerObjId': partnerObjId,
                                 type: proposalTypeData._id,
                                 status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             }
-
-                            proms.push(dbconfig.collection_proposal.aggregate([
-                                {
-                                    $match: matchQuery
-                                },
-                                {
-                                    $sort: { createTime: -1 }
-                                },
-                                {
-                                    $group: {
-                                        _id: childPartnerNameArr[i],
-                                        proposalId: {$first: "$proposalId"},
-                                        updateDateTime: {$first: "$createTime"},
+                            proms.push(dbconfig.collection_proposal.find(matchQuery, {proposalId: 1, createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
+                                proposalData => {
+                                    let returnObj = {updateChildName: childPartnerNameArr[i]};
+                                    if (proposalData && proposalData.length && proposalData[0].proposalId && proposalData[0].createTime) {
+                                        returnObj.proposalId = proposalData[0].proposalId;
+                                        returnObj.updateDateTime = proposalData[0].createTime;
                                     }
+                                    return returnObj
                                 }
-                            ]));
+                            ))
+
                         }
                     }
 
                     return Promise.all(proms);
+
                 }
             } else {
                 return Promise.reject({name: "DataError", message: "Failed to find proposal type data"});
@@ -9297,14 +9163,18 @@ let dbPartner = {
             if (data && data.length > 0) {
                 for (let i = 0, len = data.length; i < len; i++) {
                     let childPartnerProposal = data[i];
-                    if (childPartnerProposal && childPartnerProposal.length > 0) {
-                        for (let j = 0, jLen = childPartnerProposal.length; j < jLen; j++) {
-                            if (childPartnerProposal[j] && Object.keys(childPartnerProposal[j]).length
-                                && childPartnerProposal[j]._id && childPartnerProposal[j].proposalId && childPartnerProposal[j].updateDateTime) {
-                                childPartnerData.push({partnerName: childPartnerProposal[j]._id, proposalId: childPartnerProposal[j].proposalId, createTime: childPartnerProposal[j].updateDateTime});
-                            }
-                        }
+                    // if (childPartnerProposal && childPartnerProposal.length > 0) {
+                    //     for (let j = 0, jLen = childPartnerProposal.length; j < jLen; j++) {
+                    if (childPartnerProposal && Object.keys(childPartnerProposal).length
+                        && childPartnerProposal.updateChildName && childPartnerProposal.proposalId && childPartnerProposal.updateDateTime) {
+                        childPartnerData.push({
+                            partnerName: childPartnerProposal.updateChildName,
+                            proposalId: childPartnerProposal.proposalId,
+                            createTime: childPartnerProposal.updateDateTime
+                        });
                     }
+                    // }
+                    // }
                 }
             }
 

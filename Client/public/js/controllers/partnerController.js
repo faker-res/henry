@@ -11770,7 +11770,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            if (vm.isMultiLevelCommission) {
+            if (vm.isMultiLevelCommission && !(vm.selectedSinglePartner && vm.selectedSinglePartner.parent)) {
                 for (let i = 0; i < newConfig.commissionSetting.length; i++) {
                     if (!newConfig.commissionSetting[i].commissionRate || newConfig.commissionSetting[i].commissionRate < 1) {
                         socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
@@ -11804,11 +11804,44 @@ define(['js/app'], function (myApp) {
                     isMultiLevel: vm.isMultiLevelCommission
                 };
 
-                socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
-                        $scope.$evalAsync(() => {
-                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
-                            vm.getPlatformPartnersData();
+                let customizeCommissioinFunc = function () {
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                vm.getPlatformPartnersData();
+                            });
+                        },
+                        () => {
+                            $scope.$evalAsync(() => {
+                                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                vm.getPlatformPartnersData();
+                            });
                         });
+                }
+                let checkCommProm = Promise.resolve();
+
+                if (vm.isMultiLevelCommission) {
+                    checkCommProm = $scope.$socketPromise("checkIsCustomizeCommValid", sendData)
+                }
+
+                checkCommProm.then(
+                    data => {
+                        if (data && data.data && data.data.isUpdateChild) {
+                            sendData.isUpdateChild = true;
+                            vm.modalYesNo = {};
+                            vm.modalYesNo.modalTitle = $translate("Please reset the commission rate after binding");
+
+                            vm.modalYesNo.modalText = $translate("Are you sure");
+                            vm.modalYesNo.actionYes = () => customizeCommissioinFunc();
+                            vm.modalYesNo.actionNo = () => {
+                                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                vm.getPlatformPartnersData();
+                            };
+                            $('#modalYesNo').modal();
+                            $scope.$evalAsync();
+                        } else {
+                            customizeCommissioinFunc();
+                        }
                     },
                     () => {
                         $scope.$evalAsync(() => {
@@ -11867,15 +11900,51 @@ define(['js/app'], function (myApp) {
                         isMultiLevel: vm.isMultiLevelCommission
                     };
 
-                    socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
-                        $scope.$evalAsync(() => {
+                    let customizeCommissioinFunc = function () {
+                        socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                vm.getPlatformPartnersData();
+                            });
+                        }, function (err) {
                             vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                             vm.getPlatformPartnersData();
                         });
-                    }, function (err) {
-                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
-                        vm.getPlatformPartnersData();
-                    });
+                    }
+
+                    let checkCommProm = Promise.resolve();
+
+                    if (vm.isMultiLevelCommission) {
+                        checkCommProm = $scope.$socketPromise("checkIsCustomizeAllCommValid", sendData)
+                    }
+
+                    checkCommProm.then(
+                        data => {
+                            if (data && data.data && data.data.isUpdateChild) {
+                                sendData.isUpdateChild = true;
+                                vm.modalYesNo = {};
+                                vm.modalYesNo.modalTitle = $translate("Please reset the commission rate after binding");
+
+                                vm.modalYesNo.modalText = $translate("Are you sure");
+                                vm.modalYesNo.actionYes = () => customizeCommissioinFunc();
+                                vm.modalYesNo.actionNo = () => {
+                                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                    vm.getPlatformPartnersData();
+                                };
+                                $('#modalYesNo').modal();
+                                $scope.$evalAsync();
+                            } else {
+                                customizeCommissioinFunc();
+                            }
+                        },
+                        () => {
+                            $scope.$evalAsync(() => {
+                                vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
+                                vm.getPlatformPartnersData();
+                            });
+                        });
+
+
                 }
             } else {
                 // reload data, avoid empty provider cannot be add
@@ -16251,6 +16320,7 @@ define(['js/app'], function (myApp) {
 
         // Edit Child Partner
         vm.initEditChildPartner = function () {
+            vm.childMainPartner = "";
             vm.updatePlayerName = "";
             vm.updatePlayerObjId = null;
             vm.disableUpdateReferralPlayer = true;
@@ -16287,6 +16357,22 @@ define(['js/app'], function (myApp) {
                     }
                 });
             });
+
+            if (vm.selectedSinglePartner && vm.selectedSinglePartner.parent && vm.selectedSinglePartner.parent._id) {
+                let sendData2 = {
+                    platformObjId: vm.selectedPlatform.id,
+                    parentObjId: vm.selectedSinglePartner.parent._id
+                };
+
+
+                socketService.$socket($scope.AppSocket, 'getChildMainPartner', sendData2, function (data) {
+                    if (data && data.data && data.data.partnerName) {
+                        $scope.$evalAsync(() => {
+                            vm.childMainPartner = data.data.partnerName;
+                        });
+                    }
+                });
+            }
 
         };
 
