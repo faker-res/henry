@@ -6106,7 +6106,10 @@ var dbPlatform = {
 
         function getFrontEndSettingType1 (platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 1);
-            if (!query) {
+            if (query){
+                query.isVisible = true;
+            }
+            else{
                 return [];
             }
 
@@ -6187,6 +6190,9 @@ var dbPlatform = {
                 prom = dbconfig.collection_frontEndRewardPointClarification.find(query).lean()
             }
             else if (code == "carousel"){
+                if (query){
+                    query.isVisible = true;
+                }
                 prom = dbconfig.collection_frontEndCarouselConfiguration.find(query).populate({
                     path: "rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
