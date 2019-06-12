@@ -566,7 +566,7 @@
 
                     .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'PlayerRandomRewardGroup'")
                         div(style="margin-bottom: 20px;")
-                            label(style="color: red") *{{ "Promo code name must be unique" | translate }}
+                            label(style="color: red") *{{"Promo code name must be unique." | translate }} {{"Current winning possibility:" | translate }} {{vm.rewardMainParamTable[0].currentPossibility.toFixed(2)}}% ({{"Total 100% winning probablity" | translate }})
                         table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTableCredit track by $index" ng-cloak)
                             thead
                                 th(ng-if="vm.isMultiStepReward")
@@ -957,7 +957,6 @@
                                     select.form-control(ng-model='vm.moveRewardEventGroupId', style='max-width:300px', required)
                                         option(ng-repeat='(i,v) in vm.rewardEventGroup', value='{{v._id}}', ng-if='v._id && v._id != vm.showRewardEventGroup._id') {{v.name}}
 
-
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.moveRewardEventGroupId', ng-click="vm.moveEventRewardGroup()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -995,7 +994,44 @@
                                     label {{"GROUP_NAME"|translate}}
                                     input.form-control(type="text", ng-model="vm.editRewardEventGroupName", required)
 
-
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.editRewardEventGroupName', ng-click="vm.editRewardGroupName()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditTopupConditionInterval.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:30%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"TOP_UP_CONDITION_INTERVAL" | translate}}
+            .modal-body
+                .panel.panel-primary
+                        .panel-body
+                            .row
+                                .col-md-12
+                                    table
+                                        thead
+                                            tr
+                                                th
+                                                    label {{'Add Top Up Condition' | translate}}
+                                                th
+                                                    label {{'value' | translate}}
+                                        tbody
+                                            tr
+                                                td
+                                                    label {{'Top Up Range' | translate}}
+                                                td
+                                                    div
+                                                        select.form-control(ng-model="vm.topupConditionInterval.topupOperator" style="width:75px; display:inline-block;")
+                                                            option(value='>=') {{'>='}}
+                                                            option(value='=') {{'='}}
+                                                            option(value='<=') {{'<='}}
+                                                            option(value='range') {{'range' | translate}}
+                                                        div(style="width:8px;display:inline-block")
+                                                        input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValue" style="width:80px;display:inline-block")
+                                                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'") ~
+                                                        input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValueTwo" style="width:80px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'")
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.topupConditionInterval.topupValue', ng-click="vm.editTopupConditionInterval()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
