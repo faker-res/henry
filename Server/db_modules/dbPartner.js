@@ -6297,49 +6297,6 @@ let dbPartner = {
             });
         }
 
-        // let isUpdateChild = false;
-        // if (isMultiLevel) {
-        //     let compareKey = ["activePlayerValueFrom", "activePlayerValueTo", "playerConsumptionAmountFrom", "playerConsumptionAmountTo"];
-        //     if (oldConfigArr.length != newConfigArr.length) {
-        //         isUpdateChild = true;
-        //     } else {
-        //         if (oldConfigArr.length && newConfigArr.length) {
-        //             for (let i = 0; i < newConfigArr.length; i++) {
-        //                 let oldCommSett = oldConfigArr[i].commissionSetting;
-        //                 let newCommSett = newConfigArr[i].commissionSetting;
-        //                 if (oldCommSett && newCommSett) {
-        //                     if (oldCommSett.length != newCommSett.length) {
-        //                         isUpdateChild = true;
-        //                         break;
-        //                     } else {
-        //                         for (let j = 0; j < newCommSett.length; j++) {
-        //                             for (let key in newCommSett[j]) {
-        //                                 if (compareKey.includes(String(key)) && oldCommSett[j][key] != newCommSett[j][key]) {
-        //                                     isUpdateChild = true;
-        //                                     break;
-        //                                 }
-        //                             }
-        //                             if (isUpdateChild) {
-        //                                 break;
-        //                             }
-        //                         }
-        //                     }
-        //                 } else {
-        //                     isUpdateChild = true;
-        //                     break;
-        //                 }
-        //                 if (isUpdateChild) {
-        //                     break;
-        //                 }
-        //             }
-        //
-        //         } else {
-        //             // skip update, no changes has made
-        //             return Promise.resolve();
-        //         }
-        //     }
-        // }
-
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
             path: "parent",
             model: dbconfig.collection_partner,
@@ -6347,63 +6304,42 @@ let dbPartner = {
         }).lean().then(
             partnerObj => {
                 if (partnerObj) {
-                    let checkIsCommValidProm = Promise.resolve();
-                    if (!isUpdateChild && isMultiLevel) {
-                        let parentObjId;
-                        let isParentMainPartner = true;
-                        if (partnerObj.parent) {
-                            if (partnerObj.parent.parent) {
-                                isParentMainPartner = false;
-                            }
-                            if (partnerObj.parent._id) {
-                                parentObjId = partnerObj.parent._id;
-                            }
-                        }
-                        checkIsCommValidProm = dbPartnerCommissionConfig.checkAllProvidersIsCommRateValid(partnerObjId, oldConfigArr, newConfigArr, isParentMainPartner, parentObjId);
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
+
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        commissionType: commissionType,
+                        remark: localization.localization.translate('commissionRate'),
+                        isEditAll: true,
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr,
+                        isMultiLevel: isMultiLevel
+                    };
+
+                    if (partnerObj.parent && partnerObj.parent._id) {
+                        proposalData.parentObjId = partnerObj.parent._id;
                     }
 
-                    return checkIsCommValidProm.then(
-                        checkData => {
-                            if (checkData && checkData.isUpdateChild) {
-                                isUpdateChild = checkData.isUpdateChild
-                            }
+                    if (isMultiLevel && isUpdateChild) {
+                        proposalData.isUpdateChild = isUpdateChild;
+                    }
 
-                            let creatorData = adminInfo || {
-                                type: 'partner',
-                                name: partnerObj.partnerName,
-                                id: partnerObj._id
-                            };
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
+                        creator: creatorData,
+                        data: proposalData
+                    });
 
-                            let proposalData = {
-                                creator: adminInfo || {
-                                    type: 'partner',
-                                    name: partnerObj.partnerName,
-                                    id: partnerObj._id
-                                },
-                                platformObjId: partnerObj.platform,
-                                partnerObjId: partnerObjId,
-                                partnerName: partnerObj.partnerName,
-                                commissionType: commissionType,
-                                remark: localization.localization.translate('commissionRate'),
-                                isEditAll: true,
-                                oldConfigArr: oldConfigArr,
-                                newConfigArr: newConfigArr,
-                                isMultiLevel: isMultiLevel
-                            };
-
-                            if (partnerObj.parent && partnerObj.parent._id) {
-                                proposalData.parentObjId = partnerObj.parent._id;
-                            }
-
-                            if (isMultiLevel && isUpdateChild) {
-                                proposalData.isUpdateChild = isUpdateChild;
-                            }
-
-                            return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
-                                creator: creatorData,
-                                data: proposalData
-                            });
-                        });
                 }
             }
         )
