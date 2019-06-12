@@ -5902,6 +5902,33 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            // Set reward param step to use
+            if (eventData.param && eventData.param.isMultiStepReward) {
+                if (eventData.param.isSteppingReward) {
+                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                    selectedRewardParam = selectedRewardParam[eventStep];
+                } else {
+                    let firstRewardParam = selectedRewardParam[0];
+                    selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
+                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                }
+            } else {
+                selectedRewardParam = selectedRewardParam[0];
+            }
+            // Check reward apply limit in period for each player level ony when the general countInRewardInterval is not set
+            if (selectedRewardParam && selectedRewardParam.playerLevelCountInRewardInterval && eventData.param && !eventData.param.countInRewardInterval){
+                let customEventInPeriodCount = await checkEventCountBasedOnPlayerUpLevelDate(playerData, eventData.type.name, eventQuery, eventInPeriodCount, intervalTime, eventQueryPeriodTime, rewardData);
+                customEventInPeriodCount = typeof customEventInPeriodCount != 'undefined' ? customEventInPeriodCount : eventInPeriodCount;
+                console.log("checking customEventInPeriodCount", customEventInPeriodCount);
+                if (selectedRewardParam.playerLevelCountInRewardInterval <= customEventInPeriodCount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("Player has applied for max reward times in event period")
+                    });
+                }
+            }
+
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
@@ -6881,28 +6908,19 @@ let dbPlayerReward = {
                                 correctTopUpType = false;
                             }
 
-                            // Set reward param step to use
-                            if (eventData.param.isMultiStepReward) {
-                                if (eventData.param.isSteppingReward) {
-                                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
-                                    selectedRewardParam = selectedRewardParam[eventStep];
-                                } else {
-                                    let firstRewardParam = selectedRewardParam[0];
-                                    selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
-                                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
-                                }
-                            } else {
-                                selectedRewardParam = selectedRewardParam[0];
-                            }
-
-                            // Check reward apply limit in period
-                            if (selectedRewardParam && selectedRewardParam.playerLevelCountInRewardInterval && selectedRewardParam.playerLevelCountInRewardInterval <= eventInPeriodCount) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: localization.localization.translate("Player has applied for max reward times in event period")
-                                });
-                            }
+                            // // Set reward param step to use
+                            // if (eventData.param.isMultiStepReward) {
+                            //     if (eventData.param.isSteppingReward) {
+                            //         let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                            //         selectedRewardParam = selectedRewardParam[eventStep];
+                            //     } else {
+                            //         let firstRewardParam = selectedRewardParam[0];
+                            //         selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
+                            //         selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            //     }
+                            // } else {
+                            //     selectedRewardParam = selectedRewardParam[0];
+                            // }
 
                             if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
@@ -8729,6 +8747,43 @@ let dbPlayerReward = {
             }
 
             return retAmt;
+        }
+
+        async function checkEventCountBasedOnPlayerUpLevelDate(playerData, eventType, eventQuery, eventCount, intervalTime, eventQueryPeriodTime, rewardData){
+            let rewardInPeriodCount = eventCount;
+            if (playerData && playerData._id && playerData.platform && eventType){
+                return dbConfig.collection_proposalType.findOne({platformId: playerData.platform, name: "PlayerLevelUp"}).lean().then(
+                    proposalType => {
+                        if (proposalType && proposalType._id){
+                            return dbConfig.collection_proposal.findOne({'data.playerObjId': playerData._id, type: proposalType._id, status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}, {createTime: 1}).sort({createTime: -1}).lean().then(
+                                proposal => {
+                                    if (eventQuery && proposal && proposal.createTime && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.createTime).getTime()){
+                                        // search the interval starting from the time when the player level up
+                                        if (eventQuery.$or) {
+                                            delete eventQuery.$or;
+                                        }
+
+                                        if (rewardData.applyTargetDate) {
+                                            eventQuery.createTime = {$gte: proposal.createTime, $lt: eventQueryPeriodTime.endTime};
+                                        } else {
+                                            eventQuery.createTime = {$gte: proposal.createTime, $lt: intervalTime.endTime}
+                                        }
+
+                                        return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                    }
+                                    else{
+                                        return rewardInPeriodCount
+                                    }
+                                }
+                            )
+                        }
+                        else{
+                            return rewardInPeriodCount
+                        }
+                    }
+                )
+            }
+            return rewardInPeriodCount
         }
     },
 
