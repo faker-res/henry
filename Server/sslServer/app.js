@@ -22,7 +22,7 @@ const uh = crypto.createHash('md5').update(env.redisUrl).digest("hex");
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
 http.createServer(function (req, res) {
-    console.log(`${req.method} ${req.url}`);
+    console.log(`${req.method} ${req.url} from ${getIpAddress(req)}`);
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Request-Method', '*');
@@ -399,6 +399,13 @@ function validateHash (hashed, plain) {
     let hashingPlain = crypto.createHash('md5').update(plain).digest('hex');
 
     return hashed === hashingPlain;
+}
+
+function getIpAddress (req) {
+    return (req.headers['x-forwarded-for'] || '').split(',').pop() ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress
 }
 
 console.log(`Server listening on port ${port}`);
