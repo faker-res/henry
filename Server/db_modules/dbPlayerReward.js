@@ -6160,6 +6160,35 @@ let dbPlayerReward = {
                 requiredPhoneNumber = Boolean(playerData.phoneNumber);
             }
             promArr.push(requiredPhoneNumber);
+
+            let yerTopupProbabilityProm = Promise.resolve(true);
+
+            // randomRewardMode: 0 is possibility; 1 is topupCondition
+            if (eventData.condition.randomRewardMode === '1') {
+                let yerTime = dbUtility.getYesterdaySGTime();
+                let yerTopupAmount = 0;
+
+                // get player total top up from yesterday
+                let query = {
+                    playerId: playerData._id,
+                    platformId: playerData.platform._id,
+                    createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
+                };
+
+                yerTopupProbabilityProm = dbConfig.collection_playerTopUpRecord.find(query).lean().exec().then(
+                    topup => {
+                        let yerTopupProbability = 0;
+                        if (topup && topup.length) {
+                            topup.forEach(data => {
+                                yerTopupAmount += data.amount;
+                            });
+                            yerTopupProbability = yerTopupAmount / topup.length;
+                        }
+                        return yerTopupProbability;
+                    }
+                )
+            }
+            promArr.push(yerTopupProbabilityProm);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
@@ -7695,6 +7724,7 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let presetList = rewardSpecificData[5];
                         matchRequiredPhoneNumber = rewardSpecificData[6];
+                        let yerTopupProbability = rewardSpecificData[7];
                         let gottenRewardInInterval = periodProps;
 
                         let participationTimes = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
@@ -7882,6 +7912,41 @@ let dbPlayerReward = {
                         // random pick
                         else{
 
+                        }
+
+                        // randomRewardMode: 0 is possibility; 1 is topupCondition
+                        if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
+                            selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
+
+                            let filterTopupCondition = [];
+
+                            selectedRewardParam.forEach( param => {
+                                if (param.topupOperator && param.topupValue) {
+                                    switch (param.topupOperator) {
+                                        case '<=':
+                                            if (yerTopupProbability <= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '>=':
+                                            if (yerTopupProbability >= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '=':
+                                            if (yerTopupProbability === param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case 'range':
+                                            if (yerTopupProbability >= param.topupValue && yerTopupProbability <= param.topupValueTwo) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                            selectedRewardParam = filterTopupCondition;
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
