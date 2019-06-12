@@ -71,7 +71,69 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==4", value='{{v._id}}') {{v.name}}
 
 .full-width-input-block
-    label
+    label {{ "htmlTextColor" | translate}}
     div.inline-block
-        button.btn.btn-success(ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
-        span(style='display:inline-block;padding-left: 5px;') {{vm.urlConfigShowMessage | translate}}
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.htmlTextColor")
+
+.full-width-input-block
+    label {{ "textColor1" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.textColor1")
+
+.full-width-input-block
+    label {{ "textColor2" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.textColor2")
+
+.full-width-input-block
+    label {{ "mainNavTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.mainNavTextColor")
+
+.full-width-input-block
+    label {{ "mainNavActiveTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.mainNavActiveTextColor")
+
+.full-width-input-block
+    label {{ "mainNavActiveBorderColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.mainNavActiveBorderColor")
+
+.full-width-input-block
+    label {{ "navTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.navTextColor")
+
+.full-width-input-block
+    label {{ "navActiveTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.navActiveTextColor")
+
+.full-width-input-block
+    label {{ "formBgColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.formBgColor")
+
+.full-width-input-block
+    label {{ "formLabelTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.formLabelTextColor")
+
+.full-width-input-block
+    label {{ "formInputTextColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.formInputTextColor")
+
+.full-width-input-block
+    label {{ "formBorderBottomColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.formBorderBottomColor")
+
+.full-width-input-block()
+    button.btn.btn-success(style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
+    span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
+
+
+
+

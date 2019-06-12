@@ -22344,7 +22344,39 @@ define(['js/app'], function (myApp) {
                             });
                         }
                         else {
-
+                            vm.rewardMainParamTable.push({
+                                header: vm.rewardMainParam.rewardParam,
+                                value: value
+                            });
+                        }
+                    }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerTopUpReturnGroup') {
+                        if (vm.isPlayerLevelDiff){
+                            if (vm.rewardMainParam && vm.rewardMainParam.rewardParam) {
+                                let tempRewardParam = vm.rewardMainParam.rewardParam;
+                                vm.rewardMainParam.rewardParam = {};
+                                let count = 0;
+                                for(let key in tempRewardParam){
+                                    count += 1;
+                                    if (count == 4){
+                                        vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval = {type: "number", des: "Reward limit in interval"};
+                                    }
+                                    vm.rewardMainParam.rewardParam[key] = tempRewardParam[key];
+                                }
+                            }
+                            vm.allPlayerLvl.forEach((e, idx) => {
+                                let value = [{}];
+                                vm.rewardMainParamTable.push({
+                                    header: vm.rewardMainParam.rewardParam,
+                                    value: value
+                                });
+                            });
+                        }
+                        else {
+                            if (vm.rewardMainParam && vm.rewardMainParam.rewardParam && vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval) {
+                                delete vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval
+                            }
+                            let value = [{}];
                             vm.rewardMainParamTable.push({
                                 header: vm.rewardMainParam.rewardParam,
                                 value: value
@@ -22538,7 +22570,8 @@ define(['js/app'], function (myApp) {
                             value: prizeValue
                         });
                         vm.repackageRandomRewardGroup();
-                    } else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
+                    }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
 
                         vm.remainMainParamTableFestival = {};
                         if (vm.isPlayerLevelDiff){
@@ -22748,7 +22781,7 @@ define(['js/app'], function (myApp) {
                                 });
 
                             });
-                        } else {
+                        }else {
                             let value = [{}];
                             if (vm.isRandomReward) {
                                 value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
@@ -25310,7 +25343,19 @@ define(['js/app'], function (myApp) {
                     websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
                     pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
                     h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
-                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null
+                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null,
+                    htmlTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.htmlTextColor ? vm.frontEndUrlConfig.htmlTextColor : null,
+                    textColor1: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor1 ? vm.frontEndUrlConfig.textColor1 : null,
+                    textColor2: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor2 ? vm.frontEndUrlConfig.textColor2 : null,
+                    mainNavTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavTextColor ? vm.frontEndUrlConfig.mainNavTextColor : null,
+                    mainNavActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveTextColor ? vm.frontEndUrlConfig.mainNavActiveTextColor : null,
+                    mainNavActiveBorderColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveBorderColor ? vm.frontEndUrlConfig.mainNavActiveBorderColor : null,
+                    navTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navTextColor ? vm.frontEndUrlConfig.navTextColor : null,
+                    navActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navActiveTextColor ? vm.frontEndUrlConfig.navActiveTextColor : null,
+                    formBgColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBgColor ? vm.frontEndUrlConfig.formBgColor : null,
+                    formLabelTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formLabelTextColor ? vm.frontEndUrlConfig.formLabelTextColor : null,
+                    formInputTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formInputTextColor ? vm.frontEndUrlConfig.formInputTextColor : null,
+                    formBorderBottomColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBorderBottomColor ? vm.frontEndUrlConfig.formBorderBottomColor : null,
                 };
 
                 return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {

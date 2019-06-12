@@ -21,7 +21,7 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPartnerCommission = {
-    calculatePartnerCommission: (partnerObjId, startTime, endTime) => {
+    calculatePartnerCommission: (partnerObjId, startTime, endTime, commissionType) => {
         let platform, partner;
         // let players = [];
         let providerGroups = [];
@@ -81,6 +81,8 @@ const dbPartnerCommission = {
                         parentChain.push(partnerChain[i]);
                     }
 
+                    mainPartner.commissionType = commissionType || mainPartner.commissionType;
+                    console.log('mainPartner.commissionType', mainPartner.commissionType)
                     if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
                         return Promise.reject({message: "Please select a commission type"});
                     }
@@ -258,7 +260,7 @@ const dbPartnerCommission = {
                         nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
 
-                    // if it is bonus based, calculate the nett parent commisssion as well
+                    // if it is bonus based, calculate the nett parent commission as well
                     parentChain.map(parent => {
                         let parentComm = parentCommissionDetail[String(parent._id)];
                         parentComm.grossCommission = parentComm.grossCommission || 0;
@@ -318,9 +320,9 @@ const dbPartnerCommission = {
 
     },
 
-    generateCurrentPartnersCommissionDetail: function (partnerObjIds, startTime, endTime, commissionType) {
+    generateCurrentPartnersCommissionDetail: async function (partnerObjIds, startTime, endTime, commissionType) {
         let proms = [];
-        let parentPartnerCommissionDetail, downLinesRawCommissionDetail;
+        // let parentPartnerCommissionDetail, downLinesRawCommissionDetail;
 
         if (!startTime) {
             commissionType = commissionType || constPartnerCommissionType.WEEKLY_CONSUMPTION;
@@ -329,69 +331,53 @@ const dbPartnerCommission = {
             endTime = defaultTime.endTime;
         }
 
-        partnerObjIds.map(partnerObjId => {
-            let commissionDetail = {};
-            let prom = dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime).then(
-                commissionData => {
-                    commissionDetail = commissionData;
-                    return getPreviousThreeDetailIfExist(partnerObjId, commissionData.commissionType, commissionData.startTime);
-                }
-            ).then(
-                pastData => {
-                    commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
-                    commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
+        for (let i = 0; i < partnerObjIds.length; i++) {
+            let partnerObjId = partnerObjIds[i];
+            let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType);
 
-                    commissionDetail.calcTime = new Date();
-                    parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail;
-                    delete commissionDetail.parentPartnerCommissionDetail;
-                    downLinesRawCommissionDetail = commissionDetail.downLinesRawCommissionDetail;
-                    delete commissionDetail.downLinesRawCommissionDetail;
+            let pastData = await getPreviousThreeDetailIfExist(partnerObjId, commissionDetail.commissionType, commissionDetail.startTime);
 
-                    return dbconfig.collection_commCalc.findOneAndUpdate({partner: ObjectId(partnerObjId), commissionType: Number(commissionType), startTime: new Date(startTime)}, commissionDetail, {new: true, upsert: true}).lean();
-                }
-            ).then(
-                commCalc => {
-                    if (!commCalc || !commCalc._id) {
-                        return false;
-                    }
+            commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
+            commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
 
-                    let parentCalcProms = [];
+            commissionDetail.calcTime = new Date();
+            let parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail;
+            delete commissionDetail.parentPartnerCommissionDetail;
+            let downLinesRawCommissionDetail = commissionDetail.downLinesRawCommissionDetail;
+            delete commissionDetail.downLinesRawCommissionDetail;
 
-                    for (let parentObjId in parentPartnerCommissionDetail) {
-                        if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
-                            let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
-                            commCalcParentData.commCalc = commCalc._id;
+            let commCalc = await dbconfig.collection_commCalc.findOneAndUpdate({partner: ObjectId(partnerObjId), commissionType: Number(commissionType), startTime: new Date(startTime)}, commissionDetail, {new: true, upsert: true}).lean();
 
-                            let prom = dbconfig.collection_commCalcParent.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(commCalc.partner), startTime: new Date(commCalc.startTime)}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
-                                console.log("commCalcParent save failed", commCalcParentData, err);
-                                return errorUtils.reportError(err);
-                            });
-                            parentCalcProms.push(prom);
-                        }
-                    }
+            if (!commCalc || !commCalc._id) {
+                return false;
+            }
 
-                    let playerCalcProms = downLinesRawCommissionDetail.map(playerCalc => {
-                        playerCalc.commCalc = commCalc._id;
-                        return dbconfig.collection_commCalcPlayer.findOneAndUpdate({commCalc: ObjectId(commCalc._id), name: String(playerCalc.name)}, playerCalc, {upsert: true, new: true}).lean().catch(err => {
-                            console.log("commCalcPlayer save failed", playerCalc, err);
-                            return errorUtils.reportError(err);
-                        });
+            for (let parentObjId in parentPartnerCommissionDetail) {
+                if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
+                    let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
+                    commCalcParentData.commCalc = commCalc._id;
+
+                    await dbconfig.collection_commCalcParent.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(commCalc.partner), startTime: new Date(commCalc.startTime)}, commCalcParentData, {upsert: true, new: true}).lean().catch(err => {
+                        console.log("commCalcParent save failed", commCalcParentData, err);
+                        return errorUtils.reportError(err);
                     });
+                }
+            }
 
-                    return Promise.all([Promise.all(parentCalcProms), Promise.all(playerCalcProms)]);
-                }
-            ).then(
-                () => {
-                    commissionDetail.parentPartnerCommissionDetail = parentPartnerCommissionDetail;
-                    commissionDetail.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
-                    return commissionDetail;
-                }
-            ).catch(err => {
-                console.log('commCalc failure', err);
-                return errorUtils.reportError(err);
-            });
-            proms.push(prom);
-        });
+            for (let j = 0; j < downLinesRawCommissionDetail.length; j++) {
+                let playerCalc = downLinesRawCommissionDetail[j];
+                playerCalc.commCalc = commCalc._id;
+                await dbconfig.collection_commCalcPlayer.findOneAndUpdate({commCalc: ObjectId(commCalc._id), name: String(playerCalc.name)}, playerCalc, {upsert: true, new: true}).lean().catch(err => {
+                    console.log("commCalcPlayer save failed", playerCalc, err);
+                    return errorUtils.reportError(err);
+                });
+            }
+
+            commissionDetail.parentPartnerCommissionDetail = parentPartnerCommissionDetail;
+            commissionDetail.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
+
+            proms.push(Promise.resolve(commissionDetail));
+        }
 
         return Promise.all(proms);
     },

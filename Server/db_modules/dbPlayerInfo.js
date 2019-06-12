@@ -5507,8 +5507,8 @@ let dbPlayerInfo = {
             return dbconfig.collection_rewardTaskGroup.find({
                 platformId: thisPlayer.platform,
                 playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
-            }).then(
+                status: constRewardTaskStatus.STARTED
+            }).lean().then(
                 rewardGroupData => {
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
@@ -5664,19 +5664,16 @@ let dbPlayerInfo = {
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
-
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
@@ -18351,13 +18348,7 @@ let dbPlayerInfo = {
                     );
                     console.log("LH check player report summary 5");
                     if (Object.keys(sortCol).length > 0) {
-                        finalPlayerReportSummaryData.sort(function (a, b) {
-                            if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
-                                return 1 * sortCol[Object.keys(sortCol)[0]];
-                            } else {
-                                return -1 * sortCol[Object.keys(sortCol)[0]];
-                            }
-                        });
+                        finalPlayerReportSummaryData.sort((a, b) => sortBySortCol(a, b, sortCol));
                     }
                     else {
                         finalPlayerReportSummaryData.sort(function (a, b) {
@@ -18368,31 +18359,7 @@ let dbPlayerInfo = {
                             }
                         });
                     }
-                    console.log("LH check player report summary 6");
-                    //handle sum of field here
-                    for (let z = 0; z < finalPlayerReportSummaryData.length; z++) {
-                        resultSum.manualTopUpAmount += finalPlayerReportSummaryData[z].manualTopUpAmount;
-                        resultSum.weChatTopUpAmount += finalPlayerReportSummaryData[z].weChatTopUpAmount;
-                        resultSum.aliPayTopUpAmount += finalPlayerReportSummaryData[z].aliPayTopUpAmount;
-                        resultSum.onlineTopUpAmount += finalPlayerReportSummaryData[z].onlineTopUpAmount;
-                        resultSum.topUpTimes += finalPlayerReportSummaryData[z].topUpTimes;
-                        resultSum.topUpAmount += finalPlayerReportSummaryData[z].topUpAmount;
-                        resultSum.bonusTimes += finalPlayerReportSummaryData[z].bonusTimes;
-                        resultSum.bonusAmount += finalPlayerReportSummaryData[z].bonusAmount;
-                        resultSum.rewardAmount += finalPlayerReportSummaryData[z].rewardAmount;
-                        resultSum.consumptionReturnAmount += finalPlayerReportSummaryData[z].consumptionReturnAmount;
-                        resultSum.consumptionTimes += finalPlayerReportSummaryData[z].consumptionTimes;
-                        resultSum.validConsumptionAmount += finalPlayerReportSummaryData[z].validConsumptionAmount;
-                        resultSum.consumptionBonusAmount += finalPlayerReportSummaryData[z].consumptionBonusAmount;
-                        // resultSum.profit += (finalPlayerReportSummaryData[z].consumptionBonusAmount / finalPlayerReportSummaryData[z].validConsumptionAmount * -100).toFixed(2) / 1;
-                        resultSum.consumptionAmount += playerReportSummaryData[z].consumptionAmount;
-                        if (finalPlayerReportSummaryData[z].totalPlatformFeeEstimate) {
-                            resultSum.totalPlatformFeeEstimate += finalPlayerReportSummaryData[z].totalPlatformFeeEstimate;
-                        }
-                        resultSum.totalOnlineTopUpFee += finalPlayerReportSummaryData[z].totalOnlineTopUpFee;
-                    }
-                    resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
-                    console.log("LH check player report summary 7");
+
                     let outputResult = [];
 
                     for (let i = 0, len = limit; i < len; i++) {
@@ -18404,24 +18371,7 @@ let dbPlayerInfo = {
                     return {
                         data: [],
                         size: 0,
-                        total: {aliPayTopUpAmount: 0,
-                            bonusAmount: 0,
-                            bonusTimes: 0,
-                            consumptionAmount: 0,
-                            consumptionBonusAmount: 0,
-                            consumptionReturnAmount: 0,
-                            consumptionTimes: 0,
-                            manualTopUpAmount: 0,
-                            onlineTopUpAmount: 0,
-                            profit: null,
-                            rewardAmount: 0,
-                            topUpAmount: 0,
-                            topUpTimes: 0,
-                            totalOnlineTopUpFee: 0,
-                            totalPlatformFeeEstimate: 0,
-                            validConsumptionAmount: 0,
-                            weChatTopUpAmount: 0
-                        }
+                        total: resultSum
                     }
                 }
 
@@ -18490,31 +18440,65 @@ let dbPlayerInfo = {
                     )
                 }
                 console.log("LH check player report summary 9");
-                if(twoDaysPlayerReportData && twoDaysPlayerReportData.total){
-                    returnedObj.total.aliPayTopUpAmount += twoDaysPlayerReportData.total.aliPayTopUpAmount || 0;
-                    returnedObj.total.bonusAmount += twoDaysPlayerReportData.total.bonusAmount || 0;
-                    returnedObj.total.bonusTimes += twoDaysPlayerReportData.total.bonusTimes || 0;
-                    returnedObj.total.consumptionAmount += twoDaysPlayerReportData.total.consumptionAmount || 0;
-                    returnedObj.total.consumptionBonusAmount += twoDaysPlayerReportData.total.consumptionBonusAmount || 0;
-                    returnedObj.total.consumptionReturnAmount += twoDaysPlayerReportData.total.consumptionReturnAmount || 0;
-                    returnedObj.total.consumptionTimes += twoDaysPlayerReportData.total.consumptionTimes || 0;
-                    returnedObj.total.manualTopUpAmount += twoDaysPlayerReportData.total.manualTopUpAmount || 0;
-                    returnedObj.total.onlineTopUpAmount += twoDaysPlayerReportData.total.onlineTopUpAmount || 0;
-                    returnedObj.total.profit += twoDaysPlayerReportData.total.profit || 0;
-                    returnedObj.total.rewardAmount += twoDaysPlayerReportData.total.rewardAmount || 0;
-                    returnedObj.total.topUpAmount += twoDaysPlayerReportData.total.topUpAmount || 0;
-                    returnedObj.total.topUpTimes += twoDaysPlayerReportData.total.topUpTimes || 0;
-                    returnedObj.total.totalOnlineTopUpFee += twoDaysPlayerReportData.total.totalOnlineTopUpFee || 0;
-                    returnedObj.total.totalPlatformFeeEstimate += twoDaysPlayerReportData.total.totalPlatformFeeEstimate || 0;
-                    returnedObj.total.validConsumptionAmount += twoDaysPlayerReportData.total.validConsumptionAmount || 0;
-                    returnedObj.total.weChatTopUpAmount += twoDaysPlayerReportData.total.weChatTopUpAmount || 0;
-                }
+                // if(twoDaysPlayerReportData && twoDaysPlayerReportData.total){
+                //     returnedObj.total.aliPayTopUpAmount += twoDaysPlayerReportData.total.aliPayTopUpAmount || 0;
+                //     returnedObj.total.bonusAmount += twoDaysPlayerReportData.total.bonusAmount || 0;
+                //     returnedObj.total.bonusTimes += twoDaysPlayerReportData.total.bonusTimes || 0;
+                //     returnedObj.total.consumptionAmount += twoDaysPlayerReportData.total.consumptionAmount || 0;
+                //     returnedObj.total.consumptionBonusAmount += twoDaysPlayerReportData.total.consumptionBonusAmount || 0;
+                //     returnedObj.total.consumptionReturnAmount += twoDaysPlayerReportData.total.consumptionReturnAmount || 0;
+                //     returnedObj.total.consumptionTimes += twoDaysPlayerReportData.total.consumptionTimes || 0;
+                //     returnedObj.total.manualTopUpAmount += twoDaysPlayerReportData.total.manualTopUpAmount || 0;
+                //     returnedObj.total.onlineTopUpAmount += twoDaysPlayerReportData.total.onlineTopUpAmount || 0;
+                //     returnedObj.total.profit += twoDaysPlayerReportData.total.profit || 0;
+                //     returnedObj.total.rewardAmount += twoDaysPlayerReportData.total.rewardAmount || 0;
+                //     returnedObj.total.topUpAmount += twoDaysPlayerReportData.total.topUpAmount || 0;
+                //     returnedObj.total.topUpTimes += twoDaysPlayerReportData.total.topUpTimes || 0;
+                //     returnedObj.total.totalOnlineTopUpFee += twoDaysPlayerReportData.total.totalOnlineTopUpFee || 0;
+                //     returnedObj.total.totalPlatformFeeEstimate += twoDaysPlayerReportData.total.totalPlatformFeeEstimate || 0;
+                //     returnedObj.total.validConsumptionAmount += twoDaysPlayerReportData.total.validConsumptionAmount || 0;
+                //     returnedObj.total.weChatTopUpAmount += twoDaysPlayerReportData.total.weChatTopUpAmount || 0;
+                // }
+
+
+
+                // Slice array to input page amount
+                returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
+                returnedObj.data = returnedObj.data.slice(0, limit);
 
                 returnedObj.size = returnedObj.data.length;
+
+                returnedObj.data.forEach(el => {
+                    returnedObj.total.aliPayTopUpAmount += el.aliPayTopUpAmount || 0;
+                    returnedObj.total.bonusAmount += el.bonusAmount || 0;
+                    returnedObj.total.bonusTimes += el.bonusTimes || 0;
+                    returnedObj.total.consumptionAmount += el.consumptionAmount || 0;
+                    returnedObj.total.consumptionBonusAmount += el.consumptionBonusAmount || 0;
+                    returnedObj.total.consumptionReturnAmount += el.consumptionReturnAmount || 0;
+                    returnedObj.total.consumptionTimes += el.consumptionTimes || 0;
+                    returnedObj.total.manualTopUpAmount += el.manualTopUpAmount || 0;
+                    returnedObj.total.onlineTopUpAmount += el.onlineTopUpAmount || 0;
+                    returnedObj.total.profit += el.profit || 0;
+                    returnedObj.total.rewardAmount += el.rewardAmount || 0;
+                    returnedObj.total.topUpAmount += el.topUpAmount || 0;
+                    returnedObj.total.topUpTimes += el.topUpTimes || 0;
+                    returnedObj.total.totalOnlineTopUpFee += el.totalOnlineTopUpFee || 0;
+                    returnedObj.total.totalPlatformFeeEstimate += el.totalPlatformFeeEstimate || 0;
+                    returnedObj.total.validConsumptionAmount += el.validConsumptionAmount || 0;
+                    returnedObj.total.weChatTopUpAmount += el.weChatTopUpAmount || 0;
+                });
 
                 return returnedObj;
             }
         );
+
+        function sortBySortCol (a, b, sortCol) {
+            if (a[Object.keys(sortCol)[0]] > b[Object.keys(sortCol)[0]]) {
+                return 1 * sortCol[Object.keys(sortCol)[0]];
+            } else {
+                return -1 * sortCol[Object.keys(sortCol)[0]];
+            }
+        }
     },
 
     getPlayerDepositAnalysisReport: function (platformObjId, query, index, limit, sortCol, dailyTotalDeposit, numberOfDays) {

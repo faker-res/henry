@@ -3858,7 +3858,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList,
+                platformList: vm.paymentMonitorTotalQuery.platformList ? vm.paymentMonitorTotalQuery.platformList : vm.platformByAdminId.map(item => item._id),
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
                 currentPlatformId: vm.selectedPlatform._id,
                 failCount: vm.paymentMonitorTotalQuery.failCount
@@ -3901,8 +3901,8 @@ define(['js/app'], function (myApp) {
                                     item.playerCommonTopUpCount$ = item.$playerCurrentCommonTopUpCount;
                                     item.status$ = $translate(item.status);
                                     item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                                    item.website = item && item.data && item.data.platform && item.data.platformId ?
-                                        item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
+                                    item.website = item && item.data && item.data.platform && item.data.platformId && item.data.platformId.name ?
+                                        item.data.platform + "." + item.data.platformId.name : "";
 
                                     if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
                                         let msgSplit = item.data.msg.split(" 单号:");
@@ -3992,7 +3992,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorTotalQuery.merchantNo,
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorTotalQuery.platformList,
+                platformList: vm.paymentMonitorTotalQuery.platformList ? vm.paymentMonitorTotalQuery.platformList : vm.platformByAdminId.map(item => item._id),
                 index: vm.paymentMonitorTotalCompletedQuery.index,
                 limit: vm.paymentMonitorTotalCompletedQuery.limit || 10,
                 sortCol: vm.paymentMonitorTotalCompletedQuery.sortCol,
