@@ -7562,7 +7562,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
+                                message: "不符合存款要求，请存款后参与。"
                             });
                         }
 
@@ -7733,7 +7733,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
+                                message: "不符合存款要求，请存款后参与。"
                             });
                         }
 
