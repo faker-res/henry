@@ -408,6 +408,88 @@ const dbPartnerCommissionConfig = {
 
     },
 
+    checkIsCustomizeAllCommValid: async function (partnerObjId, oldConfigArr, newConfigArr) {
+        let isUpdateChild = false;
+        let compareKey = ["activePlayerValueFrom", "activePlayerValueTo", "playerConsumptionAmountFrom", "playerConsumptionAmountTo"];
+        if (oldConfigArr.length != newConfigArr.length) {
+            isUpdateChild = true;
+        } else {
+            if (oldConfigArr.length && newConfigArr.length) {
+                if (oldConfigArr.length != newConfigArr.length) {
+                    isUpdateChild = true;
+                } else {
+                    for (let i = 0; i < newConfigArr.length; i++) {
+                        let oldCommSett = oldConfigArr[i].commissionSetting;
+                        let newCommSett = newConfigArr[i].commissionSetting;
+                        if (oldCommSett && newCommSett) {
+                            if (oldCommSett.length != newCommSett.length) {
+                                isUpdateChild = true;
+                                break;
+                            } else {
+                                for (let j = 0; j < newCommSett.length; j++) {
+                                    for (let key in newCommSett[j]) {
+                                        if (compareKey.includes(String(key)) && oldCommSett[j][key] != newCommSett[j][key]) {
+                                            isUpdateChild = true;
+                                            break;
+                                        }
+                                    }
+                                    if (isUpdateChild) {
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {
+                            isUpdateChild = true;
+                            break;
+                        }
+                        if (isUpdateChild) {
+                            break;
+                        }
+                    }
+                }
+
+            } else {
+                // skip update, no changes has made
+                return Promise.reject({name: "DataError", message: "Invalid update data"});
+            }
+        }
+
+        if (isUpdateChild) {
+            return Promise.resolve({isUpdateChild: isUpdateChild});
+        }
+
+        let partnerObj = await dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
+            path: "parent",
+            model: dbconfig.collection_partner,
+            select: "parent"
+        }).lean();
+
+        if (!partnerObj) {
+            return Promise.reject({name: "DataError", message: "Cannot find partner"});
+        }
+
+        let parentObjId;
+        let isParentMainPartner = true;
+        if (partnerObj.parent) {
+            if (partnerObj.parent.parent) {
+                isParentMainPartner = false;
+            }
+            if (partnerObj.parent._id) {
+                parentObjId = partnerObj.parent._id;
+            }
+        }
+        return dbPartnerCommissionConfig.checkAllProvidersIsCommRateValid(partnerObjId, oldConfigArr, newConfigArr, isParentMainPartner, parentObjId).then(
+            data => {
+                if (data && data.isUpdateChild) {
+                    isUpdateChild = true;
+                }
+
+                return {isUpdateChild: isUpdateChild};
+            }
+        );
+
+    },
+
 
     /**
      *
@@ -419,7 +501,7 @@ const dbPartnerCommissionConfig = {
      * @returns {Promise}
      */
     checkIsCommRateValid: async function (partnerObjId, oldConfig, newConfig, isParentMainPartner, parentObjId, childPartnerObjs) {
-        if (!oldConfig.platform || !oldConfig.hasOwnProperty("provider")) { // null provider = default commission group
+        if (!oldConfig.platform || !oldConfig.hasOwnProperty("provider") || !partnerObjId) { // null provider = default commission group
             return Promise.reject({name: "DataError", message: "Invalid update data"});
         }
         let childPartner;
@@ -490,7 +572,84 @@ const dbPartnerCommissionConfig = {
                 }
             }
         }
-    }
+    },
+
+    checkIsCustomizeCommValid: async function (partnerObjId, oldConfig, newConfig) {
+        let isUpdateChild = false;
+        if (oldConfig.commissionSetting && newConfig.commissionSetting) {
+            let compareKey = ["activePlayerValueFrom", "activePlayerValueTo", "playerConsumptionAmountFrom", "playerConsumptionAmountTo"];
+            if (oldConfig.commissionSetting.length != newConfig.commissionSetting.length) {
+                isUpdateChild = true;
+            } else {
+                for (let i = 0; i < newConfig.commissionSetting.length; i++) {
+                    let oldCommSett = oldConfig.commissionSetting[i];
+                    let newCommSett = newConfig.commissionSetting[i];
+                    for (let key in newCommSett) {
+                        if (compareKey.includes(String(key)) && oldCommSett[key] != newCommSett[key]) {
+                            isUpdateChild = true;
+                            break;
+                        }
+                    }
+                    if (isUpdateChild) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (isUpdateChild) {
+            return Promise.resolve({isUpdateChild: isUpdateChild});
+        }
+
+        let partnerObj = await dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
+            path: "parent",
+            model: dbconfig.collection_partner,
+            select: "parent"
+        }).lean();
+
+        let isParentMainPartner = true;
+        let parentObjId;
+        if (!partnerObj) {
+            return Promise.reject({name: "DataError", message: "Cannot find partner"});
+        }
+        if (partnerObj.parent) {
+            if (partnerObj.parent.parent) {
+                isParentMainPartner = false;
+            }
+            if (partnerObj.parent._id) {
+                parentObjId = partnerObj.parent._id;
+            }
+        }
+
+        return dbPartnerCommissionConfig.checkIsCommRateValid(partnerObjId, oldConfig, newConfig, isParentMainPartner, parentObjId).then(
+            data => {
+                if (data && data.isUpdateChild) {
+                    isUpdateChild = true;
+                }
+
+                return {isUpdateChild: isUpdateChild};
+            }
+        );
+
+    },
+
+    getChildMainPartner: function (platformObjId, parentObjId, partnerObj) {
+        if (partnerObj && String(partnerObj._id) === String(parentObjId)) {
+            // prevent potential infinite loop
+            return partnerObj;
+        }
+
+        return dbconfig.collection_partner.findOne({_id: parentObjId, platform: platformObjId}, {partnerName: 1, parent: 1}).lean().then(
+            partner => {
+                if (partner) {
+                    if (partner.parent) {
+                        return dbPartnerCommissionConfig.getChildMainPartner(platformObjId, partner.parent, partner);
+                    }
+                }
+                return partner;
+            }
+        );
+    },
 };
 
 function clearParent (partnerObjId, platformObjId) {
@@ -523,7 +682,7 @@ async function updateDownLineCommConfig (parentObjId, platformObjId, commissionT
             if (commConfig.commissionSetting) {
                 commConfig.commissionSetting = commConfig.commissionSetting.map(commSetting => {
                     // let originalRate = commSetting.commissionRate;
-                    commSetting.commissionRate = 0.01;
+                    commSetting.commissionRate = 0;
                     // if (commSetting.commissionRate < 0) {
                     //     commSetting.commissionRate = originalRate;
                     // }
@@ -706,7 +865,7 @@ function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commis
 
 function getPartnerParentChain (parentObjId, chainArray) {
     chainArray = chainArray || [];
-    if (chainArray.includes(String(parentObjId)) || chainArray.length > 200) {
+    if (chainArray.find(chain=> String(chain._id) === String(parentObjId)) || chainArray.length > 200) {
         // prevent potential infinite loop
         return chainArray;
     }

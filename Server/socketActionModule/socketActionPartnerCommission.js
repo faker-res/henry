@@ -63,6 +63,24 @@ function socketActionPartnerCommission(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartnerCommissionConfig.resetAllPartnerCustomizedCommissionRate, [data.platformObjId, data.commissionType, data.isMultiLevel], actionName, isValidData);
         },
 
+        checkIsCustomizeCommValid: function checkIsCustomizeCommValid (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId && data.settingObjId && data.field && data.oldConfig && data.newConfig);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.checkIsCustomizeCommValid, [data.partnerObjId, data.oldConfig, data.newConfig], actionName, isValidData);
+        },
+
+        checkIsCustomizeAllCommValid: function checkIsCustomizeAllCommValid (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId && data.oldConfigArr && data.newConfigArr);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.checkIsCustomizeAllCommValid, [data.partnerObjId, data.oldConfigArr, data.newConfigArr], actionName, isValidData);
+        },
+
+        getChildMainPartner: function getChildMainPartner (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.parentObjId);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getChildMainPartner, [data.platformObjId, data.parentObjId], actionName, isValidData);
+        },
+
     };
 
     socketActionPartnerCommission.actions = this.actions;

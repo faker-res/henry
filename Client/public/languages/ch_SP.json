@@ -5286,6 +5286,8 @@
   "Reference Proposal No.": "参考提案号",
   "Remark description": "备注说明",
   "Parent Partner(Unique)": "上级代理（唯一）",
+  "Main Partner(parent)": "总代理（一级）",
+  "Please reset the commission rate after binding": "绑定后请重新设置佣金比例",
   "Partner(Self)": "代理本人（自己）",
   "Child Partner": "下级代理",
   "Total Child Partner": "总数：",

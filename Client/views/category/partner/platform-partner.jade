@@ -1023,9 +1023,18 @@ p
                                 th {{'Remark description' | translate}}
                         tbody
                             tr
+                                td(colspan=2) {{'Main Partner(parent)' | translate}}
+                                td {{vm.childMainPartner || 'NONE' | translate}}
+                                td(rowspan=7, colspan=2)
+                                td.alignLeft {{'CANNOT_EDIT' | translate}}
+                            tr
+                                td(colspan=2)
+                                td ↓
+                                td
+                            tr
                                 td(colspan=2) {{'Parent Partner(Unique)' | translate}}
                                 td {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
-                                td(rowspan=5, colspan=2)
+                                //td(rowspan=5, colspan=2)
                                 td.alignLeft {{'CANNOT_EDIT' | translate}}
                             tr
                                 td(colspan=2)
@@ -1078,7 +1087,7 @@ p
                     text.text-danger {{"Please set the commission type" | translate}}
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE/CANCEL" | translate}}
-                button#editChildPartnerButton.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="vm.checkPartnerCommissionType() && !vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')") {{"EDIT" | translate}}
+                button#editChildPartnerButton.btn.btn-success.common-button(ng-click="vm.editChildPartner()"  ng-if="vm.checkPartnerCommissionType() && !vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-disabled='vm.disableEditChildPartner') {{"EDIT" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.checkPartnerCommissionType() && vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 #modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
