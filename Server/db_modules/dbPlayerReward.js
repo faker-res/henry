@@ -6138,7 +6138,6 @@ let dbPlayerReward = {
 
             // randomRewardMode: 0 is possibility; 1 is topupCondition
             if (eventData.condition.randomRewardMode === '1') {
-
                 let yerTime = dbUtility.getYesterdaySGTime();
                 let yerTopupAmount = 0;
 
