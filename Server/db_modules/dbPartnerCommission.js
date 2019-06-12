@@ -204,7 +204,8 @@ const dbPartnerCommission = {
                         let previousParentRate = 0;
                         console.log("commissionRates[groupRate.groupName].parentRatios", commissionRates[groupRate.groupName].parentRatios)
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
-                            let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
+                            // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
+                            let ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
@@ -219,8 +220,8 @@ const dbPartnerCommission = {
                                     noRate: Boolean(commissionRates[groupRate.groupName].noRate),
                                     totalConsumption: totalConsumption,
                                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
-                                    platformFee: math.chain(platformFee).divide(theLastRatio).multiply(parentRate).round(2).done(),
-                                    platformFeeRate: math.chain(platformFeeRate).divide(theLastRatio).multiply(parentRate).round(2).done(),
+                                    platformFee: math.chain(platformFee).divide(ratioSum).multiply(parentRate).round(2).done(),
+                                    platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done(),
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
                                 // if (i === 0) {
