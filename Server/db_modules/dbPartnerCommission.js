@@ -40,6 +40,7 @@ const dbPartnerCommission = {
         let parentCommissionDetail = {};
         let commissionPeriod;
         let remarks = "";
+        let totalParentGrossCommission = 0;
 
 
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean()
@@ -134,7 +135,9 @@ const dbPartnerCommission = {
                             partnerObjId: partner._id,
                             partnerName: partner.partnerName,
                             partnerRealName: partner.realName,
-                            grossCommission: 0
+                            rawCommissions: [],
+                            grossCommission: 0,
+                            platformFee: 0,
                         };
                     }
 
@@ -200,7 +203,9 @@ const dbPartnerCommission = {
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
                         let previousParentRate = 0;
+                        console.log("commissionRates[groupRate.groupName].parentRatios", commissionRates[groupRate.groupName].parentRatios)
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
+                            let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
@@ -213,15 +218,21 @@ const dbPartnerCommission = {
                                     groupId: groupRate.groupId,
                                     parentRate: parentRate,
                                     noRate: Boolean(commissionRates[groupRate.groupName].noRate),
+                                    totalConsumption: totalConsumption,
+                                    crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                                    platformFee: math.chain(platformFee).divide(theLastRatio).multiply(parentRate).round(2).done(),
+                                    platformFeeRate: math.chain(platformFeeRate).divide(theLastRatio).multiply(parentRate).round(2).done(),
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
-                                if (i === 0) {
-                                    detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
+                                // if (i === 0) {
+                                //     detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
                                     // this is done to adjust that current level of multi level commission is also given to immediate parent
                                     // if still not understand, can directly ask Huat
-                                }
+                                // }
                                 parentCommissionDetail[objId].grossCommission = parentCommissionDetail[objId].grossCommission || 0;
                                 parentCommissionDetail[objId].grossCommission += detail.amount;
+                                parentCommissionDetail[objId].platformFee += detail.platformFee;
+                                totalParentGrossCommission += detail.amount;
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
                             }
                         }
@@ -266,16 +277,26 @@ const dbPartnerCommission = {
                         parentComm.grossCommission = parentComm.grossCommission || 0;
                         parentComm.nettCommission = parentComm.grossCommission;
                         if (bonusBased && grossCommission) {
-                            parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
-                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
-                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
-                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
-                            parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(parentComm.nettCommission).divide(nettCommission).round(2).done() || 0;
+                            // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
+                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalPlatformFee = parentComm.platformFee || 0;
+                            parentComm.nettCommission = math.chain(parentComm.grossCommission)
+                                .subtract(parentComm.totalRewardFee)
+                                .subtract(parentComm.totalTopUpFee)
+                                .subtract(parentComm.totalWithdrawalFee)
+                                .subtract(parentComm.totalPlatformFee)
+                                .round(2)
+                                .done() || 0;
                             parentComm.rewardFeeRate = commRate.rateAfterRebatePromo;
                             parentComm.topUpFeeRate = commRate.rateAfterRebateTotalDeposit;
                             parentComm.withdrawalFeeRate = commRate.rateAfterRebateTotalWithdrawal;
                         }
                     });
+
+                    console.log('parentCommissionDetail', parentCommissionDetail)
 
                     let returnObj = {
                         partner: partner._id,
@@ -455,13 +476,14 @@ const dbPartnerCommission = {
             }
         ).then(
             (promsResult) => {
-                if (!partnersLeftToCalc || !partnersLeftToCalc.length) {
-                    return;
-                }
-
-                if (promsResult.length !== partnersLeftToCalc.length && partnersLeftToCalc.length <= 10) {
-                    stream = dbconfig.collection_partner.find({_id: {$in: partnersLeftToCalc}}, {_id:1}).cursor({batchSize: 100});
-                }
+                // todo :: temporally comment this for debug, reopen this back later
+                // if (!partnersLeftToCalc || !partnersLeftToCalc.length) {
+                //     return;
+                // }
+                //
+                // if (promsResult.length !== partnersLeftToCalc.length && partnersLeftToCalc.length <= 10) {
+                //     stream = dbconfig.collection_partner.find({_id: {$in: partnersLeftToCalc}}, {_id:1}).cursor({batchSize: 100});
+                // }
 
                 let balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
