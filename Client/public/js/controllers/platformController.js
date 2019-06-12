@@ -23730,6 +23730,42 @@ define(['js/app'], function (myApp) {
                         })
                     }
                 })
+                vm.rewardMainParamTablePromoCode1.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode2.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode3.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
             }
 
             vm.createRewardEventGroup = function () {
