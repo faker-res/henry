@@ -83,7 +83,6 @@ const dbPartnerCommission = {
                     }
 
                     mainPartner.commissionType = commissionType || mainPartner.commissionType;
-                    console.log('mainPartner.commissionType', mainPartner.commissionType)
                     if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
                         return Promise.reject({message: "Please select a commission type"});
                     }
@@ -232,7 +231,8 @@ const dbPartnerCommission = {
                                 parentCommissionDetail[objId].grossCommission = parentCommissionDetail[objId].grossCommission || 0;
                                 parentCommissionDetail[objId].grossCommission += detail.amount;
                                 parentCommissionDetail[objId].platformFee += detail.platformFee;
-                                totalParentGrossCommission += detail.amount;
+                                totalParentGrossCommission += detail.amount || 0;
+                                console.log('totalParentGrossCommission', totalParentGrossCommission, 'detail.amount', detail.amount)
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
                             }
                         }
@@ -296,8 +296,6 @@ const dbPartnerCommission = {
                             parentComm.withdrawalFeeRate = commRate.rateAfterRebateTotalWithdrawal;
                         }
                     });
-
-                    console.log('parentCommissionDetail', parentCommissionDetail)
 
                     let returnObj = {
                         partner: partner._id,
