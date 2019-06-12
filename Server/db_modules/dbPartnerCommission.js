@@ -278,10 +278,10 @@ const dbPartnerCommission = {
                         parentComm.nettCommission = parentComm.grossCommission;
                         if (bonusBased && grossCommission) {
                             // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
-                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
-                            console.log('pppp', partner.partnerName, totalRewardFee, grossCommission, totalParentGrossCommission, parentComm.totalRewardFee)
-                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
-                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            console.log('pppp', partner.partnerName, totalRewardFee, parentComm.grossCommission, totalParentGrossCommission, parentComm.totalRewardFee)
+                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             parentComm.totalPlatformFee = parentComm.platformFee || 0;
                             parentComm.nettCommission = math.chain(parentComm.grossCommission)
