@@ -279,6 +279,7 @@ const dbPartnerCommission = {
                         if (bonusBased && grossCommission) {
                             // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
                             parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            console.log('pppp', partner.partnerName, totalRewardFee, grossCommission, totalParentGrossCommission, parentComm.totalRewardFee)
                             parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
