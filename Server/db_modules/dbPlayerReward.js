@@ -6335,8 +6335,8 @@ let dbPlayerReward = {
                     );
 
                     let totalTopupMatchQuery = {
-                        'data.playerName': playerData.name,
-                        'data.platformId': playerData.platform._id,
+                        playerId: playerData._id,
+                        platformId: playerData.platform._id,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
                     };
                     if (intervalTime) {
@@ -6350,14 +6350,14 @@ let dbPlayerReward = {
                     console.log("checking totalTopupMatchQuery", totalTopupMatchQuery)
 
 
-                    let totalTopupProm = dbConfig.collection_proposal.aggregate(
+                    let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: totalTopupMatchQuery
                         },
                         {
                             $group: {
-                                _id: null,
-                                amount: {$sum: "$data.amount"}
+                                _id: {playerId: "$playerId"},
+                                amount: {$sum: "$amount"}
                             }
                         }
                     ).then(
