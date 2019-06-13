@@ -23710,7 +23710,20 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.editTopupConditionInterval = function () {
+            vm.editTopupConditionInterval = function (currentValue, index, rewardType) {
+                vm.topupConditionInterval = {};
+                if (currentValue && currentValue.id) {
+                    vm.topupConditionInterval.rowId = currentValue.id;
+                }
+                if (currentValue && currentValue.topupOperator && currentValue.topupValue) {
+                    vm.topupConditionInterval.topupOperator = currentValue.topupOperator;
+                    vm.topupConditionInterval.topupValue = currentValue.topupValue;
+                    vm.topupConditionInterval.topupValueTwo = currentValue.topupValueTwo || null;
+                }
+                $("#modalEditTopupConditionInterval").modal('show');
+            }
+
+            vm.updateTopupConditionInterval = function () {
                 if (vm.topupConditionInterval.topupOperator && vm.topupConditionInterval.topupValue) {
                     if (vm.topupConditionInterval.topupValueTwo) {
                         vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupValue + '~' + vm.topupConditionInterval.topupValueTwo;

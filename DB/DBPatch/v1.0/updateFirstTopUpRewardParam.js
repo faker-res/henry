@@ -1506,7 +1506,7 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
-                    topupCondition: {type: "text", des: "TOP_UP_CONDITION_INTERVAL"},
+                    topupCondition: {type: "button", des: "TOP_UP_CONDITION_INTERVAL"},
                     title: {type: "text"},
                     amount: {type: "number", des: "REWARD_AMOUNT"},
                     amountPercent: {type: "percentage", des: "REWARD_AMOUNT_PERCENT"},
