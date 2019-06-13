@@ -6364,7 +6364,9 @@ let dbPlayerReward = {
                     let totalTopupMatchQuery = {
                         'data.playerName': playerData.name,
                         'data.platformId': playerData.platform._id,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS
                     };
                     if (intervalTime) {
                         totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
