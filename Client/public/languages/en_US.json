@@ -1275,6 +1275,7 @@
   "ADD_REASON_REJECT_MULTIPLE_PROPOSAL": "Add reason to reject multiple proposal",
   "cancelRemark": "Reason to cancel proposal",
   "rejectRemark": "Reason to reject proposal",
+  "TOP_UP_CONDITION_INTERVAL": "Top up condition between interval type",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

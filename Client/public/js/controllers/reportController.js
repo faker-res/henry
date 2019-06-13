@@ -4658,7 +4658,7 @@ define(['js/app'], function (myApp) {
                     19: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                });
+                }, true);
 
                 $('#playerReportExcelTable_wrapper').hide();
                 vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
@@ -4681,7 +4681,7 @@ define(['js/app'], function (myApp) {
                     19: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                });
+                }, true);
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
                 vm.playerQuery.pageObj.init({maxCount: size}, newSearch);

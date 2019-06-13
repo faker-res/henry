@@ -120,6 +120,11 @@ define(['js/app'], function (myApp) {
                 "realPrize": 6
             };
 
+            vm.randomRewardMode = {
+                "possibility": 0,
+                "topupCondition": 1
+            };
+
             vm.festivalRewardType = {
                 "festivalType1": 1,
                 "festivalType2": 2,
@@ -2941,7 +2946,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['userInfoRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.externalUserRecordQuery.index,
                     limit: newSearch ? 10 : vm.externalUserRecordQuery.limit,
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: vm.externalUserRecordQuery.platformList,
                     sortCol: vm.externalUserRecordQuery.sortCol
                 };
 
@@ -2964,6 +2969,7 @@ define(['js/app'], function (myApp) {
                                     let numLength = item.phoneNumber.length;
                                     item.phoneNumber = item.phoneNumber.substring(0, 3) + "******" + item.phoneNumber.slice(-numLength + 9);
                                 }
+                                item.platformName = vm.allPlatformData.filter(platform=>{return platform.platformId == item.platformId})[0].name;
 
                                 return item;
                             }
@@ -2986,8 +2992,8 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {'title': $translate("PRODUCT_NAME"), data: 'platformName'},
                         {'title': $translate("User's Name"), data: 'name'},
-
                         {'title': $translate('Clicking Time'), data: 'createTime', bSortable: true},
                         {'title': $translate('phoneNumber'), data: 'phoneNumber'},
                     ],
@@ -23003,6 +23009,13 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
+                vm.topupConditionInterval = {};
+                newEntryData.id = createObjectId();
+                vm.topupConditionInterval.rowId = newEntryData.id;
+
+                if (newEntryData && newEntryData.rewardType && (newEntryData.rewardType == vm.randomRewardType.credit || newEntryData.rewardType == vm.randomRewardType.promoCodeBDeposit || newEntryData.rewardType == vm.randomRewardType.promoCodeBNoDeposit || newEntryData.rewardType == vm.randomRewardType.promoCodeC)) {
+                    $("#modalEditTopupConditionInterval").modal('show');
+                }
                 if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)){
                     if (vm.isPromoNameExist(entry.title) && !entry.templateObjId) {
                         return socketService.showErrorMessage($translate('Promo code name must be unique'));
@@ -23012,7 +23025,6 @@ define(['js/app'], function (myApp) {
                         return socketService.showErrorMessage($translate('expiredInDay has to be filled up'));
                     }
                 }
-                newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
 
@@ -23113,6 +23125,11 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (model && model.name == "topUpCountType") {
+                    delete model.value1;
+                    delete model.value2;
+                }
+
+                if (model && model.name == "topupCondition") {
                     delete model.value1;
                     delete model.value2;
                 }
@@ -23693,6 +23710,65 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.editTopupConditionInterval = function () {
+                if (vm.topupConditionInterval.topupOperator && vm.topupConditionInterval.topupValue) {
+                    if (vm.topupConditionInterval.topupValueTwo) {
+                        vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupValue + '~' + vm.topupConditionInterval.topupValueTwo;
+                    } else {
+                        vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupOperator + vm.topupConditionInterval.topupValue;
+                    }
+                }
+
+                vm.rewardMainParamTableCredit.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode1.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode2.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode3.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+            }
+
             vm.createRewardEventGroup = function () {
                 let sendData = {
                     platform: vm.filterRewardPlatform,
@@ -23804,6 +23880,13 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
+                vm.rewardMainParamTable[0].currentPossibility = 0;
+                vm.rewardMainParamTable[0].value.forEach(p => {
+                    if (p && p.possibility) {
+                        vm.rewardMainParamTable[0].currentPossibility += p.possibility
+                    }
+                });
+                vm.rewardMainParamTable[0].currentPossibility = vm.rewardMainParamTable[0].currentPossibility * 100
             }
 
             vm.repackageFestivalRewardGroup = function() {

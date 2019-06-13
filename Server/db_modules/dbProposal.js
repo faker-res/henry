@@ -47,6 +47,7 @@ const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
+var dbUtil = require("../modules/dbutility");
 
 var proposal = {
 
@@ -6202,6 +6203,13 @@ var proposal = {
             }
         ).then(
             proposals => {
+                proposals = proposals.map(item => {
+                    if(item.type.name === "ManualPlayerTopUp"){
+                        item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
+                    }
+                    return item;
+                });
+
                 return {size: proposalCount, data: proposals}
             }
         );
