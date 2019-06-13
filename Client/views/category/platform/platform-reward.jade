@@ -576,6 +576,7 @@
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, i, {rewardType: vm.randomRewardType.credit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'button'" type="button" value="{{entry.topupCondition}}" ng-model="entry[i]", ng-click='vm.editTopupConditionInterval(entry)')
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageRandomRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -593,6 +594,7 @@
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeBDeposit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'button'" type="button" value="{{entry.topupCondition}}" ng-model="entry[i]", ng-click='vm.editTopupConditionInterval(entry)')
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageRandomRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -610,6 +612,7 @@
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeBNoDeposit})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'button'" type="button" value="{{entry.topupCondition}}" ng-model="entry[i]", ng-click='vm.editTopupConditionInterval(entry)')
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageRandomRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -627,6 +630,7 @@
                                     i.fa.fa-plus(ng-click='vm.addNewRewardTypeRow(cond.value, entry, {rewardType: vm.randomRewardType.promoCodeC})' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-repeat="(i,v) in cond.header track by $index")
+                                    input(ng-if="v.type == 'button'" type="button" value="{{entry.topupCondition}}" ng-model="entry[i]", ng-click='vm.editTopupConditionInterval(entry)')
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});vm.repackageRandomRewardGroup()")
                                     select.form-control(ng-model='entry[i]', ng-if="v.type == 'select'", style='width:-webkit-fill-available;', ng-options="j as k | translate for (j,k) in v.options")
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -1006,32 +1010,32 @@
                 h4.modal-title {{"TOP_UP_CONDITION_INTERVAL" | translate}}
             .modal-body
                 .panel.panel-primary
-                        .panel-body
-                            .row
-                                .col-md-12
-                                    table
-                                        thead
-                                            tr
-                                                th
-                                                    label {{'Add Top Up Condition' | translate}}
-                                                th
-                                                    label {{'value' | translate}}
-                                        tbody
-                                            tr
-                                                td
-                                                    label {{'Top Up Range' | translate}}
-                                                td
-                                                    div
-                                                        select.form-control(ng-model="vm.topupConditionInterval.topupOperator" style="width:75px; display:inline-block;")
-                                                            option(value='>=') {{'>='}}
-                                                            option(value='=') {{'='}}
-                                                            option(value='<=') {{'<='}}
-                                                            option(value='range') {{'range' | translate}}
-                                                        div(style="width:8px;display:inline-block")
-                                                        input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValue" style="width:80px;display:inline-block")
-                                                        div.text-center(style="width:15px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'") ~
-                                                        input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValueTwo" style="width:80px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'")
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table
+                                    thead
+                                        tr
+                                            th
+                                                label {{'Add Top Up Condition' | translate}}
+                                            th
+                                                label {{'value' | translate}}
+                                    tbody
+                                        tr
+                                            td
+                                                label {{'Top Up Range' | translate}}
+                                            td
+                                                div
+                                                    select.form-control(ng-model="vm.topupConditionInterval.topupOperator" style="width:75px; display:inline-block;")
+                                                        option(value='>=') {{'>='}}
+                                                        option(value='=') {{'='}}
+                                                        option(value='<=') {{'<='}}
+                                                        option(value='range') {{'range' | translate}}
+                                                    div(style="width:8px;display:inline-block")
+                                                    input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValue" style="width:80px;display:inline-block")
+                                                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'") ~
+                                                    input.form-control(type="number" ng-model="vm.topupConditionInterval.topupValueTwo" style="width:80px;display:inline-block" ng-if="vm.topupConditionInterval.topupOperator === 'range'")
 
             .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.topupConditionInterval.topupValue', ng-click="vm.editTopupConditionInterval()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.topupConditionInterval.topupValue', ng-click="vm.updateTopupConditionInterval()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
