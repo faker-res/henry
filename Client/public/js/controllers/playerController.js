@@ -6637,7 +6637,7 @@ define(['js/app'], function (myApp) {
                 createPlayerAdvancedSearchFilters({
                     tableOptions: tableOptions,
                     filtersElement: '#playerTable-search-filters',
-                    // queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                    queryFunction: vm.updatePlayerQuery
                 });
             }
         };
@@ -22670,6 +22670,15 @@ define(['js/app'], function (myApp) {
             gameProviderSelect.multipleSelect("uncheckAll");
         };
 
+        vm.updatePlayerQuery = function (playerQuery) {
+            utilService.hideAllPopoversExcept();
+            vm.advancedQueryObj = $.extend({}, vm.advancedQueryObj, playerQuery);
+            for (let k in playerQuery) {
+                if (!playerQuery[k] || $.isEmptyObject(playerQuery)) {
+                    delete vm.advancedQueryObj[k];
+                }
+            }
+        }
 
         vm.getPlayersByAdvanceQuery = function (playerQuery) {
             // NOTE: If the response is ignoring your field filter and returning all players, please check that the
