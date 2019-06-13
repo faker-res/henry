@@ -2066,13 +2066,16 @@ var dbPlatform = {
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
 
-        var query = {
-            platformId: data.platformId,
+        let query = {
             createTime: {
                 '$gte': data.startTime,
                 '$lte': data.endTime
             },
         };
+
+        if(data && data.platformId && data.platformId.length) {
+            query.platformId = {$in: data.platformId};
+        }
 
         let returnData = {};
         returnData.totalCount = 0;

@@ -51,6 +51,8 @@ const extConfig = require('./../config/externalPayment/paymentSystems');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
+var dbUtil = require("../modules/dbutility");
+
 var dbPlayerTopUpRecord = {
     /**
      * Get top up record in a certain period of time
@@ -831,6 +833,14 @@ var dbPlayerTopUpRecord = {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
                 let totalPlayerResult = data[3] && data[3].length || 0;
+
+                topupRecords = topupRecords.map(item => {
+                    if(item.type.name === "ManualPlayerTopUp"){
+                        item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
+                    }
+                    return item;
+                });
+
 
                 if (isExport) {
                     return dbReportUtil.generateExcelFile("TopupReport", topupRecords);

@@ -3661,7 +3661,7 @@
   "RandomRewardRewardPointsSuccess": "随机抽奖优惠组-积分(成功）",
   "RandomRewardRealPrizeSuccess": "随机抽奖优惠组-物品(成功）",
   "Reward Name": "优惠奖励的名称",
-  "Not valid for the reward; Top-up is required.": "不符合领取; 需存款。",
+  "Not valid for the reward; Top-up is required.": "不符合存款要求，请存款后参与。",
   "MAIN": "主",
   "SECONDARY": "次",
   "ACTION_BUTTON": "操作",

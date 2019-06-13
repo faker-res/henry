@@ -1184,7 +1184,7 @@ var dbUtility = {
 
     encodeBankAcc: function (str) {
         str = str || '';
-        return str.substring(0, 6) + "******" + str.slice(-4);
+        return  "******" +  str.slice(-6);
     },
     encodePhoneNum: function (str) {
         str = str || '';
