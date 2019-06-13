@@ -162,7 +162,7 @@ function getPrivateKeyFromService () {
     return getKey("playerPhone.key.pem").then(
         data => {
             if (data) {
-                console.log(`RT - Got key from ${options.hostname}`, data);
+                console.log(`RT - Got key from ${options.hostname}`);
                 key = data;
                 return true;
             } else {
@@ -179,7 +179,7 @@ function getPublicKeyFromService () {
     return getKey("playerPhone.pub").then(
         data => {
             if (data) {
-                console.log(`RT - Got cert from ${options.hostname}`, data);
+                console.log(`RT - Got cert from ${options.hostname}`);
                 crt = data;
                 return true;
             } else {
@@ -196,7 +196,7 @@ function getReplPrivateKeyFromService () {
     return getKey("playerPhone.key.pem.bak").then(
         data => {
             if (data) {
-                console.log(`RT - Got repl key from ${options.hostname}`, data);
+                console.log(`RT - Got repl key from ${options.hostname}`);
                 replKey = data;
                 return true;
             } else {
@@ -212,7 +212,7 @@ function getReplPublicKeyFromService () {
     return getKey("playerPhone.pub.bak").then(
         data => {
             if (data) {
-                console.log(`RT - Got repl cert from ${options.hostname}`, data);
+                console.log(`RT - Got repl cert from ${options.hostname}`);
                 replCrt = data;
                 return true;
             } else {
