@@ -7951,6 +7951,40 @@ let dbPlayerReward = {
                             selectedRewardParam = filterTopupCondition;
                         }
 
+                        // if no top up record from yesterday, default will be the lowest range of reward param
+                        if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
+                            let lowestValue = 1;
+                            let filterTopupCondition = [];
+
+                            selectedRewardParam.forEach( param => {
+                                if (param.topupOperator && param.topupValue) {
+                                    switch (param.topupOperator) {
+                                        case '<=':
+                                            if (lowestValue <= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '>=':
+                                            if (lowestValue >= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '=':
+                                            if (lowestValue === param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case 'range':
+                                            if (lowestValue >= param.topupValue && lowestValue <= param.topupValueTwo) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                            selectedRewardParam = filterTopupCondition;
+                        }
+
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
                             selectedReward = null;
                             let rewardNameListInInterval = [];
