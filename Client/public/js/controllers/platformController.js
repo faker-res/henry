@@ -22349,7 +22349,39 @@ define(['js/app'], function (myApp) {
                             });
                         }
                         else {
-
+                            vm.rewardMainParamTable.push({
+                                header: vm.rewardMainParam.rewardParam,
+                                value: value
+                            });
+                        }
+                    }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerTopUpReturnGroup') {
+                        if (vm.isPlayerLevelDiff){
+                            if (vm.rewardMainParam && vm.rewardMainParam.rewardParam) {
+                                let tempRewardParam = vm.rewardMainParam.rewardParam;
+                                vm.rewardMainParam.rewardParam = {};
+                                let count = 0;
+                                for(let key in tempRewardParam){
+                                    count += 1;
+                                    if (count == 4){
+                                        vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval = {type: "number", des: "Reward limit in interval"};
+                                    }
+                                    vm.rewardMainParam.rewardParam[key] = tempRewardParam[key];
+                                }
+                            }
+                            vm.allPlayerLvl.forEach((e, idx) => {
+                                let value = [{}];
+                                vm.rewardMainParamTable.push({
+                                    header: vm.rewardMainParam.rewardParam,
+                                    value: value
+                                });
+                            });
+                        }
+                        else {
+                            if (vm.rewardMainParam && vm.rewardMainParam.rewardParam && vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval) {
+                                delete vm.rewardMainParam.rewardParam.playerLevelCountInRewardInterval
+                            }
+                            let value = [{}];
                             vm.rewardMainParamTable.push({
                                 header: vm.rewardMainParam.rewardParam,
                                 value: value
@@ -22543,7 +22575,8 @@ define(['js/app'], function (myApp) {
                             value: prizeValue
                         });
                         vm.repackageRandomRewardGroup();
-                    } else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
+                    }
+                    else if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerFestivalRewardGroup'){
 
                         vm.remainMainParamTableFestival = {};
                         if (vm.isPlayerLevelDiff){
@@ -22753,7 +22786,7 @@ define(['js/app'], function (myApp) {
                                 });
 
                             });
-                        } else {
+                        }else {
                             let value = [{}];
                             if (vm.isRandomReward) {
                                 value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
