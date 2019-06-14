@@ -873,6 +873,16 @@ var proposal = {
         }).lean().then(
             proposalData => {
                 if (proposalData && proposalData.data) {
+                    if (proposalData.status && (proposalData.status === constProposalStatus.SUCCESS || proposalData.status === constProposalStatus.FAIL)) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status:" + proposalData.status,
+                            data: {
+                                proposalId: proposalId
+                            }
+                        });
+                    }
+
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
