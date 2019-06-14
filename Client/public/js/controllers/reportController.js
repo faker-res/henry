@@ -4373,7 +4373,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 5000);
+            utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 10000);
             var sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
@@ -4408,7 +4408,7 @@ define(['js/app'], function (myApp) {
                                 : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
-                limit: isExport ? 10000 : (vm.playerQuery.limit || 5000),
+                limit: isExport ? 10000 : (vm.playerQuery.limit || 10000),
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
                 isExport: isExport
             };
