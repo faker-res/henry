@@ -31,6 +31,7 @@ const dbRewardUtil = require("../db_common/dbRewardUtility")
 const dbPromoCode = require('../db_modules/dbPromoCode');
 const dbProposal = require('../db_modules/dbProposal');
 const constPlayerRegistrationInterface = require("./../const/constPlayerRegistrationInterface");
+const localization = require("../modules/localization");
 
 const dbPlayerPayment = {
 
@@ -353,6 +354,9 @@ const dbPlayerPayment = {
         let topUpSystemName;
         let platformMinTopUpAmount = 0;
         let result = {};
+        let proposalData = {};
+        let newProposal = {};
+        let playerRecord = {};
 
         console.log('getMinMaxCommonTopupAmount before get player', playerId, new Date());
 
@@ -360,11 +364,12 @@ const dbPlayerPayment = {
             playerId: playerId
         }).populate({
             path: "platform", model: dbconfig.collection_platform
+        }).populate({
+            path: "playerLevel", model: dbconfig.collection_playerLevel
         }).lean().then(
             playerData => {
                 if (playerData) {
-                    // let paymentUrl = env.paymentHTTPAPIUrl;
-
+                    playerRecord = playerData;
                     topUpSystemConfig = extConfig && playerData.platform && playerData.platform.topUpSystemType && extConfig[playerData.platform.topUpSystemType];
 
                     if (topUpSystemConfig && topUpSystemConfig.name) {
@@ -375,26 +380,41 @@ const dbPlayerPayment = {
                         platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
 
-                    // if (topUpSystemConfig && topUpSystemConfig.topUpAPIAddr) {
-                    //     paymentUrl = topUpSystemConfig.topUpAPIAddr;
-                    //
-                    //     if (topUpSystemConfig.minMaxAPIAddr) {
-                    //         paymentUrl = topUpSystemConfig.minMaxAPIAddr;
-                    //     }
-                    // }
+                    proposalData.playerId = playerId;
+                    proposalData.playerObjId = playerData._id;
+                    proposalData.platformId = playerData.platform._id;
+                    if (playerData.playerLevel){
+                        proposalData.playerLevel = playerData.playerLevel._id;
+                    }
+                    proposalData.platform = playerData.platform.platformId;
+                    proposalData.playerName = playerData.name;
+                    proposalData.playerRealName = playerData.realName;
+                    proposalData.creator = {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerId
+                    };
+                    proposalData.isMinMaxError = true;
+                    proposalData.remark = constServerCode.PAYMENT_NOT_AVAILABLE + ": " + localization.localization.translate("Payment is not available, please contact customer service");
+
+                    newProposal = {
+                        creator: proposalData.creator,
+                        data: proposalData,
+                        entryType: constProposalEntryType["CLIENT"],
+                        userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                    };
+
+                    if (Number(clientType) == 1) {
+                        newProposal.inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                    }
+                    else if (Number(clientType) == 2) {
+                        newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                    }
+                    else if (Number(clientType) == 4) {
+                        newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                    }
 
                     if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
-                        // url =
-                        //     paymentUrl
-                        //     + "foundation/payMinAndMax.do?"
-                        //     + "platformId=" + playerData.platform.platformId + "&"
-                        //     + "username=" + playerData.name + "&"
-                        //     + "clientType=" + clientType;
-                        //
-                        // console.log('getMinMaxCommonTopupAmount url', url, playerId, playerData.platform.topUpSystemType, new Date());
-                        //
-                        // return rp(url);
-
                         let reqData = {
                             platformId: playerData.platform.platformId,
                             name: playerData.name,
@@ -417,10 +437,14 @@ const dbPlayerPayment = {
                         ret = JSON.parse(ret);
 
                         if (ret.code && Number(ret.code) === 1) {
-                            return Promise.reject({
-                                status: constServerCode.PAYMENT_NOT_AVAILABLE,
-                                message: "Payment is not available",
-                            });
+                            return dbProposal.createProposalWithTypeName(playerRecord.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal).then(
+                                data => {
+                                    return Promise.reject({
+                                        status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                                        message: localization.localization.translate("Payment is not available, please contact customer service"),
+                                    });
+                                }
+                            );
                         }
 
                         result.minDepositAmount = Number(ret.min) || 0;
@@ -437,11 +461,23 @@ const dbPlayerPayment = {
             }
         ).catch(
             err => {
-                return Promise.reject({
-                    status: constServerCode.PAYMENT_NOT_AVAILABLE,
-                    message: "Payment is not available",
-                    err: err
-                });
+                if (playerRecord && playerRecord.platform && playerRecord.platform._id && newProposal && Object.keys(newProposal).length > 0) {
+                    return dbProposal.createProposalWithTypeName(playerRecord.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal).then(
+                        data => {
+                            return Promise.reject({
+                                status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                                message: localization.localization.translate("Payment is not available, please contact customer service"),
+                                err: err
+                            });
+                        }
+                    );
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                        message: localization.localization.translate("Payment is not available, please contact customer service"),
+                        err: err
+                    });
+                }
             }
         )
     },

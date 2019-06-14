@@ -515,7 +515,8 @@ var simplifiedChinese = {
     "Phone number already set": "电话号码已设置",
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
-    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
+    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
+    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
 
     //todo::add missing messages here
 
