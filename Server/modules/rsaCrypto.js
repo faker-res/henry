@@ -120,19 +120,21 @@ module.exports = {
     },
 
     refreshKeys: (isReEncrypt) => {
-        console.log('REFRESHING KEYS FROM KEY SERVICE');
+        if (mainEnv && mainEnv.keyMode && mainEnv.keyMode === 1) {
+            console.log('REFRESHING KEYS FROM KEY SERVICE');
 
-        return Promise.all([
-            getPrivateKeyFromService(), getPublicKeyFromService(),
-            getReplPrivateKeyFromService(), getReplPublicKeyFromService()
-        ]).then(
-            ([a, b, c, d]) => {
-                if (isReEncrypt && a && b && c && d) {
-                    let dbPlatform = require('./../db_modules/dbPlatform');
-                    dbPlatform.reEncryptPlayerPhoneNumber();
+            return Promise.all([
+                getPrivateKeyFromService(), getPublicKeyFromService(),
+                getReplPrivateKeyFromService(), getReplPublicKeyFromService()
+            ]).then(
+                ([a, b, c, d]) => {
+                    if (isReEncrypt && a && b && c && d) {
+                        let dbPlatform = require('./../db_modules/dbPlatform');
+                        dbPlatform.reEncryptPlayerPhoneNumber();
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 };
 
