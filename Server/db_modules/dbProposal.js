@@ -456,6 +456,11 @@ var proposal = {
                         proposalData.status = constProposalStatus.PENDING;
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.isMinMaxError && data[0].name == constProposalType.PLAYER_COMMON_TOP_UP) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.PREPENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
