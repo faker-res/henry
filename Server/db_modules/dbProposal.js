@@ -47,6 +47,7 @@ const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
+var dbUtil = require("../modules/dbutility");
 
 var proposal = {
 
@@ -453,6 +454,11 @@ var proposal = {
                     ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PENDING;
+                    }
+
+                    if (proposalData && proposalData.data && proposalData.data.isMinMaxError && data[0].name == constProposalType.PLAYER_COMMON_TOP_UP) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.PREPENDING;
                     }
 
                     //check if player or partner has pending proposal for this type
@@ -872,6 +878,17 @@ var proposal = {
         }).lean().then(
             proposalData => {
                 if (proposalData && proposalData.data) {
+                    if (proposalData.status && (proposalData.status === constProposalStatus.SUCCESS || proposalData.status === constProposalStatus.FAIL)) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status:" + proposalData.status,
+                            data: {
+                                proposalId: proposalId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
+                            }
+                        });
+                    }
+
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
@@ -6202,6 +6219,13 @@ var proposal = {
             }
         ).then(
             proposals => {
+                proposals = proposals.map(item => {
+                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                        item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
+                    }
+                    return item;
+                });
+
                 return {size: proposalCount, data: proposals}
             }
         );
@@ -6376,6 +6400,12 @@ var proposal = {
             }
         ).then(
             proposals => {
+                proposals = proposals.map(item => {
+                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                        item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
+                    }
+                    return item;
+                });
                 console.log("LH Check payment monitor total 4----------------------", proposals.length);
                 return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
                     platformDetail => {
@@ -11233,7 +11263,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             if (item && item._id && item._id.topupType) {
-                                let index = list.findIndex(x => x.type === item._id.topupType);
+                                let index = list.findIndex(x => x && x.type && (x.type.toString() === item._id.topupType.toString()));
                                 let platformIndex = platformRecord.findIndex(y => y && y._id && item && item._id && item._id.platformObjId && (y._id.toString() === item._id.platformObjId.toString()));
 
                                 item.successUserCount = 0;
@@ -11286,7 +11316,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                                 if (index > -1) {
                                     list[index].data.push(data);
                                 } else {
-                                    list.push({type: item._id.topupType, data: [data]})
+                                    list.push({type: item._id.topupType.toString(), data: [data]})
                                 }
                             }
                         })

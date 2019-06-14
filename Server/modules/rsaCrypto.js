@@ -120,19 +120,21 @@ module.exports = {
     },
 
     refreshKeys: (isReEncrypt) => {
-        console.log('REFRESHING KEYS FROM KEY SERVICE');
+        if (mainEnv && mainEnv.keyMode && mainEnv.keyMode === 1) {
+            console.log('REFRESHING KEYS FROM KEY SERVICE');
 
-        return Promise.all([
-            getPrivateKeyFromService(), getPublicKeyFromService(),
-            getReplPrivateKeyFromService(), getReplPublicKeyFromService()
-        ]).then(
-            ([a, b, c, d]) => {
-                if (isReEncrypt && a && b && c && d) {
-                    let dbPlatform = require('./../db_modules/dbPlatform');
-                    dbPlatform.reEncryptPlayerPhoneNumber();
+            return Promise.all([
+                getPrivateKeyFromService(), getPublicKeyFromService(),
+                getReplPrivateKeyFromService(), getReplPublicKeyFromService()
+            ]).then(
+                ([a, b, c, d]) => {
+                    if (isReEncrypt && a && b && c && d) {
+                        let dbPlatform = require('./../db_modules/dbPlatform');
+                        dbPlatform.reEncryptPlayerPhoneNumber();
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 };
 
@@ -162,7 +164,7 @@ function getPrivateKeyFromService () {
     return getKey("playerPhone.key.pem").then(
         data => {
             if (data) {
-                console.log(`RT - Got key from ${options.hostname}`, data);
+                console.log(`RT - Got key from ${options.hostname}`);
                 key = data;
                 return true;
             } else {
@@ -179,7 +181,7 @@ function getPublicKeyFromService () {
     return getKey("playerPhone.pub").then(
         data => {
             if (data) {
-                console.log(`RT - Got cert from ${options.hostname}`, data);
+                console.log(`RT - Got cert from ${options.hostname}`);
                 crt = data;
                 return true;
             } else {
@@ -196,7 +198,7 @@ function getReplPrivateKeyFromService () {
     return getKey("playerPhone.key.pem.bak").then(
         data => {
             if (data) {
-                console.log(`RT - Got repl key from ${options.hostname}`, data);
+                console.log(`RT - Got repl key from ${options.hostname}`);
                 replKey = data;
                 return true;
             } else {
@@ -212,7 +214,7 @@ function getReplPublicKeyFromService () {
     return getKey("playerPhone.pub.bak").then(
         data => {
             if (data) {
-                console.log(`RT - Got repl cert from ${options.hostname}`, data);
+                console.log(`RT - Got repl cert from ${options.hostname}`);
                 replCrt = data;
                 return true;
             } else {

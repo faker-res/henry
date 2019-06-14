@@ -3665,7 +3665,7 @@
   "RandomRewardRewardPointsSuccess": "随机抽奖优惠组-积分(成功）",
   "RandomRewardRealPrizeSuccess": "随机抽奖优惠组-物品(成功）",
   "Reward Name": "优惠奖励的名称",
-  "Not valid for the reward; Top-up is required.": "不符合领取; 需存款。",
+  "Not valid for the reward; Top-up is required.": "不符合存款要求，请存款后参与。",
   "MAIN": "主",
   "SECONDARY": "次",
   "ACTION_BUTTON": "操作",
@@ -5189,7 +5189,7 @@
   "PlayerProfit": "玩家输赢",
   "Promo code name must be unique.": "优惠代码的名称不可重复.",
   "Current winning possibility:": "当前中奖概率",
-  "Total 100% winning probablity": "总概率100%有效",
+  "Total 100% winning probability": "总概率100%有效",
   "Feedback Mission Name": "回访任务名称",
   "Feedback Mission Remarks": "回访任务备注",
   "Feedback Mission Start Time": "任务开始时间",
@@ -5726,5 +5726,10 @@
   "Add Carousel": "添加轮播",
   "Other Reward Report": "其他优惠报表",
   "OtherRewardReport": "其他优惠报表",
-  "No Reward Task": "无优惠任务"
+  "No Reward Task": "无优惠任务",
+  "amountAverage": "金额平均值",
+  "userCountAverage": "人数平均值",
+  "No Reward Task": "无优惠任务",
+  "Player(s) are not of selected platform": "账号所属平台错误",
+  "Some player(s) are not of selected platform": "部分玩家所属平台错误"
 }

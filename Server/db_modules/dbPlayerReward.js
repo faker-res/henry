@@ -6364,7 +6364,9 @@ let dbPlayerReward = {
                     let totalTopupMatchQuery = {
                         'data.playerName': playerData.name,
                         'data.platformId': playerData.platform._id,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS
                     };
                     if (intervalTime) {
                         totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -7623,7 +7625,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
+                                message: "不符合存款要求，请存款后参与。"
                             });
                         }
 
@@ -7795,7 +7797,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
+                                message: "不符合存款要求，请存款后参与。"
                             });
                         }
 
@@ -7940,6 +7942,40 @@ let dbPlayerReward = {
                                             break;
                                         case 'range':
                                             if (yerTopupProbability >= param.topupValue && yerTopupProbability <= param.topupValueTwo) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                            selectedRewardParam = filterTopupCondition;
+                        }
+
+                        // if no top up record from yesterday, default will be the lowest range of reward param
+                        if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
+                            let lowestValue = 1;
+                            let filterTopupCondition = [];
+
+                            selectedRewardParam.forEach( param => {
+                                if (param.topupOperator && param.topupValue) {
+                                    switch (param.topupOperator) {
+                                        case '<=':
+                                            if (lowestValue <= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '>=':
+                                            if (lowestValue >= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '=':
+                                            if (lowestValue === param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case 'range':
+                                            if (lowestValue >= param.topupValue && lowestValue <= param.topupValueTwo) {
                                                 filterTopupCondition.push(param);
                                             }
                                             break;

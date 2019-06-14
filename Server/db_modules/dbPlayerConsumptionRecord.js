@@ -2334,34 +2334,6 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
-        // go through start time to end time to check whether summary exist or not
-        // function checkSummaryIsExist (startTime, endTime, data) {
-        //     return dbconfig.collection_winRateReportDataDaySummary.findOne({
-        //         platformId: data.platformId,
-        //         date: {$gte: startTime, $lt: endTime}
-        //     }).lean().then(
-        //         res => {
-        //             console.log('res', res);
-        //             if (!res) {
-        //                 return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
-        //             }
-        //
-        //             return true;
-        //         }
-        //     );
-        // }
-        //
-        // console.log('start executeFunctionByDaysInterval');
-        // let args = {
-        //     platformId: platformId
-        // };
-        // await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
-        // console.log('end executeFunctionByDaysInterval');
-
-        // if not exist, go and summarize
-
-
-
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
             groupById = "$providerId";
@@ -2681,9 +2653,8 @@ var dbPlayerConsumptionRecord = {
         let returnedObj;
         // display winrate data by specific gametype (in a provider)
         const matchObj = {
-            createTime: {$gte: startTime, $lt: endTime},
+            date: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
-            isDuplicate: {$ne: true}
         };
 
         if (providerId && providerId !== 'all') {
@@ -2722,11 +2693,10 @@ var dbPlayerConsumptionRecord = {
         return Promise.all([participantsProm, totalAmountProm]).then(
             data => {
                 let participantNumber = 0;
-                let result = [];
                 let participantData = data[0] ? data[0] : [];
                 let totalSumData = data[1] ? data[1] : [];
-                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
-                return result;
+
+                return dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
             }
         ).then(
             returnedData => {
@@ -2760,20 +2730,22 @@ var dbPlayerConsumptionRecord = {
                                 returnedObj.data[indexNo].profit = Math.round(profit * 100) / 100;
                             }
                         }
-                    )
+                    );
+
+                    returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
+                    returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
+                    returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
+                    returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
+                    let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
+                    profit = profit.toFixed(2);
+                    returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
+                    if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
+                        twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
+                            returnedObj.summaryData.participantArr.push(player);
+                        })
+                    }
                 }
-                returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
-                returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
-                returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
-                returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
-                let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
-                profit = profit.toFixed(2);
-                returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
-                if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
-                    twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
-                        returnedObj.summaryData.participantArr.push(player);
-                    })
-                }
+
 
                 return returnedObj;
             }
@@ -2908,9 +2880,8 @@ var dbPlayerConsumptionRecord = {
     getWinRateByPlayersFromSummary: function (startTime, endTime, providerId, platformId, cpGameType) {
         let returnedObj;
         const matchObj = {
-            createTime: {$gte: startTime, $lt: endTime},
-            platformId: ObjectId(platformId),
-            isDuplicate: {$ne: true}
+            date: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId)
         };
 
         matchObj.providerId = ObjectId(providerId);
@@ -3000,18 +2971,19 @@ var dbPlayerConsumptionRecord = {
                             }
                         }
                     )
-                }
-                returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
-                returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
-                returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
-                returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
-                let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
-                profit = profit.toFixed(2);
-                returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
-                if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
-                    twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
-                        returnedObj.summaryData.participantArr.push(player);
-                    })
+
+                    returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
+                    returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
+                    returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
+                    returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
+                    let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
+                    profit = profit.toFixed(2);
+                    returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
+                    if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
+                        twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
+                            returnedObj.summaryData.participantArr.push(player);
+                        })
+                    }
                 }
 
                 return returnedObj;

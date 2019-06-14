@@ -2,6 +2,9 @@
     .col-md-12
         .well#userInfoRecordQueryDiv
             .search-filters-item
+                label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
+                select.form-control(ng-model='vm.externalUserRecordQuery.platformList' ng-options='v.platformId as v.name$ for v in vm.allPlatformData' multiple bsp data-actions-box='true' )
+            .search-filters-item
                 label.control-label {{'Start date' | translate}}
                 .startTime
             .search-filters-item
