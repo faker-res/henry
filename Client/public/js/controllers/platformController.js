@@ -23725,9 +23725,10 @@ define(['js/app'], function (myApp) {
 
             vm.updateTopupConditionInterval = function () {
                 if (vm.topupConditionInterval.topupOperator && vm.topupConditionInterval.topupValue) {
-                    if (vm.topupConditionInterval.topupValueTwo) {
+                    if (vm.topupConditionInterval.topupOperator === 'range' && vm.topupConditionInterval.topupValueTwo) {
                         vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupValue + '~' + vm.topupConditionInterval.topupValueTwo;
                     } else {
+                        vm.topupConditionInterval.topupValueTwo = null;
                         vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupOperator + vm.topupConditionInterval.topupValue;
                     }
                 }
