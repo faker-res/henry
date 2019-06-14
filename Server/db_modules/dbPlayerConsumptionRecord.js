@@ -2732,20 +2732,22 @@ var dbPlayerConsumptionRecord = {
                                 returnedObj.data[indexNo].profit = Math.round(profit * 100) / 100;
                             }
                         }
-                    )
+                    );
+
+                    returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
+                    returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
+                    returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
+                    returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
+                    let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
+                    profit = profit.toFixed(2);
+                    returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
+                    if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
+                        twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
+                            returnedObj.summaryData.participantArr.push(player);
+                        })
+                    }
                 }
-                returnedObj.summaryData.consumptionTimes += twoDaysWinRateReportData.summaryData.consumptionTimes;
-                returnedObj.summaryData.totalAmount += twoDaysWinRateReportData.summaryData.totalAmount;
-                returnedObj.summaryData.validAmount += twoDaysWinRateReportData.summaryData.validAmount;
-                returnedObj.summaryData.bonusAmount += twoDaysWinRateReportData.summaryData.bonusAmount;
-                let profit = (-returnedObj.summaryData.bonusAmount / returnedObj.summaryData.validAmount * 100) || 0;
-                profit = profit.toFixed(2);
-                returnedObj.summaryData.profit = Math.round(profit * 100) / 100;
-                if (twoDaysWinRateReportData.summaryData.participantArr && twoDaysWinRateReportData.summaryData.participantArr.length > 0) {
-                    twoDaysWinRateReportData.summaryData.participantArr.forEach(player => {
-                        returnedObj.summaryData.participantArr.push(player);
-                    })
-                }
+
 
                 return returnedObj;
             }
