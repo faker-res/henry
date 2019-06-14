@@ -2695,8 +2695,8 @@ var dbPlayerConsumptionRecord = {
                 let participantNumber = 0;
                 let participantData = data[0] ? data[0] : [];
                 let totalSumData = data[1] ? data[1] : [];
-                result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
-                return result;
+
+                return dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
             }
         ).then(
             returnedData => {
