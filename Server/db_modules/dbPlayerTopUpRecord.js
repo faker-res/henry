@@ -835,7 +835,7 @@ var dbPlayerTopUpRecord = {
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
                 topupRecords = topupRecords.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp"){
+                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
