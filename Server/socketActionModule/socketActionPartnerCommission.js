@@ -81,6 +81,11 @@ function socketActionPartnerCommission(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getChildMainPartner, [data.platformObjId, data.parentObjId], actionName, isValidData);
         },
 
+        getChildPartnerDownLineDetails: function getChildPartnerDownLineDetails (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.objId);
+            socketUtil.emitter(self.socket, dbPartnerCommission.getChildPartnerDownLineDetails, [data.objId, data.isReport], actionName, isValidData);
+        },
     };
 
     socketActionPartnerCommission.actions = this.actions;

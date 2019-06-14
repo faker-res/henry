@@ -40,6 +40,8 @@ let commCalcParentSchema = new Schema({
     // commCalc startTime to determine which batch it is
     startTime: {type: Date},
 
+    activeCount: {type: Number, default: 0},
+
 });
 
 module.exports = commCalcParentSchema;

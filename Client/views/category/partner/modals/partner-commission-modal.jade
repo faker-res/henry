@@ -55,9 +55,10 @@
                                 th {{'COMMISSION_CONTRIBUTED' | translate}}
                         tbody
                             tr(ng-if="vm.currentUseCommDetail[vm.partnerCommVar.partner].childComm.length > 0", ng-repeat="v in vm.currentUseCommDetail[vm.partnerCommVar.partner].childComm")
-                                td {{v.partnerName}}
+                                td(ng-click="vm.getChildPartnerDownLineDetails(v)")
+                                    a {{v.partnerName}}
                                 td {{v.partnerRealName}}
-                                td(title="{{v}}") {{v.grossCommission | noRoundTwoDecimalToFix}}
+                                td {{v.grossCommission | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'MULTI_LAYER_PARTNER_COMMISSION_TOTAL' | translate}}
                                 td {{vm.currentUseCommDetail[vm.partnerCommVar.partner].childSummary.grossCommission | noRoundTwoDecimalToFix}}
@@ -199,3 +200,44 @@
                                 td {{v.topUpDetail.topUpAmount | noRoundTwoDecimalToFix}}
                                 td {{v.consumptionDetail.consumptionTimes}}
                                 td {{v.consumptionDetail.validAmount | noRoundTwoDecimalToFix}}
+
+#modalChildCommDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog.widthto100
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                .panel-primary(style='margin-top:20px')
+                    .panel-heading.common-left-panel-heading
+                        ul.nav.nav-tabs.common-nav-tabs
+                            li(ng-click="vm.partnerCommVar.selectTab = $index", ng-class="{'active': $index == vm.partnerCommVar.selectTab}", ng-repeat="grp in vm.currentUseCommDetail[vm.partnerCommVar.partner].rawCommissions")
+                                a.common-tab(data-toggle="tab", href="#", ng-click="vm.partnerCommVar.group = grp")
+                                    text.span {{grp.groupName | translate}}
+
+                h4.modal-title.margin-top-10  {{"totalCount" | translate}} {{": "}} {{vm.currentChildDetail.players.length}}
+            .modal-body
+                div
+                    table.simple-table
+                        thead
+                            tr
+                                th {{'DOWNLINE_NAME' | translate}}
+                                th {{'REAL_NAME' | translate}}
+                                th {{'EXPENSE' | translate}} {{' ('}} {{'bonusAmount1' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
+                        tbody
+                            tr(ng-repeat="v in vm.currentChildDetail.players")
+                                td {{v.name}}
+                                td {{v.realName}}
+                                td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount || 0 | noRoundTwoDecimalToFix}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount || 0 | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{'Total Consumption' | translate}}
+                                td {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].crewProfit || 0 | noRoundTwoDecimalToFix}} {{'/'}} {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].totalValidConsumption || 0 | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.currentChildDetail.activeCount || 0}} {{'/'}} {{'RATIO'| translate}} {{': '}}
+                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].parentRate*100 || 0}} {{'%)'}}
+                                td {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].amount || 0 | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
+                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].platformFeeRate || 0}} {{'%)'}}
+                                td
+                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].platformFee || 0 | noRoundTwoDecimalToFix}}
+                                    text.span {{'/'}}
+                                    text.span {{vm.currentChildDetail.totalPlatformFee || 0 | noRoundTwoDecimalToFix}}

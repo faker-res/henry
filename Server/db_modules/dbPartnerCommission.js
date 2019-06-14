@@ -135,6 +135,7 @@ const dbPartnerCommission = {
                             partnerName: partner.partnerName,
                             partnerRealName: partner.realName,
                             rawCommissions: [],
+                            activeCount: activeDownLines,
                             grossCommission: 0,
                             platformFee: 0,
                         };
@@ -202,7 +203,6 @@ const dbPartnerCommission = {
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
                         let previousParentRate = 0;
-                        console.log("commissionRates[groupRate.groupName].parentRatios", commissionRates[groupRate.groupName].parentRatios)
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             let ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
@@ -218,7 +218,7 @@ const dbPartnerCommission = {
                                     groupId: groupRate.groupId,
                                     parentRate: parentRate,
                                     noRate: Boolean(commissionRates[groupRate.groupName].noRate),
-                                    totalConsumption: totalConsumption,
+                                    totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
                                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                                     platformFee: math.chain(platformFee).divide(ratioSum).multiply(parentRate).round(2).done(),
                                     platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done(),
@@ -649,6 +649,15 @@ const dbPartnerCommission = {
                     return partnerCommissionLog;
                 }
             );
+    },
+
+    getChildPartnerDownLineDetails: (objId, isReport) => {
+        // isReport = false -> actual preview implementation
+        if (isReport) {
+            return dbconfig.collection_commCalcPlayer.find({commCalc: objId}).lean();
+        } else {
+            return dbconfig.collection_downLinesRawCommissionDetail.find({partnerCommissionLog: objId}).lean();
+        }
     },
 };
 

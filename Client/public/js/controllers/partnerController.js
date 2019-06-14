@@ -17975,7 +17975,38 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.getChildPartnerDownLineDetails = async (data) => {
+            if (!data) {
+                return;
+            }
+            vm.currentChildDetail = $.extend({}, data);
 
+            let isReport = vm.currentTab === "Report";
+            let objId = "";
+
+            if (isReport) {
+                objId = data.commCalc;
+            } else {
+                objId = data.partnerCommissionLog;
+            }
+
+            let getChildPartnerDownLineDetailsData = await $scope.$socketPromise("getChildPartnerDownLineDetails", {objId, isReport});
+            console.log('getChildPartnerDownLineDetails', getChildPartnerDownLineDetailsData);
+            vm.currentChildDetail.players = getChildPartnerDownLineDetailsData.data || [];
+            console.log('vm.currentChildDetail', vm.currentChildDetail)
+            vm.currentChildDetail.commissionSum = {};
+            if (vm.currentChildDetail.rawCommissions && vm.currentChildDetail.rawCommissions.length) {
+                for (let i = 0; i < vm.currentChildDetail.rawCommissions.length; i++) {
+                    let rawComm = vm.currentChildDetail.rawCommissions[i];
+                    vm.currentChildDetail.commissionSum[rawComm.groupName] = rawComm;
+                }
+            }
+
+            $scope.$evalAsync(() => {
+                $("#modalChildCommDetail").modal();
+            });
+
+        };
 
 
 
