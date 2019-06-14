@@ -878,7 +878,8 @@ var proposal = {
                             name: "DataError",
                             message: "Invalid proposal status:" + proposalData.status,
                             data: {
-                                proposalId: proposalId
+                                proposalId: proposalId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
                             }
                         });
                     }
@@ -11251,7 +11252,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             if (item && item._id && item._id.topupType) {
-                                let index = list.findIndex(x => x.type === item._id.topupType);
+                                let index = list.findIndex(x => x && x.type && (x.type.toString() === item._id.topupType.toString()));
                                 let platformIndex = platformRecord.findIndex(y => y && y._id && item && item._id && item._id.platformObjId && (y._id.toString() === item._id.platformObjId.toString()));
 
                                 item.successUserCount = 0;
@@ -11304,7 +11305,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                                 if (index > -1) {
                                     list[index].data.push(data);
                                 } else {
-                                    list.push({type: item._id.topupType, data: [data]})
+                                    list.push({type: item._id.topupType.toString(), data: [data]})
                                 }
                             }
                         })

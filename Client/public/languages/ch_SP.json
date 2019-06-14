@@ -5722,5 +5722,7 @@
   "Add Carousel": "添加轮播",
   "Other Reward Report": "其他优惠报表",
   "OtherRewardReport": "其他优惠报表",
-  "No Reward Task": "无优惠任务"
+  "No Reward Task": "无优惠任务",
+  "amountAverage": "金额平均值",
+  "userCountAverage": "人数平均值"
 }
