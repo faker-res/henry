@@ -2334,34 +2334,6 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
-        // go through start time to end time to check whether summary exist or not
-        // function checkSummaryIsExist (startTime, endTime, data) {
-        //     return dbconfig.collection_winRateReportDataDaySummary.findOne({
-        //         platformId: data.platformId,
-        //         date: {$gte: startTime, $lt: endTime}
-        //     }).lean().then(
-        //         res => {
-        //             console.log('res', res);
-        //             if (!res) {
-        //                 return dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startTime, endTime, data.platformId);
-        //             }
-        //
-        //             return true;
-        //         }
-        //     );
-        // }
-        //
-        // console.log('start executeFunctionByDaysInterval');
-        // let args = {
-        //     platformId: platformId
-        // };
-        // await dbUtility.executeFunctionByDaysInterval(startTime, endTime, checkSummaryIsExist, args);
-        // console.log('end executeFunctionByDaysInterval');
-
-        // if not exist, go and summarize
-
-
-
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
             groupById = "$providerId";

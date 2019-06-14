@@ -6711,9 +6711,9 @@ define(['js/app'], function (myApp) {
                             if (i === 0) {
                                 vm.allPlatformOnlineTopupDetailData.push({userAgent: "WEB", data: data.data[0][i][2]});
                             } else if (i === 1) {
-                                vm.allPlatformOnlineTopupDetailData.push({userAgent: "H5", data: data.data[0][i][2]});
-                            } else if (i === 2) {
                                 vm.allPlatformOnlineTopupDetailData.push({userAgent: "APP", data: data.data[0][i][2]});
+                            } else if (i === 2) {
+                                vm.allPlatformOnlineTopupDetailData.push({userAgent: "H5", data: data.data[0][i][2]});
                             }
                         }
                     }
@@ -6807,15 +6807,25 @@ define(['js/app'], function (myApp) {
                     }
                 }
             );
+
+            if (vm.allPlatformOnlineTopupDetailDataByType && vm.allPlatformOnlineTopupDetailDataByType.length > 0) {
+                vm.allPlatformOnlineTopupDetailDataByType.map(item => {
+                    item.amountAverage = item && item.receivedAmount ? (item.receivedAmount / vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.receivedAmount, 0)) * vm.allPlatformOnlineTopupDetailDataByType.length : 0;
+                    item.userCountAverage = item && item.successUserCount ? (item.successUserCount / vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0)) * vm.allPlatformOnlineTopupDetailDataByType.length : 0;
+                });
+            }
+
             vm.allPlatformOnlineTopupAnalysisDetailTotalData = {};
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.totalCount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.successCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successCount, 0);
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.successRate = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successRate, 0);
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.successRate = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successRate, 0));
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.receivedAmount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.receivedAmount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCount =vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCount, 0);
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.amountRatio, 0);
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCountRatio = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCountRatio, 0);
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.proposalArr.length, 0);
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.amountRatio, 0));
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalAmountAverage = vm.allPlatformOnlineTopupDetailDataByType.length || 0;
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCountRatio, 0));
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalUserCountAverage = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0) / vm.allPlatformOnlineTopupDetailDataByType.length) || 0;
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data && data.proposalArr && data.proposalArr.length ? data.proposalArr.length : 0 , 0);
         };
 
         vm.initOnlineTopUpAnalysisProposalDetail = (proposalArr) => {

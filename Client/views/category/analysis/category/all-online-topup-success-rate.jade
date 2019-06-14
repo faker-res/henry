@@ -270,9 +270,9 @@
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
                                 th {{ "receivedAmount" | translate}}
-                                th {{ "amountRatio" | translate}}
+                                th {{ "amountAverage" | translate}}
                                 th {{ "userCount" | translate}}
-                                th {{ "userCountRatio" | translate}}
+                                th {{ "userCountAverage" | translate}}
                                 th {{ "successCount" | translate}} ({{ "Preset-Processing Time" | translate}})
                         tbody
                             tr(ng-repeat="(i, v) in vm.allPlatformOnlineTopupDetailDataByType")
@@ -287,11 +287,11 @@
                                 td
                                     span {{ v.receivedAmount }}
                                 td
-                                    span {{ v.amountRatio }} %
+                                    span {{ v.amountAverage }}
                                 td
                                     span {{ v.userCount }}
                                 td
-                                    span {{ v.userCountRatio }} %
+                                    span {{ v.userCountAverage }}
                                 td(ng-if="v.proposalArr.length == 0")
                                     span {{v.proposalArr.length}}
                                 td(ng-if="v.proposalArr.length != 0")
@@ -308,11 +308,11 @@
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.receivedAmount }}
                                 td(style='background-color: #ffc1c1;')
-                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio }} %
+                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalAmountAverage }}
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCount }}
                                 td(style='background-color: #ffc1c1;')
-                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCountRatio }} %
+                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalUserCountAverage }}
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount }}
 

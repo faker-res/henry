@@ -873,6 +873,17 @@ var proposal = {
         }).lean().then(
             proposalData => {
                 if (proposalData && proposalData.data) {
+                    if (proposalData.status && (proposalData.status === constProposalStatus.SUCCESS || proposalData.status === constProposalStatus.FAIL)) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid proposal status:" + proposalData.status,
+                            data: {
+                                proposalId: proposalId,
+                                fpmsStatus: proposalData && proposalData.status ? proposalData.status : ''
+                            }
+                        });
+                    }
+
                     proposalObj = proposalData;
                     remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
@@ -11241,7 +11252,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             if (item && item._id && item._id.topupType) {
-                                let index = list.findIndex(x => x.type === item._id.topupType);
+                                let index = list.findIndex(x => x && x.type && (x.type.toString() === item._id.topupType.toString()));
                                 let platformIndex = platformRecord.findIndex(y => y && y._id && item && item._id && item._id.platformObjId && (y._id.toString() === item._id.platformObjId.toString()));
 
                                 item.successUserCount = 0;
@@ -11294,7 +11305,7 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                                 if (index > -1) {
                                     list[index].data.push(data);
                                 } else {
-                                    list.push({type: item._id.topupType, data: [data]})
+                                    list.push({type: item._id.topupType.toString(), data: [data]})
                                 }
                             }
                         })

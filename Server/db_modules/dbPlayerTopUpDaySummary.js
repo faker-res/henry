@@ -136,7 +136,7 @@ var dbPlayerTopUpDaySummary = {
             return;
         }
 
-        let calculateSummaryProm = [];
+        let p = Promise.resolve();
         let startTime = new Date(start);
         let endTime = new Date(end);
 
@@ -144,23 +144,22 @@ var dbPlayerTopUpDaySummary = {
         endTime.setHours(0, 0, 0, 0);
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+        let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date();
+            let startDate = new Date(start);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date();
+            let endDate = new Date(end);
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            calculateSummaryProm.push(dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
+            if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() < yesterdayTime.startTime.getTime()))  {
+                p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
+            }
         }
 
-        return Promise.all(calculateSummaryProm).then(
-            result => {
-                return result;
-            }
-        );
+        return p;
 
     },
 
@@ -177,6 +176,7 @@ var dbPlayerTopUpDaySummary = {
         endTime.setHours(0, 0, 0, 0);
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+        let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
             let startDate = new Date(start);
@@ -186,7 +186,7 @@ var dbPlayerTopUpDaySummary = {
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            if (startDate.getTime() < new Date(end).getTime()) {
+            if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() < yesterdayTime.startTime.getTime())) {
                 p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
             }
         }
