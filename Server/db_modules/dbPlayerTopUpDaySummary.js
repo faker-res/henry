@@ -144,6 +144,7 @@ var dbPlayerTopUpDaySummary = {
         endTime.setHours(0, 0, 0, 0);
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+        let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
             let startDate = new Date(start);
@@ -153,7 +154,7 @@ var dbPlayerTopUpDaySummary = {
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            if (startDate.getTime() < new Date(end).getTime()) {
+            if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() < yesterdayTime.startTime.getTime()))  {
                 p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
             }
         }
@@ -175,6 +176,7 @@ var dbPlayerTopUpDaySummary = {
         endTime.setHours(0, 0, 0, 0);
 
         let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+        let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
             let startDate = new Date(start);
@@ -184,7 +186,7 @@ var dbPlayerTopUpDaySummary = {
             endDate.setDate(startTime.getDate() + (i + 1));
             endDate = dbutility.getDayStartTime(endDate);
 
-            if (startDate.getTime() < new Date(end).getTime()) {
+            if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() < yesterdayTime.startTime.getTime())) {
                 p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
             }
         }
