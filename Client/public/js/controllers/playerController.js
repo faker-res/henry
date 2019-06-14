@@ -900,6 +900,7 @@ define(['js/app'], function (myApp) {
                         vm.playersQueryCreated = false;
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
+                        vm.getAllPromoCode();
                         vm.getPlatformGameData();
                         vm.loadProposalTypeData();
                         vm.loadBankCardGroupData();
@@ -5658,6 +5659,13 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allowPromoCode === false ? "promoCodeRed.png" : "promoCodeBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
                                     height: "14px",
                                     width: "14px",
@@ -5686,9 +5694,9 @@ define(['js/app'], function (myApp) {
 
                             if (row.isRealPlayer) {
                                 let forbidFixedRewardsCount = 0;
-                                if (row.forbidPromoCode) {
-                                    forbidFixedRewardsCount++;
-                                }
+                                // if (row.forbidPromoCode) {
+                                //     forbidFixedRewardsCount++;
+                                // }
                                 if (row.forbidLevelUpReward) {
                                     forbidFixedRewardsCount++;
                                 }
@@ -5709,6 +5717,22 @@ define(['js/app'], function (myApp) {
                                     'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
                                     'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? '<sup>' + (row.forbidRewardEvents.length + forbidFixedRewardsCount) + '</sup>' : ''),
+                                }));
+
+                                link.append($('<a>', {
+                                    'class': 'forbidPromoCodePopover margin-right-5' + (row.forbidPromoCode && row.forbidPromoCode.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'ng-click': 'vm.getPromoCodeByPlatform(' + JSON.stringify(row.platform) + ');',
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'data-container': "body",
+                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidPromoCode && row.forbidPromoCode.length > 0 ? "promoCodeRed.png" : "promoCodeBlue.png") + '"></img>'
+                                        + (row.forbidPromoCode && row.forbidPromoCode.length > 0 ? '<sup>' + row.forbidPromoCode.length + '</sup>' : ''),
+                                    'style': "z-index: auto; width:23px; display: inline-block;",
                                 }));
                             }
 
@@ -6294,6 +6318,85 @@ define(['js/app'], function (myApp) {
 
                     utilService.setupPopover({
                         context: container,
+                        elem: '.forbidPromoCodePopover',
+                        content: function () {
+                            var data = JSON.parse(this.dataset.row);
+                            vm.forbidPromoCodePopover = data;
+                            vm.forbidPromoCode = [];
+                            vm.forbidPromoCodeDisable = true;
+                            vm.selectedAllPromoCode = false;
+                            let totalLength  = 0;
+                            vm.promoCodeByPlatform.forEach(
+                                p => {
+                                    if (p && p.data){
+                                        totalLength += p.data.length;
+                                    }
+                                }
+                            )
+                            if (vm.promoCodeByPlatform && vm.forbidPromoCodePopover && vm.forbidPromoCodePopover.forbidPromoCode && (totalLength === vm.forbidPromoCodePopover.forbidPromoCode.length)) {
+                                vm.selectedAllPromoCode = true;
+                            }
+                            $scope.safeApply();
+                            return $compile($('#forbidPromoCodePopover').html())($scope);
+                        },
+                        callback: function () {
+                            let thisPopover = utilService.$getPopoverID(this);
+                            let rowData = JSON.parse(this.dataset.row);
+                            $scope.safeApply();
+
+                            $("input.playerPromoCodeForbid").on('click', function () {
+                                let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
+                                let forbidPromoCode = [];
+                                $.each(forbidPromoCodeList, function (i, v) {
+                                    if ($(v).prop('checked')) {
+                                        forbidPromoCode.push($(v).attr('data-provider'));
+                                    }
+                                });
+                                // if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
+                                //     vm.forbidRewardDisable = false;
+                                // } else {
+                                //
+                                // }
+
+                                vm.forbidPromoCodeDisable = vm.isForbidChanged(forbidPromoCode, vm.forbidPromoCodePopover.forbidPromoCodeList);
+                                $scope.safeApply();
+                            });
+
+                            $("button.forbidPromoCodeCancel").on('click', function () {
+                                $(".forbidPromoCodePopover").popover('hide');
+                            });
+
+                            $("button.showForbidPromoCode").on('click', function () {
+                                $(".forbidPromoCodePopover").popover('hide');
+                            });
+
+                            $("button.forbidPromoCodeConfirm").on('click', function () {
+                                if ($(this).hasClass('disabled')) {
+                                    return;
+                                }
+                                let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
+                                let forbidPromoCode = [];
+                                $.each(forbidPromoCodeList, function (i, v) {
+                                    if ($(v).prop('checked') && $(v).attr('data-provider')) {
+                                        forbidPromoCode.push($(v).attr('data-provider'));
+                                    }
+                                });
+                                let sendData = {
+                                    _id: rowData._id,
+                                    forbidPromoCodeList: forbidPromoCode,
+                                    // forbidPromoCode: vm.forbidPromoCode,
+                                    // forbidLevelUpReward: vm.forbidLevelUpReward,
+                                    // forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                    adminName: authService.adminName
+                                };
+                                vm.updatePlayerForbidPromoCode(sendData);
+                                $(".forbidPromoCodePopover").popover('hide');
+                            });
+                        }
+                    });
+
+                    utilService.setupPopover({
+                        context: container,
                         elem: '.playerPermissionPopover',
                         onClickAsync: function (showPopover) {
                             var that = this;
@@ -6364,6 +6467,14 @@ define(['js/app'], function (myApp) {
                                 // },
                                 banReward: {imgType: 'i', iconClass: "fa fa-gift"},
                                 forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+
+                                allowPromoCode: {
+                                    imgType: 'img',
+                                    src: "images/icon/promoCodeBlue.png",
+                                    width: "26px",
+                                    height: '26px'
+                                },
+
                                 rewardPointsTask: {
                                     imgType: 'img',
                                     src: "images/icon/rewardPointsBlue.png",
@@ -6436,6 +6547,7 @@ define(['js/app'], function (myApp) {
                                     changeObj.topUpCard = false;
                                     changeObj.banReward = false;
                                     changeObj.forbidPlayerConsumptionReturn = false;
+                                    changeObj.allowPromoCode = false;
                                     changeObj.rewardPointsTask = false;
                                     changeObj.levelChange = false;
 
@@ -6448,6 +6560,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOn.topUpCard').addClass('hide');
                                     $(thisPopover + ' .permitOn.banReward').addClass('hide');
                                     $(thisPopover + ' .permitOn.forbidPlayerConsumptionReturn').addClass('hide');
+                                    $(thisPopover + ' .permitOn.allowPromoCode').addClass('hide');
                                     $(thisPopover + ' .permitOn.rewardPointsTask').addClass('hide');
                                     $(thisPopover + ' .permitOn.levelChange').addClass('hide');
 
@@ -6460,6 +6573,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOff.topUpCard').removeClass('hide');
                                     $(thisPopover + ' .permitOff.banReward').removeClass('hide');
                                     $(thisPopover + ' .permitOff.forbidPlayerConsumptionReturn').removeClass('hide');
+                                    $(thisPopover + ' .permitOff.allowPromoCode').removeClass('hide');
                                     $(thisPopover + ' .permitOff.rewardPointsTask').removeClass('hide');
                                     $(thisPopover + ' .permitOff.levelChange').removeClass('hide');
                                 }
@@ -6491,6 +6605,7 @@ define(['js/app'], function (myApp) {
                                     changeObj.topUpCard = true;
                                     changeObj.banReward = true;
                                     changeObj.forbidPlayerConsumptionReturn = true;
+                                    changeObj.allowPromoCode = true;
                                     changeObj.rewardPointsTask = true;
                                     changeObj.levelChange = true;
 
@@ -6503,6 +6618,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOn.topUpCard').removeClass('hide');
                                     $(thisPopover + ' .permitOn.banReward').removeClass('hide');
                                     $(thisPopover + ' .permitOn.forbidPlayerConsumptionReturn').removeClass('hide');
+                                    $(thisPopover + ' .permitOn.allowPromoCode').removeClass('hide');
                                     $(thisPopover + ' .permitOn.rewardPointsTask').removeClass('hide');
                                     $(thisPopover + ' .permitOn.levelChange').removeClass('hide');
 
@@ -6515,6 +6631,7 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover + ' .permitOff.topUpCard').addClass('hide');
                                     $(thisPopover + ' .permitOff.banReward').addClass('hide');
                                     $(thisPopover + ' .permitOff.forbidPlayerConsumptionReturn').addClass('hide');
+                                    $(thisPopover + ' .permitOff.allowPromoCode').addClass('hide');
                                     $(thisPopover + ' .permitOff.rewardPointsTask').addClass('hide');
                                     $(thisPopover + ' .permitOff.levelChange').addClass('hide');
                                 }
@@ -6602,7 +6719,7 @@ define(['js/app'], function (myApp) {
                                         },
                                         updateData: {}
                                     }
-                                    if (changeObj.banReward) {
+                                    if (!changeObj.allowPromoCode) {
                                         sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
                                     } else {
                                         sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
@@ -7014,6 +7131,84 @@ define(['js/app'], function (myApp) {
                 }
             );
         };
+
+        vm.updatePlayerForbidPromoCode = function (sendData) {
+            socketService.$socket($scope.AppSocket, 'updatePlayerForbidPromoCode', sendData, function (data) {
+                let playerObj = data.data;
+                if (playerObj) {
+                    let sendData = {
+                        query: {
+                            platformObjId: playerObj.platform,
+                            isBlockByMainPermission: false
+                        },
+                        updateData: {}
+                    }
+                    if (playerObj.forbidPromoCodeList && playerObj.forbidPromoCodeList.length) {
+                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                        sendData.query.isBlockPromoCodeUser = true;
+                        sendData.query.isDefaultGroup = true;
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
+                        sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                    } else {
+                        sendData.query.playerNames =  playerObj.name;
+                        sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                    });
+                }
+                vm.getPlatformPlayersData();
+                let tempPromoCodeList = [];
+                if (vm.promoCodeByPlatform && vm.promoCodeByPlatform.length){
+                    vm.promoCodeByPlatform.forEah(
+                        promoCode
+                    )
+                }
+                vm.updateForbidPromoCodeLog(data.data._id, vm.findForbidCheckedName(data.data.forbidPromoCodeList, tempPromoCodeList), data.data);
+            });
+        };
+
+        vm.getAllPromoCode = function () {
+            // 1st dependencies variable
+            return Promise.all([
+                commonService.getAllPromoCode($scope).catch(err => Promise.resolve([]))
+            ]).then(
+                result => {
+                    $scope.$evalAsync(() => {
+                        if(result && result.length){
+                            vm.allPromoCode = result[0];
+                        }else{
+                            vm.allPromoCode = [];
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.getPromoCodeByPlatform = function (platformObjId) {
+            vm.promoCodeByPlatform = [];
+            let tempData = [];
+            if (vm.allPromoCode && platformObjId){
+               vm.allPromoCode.forEach(
+                    promoCodeList => {
+                        if (promoCodeList && promoCodeList.data){
+                            tempData = promoCodeList.data.filter(p => {
+                                if (p && p.platformObjId) {
+                                    return p.platformObjId.toString() == platformObjId.toString()
+                                }
+                            })
+                        }
+                        vm.promoCodeByPlatform.push({
+                            category: promoCodeList.category,
+                            data: tempData
+                        })
+                    }
+                )
+            }
+        }
 
         vm.getEncPhoneNumber = function (playerData) {
             return (playerData && playerData.phoneNumber) ? (playerData.phoneNumber.substring(0, 3) + "******" + playerData.phoneNumber.slice(-4)) : ''

@@ -3739,6 +3739,15 @@ let dbPlayerInfo = {
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+
+    updatePlayerForbidPromoCode: function (playerObjId, forbidPromoCodeList) {
+        let updateData = {};
+        if (forbidPromoCodeList && forbidPromoCodeList.length) {
+            updateData.forbidPromoCodeList = forbidPromoCodeList;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
     managingDataList: function (dataList, addList, removeList) {
         let result = [];
         // add those new Item to List first

@@ -109,6 +109,8 @@ var playerSchema = new Schema({
     forbidProviders: [{type: Schema.ObjectId, ref: 'gameProvider'}],
     //forbid rewardPoint Events
     forbidRewardPointsEvent: [{type: Schema.ObjectId, ref: 'rewardPointsEvent'}],
+    //forbid promo code list
+    forbidPromoCodeList: [{type: Schema.ObjectId}],
     //player level (vip, regular etc)
     playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
     //experience???
@@ -150,6 +152,7 @@ var playerSchema = new Schema({
         rewardPointsTask: {type: Boolean, default: true},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
+        allowPromoCode: {type: Boolean, default: true},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
         PlayerTopUpReturn: {type: Boolean, default: true},
         PlayerDoubleTopUpReturn: {type: Boolean, default: true},
