@@ -270,7 +270,7 @@
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
                                 th {{ "receivedAmount" | translate}}
-                                th {{ "amountAverage" | translate}}
+                                th {{ "amountRatio" | translate}}
                                 th {{ "userCount" | translate}}
                                 th {{ "userCountAverage" | translate}}
                                 th {{ "successCount" | translate}} ({{ "Preset-Processing Time" | translate}})
@@ -287,7 +287,7 @@
                                 td
                                     span {{ v.receivedAmount }}
                                 td
-                                    span {{ v.amountAverage }}
+                                    span {{ v.amountRatio }} %
                                 td
                                     span {{ v.userCount }}
                                 td
@@ -308,7 +308,7 @@
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.receivedAmount }}
                                 td(style='background-color: #ffc1c1;')
-                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalAmountAverage }}
+                                    span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio }} %
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCount }}
                                 td(style='background-color: #ffc1c1;')
