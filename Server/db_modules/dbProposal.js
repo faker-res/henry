@@ -6204,7 +6204,7 @@ var proposal = {
         ).then(
             proposals => {
                 proposals = proposals.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp"){
+                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
@@ -6384,6 +6384,12 @@ var proposal = {
             }
         ).then(
             proposals => {
+                proposals = proposals.map(item => {
+                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                        item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
+                    }
+                    return item;
+                });
                 console.log("LH Check payment monitor total 4----------------------", proposals.length);
                 return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
                     platformDetail => {
