@@ -40,7 +40,7 @@ const dbPartnerCommission = {
         let parentCommissionDetail = {};
         let commissionPeriod;
         let remarks = "";
-        let totalParentGrossCommission = 0;
+        let totalParentGrossCommission = 0, totalAllParentRate = 0;
 
 
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean()
@@ -138,6 +138,7 @@ const dbPartnerCommission = {
                             activeCount: activeDownLines,
                             grossCommission: 0,
                             platformFee: 0,
+                            totalParentRate: 0,
                         };
                     }
 
@@ -229,9 +230,12 @@ const dbPartnerCommission = {
                                     // this is done to adjust that current level of multi level commission is also given to immediate parent
                                     // if still not understand, can directly ask Huat
                                 // }
+
                                 parentCommissionDetail[objId].grossCommission = parentCommissionDetail[objId].grossCommission || 0;
                                 parentCommissionDetail[objId].grossCommission += detail.amount;
                                 parentCommissionDetail[objId].platformFee += detail.platformFee;
+                                parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
+                                totalAllParentRate += Number(detail.parentRate) || 0;
                                 totalParentGrossCommission += detail.amount || 0;
                                 console.log('totalParentGrossCommission', totalParentGrossCommission, 'detail.amount', detail.amount)
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
@@ -277,12 +281,17 @@ const dbPartnerCommission = {
                         let parentComm = parentCommissionDetail[String(parent._id)];
                         parentComm.grossCommission = parentComm.grossCommission || 0;
                         parentComm.nettCommission = parentComm.grossCommission;
+
+                        let feeMultiplier = math.chain(parentComm.totalParentRate).divide(totalAllParentRate).round(12).done() || 0;
+                        if (totalParentGrossCommission) {
+                            feeMultiplier = math.chain(parentComm.grossCommission).divide(totalParentGrossCommission).round(12).done();
+                        }
+
                         if (bonusBased && grossCommission) {
                             // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
-                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
-                            console.log('pppp', partner.partnerName, totalRewardFee, parentComm.grossCommission, totalParentGrossCommission, parentComm.totalRewardFee)
-                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
-                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentComm.grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
+                            parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done() || 0;
+                            parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done() || 0;
+                            parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done() || 0;
                             // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             parentComm.totalPlatformFee = parentComm.platformFee || 0;
                             parentComm.nettCommission = math.chain(parentComm.grossCommission)
