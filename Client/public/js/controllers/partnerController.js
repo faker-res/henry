@@ -712,9 +712,9 @@ define(['js/app'], function (myApp) {
                 // vm.loadAlldepartment();
                 vm.getAllPartnerLevels();
                 vm.partnerCommission = {};
-                vm.getPlatformPartnersData();
-                vm.getCommissionRateGameProviderGroup();
-                vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);
+                // vm.getPlatformPartnersData();
+                // vm.getCommissionRateGameProviderGroup(); //walaohere
+                // vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);
                 vm.onGoingLoadPlatformData = false;
             })
         }
@@ -776,6 +776,7 @@ define(['js/app'], function (myApp) {
                 vm.allPlatformData = data.data;
                 if (data.data) {
                     buildPlatformList(data.data);
+                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
                 }
                 $('#platformRefresh').removeClass('fa-spin');
 
@@ -5621,9 +5622,16 @@ define(['js/app'], function (myApp) {
                 registrationTime: -1
             };
 
+            let platformIdList;
+            if(vm.partnerAdvanceSearchQuery && vm.partnerAdvanceSearchQuery.platformList && vm.partnerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.partnerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var sendData = {
                 "platform": {
-                    "platformId": vm.selectedPlatform.id,
+                    "platformId": platformIdList,
                     "index": vm.advancedPartnerQueryObj.index,
                     "limit": vm.advancedPartnerQueryObj.limit,
                     "sortCol": vm.advancedPartnerQueryObj.sortCol
@@ -5642,9 +5650,10 @@ define(['js/app'], function (myApp) {
                     vm.partnerIdObj[v.partnerName] = v;
                     partnersObjId.push(v._id);
                 });
+                vm.platformPartnerCount = data && data.data && data.data.size;
 
                 socketService.$socket($scope.AppSocket, 'getPartnersPlayerInfo', {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformIdList,
                     partnersObjId: partnersObjId
                 }, function (playersInfo) {
 
@@ -5654,7 +5663,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                     vm.getPartnersByAdvanceQueryDebounced();
-                    vm.drawPartnerTable(data.data);
+                    // vm.drawPartnerTable(data.data);
                 });
 
                 $('#partnerRefreshIcon').removeClass('fa-spin');
@@ -5679,8 +5688,16 @@ define(['js/app'], function (myApp) {
                 }
             }
             // vm.advancedPartnerQueryObj.index = 0;
+
+            let platformIdList;
+            if(vm.partnerAdvanceSearchQuery && vm.partnerAdvanceSearchQuery.platformList && vm.partnerAdvanceSearchQuery.platformList.length){
+                platformIdList = vm.partnerAdvanceSearchQuery.platformList;
+            }else{
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
             var apiQuery = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformIdList,
                 query: vm.advancedPartnerQueryObj,
                 index: partnerQuery ? 0 : (vm.advancedPartnerQueryObj.index || 0),
             };
@@ -5689,6 +5706,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     console.log('partnerData', reply);
                     let size = reply.data.size || 0;
+                    vm.platformPartnerCount = reply.data.totalPartnerSize || 0;
                     // setPartnerTableData(reply.data.data);
                     // vm.partners = reply.data.data;
                     if (reply && reply.data && reply.data.data && reply.data.data.length) {
@@ -5994,7 +6012,7 @@ define(['js/app'], function (myApp) {
             });
 
             vm.partners = await getReferralsList(data);
-            vm.platformPartnerCount = data.size;
+            // vm.platformPartnerCount = data.size;
             vm.selectedPartnerCount = 0;
             vm.searchPartnerCount = data.size;
 
@@ -6010,7 +6028,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             let link = $('<a>', {
                                 'class': (row.permission.forbidPartnerFromLogin === true ? "text-danger" : "text-primary"),
-                                'ng-click': 'vm.showPartnerInfoModal("' + data + '", "' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showPartnerInfoModal," + JSON.stringify([data, row._id]) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6061,7 +6079,7 @@ define(['js/app'], function (myApp) {
                         data: 'credits',
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showTransferPartnerCreditToPlayerModal("' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showTransferPartnerCreditToPlayerModal,'" + row._id + "');"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6138,7 +6156,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             data = data || '0';
                             return $('<a data-target="#modalPartnerApiLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPartnerApiLog()" data-html="true" href="#"></a>')
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.initPartnerApiLog);" data-html="true" href="#"></a>')
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
@@ -6152,7 +6170,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "", //"visible": false,
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '", "' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showPartnerInfoModal," + JSON.stringify([row.partnerName, row._id]) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6164,7 +6182,8 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","DAILY_ACTIVE")'
+                                // 'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","DAILY_ACTIVE")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showActivePartnerInfoModal, " + JSON.stringify([row._id, 'DAILY_ACTIVE']) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6176,7 +6195,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","WEEKLY_ACTIVE")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showActivePartnerInfoModal, " + JSON.stringify([row._id, 'WEEKLY_ACTIVE']) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6188,7 +6207,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","MONTHLY_ACTIVE")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showActivePartnerInfoModal, " + JSON.stringify([row._id, 'MONTHLY_ACTIVE']) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6200,7 +6219,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showActivePartnerInfoModal("' + row._id + '","VALID_ACTIVE")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showActivePartnerInfoModal, " + JSON.stringify([row._id, 'VALID_ACTIVE']) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6212,7 +6231,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.getChildrenDetails, '" + row._id + "');"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6224,7 +6243,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.getChildrenDetails, '" + row._id + "');"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6236,7 +6255,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.getChildrenDetails("' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.getChildrenDetails, '" + row._id + "');"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6248,7 +6267,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showPartnerInfoModal("' + row.partnerName + '", "' + row._id + '")'
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showPartnerInfoModal," + JSON.stringify([row.partnerName, row._id]) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -6262,7 +6281,7 @@ define(['js/app'], function (myApp) {
                             let link = $('<div>', {});
                             link.append($('<a>', {
                                 'class': 'fa fa-envelope margin-right-5',
-                                'ng-click': 'vm.initPartnerMessageModal(); vm.sendMessageToPartnerBtn("' + partnerObjId + '");',
+                                'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.initPartnerMessageModal); vm.onClickPartnerCheck('" + row._id + "', vm.sendMessageToPartnerBtn,'" + partnerObjId + "');",
                                 // 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
                                 'title': $translate("SEND_MESSAGE_TO_PARTNER"),
@@ -6270,7 +6289,7 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                'ng-click': 'vm.initPartnerSMSModal();' + "vm.onClickPartnerCheck('" +
+                                'ng-click': 'vm.onClickPartnerCheck("' + partnerObjId + '", vm.initPartnerSMSModal);' + "vm.onClickPartnerCheck('" +
                                     partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
                                     ", " + "[" + '"msg"' + ", '" + partnerObjId + "']);",
                                 // 'data-row': JSON.stringify(row),
@@ -6280,7 +6299,7 @@ define(['js/app'], function (myApp) {
                             }));
                             link.append($('<a>', {
                                 'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
-                                'ng-click': 'vm.telorMessageToPartnerBtn(' + '"tel", "' + partnerObjId + '");',
+                                'ng-click': "vm.onClickPartnerCheck('" + partnerObjId + "', vm.telorMessageToPartnerBtn," + JSON.stringify(['tel', partnerObjId]) + ");",
                                 // 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
                                 'title': $translate("PHONE"),
@@ -6289,7 +6308,7 @@ define(['js/app'], function (myApp) {
                             if ($scope.checkViewPermission('Partner', 'Feedback', 'AddFeedback')) {
                                 link.append($('<a>', {
                                     'class': 'fa fa-commenting margin-right-5',
-                                    'ng-click': 'vm.initFeedbackModal("' + partnerObjId + '");',
+                                    'ng-click': "vm.onClickPartnerCheck('" + partnerObjId + "', vm.initFeedbackModal,'" + partnerObjId + "');",
                                     // 'data-row': JSON.stringify(row),
                                     'data-toggle': 'modal',
                                     'data-target': '#modalAddPartnerFeedback',
@@ -6303,7 +6322,7 @@ define(['js/app'], function (myApp) {
                                     'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                     'height': "14px",
                                     'width': "14px",
-                                    'ng-click': 'vm.initPartnerBonus();',
+                                    'ng-click': "vm.onClickPartnerCheck('" + partnerObjId + "', vm.initPartnerBonus);",
                                     // 'data-row': JSON.stringify(row),
                                     'data-toggle': 'modal',
                                     'data-target': '#modalPartnerBonus',
@@ -6834,6 +6853,7 @@ define(['js/app'], function (myApp) {
                     $(this).toggleClass('selected');
                     vm.partnerTableClickedRow = vm.partnerTable.row(this);
                     vm.selectedSinglePartner = aData;
+                    vm.getSelectedRowPlatformDetails(vm.selectedSinglePartner);
                     vm.isOneSelectedPartner = function () {
                         return vm.selectedSinglePartner;
                     };
@@ -7578,6 +7598,21 @@ define(['js/app'], function (myApp) {
                     vm.onClickPartnerCheck(recordId, callback, param);
                 }, 50);
             }
+        };
+
+        vm.getSelectedRowPlatformDetails = function(rowData){
+            let selectedPlatformData = vm.allPlatformData.filter(platform => platform._id == rowData.platform)[0];
+            vm.selectedPlatform = {
+                text: selectedPlatformData.name,
+                id: selectedPlatformData._id,
+                selectable: true,
+                data: selectedPlatformData,
+                image: {
+                    url: selectedPlatformData.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
         };
 
         vm.tabClicked = function (tab) {

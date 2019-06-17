@@ -181,7 +181,7 @@ function socketActionPartner(socketIO, socket) {
          */
         getPartnersByPlatform: function getPartnersByPlatform(data) {
             var actionName = arguments.callee.name
-            var isValidData = Boolean(data && data.platform);
+            var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPartner.getPartnersByPlatform, [data.platform], actionName, isValidData);
         },
 

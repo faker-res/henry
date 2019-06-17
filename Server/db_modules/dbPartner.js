@@ -850,7 +850,11 @@ let dbPartner = {
     getPartnersByPlatform: function (data) {
         var query = {};
         var count = 0;
-        query.platform = mongoose.Types.ObjectId(data.platformId);
+        // query.platform = mongoose.Types.ObjectId(data.platformId);
+        if (data.platformId && data.platformId.length) {
+            data.platformId = data.platformId.map(platformId => ObjectId(platformId));
+            query.platform = {$in: data.platformId}
+        }
         for(var k in data){
             if(k!="limit" && k!="index" && k!="pageObj" && k!="sortCol"&& k!="platformId"){
 
@@ -933,8 +937,11 @@ let dbPartner = {
     getPartnersByAdvancedQuery: function (platformId, query, index, limit, sortObj) {
         let partnerInfo;
 
-        query.platform  = mongoose.Types.ObjectId(platformId);
-
+        // query.platform  = mongoose.Types.ObjectId(platformId);
+        if (platformId && platformId.length) {
+            platformId = platformId.map(platformId => ObjectId(platformId));
+            query.platform = {$in: platformId}
+        }
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), rsaCrypto.oldEncrypt(query.phoneNumber),query.phoneNumber]};
         }
@@ -956,7 +963,8 @@ let dbPartner = {
             }
         }
 
-        let count = dbconfig.collection_partner.find(query).count();
+        // let count = dbconfig.collection_partner.find(query).count();
+        let totalPartnerProm = dbconfig.collection_partner.find({platform: {$in: platformId}}).count();
 
         if (sortObj){
             //if there is sorting parameter
@@ -1041,9 +1049,21 @@ let dbPartner = {
             });
         }
 
-        return Q.all([count, partnerInfo]).then( function(data){
-            return {size:data[0],data:data[1]}
-        })
+        let partnerDataObj;
+        let totalPartnerSize;
+        return Promise.all([totalPartnerProm, partnerInfo]).then( function(data){
+            totalPartnerSize = data[0];
+            partnerDataObj = data[1];
+            return dbconfig.collection_partner.find(query).count(); // query changed after partner prom
+        }).then(
+            partnerCount => {
+                return {
+                    totalPartnerSize: totalPartnerSize,
+                    size: partnerCount,
+                    data: partnerDataObj
+                }
+            }
+        )
     },
 
     getPartnerItem: function(id, childrencount) {
@@ -1259,16 +1279,19 @@ let dbPartner = {
         return dbUtil.getLastWeekSGTimeProm().then(
             function (times) {
                 if (times) {
-                    return dbconfig.collection_partnerWeekSummary.find(
-                        {
-                            platformId: platformObjId,
-                            partnerId: {$in: partnersObjId},
-                            date: {
-                                $gte: times.startTime,
-                                $lt: times.endTime
-                            }
+                    let query = {
+                        platformId: {$in: platformObjId},
+                        partnerId: {$in: partnersObjId},
+                        date: {
+                            $gte: times.startTime,
+                            $lt: times.endTime
                         }
-                    );
+                    }
+
+                    if (platformObjId && platformObjId.length) {
+                        query.platformId = {$in: platformObjId.map(platformId => ObjectId(platformId))};
+                    }
+                    return dbconfig.collection_partnerWeekSummary.find(query).lean();
                 }
             }
         );
@@ -11705,8 +11728,12 @@ function rearrangePartnerDetail(partnerList, platformId) {
 
     if (platformId && partnerObjIds && partnerObjIds.length > 0) {
         let query = {
-            platform: ObjectId(platformId),
+            // platform: ObjectId(platformId),
             partner: {$in: partnerObjIds}
+        }
+
+        if (platformId.length) {
+            query.platform = {$in: platformId}
         }
 
         let customizeRatePartnerProm = getCustomizeRatePartner(query);
