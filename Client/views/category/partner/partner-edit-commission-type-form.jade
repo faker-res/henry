@@ -152,19 +152,19 @@ form(name="form_edit_partner_commission_type", novalidate)
                     tr
                         td {{'Rate After Rebate Platform' | translate}}
                         td
-                            div(ng-if="Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
-                                span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePlatform") >= 0 ? {color: "red"} : {}')
-                                    input(ng-model='commissionRateConfig.rateAfterRebatePlatform' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]')
-                            div(ng-if="!Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
+                            div(ng-if="commissionRateConfig.rateAfterRebateGameProviderGroup")
+                                span.percentage(ng-style='vmm.commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePlatform") >= 0 ? {color: "red"} : {}')
+                                    input(ng-model='vmm.commissionRateConfig.rateAfterRebatePlatform' ng-disabled='!vmm.commissionRateConfig.isEditing["rateAfterRebatePlatform"]')
+                            div(ng-if="!vmm.commissionRateConfig.rateAfterRebateGameProviderGroup")
                                 text -
                         td
-                            div(ng-if="Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
+                            div(ng-if="commissionRateConfig.rateAfterRebateGameProviderGroup")
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', true);") {{'Edit' | translate}}
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', false);") {{'CANCEL' | translate}}
                                 text /
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform')") {{'Customize' | translate}}
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform', true)") {{'Reset default' | translate}}
-                            div(ng-if="!Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
+                            div(ng-if="!commissionRateConfig.rateAfterRebateGameProviderGroup")
                                 text -
 
                     tr(ng-repeat='(idx,val) in commissionRateConfig.rateAfterRebateGameProviderGroup')

@@ -713,7 +713,7 @@ define(['js/app'], function (myApp) {
                 vm.getAllPartnerLevels();
                 vm.partnerCommission = {};
                 // vm.getPlatformPartnersData();
-                // vm.getCommissionRateGameProviderGroup(); //walaohere
+                // vm.getCommissionRateGameProviderGroup();
                 // vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);
                 vm.onGoingLoadPlatformData = false;
             })
@@ -6848,12 +6848,17 @@ define(['js/app'], function (myApp) {
             })
             $(nRow).off('click');
             $(nRow).on('click', function () {
-                $scope.$evalAsync(() => {
+                $scope.$evalAsync(async () => {
                     $('#partnerDataTable tbody tr').removeClass('selected');
                     $(this).toggleClass('selected');
+
+                    if (!vm.selectedPlatform || !vm.selectedPlatform.id || vm.selectedPlatform.id != String(aData.platform)) {
+                        vm.getSelectedRowPlatformDetails(aData);
+                        await selectPlatformNode(vm.selectedPlatform.data);
+                    }
+
                     vm.partnerTableClickedRow = vm.partnerTable.row(this);
                     vm.selectedSinglePartner = aData;
-                    vm.getSelectedRowPlatformDetails(vm.selectedSinglePartner);
                     vm.isOneSelectedPartner = function () {
                         return vm.selectedSinglePartner;
                     };
@@ -7615,11 +7620,26 @@ define(['js/app'], function (myApp) {
             };
         };
 
+        vm.changeSelectedPlatform = function(platformObjId){
+            let selectedPlatformData = vm.allPlatformData.filter(platform => String(platform._id) == String(platformObjId))[0];
+            vm.selectedPlatform = {
+                text: selectedPlatformData.name,
+                id: selectedPlatformData._id,
+                selectable: true,
+                data: selectedPlatformData,
+                image: {
+                    url: selectedPlatformData.icon,
+                    width: 30,
+                    height: 30,
+                }
+            };
+        };
+
         vm.tabClicked = function (tab) {
             vm.editPartnerSelectedTab = tab;
         }
 
-        vm.openEditPartnerDialog = function (selectedTab) {
+        vm.openEditPartnerDialog = async function (selectedTab) {
             vm.editPartnerSelectedTab = "";
             vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
             vm.prepareEditCritical('partner');
@@ -7627,9 +7647,10 @@ define(['js/app'], function (myApp) {
             vm.tabClicked(selectedTab);
             vm.partnerValidity = {};
             vm.isMultiLevelCommission = false;
+            await vm.getCommissionRateGameProviderGroup();
             dialogDetails();
 
-            function dialogDetails() {
+            async function dialogDetails() {
                 let selectedPartner = vm.isOneSelectedPartner();
                 let editPartner = vm.editPartner;
                 vm.editPartner.DOB = new Date(vm.editPartner.DOB);
@@ -7641,6 +7662,7 @@ define(['js/app'], function (myApp) {
                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                 vm.partnerCommissionObj = {data:{}};
                 vm.partnerCommissionObj.data = commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission);
+                vm.commissionRateConfig = commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig),
                 // vm.partnerCommissionObj.data = vm.partnerCommission;
                 vm.commissionSettingIsEditAll = {};
                 vm.commissionRateIsEditAll = false;
@@ -12145,7 +12167,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
+            return $scope.$socketPromise('getPartnerCommissionRateConfig', sendData).then( function (data) {
                 if (data && data.data && data.data.length > 0) {
                     data.data.forEach(config => {
                         if (config.partner) {
@@ -16782,7 +16804,7 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getConfigData = () => {
+        vm.getConfigData = async () => {
             let choice = vm.selectedConfigTab;
             switch (choice) {
                 // case 'partner':
@@ -16792,8 +16814,21 @@ define(['js/app'], function (myApp) {
                 case 'partnerCommission':
                     vm.partnerCommission = {};
                     // vm.getCommissionRateGameProviderGroup();
-                    vm.commissionSettingTab = "DAILY_CONSUMPTION";
+                    vm.commissionSettingTab = vm.commissionSettingTab? vm.commissionSettingTab: "DAILY_CONSUMPTION";
                     vm.isMultiLevelCommission = false;
+                    vm.changeSelectedPlatform(vm.platformInSetting._id);
+                    // [vm.gameProviderGroup, vm.gameProviderGroupNames] = await commonService.getPlatformProviderGroup($scope, vm.platformInSetting._id).catch(err => Promise.resolve([
+                    // [vm.gameProviderGroup, vm.gameProviderGroupNames] = await commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.id).then(
+                    await commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.id).then(
+                        ([gameProviderGroup, gameProviderGroupNames]) => {
+                            vm.gameProviderGroup = gameProviderGroup;
+                            vm.gameProviderGroupNames = gameProviderGroupNames;
+                        }
+                    ).catch(err => Promise.resolve([
+                        [],
+                        []
+                    ]))
+                    vm.getCommissionRateGameProviderGroup();
                     vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);
                     break;
                 case 'validActive':
@@ -16911,13 +16946,15 @@ define(['js/app'], function (myApp) {
 
                     sendData = {
                         query: {
-                            platform: vm.selectedPlatform.id,
+                            platform: vm.platformInSetting._id,
                             commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
                             provider: {
                                 $in: gameProviderGroupId
                             }
                         }
                     }
+                } else {
+                    return;
                 }
             }
 
