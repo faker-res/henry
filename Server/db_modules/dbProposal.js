@@ -5563,6 +5563,8 @@ var proposal = {
                                             else{
                                                 player.totalBonusAmount = 0;
                                             }
+                                        } else {
+                                            player.totalBonusAmount = 0;
                                         }
 
                                         if (depositResult && depositResult.length > 0){
@@ -5574,6 +5576,8 @@ var proposal = {
                                             else{
                                                 player.totalDepositAmount = 0;
                                             }
+                                        } else {
+                                            player.totalDepositAmount = 0;
                                         }
 
                                         player.winLostAmount = player.totalDepositAmount - player.totalBonusAmount;
