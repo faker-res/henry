@@ -8852,50 +8852,54 @@ let dbPlayerReward = {
 
         async function checkEventCountBasedOnPlayerUpLevelDate(playerData, eventType, eventQuery, eventCount, intervalTime, eventQueryPeriodTime, rewardData){
             let rewardInPeriodCount = eventCount;
-            if (playerData && playerData._id && playerData.platform && eventType){
-                return dbConfig.collection_proposalType.find({platformId: playerData.platform, name: {$in: ["PlayerLevelUp", "UpdatePlayerInfoLevel"]}}).lean().then(
+            if (playerData && playerData._id && playerData.name && playerData.platform && eventType){
+                return dbConfig.collection_proposalType.find({platformId: playerData.platform, name: {$in: ["UpdatePlayerInfoLevel", 'PlayerLevelMigration']}}).lean().then(
                     proposalTypeList => {
                         console.log("checking proposalTypeList", proposalTypeList)
                         if (proposalTypeList && proposalTypeList.length){
                             let proposalTypes = [];
-
                             proposalTypeList.forEach( p => {
                                 if (p._id){
                                     proposalTypes.push(ObjectId(p._id));
                                 }
                             })
 
-                            console.log("checking proposalTypes", proposalTypes)
-                            return dbConfig.collection_proposal.findOne({
-                                $or: [{'data.playerObjId': playerData._id}, {'data.playerName': playerData.name}],
-                                type: {$in: proposalTypes},
-                                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                                }, {settleTime: 1}).sort({settleTime: -1}).lean().then(
-                                proposal => {
-                                    console.log("checking proposal", proposal)
-                                    if (eventQuery && proposal && proposal.settleTime && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.settleTime).getTime()){
-                                        // search the interval starting from the time when the player level up
-                                        if (eventQuery.$or) {
-                                            delete eventQuery.$or;
-                                        }
+                            if (proposalTypes && proposalTypes.length){
+                                let query = {
+                                    'data.playerName': playerData.name,
+                                    type: {$in: proposalTypes},
+                                    $or: [{'data.upOrDown': "LEVEL_UP"}, {'data.upOrDown': {$exists: false}}], // check non-exist of 'data.upOrDown' is for old data
+                                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    settleTime: {$gte: intervalTime.startTime},
+                                };
+                                return dbConfig.collection_proposal.findOne(query, {settleTime: 1}).sort({settleTime: -1}).lean().then(
+                                    proposal => {
+                                        console.log("checking proposal", proposal)
+                                        if (proposal && proposal.settleTime && eventQuery && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.settleTime).getTime()){
+                                            if (eventQuery.$or) {
+                                                delete eventQuery.$or;
+                                            }
 
-                                        if (rewardData.applyTargetDate) {
-                                            eventQuery.createTime = {$gte: proposal.settleTime, $lt: eventQueryPeriodTime.endTime};
-                                        } else {
-                                            eventQuery.createTime = {$gte: proposal.settleTime, $lt: intervalTime.endTime}
-                                        }
+                                            if (rewardData.applyTargetDate) {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: eventQueryPeriodTime.endTime};
+                                            } else {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: intervalTime.endTime}
+                                            }
 
-                                        return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                            return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                        }
+                                        else{
+                                            return rewardInPeriodCount
+                                        }
                                     }
-                                    else{
-                                        return rewardInPeriodCount
-                                    }
-                                }
-                            )
+                                )
+                            }
+                            else{
+                                return rewardInPeriodCount
+                            }
+
                         }
-                        else{
-                            return rewardInPeriodCount
-                        }
+                        return rewardInPeriodCount
                     }
                 )
             }

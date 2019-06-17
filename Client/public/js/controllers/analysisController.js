@@ -6810,12 +6810,15 @@ define(['js/app'], function (myApp) {
 
             let totalSuccessCount = 0;
             let totalCount = 0;
+            let totalProposalCount = 0;
             if (vm.allPlatformOnlineTopupDetailDataByType && vm.allPlatformOnlineTopupDetailDataByType.length > 0) {
                 totalSuccessCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successCount, 0);
                 totalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.totalCount, 0);
 
-                vm.allPlatformOnlineTopupDetailDataByType.map(item => {
-                    item.userCountAverage = item && item.successUserCount ? (item.successUserCount / vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0)) * vm.allPlatformOnlineTopupDetailDataByType.length : 0;
+                vm.allPlatformOnlineTopupDetailDataByType.forEach(item => {
+                    if (item && item.proposalArr && item.proposalArr.length > 0) {
+                        totalProposalCount += item.proposalArr.length;
+                    }
                 });
             }
 
@@ -6827,8 +6830,7 @@ define(['js/app'], function (myApp) {
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCount =vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.amountRatio, 0));
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCountRatio, 0));
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalUserCountAverage = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0) / vm.allPlatformOnlineTopupDetailDataByType.length) || 0;
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data && data.proposalArr && data.proposalArr.length ? data.proposalArr.length : 0 , 0);
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = totalProposalCount;
         };
 
         vm.initOnlineTopUpAnalysisProposalDetail = (proposalArr) => {
