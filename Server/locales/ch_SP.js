@@ -558,7 +558,8 @@ var simplifiedChinese = {
     "Over the apply limit already": "超过了此优惠的申请上限",
     "Not allowed to transfer from test environment.": "只允许测试账号操作转入",
     "DOB": "生日",
-    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
+    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
+    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
     //todo::add missing messages here
 
     /*

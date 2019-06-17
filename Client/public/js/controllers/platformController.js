@@ -37676,14 +37676,24 @@ define(['js/app'], function (myApp) {
                                         }
 
                                         let errorList = data.data;
+                                        let nullCount = 0;
                                         errorList = errorList.filter(item => {
-                                            return (typeof item === 'string');
-                                        })
+                                            if(item == null) {
+                                                nullCount++;
+                                            }
+                                            return (typeof item === 'string' || item == null);
+                                        });
 
-                                        if (errorList < 1) {
+                                        if (errorList < 1 && nullCount == 0) {
                                             vm.batchPermitModifySucc = true;
                                         } else {
-                                            vm.errorListMsg = errorList.join(',');
+                                            vm.errorListMsg = '';
+                                            if(nullCount > 0 && data.data.length == nullCount) {
+                                                vm.errorListMsg += $translate("Player(s) are not of selected platform");
+                                            } else if(nullCount > 0 && data.data.length > nullCount) {
+                                                vm.errorListMsg += $translate("Some player(s) are not of selected platform");
+                                            }
+                                            vm.errorListMsg += errorList.join(',');
                                         }
 
                                         vm.getPlatformPlayersData();
