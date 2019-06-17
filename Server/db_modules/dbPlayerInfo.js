@@ -20887,6 +20887,17 @@ let dbPlayerInfo = {
         return dbconfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
     },
 
+    createForbidPromoCodeLog: function (playerId, adminId, forbidPromoCodeNames, remark) {
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidPromoCodeNames: forbidPromoCodeNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidPromoCodeLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
     getForbidRewardLog: function (playerId, startTime, endTime, index, limit) {
         let logProm = dbconfig.collection_playerForbidRewardLog.find({
             player: playerId,
@@ -20898,6 +20909,29 @@ let dbPlayerInfo = {
             {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    getForbidPromoCodeLog: function (playerId, startTime, endTime, index, limit) {
+        let query = {
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        };
+        let logProm = dbconfig.collection_playerForbidPromoCodeLog.find(query).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidPromoCodeLog.find({player: playerId}).count();
 
         return Promise.all([logProm, countProm]).then(
             data => {

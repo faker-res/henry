@@ -370,8 +370,8 @@ include modalGameCreditLog
                     label {{v.category | translate}}
                     div(ng-repeat=" promoCode in v.data")
                         label {{promoCode.name}}
-                            input.playerPromoCodeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidPromoCodeAddList", "forbidPromoCodeRemoveList")', ng-model="isTrue", ng-checked='vm.forbidPromoCodePopover.forbidPromoCode.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')
-                            span(id="{{'c-'+v._id}}")
+                            input.playerPromoCodeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{promoCode._id}}', ng-change='vm.forbidModification(promoCode._id, isTrue, "forbidPromoCodeAddList", "forbidPromoCodeRemoveList")', ng-model="isTrue", ng-checked='vm.forbidPromoCodePopover.forbidPromoCodeList.indexOf(promoCode._id)>-1 || vm.selectedAllForbidPromoCode')
+                            span(id="{{'c-'+promoCode._id}}")
                     //.textareaDetail.margin-top-bottom-small
                     //    input.playePromoCodeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
                     //    span(id="{{'c-'+v._id}}")
@@ -833,6 +833,28 @@ include modalGameCreditLog
                 label {{"Total" | translate}} {{vm.forbidTopUpLog.totalCount}} {{"records" | translate}}
                 table#forbidTopUpTbl.common-table(style='min-width:100%')
                 #forbidTopUpTblPage.height30
+
+#modalForbidPromoCodeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidPromoCodePopover.name}}
+            .modal-body
+                #forbidPromoCodeSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidPromoCodeLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidPromoCodeLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidPromoCodeLog.totalCount}} {{"records" | translate}}
+                table#forbidPromoCodeTbl.common-table(style='min-width:100%')
+                #forbidPromoCodeTblPage.height30
 
 #modalPlayerRewardHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
