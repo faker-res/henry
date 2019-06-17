@@ -24996,7 +24996,11 @@ define(['js/app'], function (myApp) {
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.urlConfigShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
@@ -25028,7 +25032,11 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
@@ -25427,44 +25435,23 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function () {
-                let sendData = {
-                    platform: vm.filterFrontEndSettingPlatform,
-                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
-                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
-                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
-                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
-                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
-                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
-                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
-                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
-                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
-                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
-                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
-                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null,
-                    htmlTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.htmlTextColor ? vm.frontEndUrlConfig.htmlTextColor : null,
-                    textColor1: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor1 ? vm.frontEndUrlConfig.textColor1 : null,
-                    textColor2: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor2 ? vm.frontEndUrlConfig.textColor2 : null,
-                    mainNavTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavTextColor ? vm.frontEndUrlConfig.mainNavTextColor : null,
-                    mainNavActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveTextColor ? vm.frontEndUrlConfig.mainNavActiveTextColor : null,
-                    mainNavActiveBorderColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveBorderColor ? vm.frontEndUrlConfig.mainNavActiveBorderColor : null,
-                    navTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navTextColor ? vm.frontEndUrlConfig.navTextColor : null,
-                    navActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navActiveTextColor ? vm.frontEndUrlConfig.navActiveTextColor : null,
-                    formBgColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBgColor ? vm.frontEndUrlConfig.formBgColor : null,
-                    formLabelTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formLabelTextColor ? vm.frontEndUrlConfig.formLabelTextColor : null,
-                    formInputTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formInputTextColor ? vm.frontEndUrlConfig.formInputTextColor : null,
-                    formBorderBottomColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBorderBottomColor ? vm.frontEndUrlConfig.formBorderBottomColor : null,
-                };
+                if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
+                    vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
+                    return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
+                        console.log("saveUrlConfig success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.urlConfigShowMessage = "SUCCESS";
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveUrlConfig error: ', err);
+                        vm.urlConfigShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    socketService.showErrorMessage($translate("platformObjId is not available"));
+                }
 
-                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
-                    console.log("saveUrlConfig success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.urlConfigShowMessage = "SUCCESS";
-                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveUrlConfig error: ', err);
-                    vm.urlConfigShowMessage = "FAIL";
-                });
             };
 
             vm.getFrontEndUrlConfig = function (objId) {

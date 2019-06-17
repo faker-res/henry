@@ -211,39 +211,18 @@ var dbFrontEndSetting = {
     },
 
     saveUrlConfig: (data) => {
-        return dbConfig.collection_frontEndUrlConfiguration.findOne({platformObjId: ObjectId(data.platform)}).lean().then(
-            urlConfigData => {
-                if (urlConfigData && urlConfigData._id) {
-                    let updateData = Object.assign({}, data);
-
-                    delete updateData.platform;
-
-                    return dbConfig.collection_frontEndUrlConfiguration.findOneAndUpdate(
-                        {_id: urlConfigData._id, platformObjId: urlConfigData.platformObjId},
-                        updateData,
-                        {new: true});
-                } else {
-                    let newSetting = {
-                        platformObjId: ObjectId(data.platform),
-                        websiteTitle: data.websiteTitle,
-                        websiteName: data.websiteName,
-                        androidAppUrl: data.androidAppUrl,
-                        iosAppUrl: data.iosAppUrl,
-                        metaKeyword: data.metaKeyword,
-                        metaDescription: data.metaDescription,
-                        horizontalScreenStyleFileUrl: data.horizontalScreenStyleFileUrl,
-                        faviconUrl: data.faviconUrl,
-                        websiteLogo: data.websiteLogo,
-                        pcSkin: data.pcSkin,
-                        h5Skin: data.h5Skin,
-                        appSkin: data.appSkin
-                    };
-
-                    let record = new dbConfig.collection_frontEndUrlConfiguration(newSetting);
-                    return record.save();
-                }
-            }
-        );
+        if (data && data._id){
+            let dataObjId = data._id;
+            delete data._id;
+            return dbConfig.collection_frontEndUrlConfiguration.findOneAndUpdate(
+                {_id: dataObjId},
+                data,
+                {new: true});
+        }
+        else{
+            let record = new dbConfig.collection_frontEndUrlConfiguration(data);
+            return record.save();
+        }
     },
 
     getUrlConfig: (platformObjId) => {
