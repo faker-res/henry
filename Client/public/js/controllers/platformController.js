@@ -120,6 +120,11 @@ define(['js/app'], function (myApp) {
                 "realPrize": 6
             };
 
+            vm.randomRewardMode = {
+                "possibility": 0,
+                "topupCondition": 1
+            };
+
             vm.festivalRewardType = {
                 "festivalType1": 1,
                 "festivalType2": 2,
@@ -2941,7 +2946,7 @@ define(['js/app'], function (myApp) {
                     endTime: vm.queryPara['userInfoRecordQueryDiv'].endTime.data('datetimepicker').getLocalDate() || new Date(0),
                     index: newSearch ? 0 : vm.externalUserRecordQuery.index,
                     limit: newSearch ? 10 : vm.externalUserRecordQuery.limit,
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: vm.externalUserRecordQuery.platformList,
                     sortCol: vm.externalUserRecordQuery.sortCol
                 };
 
@@ -2964,6 +2969,7 @@ define(['js/app'], function (myApp) {
                                     let numLength = item.phoneNumber.length;
                                     item.phoneNumber = item.phoneNumber.substring(0, 3) + "******" + item.phoneNumber.slice(-numLength + 9);
                                 }
+                                item.platformName = vm.allPlatformData.filter(platform=>{return platform.platformId == item.platformId})[0].name;
 
                                 return item;
                             }
@@ -2986,8 +2992,8 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {'title': $translate("PRODUCT_NAME"), data: 'platformName'},
                         {'title': $translate("User's Name"), data: 'name'},
-
                         {'title': $translate('Clicking Time'), data: 'createTime', bSortable: true},
                         {'title': $translate('phoneNumber'), data: 'phoneNumber'},
                     ],
@@ -23003,6 +23009,13 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addNewRewardTypeRow = (row, entry, newEntryData) => {
+                vm.topupConditionInterval = {};
+                newEntryData.id = createObjectId();
+                vm.topupConditionInterval.rowId = newEntryData.id;
+
+                if (newEntryData && newEntryData.rewardType && (newEntryData.rewardType == vm.randomRewardType.credit || newEntryData.rewardType == vm.randomRewardType.promoCodeBDeposit || newEntryData.rewardType == vm.randomRewardType.promoCodeBNoDeposit || newEntryData.rewardType == vm.randomRewardType.promoCodeC)) {
+                    $("#modalEditTopupConditionInterval").modal('show');
+                }
                 if (entry && entry.rewardType && (entry.rewardType == vm.randomRewardType.promoCodeBDeposit || entry.rewardType == vm.randomRewardType.promoCodeBNoDeposit || entry.rewardType == vm.randomRewardType.promoCodeC)){
                     if (vm.isPromoNameExist(entry.title) && !entry.templateObjId) {
                         return socketService.showErrorMessage($translate('Promo code name must be unique'));
@@ -23012,7 +23025,6 @@ define(['js/app'], function (myApp) {
                         return socketService.showErrorMessage($translate('expiredInDay has to be filled up'));
                     }
                 }
-                newEntryData.id = createObjectId();
                 row.push(newEntryData);
             }
 
@@ -23113,6 +23125,11 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (model && model.name == "topUpCountType") {
+                    delete model.value1;
+                    delete model.value2;
+                }
+
+                if (model && model.name == "topupCondition") {
                     delete model.value1;
                     delete model.value2;
                 }
@@ -23693,6 +23710,79 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.editTopupConditionInterval = function (currentValue, index, rewardType) {
+                vm.topupConditionInterval = {};
+                if (currentValue && currentValue.id) {
+                    vm.topupConditionInterval.rowId = currentValue.id;
+                }
+                if (currentValue && currentValue.topupOperator && currentValue.topupValue) {
+                    vm.topupConditionInterval.topupOperator = currentValue.topupOperator;
+                    vm.topupConditionInterval.topupValue = currentValue.topupValue;
+                    vm.topupConditionInterval.topupValueTwo = currentValue.topupValueTwo || null;
+                }
+                $("#modalEditTopupConditionInterval").modal('show');
+            }
+
+            vm.updateTopupConditionInterval = function () {
+                if (vm.topupConditionInterval.topupOperator && vm.topupConditionInterval.topupValue) {
+                    if (vm.topupConditionInterval.topupOperator === 'range' && vm.topupConditionInterval.topupValueTwo) {
+                        vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupValue + '~' + vm.topupConditionInterval.topupValueTwo;
+                    } else {
+                        vm.topupConditionInterval.topupValueTwo = null;
+                        vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupOperator + vm.topupConditionInterval.topupValue;
+                    }
+                }
+
+                vm.rewardMainParamTableCredit.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode1.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode2.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+                vm.rewardMainParamTablePromoCode3.map(cond => {
+                    if (cond && cond.value) {
+                        cond.value.map(entry => {
+                            if (entry && entry.id && vm.topupConditionInterval.rowId && entry.id.toString() === vm.topupConditionInterval.rowId.toString()) {
+                                entry.topupCondition = vm.topupConditionInterval.topupString;
+                                entry.topupOperator = vm.topupConditionInterval.topupOperator;
+                                entry.topupValue = vm.topupConditionInterval.topupValue;
+                                entry.topupValueTwo = vm.topupConditionInterval.topupValueTwo || null;
+                            }
+                        })
+                    }
+                })
+            }
+
             vm.createRewardEventGroup = function () {
                 let sendData = {
                     platform: vm.filterRewardPlatform,
@@ -23804,6 +23894,13 @@ define(['js/app'], function (myApp) {
                 vm.rewardMainParamTable.push({value: []});
                 vm.rewardMainParamTable[0].value = rewardParamPromoCode1.concat(rewardParamPromoCode2).concat(rewardParamPromoCode3).concat(rewardParamCredit).concat(rewardParamPrize).concat(rewardParamRewardPoints);
                 vm.rewardMainParamTable[0].value = vm.rewardMainParamTable[0].value.filter(p => p.title && Number.isFinite(p.possibility))
+                vm.rewardMainParamTable[0].currentPossibility = 0;
+                vm.rewardMainParamTable[0].value.forEach(p => {
+                    if (p && p.possibility) {
+                        vm.rewardMainParamTable[0].currentPossibility += p.possibility
+                    }
+                });
+                vm.rewardMainParamTable[0].currentPossibility = vm.rewardMainParamTable[0].currentPossibility * 100
             }
 
             vm.repackageFestivalRewardGroup = function() {
@@ -24899,7 +24996,11 @@ define(['js/app'], function (myApp) {
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.urlConfigShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
@@ -24931,7 +25032,11 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
@@ -25330,44 +25435,23 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function () {
-                let sendData = {
-                    platform: vm.filterFrontEndSettingPlatform,
-                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
-                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
-                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
-                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
-                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
-                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
-                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
-                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
-                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
-                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
-                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
-                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null,
-                    htmlTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.htmlTextColor ? vm.frontEndUrlConfig.htmlTextColor : null,
-                    textColor1: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor1 ? vm.frontEndUrlConfig.textColor1 : null,
-                    textColor2: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor2 ? vm.frontEndUrlConfig.textColor2 : null,
-                    mainNavTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavTextColor ? vm.frontEndUrlConfig.mainNavTextColor : null,
-                    mainNavActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveTextColor ? vm.frontEndUrlConfig.mainNavActiveTextColor : null,
-                    mainNavActiveBorderColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveBorderColor ? vm.frontEndUrlConfig.mainNavActiveBorderColor : null,
-                    navTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navTextColor ? vm.frontEndUrlConfig.navTextColor : null,
-                    navActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navActiveTextColor ? vm.frontEndUrlConfig.navActiveTextColor : null,
-                    formBgColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBgColor ? vm.frontEndUrlConfig.formBgColor : null,
-                    formLabelTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formLabelTextColor ? vm.frontEndUrlConfig.formLabelTextColor : null,
-                    formInputTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formInputTextColor ? vm.frontEndUrlConfig.formInputTextColor : null,
-                    formBorderBottomColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBorderBottomColor ? vm.frontEndUrlConfig.formBorderBottomColor : null,
-                };
+                if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
+                    vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
+                    return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
+                        console.log("saveUrlConfig success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.urlConfigShowMessage = "SUCCESS";
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveUrlConfig error: ', err);
+                        vm.urlConfigShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    socketService.showErrorMessage($translate("platformObjId is not available"));
+                }
 
-                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
-                    console.log("saveUrlConfig success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.urlConfigShowMessage = "SUCCESS";
-                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveUrlConfig error: ', err);
-                    vm.urlConfigShowMessage = "FAIL";
-                });
             };
 
             vm.getFrontEndUrlConfig = function (objId) {
@@ -37015,11 +37099,14 @@ define(['js/app'], function (myApp) {
 
             // Batch Permit Edit
             vm.initBatchPermit = function () {
-                setTimeout(() => {
-                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
-                    vm.initBatchParams();
-                    vm.drawBatchPermitTable();
-                }, 0);
+                let platform = getSelectedPlatform();
+                if(platform && platform._id) {
+                    setTimeout(() => {
+                        vm.prepareCredibilityConfig(platform._id || vm.selectedPlatform.id || null);
+                        vm.initBatchParams();
+                        vm.drawBatchPermitTable();
+                    }, 0);
+                }
             };
 
             vm.initBatchParams = function(){
@@ -37041,7 +37128,7 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
-            }
+            };
 
             vm.resetBatchEditUI = function(){
                 vm.initBatchParams();
@@ -37049,6 +37136,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.localRemarkUpdate = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {
@@ -37065,7 +37154,7 @@ define(['js/app'], function (myApp) {
                 let playerNames = vm.splitBatchPermit();
                 let sendQuery = {
                     admin: authService.adminName,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerNames: playerNames,
                     remarks: {
                         'addList': vm.forbidCredibilityAddList,
@@ -37079,7 +37168,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                        vm.prepareCredibilityConfig(platformObjId || vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -37136,6 +37225,8 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.drawBatchPermitTable = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
 
                 vm.selectedPlayers = {};
                 vm.selectedPlayersCount = 0;
@@ -37545,7 +37636,7 @@ define(['js/app'], function (myApp) {
                                     vm.batchPermitModifySucc = false;
                                     socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
                                         query: {
-                                            platformObjId: vm.selectedPlatform.id,
+                                            platformObjId: platformObjId || vm.selectedPlatform.id,
                                             playerNames: playerNames
                                         },
                                         admin: authService.adminId,
@@ -37555,7 +37646,7 @@ define(['js/app'], function (myApp) {
                                         if (changeObj.banReward != undefined) {
                                             let sendData = {
                                                 query: {
-                                                    platformObjId: vm.selectedPlatform.id,
+                                                    platformObjId: platformObjId || vm.selectedPlatform.id,
                                                     name: "Main Permission Disabled (default)", //hard code name
                                                     isBlockByMainPermission: true,
                                                     color: "lightgrey"
@@ -37572,14 +37663,24 @@ define(['js/app'], function (myApp) {
                                         }
 
                                         let errorList = data.data;
+                                        let nullCount = 0;
                                         errorList = errorList.filter(item => {
-                                            return (typeof item === 'string');
-                                        })
+                                            if(item == null) {
+                                                nullCount++;
+                                            }
+                                            return (typeof item === 'string' || item == null);
+                                        });
 
-                                        if (errorList < 1) {
+                                        if (errorList < 1 && nullCount == 0) {
                                             vm.batchPermitModifySucc = true;
                                         } else {
-                                            vm.errorListMsg = errorList.join(',');
+                                            vm.errorListMsg = '';
+                                            if(nullCount > 0 && data.data.length == nullCount) {
+                                                vm.errorListMsg += $translate("Player(s) are not of selected platform");
+                                            } else if(nullCount > 0 && data.data.length > nullCount) {
+                                                vm.errorListMsg += $translate("Some player(s) are not of selected platform");
+                                            }
+                                            vm.errorListMsg += errorList.join(',');
                                         }
 
                                         vm.getPlatformPlayersData();
@@ -37657,7 +37758,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidRewardEvents: {
                                             'addList': vm.forbidRewardEventAddList,
@@ -37741,7 +37842,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidProviders: {
                                             'addList': vm.forbidGameAddList,
@@ -37821,7 +37922,7 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         query: {
                                             playerNames: playerNames,
-                                            platformObjId: vm.selectedPlatform.id
+                                            platformObjId: platformObjId || vm.selectedPlatform.id
                                         },
                                         updateData: {
                                             forbidTopUpType: {
@@ -37898,7 +37999,7 @@ define(['js/app'], function (myApp) {
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
                                         playerNames: playerNames,
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         forbidRewardPointsEvent: {
                                             'addList': vm.forbidRewardPointsAddList,
                                             'removeList': vm.forbidRewardPointsRemoveList
@@ -37968,6 +38069,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.initiating = false;
             };
             vm.initiateBulkCreditClearOutList = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 vm.bulkCreditClearOut.initiating = true;
                 vm.bulkCreditClearOutTriggered = true;
                 vm.bulkCreditClearOut.total = 0;
@@ -37992,7 +38095,7 @@ define(['js/app'], function (myApp) {
 
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -38050,14 +38153,16 @@ define(['js/app'], function (myApp) {
                     }
                 })
 
-            }
+            };
             vm.initBulkClearXIMAWithdraw = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
                 playerNames.forEach((playerName, i) => {
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("clearPlayerXIMAWithdraw", sendData);
@@ -38132,6 +38237,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data = [];
             };
             vm.singleCreditClearOut = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let player = vm.bulkCreditClearOut.data[index];
                 let initialStatus = player.status;
                 let totalCredit = Number(player.totalCredit);
@@ -38139,7 +38246,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                     player.status = "Transferring Out";
                     return $scope.$socketPromise("playerCreditClearOut", {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: platformObjId || vm.selectedPlatform.id,
                         playerName: player.playerName
                     }).then(data => {
                         console.log("playerCreditClearOut ret", data);
@@ -38197,6 +38304,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data.splice(index,1);
             };
             vm.refreshPlayerCreditInCreditClearOutList = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                 vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = "? (" + $translate("Requesting Data") + ")";
                 vm.bulkCreditClearOut.data[index].localTotalCredit = "? (" + $translate("Requesting Data") + ")";
@@ -38204,7 +38313,7 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data[index].actionable = false;
                 let player = vm.bulkCreditClearOut.data[index];
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerName: player.playerName
                 };
                 return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -41690,6 +41799,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "rewardpoint":
                         selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
+                        break;
+                    case "batchpermit":
+                        selectedPlatformObjId = vm.batchSettingSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {

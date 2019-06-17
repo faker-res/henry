@@ -5902,6 +5902,33 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            // Set reward param step to use
+            if (eventData.param && eventData.param.isMultiStepReward) {
+                if (eventData.param.isSteppingReward) {
+                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                    selectedRewardParam = selectedRewardParam[eventStep];
+                } else {
+                    let firstRewardParam = selectedRewardParam[0];
+                    selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
+                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                }
+            } else {
+                selectedRewardParam = selectedRewardParam[0];
+            }
+            // Check reward apply limit in period for each player level ony when the general countInRewardInterval is not set
+            if (selectedRewardParam && selectedRewardParam.playerLevelCountInRewardInterval && eventData.param && !eventData.param.countInRewardInterval){
+                let customEventInPeriodCount = await checkEventCountBasedOnPlayerUpLevelDate(playerData, eventData.type.name, eventQuery, eventInPeriodCount, intervalTime, eventQueryPeriodTime, rewardData);
+                customEventInPeriodCount = typeof customEventInPeriodCount != 'undefined' ? customEventInPeriodCount : eventInPeriodCount;
+                console.log("checking customEventInPeriodCount", customEventInPeriodCount);
+                if (selectedRewardParam.playerLevelCountInRewardInterval <= customEventInPeriodCount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: localization.localization.translate("Player has applied for max reward times in event period")
+                    });
+                }
+            }
+
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
@@ -6133,6 +6160,35 @@ let dbPlayerReward = {
                 requiredPhoneNumber = Boolean(playerData.phoneNumber);
             }
             promArr.push(requiredPhoneNumber);
+
+            let yerTopupProbabilityProm = Promise.resolve(true);
+
+            // randomRewardMode: 0 is possibility; 1 is topupCondition
+            if (eventData.condition.randomRewardMode === '1') {
+                let yerTime = dbUtility.getYesterdaySGTime();
+                let yerTopupAmount = 0;
+
+                // get player total top up from yesterday
+                let query = {
+                    playerId: playerData._id,
+                    platformId: playerData.platform._id,
+                    createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
+                };
+
+                yerTopupProbabilityProm = dbConfig.collection_playerTopUpRecord.find(query).lean().exec().then(
+                    topup => {
+                        let yerTopupProbability = 0;
+                        if (topup && topup.length) {
+                            topup.forEach(data => {
+                                yerTopupAmount += data.amount;
+                            });
+                            yerTopupProbability = yerTopupAmount / topup.length;
+                        }
+                        return yerTopupProbability;
+                    }
+                )
+            }
+            promArr.push(yerTopupProbabilityProm);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
@@ -6311,7 +6367,9 @@ let dbPlayerReward = {
                     let totalTopupMatchQuery = {
                         'data.playerName': playerData.name,
                         'data.platformId': playerData.platform._id,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS
                     };
                     if (intervalTime) {
                         totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -6884,28 +6942,19 @@ let dbPlayerReward = {
                                 correctTopUpType = false;
                             }
 
-                            // Set reward param step to use
-                            if (eventData.param.isMultiStepReward) {
-                                if (eventData.param.isSteppingReward) {
-                                    let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
-                                    selectedRewardParam = selectedRewardParam[eventStep];
-                                } else {
-                                    let firstRewardParam = selectedRewardParam[0];
-                                    selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
-                                    selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
-                                }
-                            } else {
-                                selectedRewardParam = selectedRewardParam[0];
-                            }
-
-                            // Check reward apply limit in period
-                            if (selectedRewardParam && selectedRewardParam.playerLevelCountInRewardInterval && selectedRewardParam.playerLevelCountInRewardInterval <= eventInPeriodCount) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: localization.localization.translate("Player has applied for max reward times in event period")
-                                });
-                            }
+                            // // Set reward param step to use
+                            // if (eventData.param.isMultiStepReward) {
+                            //     if (eventData.param.isSteppingReward) {
+                            //         let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                            //         selectedRewardParam = selectedRewardParam[eventStep];
+                            //     } else {
+                            //         let firstRewardParam = selectedRewardParam[0];
+                            //         selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
+                            //         selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            //     }
+                            // } else {
+                            //     selectedRewardParam = selectedRewardParam[0];
+                            // }
 
                             if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
@@ -7680,6 +7729,7 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let presetList = rewardSpecificData[5];
                         matchRequiredPhoneNumber = rewardSpecificData[6];
+                        let yerTopupProbability = rewardSpecificData[7];
                         let gottenRewardInInterval = periodProps;
 
                         let participationTimes = eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') ? eventData.condition.numberParticipation : 1;
@@ -7750,7 +7800,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "Not valid for the reward; Top-up is required."
+                                message: "不符合存款要求，请存款后参与。"
                             });
                         }
 
@@ -7867,6 +7917,75 @@ let dbPlayerReward = {
                         // random pick
                         else{
 
+                        }
+
+                        // randomRewardMode: 0 is possibility; 1 is topupCondition
+                        if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
+                            selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
+
+                            let filterTopupCondition = [];
+
+                            selectedRewardParam.forEach( param => {
+                                if (param.topupOperator && param.topupValue) {
+                                    switch (param.topupOperator) {
+                                        case '<=':
+                                            if (yerTopupProbability <= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '>=':
+                                            if (yerTopupProbability >= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '=':
+                                            if (yerTopupProbability === param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case 'range':
+                                            if (yerTopupProbability >= param.topupValue && yerTopupProbability <= param.topupValueTwo) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                            selectedRewardParam = filterTopupCondition;
+                        }
+
+                        // if no top up record from yesterday, default will be the lowest range of reward param
+                        if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
+                            let lowestValue = 1;
+                            let filterTopupCondition = [];
+
+                            selectedRewardParam.forEach( param => {
+                                if (param.topupOperator && param.topupValue) {
+                                    switch (param.topupOperator) {
+                                        case '<=':
+                                            if (lowestValue <= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '>=':
+                                            if (lowestValue >= param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case '=':
+                                            if (lowestValue === param.topupValue) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                        case 'range':
+                                            if (lowestValue >= param.topupValue && lowestValue <= param.topupValueTwo) {
+                                                filterTopupCondition.push(param);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                            selectedRewardParam = filterTopupCondition;
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
@@ -8754,6 +8873,62 @@ let dbPlayerReward = {
             }
 
             return retAmt;
+        }
+
+        async function checkEventCountBasedOnPlayerUpLevelDate(playerData, eventType, eventQuery, eventCount, intervalTime, eventQueryPeriodTime, rewardData){
+            let rewardInPeriodCount = eventCount;
+            if (playerData && playerData._id && playerData.name && playerData.platform && eventType){
+                return dbConfig.collection_proposalType.find({platformId: playerData.platform, name: {$in: ["UpdatePlayerInfoLevel", 'PlayerLevelMigration']}}).lean().then(
+                    proposalTypeList => {
+                        console.log("checking proposalTypeList", proposalTypeList)
+                        if (proposalTypeList && proposalTypeList.length){
+                            let proposalTypes = [];
+                            proposalTypeList.forEach( p => {
+                                if (p._id){
+                                    proposalTypes.push(ObjectId(p._id));
+                                }
+                            })
+
+                            if (proposalTypes && proposalTypes.length){
+                                let query = {
+                                    'data.playerName': playerData.name,
+                                    type: {$in: proposalTypes},
+                                    $or: [{'data.upOrDown': "LEVEL_UP"}, {'data.upOrDown': {$exists: false}}], // check non-exist of 'data.upOrDown' is for old data
+                                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    settleTime: {$gte: intervalTime.startTime},
+                                };
+                                return dbConfig.collection_proposal.findOne(query, {settleTime: 1}).sort({settleTime: -1}).lean().then(
+                                    proposal => {
+                                        console.log("checking proposal", proposal)
+                                        if (proposal && proposal.settleTime && eventQuery && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.settleTime).getTime()){
+                                            if (eventQuery.$or) {
+                                                delete eventQuery.$or;
+                                            }
+
+                                            if (rewardData.applyTargetDate) {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: eventQueryPeriodTime.endTime};
+                                            } else {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: intervalTime.endTime}
+                                            }
+
+                                            return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                        }
+                                        else{
+                                            return rewardInPeriodCount
+                                        }
+                                    }
+                                )
+                            }
+                            else{
+                                return rewardInPeriodCount
+                            }
+
+                        }
+                        return rewardInPeriodCount
+                    }
+                )
+            }
+            return rewardInPeriodCount
         }
     },
 

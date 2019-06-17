@@ -566,7 +566,6 @@ var simplifiedChinese = {
     "You need to topup before apply this reward.": "您的存款条件不满足此优惠",
     "Your Birthday is Not In the Period of This Reward.": "您的生日日期不符合优惠申请条件",
     "Not In the Period of This Reward.": "您需要节日当天才可以领取该优惠",
-    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。"
     //todo::add missing messages here
 
     /*

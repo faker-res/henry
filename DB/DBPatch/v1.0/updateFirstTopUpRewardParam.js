@@ -1492,6 +1492,13 @@ db.rewardParam.update({
                     des: "Default Reward Type For The First Time",
                     detail: "Set the default reward type for the first time; the reward will be randomly selected from the collection of the reward type",
                     options: "randomRewardType",
+                },
+                randomRewardMode: {
+                    index: 49,
+                    type: "select",
+                    des: "Random Reward Mode",
+                    detail: "Possibility - based on possibility; Top Up Condition - based on player total top up / top up count from yesterday",
+                    options: "randomRewardMode",
                 }
 
             }
@@ -1499,6 +1506,7 @@ db.rewardParam.update({
         param: {
             tblOptFixed: {
                 rewardParam: {
+                    topupCondition: {type: "button", des: "TOP_UP_CONDITION_INTERVAL"},
                     title: {type: "text"},
                     amount: {type: "number", des: "REWARD_AMOUNT"},
                     amountPercent: {type: "percentage", des: "REWARD_AMOUNT_PERCENT"},

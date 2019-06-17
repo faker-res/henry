@@ -712,6 +712,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         6: "Real Prize"
     };
 
+    $scope.randomRewardMode = {
+        0: "possibility",
+        1: "topupCondition"
+    }
+
     $scope.bonusDoubledRewardModal = {
         1: "Principal x Multiplier/100",
         2: "Fixed reward amount based on the multiplier"
