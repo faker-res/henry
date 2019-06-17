@@ -191,6 +191,7 @@ define(['js/app'], function (myApp) {
             if (selectedPlatform) {
                 vm.selectedPlatform.id = selectedPlatform._id;
                 vm.selectedPlatform.data = selectedPlatform;
+                vm.selectedPlatform.text = selectedPlatform.name;
                 vm.curPlatformText = selectedPlatform.name;
 
                 vm.bankCardGroupPMS = "false";
