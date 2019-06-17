@@ -6843,8 +6843,8 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else{
-                    if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo == 'number') {
-                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.allOnlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
+                    if (typeof vm.queryPara.allOnlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo == 'number') {
+                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.allOnlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
                     }
                     else{
                         vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;
