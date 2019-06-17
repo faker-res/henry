@@ -250,6 +250,10 @@
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.playerExpenseQuery.platformId' ng-change='vm.getPlatformProvider(vm.playerExpenseQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"Player ID"|translate}}
                     input.form-control(type="text", ng-model="vm.playerExpenseQuery.playerId")
                 .search-filters-item

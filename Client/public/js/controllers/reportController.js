@@ -2367,7 +2367,7 @@ define(['js/app'], function (myApp) {
                     var sendData = {
                         startTime: startTime,
                         endTime: endTime,
-                        platformId: vm.curPlatformId,
+                        platformId: vm.playerExpenseQuery.platformId,
                         playerId: vm.newPlayerExpenseQuery.playerId,
                         playerName: vm.newPlayerExpenseQuery.playerName,
                         providerId: vm.newPlayerExpenseQuery.providerId,
