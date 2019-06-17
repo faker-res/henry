@@ -1943,8 +1943,8 @@ define(['js/app'], function (myApp) {
 
             vm.curQueryOperation = $.extend(true, {}, vm.queryOperation); //vm.queryOperation || {};
             vm.curQueryOperation.providerId = vm.curQueryOperation.providerId == "all" ? null : vm.curQueryOperation.providerId;
-            vm.curPlatformId = vm.selectedPlatform._id;
-            vm.curQueryOperation.platformId = vm.selectedPlatform._id;
+            vm.curPlatformId = vm.queryOperation.platformId;
+            vm.curQueryOperation.platformId = vm.queryOperation.platformId;
             // if (vm.curQueryOperation.providerId == 'all') {
             //     vm.curQueryOperation.providerId = null;
             // }

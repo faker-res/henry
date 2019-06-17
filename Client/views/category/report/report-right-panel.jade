@@ -204,6 +204,10 @@
             //提供商报表
             #operationReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.queryOperation.platformId' ng-change='vm.getPlatformProvider(vm.queryOperation.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"Provider"|translate}}
                     select.form-control(ng-model='vm.queryOperation.providerId', required)
                         option(value="all") {{'all' | translate}}
