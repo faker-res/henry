@@ -90,7 +90,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
 
         saveUrlConfig: function saveUrlConfig (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platform);
+            let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveUrlConfig, [data], actionName, isValidData);
         },
