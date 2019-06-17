@@ -80,9 +80,9 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
-                                td(ng-if="v.proposalArr.length == 0")
+                                td(ng-if="!v.proposalArr.length")
                                     span {{v.proposalArr.length || 0}}
-                                td(ng-if="v.proposalArr.length != 0")
+                                td(ng-if="v.proposalArr.length > 0")
                                     a(ng-click='vm.initOnlineTopUpAnalysisProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalAllOnlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
@@ -144,9 +144,9 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
-                                td(ng-if="v.proposalArr.length == 0")
+                                td(ng-if="!v.proposalArr.length")
                                     span {{v.proposalArr.length || 0}}
-                                td(ng-if="v.proposalArr.length != 0")
+                                td(ng-if="v.proposalArr.length > 0")
                                     a(ng-click='vm.initOnlineTopUpAnalysisProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalAllOnlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
@@ -207,9 +207,9 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
-                                td(ng-if="v.proposalArr.length == 0")
+                                td(ng-if="!v.proposalArr.length")
                                     span {{v.proposalArr.length || 0}}
-                                td(ng-if="v.proposalArr.length != 0")
+                                td(ng-if="v.proposalArr.length > 0")
                                     a(ng-click='vm.initOnlineTopUpAnalysisProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalAllOnlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td
@@ -292,9 +292,9 @@
                                     span {{ v.userCount }}
                                 td
                                     span {{ v.userCountRatio }} %
-                                td(ng-if="v.proposalArr.length == 0")
+                                td(ng-if="!v.proposalArr.length")
                                     span {{v.proposalArr.length || 0}}
-                                td(ng-if="v.proposalArr.length != 0")
+                                td(ng-if="v.proposalArr.length > 0")
                                     a(ng-click='vm.initOnlineTopUpAnalysisProposalDetail(v.proposalArr)', data-toggle= 'modal', data-target= '#modalAllOnlineTopupSuccessProposal') {{ v.proposalArr.length}}
                             tr
                                 td(style='background-color: #ffc1c1;')
