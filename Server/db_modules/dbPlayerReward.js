@@ -8853,79 +8853,53 @@ let dbPlayerReward = {
         async function checkEventCountBasedOnPlayerUpLevelDate(playerData, eventType, eventQuery, eventCount, intervalTime, eventQueryPeriodTime, rewardData){
             let rewardInPeriodCount = eventCount;
             if (playerData && playerData._id && playerData.name && playerData.platform && eventType){
-                let checkManualLevelUpProm = dbConfig.collection_proposalType.findOne({platformId: playerData.platform, name: "UpdatePlayerInfoLevel"}).lean().then(
-                    proposalType => {
-                        if (proposalType && proposalType._id){
-                            let query1 = {
-                                'data.playerName': playerData.name,
-                                type: ObjectId(proposalType._id),
-                                $or: [{'data.upOrDown': "LEVEL_UP"}, {'data.upOrDown': {$exists: false}}], // check non-exist of 'data.upOrDown' is for old data
-                                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                settleTime: {$gte: intervalTime.startTime},
-                            };
-                            return dbConfig.collection_proposal.findOne(query1, {settleTime: 1}).sort({settleTime: -1}).lean();
-                        }
-                    }
-                )
-
-                let checkAutoLevelUpProm = dbConfig.collection_proposalType.findOne({platformId: playerData.platform, name: "PlayerLevelMigration"}).lean().then(
-                    proposalType => {
-                        if (proposalType && proposalType._id){
-                            let query2 = {
-                                'data.playerObjId': playerData._id,
-                                type: ObjectId(proposalType._id),
-                                'data.upOrDown': "LEVEL_UP",
-                                settleTime: {$gte: intervalTime.startTime},
-                                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                            };
-                            return dbConfig.collection_proposal.findOne(query2, {settleTime: 1}).sort({settleTime: -1}).lean();
-                        }
-                    }
-                )
-
-                return Promise.all([checkManualLevelUpProm, checkAutoLevelUpProm]).then(
-                    retData => {
-                        console.log("checking retData", retData)
-                        if (retData && retData.length){
-                            let selectedTime;
-                            let manualRecord = retData[0];
-                            let autoRecord = retData[1];
-
-                            if (manualRecord && manualRecord.settleTime && autoRecord && autoRecord.settleTime){
-                                if (new Date(manualRecord.settleTime).getTime() > new Date(autoRecord.settleTime).getTime()){
-                                    selectedTime = manualRecord.settleTime;
+                return dbConfig.collection_proposalType.find({platformId: playerData.platform, name: {$in: ["UpdatePlayerInfoLevel", 'PlayerLevelMigration']}}).lean().then(
+                    proposalTypeList => {
+                        console.log("checking proposalTypeList", proposalTypeList)
+                        if (proposalTypeList && proposalTypeList.length){
+                            let proposalTypes = [];
+                            proposalTypeList.forEach( p => {
+                                if (p._id){
+                                    proposalTypes.push(ObjectId(p._id));
                                 }
-                                else{
-                                    selectedTime = autoRecord.settleTime;
-                                }
-                            }
-                            else if (manualRecord && manualRecord.settleTime ){
-                                selectedTime = manualRecord.settleTime;
-                            }
-                            else if (autoRecord && autoRecord.settleTime){
-                                selectedTime = autoRecord.settleTime;
-                            }
+                            })
 
-                            if (selectedTime && new Date(intervalTime.startTime).getTime() <= new Date(selectedTime).getTime()){
-                                if (eventQuery.$or) {
-                                    delete eventQuery.$or;
-                                }
+                            if (proposalTypes && proposalTypes.length){
+                                let query = {
+                                    'data.playerName': playerData.name,
+                                    type: {$in: proposalTypes},
+                                    $or: [{'data.upOrDown': "LEVEL_UP"}, {'data.upOrDown': {$exists: false}}], // check non-exist of 'data.upOrDown' is for old data
+                                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    settleTime: {$gte: intervalTime.startTime},
+                                };
+                                return dbConfig.collection_proposal.findOne(query, {settleTime: 1}).sort({settleTime: -1}).lean().then(
+                                    proposal => {
+                                        console.log("checking proposal", proposal)
+                                        if (proposal && proposal.settleTime && eventQuery && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.settleTime).getTime()){
+                                            if (eventQuery.$or) {
+                                                delete eventQuery.$or;
+                                            }
 
-                                if (rewardData.applyTargetDate) {
-                                    eventQuery.createTime = {$gte: selectedTime, $lt: eventQueryPeriodTime.endTime};
-                                } else {
-                                    eventQuery.createTime = {$gte: selectedTime, $lt: intervalTime.endTime}
-                                }
+                                            if (rewardData.applyTargetDate) {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: eventQueryPeriodTime.endTime};
+                                            } else {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: intervalTime.endTime}
+                                            }
 
-                                return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                            return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                        }
+                                        else{
+                                            return rewardInPeriodCount
+                                        }
+                                    }
+                                )
                             }
                             else{
                                 return rewardInPeriodCount
                             }
+
                         }
-                        else{
-                            return rewardInPeriodCount
-                        }
+                        return rewardInPeriodCount
                     }
                 )
             }
