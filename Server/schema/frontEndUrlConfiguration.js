@@ -99,12 +99,6 @@ var frontEndUrlConfigurationSchema = new Schema({
         // 表单下边框色
         formBorderBottomColor: {type: String},
     },
-    // // Current Skin(PC)
-    // pcSkin: {type: Schema.Types.ObjectId, ref: 'frontEndSkinSetting', index: true},
-    // // Current Skin(H5)
-    // h5Skin: {type: Schema.Types.ObjectId, ref: 'frontEndSkinSetting', index: true},
-    // // Current Skin(APP)
-    // appSkin: {type: Schema.Types.ObjectId, ref: 'frontEndSkinSetting', index: true},
 
 });
 
