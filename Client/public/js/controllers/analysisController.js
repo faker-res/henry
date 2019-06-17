@@ -6815,7 +6815,7 @@ define(['js/app'], function (myApp) {
                 totalSuccessCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successCount, 0);
                 totalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.totalCount, 0);
 
-                vm.allPlatformOnlineTopupDetailDataByType.map(item => {
+                vm.allPlatformOnlineTopupDetailDataByType.forEach(item => {
                     if (item && item.proposalArr && item.proposalArr.length > 0) {
                         totalProposalCount += item.proposalArr.length;
                     }
