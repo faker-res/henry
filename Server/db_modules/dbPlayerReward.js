@@ -8605,7 +8605,6 @@ let dbPlayerReward = {
 
                                         if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
                                             let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
-                                            console.log('selectedReward', selectedRewardParam);
                                             if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
                                                 outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
                                             }
