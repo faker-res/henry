@@ -1324,6 +1324,7 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     if (incompleteSetting) {
         rateTable = false;
     }
+    console.log('rateTable', JSON.stringify(rateTable, null, 2))
 
     return {
         groupId: group.providerGroupId,
