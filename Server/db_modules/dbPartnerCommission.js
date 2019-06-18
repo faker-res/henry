@@ -204,7 +204,11 @@ const dbPartnerCommission = {
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
                         let previousParentRate = 0;
+                        if (partner && partner.partnerName == "plevel2")
+                            console.log("we are here", groupRate.groupName, commissionRates[groupRate.groupName].parentRatios)
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
+                            if (partner && partner.partnerName == "plevel2")
+                                console.log('should still get in?', parentChain.length)
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             let ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
                             for (let i = 0; i < parentChain.length; i++) {
@@ -225,6 +229,8 @@ const dbPartnerCommission = {
                                     platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done(),
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
+                                if (partner && partner.partnerName == "plevel2")
+                                    console.log('shouldnt be 0', detail.parentRate)
                                 // if (i === 0) {
                                 //     detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
                                     // this is done to adjust that current level of multi level commission is also given to immediate parent
