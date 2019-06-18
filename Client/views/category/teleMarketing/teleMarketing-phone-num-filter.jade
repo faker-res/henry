@@ -284,7 +284,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform" | translate}}
+                                    label {{"Platform Selection" | translate}}
                                     select.form-control(ng-model="vm.importPlatformForDX" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForDX)')
 
                         .row
