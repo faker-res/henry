@@ -205,7 +205,7 @@ const dbPartnerCommission = {
                         // sum it out for gross for each parent
                         let previousParentRate = 0;
                         if (partner && partner.partnerName == "plevel2")
-                            console.log("we are here", groupRate.groupName, commissionRates[groupRate.groupName].parentRatios)
+                            console.log("we are here", groupRate.groupName, JSON.stringify(commissionRates[groupRate.groupName],null,2))
                         if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
                             if (partner && partner.partnerName == "plevel2")
                                 console.log('should still get in?', parentChain.length)
