@@ -4515,6 +4515,12 @@ define(['js/app'], function (myApp) {
         vm.drawPaymentRecordTotalCompletedTable = function (data, summary, newSearch) {
             vm.paymentMonitorTotalQuery.totalCompletedCount = data.length;
             console.log('data', data);
+            data.map(item => {
+                if(item.merchantNo$ && !item.merchantNo$.startsWith("******") && item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp"){
+                    return item.merchantNo$ = "******" + item.merchantNo$.slice(-6);
+                }
+            });
+
             let tableOptions = {
                 data: data,
                 "order": vm.paymentMonitorTotalQuery.aaSorting || [[15, 'desc']],
