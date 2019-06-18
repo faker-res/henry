@@ -1302,12 +1302,12 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
         currentRequirement.parentRate = [];
 
         currentRequirement.parentRatios = parentsRateTables.map(parentRateTable => {
-            if (!parentRateTable || !parentRateTable.commissionSetting || !parentRateTable.commissionSetting[i] || incompleteSetting) {
-                incompleteSetting = true;
-                return;
-            }
+            // if (!parentRateTable || !parentRateTable.commissionSetting || !parentRateTable.commissionSetting[i] || incompleteSetting) {
+            //     incompleteSetting = true;
+            //     return;
+            // }
 
-            let commSetting = parentRateTable.commissionSetting[i];
+            let commSetting = parentRateTable && parentRateTable.commissionSetting && parentRateTable.commissionSetting[i] || {};
             currentRequirement.parentRate.push(commSetting.commissionRate);
 
             if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
