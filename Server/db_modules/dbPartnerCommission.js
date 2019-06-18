@@ -206,7 +206,10 @@ const dbPartnerCommission = {
                         let previousParentRate = 0;
                         if (commissionRates[groupRate.groupName].parentRatios) {
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
-                            let ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
+                            let ratioSum = 0;
+                            if (commissionRates[groupRate.groupName].parentRatios.length) {
+                                ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
+                            }
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
