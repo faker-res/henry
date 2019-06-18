@@ -5902,6 +5902,25 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                actualAmount = rewardData.selectedTopup.amount;
+
+                // Check top up is created within reward interval period
+                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
+                // Check if there is withdraw after top up
+                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Calculate the daily applied reward amount
+                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
+            }
+
             // Set reward param step to use
             if (eventData.param && eventData.param.isMultiStepReward) {
                 if (eventData.param.isSteppingReward) {
@@ -5927,25 +5946,6 @@ let dbPlayerReward = {
                         message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
                 }
-            }
-
-            if (rewardData && rewardData.selectedTopup) {
-                selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
-                actualAmount = rewardData.selectedTopup.amount;
-
-                // Check top up is created within reward interval period
-                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
-                // Check if there is withdraw after top up
-                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
-                // Calculate the daily applied reward amount
-                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
-            } else {
-                return Promise.reject({
-                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                    name: "DataError",
-                    message: "Invalid top up"
-                });
             }
         }
 
