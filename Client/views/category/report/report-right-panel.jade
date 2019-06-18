@@ -1217,7 +1217,7 @@
             #playerDomainReportQuery.col-md-12.well
                 .search-filters-item
                     label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.merchantNoList.spicker(ng-model='vm.playerDomain.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.playerDomain.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"USER_TYPE"|translate}}
                     select.form-control(ng-model="vm.playerDomain.playerType")
