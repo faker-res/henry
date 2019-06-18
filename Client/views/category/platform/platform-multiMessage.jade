@@ -27,6 +27,9 @@
                             label {{"CREDIBILITY"|translate}}
                             //select.form-control#selectCredibilityRemarkMultiMsg(multiple="multiple", ng-options='remark._id as remark.name group by remark.platformName for remark in vm.allCredibilityRemarks', ng-model='vm.sendMultiMessage.credibilityRemarks')
                             select.form-control(ng-model='vm.sendMultiMessage.credibilityRemarks', ng-options='remark._id as remark.name group by remark.platformName for remark in vm.platformCredibilityRemarks', multiple, bsp, data-actions-box='true',)
+                        .search-filters-item
+                            label {{"CREDIBILITY_FILTER"|translate}}
+                            select.form-control(ng-model='vm.sendMultiMessage.credibilityRemarksFilter', ng-options='remark._id as remark.name group by remark.platformName for remark in vm.platformCredibilityRemarksFilter', multiple, bsp, data-actions-box='true',)
                         .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.topUpTimesOperator === "range")}')
                             label {{"TOP_UP_TIMES"|translate}}
                             div
