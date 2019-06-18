@@ -277,6 +277,9 @@ const dbPartnerCommission = {
                         totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
                         nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
                     }
+                    else {
+                        totalPlatformFee = 0;
+                    }
 
                     // if it is bonus based, calculate the nett parent commission as well
                     parentChain.map(parent => {
