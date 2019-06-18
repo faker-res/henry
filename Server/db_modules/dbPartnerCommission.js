@@ -286,12 +286,16 @@ const dbPartnerCommission = {
                         if (totalParentGrossCommission) {
                             feeMultiplier = math.chain(parentComm.grossCommission).divide(totalParentGrossCommission).round(12).done();
                         }
+                        if (partner && partner.partnerName == "plevel2")
+                        console.log("fee multiplier", parentComm.totalParentRate, totalAllParentRate, parentComm.grossCommission, totalParentGrossCommission, feeMultiplier);
 
                         if (bonusBased && grossCommission) {
                             // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
                             parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done() || 0;
                             parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done() || 0;
                             parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done() || 0;
+                            if (partner && partner.partnerName == "plevel2")
+                                console.log("parentComm.totalRewardFee", parentComm.totalRewardFee)
                             // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             parentComm.totalPlatformFee = parentComm.platformFee || 0;
                             parentComm.nettCommission = math.chain(parentComm.grossCommission)
