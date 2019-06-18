@@ -4082,7 +4082,7 @@ define(['js/app'], function (myApp) {
 
             var sendquery = {
                 //platform: vm.curPlatformId,
-                platformList: vm.playerDomain.platformList,
+                platformList: vm.playerDomain.platformList ? vm.playerDomain.platformList : vm.platformList.map(item => item._id),
                 query: {
                     playerType: vm.playerDomain.playerType,
                     name: vm.playerDomain.name,
