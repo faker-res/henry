@@ -231,7 +231,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform" | translate}}
+                                    label {{"Platform Selection" | translate}}
                                     select.form-control(ng-model="vm.importPlatformForTXT" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForTXT)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
@@ -257,7 +257,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform" | translate}}
+                                    label {{"Platform Selection" | translate}}
                                     select.form-control(ng-model="vm.importPlatform" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatform)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
