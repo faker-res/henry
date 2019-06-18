@@ -18089,7 +18089,7 @@ let dbPlayerInfo = {
         ).then(
             playerSummaryData => {
                 if (playerSummaryData && playerSummaryData.length > 0) {
-                    playerSummaryData.forEach(processPlayerSummaryData);
+                    playerSummaryData = playerSummaryData.map(processPlayerSummaryData);
 
                     console.log('playerSummaryData', playerSummaryData);
 
@@ -18375,10 +18375,10 @@ let dbPlayerInfo = {
             }
         ).then(
             twoDaysPlayerReportData => {
-                if(twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0){
+                if (twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0){
                     twoDaysPlayerReportData.data.forEach(
                         twoDaysData => {
-                            if(twoDaysData && twoDaysData._id){
+                            if(twoDaysData && twoDaysData._id) {
                                 let indexNo = returnedObj.data.findIndex(r => r._id == twoDaysData._id);
 
                                 if(indexNo == -1){
@@ -18454,6 +18454,97 @@ let dbPlayerInfo = {
                 returnedObj.total.profit =
                     (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
 
+                if (preSummaryStartTime && preSummaryEndTime) {
+                    query.start = preSummaryStartTime;
+                    query.end = preSummaryEndTime;
+
+                    return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol).then(
+                        preSummaryPlayerReportData => {
+                            if (preSummaryPlayerReportData && preSummaryPlayerReportData.data && preSummaryPlayerReportData.data.length > 0) {
+                                preSummaryPlayerReportData.data.forEach(
+                                    preSummaryData => {
+                                        if (preSummaryData && preSummaryData._id){
+                                            let indexNo = returnedObj.data.findIndex(r => r._id == preSummaryData._id);
+
+                                            if (indexNo == -1) {
+                                                returnedObj.data.push(preSummaryData);
+                                            } else {
+                                                returnedObj.data[indexNo].manualTopUpAmount += preSummaryData.manualTopUpAmount;
+                                                returnedObj.data[indexNo].onlineTopUpAmount += preSummaryData.onlineTopUpAmount;
+                                                returnedObj.data[indexNo].aliPayTopUpAmount += preSummaryData.aliPayTopUpAmount;
+                                                returnedObj.data[indexNo].weChatTopUpAmount += preSummaryData.weChatTopUpAmount;
+                                                returnedObj.data[indexNo].topUpAmount +=
+                                                    preSummaryData.manualTopUpAmount + preSummaryData.onlineTopUpAmount
+                                                    + preSummaryData.aliPayTopUpAmount + preSummaryData.weChatTopUpAmount;
+                                                returnedObj.data[indexNo].topUpTimes += preSummaryData.topUpTimes;
+                                                returnedObj.data[indexNo].bonusTimes += preSummaryData.bonusTimes;
+                                                returnedObj.data[indexNo].bonusAmount += preSummaryData.bonusAmount;
+                                                returnedObj.data[indexNo].rewardAmount += preSummaryData.rewardAmount;
+                                                returnedObj.data[indexNo].consumptionReturnAmount += preSummaryData.consumptionReturnAmount;
+                                                returnedObj.data[indexNo].consumptionTimes += preSummaryData.consumptionTimes;
+                                                returnedObj.data[indexNo].validConsumptionAmount += preSummaryData.validConsumptionAmount;
+                                                returnedObj.data[indexNo].consumptionBonusAmount += preSummaryData.consumptionBonusAmount;
+                                                returnedObj.data[indexNo].consumptionAmount += preSummaryData.consumptionAmount;
+                                                returnedObj.data[indexNo].totalPlatformFeeEstimate += preSummaryData.totalPlatformFeeEstimate;
+                                                returnedObj.data[indexNo].totalOnlineTopUpFee += preSummaryData.totalOnlineTopUpFee;
+
+                                                //combine providerDetail
+                                                if(Object.keys(preSummaryData.providerDetail).length > 0){
+
+                                                    for(let i = 0; i < Object.keys(preSummaryData.providerDetail).length ; i ++){
+                                                        let providerDetailKey = Object.keys(preSummaryData.providerDetail)[i];
+                                                        if(returnedObj.data[indexNo].providerDetail[providerDetailKey]){
+                                                            returnedObj.data[indexNo].providerDetail[providerDetailKey].count += preSummaryData.providerDetail[providerDetailKey].count;
+                                                            returnedObj.data[indexNo].providerDetail[providerDetailKey].validAmount += preSummaryData.providerDetail[providerDetailKey].validAmount;
+                                                            returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += preSummaryData.providerDetail[providerDetailKey].bonusAmount;
+                                                            returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += preSummaryData.providerDetail[providerDetailKey].amount;
+                                                            returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount);
+                                                        }
+                                                    }
+
+                                                    returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+
+                            // Slice array to input page amount
+                            returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
+                            returnedObj.data = returnedObj.data.slice(0, limit);
+
+                            returnedObj.size = returnedObj.data.length;
+
+                            returnedObj.total = resultSum;
+                            returnedObj.data.forEach(el => {
+                                returnedObj.total.aliPayTopUpAmount += el.aliPayTopUpAmount || 0;
+                                returnedObj.total.bonusAmount += el.bonusAmount || 0;
+                                returnedObj.total.bonusTimes += el.bonusTimes || 0;
+                                returnedObj.total.consumptionAmount += el.consumptionAmount || 0;
+                                returnedObj.total.consumptionBonusAmount += el.consumptionBonusAmount || 0;
+                                returnedObj.total.consumptionReturnAmount += el.consumptionReturnAmount || 0;
+                                returnedObj.total.consumptionTimes += el.consumptionTimes || 0;
+                                returnedObj.total.manualTopUpAmount += el.manualTopUpAmount || 0;
+                                returnedObj.total.onlineTopUpAmount += el.onlineTopUpAmount || 0;
+                                returnedObj.total.rewardAmount += el.rewardAmount || 0;
+                                returnedObj.total.topUpAmount += el.topUpAmount || 0;
+                                returnedObj.total.topUpTimes += el.topUpTimes || 0;
+                                returnedObj.total.totalOnlineTopUpFee += el.totalOnlineTopUpFee || 0;
+                                returnedObj.total.totalPlatformFeeEstimate += el.totalPlatformFeeEstimate || 0;
+                                returnedObj.total.validConsumptionAmount += el.validConsumptionAmount || 0;
+                                returnedObj.total.weChatTopUpAmount += el.weChatTopUpAmount || 0;
+                            });
+
+                            // Calculate total profit
+                            returnedObj.total.profit =
+                                (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+
+                            return returnedObj;
+                        }
+                    );
+                }
+
                 return returnedObj;
             }
         );
@@ -18470,7 +18561,7 @@ let dbPlayerInfo = {
             if (playerSummary) {
                 playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
 
-                if(playerSummary.providerDetail && playerSummary.providerDetail.length > 1){
+                if (playerSummary.providerDetail && playerSummary.providerDetail.length > 1) {
                     //merge providerDetail from different date
                     let providerDetailObj = {};
                     playerSummary.providerDetail.forEach(
@@ -18499,7 +18590,7 @@ let dbPlayerInfo = {
                     );
 
                     playerSummary.providerDetail = providerDetailObj;
-                }else{
+                } else {
                     playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
                 }
             }
