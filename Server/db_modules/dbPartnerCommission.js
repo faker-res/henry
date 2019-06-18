@@ -203,13 +203,13 @@ const dbPartnerCommission = {
 
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
-                        let previousParentRate = 0;
+                        let previousParentRate = platformFeeRate;
                         if (commissionRates[groupRate.groupName].parentRatios) {
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             let ratioSum = 0;
                             console.log('commissionRates[groupRate.groupName].parentRatios', commissionRates[groupRate.groupName].parentRatios)
                             if (commissionRates[groupRate.groupName].parentRatios.length) {
-                                ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
+                                ratioSum = commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1] - platformFeeRate;
                             }
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
