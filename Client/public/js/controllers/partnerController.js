@@ -1151,35 +1151,6 @@ define(['js/app'], function (myApp) {
             )
         };
 
-        /* Calculate sum for partner downlines commission details */
-        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType) {
-            for (var i in vm.partnerDLCommDetailTotal) {
-                delete vm.partnerDLCommDetailTotal[i];
-            }
-
-            if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
-                if (!partnerDownLineCommDetail[0]) {
-                    partnerDownLineCommDetail.push({});
-                }
-                (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach(key => {
-                    if (key === "consumptionProviderDetail") {
-                        (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach(subkey1 => {
-                            vm.partnerDLCommDetailTotal[subkey1] = {};
-                            (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach(subkey2 => {
-                                vm.partnerDLCommDetailTotal[subkey1][subkey2] =
-                                    partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
-                                        a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
-                            });
-                        });
-                    } else {
-                        vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
-                        vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
-                    }
-                });
-            }
-            $scope.safeApply();
-        };
-
         /* Check for no remark entry if settleMethod is not normal settlement */
         vm.checkPartnerCommissionLogRemark = function () {
             delete vm.partnerCommVar.checkedRemark;
