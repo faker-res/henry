@@ -200,7 +200,14 @@ var dbPlayerConsumptionWeekSummary = {
                     dbconfig.collection_players.findById(player).populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                         playerData => {
                             // Skip banned player when batch settlement
-                            if (playerData && playerData.permission && playerData.permission.banReward) {
+                            if (
+                                playerData
+                                && playerData.permission
+                                && (
+                                    playerData.permission.banReward
+                                    || playerData.permission.forbidPlayerConsumptionReturn
+                                )
+                            ) {
                                 return;
                             }
 

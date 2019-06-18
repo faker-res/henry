@@ -993,6 +993,24 @@ define([], () => {
             }
             // endregion
 
+            //#region Common Top Up Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerCommonTopUp" && vm.selectedProposal.status === "PrePending") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerCommonTopUp");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+            }
+            //#endregion
+
             // region Baccarat Reward Group Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "BaccaratRewardGroup") {
                 proposalDetail = {};

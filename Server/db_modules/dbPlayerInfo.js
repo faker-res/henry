@@ -13826,14 +13826,10 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_players.aggregate(
                 {
-                    $unwind: "$userAgent",
+                    $match: matchObj
                 },
                 {
-                    $match: matchObj
-                    // {
-                    //     platform: platform,
-                    //     registrationTime: {$gte: startTime, $lt: endTime}
-                    // }
+                    $unwind: "$userAgent",
                 },
                 {
                     $group: {
@@ -13888,14 +13884,14 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
-                    $unwind: "$userAgent",
-                },
-                {
                     $match: matchObj
                     //     {
                     //     platform: platform,
                     //     loginTime: {$gte: startTime, $lt: endTime}
                     // }
+                },
+                {
+                    $unwind: "$userAgent",
                 },
                 {
                     $group: {

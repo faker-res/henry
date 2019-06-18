@@ -23725,9 +23725,10 @@ define(['js/app'], function (myApp) {
 
             vm.updateTopupConditionInterval = function () {
                 if (vm.topupConditionInterval.topupOperator && vm.topupConditionInterval.topupValue) {
-                    if (vm.topupConditionInterval.topupValueTwo) {
+                    if (vm.topupConditionInterval.topupOperator === 'range' && vm.topupConditionInterval.topupValueTwo) {
                         vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupValue + '~' + vm.topupConditionInterval.topupValueTwo;
                     } else {
+                        vm.topupConditionInterval.topupValueTwo = null;
                         vm.topupConditionInterval.topupString = vm.topupConditionInterval.topupOperator + vm.topupConditionInterval.topupValue;
                     }
                 }
@@ -24995,7 +24996,11 @@ define(['js/app'], function (myApp) {
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.urlConfigShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
@@ -25027,7 +25032,11 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
-                        vm.frontEndUrlConfig = {};
+                        vm.frontEndUrlConfig = {
+                            app:{},
+                            web: {},
+                            pc: {},
+                        };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
@@ -25426,44 +25435,23 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function () {
-                let sendData = {
-                    platform: vm.filterFrontEndSettingPlatform,
-                    websiteTitle: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteTitle ? vm.frontEndUrlConfig.websiteTitle : null,
-                    websiteName: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteName ? vm.frontEndUrlConfig.websiteName : null,
-                    androidAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.androidAppUrl ? vm.frontEndUrlConfig.androidAppUrl : null,
-                    iosAppUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.iosAppUrl ? vm.frontEndUrlConfig.iosAppUrl : null,
-                    metaKeyword: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaKeyword ? vm.frontEndUrlConfig.metaKeyword : null,
-                    metaDescription: vm.frontEndUrlConfig && vm.frontEndUrlConfig.metaDescription ? vm.frontEndUrlConfig.metaDescription : null,
-                    horizontalScreenStyleFileUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.horizontalScreenStyleFileUrl ? vm.frontEndUrlConfig.horizontalScreenStyleFileUrl : null,
-                    faviconUrl: vm.frontEndUrlConfig && vm.frontEndUrlConfig.faviconUrl ? vm.frontEndUrlConfig.faviconUrl : null,
-                    websiteLogo: vm.frontEndUrlConfig && vm.frontEndUrlConfig.websiteLogo ? vm.frontEndUrlConfig.websiteLogo : null,
-                    pcSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.pcSkin ? vm.frontEndUrlConfig.pcSkin : null,
-                    h5Skin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.h5Skin ? vm.frontEndUrlConfig.h5Skin : null,
-                    appSkin: vm.frontEndUrlConfig && vm.frontEndUrlConfig.appSkin ? vm.frontEndUrlConfig.appSkin : null,
-                    htmlTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.htmlTextColor ? vm.frontEndUrlConfig.htmlTextColor : null,
-                    textColor1: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor1 ? vm.frontEndUrlConfig.textColor1 : null,
-                    textColor2: vm.frontEndUrlConfig && vm.frontEndUrlConfig.textColor2 ? vm.frontEndUrlConfig.textColor2 : null,
-                    mainNavTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavTextColor ? vm.frontEndUrlConfig.mainNavTextColor : null,
-                    mainNavActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveTextColor ? vm.frontEndUrlConfig.mainNavActiveTextColor : null,
-                    mainNavActiveBorderColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.mainNavActiveBorderColor ? vm.frontEndUrlConfig.mainNavActiveBorderColor : null,
-                    navTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navTextColor ? vm.frontEndUrlConfig.navTextColor : null,
-                    navActiveTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.navActiveTextColor ? vm.frontEndUrlConfig.navActiveTextColor : null,
-                    formBgColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBgColor ? vm.frontEndUrlConfig.formBgColor : null,
-                    formLabelTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formLabelTextColor ? vm.frontEndUrlConfig.formLabelTextColor : null,
-                    formInputTextColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formInputTextColor ? vm.frontEndUrlConfig.formInputTextColor : null,
-                    formBorderBottomColor: vm.frontEndUrlConfig && vm.frontEndUrlConfig.formBorderBottomColor ? vm.frontEndUrlConfig.formBorderBottomColor : null,
-                };
+                if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
+                    vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
+                    return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
+                        console.log("saveUrlConfig success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.urlConfigShowMessage = "SUCCESS";
+                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveUrlConfig error: ', err);
+                        vm.urlConfigShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    socketService.showErrorMessage($translate("platformObjId is not available"));
+                }
 
-                return $scope.$socketPromise('saveUrlConfig', sendData).then(data => {
-                    console.log("saveUrlConfig success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.urlConfigShowMessage = "SUCCESS";
-                    vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveUrlConfig error: ', err);
-                    vm.urlConfigShowMessage = "FAIL";
-                });
             };
 
             vm.getFrontEndUrlConfig = function (objId) {
@@ -37111,11 +37099,14 @@ define(['js/app'], function (myApp) {
 
             // Batch Permit Edit
             vm.initBatchPermit = function () {
-                setTimeout(() => {
-                    vm.prepareCredibilityConfig(vm.selectedPlatform.id || null);
-                    vm.initBatchParams();
-                    vm.drawBatchPermitTable();
-                }, 0);
+                let platform = getSelectedPlatform();
+                if(platform && platform._id) {
+                    setTimeout(() => {
+                        vm.prepareCredibilityConfig(platform._id || vm.selectedPlatform.id || null);
+                        vm.initBatchParams();
+                        vm.drawBatchPermitTable();
+                    }, 0);
+                }
             };
 
             vm.initBatchParams = function(){
@@ -37137,7 +37128,7 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
-            }
+            };
 
             vm.resetBatchEditUI = function(){
                 vm.initBatchParams();
@@ -37145,6 +37136,8 @@ define(['js/app'], function (myApp) {
             }
 
             vm.localRemarkUpdate = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {
@@ -37161,7 +37154,7 @@ define(['js/app'], function (myApp) {
                 let playerNames = vm.splitBatchPermit();
                 let sendQuery = {
                     admin: authService.adminName,
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerNames: playerNames,
                     remarks: {
                         'addList': vm.forbidCredibilityAddList,
@@ -37175,7 +37168,7 @@ define(['js/app'], function (myApp) {
                         vm.playerCredibilityRemarksUpdated = true;
                         vm.credibilityRemarkUpdateMessage = "SUCCESS";
                         vm.getPlatformPlayersData();
-                        vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                        vm.prepareCredibilityConfig(platformObjId || vm.selectedPlatform.id);
                     })
                 }, function (error) {
                     $scope.$evalAsync(() => {
@@ -37232,6 +37225,8 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.drawBatchPermitTable = function () {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
 
                 vm.selectedPlayers = {};
                 vm.selectedPlayersCount = 0;
@@ -37641,7 +37636,7 @@ define(['js/app'], function (myApp) {
                                     vm.batchPermitModifySucc = false;
                                     socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
                                         query: {
-                                            platformObjId: vm.selectedPlatform.id,
+                                            platformObjId: platformObjId || vm.selectedPlatform.id,
                                             playerNames: playerNames
                                         },
                                         admin: authService.adminId,
@@ -37651,7 +37646,7 @@ define(['js/app'], function (myApp) {
                                         if (changeObj.banReward != undefined) {
                                             let sendData = {
                                                 query: {
-                                                    platformObjId: vm.selectedPlatform.id,
+                                                    platformObjId: platformObjId || vm.selectedPlatform.id,
                                                     name: "Main Permission Disabled (default)", //hard code name
                                                     isBlockByMainPermission: true,
                                                     color: "lightgrey"
@@ -37668,14 +37663,24 @@ define(['js/app'], function (myApp) {
                                         }
 
                                         let errorList = data.data;
+                                        let nullCount = 0;
                                         errorList = errorList.filter(item => {
-                                            return (typeof item === 'string');
-                                        })
+                                            if(item == null) {
+                                                nullCount++;
+                                            }
+                                            return (typeof item === 'string' || item == null);
+                                        });
 
-                                        if (errorList < 1) {
+                                        if (errorList < 1 && nullCount == 0) {
                                             vm.batchPermitModifySucc = true;
                                         } else {
-                                            vm.errorListMsg = errorList.join(',');
+                                            vm.errorListMsg = '';
+                                            if(nullCount > 0 && data.data.length == nullCount) {
+                                                vm.errorListMsg += $translate("Player(s) are not of selected platform");
+                                            } else if(nullCount > 0 && data.data.length > nullCount) {
+                                                vm.errorListMsg += $translate("Some player(s) are not of selected platform");
+                                            }
+                                            vm.errorListMsg += errorList.join(',');
                                         }
 
                                         vm.getPlatformPlayersData();
@@ -37753,7 +37758,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidRewardEvents: {
                                             'addList': vm.forbidRewardEventAddList,
@@ -37837,7 +37842,7 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidProviders: {
                                             'addList': vm.forbidGameAddList,
@@ -37917,7 +37922,7 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         query: {
                                             playerNames: playerNames,
-                                            platformObjId: vm.selectedPlatform.id
+                                            platformObjId: platformObjId || vm.selectedPlatform.id
                                         },
                                         updateData: {
                                             forbidTopUpType: {
@@ -37994,7 +37999,7 @@ define(['js/app'], function (myApp) {
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
                                         playerNames: playerNames,
-                                        platformObjId: vm.selectedPlatform.id,
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
                                         forbidRewardPointsEvent: {
                                             'addList': vm.forbidRewardPointsAddList,
                                             'removeList': vm.forbidRewardPointsRemoveList
@@ -38064,6 +38069,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.initiating = false;
             };
             vm.initiateBulkCreditClearOutList = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 vm.bulkCreditClearOut.initiating = true;
                 vm.bulkCreditClearOutTriggered = true;
                 vm.bulkCreditClearOut.total = 0;
@@ -38088,7 +38095,7 @@ define(['js/app'], function (myApp) {
 
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -38146,14 +38153,16 @@ define(['js/app'], function (myApp) {
                     }
                 })
 
-            }
+            };
             vm.initBulkClearXIMAWithdraw = function() {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let playerNames = vm.splitBatchPermit();
                 let prom = Promise.resolve();
                 playerNames.forEach((playerName, i) => {
                     prom = prom.then(() => {
                         let sendData = {
-                            platformObjId: vm.selectedPlatform.id,
+                            platformObjId: platformObjId || vm.selectedPlatform.id,
                             playerName: playerName
                         };
                         return $scope.$socketPromise("clearPlayerXIMAWithdraw", sendData);
@@ -38228,6 +38237,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data = [];
             };
             vm.singleCreditClearOut = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 let player = vm.bulkCreditClearOut.data[index];
                 let initialStatus = player.status;
                 let totalCredit = Number(player.totalCredit);
@@ -38235,7 +38246,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                     player.status = "Transferring Out";
                     return $scope.$socketPromise("playerCreditClearOut", {
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: platformObjId || vm.selectedPlatform.id,
                         playerName: player.playerName
                     }).then(data => {
                         console.log("playerCreditClearOut ret", data);
@@ -38293,6 +38304,8 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data.splice(index,1);
             };
             vm.refreshPlayerCreditInCreditClearOutList = function (index) {
+                let platform = getSelectedPlatform();
+                let platformObjId = platform && platform._id ? platform._id : null;
                 $scope.$evalAsync(() => {vm.bulkCreditClearOut.initiating = true;});
                 vm.bulkCreditClearOut.data[index].gameProviderTotalCredit = "? (" + $translate("Requesting Data") + ")";
                 vm.bulkCreditClearOut.data[index].localTotalCredit = "? (" + $translate("Requesting Data") + ")";
@@ -38300,7 +38313,7 @@ define(['js/app'], function (myApp) {
                 vm.bulkCreditClearOut.data[index].actionable = false;
                 let player = vm.bulkCreditClearOut.data[index];
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
                     playerName: player.playerName
                 };
                 return $scope.$socketPromise("getPlayerCreditByName", sendData).then(data => {
@@ -41786,6 +41799,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "rewardpoint":
                         selectedPlatformObjId = vm.rewardPointsSelectedPlatform;
+                        break;
+                    case "batchpermit":
+                        selectedPlatformObjId = vm.batchSettingSelectedPlatform;
                         break;
                 }
                 if(selectedPlatformObjId) {

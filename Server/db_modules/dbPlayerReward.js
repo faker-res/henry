@@ -6195,11 +6195,14 @@ let dbPlayerReward = {
             if (!rewardData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
-
             selectedRewardParam = selectedRewardParam.filter( item => {
                 return item.id == rewardData.festivalItemId;
             })
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+            // if that's a birthday event and this player didnt set his birthday in profile
+            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
+                return Q.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
+            }
 
             let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
             let festivalPeriod = getTimePeriod(0, festivalDate);
@@ -7625,7 +7628,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "不符合存款要求，请存款后参与。"
+                                message: "You need to topup before apply this reward."
                             });
                         }
 
@@ -8539,9 +8542,10 @@ let dbPlayerReward = {
                             if (playerData.deviceId) {
                                 proposalData.data.deviceId = playerData.deviceId;
                             }
-                            if (playerData.DOB){
+                            if (playerData.DOB) {
                                 proposalData.data.playerBirthday = playerData.DOB;
                             }
+
                             if (eventData.condition && eventData.condition.interval) {
                                 proposalData.data.intervalType = eventData.condition.interval;
                             }
@@ -8718,6 +8722,27 @@ let dbPlayerReward = {
                                             );
                                         }
 
+                                        if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                                            let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
+                                            if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
+                                                outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
+                                            }
+                                            outputMsg += ( selectedRewardParam && selectedRewardParam.rewardAmount ) ? selectedRewardParam.rewardAmount : '';
+                                            outputMsg += localization.localization.translate('RMB');
+
+                                            let festivalRewardRes = {
+                                                selectedReward: selectedRewardParam,
+                                                rewardName: eventData.name,
+                                                code: eventData.code,
+                                                msg: outputMsg
+                                            }
+                                            return Promise.all(postPropPromArr).then(
+                                                () => {
+                                                    return Promise.resolve(festivalRewardRes);
+                                                }
+                                            );
+                                        }
+
                                         return Promise.all(postPropPromArr).then(() => {
                                             return {
                                                 rewardAmount: rewardAmount
@@ -8852,35 +8877,54 @@ let dbPlayerReward = {
 
         async function checkEventCountBasedOnPlayerUpLevelDate(playerData, eventType, eventQuery, eventCount, intervalTime, eventQueryPeriodTime, rewardData){
             let rewardInPeriodCount = eventCount;
-            if (playerData && playerData._id && playerData.platform && eventType){
-                return dbConfig.collection_proposalType.findOne({platformId: playerData.platform, name: "PlayerLevelUp"}).lean().then(
-                    proposalType => {
-                        if (proposalType && proposalType._id){
-                            return dbConfig.collection_proposal.findOne({'data.playerObjId': playerData._id, type: proposalType._id, status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}}, {createTime: 1}).sort({createTime: -1}).lean().then(
-                                proposal => {
-                                    if (eventQuery && proposal && proposal.createTime && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.createTime).getTime()){
-                                        // search the interval starting from the time when the player level up
-                                        if (eventQuery.$or) {
-                                            delete eventQuery.$or;
-                                        }
-
-                                        if (rewardData.applyTargetDate) {
-                                            eventQuery.createTime = {$gte: proposal.createTime, $lt: eventQueryPeriodTime.endTime};
-                                        } else {
-                                            eventQuery.createTime = {$gte: proposal.createTime, $lt: intervalTime.endTime}
-                                        }
-
-                                        return dbConfig.collection_proposal.find(eventQuery).lean().count();
-                                    }
-                                    else{
-                                        return rewardInPeriodCount
-                                    }
+            if (playerData && playerData._id && playerData.name && playerData.platform && eventType){
+                return dbConfig.collection_proposalType.find({platformId: playerData.platform, name: {$in: ["UpdatePlayerInfoLevel", 'PlayerLevelMigration']}}).lean().then(
+                    proposalTypeList => {
+                        console.log("checking proposalTypeList", proposalTypeList)
+                        if (proposalTypeList && proposalTypeList.length){
+                            let proposalTypes = [];
+                            proposalTypeList.forEach( p => {
+                                if (p._id){
+                                    proposalTypes.push(ObjectId(p._id));
                                 }
-                            )
+                            })
+
+                            if (proposalTypes && proposalTypes.length){
+                                let query = {
+                                    'data.playerName': playerData.name,
+                                    type: {$in: proposalTypes},
+                                    $or: [{'data.upOrDown': "LEVEL_UP"}, {'data.upOrDown': {$exists: false}}], // check non-exist of 'data.upOrDown' is for old data
+                                    status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    settleTime: {$gte: intervalTime.startTime},
+                                };
+                                return dbConfig.collection_proposal.findOne(query, {settleTime: 1}).sort({settleTime: -1}).lean().then(
+                                    proposal => {
+                                        console.log("checking proposal", proposal)
+                                        if (proposal && proposal.settleTime && eventQuery && intervalTime && new Date(intervalTime.startTime).getTime() <= new Date(proposal.settleTime).getTime()){
+                                            if (eventQuery.$or) {
+                                                delete eventQuery.$or;
+                                            }
+
+                                            if (rewardData.applyTargetDate) {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: eventQueryPeriodTime.endTime};
+                                            } else {
+                                                eventQuery.createTime = {$gte: proposal.settleTime, $lt: intervalTime.endTime}
+                                            }
+
+                                            return dbConfig.collection_proposal.find(eventQuery).lean().count();
+                                        }
+                                        else{
+                                            return rewardInPeriodCount
+                                        }
+                                    }
+                                )
+                            }
+                            else{
+                                return rewardInPeriodCount
+                            }
+
                         }
-                        else{
-                            return rewardInPeriodCount
-                        }
+                        return rewardInPeriodCount
                     }
                 )
             }
@@ -10492,10 +10536,15 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
                 } else {
+                    let errorMsg = localization.localization.translate('Not In the Period of This Reward.');
+                    if (selectedRewardParam.rewardType && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ) {
+                        errorMsg = localization.localization.translate('Your Birthday is Not In the Period of This Reward.');
+                    }
+
                     reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: localization.localization.translate("Not the Period of this Reward")
+                        message: errorMsg
                     });
                 }
             }
