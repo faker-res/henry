@@ -558,8 +558,14 @@ var simplifiedChinese = {
     "Over the apply limit already": "超过了此优惠的申请上限",
     "Not allowed to transfer from test environment.": "只允许测试账号操作转入",
     "DOB": "生日",
-    "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
-    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
+    "The Festival Item is not Exist": "节日不存在",
+    "You need to set your birthday before apply this event": "您需要绑定您的生日日期。",
+    "Congratulation! you got festival reward: ": "恭喜您获得节日免费红包",
+    "Congratulation! you got birthday reward: ": "恭喜您获得生日免费红包",
+    "RMB": "元",
+    "You need to topup before apply this reward.": "您的存款条件不满足此优惠",
+    "Your Birthday is Not In the Period of This Reward.": "您的生日日期不符合优惠申请条件",
+    "Not In the Period of This Reward.": "您需要节日当天才可以领取该优惠",
     //todo::add missing messages here
 
     /*
