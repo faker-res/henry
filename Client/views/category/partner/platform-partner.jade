@@ -9,12 +9,15 @@
 .col-md-12(ng-show="checkViewPermission('Partner', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
     .col-xs-11.col-sm-10.col-md-12.search-filters-container.well
         .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select#productName.form-control(ng-model='vm.partnerAdvanceSearchQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+        .search-filters-item
             label {{'PARTNER_ID' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.partnerId', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filters-item
             label {{'PARTNER_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.partnerName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filters-item
+        //.search-filters-item
             label {{'REAL_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.realName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filters-item
@@ -57,7 +60,7 @@
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        .search-filters-item
+        //.search-filters-item
             label {{'TELEPHONE' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === "range")}')
