@@ -215,8 +215,8 @@ const dbPartnerCommission = {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
                                 let parentRatio = commissionRates[groupRate.groupName].parentRatios[i] || 0;
-                                let parentRate = math.chain(commissionRates[groupRate.groupName].parentRate[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
-                                previousParentRate = commissionRates[groupRate.groupName].parentRate[i] || 0;
+                                let parentRate = math.chain(commissionRates[groupRate.groupName].parentRatios[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
+                                previousParentRate = commissionRates[groupRate.groupName].parentRatios[i] || 0;
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
                                 console.log('ratioSum', ratioSum, 'parentRate', parentRate)
                                 let detail = {
@@ -226,8 +226,8 @@ const dbPartnerCommission = {
                                     noRate: Boolean(commissionRates[groupRate.groupName].noRate),
                                     totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
                                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
-                                    platformFee: math.chain(platformFee).divide(ratioSum).multiply(parentRate).round(2).done(),
-                                    platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done(),
+                                    platformFee: ratioSum ? math.chain(platformFee).divide(ratioSum).multiply(parentRate).round(2).done() : 0,
+                                    platformFeeRate: ratioSum ? math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done() : 0,
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
                                 // if (i === 0) {
