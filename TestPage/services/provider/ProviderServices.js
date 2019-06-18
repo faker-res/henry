@@ -208,7 +208,8 @@
                 "getPlayerInfoByName",
                 "avaiCreditForInOut",
                 "verifyUserPassword",
-                "verifyUserPasswordWithTransferIn"
+                "verifyUserPasswordWithTransferIn",
+                "updateRSAKeys"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -68,6 +68,7 @@ var encrypt = {
         var partner = data.hasOwnProperty('partner') ? data.partner : "";
         var loginIps = data.hasOwnProperty('loginIps') ? data.loginIps : "";
         var credibilityRemarks = data.hasOwnProperty('credibilityRemarks') && data.credibilityRemarks.length !== 0 ? data.credibilityRemarks : "";
+        let credibilityRemarksFilter = data.hasOwnProperty('credibilityRemarksFilter') && data.credibilityRemarksFilter.length !== 0 ? data.credibilityRemarksFilter : "";
         var creditOperator = data.hasOwnProperty('creditOperator') ? data.creditOperator : "";
         var creditAmountOne = data.hasOwnProperty('creditAmountOne') ? data.creditAmountOne : "";
         var creditAmountTwo = data.hasOwnProperty('creditAmountTwo') ? data.creditAmountTwo : "";
@@ -168,6 +169,24 @@ var encrypt = {
                 query.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
             } else if (tempArr.length > 0 && !isNoneExist) {
                 query["credibilityRemarks"] = {$in: tempArr};
+            }
+        }
+        if (credibilityRemarksFilter && credibilityRemarksFilter !== '' && credibilityRemarksFilter.length !== 0) {
+            let tempArr = [];
+            if (credibilityRemarksFilter.includes("")) {
+                credibilityRemarksFilter.forEach(remark => {
+                    if (remark != "") {
+                        tempArr.push(remark);
+                    }
+                });
+                query.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+            } else {
+                if (query.credibilityRemarks && query.credibilityRemarks.$in) {
+                    query.$and = [{credibilityRemarks: {$nin: credibilityRemarksFilter}}];
+                }
+                else {
+                    query.credibilityRemarks = {$nin: credibilityRemarksFilter};
+                }
             }
         }
         if (referral !== '') {
