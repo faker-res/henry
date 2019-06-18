@@ -235,8 +235,8 @@ const dbPartnerCommission = {
                                 // }
 
                                 parentCommissionDetail[objId].grossCommission = parentCommissionDetail[objId].grossCommission || 0;
-                                parentCommissionDetail[objId].grossCommission += detail.amount;
-                                parentCommissionDetail[objId].platformFee += detail.platformFee;
+                                parentCommissionDetail[objId].grossCommission += detail.amount || 0;
+                                parentCommissionDetail[objId].platformFee += detail.platformFee || 0;
                                 parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
                                 totalAllParentRate += Number(detail.parentRate) || 0;
                                 totalParentGrossCommission += detail.amount || 0;
