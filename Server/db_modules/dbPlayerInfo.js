@@ -3742,7 +3742,7 @@ let dbPlayerInfo = {
 
     updatePlayerForbidPromoCode: function (playerObjId, forbidPromoCodeList) {
         let updateData = {};
-        if (forbidPromoCodeList && forbidPromoCodeList.length) {
+        if (forbidPromoCodeList) {
             updateData.forbidPromoCodeList = forbidPromoCodeList;
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
