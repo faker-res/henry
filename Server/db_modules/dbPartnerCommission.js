@@ -204,17 +204,13 @@ const dbPartnerCommission = {
                         // individual commission for each parent each provider
                         // sum it out for gross for each parent
                         let previousParentRate = 0;
-                        if (partner && partner.partnerName == "plevel2")
-                            console.log("we are here", groupRate.groupName, JSON.stringify(commissionRates[groupRate.groupName],null,2))
-                        if (commissionRates[groupRate.groupName].parentRatios && commissionRates[groupRate.groupName].parentRatios.length) {
-                            if (partner && partner.partnerName == "plevel2")
-                                console.log('should still get in?', parentChain.length)
+                        if (commissionRates[groupRate.groupName].parentRatios) {
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             let ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
                             for (let i = 0; i < parentChain.length; i++) {
                                 let parent = parentChain[i];
                                 let objId = String(parent._id);
-                                let parentRatio = commissionRates[groupRate.groupName].parentRatios[i];
+                                let parentRatio = commissionRates[groupRate.groupName].parentRatios[i] || 0;
                                 let parentRate = math.chain(commissionRates[groupRate.groupName].parentRate[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
                                 previousParentRate = commissionRates[groupRate.groupName].parentRate[i];
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
@@ -229,8 +225,6 @@ const dbPartnerCommission = {
                                     platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRate).round(2).done(),
                                 };
                                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
-                                if (partner && partner.partnerName == "plevel2")
-                                    console.log('shouldnt be 0', detail.parentRate)
                                 // if (i === 0) {
                                 //     detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
                                     // this is done to adjust that current level of multi level commission is also given to immediate parent
@@ -243,7 +237,6 @@ const dbPartnerCommission = {
                                 parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
                                 totalAllParentRate += Number(detail.parentRate) || 0;
                                 totalParentGrossCommission += detail.amount || 0;
-                                console.log('totalParentGrossCommission', totalParentGrossCommission, 'detail.amount', detail.amount)
                                 parentCommissionDetail[objId].rawCommissions.push(detail);
                             }
                         }
@@ -275,7 +268,7 @@ const dbPartnerCommission = {
                     });
 
                     nettCommission = grossCommission;
-                    if (bonusBased) {
+                    if (bonusBased && nettCommission > 0) {
                         totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
                         totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
                         totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
@@ -292,16 +285,12 @@ const dbPartnerCommission = {
                         if (totalParentGrossCommission) {
                             feeMultiplier = math.chain(parentComm.grossCommission).divide(totalParentGrossCommission).round(12).done();
                         }
-                        if (partner && partner.partnerName == "plevel2")
-                        console.log("fee multiplier", parentComm.totalParentRate, totalAllParentRate, parentComm.grossCommission, totalParentGrossCommission, feeMultiplier);
 
                         if (bonusBased && grossCommission) {
                             // parentComm.nettCommission = math.chain(parentComm.grossCommission).multiply(nettCommission).divide(grossCommission).round(2).done() || 0;
                             parentComm.totalRewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done() || 0;
                             parentComm.totalTopUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done() || 0;
                             parentComm.totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done() || 0;
-                            if (partner && partner.partnerName == "plevel2")
-                                console.log("parentComm.totalRewardFee", parentComm.totalRewardFee)
                             // parentComm.totalPlatformFee = math.chain(totalPlatformFee).multiply(grossCommission).divide(totalParentGrossCommission).round(2).done() || 0;
                             parentComm.totalPlatformFee = parentComm.platformFee || 0;
                             parentComm.nettCommission = math.chain(parentComm.grossCommission)
@@ -1324,7 +1313,6 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     if (incompleteSetting) {
         rateTable = false;
     }
-    console.log('rateTable', JSON.stringify(rateTable, null, 2))
 
     return {
         groupId: group.providerGroupId,
