@@ -6204,7 +6204,7 @@ var proposal = {
         ).then(
             proposals => {
                 proposals = proposals.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                    if(item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp" && item.data && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
@@ -6385,7 +6385,7 @@ var proposal = {
         ).then(
             proposals => {
                 proposals = proposals.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                    if(item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp" && item.data && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
