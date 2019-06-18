@@ -215,7 +215,7 @@ const dbPartnerCommission = {
                                 let objId = String(parent._id);
                                 let parentRatio = commissionRates[groupRate.groupName].parentRatios[i] || 0;
                                 let parentRate = math.chain(commissionRates[groupRate.groupName].parentRate[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
-                                previousParentRate = commissionRates[groupRate.groupName].parentRate[i];
+                                previousParentRate = commissionRates[groupRate.groupName].parentRate[i] || 0;
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
                                 let detail = {
                                     groupName: groupRate.groupName,
