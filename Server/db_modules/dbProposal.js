@@ -4551,8 +4551,8 @@ var proposal = {
             }
         );
 
-        let platformQuery = platformListQuery ? platformListQuery : {};
-        let platformProm = dbconfig.collection_platform.find({_id: platformQuery}, {_id: 1, name: 1});
+        let platformQuery = platformListQuery ? {_id: platformListQuery} : {};
+        let platformProm = dbconfig.collection_platform.find(platformQuery, {_id: 1, name: 1});
 
         let recordSize, record, recordSummary;
 
