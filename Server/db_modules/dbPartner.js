@@ -5361,10 +5361,6 @@ let dbPartner = {
     },
 
     getPartnerDomainReport : function (platform, para, index, limit, sortCol) {
-        if(typeof platform == "string"){
-            platform = [platform];
-        }
-
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         sortCol = sortCol || {'registrationTime': -1};
@@ -5409,7 +5405,10 @@ let dbPartner = {
             }
         }
 
-        let query = {platform: {$in: platform}};
+        let query = {};
+        if (platform) {
+            query.platform = platform;
+        }
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
@@ -5422,7 +5421,8 @@ let dbPartner = {
 
         let count = dbconfig.collection_partner.find(query).count();
         let detail = dbconfig.collection_partner.find(query).sort(sortCol).skip(index).limit(limit)
-            .populate({path: 'parent', model: dbconfig.collection_partner}).read("secondaryPreferred").lean();
+            .populate({path: 'parent', model: dbconfig.collection_partner}).read("secondaryPreferred")
+            .populate({path: 'platform', model: dbconfig.collection_platform}).lean();
 
         return Q.all([count, detail]).then(
             data => {

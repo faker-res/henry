@@ -57,6 +57,9 @@ define(['js/app'], function (myApp) {
 //set selected platform node
         async function selectPlatformNode (node, option)  {
             vm.selectedPlatform = node;
+            $scope.$evalAsync(() => {
+               vm.selectedPlatformID = node.id;
+            })
             $cookies.put("platform", node.text);
         }
 
@@ -152,6 +155,35 @@ define(['js/app'], function (myApp) {
                 }
             };
             return obj;
+        };
+
+        vm.setPlatform = function (platObj) {
+            vm.selectedPlatform = {};
+            $scope.$evalAsync(() => {
+                if (platObj) {
+                    let obj = JSON.parse(platObj);
+                    vm.selectedPlatform.id = obj._id;
+                    vm.selectedPlatform.data = JSON.parse(platObj);
+                    vm.selectedPlatform.text = obj.name;
+                }
+
+                vm.getAllProvider();
+                vm.queryPara = {};
+                vm.gameStatus = {};
+                vm.gameStatusIcon = {};
+                vm.hourListArray = utilService.$createArray(24);
+                vm.minuteListArray = utilService.$createArray(60);
+                vm.expenseQuery = vm.initQueryPara();
+                vm.getAllGameType();
+                vm.filterGameType = 'all';
+                vm.filterPlayGameType = 'all';
+            });
+        };
+
+        vm.setPlatformById = function (id) {
+            let platObj = vm.platformList.filter(p => p._id === id)[0];
+            console.log("platObj:", platObj);
+            vm.setPlatform(JSON.stringify(platObj));
         };
 
 /*********************************************End of Platform functions ******************************************************/
@@ -1283,9 +1315,10 @@ define(['js/app'], function (myApp) {
                             }, []);
                             if (vm.platformList.length == 0) {
                                 return;
-                            } else {
-                                vm.selectedPlatformID = vm.platformList[0]._id;
                             }
+                            // else {
+                            //     vm.selectedPlatformID = vm.platformList[0]._id;
+                            // }
                             $scope.safeApply();
                         }
 
