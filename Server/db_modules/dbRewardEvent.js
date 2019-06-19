@@ -3079,6 +3079,23 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
     },
 
+    updateForbidRewardEvents: function (rewardObjId) {
+        if (rewardObjId){
+            let rewardObjIdString = rewardObjId.toString();
+            return dbconfig.collection_players.find({'forbidRewardEvents': {$all: [rewardObjId] } }).then(
+                players => {
+                    if (players && players.length){
+                        let playerObjIdList = players.map(p => {return p._id});
+
+                        if (playerObjIdList){
+                            return dbconfig.collection_players.update({_id: {$in: playerObjIdList}}, {$pull: {forbidRewardEvents: rewardObjIdString}}, {multi: true});
+                        }
+                    }
+                }
+            )
+        }
+    },
+
     updateExpiredRewardEventToGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.update(query, updateData, {multi: true}).exec();
     },
