@@ -17,144 +17,139 @@
         .search-filters-item
             label {{'PARTNER_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.partnerName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        //.search-filters-item
+        .search-filters-item
             label {{'REAL_NAME' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.realName', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filters-item
             label {{'COMMISSION_TYPE' | translate}}
-            select.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionType', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+            select.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionType')
                 option(value='') —
                 option(ng-repeat="(i,v) in vm.constPartnerCommisionType", value='{{v}}') {{i | translate}}
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.creditsOperator === "range")}')
             label {{'CREDIT' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-        .search-filters-item
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'")
+        //.search-filters-item
             label {{'REGISTRATION_TIME' | translate}}
             #regDateTimePicker2.datetimepicker.form-control
                 input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
         .search-filters-item
-            label {{'REGISTRATION_TIME_END' | translate}}
-            #regEndDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                span.add-on
-                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            label {{"REGISTRATION_TIME"|translate}}
+            #regDateTimePicker2
         .search-filters-item
-            label {{'LAST_ACCESS_TIME' | translate}}
-            #lastAccessDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                span.add-on
-                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            label {{"REGISTRATION_TIME_END"|translate}}
+            #regEndDateTimePicker2
         .search-filters-item
-            label {{'LAST_ACCESS_TIME_END' | translate}}
-            #lastAccessEndDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
-                span.add-on
-                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-        //.search-filters-item
+            label {{"LAST_ACCESS_TIME"|translate}}
+            #lastAccessDateTimePicker2
+        .search-filters-item
+            label {{"LAST_ACCESS_TIME_END"|translate}}
+            #lastAccessEndDateTimePicker2
+        .search-filters-item
             label {{'TELEPHONE' | translate}}
             input.form-control(ng-model='vm.partnerAdvanceSearchQuery.phoneNumber', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === "range")}')
             label.control-label {{'DAILY_ACTIVE' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === "range")}')
             label {{'WEEKLY_ACTIVE' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === "range")}')
             label {{'MONTHLY_ACTIVE' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.validPlayersOperator === "range")}')
             label {{'VALID_PLAYER' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2"  ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2"  ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === "range")}')
             label {{'TOTAL_CHILDREN_COUNT' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === "range")}')
             label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === "range")}')
             label {{'TOTAL_CHILDREN_BALANCE' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'")
         .search-filters-twoBoxes(ng-class = '{"search-filters-threeBoxes": (vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === "range")}')
             label {{'SETTLED_COMMISSION' | translate}}
             div
-                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                select.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator')
                     option(value='>=') >=
                     option(value='=') =
                     option(value='<=') <=
                     option(value='range') {{'range' | translate}}
-                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1',  type = 'number')
                 div.symbol(ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
-                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                input.threeBoxes.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'")
         .col-xs-12.text-right
+            button.btn.btn-success.margin-right-5(ng-click='vm.getPlatformPartnersData()') {{'SEARCH' | translate}}
             button#resetPartnerQuery.btn.btn-primary {{'Reset' | translate}}
 
-.col-md-12
+//.col-md-12
     .pull-right.margin-top-5
         text.margin-right-5 {{"Refresh" | translate}}
         a#partnerRefreshIcon.fa.fa-refresh(ng-click='vm.getPlatformPartnersData()')
