@@ -6,6 +6,7 @@ module.exports = new dbPartnerCommissionFunc();
 
 const dbconfig = require('./../modules/dbproperties');
 const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig');
+const dbProposal = require('../db_modules/dbProposal');
 const constPartnerCommissionType = require('../const/constPartnerCommissionType');
 const constProposalType = require('../const/constProposalType');
 const constProposalMainType = require('../const/constProposalMainType');
@@ -17,6 +18,8 @@ const Q = require('q');
 const constSystemParam = require('./../const/constSystemParam');
 const constServerCode = require('./../const/constServerCode');
 const constPartnerCommissionLogStatus = require('./../const/constPartnerCommissionLogStatus');
+const constProposalEntryType = require('./../const/constProposalEntryType');
+const constProposalUserType = require('./../const/constProposalUserType');
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -346,6 +349,7 @@ const dbPartnerCommission = {
                         parentPartnerCommissionDetail: parentCommissionDetail,
                         calcTime: new Date(),
                         remarks: remarks,
+                        isNewComm: true,
                     };
 
                     return returnObj;
@@ -672,6 +676,97 @@ const dbPartnerCommission = {
         } else {
             return dbconfig.collection_downLinesRawCommissionDetail.find({partnerCommissionLog: objId}).lean();
         }
+    },
+
+    applyPartnerCommissionSettlement: async (commissionLog, statusApply, adminInfo, remark) => {
+        let childDetail = await dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
+        let proposalType = await dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean();
+        if (!proposalType) {
+            return Promise.reject({
+                message: "Error in getting proposal type"
+            });
+        }
+        let commissionTypeName = getCommissionTypeName(commissionLog.commissionType);
+        let proposalRemark = commissionTypeName + ", " + remark;
+
+        // tC = totalChild
+        let tCAmount = 0, tCCompanyProfit = 0, tCCompanyConsumption = 0, tCRewardFee = 0, /*tCReward = 0,*/ tCPlatformFee = 0, tcTopUpFee = 0, tcWithdrawalFee = 0, finalAmount = commissionLog.nettCommission, tCNettAmount = 0;
+
+        for (let i = 0; i < childDetail.length; i++) {
+            let child = childDetail[i];
+            tCAmount += child.grossCommission || 0;
+            tCNettAmount += child.nettCommission || 0;
+            if (child.rawCommissions && child.rawCommissions.length) {
+                for (let j = 0; j < child.rawCommissions.length; j++) {
+                    let raw = child.rawCommissions[j];
+                    tCCompanyProfit += raw.crewProfit || 0;
+                    tCCompanyConsumption += raw.totalValidConsumption || 0;
+                }
+            }
+            tCRewardFee += child.totalRewardFee || 0;
+            // tCReward += child.total no such value
+            tCPlatformFee += child.totalPlatformFee || 0;
+            tcTopUpFee += child.totalTopUpFee || 0;
+            tcWithdrawalFee += child.totalWithdrawalFee || 0;
+            finalAmount += child.nettCommission || 0;
+        }
+        tCAmount = math.round(tCAmount, 2);
+        tCCompanyProfit = math.round(tCCompanyProfit, 2);
+        tCCompanyConsumption = math.round(tCCompanyConsumption, 2);
+        tCRewardFee = math.round(tCRewardFee, 2);
+        tCPlatformFee = math.round(tCPlatformFee, 2);
+        tcTopUpFee = math.round(tcTopUpFee, 2);
+        tcWithdrawalFee = math.round(tcWithdrawalFee, 2);
+        finalAmount = math.round(finalAmount, 2);
+
+        // create proposal data
+        let proposalData = {
+            type: proposalType._id,
+            creator: adminInfo ? adminInfo : {
+                type: 'partner',
+                name: commissionLog.partnerName,
+                id: commissionLog.partner
+            },
+            data: {
+                isNewComm: true,
+                partnerObjId: commissionLog.partner,
+                platformObjId: commissionLog.platform,
+                partnerId: commissionLog.partnerId,
+                partnerName: commissionLog.partnerName,
+                partnerRealName: commissionLog.partnerRealName,
+                startTime: commissionLog.startTime,
+                endTime: commissionLog.endTime,
+                commissionType: commissionLog.commissionType,
+                partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
+                rawCommissions: commissionLog.rawCommissions,
+                activeCount: commissionLog.activeDownLines,
+                totalRewardFee: commissionLog.totalRewardFee,
+                totalReward: commissionLog.totalReward,
+                totalTopUpFee: commissionLog.totalTopUpFee,
+                totalTopUp: commissionLog.totalTopUp,
+                totalWithdrawalFee: commissionLog.totalWithdrawalFee,
+                totalWithdrawal: commissionLog.totalWithdrawal,
+                adminName: adminInfo ? adminInfo.name : "",
+                tCAmount,
+                tCNettAmount,
+                tCCompanyProfit,
+                tCCompanyConsumption,
+                tCRewardFee,
+                tCPlatformFee,
+                tcTopUpFee,
+                tcWithdrawalFee,
+                settleType: statusApply,
+                nettCommission: commissionLog.nettCommission,
+                amount: finalAmount,
+                status: constPartnerCommissionLogStatus.PREVIEW,
+                logObjId: commissionLog._id,
+                remark: proposalRemark
+            },
+            entryType: constProposalEntryType.ADMIN,
+            userType: constProposalUserType.PARTNERS
+        };
+
+        return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
     },
 };
 
@@ -1628,4 +1723,21 @@ function getAllChildrenPartners (partnerObjId, holder, count) {
             return holder;
         }
     );
+}
+
+function getCommissionTypeName (commissionType) {
+    switch (Number(commissionType)) {
+        case 1:
+            return "1天-输赢值";
+        case 2:
+            return "7天-输赢值";
+        case 3:
+            return "半月-输赢值";
+        case 4:
+            return "1月-输赢值";
+        case 5:
+            return "7天-投注额";
+        case 7:
+            return "1天-投注额";
+    }
 }

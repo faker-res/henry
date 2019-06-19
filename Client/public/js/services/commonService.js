@@ -1232,6 +1232,7 @@ define([], () => {
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["MULTI_LAYER_PARTNER_COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN");
 
                 vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {

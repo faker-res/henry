@@ -11838,58 +11838,100 @@ function getAllPlayerCommissionRawDetailsWithSettlement (players, commissionType
     );
 }
 
-function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
-    let log = {};
+async function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
+    let log = await dbPartner.findPartnerCommissionLog({_id: logObjId}, true);
+    if (!log) {
+        return Promise.reject({
+            message: "Error in getting partner commission log."
+        });
+    }
 
-    return dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
-        logData => {
-            if (!logData) {
-                return Promise.reject({
-                    message: "Error in getting partner commission log."
-                });
-            }
+    let resetProposal;
 
-            log = logData;
+    if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+        remark = "结算前清空馀额：" + remark;
+        resetProposal = await dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+    }
 
-            let resetProm = Promise.resolve();
-            if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
-                remark = "结算前清空馀额：" + remark;
-                resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
-            }
-            return resetProm;
+    updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+
+    if (resetProposal && resetProposal.proposalId) {
+        remark = "(" + resetProposal.proposalId + ") "+ remark;
+    }
+    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+        remark = "结算后清空馀额：" + remark;
+    }
+
+    if (settleType == constPartnerCommissionLogStatus.SKIPPED) {
+        return;
+    }
+
+    if (log.isNewComm) {
+        return dbPartnerCommission.applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+    } else {
+        let proposal = await applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+        if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+            && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
+            && !(log.parentPartnerCommissionDetail instanceof Array)
+        ) {
+            updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+                console.trace("Update parent partner commission");
+                return errorUtils.reportError(error);
+            })
         }
-    ).then(
-        resetProposal => {
-            updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
-            if (resetProposal && resetProposal.proposalId) {
-                remark = "(" + resetProposal.proposalId + ") "+ remark;
-            }
-            if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
-                remark = "结算后清空馀额：" + remark;
-            }
 
-            if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
-                return applyMultiLevelCommissionSettlement(log, settleType, adminInfo, remark).then(() => {
-                    return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
-                });
-            }
-        }
-    ).then(
-        proposal => {
+        return proposal;
+    }
 
-            if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
-                && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
-                && !(log.parentPartnerCommissionDetail instanceof Array)
-            ) {
-                updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
-                    console.trace("Update parent partner commission");
-                    return errorUtils.reportError(error);
-                })
-            }
-
-            return proposal;
-        }
-    );
+    // return dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
+    //     logData => {
+    //         if (!logData) {
+    //             return Promise.reject({
+    //                 message: "Error in getting partner commission log."
+    //             });
+    //         }
+    //
+    //         log = logData;
+    //
+    //         let resetProm = Promise.resolve();
+    //         if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+    //             remark = "结算前清空馀额：" + remark;
+    //             resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+    //         }
+    //         return resetProm;
+    //     }
+    // ).then(
+    //     resetProposal => {
+    //         updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+    //         if (resetProposal && resetProposal.proposalId) {
+    //             remark = "(" + resetProposal.proposalId + ") "+ remark;
+    //         }
+    //         if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+    //             remark = "结算后清空馀额：" + remark;
+    //         }
+    //
+    //         if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
+    //             return applyMultiLevelCommissionSettlement(log, settleType, adminInfo, remark).then(() => {
+    //                 return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+    //             });
+    //         }
+    //     }
+    // ).then(
+    //     proposal => {
+    //
+    //         if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+    //             && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
+    //             && !(log.parentPartnerCommissionDetail instanceof Array)
+    //         ) {
+    //             updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+    //                 console.trace("Update parent partner commission");
+    //                 return errorUtils.reportError(error);
+    //             })
+    //         }
+    //
+    //         return proposal;
+    //     }
+    // );
 }
 
 function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
