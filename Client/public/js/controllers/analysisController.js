@@ -6808,24 +6808,29 @@ define(['js/app'], function (myApp) {
                 }
             );
 
+            let totalSuccessCount = 0;
+            let totalCount = 0;
+            let totalProposalCount = 0;
             if (vm.allPlatformOnlineTopupDetailDataByType && vm.allPlatformOnlineTopupDetailDataByType.length > 0) {
-                vm.allPlatformOnlineTopupDetailDataByType.map(item => {
-                    item.amountAverage = item && item.receivedAmount ? (item.receivedAmount / vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.receivedAmount, 0)) * vm.allPlatformOnlineTopupDetailDataByType.length : 0;
-                    item.userCountAverage = item && item.successUserCount ? (item.successUserCount / vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0)) * vm.allPlatformOnlineTopupDetailDataByType.length : 0;
+                totalSuccessCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successCount, 0);
+                totalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.totalCount, 0);
+
+                vm.allPlatformOnlineTopupDetailDataByType.forEach(item => {
+                    if (item && item.proposalArr && item.proposalArr.length > 0) {
+                        totalProposalCount += item.proposalArr.length;
+                    }
                 });
             }
 
             vm.allPlatformOnlineTopupAnalysisDetailTotalData = {};
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.totalCount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.successCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successCount, 0);
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.successRate = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successRate, 0));
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.successRate = totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((totalSuccessCount / totalCount) * 100);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.receivedAmount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.receivedAmount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCount =vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCount, 0);
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.amountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.amountRatio, 0));
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalAmountAverage = vm.allPlatformOnlineTopupDetailDataByType.length || 0;
             vm.allPlatformOnlineTopupAnalysisDetailTotalData.userCountRatio = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.userCountRatio, 0));
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.totalUserCountAverage = $noRoundTwoDecimalPlaces(vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data.successUserCount, 0) / vm.allPlatformOnlineTopupDetailDataByType.length) || 0;
-            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = vm.allPlatformOnlineTopupDetailDataByType.reduce((a, data) => a + data && data.proposalArr && data.proposalArr.length ? data.proposalArr.length : 0 , 0);
+            vm.allPlatformOnlineTopupAnalysisDetailTotalData.proposalCount = totalProposalCount;
         };
 
         vm.initOnlineTopUpAnalysisProposalDetail = (proposalArr) => {
@@ -6840,8 +6845,8 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else{
-                    if (typeof vm.queryPara.onlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo == 'number') {
-                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.allOnlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.onlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
+                    if (typeof vm.queryPara.allOnlineTopupSuccessRate.timesValue == 'number' && typeof vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo == 'number') {
+                        vm.titleTag = $translate("successCount") + " (" + vm.queryPara.allOnlineTopupSuccessRate.timesValue  + $translate("Minutes") + " <= " + $translate("Preset-Processing Time") + " >= " + vm.queryPara.allOnlineTopupSuccessRate.timesValueTwo  + $translate("Minutes") + ") ";
                     }
                     else{
                         vm.titleTag = $translate("successCount") + " (" + $translate("Preset-Processing Time") + ") " ;

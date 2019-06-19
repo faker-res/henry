@@ -357,7 +357,7 @@ var SettlementServiceImplement = function () {
 
     this.topupRecordInsertRepeatCount.onRequest = (wsFunc, conn, data) => {
         let isValidData = true;
-        let args = [data.proposals, data.platformId];
+        let args = [data.proposals, data.platformId, data.query];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.topupRecordInsertRepeatCount, args, isValidData);
     };
 

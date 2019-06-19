@@ -77,6 +77,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEventGroup, [data.query, data.updateData], actionName, isValidData);
         },
 
+        updateForbidRewardEvents: function updateForbidRewardEvents(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardEvent.updateForbidRewardEvents, [data], actionName, isValidData);
+        },
+
         updateExpiredRewardEventToGroup: function updateExpiredRewardEventToGroup(data) {
         var actionName = arguments.callee.name;
         var isValidData = Boolean(data && data.query && data.updateData);

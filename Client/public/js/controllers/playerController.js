@@ -8470,6 +8470,14 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        function getPlayerLevelTier(levelObjId) {
+            for (var i = 0; i < vm.allPlayerLvl.length; i++) {
+                if (vm.allPlayerLvl[i]._id == levelObjId) {
+                    return i;
+                }
+            }
+        };
+
         vm.getReferralPlayer = function (editObj, type) {
             var sendData = null;
             if (type === 'change' && editObj.referralName) {
@@ -8683,6 +8691,11 @@ define(['js/app'], function (myApp) {
                     updateDataLevel.playerName = updateData.playerName;
                     updateDataLevel.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
                     updateDataLevel.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    updateDataLevel.oldLevelTier = getPlayerLevelTier(vm.editPlayer.playerLevel);
+                    updateDataLevel.newLevelTier = getPlayerLevelTier(updateData.playerLevel);
+                    if (updateDataLevel.hasOwnProperty('oldLevelTier') && updateDataLevel.hasOwnProperty('newLevelTier')){
+                        updateDataLevel.upOrDown = updateDataLevel.newLevelTier > updateDataLevel.oldLevelTier ? 'LEVEL_UP' : 'LEVEL_DOWN';
+                    }
                     updateDataLevel.playerLevel = updateData.playerLevel;
                     updateDataLevel.remark = $translate("PLAYER_LEVEL");
                     isUpdatePlayerInfoLevel = true;

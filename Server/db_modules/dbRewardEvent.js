@@ -1327,10 +1327,13 @@ var dbRewardEvent = {
                 //bDirty: false,
                 playerId: playerData._id,
             };
-
             if (intervalTime) {
-                consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                consumptionMatchQuery.createTime = {$gte: todayTime.startTime, $lte: todayTime.endTime};
+                // eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                ];
             }
             topupMatchQuery.createTime = {$gte: todayTime.startTime, $lt: todayTime.endTime};
 
@@ -2641,7 +2644,7 @@ var dbRewardEvent = {
                         let topUpDatas = rewardSpecificData[1];
                         let periodData = rewardSpecificData[2];
                         let festivalData = rewardSpecificData[3];
-                        let applyFestivalTimes =  0;
+                        let applyFestivalTimes = 0;
                         let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
@@ -2659,7 +2662,7 @@ var dbRewardEvent = {
                                 // reward type 2, 5 need minTopUpAmount
                                 if (item.rewardType == 2 || item.rewardType == 5) {
                                     topUpDatas.forEach(topup => {
-                                        if (topup.minTopUpAmount) {
+                                        if (topup.amount > item.minTopUpAmount) {
                                             meetTopUp = true;
                                         }
                                     })
@@ -2714,7 +2717,7 @@ var dbRewardEvent = {
         if (selectedRewardParam && selectedRewardParam.length > 0) {
             selectedRewardParam.forEach( item => {
                 // apply a birthday festival
-                if ( item.rewardType == 2 || item.rewardType == 4 ) {
+                if ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 ) {
                     let birthday = getBirthday(playerBirthday);
                     console.log('MT --checking dbRewardEvent --birthday', birthday);
                     festivalDate = birthday;
@@ -2725,7 +2728,7 @@ var dbRewardEvent = {
                 let isRightApplyTime = checkIfRightApplyTime(item, festivalDate);
                 if (isRightApplyTime) {
                     // check is today is in between the apply period
-                    let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData);
+                    let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
                     proms.push(prom)
                 }
 
@@ -2738,7 +2741,7 @@ var dbRewardEvent = {
             }
         )
     },
-    checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData) {
+    checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData, DOB) {
         return new Promise((resolve, reject) => {
             let result = false;
             let todayTime = dbUtil.getDayTime(new Date());
@@ -2762,12 +2765,8 @@ var dbRewardEvent = {
             return dbconfig.collection_proposal.find(sendQuery).lean()
             .then( data => {
                 if (data) {
-                    // type 3 dont have attribute of applytimes, so make this default:1
-                    if (rewardParam.rewardType == 3) {
-                        rewardParam.applyTimes = 1;
-                    }
                     console.log('rewardParam...', rewardParam)
-                    let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others);
+                    let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others, DOB);
                     if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
                         console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                         resolve({status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType})
@@ -2782,7 +2781,7 @@ var dbRewardEvent = {
             })
         })
     },
-    getFestivalName: function(id, rewardType,  festivals) {
+    getFestivalName: function(id, rewardType,  festivals, DOB) {
         let result = {'name':'', 'month':'', 'day':''};
         if (festivals && festivals.length > 0) {
             let festival = festivals.filter( item => {
@@ -2794,8 +2793,19 @@ var dbRewardEvent = {
             result.day = festival.day;
 
         }
-        if (rewardType == 2 || rewardType == 4) {
-            result.name = '会员生日';
+        if (rewardType == 4 || rewardType == 5 || rewardType == 6) {
+            result.month = new Date(DOB).getMonth() + 1;
+            result.day =  new Date(DOB).getDate();
+
+        }
+        if (rewardType == 4) {
+            result.name = '会员生日 ' + '(' + getPlural(result.month) + '/' + getPlural(result.day) + ')';
+        }
+        if (rewardType == 5) {
+            result.name = '会员生日 - 需最小充值额' + '(' + getPlural(result.month) + '/' + getPlural(result.day) + ')';
+        }
+        if (rewardType == 6) {
+            result.name = '会员生日 - 需累积总投注额' + '(' + getPlural(result.month) + '/' + getPlural(result.day) + ')';
         }
         return result
     },
@@ -3116,6 +3126,23 @@ var dbRewardEvent = {
 
     updateRewardEventGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
+    updateForbidRewardEvents: function (rewardObjId) {
+        if (rewardObjId){
+            let rewardObjIdString = rewardObjId.toString();
+            return dbconfig.collection_players.find({'forbidRewardEvents': {$all: [rewardObjId] } }).then(
+                players => {
+                    if (players && players.length){
+                        let playerObjIdList = players.map(p => {return p._id});
+
+                        if (playerObjIdList){
+                            return dbconfig.collection_players.update({_id: {$in: playerObjIdList}}, {$pull: {forbidRewardEvents: rewardObjIdString}}, {multi: true});
+                        }
+                    }
+                }
+            )
+        }
     },
 
     updateExpiredRewardEventToGroup: function (query, updateData) {
