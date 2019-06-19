@@ -284,6 +284,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents, data], actionName, isValidData);
         },
 
+        updateBatchPlayerForbidPromoCode: function updateBatchPlayerForbidPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidPromoCode);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidPromoCode, [data.platformObjId, data.playerNames, data.forbidPromoCode, data], actionName, isValidData);
+        },
+
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardPointsEvent);

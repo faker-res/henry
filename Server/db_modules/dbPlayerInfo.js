@@ -3805,6 +3805,36 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
+    updateBatchPlayerForbidPromoCode: function (platformObjId, playerNames, forbidPromoCode, changeData) {
+        let addList = forbidPromoCode && forbidPromoCode.addList ? forbidPromoCode.addList : [];
+        let removeList = forbidPromoCode && forbidPromoCode.removeList ? forbidPromoCode.removeList: [];
+        let proms = [];
+        playerNames.forEach(name => {
+            let updateData = {};
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidPromoCodeList = data.forbidPromoCodeList || [];
+                    updateData.forbidPromoCodeList = dbPlayerInfo.managingDataList(playerForbidPromoCodeList, addList, removeList);
+
+                    // if (changeData.isForbidPromoCode) {
+                    //     updateData.forbidPromoCode = changeData.forbidPromoCode;
+                    // }
+                    // if (changeData.isForbidLevelUpReward) {
+                    //     updateData.forbidLevelUpReward = changeData.forbidLevelUpReward;
+                    // }
+                    // if (changeData.isForbidLevelMaintainReward) {
+                    //     updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
+                    // }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+            proms.push(prom);
+        });
+        return Promise.all(proms);
+    },
+
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
         let updateData = {};
         if (forbidRewardPointsEvent) {
