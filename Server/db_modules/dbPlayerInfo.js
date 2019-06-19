@@ -17983,7 +17983,11 @@ let dbPlayerInfo = {
 
 
         let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
-        let getSummaryProm = Promise.resolve([]);
+        let getSummaryProm = Promise.resolve({
+            data: [],
+            size: 0,
+            total: resultSum
+        });
         let queryStartTime = new Date(query.start);
         let queryEndTime = new Date(query.end);
         let diffInDays = dbUtility.getNumberOfDaysFloor(queryStartTime, queryEndTime);
@@ -18078,7 +18082,9 @@ let dbPlayerInfo = {
             }
         ).then(
             async twoDaysPlayerReportData => {
+                console.log('twoDaysPlayerReportData');
                 if (twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0) {
+                    console.log('twoDaysPlayerReportData.data.length', twoDaysPlayerReportData.data.length);
                     twoDaysPlayerReportData.data.forEach(
                         twoDaysData => {
                             if(twoDaysData && twoDaysData._id) {
@@ -18357,8 +18363,6 @@ let dbPlayerInfo = {
                 playerSummaryData => {
                     if (playerSummaryData && playerSummaryData.length > 0) {
                         playerSummaryData = playerSummaryData.map(processPlayerSummaryData);
-
-                        console.log('playerSummaryData', playerSummaryData);
 
                         // filter the summary result first
                         // Consumption Times Query Operator
