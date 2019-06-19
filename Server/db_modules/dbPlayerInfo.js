@@ -17967,7 +17967,6 @@ let dbPlayerInfo = {
         index = index ? index : 0;
         query = query ? query : {};
 
-        let getPlayerProm = Promise.resolve("");
         let isSinglePlayer = false;
         let playerReportSummaryData;
         let resultSum = {
@@ -17991,417 +17990,113 @@ let dbPlayerInfo = {
         };
         let returnedObj;
 
-        if (query.name) {
-            isSinglePlayer = true;
-            getPlayerProm = dbconfig.collection_players.findOne({
-                name: query.name,
-                platform: platform,
-                isRealPlayer: true
-            }, {_id: 1}).lean();
-        } else if (query.adminIds && query.adminIds.length) {
-            getPlayerProm = dbconfig.collection_players.find({
-                platform: platform,
-                isRealPlayer: true,
-                csOfficer: {$in: query.adminIds}
-            }, {_id: 1}).lean();
+
+        let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
+        let getSummaryProm = Promise.resolve({
+            data: [],
+            size: 0,
+            total: resultSum
+        });
+        let queryStartTime = new Date(query.start);
+        let queryEndTime = new Date(query.end);
+        let diffInDays = dbUtility.getNumberOfDaysFloor(queryStartTime, queryEndTime);
+        let preSummaryStartTime, preSummaryEndTime;
+        let postSummaryStartTime, postSummaryEndTime;
+        let summaryStartTime, summaryEndTime;
+
+        // Identify pre and post summary dates (Non - 00 hour)
+        // Check if range is less than 1 day
+        if (diffInDays < 1) {
+            postSummaryStartTime = queryStartTime;
+            postSummaryEndTime = queryEndTime;
+        } else {
+            summaryStartTime = queryStartTime;
+            summaryEndTime = queryEndTime;
+
+            // Check startTime is 00
+            if (queryStartTime.getHours() !== 0 || queryStartTime.getMinutes() !== 0) {
+                preSummaryStartTime = queryStartTime;
+                preSummaryEndTime = dbUtility.getDayEndTime(queryStartTime);
+
+                // Check if endTime is before next day
+                if (queryEndTime.getTime() < preSummaryEndTime.getTime()) {
+                    preSummaryEndTime = queryEndTime;
+                }
+                // Check if endTime is preSummary endTime
+                else if (queryEndTime.getTime() === preSummaryEndTime.getTime()) {
+                    summaryStartTime = null;
+                    summaryEndTime = null;
+                }
+                // endTime is after next day start time, set summary start time
+                else {
+                    summaryStartTime = preSummaryEndTime;
+                }
+            }
+
+            // Check if endTime is 00
+            if (queryEndTime.getHours() !== 0 || queryEndTime.getMinutes() !== 0) {
+                // endTime is not 00
+                // Check if endTime is more than two days ago
+                if (queryEndTime.getTime() > twoDaysAgo) {
+                    summaryEndTime = twoDaysAgo;
+                    postSummaryStartTime = twoDaysAgo;
+                    postSummaryEndTime = queryEndTime;
+                }
+                // endTime is less than two days ago
+                else {
+                    let dayStartOfEndTime = dbUtility.getDayStartTime(queryEndTime);
+                    summaryEndTime = dayStartOfEndTime;
+                    postSummaryStartTime = dayStartOfEndTime;
+                    postSummaryEndTime = queryEndTime;
+                }
+            } else {
+                // endTime is 00
+                // Check if endTime is more than two days ago
+                if (queryEndTime.getTime() > twoDaysAgo) {
+                    summaryEndTime = twoDaysAgo;
+                    postSummaryStartTime = twoDaysAgo;
+                    postSummaryEndTime = queryEndTime;
+                }
+            }
+
+            //  Check if summary startTime is endTime
+            if (summaryStartTime && summaryEndTime && summaryStartTime.getTime() === summaryEndTime.getTime()) {
+                summaryStartTime = null;
+                summaryEndTime = null;
+            }
         }
 
-        return getPlayerProm.then(
-            playerData => {
-                let summaryDataQuery = {
-                    date: {$gte: new Date(query.start), $lt: new Date(query.end)},
-                    platformId: ObjectId(platform)
-                };
 
-                if (isSinglePlayer) {
-                    summaryDataQuery.playerId = playerData._id;
-                } else if (query.adminIds && query.adminIds.length && playerData.length) {
-                    summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
-                }
+        console.log('preSummaryStartTime', preSummaryStartTime);
+        console.log('preSummaryEndTime', preSummaryEndTime);
+        console.log('summaryStartTime', summaryStartTime);
+        console.log('summaryEndTime', summaryEndTime);
+        console.log('postSummaryStartTime', postSummaryStartTime);
+        console.log('postSummaryEndTime', postSummaryEndTime);
 
+        if (summaryEndTime && summaryEndTime) {
+            getSummaryProm = getSummaryData();
+        }
 
-                console.log("LH check player report search query ", summaryDataQuery);
-                return dbconfig.collection_playerReportDataDaySummary.aggregate(
-                    {
-                        $match: summaryDataQuery
-                    },
-                    {
-                        $group: {
-                            _id: {playerId: "$playerId", platformId: "$platformId"},
-                            manualTopUpAmount: {$sum: "$manualTopUpAmount"},
-                            onlineTopUpAmount: {$sum: "$onlineTopUpAmount"},
-                            aliPayTopUpAmount: {$sum: "$alipayTopUpAmount"},
-                            weChatTopUpAmount: {$sum: "$wechatpayTopUpAmount"},
-                            topUpTimes: {$sum: "$topUpTimes"},
-                            bonusTimes: {$sum: "$bonusTimes"},
-                            bonusAmount: {$sum: "$bonusAmount"},
-                            rewardAmount: {$sum: "$rewardAmount"},
-                            consumptionReturnAmount: {$sum: "$consumptionReturnAmount"},
-                            consumptionTimes: {$sum: "$consumptionTimes"},
-                            validConsumptionAmount: {$sum: "$consumptionValidAmount"},
-                            consumptionBonusAmount: {$sum: "$consumptionBonusAmount"},
-                            consumptionAmount: {$sum: "$consumptionAmount"},
-                            totalPlatformFeeEstimate: {$sum: "$totalPlatformFeeEstimate"},
-                            totalOnlineTopUpFee: {$sum: "$totalOnlineTopUpFee"},
-                            providerDetail: {$push: "$providerDetail"}
-                        }
-                    },
-                    {
-                        $project: {
-                            _id: 0,
-                            playerId: "$_id.playerId",
-                            platformId: "$_id.platformId",
-                            manualTopUpAmount: 1,
-                            onlineTopUpAmount: 1,
-                            aliPayTopUpAmount: 1,
-                            weChatTopUpAmount: 1,
-                            topUpTimes: 1,
-                            bonusTimes: 1,
-                            bonusAmount: 1,
-                            rewardAmount: 1,
-                            consumptionReturnAmount: 1,
-                            consumptionTimes: 1,
-                            validConsumptionAmount: 1,
-                            consumptionBonusAmount: 1,
-                            consumptionAmount: 1,
-                            totalPlatformFeeEstimate: 1,
-                            totalOnlineTopUpFee: 1,
-                            providerDetail: 1
-                        }
-                    }
-                ).read("secondaryPreferred");
-            }
-        ).then(
-            playerSummaryData => {
-                console.log("LH check player report summary 1");
-                if(playerSummaryData && playerSummaryData.length > 0){
-                    playerSummaryData.forEach(
-                        playerSummary => {
-                            if(playerSummary){
-                                playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
-
-                                if(playerSummary.providerDetail && playerSummary.providerDetail.length > 1){
-                                    //merge providerDetail from different date
-                                    let providerDetailObj = {};
-                                    playerSummary.providerDetail.forEach(
-                                        providerDetail => {
-                                            if(providerDetail && Object.keys(providerDetail).length > 0){
-                                                for(let i = 0; i < Object.keys(providerDetail).length; i++){
-                                                    let providerDetailKey = Object.keys(providerDetail)[i];
-                                                    if(providerDetailObj[providerDetailKey]){
-                                                        providerDetailObj[providerDetailKey].bonusAmount += providerDetail[providerDetailKey].bonusAmount;
-                                                        providerDetailObj[providerDetailKey].validAmount += providerDetail[providerDetailKey].validAmount;
-                                                        providerDetailObj[providerDetailKey].amount += providerDetail[providerDetailKey].amount;
-                                                        providerDetailObj[providerDetailKey].count += providerDetail[providerDetailKey].count;
-                                                        providerDetailObj[providerDetailKey].bonusRatio = (providerDetail[providerDetailKey].bonusAmount / providerDetail[Object.keys(providerDetail)[i]].validAmount);
-                                                    }else{
-                                                        providerDetailObj[providerDetailKey] = {
-                                                            bonusRatio: providerDetail[providerDetailKey].bonusRatio,
-                                                            bonusAmount: providerDetail[providerDetailKey].bonusAmount,
-                                                            validAmount: providerDetail[providerDetailKey].validAmount,
-                                                            amount: providerDetail[providerDetailKey].amount,
-                                                            count: providerDetail[providerDetailKey].count,
-                                                        };
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    );
-
-                                    playerSummary.providerDetail = providerDetailObj;
-                                }else{
-                                    playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
-                                }
-                            }
-                        }
-                    )
-                    console.log("LH check player report summary 2");
-                    // filter the summary result first
-                    // Consumption Times Query Operator
-                    if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesValue !== null) {
-                        switch (query.consumptionTimesOperator) {
-                            case '>=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes >= query.consumptionTimesValue);
-                                break;
-                            case '=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes == query.consumptionTimesValue);
-                                break;
-                            case '<=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes <= query.consumptionTimesValue);
-                                break;
-                            case 'range':
-                                if (query.consumptionTimesValueTwo) {
-                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes >= query.consumptionTimesValue && p.consumptionTimes <= query.consumptionTimesValueTwo);
-                                }
-                                break;
-                        }
-                    }
-
-                    if ((query.profitAmountValue || Number(query.profitAmountValue) === 0) && query.profitAmountOperator && query.profitAmountValue !== null) {
-                        switch (query.profitAmountOperator) {
-                            case '>=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount >= query.profitAmountValue);
-                                break;
-                            case '=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount == query.profitAmountValue);
-                                break;
-                            case '<=':
-                                playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount <= query.profitAmountValue);
-                                break;
-                            case 'range':
-                                if (query.profitAmountValueTwo) {
-                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount >= query.profitAmountValue && p.consumptionBonusAmount <= query.profitAmountValueTwo);
-                                }
-                                break;
-                        }
-                    }
-
-                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
-                        switch (query.topUpTimesOperator) {
-                            case '>=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpTimes >= query.topUpTimesValue);
-                                break;
-                            case '=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpTimes == query.topUpTimesValue);
-                                break;
-                            case '<=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpTimes <= query.topUpTimesValue);
-                                break;
-                            case 'range':
-                                if (query.topUpTimesValueTwo) {
-                                    playerSummaryData = playerSummaryData.filter(p => p.topUpTimes >= query.topUpTimesValue && p.topUpTimes <= query.topUpTimesValueTwo);
-                                }
-                                break;
-                        }
-                    }
-
-                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
-                        switch (query.bonusTimesOperator) {
-                            case '>=':
-                                playerSummaryData = playerSummaryData.filter(p => p.bonusTimes >= query.bonusTimesValue);
-                                break;
-                            case '=':
-                                playerSummaryData = playerSummaryData.filter(p => p.bonusTimes == query.bonusTimesValue);
-                                break;
-                            case '<=':
-                                playerSummaryData = playerSummaryData.filter(p => p.bonusTimes <= query.bonusTimesValue);
-                                break;
-                            case 'range':
-                                if (query.bonusTimesValueTwo) {
-                                    playerSummaryData = playerSummaryData.filter(p => p.bonusTimes >= query.bonusTimesValue && p.bonusTimes <= query.bonusTimesValueTwo);
-                                }
-                                break;
-                        }
-                    }
-
-                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
-                        switch (query.topUpAmountOperator) {
-                            case '>=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpAmount >= query.topUpAmountValue);
-                                break;
-                            case '=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpAmount == query.topUpAmountValue);
-                                break;
-                            case '<=':
-                                playerSummaryData = playerSummaryData.filter(p => p.topUpAmount <= query.topUpAmountValue);
-                                break;
-                            case 'range':
-                                if (query.topUpAmountValueTwo) {
-                                    playerSummaryData = playerSummaryData.filter(p => p.topUpAmount >= query.topUpAmountValue && p.topUpAmount <= query.topUpAmountValueTwo);
-                                }
-                                break;
-                        }
-                    }
-
-                    if(query.providerId){
-                        playerSummaryData = playerSummaryData.filter(p => p.providerDetail[query.providerId]);
-                        playerSummaryData = playerSummaryData.map(
-                            summaryData => {
-                                if(summaryData && summaryData.providerDetail && summaryData.providerDetail[query.providerId]){
-                                    let providerObj = {};
-                                    providerObj[query.providerId] = summaryData.providerDetail[query.providerId];
-                                    summaryData.providerDetail = providerObj;
-                                    summaryData.consumptionTimes = summaryData.providerDetail[query.providerId].count;
-                                    summaryData.validConsumptionAmount = summaryData.providerDetail[query.providerId].validAmount;
-                                    summaryData.consumptionBonusAmount = summaryData.providerDetail[query.providerId].bonusAmount;
-                                    summaryData.consumptionAmount = summaryData.providerDetail[query.providerId].amount;
-                                    return summaryData;
-                                }
-                            }
-                        );
-                    }
-
-                    return playerSummaryData;
-                }
-
-            }
-        ).then(
-            playerSummaryData => {
-                console.log("LH check player report summary 3");
-                if(playerSummaryData && playerSummaryData.length > 0){
-                    playerReportSummaryData = playerSummaryData;
-                    let playerIdList = playerReportSummaryData.map(data => data.playerId);
-                    let playerQuery = {
-                        _id: {$in: playerIdList},
-                        isRealPlayer: true,
-                        platform: platform
-                    };
-
-                    if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
-                        let tempArr = [];
-                        let isNoneExist = false;
-
-                        query.credibilityRemarks.forEach(remark => {
-                            if (remark == "") {
-                                isNoneExist = true;
-                            } else {
-                                tempArr.push(remark);
-                            }
-                        });
-
-                        if (isNoneExist && tempArr.length > 0) {
-                            playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
-                        } else if (isNoneExist && !tempArr.length) {
-                            playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
-                        } else if (tempArr.length > 0 && !isNoneExist) {
-                            playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
-                        }
-                    }
-
-                    // Player Score Query Operator
-                    if ((query.playerScoreValue || Number(query.playerScoreValue) === 0) && query.playerScoreValue !== null) {
-                        switch (query.valueScoreOperator) {
-                            case '>=':
-                                playerQuery.valueScore = {$gte: query.playerScoreValue};
-                                break;
-                            case '=':
-                                playerQuery.valueScore = {$eq: query.playerScoreValue};
-                                break;
-                            case '<=':
-                                playerQuery.valueScore = {$lte: query.playerScoreValue};
-                                break;
-                            case 'range':
-                                if (query.playerScoreValueTwo) {
-                                    playerQuery.valueScore = {$gte: query.playerScoreValue, $lte: query.playerScoreValueTwo};
-                                }
-                                break;
-                        }
-                    }
-
-                    if (query.playerLevel) {
-                        playerQuery.playerLevel = query.playerLevel;
-                    }
-
-                    if(query.csPromoteWay && query.csPromoteWay.length > 0){
-                        playerQuery.promoteWay = {$in: query.csPromoteWay};
-                    }
-
-                    if(query.adminIds && query.adminIds.length > 0){
-                        playerQuery.csOfficer = {$in: query.adminIds};
-                    }
-
-                    let playerRequiredFields = {
-                        _id: 1,
-                        name: 1,
-                        city: 1,
-                        province: 1,
-                        consumptionBonusRatio: 1,
-                        credibilityRemarks: 1,
-                        csOfficer: 1,
-                        onlineTopUpFeeDetail: 1,
-                        phoneCity: 1,
-                        phoneProvince: 1,
-                        platformFeeEstimate: 1,
-                        playerLevel: 1,
-                        registrationTime: 1,
-                        valueScore: 1
-                    };
-
-                    return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
-                        .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
-                }
-            }
-        ).then(
-            playerData => {
-                console.log("LH check player report summary 4");
-                if(playerData && playerData.length > 0){
-                    let finalPlayerReportSummaryData = [];
-                    playerData.forEach(
-                        player => {
-                            if(player && player._id){
-                                let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
-
-                                if(indexNo > -1){
-                                    playerReportSummaryData[indexNo].name = player.name || "";
-                                    playerReportSummaryData[indexNo].city = player.city || "";
-                                    playerReportSummaryData[indexNo].province = player.province || "";
-                                    playerReportSummaryData[indexNo].consumptionBonusRatio  = player.consumptionBonusRatio || "";
-                                    playerReportSummaryData[indexNo].credibilityRemarks  = player.credibilityRemarks || [];
-                                    playerReportSummaryData[indexNo].csOfficer = player.csOfficer && player.csOfficer.adminName ? player.csOfficer.adminName : "";
-                                    playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
-                                    playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
-                                    playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
-                                    playerReportSummaryData[indexNo].platformFeeEstimate = player.platformFeeEstimate || {};
-                                    playerReportSummaryData[indexNo].playerLevel = player.playerLevel || "";
-                                    playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
-                                    playerReportSummaryData[indexNo]._id = player._id || "";
-                                    playerReportSummaryData[indexNo].valueScore = player.valueScore || "";
-                                    playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].providerDetail || [];
-                                    playerReportSummaryData[indexNo].endTime = query.end;
-
-                                    finalPlayerReportSummaryData.push(playerReportSummaryData[indexNo]);
-                                }
-                            }
-                        }
-                    );
-                    console.log("LH check player report summary 5");
-                    if (Object.keys(sortCol).length > 0) {
-                        finalPlayerReportSummaryData.sort((a, b) => sortBySortCol(a, b, sortCol));
-                    }
-                    else {
-                        finalPlayerReportSummaryData.sort(function (a, b) {
-                            if (a._id > b._id) {
-                                return 1;
-                            } else {
-                                return -1;
-                            }
-                        });
-                    }
-
-                    let outputResult = [];
-
-                    for (let i = 0, len = limit; i < len; i++) {
-                        finalPlayerReportSummaryData[index + i] ? outputResult.push(finalPlayerReportSummaryData[index + i]) : null;
-                    }
-
-                    return {size: finalPlayerReportSummaryData.length, data: outputResult, total: resultSum};
-                }else{
-                    return {
-                        data: [],
-                        size: 0,
-                        total: resultSum
-                    }
-                }
-
-            }
-        ).then(
+        return getSummaryProm.then(
             returnedData => {
                 returnedObj = returnedData;
-                let twoDaysAgo = dbUtil.getYesterdaySGTime().startTime;
 
-                query.start = new Date(query.start) > twoDaysAgo ? query.start : twoDaysAgo;
+                if (postSummaryStartTime && postSummaryEndTime) {
+                    query.start = postSummaryStartTime;
+                    query.end = postSummaryEndTime;
 
-                if(new Date(query.end) > twoDaysAgo ){
-                    console.log("LH check player report summary 8");
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
             }
         ).then(
-            twoDaysPlayerReportData => {
-                if(twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0){
+            async twoDaysPlayerReportData => {
+                console.log('twoDaysPlayerReportData');
+                if (twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0) {
+                    console.log('twoDaysPlayerReportData.data.length', twoDaysPlayerReportData.data.length);
                     twoDaysPlayerReportData.data.forEach(
                         twoDaysData => {
-                            if(twoDaysData && twoDaysData._id){
+                            if(twoDaysData && twoDaysData._id) {
                                 let indexNo = returnedObj.data.findIndex(r => r._id == twoDaysData._id);
 
                                 if(indexNo == -1){
@@ -18448,34 +18143,95 @@ let dbPlayerInfo = {
                     )
                 }
 
+                if (preSummaryStartTime && preSummaryEndTime) {
+                    query.start = preSummaryStartTime;
+                    query.end = preSummaryEndTime;
+
+                    console.log('async start');
+                    let preSummaryPlayerReportData = await dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
+
+                    if (preSummaryPlayerReportData && preSummaryPlayerReportData.data && preSummaryPlayerReportData.data.length > 0) {
+                        console.log('preSummaryPlayerReportData.data.length', preSummaryPlayerReportData.data.length);
+                        preSummaryPlayerReportData.data.forEach(
+                            preSummaryData => {
+                                if (preSummaryData && preSummaryData._id){
+                                    let indexNo = returnedObj.data.findIndex(r => r._id == preSummaryData._id);
+
+                                    if (indexNo == -1) {
+                                        returnedObj.data.push(preSummaryData);
+                                    } else {
+                                        returnedObj.data[indexNo].manualTopUpAmount += preSummaryData.manualTopUpAmount;
+                                        returnedObj.data[indexNo].onlineTopUpAmount += preSummaryData.onlineTopUpAmount;
+                                        returnedObj.data[indexNo].aliPayTopUpAmount += preSummaryData.aliPayTopUpAmount;
+                                        returnedObj.data[indexNo].weChatTopUpAmount += preSummaryData.weChatTopUpAmount;
+                                        returnedObj.data[indexNo].topUpAmount +=
+                                            preSummaryData.manualTopUpAmount + preSummaryData.onlineTopUpAmount
+                                            + preSummaryData.aliPayTopUpAmount + preSummaryData.weChatTopUpAmount;
+                                        returnedObj.data[indexNo].topUpTimes += preSummaryData.topUpTimes;
+                                        returnedObj.data[indexNo].bonusTimes += preSummaryData.bonusTimes;
+                                        returnedObj.data[indexNo].bonusAmount += preSummaryData.bonusAmount;
+                                        returnedObj.data[indexNo].rewardAmount += preSummaryData.rewardAmount;
+                                        returnedObj.data[indexNo].consumptionReturnAmount += preSummaryData.consumptionReturnAmount;
+                                        returnedObj.data[indexNo].consumptionTimes += preSummaryData.consumptionTimes;
+                                        returnedObj.data[indexNo].validConsumptionAmount += preSummaryData.validConsumptionAmount;
+                                        returnedObj.data[indexNo].consumptionBonusAmount += preSummaryData.consumptionBonusAmount;
+                                        returnedObj.data[indexNo].consumptionAmount += preSummaryData.consumptionAmount;
+                                        returnedObj.data[indexNo].totalPlatformFeeEstimate += preSummaryData.totalPlatformFeeEstimate;
+                                        returnedObj.data[indexNo].totalOnlineTopUpFee += preSummaryData.totalOnlineTopUpFee;
+
+                                        //combine providerDetail
+                                        if(Object.keys(preSummaryData.providerDetail).length > 0){
+
+                                            for(let i = 0; i < Object.keys(preSummaryData.providerDetail).length ; i ++){
+                                                let providerDetailKey = Object.keys(preSummaryData.providerDetail)[i];
+                                                if(returnedObj.data[indexNo].providerDetail[providerDetailKey]){
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey].count += preSummaryData.providerDetail[providerDetailKey].count;
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey].validAmount += preSummaryData.providerDetail[providerDetailKey].validAmount;
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += preSummaryData.providerDetail[providerDetailKey].bonusAmount;
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += preSummaryData.providerDetail[providerDetailKey].amount;
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount);
+                                                }
+                                            }
+
+                                            returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+
                 // Slice array to input page amount
-                returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
-                returnedObj.data = returnedObj.data.slice(0, limit);
+                if (returnedObj && returnedObj.data && returnedObj.data.length) {
+                    returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
+                    returnedObj.data = returnedObj.data.slice(0, limit);
 
-                returnedObj.size = returnedObj.data.length;
+                    returnedObj.size = returnedObj.data.length;
 
-                returnedObj.data.forEach(el => {
-                    returnedObj.total.aliPayTopUpAmount += el.aliPayTopUpAmount || 0;
-                    returnedObj.total.bonusAmount += el.bonusAmount || 0;
-                    returnedObj.total.bonusTimes += el.bonusTimes || 0;
-                    returnedObj.total.consumptionAmount += el.consumptionAmount || 0;
-                    returnedObj.total.consumptionBonusAmount += el.consumptionBonusAmount || 0;
-                    returnedObj.total.consumptionReturnAmount += el.consumptionReturnAmount || 0;
-                    returnedObj.total.consumptionTimes += el.consumptionTimes || 0;
-                    returnedObj.total.manualTopUpAmount += el.manualTopUpAmount || 0;
-                    returnedObj.total.onlineTopUpAmount += el.onlineTopUpAmount || 0;
-                    returnedObj.total.rewardAmount += el.rewardAmount || 0;
-                    returnedObj.total.topUpAmount += el.topUpAmount || 0;
-                    returnedObj.total.topUpTimes += el.topUpTimes || 0;
-                    returnedObj.total.totalOnlineTopUpFee += el.totalOnlineTopUpFee || 0;
-                    returnedObj.total.totalPlatformFeeEstimate += el.totalPlatformFeeEstimate || 0;
-                    returnedObj.total.validConsumptionAmount += el.validConsumptionAmount || 0;
-                    returnedObj.total.weChatTopUpAmount += el.weChatTopUpAmount || 0;
-                });
+                    returnedObj.data.forEach(el => {
+                        returnedObj.total.aliPayTopUpAmount += el.aliPayTopUpAmount || 0;
+                        returnedObj.total.bonusAmount += el.bonusAmount || 0;
+                        returnedObj.total.bonusTimes += el.bonusTimes || 0;
+                        returnedObj.total.consumptionAmount += el.consumptionAmount || 0;
+                        returnedObj.total.consumptionBonusAmount += el.consumptionBonusAmount || 0;
+                        returnedObj.total.consumptionReturnAmount += el.consumptionReturnAmount || 0;
+                        returnedObj.total.consumptionTimes += el.consumptionTimes || 0;
+                        returnedObj.total.manualTopUpAmount += el.manualTopUpAmount || 0;
+                        returnedObj.total.onlineTopUpAmount += el.onlineTopUpAmount || 0;
+                        returnedObj.total.rewardAmount += el.rewardAmount || 0;
+                        returnedObj.total.topUpAmount += el.topUpAmount || 0;
+                        returnedObj.total.topUpTimes += el.topUpTimes || 0;
+                        returnedObj.total.totalOnlineTopUpFee += el.totalOnlineTopUpFee || 0;
+                        returnedObj.total.totalPlatformFeeEstimate += el.totalPlatformFeeEstimate || 0;
+                        returnedObj.total.validConsumptionAmount += el.validConsumptionAmount || 0;
+                        returnedObj.total.weChatTopUpAmount += el.weChatTopUpAmount || 0;
+                    });
 
-                // Calculate total profit
-                returnedObj.total.profit =
-                    (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                    // Calculate total profit
+                    returnedObj.total.profit =
+                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                }
 
                 return returnedObj;
             }
@@ -18487,6 +18243,405 @@ let dbPlayerInfo = {
             } else {
                 return -1 * sortCol[Object.keys(sortCol)[0]];
             }
+        }
+
+        function processPlayerSummaryData (playerSummary) {
+            if (playerSummary) {
+                playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
+
+                if (playerSummary.providerDetail && playerSummary.providerDetail.length > 1) {
+                    //merge providerDetail from different date
+                    let providerDetailObj = {};
+                    playerSummary.providerDetail.forEach(
+                        providerDetail => {
+                            if(providerDetail && Object.keys(providerDetail).length > 0){
+                                for(let i = 0; i < Object.keys(providerDetail).length; i++){
+                                    let providerDetailKey = Object.keys(providerDetail)[i];
+                                    if(providerDetailObj[providerDetailKey]){
+                                        providerDetailObj[providerDetailKey].bonusAmount += providerDetail[providerDetailKey].bonusAmount;
+                                        providerDetailObj[providerDetailKey].validAmount += providerDetail[providerDetailKey].validAmount;
+                                        providerDetailObj[providerDetailKey].amount += providerDetail[providerDetailKey].amount;
+                                        providerDetailObj[providerDetailKey].count += providerDetail[providerDetailKey].count;
+                                        providerDetailObj[providerDetailKey].bonusRatio = (providerDetail[providerDetailKey].bonusAmount / providerDetail[Object.keys(providerDetail)[i]].validAmount);
+                                    }else{
+                                        providerDetailObj[providerDetailKey] = {
+                                            bonusRatio: providerDetail[providerDetailKey].bonusRatio,
+                                            bonusAmount: providerDetail[providerDetailKey].bonusAmount,
+                                            validAmount: providerDetail[providerDetailKey].validAmount,
+                                            amount: providerDetail[providerDetailKey].amount,
+                                            count: providerDetail[providerDetailKey].count,
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                    );
+
+                    playerSummary.providerDetail = providerDetailObj;
+                } else {
+                    playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
+                }
+            }
+
+            return playerSummary;
+        }
+
+        function getSummaryData () {
+            console.log('getSummaryData');
+            let getPlayerProm = Promise.resolve("");
+
+            if (query.name) {
+                isSinglePlayer = true;
+                getPlayerProm = dbconfig.collection_players.findOne({
+                    name: query.name,
+                    platform: platform,
+                    isRealPlayer: true
+                }, {_id: 1}).lean();
+            } else if (query.adminIds && query.adminIds.length) {
+                getPlayerProm = dbconfig.collection_players.find({
+                    platform: platform,
+                    isRealPlayer: true,
+                    csOfficer: {$in: query.adminIds}
+                }, {_id: 1}).lean();
+            }
+
+            return getPlayerProm.then(
+                playerData => {
+                    let summaryDataQuery = {
+                        date: {$gte: summaryStartTime, $lt: summaryEndTime},
+                        platformId: ObjectId(platform)
+                    };
+
+                    if (isSinglePlayer) {
+                        summaryDataQuery.playerId = playerData._id;
+                    } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                        summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
+                    }
+
+                    return dbconfig.collection_playerReportDataDaySummary.aggregate(
+                        {
+                            $match: summaryDataQuery
+                        },
+                        {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                manualTopUpAmount: {$sum: "$manualTopUpAmount"},
+                                onlineTopUpAmount: {$sum: "$onlineTopUpAmount"},
+                                aliPayTopUpAmount: {$sum: "$alipayTopUpAmount"},
+                                weChatTopUpAmount: {$sum: "$wechatpayTopUpAmount"},
+                                topUpTimes: {$sum: "$topUpTimes"},
+                                bonusTimes: {$sum: "$bonusTimes"},
+                                bonusAmount: {$sum: "$bonusAmount"},
+                                rewardAmount: {$sum: "$rewardAmount"},
+                                consumptionReturnAmount: {$sum: "$consumptionReturnAmount"},
+                                consumptionTimes: {$sum: "$consumptionTimes"},
+                                validConsumptionAmount: {$sum: "$consumptionValidAmount"},
+                                consumptionBonusAmount: {$sum: "$consumptionBonusAmount"},
+                                consumptionAmount: {$sum: "$consumptionAmount"},
+                                totalPlatformFeeEstimate: {$sum: "$totalPlatformFeeEstimate"},
+                                totalOnlineTopUpFee: {$sum: "$totalOnlineTopUpFee"},
+                                providerDetail: {$push: "$providerDetail"}
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                playerId: "$_id.playerId",
+                                platformId: "$_id.platformId",
+                                manualTopUpAmount: 1,
+                                onlineTopUpAmount: 1,
+                                aliPayTopUpAmount: 1,
+                                weChatTopUpAmount: 1,
+                                topUpTimes: 1,
+                                bonusTimes: 1,
+                                bonusAmount: 1,
+                                rewardAmount: 1,
+                                consumptionReturnAmount: 1,
+                                consumptionTimes: 1,
+                                validConsumptionAmount: 1,
+                                consumptionBonusAmount: 1,
+                                consumptionAmount: 1,
+                                totalPlatformFeeEstimate: 1,
+                                totalOnlineTopUpFee: 1,
+                                providerDetail: 1
+                            }
+                        }
+                    ).read("secondaryPreferred");
+                }
+            ).then(
+                playerSummaryData => {
+                    if (playerSummaryData && playerSummaryData.length > 0) {
+                        playerSummaryData = playerSummaryData.map(processPlayerSummaryData);
+
+                        // filter the summary result first
+                        // Consumption Times Query Operator
+                        if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesValue !== null) {
+                            switch (query.consumptionTimesOperator) {
+                                case '>=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes >= query.consumptionTimesValue);
+                                    break;
+                                case '=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes == query.consumptionTimesValue);
+                                    break;
+                                case '<=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes <= query.consumptionTimesValue);
+                                    break;
+                                case 'range':
+                                    if (query.consumptionTimesValueTwo) {
+                                        playerSummaryData = playerSummaryData.filter(p => p.consumptionTimes >= query.consumptionTimesValue && p.consumptionTimes <= query.consumptionTimesValueTwo);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if ((query.profitAmountValue || Number(query.profitAmountValue) === 0) && query.profitAmountOperator && query.profitAmountValue !== null) {
+                            switch (query.profitAmountOperator) {
+                                case '>=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount >= query.profitAmountValue);
+                                    break;
+                                case '=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount == query.profitAmountValue);
+                                    break;
+                                case '<=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount <= query.profitAmountValue);
+                                    break;
+                                case 'range':
+                                    if (query.profitAmountValueTwo) {
+                                        playerSummaryData = playerSummaryData.filter(p => p.consumptionBonusAmount >= query.profitAmountValue && p.consumptionBonusAmount <= query.profitAmountValueTwo);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
+                            switch (query.topUpTimesOperator) {
+                                case '>=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpTimes >= query.topUpTimesValue);
+                                    break;
+                                case '=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpTimes == query.topUpTimesValue);
+                                    break;
+                                case '<=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpTimes <= query.topUpTimesValue);
+                                    break;
+                                case 'range':
+                                    if (query.topUpTimesValueTwo) {
+                                        playerSummaryData = playerSummaryData.filter(p => p.topUpTimes >= query.topUpTimesValue && p.topUpTimes <= query.topUpTimesValueTwo);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
+                            switch (query.bonusTimesOperator) {
+                                case '>=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.bonusTimes >= query.bonusTimesValue);
+                                    break;
+                                case '=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.bonusTimes == query.bonusTimesValue);
+                                    break;
+                                case '<=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.bonusTimes <= query.bonusTimesValue);
+                                    break;
+                                case 'range':
+                                    if (query.bonusTimesValueTwo) {
+                                        playerSummaryData = playerSummaryData.filter(p => p.bonusTimes >= query.bonusTimesValue && p.bonusTimes <= query.bonusTimesValueTwo);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
+                            switch (query.topUpAmountOperator) {
+                                case '>=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpAmount >= query.topUpAmountValue);
+                                    break;
+                                case '=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpAmount == query.topUpAmountValue);
+                                    break;
+                                case '<=':
+                                    playerSummaryData = playerSummaryData.filter(p => p.topUpAmount <= query.topUpAmountValue);
+                                    break;
+                                case 'range':
+                                    if (query.topUpAmountValueTwo) {
+                                        playerSummaryData = playerSummaryData.filter(p => p.topUpAmount >= query.topUpAmountValue && p.topUpAmount <= query.topUpAmountValueTwo);
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if(query.providerId){
+                            playerSummaryData = playerSummaryData.filter(p => p.providerDetail[query.providerId]);
+                            playerSummaryData = playerSummaryData.map(
+                                summaryData => {
+                                    if(summaryData && summaryData.providerDetail && summaryData.providerDetail[query.providerId]){
+                                        let providerObj = {};
+                                        providerObj[query.providerId] = summaryData.providerDetail[query.providerId];
+                                        summaryData.providerDetail = providerObj;
+                                        summaryData.consumptionTimes = summaryData.providerDetail[query.providerId].count;
+                                        summaryData.validConsumptionAmount = summaryData.providerDetail[query.providerId].validAmount;
+                                        summaryData.consumptionBonusAmount = summaryData.providerDetail[query.providerId].bonusAmount;
+                                        summaryData.consumptionAmount = summaryData.providerDetail[query.providerId].amount;
+                                        return summaryData;
+                                    }
+                                }
+                            );
+                        }
+
+                        return playerSummaryData;
+                    }
+
+                }
+            ).then(
+                playerSummaryData => {
+                    console.log("LH check player report summary 3");
+                    if(playerSummaryData && playerSummaryData.length > 0){
+                        playerReportSummaryData = playerSummaryData;
+                        let playerIdList = playerReportSummaryData.map(data => data.playerId);
+                        let playerQuery = {
+                            _id: {$in: playerIdList},
+                            isRealPlayer: true,
+                            platform: platform
+                        };
+
+                        if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+                            let tempArr = [];
+                            let isNoneExist = false;
+
+                            query.credibilityRemarks.forEach(remark => {
+                                if (remark == "") {
+                                    isNoneExist = true;
+                                } else {
+                                    tempArr.push(remark);
+                                }
+                            });
+
+                            if (isNoneExist && tempArr.length > 0) {
+                                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                            } else if (isNoneExist && !tempArr.length) {
+                                playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+                            } else if (tempArr.length > 0 && !isNoneExist) {
+                                playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                            }
+                        }
+
+                        // Player Score Query Operator
+                        if ((query.playerScoreValue || Number(query.playerScoreValue) === 0) && query.playerScoreValue !== null) {
+                            switch (query.valueScoreOperator) {
+                                case '>=':
+                                    playerQuery.valueScore = {$gte: query.playerScoreValue};
+                                    break;
+                                case '=':
+                                    playerQuery.valueScore = {$eq: query.playerScoreValue};
+                                    break;
+                                case '<=':
+                                    playerQuery.valueScore = {$lte: query.playerScoreValue};
+                                    break;
+                                case 'range':
+                                    if (query.playerScoreValueTwo) {
+                                        playerQuery.valueScore = {$gte: query.playerScoreValue, $lte: query.playerScoreValueTwo};
+                                    }
+                                    break;
+                            }
+                        }
+
+                        if (query.playerLevel) {
+                            playerQuery.playerLevel = query.playerLevel;
+                        }
+
+                        if(query.csPromoteWay && query.csPromoteWay.length > 0){
+                            playerQuery.promoteWay = {$in: query.csPromoteWay};
+                        }
+
+                        if(query.adminIds && query.adminIds.length > 0){
+                            playerQuery.csOfficer = {$in: query.adminIds};
+                        }
+
+                        let playerRequiredFields = {
+                            _id: 1,
+                            name: 1,
+                            city: 1,
+                            province: 1,
+                            consumptionBonusRatio: 1,
+                            credibilityRemarks: 1,
+                            csOfficer: 1,
+                            onlineTopUpFeeDetail: 1,
+                            phoneCity: 1,
+                            phoneProvince: 1,
+                            platformFeeEstimate: 1,
+                            playerLevel: 1,
+                            registrationTime: 1,
+                            valueScore: 1
+                        };
+
+                        return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
+                            .populate({path: "csOfficer", model: dbconfig.collection_admin}).lean();
+                    }
+                }
+            ).then(
+                playerData => {
+                    console.log("LH check player report summary 4");
+                    if(playerData && playerData.length > 0){
+                        let finalPlayerReportSummaryData = [];
+                        playerData.forEach(
+                            player => {
+                                if(player && player._id){
+                                    let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
+
+                                    if(indexNo > -1){
+                                        playerReportSummaryData[indexNo].name = player.name || "";
+                                        playerReportSummaryData[indexNo].city = player.city || "";
+                                        playerReportSummaryData[indexNo].province = player.province || "";
+                                        playerReportSummaryData[indexNo].consumptionBonusRatio  = player.consumptionBonusRatio || "";
+                                        playerReportSummaryData[indexNo].credibilityRemarks  = player.credibilityRemarks || [];
+                                        playerReportSummaryData[indexNo].csOfficer = player.csOfficer && player.csOfficer.adminName ? player.csOfficer.adminName : "";
+                                        playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
+                                        playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
+                                        playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
+                                        playerReportSummaryData[indexNo].platformFeeEstimate = player.platformFeeEstimate || {};
+                                        playerReportSummaryData[indexNo].playerLevel = player.playerLevel || "";
+                                        playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
+                                        playerReportSummaryData[indexNo]._id = player._id || "";
+                                        playerReportSummaryData[indexNo].valueScore = player.valueScore || "";
+                                        playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].providerDetail || [];
+                                        playerReportSummaryData[indexNo].endTime = query.end;
+
+                                        finalPlayerReportSummaryData.push(playerReportSummaryData[indexNo]);
+                                    }
+                                }
+                            }
+                        );
+                        console.log("LH check player report summary 5");
+                        if (Object.keys(sortCol).length > 0) {
+                            finalPlayerReportSummaryData.sort((a, b) => sortBySortCol(a, b, sortCol));
+                        }
+                        else {
+                            finalPlayerReportSummaryData.sort(function (a, b) {
+                                if (a._id > b._id) {
+                                    return 1;
+                                } else {
+                                    return -1;
+                                }
+                            });
+                        }
+
+                        let outputResult = [];
+
+                        for (let i = 0, len = limit; i < len; i++) {
+                            finalPlayerReportSummaryData[index + i] ? outputResult.push(finalPlayerReportSummaryData[index + i]) : null;
+                        }
+
+                        return {size: finalPlayerReportSummaryData.length, data: outputResult, total: resultSum};
+                    }else{
+                        return {
+                            data: [],
+                            size: 0,
+                            total: resultSum
+                        }
+                    }
+
+                }
+            )
         }
     },
 
