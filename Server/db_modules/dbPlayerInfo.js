@@ -11129,9 +11129,15 @@ let dbPlayerInfo = {
     },
 
     // report
-    getPlayerDomainReport: function (platform, para, index, limit, sortCol, isExport = false) {
+    getPlayerDomainReport: function (platformList, para, index, limit, sortCol, isExport = false) {
+        let platformListQuery;
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+        }
+
         if (para.playerType === 'Partner') {
-            return dbPartner.getPartnerDomainReport(platform, para, index, limit, sortCol);
+            return dbPartner.getPartnerDomainReport(platformListQuery, para, index, limit, sortCol);
         }
         index = index || 0;
         limit = isExport ? limit : Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
@@ -11165,7 +11171,10 @@ let dbPlayerInfo = {
             }
         }
 
-        let query = {platform: platform};
+        let query = {};
+        if (platformListQuery) {
+            query.platform = platformListQuery;
+        }
         para.startTime ? query.registrationTime = {$gte: new Date(para.startTime)} : null;
         (para.endTime && !query.registrationTime) ? (query.registrationTime = {$lt: new Date(para.endTime)}) : null;
         (para.endTime && query.registrationTime) ? (query.registrationTime['$lt'] = new Date(para.endTime)) : null;
@@ -11286,7 +11295,7 @@ let dbPlayerInfo = {
                 path: 'csOfficer',
                 model: dbconfig.collection_admin,
                 select: "adminName"
-            }).read("secondaryPreferred").lean();
+            }).populate({path: 'platform', model: dbconfig.collection_platform}).read("secondaryPreferred").lean();
 
         return Q.all([count, detail]).then(
             data => {
@@ -13829,14 +13838,10 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_players.aggregate(
                 {
-                    $unwind: "$userAgent",
+                    $match: matchObj
                 },
                 {
-                    $match: matchObj
-                    // {
-                    //     platform: platform,
-                    //     registrationTime: {$gte: startTime, $lt: endTime}
-                    // }
+                    $unwind: "$userAgent",
                 },
                 {
                     $group: {
@@ -13891,14 +13896,14 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
-                    $unwind: "$userAgent",
-                },
-                {
                     $match: matchObj
                     //     {
                     //     platform: platform,
                     //     loginTime: {$gte: startTime, $lt: endTime}
                     // }
+                },
+                {
+                    $unwind: "$userAgent",
                 },
                 {
                     $group: {

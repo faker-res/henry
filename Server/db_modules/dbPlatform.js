@@ -6091,7 +6091,7 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
                         case 'pageSetting':
-                            prom = getPageSetting(platformObjId, clientType);
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
                         case 'skin':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
@@ -6156,6 +6156,24 @@ var dbPlatform = {
                     path: "app.rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
                 }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "pageSetting"){
+                if (query && query.hasOwnProperty('status')){
+                    delete query.status
+                }
+                if (query && query.hasOwnProperty('isVisible')){
+                    delete query.isVisible
+                }
+                prom = dbconfig.collection_frontEndUrlConfiguration.find(query).populate({
+                    path: "pc.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).populate({
+                    path: "h5.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).populate({
+                    path: "app.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).lean()
             }
 
             return prom.then(
@@ -6226,56 +6244,6 @@ var dbPlatform = {
             );
         }
 
-        function getPageSetting(platformObjId, clientType) {
-            let query = {
-                platformObjId: platformObjId
-            };
-
-            return dbconfig.collection_frontEndUrlConfiguration.find(query).populate({
-                path: "pcSkin",
-                model: dbconfig.collection_frontEndSkinSetting
-            }).populate({
-                path: "h5Skin",
-                model: dbconfig.collection_frontEndSkinSetting
-            }).populate({
-                path: "appSkin",
-                model: dbconfig.collection_frontEndSkinSetting
-            }).lean().then(
-                configList => {
-                    if (configList && configList.length) {
-                        configList.map(
-                            setting => {
-                                if (clientType == 1){
-                                   setting.skin = setting.pcSkin;
-                                }
-                                else if (clientType == 2){
-                                    setting.skin = setting.h5Skin;
-                                }
-                                else if (clientType == 4){
-                                    setting.skin = setting.appSkin;
-                                }
-
-                                if (setting.hasOwnProperty('pcSkin') ){
-                                    delete setting.pcSkin;
-                                }
-                                if (setting.hasOwnProperty('h5Skin')){
-                                    delete setting.h5Skin;
-                                }
-                                if (setting.hasOwnProperty('appSkin')){
-                                    delete setting.appSkin;
-                                }
-
-                                return setting
-                            }
-                        )
-                        return configList
-                    } else {
-                        return []
-                    }
-                }
-            )
-        }
-
         function settingCleanUp (setting, holder) {
             if (setting[holder]){
                 if (setting[holder].hasOwnProperty('onClickAction')) {
@@ -6305,6 +6273,47 @@ var dbPlatform = {
                 if (setting[holder].gameCode){
                     setting.gameCode = setting[holder].gameCode;
                 }
+
+                //for pageSetting
+                if (setting[holder].hasOwnProperty('skin')) {
+                    setting.skin = setting[holder].skin;
+                }
+                if (setting[holder].htmlTextColor){
+                    setting.htmlTextColor = setting[holder].htmlTextColor;
+                }
+                if (setting[holder].textColor1){
+                    setting.textColor1 = setting[holder].textColor1;
+                }
+                if (setting[holder].textColor2){
+                    setting.textColor2 = setting[holder].textColor2;
+                }
+                if (setting[holder].mainNavTextColor){
+                    setting.mainNavTextColor = setting[holder].mainNavTextColor;
+                }
+                if (setting[holder].mainNavActiveTextColor){
+                    setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
+                }
+                if (setting[holder].mainNavActiveBorderColor){
+                    setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
+                }
+                if (setting[holder].navTextColor){
+                    setting.navTextColor = setting[holder].navTextColor;
+                }
+                if (setting[holder].navActiveTextColor){
+                    setting.navActiveTextColor = setting[holder].navActiveTextColor;
+                }
+                if (setting[holder].formBgColor){
+                    setting.formBgColor = setting[holder].formBgColor;
+                }
+                if (setting[holder].formLabelTextColor){
+                    setting.formLabelTextColor = setting[holder].formLabelTextColor;
+                }
+                if (setting[holder].formInputTextColor){
+                    setting.formInputTextColor = setting[holder].formInputTextColor;
+                }
+                if (setting[holder].formBorderBottomColor){
+                    setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
+                }
             }
             if (setting.pc) {
                 delete setting.pc;
@@ -6314,6 +6323,23 @@ var dbPlatform = {
             }
             if (setting.app) {
                 delete setting.app;
+            }
+
+            // prevent the deleted schema field from showing in pageSetting
+            if (setting.hasOwnProperty('pcSkin') ){
+                delete setting.pcSkin;
+            }
+            if (setting.hasOwnProperty('h5Skin')){
+                delete setting.h5Skin;
+            }
+            if (setting.hasOwnProperty('appSkin')){
+                delete setting.appSkin;
+            }
+            if (setting.hasOwnProperty('websiteLogo')){
+                delete setting.websiteLogo;
+            }
+            if (setting.hasOwnProperty('horizontalScreenStyleFileUrl')){
+                delete setting.horizontalScreenStyleFileUrl;
             }
             return setting
         }

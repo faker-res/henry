@@ -622,8 +622,8 @@ function socketActionReport(socketIO, socket) {
         },
         getPlayerDomainReport: function getPlayerDomainReport(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platform, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platformList, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {
