@@ -24284,6 +24284,13 @@ define(['js/app'], function (myApp) {
                     console.log('remove event success');
                 });
 
+                // remove the deleted reward event form the player's forbidRewardEvents
+                if (vm.showReward && vm.showReward._id) {
+                    socketService.$socket($scope.AppSocket, 'updateForbidRewardEvents', vm.showReward._id, function (data) {
+                        console.log('removed event from forbidRewardEvents');
+                    });
+                }
+
             }
             vm.submitReward = function () {
                 let isValid = true;
