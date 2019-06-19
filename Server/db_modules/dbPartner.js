@@ -8997,7 +8997,7 @@ let dbPartner = {
     },
 
     findPartnerCommissionLog: (query, isOne) => {
-        let request = dbconfig.collection_partnerCommissionLog.find(query);
+        let request = dbconfig.collection_partnerCommissionLog.find(query).sort({partnerName: 1}).lean();
         if (isOne) {
             request = request.limit(1);
         }
@@ -9009,7 +9009,7 @@ let dbPartner = {
                 partnerCommissionLogs.map(partnerCommissionLog => {
                     let downLineProm = dbconfig.collection_downLinesRawCommissionDetail.find({partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred");
                     let parentProm = dbconfig.collection_parentPartnerCommissionDetail.find({partnerCommissionLog: partnerCommissionLog._id}).lean().read("secondaryPreferred");
-                    let childProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: partnerCommissionLog.partner, startTime: partnerCommissionLog.startTime}).lean().read("secondaryPreferred");
+                    let childProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: partnerCommissionLog.partner, startTime: partnerCommissionLog.startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
 
                     let prom = Promise.all([downLineProm, parentProm, childProm]).then(
                         ([downLineData, parentData, childData]) => {

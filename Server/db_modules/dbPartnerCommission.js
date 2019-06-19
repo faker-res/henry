@@ -1505,7 +1505,7 @@ function getCalcPartnerByObjId (partnerObjId, startTime) {
 }
 
 function getCalcPartnerByType (platformObjId, commissionType, startTime) {
-    return dbconfig.collection_commCalc.find({platform: platformObjId, commissionType, startTime}).lean().then(
+    return dbconfig.collection_commCalc.find({platform: platformObjId, commissionType, startTime}).sort({partnerName: 1}).lean().then(
         commCalcData => {
             let proms = commCalcData.map(commCalc => {
                 return getCommCalcDetail(commCalc, startTime).catch(err => {
