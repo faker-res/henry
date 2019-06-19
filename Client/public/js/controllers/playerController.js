@@ -7134,32 +7134,6 @@ define(['js/app'], function (myApp) {
 
         vm.updatePlayerForbidPromoCode = function (sendData) {
             socketService.$socket($scope.AppSocket, 'updatePlayerForbidPromoCode', sendData, function (data) {
-                // let playerObj = data.data;
-                // if (playerObj) {
-                //     let sendData = {
-                //         query: {
-                //             platformObjId: playerObj.platform,
-                //             isBlockByMainPermission: false
-                //         },
-                //         updateData: {}
-                //     }
-                //     if (playerObj.forbidPromoCodeList && playerObj.forbidPromoCodeList.length) {
-                //         sendData.query.name = "次权限禁用组（预设）"; //hard code name;
-                //         sendData.query.isBlockPromoCodeUser = true;
-                //         sendData.query.isDefaultGroup = true;
-                //         sendData.checkQuery = {
-                //             platformObjId: playerObj.platform,
-                //             playerNames: playerObj.name
-                //         }
-                //         sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
-                //     } else {
-                //         sendData.query.playerNames =  playerObj.name;
-                //         sendData.updateData["$pull"] = {playerNames: playerObj.name};
-                //     }
-                //
-                //     socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
-                //     });
-                // }
                 vm.getPlatformPlayersData();
                 let tempPromoCodeList = [];
                 if (vm.promoCodeByPlatform && vm.promoCodeByPlatform.length){
@@ -15057,32 +15031,32 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerForbidRewardEvents = function (sendData) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
-                let playerObj = data.data;
-                if (playerObj) {
-                    let sendData = {
-                        query: {
-                            platformObjId: playerObj.platform,
-                            isBlockByMainPermission: false
-                        },
-                        updateData: {}
-                    }
-                    if (playerObj.forbidPromoCode) {
-                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
-                        sendData.query.isBlockPromoCodeUser = true;
-                        sendData.query.isDefaultGroup = true;
-                        sendData.checkQuery = {
-                            platformObjId: playerObj.platform,
-                            playerNames: playerObj.name
-                        }
-                        sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
-                    } else {
-                        sendData.query.playerNames =  playerObj.name;
-                        sendData.updateData["$pull"] = {playerNames: playerObj.name};
-                    }
-
-                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
-                    });
-                }
+                // let playerObj = data.data;
+                // if (playerObj) {
+                //     let sendData = {
+                //         query: {
+                //             platformObjId: playerObj.platform,
+                //             isBlockByMainPermission: false
+                //         },
+                //         updateData: {}
+                //     }
+                //     if (playerObj.forbidPromoCode) {
+                //         sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                //         sendData.query.isBlockPromoCodeUser = true;
+                //         sendData.query.isDefaultGroup = true;
+                //         sendData.checkQuery = {
+                //             platformObjId: playerObj.platform,
+                //             playerNames: playerObj.name
+                //         }
+                //         sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                //     } else {
+                //         sendData.query.playerNames =  playerObj.name;
+                //         sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                //     }
+                //
+                //     socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                //     });
+                // }
                 vm.getPlatformPlayersData();
                 vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
             });
