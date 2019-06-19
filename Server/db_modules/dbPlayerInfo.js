@@ -3816,15 +3816,6 @@ let dbPlayerInfo = {
                     let playerForbidPromoCodeList = data.forbidPromoCodeList || [];
                     updateData.forbidPromoCodeList = dbPlayerInfo.managingDataList(playerForbidPromoCodeList, addList, removeList);
 
-                    // if (changeData.isForbidPromoCode) {
-                    //     updateData.forbidPromoCode = changeData.forbidPromoCode;
-                    // }
-                    // if (changeData.isForbidLevelUpReward) {
-                    //     updateData.forbidLevelUpReward = changeData.forbidLevelUpReward;
-                    // }
-                    // if (changeData.isForbidLevelMaintainReward) {
-                    //     updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
-                    // }
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
                         'platform': platformObjId

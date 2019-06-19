@@ -6352,11 +6352,6 @@ define(['js/app'], function (myApp) {
                                         forbidPromoCode.push($(v).attr('data-provider'));
                                     }
                                 });
-                                // if (vm.forbidPromoCode != rowData.forbidPromoCode || vm.forbidLevelUpReward != rowData.forbidLevelUpReward || vm.forbidLevelMaintainReward != rowData.forbidLevelMaintainReward) {
-                                //     vm.forbidRewardDisable = false;
-                                // } else {
-                                //
-                                // }
 
                                 vm.forbidPromoCodeDisable = vm.isForbidChanged(forbidPromoCode, vm.forbidPromoCodePopover.forbidPromoCodeList);
                                 $scope.safeApply();
@@ -6384,9 +6379,6 @@ define(['js/app'], function (myApp) {
                                 let sendData = {
                                     _id: rowData._id,
                                     forbidPromoCodeList: forbidPromoCode,
-                                    // forbidPromoCode: vm.forbidPromoCode,
-                                    // forbidLevelUpReward: vm.forbidLevelUpReward,
-                                    // forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                     adminName: authService.adminName
                                 };
                                 vm.updatePlayerForbidPromoCode(sendData);
