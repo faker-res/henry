@@ -613,13 +613,20 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
+
+                    if (platformData.ipCheckPeriod) {
+                        let endTime = new Date();
+                        let startTime = new moment().subtract(platformData.ipCheckPeriod, 'minutes').toDate();
+                        console.log('********', startTime, endTime, platformData.ipCheckPeriod);
+                        dbconfig.collection_playerRegisterIP({ipAddress:'111.111.111.111', platformObjId:platformData._id}).save();
+                    }
                     if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
                         });
                     }
-
+                    return
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
