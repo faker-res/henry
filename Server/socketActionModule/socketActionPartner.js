@@ -620,7 +620,7 @@ function socketActionPartner(socketIO, socket) {
         settlePastCommission: function settlePastCommission (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.pastX && data.platformObjId && data.partnerName);
-            socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo, data.isNew], actionName, isValidData);
         },
 
         transferPartnerCreditToPlayer: function transferPartnerCreditToPlayer (data) {

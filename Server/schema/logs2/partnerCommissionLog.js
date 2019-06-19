@@ -64,3 +64,4 @@ module.exports = partnerCommissionLog;
 
 partnerCommissionLog.index({platform: 1, commissionType: 1, startTime: 1});
 partnerCommissionLog.index({platform: 1, commissionType: 1, startTime: 1, endTime: 1, partnerName: 1});
+partnerCommissionLog.index({partner: 1, commissionType: 1, startTime: 1});

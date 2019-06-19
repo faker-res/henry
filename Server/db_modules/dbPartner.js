@@ -32,6 +32,7 @@ const translate = localization.localization.translate;
 var serverInstance = require("../modules/serverInstance");
 var ObjectId = mongoose.Types.ObjectId;
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+const dbPartnerCommission = require("../db_modules/dbPartnerCommission");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const extConfig = require('../config/externalPayment/paymentSystems');
@@ -9078,38 +9079,59 @@ let dbPartner = {
         }
     },
 
-    settlePastCommission: (partnerName, platformObjId, pastX, adminInfo) => {
-        let period, partner, proposalType;
-        return dbPartner.getPreviousCommissionPeriod(pastX, platformObjId, partnerName).then(
-            periodData => {
-                period = periodData;
-                return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}).lean();
-            }
-        ).then(
-            partnerData => {
-                partner = partnerData;
+    settlePastCommission: async (partnerName, platformObjId, pastX, adminInfo, isNew) => {
+        let period = await dbPartner.getPreviousCommissionPeriod(pastX, platformObjId, partnerName);
+        let partner = await dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}).lean();
+        let proposalType = await dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: partner.platform}).lean();
+        let existingProposal = await dbconfig.collection_proposal.findOne({type: proposalType._id, "data.partnerId": partner.partnerId, "data.startTime": period.startTime, "data.endTime": period.endTime}).lean();
+        if (existingProposal) {
+            return Promise.reject({message: translate("The partner commission for this period is already settled.") + translate("Proposal No.") + existingProposal.proposalId});
+        }
 
-                return dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: partner.platform}).lean();
-            }
-        ).then(
-            proposalTypeData => {
-                proposalType = proposalTypeData;
+        let commissionLog;
 
-                return dbconfig.collection_proposal.findOne({type: proposalType._id, "data.partnerId": partner.partnerId, "data.startTime": period.startTime, "data.endTime": period.endTime}).lean();
+        if (isNew) {
+            let allPartners = await getAllChildrenPartners(partner._id);
+            commissionLog = await dbPartnerCommission.generatePartnerCommissionLog(partner._id, partner.commissionType, period.startTime, period.endTime)
+            for (let i = 0; i < allPartners.length; i++) {
+                await dbPartnerCommission.generatePartnerCommissionLog(allPartners[i], partner.commissionType, period.startTime, period.endTime);
             }
-        ).then(
-            existingProposal => {
-                if (existingProposal) {
-                    return Promise.reject({message: translate("The partner commission for this period is already settled.") + translate("Proposal No.") + existingProposal.proposalId});
-                }
+        } else {
+            commissionLog = await dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, period.startTime, period.endTime);
+        }
+        return applyCommissionToPartner(commissionLog._id, constPartnerCommissionLogStatus.EXECUTED, "", adminInfo);
 
-                return dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, period.startTime, period.endTime);
-            }
-        ).then(
-            commissionLog => {
-                return applyCommissionToPartner(commissionLog._id, constPartnerCommissionLogStatus.EXECUTED, "", adminInfo);
-            }
-        );
+        // let period, partner, proposalType;
+        // return dbPartner.getPreviousCommissionPeriod(pastX, platformObjId, partnerName).then(
+        //     periodData => {
+        //         period = periodData;
+        //         return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platformObjId}).lean();
+        //     }
+        // ).then(
+        //     partnerData => {
+        //         partner = partnerData;
+        //
+        //         return dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: partner.platform}).lean();
+        //     }
+        // ).then(
+        //     proposalTypeData => {
+        //         proposalType = proposalTypeData;
+        //
+        //         return dbconfig.collection_proposal.findOne({type: proposalType._id, "data.partnerId": partner.partnerId, "data.startTime": period.startTime, "data.endTime": period.endTime}).lean();
+        //     }
+        // ).then(
+        //     existingProposal => {
+        //         if (existingProposal) {
+        //             return Promise.reject({message: translate("The partner commission for this period is already settled.") + translate("Proposal No.") + existingProposal.proposalId});
+        //         }
+        //
+        //         return dbPartner.generatePartnerCommissionLog(partner._id, partner.commissionType, period.startTime, period.endTime).then(
+        //             commissionLog => {
+        //                 return applyCommissionToPartner(commissionLog._id, constPartnerCommissionLogStatus.EXECUTED, "", adminInfo);
+        //             }
+        //         );
+        //     }
+        // );
     },
 
     transferPartnerCreditToPlayer: (platformId, partnerObjId, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo) => {
@@ -11939,4 +11961,41 @@ function getPartnerAllCommissionAmount (platformObjId, partnerObjId, currentWith
             );
         }
     ).catch(errorUtils.reportError);
+}
+
+function getAllChildrenPartners (partnerObjId, holder, count) {
+    // note :: duplicated function from dbPartnerCommision, when possible, move whole implementation (including parent of this function) over to that file
+    // mechanism to prevent infinite loop
+    count = count || 0;
+    count++;
+    if (count > 100) {
+        return;
+    }
+
+    // actual implementation
+    holder = holder || [String(partnerObjId)];
+    return dbconfig.collection_partner.find({parent: partnerObjId}, {_id: 1}).lean().then(
+        children => {
+            let proms = [];
+            if (children && children.length) {
+                for (let i = 0; i < children.length; i++) {
+                    let child = children[i];
+                    if (holder.includes(String(child._id))) {
+                        continue;
+                    }
+                    holder.push(String(child._id));
+                    let prom = getAllChildrenPartners(child._id, holder, count);
+                    proms.push(prom);
+                }
+            }
+            if (proms.length) {
+                return Promise.all(proms);
+            }
+            return Promise.resolve();
+        }
+    ).then(
+        () => {
+            return holder;
+        }
+    );
 }

@@ -17962,15 +17962,16 @@ define(['js/app'], function (myApp) {
         };
 
         vm.settlePastCommission = () => {
-            socketService.showErrorMessage("此功能还未完成，若看到此消息可催出huat开发早点完成 - huat");
-            return;
-            //
-
             if (!vm.realTimeCommissionQuery.partnerName || !vm.selectedCommissionPeriod) {
                 return;
             }
 
-            let query = {pastX: vm.selectedCommissionPeriod, platformObjId: vm.selectedPlatform._id, partnerName: vm.realTimeCommissionQuery.partnerName};
+            let query = {
+                pastX: vm.selectedCommissionPeriod,
+                platformObjId: vm.realTimeCommissionQuery.platformObjId,
+                partnerName: vm.realTimeCommissionQuery.partnerName,
+                isNew: true
+            };
             let loadingSpinner = $('#realTimeCommissionTableSpin');
             loadingSpinner.show();
 
