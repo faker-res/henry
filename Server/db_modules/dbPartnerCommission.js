@@ -207,7 +207,6 @@ const dbPartnerCommission = {
                         if (commissionRates[groupRate.groupName].parentRatios) {
                             // let theLastRatio = Number(commissionRates[groupRate.groupName].parentRatios[commissionRates[groupRate.groupName].parentRatios.length - 1]) || 0;
                             let ratioSum = 0;
-                            console.log('commissionRates[groupRate.groupName].parentRatios', commissionRates[groupRate.groupName].parentRatios)
                             if (commissionRates[groupRate.groupName].parentRatios.length) {
                                 ratioSum = commissionRates[groupRate.groupName].parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
                             }
@@ -218,7 +217,6 @@ const dbPartnerCommission = {
                                 let parentRate = math.chain(commissionRates[groupRate.groupName].parentRate[i] || 0).subtract(previousParentRate).round(8).done(); //commissionRates[groupRate.groupName].parentRate[i] - previousParentRate;
                                 previousParentRate = commissionRates[groupRate.groupName].parentRate[i] || 0;
                                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
-                                console.log('ratioSum', ratioSum, 'parentRate', parentRate)
                                 let detail = {
                                     groupName: groupRate.groupName,
                                     groupId: groupRate.groupId,
