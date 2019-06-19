@@ -2806,6 +2806,9 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.credibilityRemarks) {
                     playerQuery.credibilityRemarks = vm.sendMultiMessage.credibilityRemarks;
                 }
+                if (vm.sendMultiMessage.credibilityRemarksFilter) {
+                    playerQuery.credibilityRemarksFilter = vm.sendMultiMessage.credibilityRemarksFilter;
+                }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
                 }
@@ -3244,6 +3247,39 @@ define(['js/app'], function (myApp) {
                                                 output += "<br>";
                                             }
                                             output += vm.platformCredibilityRemarks[i].name;
+                                            remarkMatches = true;
+                                        }
+                                    }
+                                });
+
+                                if (remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
+                            }
+                        },
+                        {
+                            title: $translate("CREDIBILITY_FILTER"),
+                            data: "credibilityRemarksFilter",
+                            advSearch: false,
+                            orderable: false,
+                            sClass: "remarkCol",
+                            render: (data, type, row) => {
+                                let emptyOutput = "-";
+                                if (!data || data.length === 0) {
+                                    return emptyOutput;
+                                }
+
+                                let output = "";
+                                let remarkMatches = false;
+                                data.map(function (remarkId) {
+                                    for (let i = 0; i < vm.platformCredibilityRemarksFilter.length; i++) {
+                                        if (vm.platformCredibilityRemarksFilter[i]._id === remarkId) {
+                                            if (output) {
+                                                output += "<br>";
+                                            }
+                                            output += vm.platformCredibilityRemarksFilter[i].name;
                                             remarkMatches = true;
                                         }
                                     }
@@ -31769,6 +31805,7 @@ define(['js/app'], function (myApp) {
                             })
                         }
                     });
+                    vm.platformCredibilityRemarksFilter = vm.platformCredibilityRemarks;
                 }
             };
 

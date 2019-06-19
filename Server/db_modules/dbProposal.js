@@ -5314,6 +5314,7 @@ var proposal = {
         let totalPlayerCount = 0;
         let bonusResult = [];
         let depositResult = [];
+        let consumptionResult = [];
         let playerResult = [];
         let playerInfoResult = [];
         let resultSum = {
@@ -5393,7 +5394,35 @@ var proposal = {
 
                                 let depositProm = [];
                                 let bonusProm = [];
+                                let consumptionProm;
                                 let playerInfoProm;
+
+                                consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                                    {
+                                        $match: {
+                                            playerId: {$in: playerObjIdArr},
+                                            createTime: {
+                                                $gte: new Date(startTime),
+                                                $lt: new Date(endTime)
+                                            },
+                                            $or: [
+                                                {isDuplicate: {$exists: false}},
+                                                {
+                                                    $and: [
+                                                        {isDuplicate: {$exists: true}},
+                                                        {isDuplicate: false}
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$playerId",
+                                            providerId: {$addToSet: "$providerId"}
+                                        }
+                                    }
+                                ]).allowDiskUse(true).read("secondaryPreferred");
 
                                 playerInfoProm = dbconfig.collection_players.find({_id: {$in: playerObjIdArr}},{registrationTime: 1, name: 1}).lean();
 
@@ -5468,7 +5497,7 @@ var proposal = {
                                                         })
 
                                                     }
-                                                    return Promise.all([Promise.all(bonusProm), Promise.all(depositProm), playerInfoProm]);
+                                                    return Promise.all([Promise.all(bonusProm), Promise.all(depositProm), consumptionProm, playerInfoProm]);
                                                 })
                                         }
                                     })
@@ -5521,13 +5550,14 @@ var proposal = {
                                         }
                                     ]).read("secondaryPreferred");
 
-                                    return Promise.all([bonusProm, depositProm, playerInfoProm]);
+                                    return Promise.all([bonusProm, depositProm, consumptionProm, playerInfoProm]);
                                 }
                             }
                         }).then( retResult => {
-                            if(retResult && retResult.length == 3){
+                            if(retResult && retResult.length == 4){
 
-                                playerInfoResult = retResult[2];
+                                consumptionResult = retResult[2];
+                                playerInfoResult = retResult[3];
 
                                 if (data.dayAfterReceiving){
 
@@ -5580,8 +5610,18 @@ var proposal = {
                                             player.totalDepositAmount = 0;
                                         }
 
-                                        player.winLostAmount = player.totalDepositAmount - player.totalBonusAmount;
-                                        resultSum.winLostAmount += player.winLostAmount;
+                                        if (consumptionResult && consumptionResult.length > 0){
+                                            let index = consumptionResult.findIndex( a => a._id.toString() == player._id.toString());
+                                            if (index != -1){
+                                                player.providerId = consumptionResult[index].providerId;
+                                                player.winLostAmount = player.totalDepositAmount - player.totalBonusAmount;
+                                                resultSum.winLostAmount += player.winLostAmount;
+                                            }
+                                            else{
+                                                player.winLostAmount = 0;
+                                                player.providerId = [];
+                                            }
+                                        }
 
                                         if (playerInfoResult && playerInfoResult.length > 0){
                                             let index = playerInfoResult.findIndex( a => a._id.toString() == player._id.toString());
@@ -6183,7 +6223,7 @@ var proposal = {
         ).then(
             proposals => {
                 proposals = proposals.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                    if(item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp" && item.data && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
@@ -6364,7 +6404,7 @@ var proposal = {
         ).then(
             proposals => {
                 proposals = proposals.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                    if(item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp" && item.data && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;

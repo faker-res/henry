@@ -73,6 +73,7 @@
                 "getProvince",
                 "getCity",
                 "getDistrict",
+                "requestBankTypeByUsername",
                 "requestOnLinepayByUsername",
                 "requestWechatpayByUsername",
                 "requestAlipayByUsername",

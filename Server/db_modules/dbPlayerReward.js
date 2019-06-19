@@ -5902,6 +5902,25 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                actualAmount = rewardData.selectedTopup.amount;
+
+                // Check top up is created within reward interval period
+                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
+                // Check if there is withdraw after top up
+                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Calculate the daily applied reward amount
+                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
+            }
+
             // Set reward param step to use
             if (eventData.param && eventData.param.isMultiStepReward) {
                 if (eventData.param.isSteppingReward) {
@@ -5927,25 +5946,6 @@ let dbPlayerReward = {
                         message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
                 }
-            }
-
-            if (rewardData && rewardData.selectedTopup) {
-                selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
-                actualAmount = rewardData.selectedTopup.amount;
-
-                // Check top up is created within reward interval period
-                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
-                // Check if there is withdraw after top up
-                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
-                // Calculate the daily applied reward amount
-                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
-            } else {
-                return Promise.reject({
-                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                    name: "DataError",
-                    message: "Invalid top up"
-                });
             }
         }
 
@@ -6195,11 +6195,14 @@ let dbPlayerReward = {
             if (!rewardData.festivalItemId) {
                 return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
             }
-
             selectedRewardParam = selectedRewardParam.filter( item => {
                 return item.id == rewardData.festivalItemId;
             })
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+            // if that's a birthday event and this player didnt set his birthday in profile
+            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
+                return Q.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
+            }
 
             let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
             let festivalPeriod = getTimePeriod(0, festivalDate);
@@ -7625,7 +7628,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "不符合存款要求，请存款后参与。"
+                                message: "You need to topup before apply this reward."
                             });
                         }
 
@@ -8539,9 +8542,10 @@ let dbPlayerReward = {
                             if (playerData.deviceId) {
                                 proposalData.data.deviceId = playerData.deviceId;
                             }
-                            if (playerData.DOB){
+                            if (playerData.DOB) {
                                 proposalData.data.playerBirthday = playerData.DOB;
                             }
+
                             if (eventData.condition && eventData.condition.interval) {
                                 proposalData.data.intervalType = eventData.condition.interval;
                             }
@@ -8714,6 +8718,27 @@ let dbPlayerReward = {
                                             return Promise.all(postPropPromArr).then(
                                                 () => {
                                                     return Promise.resolve(randomRewardRes);
+                                                }
+                                            );
+                                        }
+
+                                        if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                                            let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
+                                            if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
+                                                outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
+                                            }
+                                            outputMsg += ( selectedRewardParam && selectedRewardParam.rewardAmount ) ? selectedRewardParam.rewardAmount : '';
+                                            outputMsg += localization.localization.translate('RMB');
+
+                                            let festivalRewardRes = {
+                                                selectedReward: selectedRewardParam,
+                                                rewardName: eventData.name,
+                                                code: eventData.code,
+                                                msg: outputMsg
+                                            }
+                                            return Promise.all(postPropPromArr).then(
+                                                () => {
+                                                    return Promise.resolve(festivalRewardRes);
                                                 }
                                             );
                                         }
@@ -10511,10 +10536,15 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
                     proms.push(prom);
                 } else {
+                    let errorMsg = localization.localization.translate('Not In the Period of This Reward.');
+                    if (selectedRewardParam.rewardType && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ) {
+                        errorMsg = localization.localization.translate('Your Birthday is Not In the Period of This Reward.');
+                    }
+
                     reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: localization.localization.translate("Not the Period of this Reward")
+                        message: errorMsg
                     });
                 }
             }

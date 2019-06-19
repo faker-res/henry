@@ -149,6 +149,7 @@
                 "saveFrontEndData",
                 "getFrontEndData",
                 "sendFileFTP",
+                "updateRSAKeys",
                 "getFrontEndConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);

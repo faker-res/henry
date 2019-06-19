@@ -818,6 +818,7 @@ var dbPlayerTopUpRecord = {
                             request("player", "topupRecordInsertRepeatCount", {
                                 proposals: proposals,
                                 platformId: query.platformId,
+                                query: query
                             });
                         },
                         processResponse: function (record) {
@@ -835,7 +836,7 @@ var dbPlayerTopUpRecord = {
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
                 topupRecords = topupRecords.map(item => {
-                    if(item.type.name === "ManualPlayerTopUp" && item.data.bankCardNo){
+                    if(item && item.type && item.type.name && item.type.name === "ManualPlayerTopUp" && item.data && item.data.bankCardNo){
                         item.data.bankCardNo = dbUtil.encodeBankAcc(item.data.bankCardNo);
                     }
                     return item;
@@ -978,7 +979,7 @@ var dbPlayerTopUpRecord = {
         }
     },
 
-    topupRecordInsertRepeatCount: function (proposals, platformId) {
+    topupRecordInsertRepeatCount: function (proposals, platformId, query) {
         return new Promise(function (resolve) {
             let typeIds = null;
             let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformId);
@@ -1020,31 +1021,6 @@ var dbPlayerTopUpRecord = {
                 }
             );
 
-            // NOTE: async loop will probably be necessary if t
-            // asyncLoop(proposals.length, function (i, loop) {
-            //     let proposal = JSON.parse(JSON.stringify(proposals[i]));
-            //     if (proposal.status === constProposalStatus.SUCCESS || proposal.status === constProposalStatus.APPROVED) {
-            //         insertedProposals[i] = handleSuccessProposal(proposal);
-            //         loop();
-            //     } else {
-            //         getProposalTypesIdProm.then(
-            //             typeIdData => {
-            //                 typeIds = typeIdData;
-            //                 return Promise.all([handleFailureMerchant(proposal), handleFailurePlayer(proposal)]);
-            //             }
-            //         ).then(
-            //             () => {
-            //                 insertedProposals[i] = proposal;
-            //                 loop();
-            //             }
-            //         )
-            //     }
-            //
-            //
-            // }, function returnResult() {
-            //     resolve(insertedProposals);
-            // });
-
             function handleFailureMerchant(proposal) {
                 let merchantNo = proposal.data.merchantNo;
                 let relevantTypeIds = merchantNo ? typeIds : [proposal.type];
@@ -1082,13 +1058,13 @@ var dbPlayerTopUpRecord = {
 
                 let prevSuccessQuery = {
                     type: {$in: relevantTypeIds},
-                    createTime: {$lte: new Date(proposal.createTime)},
+                    createTime: {$gte: new Date(query.startTime), $lte: new Date(proposal.createTime)},
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                 };
 
                 let nextSuccessQuery = {
                     type: {$in: relevantTypeIds},
-                    createTime: {$gte: new Date(proposal.createTime)},
+                    createTime: {$gte: new Date(proposal.createTime), $lt: new Date(query.endTime)},
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                 };
 
@@ -1210,13 +1186,13 @@ var dbPlayerTopUpRecord = {
 
                 let prevSuccessProm = dbconfig.collection_proposal.find({
                     type: {$in: typeIds},
-                    createTime: {$lte: proposal.createTime},
+                    createTime: {$gte: new Date(query.startTime), $lte: proposal.createTime},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                 }).sort({createTime: -1}).limit(1).lean();
                 let nextSuccessProm = dbconfig.collection_proposal.find({
                     type: {$in: typeIds},
-                    createTime: {$gte: proposal.createTime},
+                    createTime: {$gte: proposal.createTime, $lt: new Date(query.endTime)},
                     "data.playerName": playerName,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
                 }).sort({createTime: 1}).limit(1).lean();
