@@ -1387,18 +1387,18 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemarks');
-            if (remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
-            remarkSelect.multipleSelect({
-                showCheckbox: true,
-                allSelected: $translate("All Selected"),
-                selectAllText: $translate("Select All"),
-                displayValues: false,
-                countSelected: $translate('# of % selected')
-            });
 
-            $scope.safeApply();
+            setTimeout(()=> {
+                remarkSelect.multipleSelect({
+                    showCheckbox: true,
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: false,
+                    countSelected: $translate('# of % selected')
+                });
+                $scope.safeApply();
+            },1)
+
         };
 
         vm.setupRemarksMultiInputDepositAnalysis = function () {
@@ -1441,6 +1441,46 @@ define(['js/app'], function (myApp) {
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
+        };
+
+        vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
+                data => {
+                    $scope.$evalAsync(() => {
+                        let parentId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
+
+                        endLoadMultipleSelect('.spicker');
+
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+                }
+            );
+        };
+
+        vm.playerReportOnPlatformChange = (platformObjId) => {
+            vm.getCredibilityRemarksByPlatformId(platformObjId).then(()=>{vm.setupRemarksMultiInput()});
+            vm.getPlayerLevelByPlatformId(platformObjId);
+            vm.getPlatformProvider(platformObjId);
+            vm.getDepartmentDetailsByPlatformObjId(platformObjId);
         };
 
         vm.getProposalTypeByPlatformId = function (id) {
@@ -4377,7 +4417,7 @@ define(['js/app'], function (myApp) {
 
             utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 10000);
             var sendquery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.playerQuery.platformId,
                 query: {
                     credibilityRemarks: vm.playerQuery.credibilityRemarks,
                     playerLevel: vm.playerQuery.level,

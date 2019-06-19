@@ -286,6 +286,10 @@
         div(ng-if='vm.showPageName=="PLAYER_REPORT"')
             .col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.playerReportOnPlatformChange(vm.playerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
 
