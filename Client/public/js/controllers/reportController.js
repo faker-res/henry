@@ -6146,7 +6146,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 startTime: newConsumptionQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newConsumptionQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.curPlatformId,
+                platformList: newConsumptionQuery.platformList ? newConsumptionQuery.platformList : vm.platformList.map(item => item._id),
                 providerId: vm.consumptionModeQuery.gameProvider? JSON.parse(vm.consumptionModeQuery.gameProvider)._id: null,
                 cpGameType: vm.consumptionModeQuery.gameType? JSON.parse(vm.consumptionModeQuery.gameType).gameType: null,
                 betType: consumptiionBetType,
@@ -6154,6 +6154,8 @@ define(['js/app'], function (myApp) {
                 limit: newConsumptionQuery.limit,
                 sortCol: newConsumptionQuery.sortCol
             };
+
+            console.log('newConsumptionQuery', sendData);
 
             socketService.$socket($scope.AppSocket, 'getConsumptionModeReport', sendData, function (data) {
                 findReportSearchTime();
@@ -6188,16 +6190,17 @@ define(['js/app'], function (myApp) {
                 "order": vm.consumptionModeQuery.aaSorting,
                 aoColumnDefs: [
                     // {'sortCol': 'playerId', 'aTargets': [1]},
-                    {'sortCol': 'selectedBetTypeAmt', 'aTargets': [2]},
-                    {'sortCol': 'totalBetAmt', 'aTargets': [3]},
-                    {'sortCol': 'betAmtPercent', 'aTargets': [4]},
-                    {'sortCol': 'bonusAmount', 'aTargets': [5]},
-                    {'sortCol': 'selectedBetTypeCount', 'aTargets': [6]},
-                    {'sortCol': 'totalBetCount', 'aTargets': [7]},
-                    {'sortCol': 'betCountPercent', 'aTargets': [8]}
+                    {'sortCol': 'selectedBetTypeAmt', 'aTargets': [3]},
+                    {'sortCol': 'totalBetAmt', 'aTargets': [4]},
+                    {'sortCol': 'betAmtPercent', 'aTargets': [5]},
+                    {'sortCol': 'bonusAmount', 'aTargets': [6]},
+                    {'sortCol': 'selectedBetTypeCount', 'aTargets': [7]},
+                    {'sortCol': 'totalBetCount', 'aTargets': [8]},
+                    {'sortCol': 'betCountPercent', 'aTargets': [9]}
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
                     {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
@@ -9624,6 +9627,65 @@ define(['js/app'], function (myApp) {
         };
         // end of financial report's deposit group setting
 
+        vm.getProviderListByPlatform = function(platformObjIdList) {
+            let query = {};
+
+            if(platformObjIdList && platformObjIdList.length){
+                query.platformObjIdList = platformObjIdList;
+            }
+
+            vm.providerListByPlatform = [];
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if(providerList && providerList.data){
+                        let validGameProviders = []; //game provider with game type
+                        providerList.data.forEach(item => {
+                            if (item.gameTypes && Object.keys(item.gameTypes).length) {
+                                validGameProviders.push(item);
+                            }
+                        })
+
+                        vm.allGameProviders = validGameProviders;
+                    }
+
+                    setTimeout(function () {
+                        vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
+
+                        $('select#selectBetType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiReward = ($('select#selectBetType').next().find('.ms-choice'))[0];
+
+                        $('select#selectBetType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiReward).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiReward).find('span').text(upText)
+                        });
+
+                        $("select#selectBetType").multipleSelect("checkAll");
+
+                        vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
+                        });
+                    });
+                });
+            });
+        };
+
+        vm.dynamicPlatform = function () {
+            vm.allGameProviders = [];
+            if (vm.consumptionModeQuery.platformList) {
+                vm.getProviderListByPlatform(vm.consumptionModeQuery.platformList);
+            } else {
+                vm.getProviderListByPlatform(vm.platformList.map(item => item._id));
+            }
+        };
+
         vm.dynamicGameType = function () {
             if (vm.consumptionModeQuery.gameProvider) {
                 vm.providerGameType = [];
@@ -10123,51 +10185,7 @@ define(['js/app'], function (myApp) {
                     vm.providerGameType = [];
                     vm.gameBetType = [];
                     vm.reportSearchTime = 0;
-
-                    let gameProviderProm = Promise.resolve();
-                    if (!vm.allGameProviders) {
-                        gameProviderProm = commonService.getAllGameProviders($scope, vm.selectedPlatform._id)
-                    }
-
-                    gameProviderProm.then(
-                        gameProviderData => {
-                            if (gameProviderData && gameProviderData[0]) {
-                                let validGameProviders = []; //game provider with game type
-                                gameProviderData[0].forEach(item => {
-                                    if (item.gameTypes && Object.keys(item.gameTypes).length) {
-                                        validGameProviders.push(item);
-                                    }
-                                })
-
-                                vm.allGameProviders = validGameProviders;
-                            }
-
-                            setTimeout(function () {
-                                vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
-
-                                $('select#selectBetType').multipleSelect({
-                                    allSelected: $translate("All Selected"),
-                                    selectAllText: $translate("Select All"),
-                                    displayValues: true,
-                                    countSelected: $translate('# of % selected'),
-                                });
-                                var $multiReward = ($('select#selectBetType').next().find('.ms-choice'))[0];
-
-                                $('select#selectBetType').next().on('click', 'li input[type=checkbox]', function () {
-                                    var upText = $($multiReward).text().split(',').map(item => {
-                                        return $translate(item);
-                                    }).join(',');
-                                    $($multiReward).find('span').text(upText)
-                                });
-
-                                $("select#selectBetType").multipleSelect("checkAll");
-
-                                vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
-                                    vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
-                                });
-                            });
-                        }
-                    );
+                    vm.dynamicPlatform();
                     break;
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;
