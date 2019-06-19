@@ -231,7 +231,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform Selection" | translate}}
+                                    label {{"Platform" | translate}}
                                     select.form-control(ng-model="vm.importPlatformForTXT" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForTXT)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
@@ -257,7 +257,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform Selection" | translate}}
+                                    label {{"Platform" | translate}}
                                     select.form-control(ng-model="vm.importPlatform" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatform)')
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
@@ -277,24 +277,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"FILTER_THEN_IMPORT_XLS" | translate}}
-
             .modal-body
                 .panel.panel-primary
                     .panel-body
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform" | translate}}
-                                    select.form-control(ng-model="vm.importPlatformForDX" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForDX)')
-
-                        .row
-                            .col-md-12
-                                .well
                                     label {{"SELECT_DXMISSION_INSTRUCTION" | translate}}
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
-
-
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
                 button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission)")

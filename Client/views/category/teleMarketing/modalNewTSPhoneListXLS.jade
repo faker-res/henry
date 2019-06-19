@@ -4,17 +4,6 @@
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
-
-
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .row
-                            .col-md-12
-                                .well
-                                    label {{"Platform" | translate}}
-                                    select.form-control(ng-model="vm.importPlatformForXLS" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForXLS)')
-
             .modal-body
                 .panel.panel-primary
                     .panel-body
