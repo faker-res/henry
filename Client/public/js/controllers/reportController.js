@@ -2919,7 +2919,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 // platform: vm.selectedPlatform._id,
                 // platformId: vm.selectedPlatform.platformId,
-                platformList: vm.onlinePaymentMismatchQuery.platformList,
+                platformList: vm.onlinePaymentMismatchQuery.platformList ? vm.onlinePaymentMismatchQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.onlinePaymentMismatchQuery.type
@@ -3144,7 +3144,7 @@ define(['js/app'], function (myApp) {
 
             let sendQuery = {
                 //platformObjId: vm.selectedPlatform._id,
-                platformList: vm.limitedOfferQuery.platformList,
+                platformList: vm.limitedOfferQuery.platformList ? vm.limitedOfferQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
                 playerName: vm.limitedOfferQuery.playerName,
@@ -3394,7 +3394,7 @@ define(['js/app'], function (myApp) {
 
             let sendQuery = {
                 // platformObjId: vm.selectedPlatform._id,
-                platformList: vm.playerAlipayAccReport.platformList,
+                platformList: vm.playerAlipayAccReport.platformList ? vm.playerAlipayAccReport.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -5950,7 +5950,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 financialPointsType: financialPointsType,
-                platformList: newproposalQuery.platformList,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 5000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
@@ -6350,7 +6350,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 // platformId: vm.curPlatformId,
-                platformList: newproposalQuery.platformList,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
@@ -6663,7 +6663,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             var query = {
                 // platform: vm.curPlatformId,
-                platformList: vm.playerAlmostLevelUpQuery.platformList,
+                platformList: vm.playerAlmostLevelUpQuery.platformList ? vm.playerAlmostLevelUpQuery.platformList : vm.platformList.map(item => item._id),
                 percentage: vm.playerAlmostLevelUpQuery.percentage,
                 // limit: parseInt(vm.playerAlmostLevelUpQuery.limit)
                 index: newSearch ? 0 : vm.playerAlmostLevelUpQuery.index,
@@ -6831,7 +6831,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.playerFeedbackQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerFeedbackQuery.endTime.data('datetimepicker').getLocalDate(),
                     //platform: vm.curPlatformId
-                    platformList: vm.playerFeedbackQuery.platformList
+                    platformList: vm.playerFeedbackQuery.platformList ? vm.playerFeedbackQuery.platformList : vm.platformList.map(item => item._id)
                 },
                 limit: vm.playerFeedbackQuery.limit || 10,
                 index: newSearch ? 0 : (vm.playerFeedbackQuery.index || 0),
@@ -6933,7 +6933,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
 
                 //platformId: vm.curPlatformId,
-                platformList: vm.creditChangeQuery.platformList,
+                platformList: vm.creditChangeQuery.platformList ? vm.creditChangeQuery.platformList : vm.platformList.map(item => item._id),
                 operationTime: {
                     startTime: startTime,
                     endTime: endTime
@@ -7859,7 +7859,7 @@ define(['js/app'], function (myApp) {
             vm["#rewardProposalQuery"].endTime = endTime;
             var sendData = {
                 //platformId: vm.curPlatformId || vm.selectedPlatform._id,
-                platformList: vm.rewardProposalQuery.platformList,
+                platformList: vm.rewardProposalQuery.platformList ? vm.rewardProposalQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: startTime,
                 endTime: endTime,
                 status: vm.rewardProposalQuery.status,
@@ -8200,7 +8200,7 @@ define(['js/app'], function (myApp) {
                 startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
                 //platformObjId: vm.selectedPlatform._id,
-                platformList: vm.rewardReportAnalysis.platformList,
+                platformList: vm.rewardReportAnalysis.platformList ? vm.rewardReportAnalysis.platformList : vm.platformList.map(item => item._id),
                 type: vm.rewardReportAnalysis.type,
                 proposalNameArr: proposalNames
             }
@@ -9700,7 +9700,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorQuery.merchantNo,
                 startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorQuery.platformList,
+                platformList: vm.paymentMonitorQuery.platformList ? vm.paymentMonitorQuery.platformList : vm.platformList.map(item => item._id),
                 currentPlatformId: vm.selectedPlatform._id,
                 index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
                 limit: vm.paymentMonitorQuery.limit || 10,
