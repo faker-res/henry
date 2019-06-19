@@ -12,8 +12,9 @@
                         .row
                             .col-md-12
                                 .well
-                                    label {{"Platform" | translate}}
-                                    select.form-control(ng-model="vm.importPlatformForXLS" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForXLS)')
+                                    label {{"Platform Selection" | translate}}
+                                    select.form-control(ng-model="vm.importPlatformForXLS" ng-options='v._id as v.name for v in vm.allPlatformData', ng-change='vm.getAllDxMission(vm.importPlatformForXLS);vm.getPlayerFeedbackTopic()')
+
 
             .modal-body
                 .panel.panel-primary
