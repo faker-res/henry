@@ -152,7 +152,7 @@ var playerSchema = new Schema({
         rewardPointsTask: {type: Boolean, default: true},
         disableWechatPay: {type: Boolean, default: false},
         forbidPlayerConsumptionReturn: {type: Boolean, default: false},
-        allowPromoCode: {type: Boolean, default: true},
+        allowPromoCode: {type: Boolean, default: true, index: true},
         forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
         PlayerTopUpReturn: {type: Boolean, default: true},
         PlayerDoubleTopUpReturn: {type: Boolean, default: true},

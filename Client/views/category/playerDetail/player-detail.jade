@@ -496,10 +496,10 @@ include ../common-widget/telephone-popover
             td(style='text-align:left')
 
                 label {{"FORBID_REWARD" | translate}}
-                //div
-                //    label {{"优惠代码" | translate}}
-                //        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode' ng-change='vm.forbidFixedRewardModification("forbidPromoCode")')
-                //        span(id="{{'c-forbidPromoCode'}}")
+                div
+                    label {{"优惠代码" | translate}}
+                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode' ng-change='vm.forbidFixedRewardModification("forbidPromoCode")')
+                        span(id="{{'c-forbidPromoCode'}}")
                 div
                     label {{"PlayerLevelUp" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward' ng-change='vm.forbidFixedRewardModification("forbidLevelUpReward")')
