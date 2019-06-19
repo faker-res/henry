@@ -597,7 +597,7 @@ define(['js/app'], function (myApp) {
         }
 
         //set selected platform node
-        async function selectPlatformNode(platformObj, option) {
+        async function selectPlatformNode(platformObj, option, skipVariable) {
             vm.selectedPlatform = {
                 text: platformObj.name,
                 id: platformObj._id,
@@ -666,47 +666,49 @@ define(['js/app'], function (myApp) {
                 commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
             ]);
 
-            vm.bankCards = preValue1[0];
+            if (!skipVariable) {
+                vm.bankCards = preValue1[0];
 
-            // check settlement buttons
-            let nowDate = new Date().toLocaleDateString();
-            let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
-            let weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
-            vm.showDailySettlement = nowDate != dailyDate;
-            vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
-            vm.platformSettlement = {};
-            vm.advancedPartnerQueryObj = {
-                limit: 10,
-                index: 0
-            };
-            vm.partnerAdvanceSearchQuery = {
-                creditsOperator: ">=",
-                dailyActivePlayerOperator: ">=",
-                weeklyActivePlayerOperator: ">=",
-                monthlyActivePlayerOperator: ">=",
-                validPlayersOperator: ">=",
-                totalPlayerDownlineOperator: ">=",
-                totalChildrenDepositOperator: ">=",
-                totalChildrenBalanceOperator: ">=",
-                totalSettledCommissionOperator: ">=",
-            };
-            vm.playerAdvanceSearchQuery = {
-                creditOperator: ">=",
-                playerType: 'Real Player (all)'
-            };
-            vm.advancedQueryObj = {
-                creditOperator: ">=",
-                playerType: 'Real Player (all)'
-            };
+                // check settlement buttons
+                let nowDate = new Date().toLocaleDateString();
+                let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
+                let weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
+                vm.showDailySettlement = nowDate != dailyDate;
+                vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
+                vm.platformSettlement = {};
+                vm.advancedPartnerQueryObj = {
+                    limit: 10,
+                    index: 0
+                };
+                vm.partnerAdvanceSearchQuery = {
+                    creditsOperator: ">=",
+                    dailyActivePlayerOperator: ">=",
+                    weeklyActivePlayerOperator: ">=",
+                    monthlyActivePlayerOperator: ">=",
+                    validPlayersOperator: ">=",
+                    totalPlayerDownlineOperator: ">=",
+                    totalChildrenDepositOperator: ">=",
+                    totalChildrenBalanceOperator: ">=",
+                    totalSettledCommissionOperator: ">=",
+                };
+                vm.playerAdvanceSearchQuery = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+                vm.advancedQueryObj = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
 
-            //load partner
-            utilService.actionAfterLoaded("#partnerTablePage", function () {
-                vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {
-                    pageSize: 10
-                }, $translate, function (curP, pageSize) {
-                    commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData);
-                });
-            })
+                //load partner
+                utilService.actionAfterLoaded("#partnerTablePage", function () {
+                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {
+                        pageSize: 10
+                    }, $translate, function (curP, pageSize) {
+                        commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData);
+                    });
+                })
+            }
 
             $scope.$evalAsync(() => {
                 // vm.loadAlldepartment();
@@ -1429,35 +1431,35 @@ define(['js/app'], function (myApp) {
         // Multiply by this to convert hours to seconds
         var hours = 60 * 60;
 
+        function getRegTimeQueryValue() {
+            let startValue = $('#regDateTimePicker2').data('datetimepicker').getLocalDate();
+            let endValue = $('#regEndDateTimePicker2').data('datetimepicker').getLocalDate();
+            let queryValue = {};
+            if ($('#regDateTimePicker2 input').val()) {
+                queryValue["$gte"] = startValue;
+            }
+            if ($('#regEndDateTimePicker2 input').val()) {
+                queryValue["$lt"] = endValue;
+            }
+            return $.isEmptyObject(queryValue) ? null : queryValue;
+        }
+
+        function getAccessTimeQueryValue() {
+            let startValue = $('#lastAccessDateTimePicker2').data('datetimepicker').getLocalDate();
+            let endValue = $('#lastAccessEndDateTimePicker2').data('datetimepicker').getLocalDate();
+            let queryValue = {};
+            if ($('#lastAccessDateTimePicker2 input').val()) {
+                queryValue["$gte"] = startValue;
+            }
+            if ($('#lastAccessEndDateTimePicker2 input').val()) {
+                queryValue["$lt"] = endValue;
+            }
+            return $.isEmptyObject(queryValue) ? null : queryValue;
+        }
+
         function createPartnerAdvancedSearchFilters(config) {
             var currentQueryValues = {};
             $(config.filtersElement).empty();
-
-            function getRegTimeQueryValue() {
-                let startValue = $('#regDateTimePicker2').data('datetimepicker').getLocalDate();
-                let endValue = $('#regEndDateTimePicker2').data('datetimepicker').getLocalDate();
-                let queryValue = {};
-                if ($('#regDateTimePicker2 input').val()) {
-                    queryValue["$gte"] = startValue;
-                }
-                if ($('#regEndDateTimePicker2 input').val()) {
-                    queryValue["$lt"] = endValue;
-                }
-                return $.isEmptyObject(queryValue) ? null : queryValue;
-            }
-
-            function getAccessTimeQueryValue() {
-                let startValue = $('#lastAccessDateTimePicker2').data('datetimepicker').getLocalDate();
-                let endValue = $('#lastAccessEndDateTimePicker2').data('datetimepicker').getLocalDate();
-                let queryValue = {};
-                if ($('#lastAccessDateTimePicker2 input').val()) {
-                    queryValue["$gte"] = startValue;
-                }
-                if ($('#lastAccessEndDateTimePicker2 input').val()) {
-                    queryValue["$lt"] = endValue;
-                }
-                return $.isEmptyObject(queryValue) ? null : queryValue;
-            }
 
             config.tableOptions.columns.forEach(function (columnConfig, i) {
                 var shouldBeSearchable = columnConfig.advSearch;
@@ -5629,6 +5631,9 @@ define(['js/app'], function (myApp) {
                 platformIdList = vm.allPlatformData.map(a => a._id);
             }
 
+            vm.partnerAdvanceSearchQuery.registrationTime = getRegTimeQueryValue();
+            vm.partnerAdvanceSearchQuery.lastAccessTime = getAccessTimeQueryValue();
+
             var sendData = {
                 "platform": {
                     "platformId": platformIdList,
@@ -5662,7 +5667,7 @@ define(['js/app'], function (myApp) {
                         vm.partnerPlayerObj[v.partnerId] = v;
                     });
                     vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
-                    vm.getPartnersByAdvanceQueryDebounced();
+                    vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
                     // vm.drawPartnerTable(data.data);
                 });
 
@@ -5714,6 +5719,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         setPartnerTableData([])
                     }
+                    $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
 
                     vm.searchPartnerCount = reply.data.size;
                 })
@@ -5744,6 +5750,7 @@ define(['js/app'], function (myApp) {
                 resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
                 vm.advancedPartnerQueryObj = resetQuery;
                 vm.partnerAdvanceSearchQuery = {
+                    platformList: [],
                     creditsOperator: ">=",
                     dailyActivePlayerOperator: ">=",
                     weeklyActivePlayerOperator: ">=",
@@ -5754,8 +5761,14 @@ define(['js/app'], function (myApp) {
                     totalChildrenBalanceOperator: ">=",
                     totalSettledCommissionOperator: ">=",
                 };
+                $scope.$evalAsync();
+                setTimeout(function(){$("select#productName").selectpicker('refresh')},0);
                 vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
             })
+            utilService.createDatePicker('#regDateTimePicker2');
+            utilService.createDatePicker('#regEndDateTimePicker2');
+            utilService.createDatePicker('#lastAccessDateTimePicker2');
+            utilService.createDatePicker('#lastAccessEndDateTimePicker2');
         });
 
         function getTotalPlayerDownline(partner) {
@@ -6043,7 +6056,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('COMMISSION_TYPE'),
                         "data": 'commissionType',
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row) {
                             data = data || '';
@@ -6074,7 +6087,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CREDIT'),
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "alignRight sumFloat",
                         data: 'credits',
                         render: function (data, type, row) {
@@ -6087,7 +6100,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('REGISTRATION_TIME'),
                         data: 'registrationTime',
-                        advSearch: true,
+                        // advSearch: true,
                         filterConfig: {
                             type: "datetimepicker",
                             id: "regDateTimePicker2",
@@ -6105,7 +6118,7 @@ define(['js/app'], function (myApp) {
                         "visible": false,
                         title: $translate('REGISTRATION_TIME_END'),
                         data: 'registrationEndTime',
-                        advSearch: true,
+                        // advSearch: true,
                         filterConfig: {
                             type: "datetimepicker",
                             id: "regEndDateTimePicker2",
@@ -6119,7 +6132,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('LAST_ACCESS_TIME'),
                         data: 'lastAccessTime',
-                        advSearch: true,
+                        // advSearch: true,
                         type: "datetimepicker",
                         filterConfig: {
                             type: "datetimepicker",
@@ -6138,7 +6151,7 @@ define(['js/app'], function (myApp) {
                         "visible": false,
                         title: $translate('LAST_ACCESS_TIME_END'),
                         data: 'lastAccessEndTime',
-                        advSearch: true,
+                        // advSearch: true,
                         type: "datetimepicker",
                         filterConfig: {
                             type: "datetimepicker",
@@ -6178,7 +6191,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DAILY_ACTIVE'),
                         data: "dailyActivePlayer",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
@@ -6191,7 +6204,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('WEEKLY_ACTIVE'),
                         data: "weeklyActivePlayer",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
@@ -6203,7 +6216,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('MONTHLY_ACTIVE'),
                         data: "monthlyActivePlayer",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
@@ -6215,7 +6228,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('VALID_PLAYER'),
                         data: "validPlayers",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
@@ -6227,7 +6240,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_COUNT"),
                         data: "totalPlayerDownline",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row) {
                             let link = $('<a>', {
@@ -6239,7 +6252,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_DEPOSIT"),
                         data: "totalChildrenDeposit",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
@@ -6251,7 +6264,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("TOTAL_CHILDREN") + "<br>" + $translate("CHILDREN_BALANCE"),
                         data: "totalChildrenBalance",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
@@ -6263,7 +6276,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("settled commission") + "<br>" + $translate("(TOTAL)"),
                         data: "totalSettledCommission",
-                        advSearch: true,
+                        // advSearch: true,
                         "sClass": "alignRight sumFloat",
                         render: function (data, type, row) {
                             let link = $('<a>', {
@@ -6271,6 +6284,10 @@ define(['js/app'], function (myApp) {
                             }).text(data);
                             return link.prop('outerHTML');
                         }
+                    },
+                    {
+                        title: $translate("ACTUAL_WITHDRAWAL"),
+                        data: "totalWithdrawalAmt"
                     },
                     {
                         title: $translate('Function'),
@@ -6758,7 +6775,7 @@ define(['js/app'], function (myApp) {
                 queryFunction: vm.getPartnersByAdvanceQueryDebounced
             });
             //vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
-            $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
+            // $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
 
             if (vm.selectedSinglePartner) {
                 vm.partnerTable
@@ -6854,7 +6871,7 @@ define(['js/app'], function (myApp) {
 
                     if (!vm.selectedPlatform || !vm.selectedPlatform.id || vm.selectedPlatform.id != String(aData.platform)) {
                         vm.getSelectedRowPlatformDetails(aData);
-                        await selectPlatformNode(vm.selectedPlatform.data);
+                        await selectPlatformNode(vm.selectedPlatform.data, null, true);
                     }
 
                     vm.partnerTableClickedRow = vm.partnerTable.row(this);
