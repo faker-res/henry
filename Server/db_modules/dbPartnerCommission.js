@@ -1520,7 +1520,7 @@ function getCalcPartnerByType (platformObjId, commissionType, startTime) {
 }
 
 function getCommCalcDetail (commCalc, startTime) {
-    let childCommProm = dbconfig.collection_commCalcParent.find({parentObjId: commCalc.partner, startTime}).lean().read("secondaryPreferred");
+    let childCommProm = dbconfig.collection_commCalcParent.find({parentObjId: commCalc.partner, startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
     let parentCommProm = dbconfig.collection_commCalcParent.find({commCalc: commCalc._id}).lean().read("secondaryPreferred");
     let playerDetailProm = dbconfig.collection_commCalcPlayer.find({commCalc: commCalc._id}).lean().read("secondaryPreferred");
 

@@ -10926,7 +10926,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
 }
 
 function applyMultiLevelCommissionSettlement (commissionLog, statusApply, adminInfo, remark) {
-    let childDetailProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).lean().read("secondaryPreferred");
+    let childDetailProm = dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
     let proposalTypeProm = dbconfig.collection_proposalType.findOne({name: constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().lean().read("secondaryPreferred");
 
     return Promise.all([childDetailProm, proposalTypeProm]).then(
