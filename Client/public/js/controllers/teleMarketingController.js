@@ -2423,7 +2423,7 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
-                platformObjId: vm.importPlatformForXLS,
+                platformObjId: vm.selectedPlatform.id,
                 arrayPhoneXLS: rowArrayMerge,
                 isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
@@ -2496,7 +2496,7 @@ define(['js/app'], function (myApp) {
 
                         vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
-                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission, vm.importPlatformForDX)
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }
                 } else {
                     vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
@@ -6385,7 +6385,7 @@ define(['js/app'], function (myApp) {
                             _id: {$in: tsPhoneIds}
                         },
                         isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
-                        platformObjId: vm.importPlatformForXLS,
+                        platformObjId: vm.selectedPlatform.id,
                         isFeedbackPhone: vm.showPageName == "OTHER_DEPARTMENT_TS_LIST"
                     }
                     socketService.$socket($scope.AppSocket, 'getTsPhone', sendQuery, function (data) {
