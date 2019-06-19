@@ -4598,6 +4598,9 @@
   "Please select target department (single selection)":"请选择目标部门（单选）",
   "All phone number?":"全部电话？",
 
+  "Same IP FrontEnd Registration Limitation": "同IP前端注册次数",
+  "First Three IP Region Limitation": "前3段IP相同注册次数",
+  "IP Check Time Period (Default:1 hours)": "IP注册检查时间范围（默认1小时）",
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",
   "Distribution Name List Details": "名单派发详情",

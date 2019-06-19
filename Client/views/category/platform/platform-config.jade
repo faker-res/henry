@@ -1204,19 +1204,19 @@
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame')
                             //1x
                             tr
-                                td {{'playerIPRegisterLimit' | translate}}
+                                td {{'Same IP FrontEnd Registration Limitation' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerIPRegisterLimit}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerIPRegisterLimit')
 
                             tr
-                                td {{'playerIPRegionLimit' | translate}}
+                                td {{'First Three IP Region Limitation' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.playerIPRegionLimit}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerIPRegionLimit')
 
                             tr
-                                td {{'ipCheckPeriod' | translate}}
+                                td {{'IP Check Time Period (Default:1 hours)' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.ipCheckPeriod}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.ipCheckPeriod')
