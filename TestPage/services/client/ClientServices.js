@@ -468,6 +468,7 @@
                 "partnerCreditToPlayer",
                 "getDownPartnerContribution",
                 "getPartnerTransferList",
+                "getDownLinePlayerTimeSequence",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
