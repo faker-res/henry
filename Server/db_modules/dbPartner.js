@@ -10552,6 +10552,7 @@ function getPaymentProposalTypes (platformObjId) {
 }
 
 function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1')
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups).catch(err => {
         console.error('getPlayerCommissionConsumptionDetail died', playerObjId, err);
         return Promise.reject(err);
@@ -10572,6 +10573,7 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
+            console.log(playerObjId,'cccccccccccccccccccccccccccccccc2')
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];

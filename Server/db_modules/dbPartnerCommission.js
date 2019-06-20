@@ -1537,6 +1537,7 @@ function getAllPlayerCommissionRawDetailsWithSettlement (partnerObjId, platformO
 
     let stream = dbconfig.collection_players.find({partner: partnerObjId, platform: platformObjId}, {_id: 1}).cursor({batchSize: 500});
     let balancer = new SettlementBalancer();
+    console.log('bbbbbbbbbbbbbbbbbbbbbbbb1')
 
     return balancer.initConns().then(function () {
         return Q(
@@ -1566,6 +1567,7 @@ function getAllPlayerCommissionRawDetailsWithSettlement (partnerObjId, platformO
         );
     }).then(
         () => {
+            console.log('bbbbbbbbbbbbbbbbbbbbbb2')
             return details;
         }
     );
