@@ -3926,7 +3926,7 @@ let dbPlayerReward = {
             return groupData;
         }
     ),
-    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, name: {$ne: "次权限禁用组（预设）"}}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
@@ -3944,7 +3944,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -4242,7 +4242,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj && playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
