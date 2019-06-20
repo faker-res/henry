@@ -64,7 +64,7 @@ table.simple-table#realTimeComissionTable
                 a(data-toggle="modal", data-target='#modalTopUpFeeTablea', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{v.numSum.totalTopUpFee | number : 2}}
             td
                 a(data-toggle="modal", data-target='#modalWithdrawalFeeTablea', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')", ng-style='v.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{v.numSum.totalWithdrawalFee | number : 2}}
-            td {{v.numSum.nettCommission | number : 2}}
+            td {{v.grossCommission + v.childSummary.grossCommission | number : 2}}
             //td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0 | number : 2}}
             td {{v.partnerCredit | number : 2}}
             td
