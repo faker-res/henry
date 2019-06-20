@@ -2919,7 +2919,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 // platform: vm.selectedPlatform._id,
                 // platformId: vm.selectedPlatform.platformId,
-                platformList: vm.onlinePaymentMismatchQuery.platformList,
+                platformList: vm.onlinePaymentMismatchQuery.platformList ? vm.onlinePaymentMismatchQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.onlinePaymentMismatchQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.onlinePaymentMismatchQuery.endTime.data('datetimepicker').getLocalDate(),
                 type: vm.onlinePaymentMismatchQuery.type
@@ -3144,7 +3144,7 @@ define(['js/app'], function (myApp) {
 
             let sendQuery = {
                 //platformObjId: vm.selectedPlatform._id,
-                platformList: vm.limitedOfferQuery.platformList,
+                platformList: vm.limitedOfferQuery.platformList ? vm.limitedOfferQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.limitedOfferQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.limitedOfferQuery.endTime.data('datetimepicker').getLocalDate(),
                 playerName: vm.limitedOfferQuery.playerName,
@@ -3394,7 +3394,7 @@ define(['js/app'], function (myApp) {
 
             let sendQuery = {
                 // platformObjId: vm.selectedPlatform._id,
-                platformList: vm.playerAlipayAccReport.platformList,
+                platformList: vm.playerAlipayAccReport.platformList ? vm.playerAlipayAccReport.platformList : vm.platformList.map(item => item._id),
                 startTime: vm.playerAlipayAccReport.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.playerAlipayAccReport.endTime.data('datetimepicker').getLocalDate(),
             };
@@ -4081,7 +4081,8 @@ define(['js/app'], function (myApp) {
             utilService.getDataTablePageSize("#playerDomainReportTablePage", vm.playerDomain, 30);
 
             var sendquery = {
-                platform: vm.curPlatformId,
+                //platform: vm.curPlatformId,
+                platformList: vm.playerDomain.platformList ? vm.playerDomain.platformList : vm.platformList.map(item => item._id),
                 query: {
                     playerType: vm.playerDomain.playerType,
                     name: vm.playerDomain.name,
@@ -4211,27 +4212,29 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.playerDomain.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'realName', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'gameProviderPlayed', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'lastAccessTime', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'loginTimes', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'valueScore', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'csOfficer.adminName', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'promoteWay', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'sourceUrl', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'domain', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'registrationInterface', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'os', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'browser', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'partner', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'platform.name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'realName', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'gameProviderPlayed', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'lastAccessTime', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'loginTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'csOfficer.adminName', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'promoteWay', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'sourceUrl', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'domain', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'registrationInterface', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'os', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'browser', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'partner', 'aTargets': [18], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform.name"},
                     {title: $translate('PLAYER_NAME'), data: "name"},
                     {title: $translate('realName'), data: "realName", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
@@ -5947,7 +5950,7 @@ define(['js/app'], function (myApp) {
                 startTime: newproposalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newproposalQuery.endTime.data('datetimepicker').getLocalDate(),
                 financialPointsType: financialPointsType,
-                platformList: newproposalQuery.platformList,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 5000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
@@ -6143,7 +6146,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 startTime: newConsumptionQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: newConsumptionQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.curPlatformId,
+                platformList: newConsumptionQuery.platformList ? newConsumptionQuery.platformList : vm.platformList.map(item => item._id),
                 providerId: vm.consumptionModeQuery.gameProvider? JSON.parse(vm.consumptionModeQuery.gameProvider)._id: null,
                 cpGameType: vm.consumptionModeQuery.gameType? JSON.parse(vm.consumptionModeQuery.gameType).gameType: null,
                 betType: consumptiionBetType,
@@ -6151,6 +6154,8 @@ define(['js/app'], function (myApp) {
                 limit: newConsumptionQuery.limit,
                 sortCol: newConsumptionQuery.sortCol
             };
+
+            console.log('newConsumptionQuery', sendData);
 
             socketService.$socket($scope.AppSocket, 'getConsumptionModeReport', sendData, function (data) {
                 findReportSearchTime();
@@ -6185,16 +6190,17 @@ define(['js/app'], function (myApp) {
                 "order": vm.consumptionModeQuery.aaSorting,
                 aoColumnDefs: [
                     // {'sortCol': 'playerId', 'aTargets': [1]},
-                    {'sortCol': 'selectedBetTypeAmt', 'aTargets': [2]},
-                    {'sortCol': 'totalBetAmt', 'aTargets': [3]},
-                    {'sortCol': 'betAmtPercent', 'aTargets': [4]},
-                    {'sortCol': 'bonusAmount', 'aTargets': [5]},
-                    {'sortCol': 'selectedBetTypeCount', 'aTargets': [6]},
-                    {'sortCol': 'totalBetCount', 'aTargets': [7]},
-                    {'sortCol': 'betCountPercent', 'aTargets': [8]}
+                    {'sortCol': 'selectedBetTypeAmt', 'aTargets': [3]},
+                    {'sortCol': 'totalBetAmt', 'aTargets': [4]},
+                    {'sortCol': 'betAmtPercent', 'aTargets': [5]},
+                    {'sortCol': 'bonusAmount', 'aTargets': [6]},
+                    {'sortCol': 'selectedBetTypeCount', 'aTargets': [7]},
+                    {'sortCol': 'totalBetCount', 'aTargets': [8]},
+                    {'sortCol': 'betCountPercent', 'aTargets': [9]}
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
                     {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
@@ -6347,7 +6353,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 // platformId: vm.curPlatformId,
-                platformList: newproposalQuery.platformList,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
@@ -6660,7 +6666,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             var query = {
                 // platform: vm.curPlatformId,
-                platformList: vm.playerAlmostLevelUpQuery.platformList,
+                platformList: vm.playerAlmostLevelUpQuery.platformList ? vm.playerAlmostLevelUpQuery.platformList : vm.platformList.map(item => item._id),
                 percentage: vm.playerAlmostLevelUpQuery.percentage,
                 // limit: parseInt(vm.playerAlmostLevelUpQuery.limit)
                 index: newSearch ? 0 : vm.playerAlmostLevelUpQuery.index,
@@ -6828,7 +6834,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.playerFeedbackQuery.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.playerFeedbackQuery.endTime.data('datetimepicker').getLocalDate(),
                     //platform: vm.curPlatformId
-                    platformList: vm.playerFeedbackQuery.platformList
+                    platformList: vm.playerFeedbackQuery.platformList ? vm.playerFeedbackQuery.platformList : vm.platformList.map(item => item._id)
                 },
                 limit: vm.playerFeedbackQuery.limit || 10,
                 index: newSearch ? 0 : (vm.playerFeedbackQuery.index || 0),
@@ -6930,7 +6936,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
 
                 //platformId: vm.curPlatformId,
-                platformList: vm.creditChangeQuery.platformList,
+                platformList: vm.creditChangeQuery.platformList ? vm.creditChangeQuery.platformList : vm.platformList.map(item => item._id),
                 operationTime: {
                     startTime: startTime,
                     endTime: endTime
@@ -7856,7 +7862,7 @@ define(['js/app'], function (myApp) {
             vm["#rewardProposalQuery"].endTime = endTime;
             var sendData = {
                 //platformId: vm.curPlatformId || vm.selectedPlatform._id,
-                platformList: vm.rewardProposalQuery.platformList,
+                platformList: vm.rewardProposalQuery.platformList ? vm.rewardProposalQuery.platformList : vm.platformList.map(item => item._id),
                 startTime: startTime,
                 endTime: endTime,
                 status: vm.rewardProposalQuery.status,
@@ -8197,7 +8203,7 @@ define(['js/app'], function (myApp) {
                 startDate: vm.rewardReportAnalysis.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.rewardReportAnalysis.endTime.data('datetimepicker').getLocalDate(),
                 //platformObjId: vm.selectedPlatform._id,
-                platformList: vm.rewardReportAnalysis.platformList,
+                platformList: vm.rewardReportAnalysis.platformList ? vm.rewardReportAnalysis.platformList : vm.platformList.map(item => item._id),
                 type: vm.rewardReportAnalysis.type,
                 proposalNameArr: proposalNames
             }
@@ -9621,6 +9627,65 @@ define(['js/app'], function (myApp) {
         };
         // end of financial report's deposit group setting
 
+        vm.getProviderListByPlatform = function(platformObjIdList) {
+            let query = {};
+
+            if(platformObjIdList && platformObjIdList.length){
+                query.platformObjIdList = platformObjIdList;
+            }
+
+            vm.providerListByPlatform = [];
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if(providerList && providerList.data){
+                        let validGameProviders = []; //game provider with game type
+                        providerList.data.forEach(item => {
+                            if (item.gameTypes && Object.keys(item.gameTypes).length) {
+                                validGameProviders.push(item);
+                            }
+                        })
+
+                        vm.allGameProviders = validGameProviders;
+                    }
+
+                    setTimeout(function () {
+                        vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
+
+                        $('select#selectBetType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiReward = ($('select#selectBetType').next().find('.ms-choice'))[0];
+
+                        $('select#selectBetType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiReward).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiReward).find('span').text(upText)
+                        });
+
+                        $("select#selectBetType").multipleSelect("checkAll");
+
+                        vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
+                        });
+                    });
+                });
+            });
+        };
+
+        vm.dynamicPlatform = function () {
+            vm.allGameProviders = [];
+            if (vm.consumptionModeQuery.platformList) {
+                vm.getProviderListByPlatform(vm.consumptionModeQuery.platformList);
+            } else {
+                vm.getProviderListByPlatform(vm.platformList.map(item => item._id));
+            }
+        };
+
         vm.dynamicGameType = function () {
             if (vm.consumptionModeQuery.gameProvider) {
                 vm.providerGameType = [];
@@ -9697,7 +9762,7 @@ define(['js/app'], function (myApp) {
                 merchantNo: vm.paymentMonitorQuery.merchantNo,
                 startTime: vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformList: vm.paymentMonitorQuery.platformList,
+                platformList: vm.paymentMonitorQuery.platformList ? vm.paymentMonitorQuery.platformList : vm.platformList.map(item => item._id),
                 currentPlatformId: vm.selectedPlatform._id,
                 index: newSearch ? 0 : (vm.paymentMonitorQuery.index || 0),
                 limit: vm.paymentMonitorQuery.limit || 10,
@@ -10120,51 +10185,7 @@ define(['js/app'], function (myApp) {
                     vm.providerGameType = [];
                     vm.gameBetType = [];
                     vm.reportSearchTime = 0;
-
-                    let gameProviderProm = Promise.resolve();
-                    if (!vm.allGameProviders) {
-                        gameProviderProm = commonService.getAllGameProviders($scope, vm.selectedPlatform._id)
-                    }
-
-                    gameProviderProm.then(
-                        gameProviderData => {
-                            if (gameProviderData && gameProviderData[0]) {
-                                let validGameProviders = []; //game provider with game type
-                                gameProviderData[0].forEach(item => {
-                                    if (item.gameTypes && Object.keys(item.gameTypes).length) {
-                                        validGameProviders.push(item);
-                                    }
-                                })
-
-                                vm.allGameProviders = validGameProviders;
-                            }
-
-                            setTimeout(function () {
-                                vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
-
-                                $('select#selectBetType').multipleSelect({
-                                    allSelected: $translate("All Selected"),
-                                    selectAllText: $translate("Select All"),
-                                    displayValues: true,
-                                    countSelected: $translate('# of % selected'),
-                                });
-                                var $multiReward = ($('select#selectBetType').next().find('.ms-choice'))[0];
-
-                                $('select#selectBetType').next().on('click', 'li input[type=checkbox]', function () {
-                                    var upText = $($multiReward).text().split(',').map(item => {
-                                        return $translate(item);
-                                    }).join(',');
-                                    $($multiReward).find('span').text(upText)
-                                });
-
-                                $("select#selectBetType").multipleSelect("checkAll");
-
-                                vm.consumptionModeQuery.pageObj = utilService.createPageForPagingTable("#consumptionModeTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
-                                    vm.commonPageChangeHandler(curP, pageSize, "consumptionModeQuery", vm.searchConsumptionModeRecord)
-                                });
-                            });
-                        }
-                    );
+                    vm.dynamicPlatform();
                     break;
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;

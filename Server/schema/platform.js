@@ -538,6 +538,8 @@ var platformSchema = new Schema({
     playerIPRegionLimit: {type: Number},
     // the time-period to checking If the playerIP/ IP Region is fulfil.
     ipCheckPeriod: {type: Number},
+    // check is phone number bound to a player before apply bonus
+    isPhoneNumberBoundToPlayerBeforeApplyBonus: {type: Boolean, default: false},
     // disable auto player level up reward switch
     disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
     // service charge rate setting

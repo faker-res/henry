@@ -43,6 +43,12 @@ function socketActionRewardEvent(socketIO, socket) {
          * Get all reward events for platform
          * @param {json} data - data has to contain platform
          */
+        getAllPromoCode: function getAllPromoCode() {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbRewardEvent.getAllPromoCode, [], actionName, isValidData);
+        },
+
         getRewardEventsForPlatform: function getRewardEventsForPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
@@ -69,6 +75,12 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEventGroup, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        updateForbidRewardEvents: function updateForbidRewardEvents(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardEvent.updateForbidRewardEvents, [data], actionName, isValidData);
         },
 
         updateExpiredRewardEventToGroup: function updateExpiredRewardEventToGroup(data) {

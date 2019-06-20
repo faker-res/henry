@@ -260,6 +260,21 @@ var dbUtility = {
         return Math.ceil(difference/oneDay);
     },
 
+    getNumberOfDaysFloor: function (startDate, endDate) {
+        // The number of milliseconds in one day
+        let oneDay = 1000 * 60 * 60 * 24;
+
+        // Convert both dates to milliseconds
+        let date1 = new Date(startDate).getTime();
+        let date2 = new Date(endDate).getTime();
+
+        // Calculate the difference in milliseconds
+        let difference = Math.abs(date1 - date2);
+
+        // Convert back to days and return
+        return Math.floor(difference/oneDay);
+    },
+
     /**
      * Get current day time frame based on SGT
      */
@@ -1265,6 +1280,15 @@ var dbUtility = {
                 }
                 else {
                     inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                }
+            }
+            // Native app
+            else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
+                if (isPartnerProposal) {
+                    inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PARTNER;
+                }
+                else {
+                    inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
                 }
             }
             else {

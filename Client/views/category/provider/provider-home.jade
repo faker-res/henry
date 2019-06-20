@@ -1,4 +1,14 @@
-div
+.row.margin-all-5
+    .col-sm-12
+        .well.col-xs-12
+            .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.selectedPlatformID', ng-change='vm.setPlatformById(vm.selectedPlatformID)', required)
+                    option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform.data._id==v._id') {{v.name}}
+                //select.form-control(ng-model='vm.selectedPlatformID', ng-options='v._id as v.name for v in vm.platformList', ng-change='vm.setPlatformById(vm.selectedPlatformID)')
+.text-center(ng-if='!vm.selectedPlatformID')
+    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if='vm.selectedPlatform')
     .col-md-3(ng-if="checkViewPermission('Provider', 'Provider')",)
         include ./provider-list
     .col-md-9(ng-if="checkViewPermission('Provider', 'Game')",)

@@ -108,6 +108,7 @@
                 "updateDeviceId",
                 "generateUpdatePasswordToken",
                 "updatePasswordWithToken",
+                "checkIsAppPlayerAndAppliedReward",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
             ];
@@ -149,6 +150,7 @@
                 "saveFrontEndData",
                 "getFrontEndData",
                 "sendFileFTP",
+                "updateRSAKeys",
                 "getFrontEndConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
@@ -467,6 +469,8 @@
                 "partnerCreditToPlayer",
                 "getDownPartnerContribution",
                 "getPartnerTransferList",
+                "getDownLinePlayerTimeSequence",
+                "getDownLinePlayerInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",

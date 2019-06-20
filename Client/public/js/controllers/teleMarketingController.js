@@ -2163,7 +2163,7 @@ define(['js/app'], function (myApp) {
                 isPhoneTrade: isPhoneTrade,
                 isFeedbackPhoneTrade: isFeedbackPhoneTrade,
                 updateData: {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.importPlatformForXLS,
                     creator: authService.adminId,
                     name: tsNewListObj.name,
                     description: tsNewListObj.description,
@@ -2423,7 +2423,7 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.importPlatformForXLS,
                 arrayPhoneXLS: rowArrayMerge,
                 isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
@@ -2496,7 +2496,7 @@ define(['js/app'], function (myApp) {
 
                         vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
-                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission, vm.importPlatformForDX)
                     }
                 } else {
                     vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
@@ -3028,7 +3028,7 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.getPlayerFeedbackTopic = function () {
-            return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: vm.selectedPlatform.id}).then(
+            return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: vm.importPlatformForXLS}).then(
                 function (data) {
                     vm.playerFeedbackTopic = data.data;
                     console.log("vm.allPlayerFeedbackTopics", data.data);
@@ -6272,7 +6272,7 @@ define(['js/app'], function (myApp) {
                     vm.checkAnalyticsFilterAndImportSystem();
                 }
 
-                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.selectedPlatform.id, tsPhoneList: rowData._id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.importPlatformForXLS, tsPhoneList: rowData._id}, function (data) {
                     if (data && data.data  && data.data.length) {
                         $scope.$evalAsync(() => {
                             data.data.forEach(tsImportRecord => {
@@ -6385,7 +6385,7 @@ define(['js/app'], function (myApp) {
                             _id: {$in: tsPhoneIds}
                         },
                         isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
-                        platformObjId: vm.selectedPlatform.id,
+                        platformObjId: vm.importPlatformForXLS,
                         isFeedbackPhone: vm.showPageName == "OTHER_DEPARTMENT_TS_LIST"
                     }
                     socketService.$socket($scope.AppSocket, 'getTsPhone', sendQuery, function (data) {
@@ -7724,7 +7724,7 @@ define(['js/app'], function (myApp) {
                vm.tsNewList.checkBoxA = false;
                vm.tsNewList.checkBoxB = false;
                 let invalidStatus = [vm.constTsPhoneListStatus.HALF_COMPLETE, vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
-               socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+               socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.importPlatformForXLS, name: vm.tsNewList.name}, function (data) {
                    $scope.$evalAsync(() => {
                        if (data && data.data && invalidStatus.includes(data.data.status)) {
                            $('#modalTSNewListNameRepeatStatus').modal();
@@ -7752,7 +7752,7 @@ define(['js/app'], function (myApp) {
                 $('#descInput').focus();
                 vm.disableAll = true;
                 vm.tsNewListEnableSubmit = false;
-                socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.importPlatformForXLS, name: vm.tsNewList.name}, function (data) {
                     if (data && data.data) {
                         $scope.$evalAsync(() => {
                             vm.tsNewListEnableSubmit = true;

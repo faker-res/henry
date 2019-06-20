@@ -1202,7 +1202,7 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame')
-                            //1x
+
                             tr
                                 td {{'Same IP FrontEnd Registration Limitation' | translate}}
                                 td
@@ -1220,6 +1220,11 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.ipCheckPeriod}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.ipCheckPeriod')
+
+                            tr
+                                td {{'Check Is Phone Number Bound To A Player Before Apply Bonus' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')

@@ -62,15 +62,12 @@ function socketActionReport(socketIO, socket) {
 
         getConsumptionModeReport: function getConsumptionModeReport(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.index != null && data.limit != null && data.platformId && data.providerId && data.cpGameType && data.betType && data.betType.length);
+            var isValidData = Boolean(data && data.index != null && data.limit != null && data.providerId && data.cpGameType && data.betType && data.betType.length);
 
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
             data ["startTime"] = startTime;
             data["endTime"] = endTime;
-            if (data.platformId) {
-                data.platformId = ObjectId(data.platformId);
-            }
             if (data.providerId) {
                 data.providerId = ObjectId(data.providerId);
             }
@@ -622,8 +619,8 @@ function socketActionReport(socketIO, socket) {
         },
         getPlayerDomainReport: function getPlayerDomainReport(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platform, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDomainReport, [data.platformList, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
         },
 
         getPlayerAlmostLevelupReport: function getPlayerAlmostLevelupReport(data) {

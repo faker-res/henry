@@ -2655,31 +2655,6 @@ var dbRewardEvent = {
                             returnData.condition.reward.status = 2;
                         }
 
-                        if (festivalData && festivalData.length > 0) {
-                            festivalData = festivalData.map( item => {
-                                let meetTopUp = false;
-                                let meetConsumption = false;
-                                // reward type 2, 5 need minTopUpAmount
-                                if (item.rewardType == 2 || item.rewardType == 5) {
-                                    topUpDatas.forEach(topup => {
-                                        if (topup.amount > item.minTopUpAmount) {
-                                            meetTopUp = true;
-                                        }
-                                    })
-                                    if (meetTopUp) {
-                                        return item;
-                                    }
-                                } else if (item.rewardType == 3 || item.rewardType == 6) {
-                                    // reward type 3, 6 need totalConsumptionInInterval
-                                    if (consumptionSum > item.totalConsumptionInInterval) {
-                                        meetConsumption = true;
-                                        return item;
-                                    }
-                                } else {
-                                    return item
-                                }
-                            })
-                        }
                         console.log('MT --checking after festivalData', festivalData)
                         console.log('MT --checking selectedRewardParam',selectedRewardParam);
                         console.log('MT --checking topUpDatas', topUpDatas);
@@ -2726,7 +2701,8 @@ var dbRewardEvent = {
                 }
 
                 let isRightApplyTime = checkIfRightApplyTime(item, festivalDate);
-                if (isRightApplyTime) {
+                // show festival by correct time && show birthday at whatever time)
+                if (isRightApplyTime || ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 ) ) {
                     // check is today is in between the apply period
                     let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
                     proms.push(prom)
@@ -2736,7 +2712,20 @@ var dbRewardEvent = {
         }
         return Promise.all(proms).then(
             data => {
+                if (eventData.condition && eventData.condition.festivalType == 1) {
+                    //4,5,6 is birthday event , we only show 1 collection by festivaltype.
+                    data = data.filter(item => {
+                        return item.rewardType && ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 )
+                    })
+                } else if  (eventData.condition && eventData.condition.festivalType == 2) {
+                    //1,2,3 is festival event
+                    data = data.filter(item => {
+                        return item.rewardType && ( item.rewardType == 1 || item.rewardType == 2 || item.rewardType == 3 )
+                    })
+                }
+
                 console.log('MT --checking festival match time period', data);
+
                 return data;
             }
         )
@@ -2813,9 +2802,12 @@ var dbRewardEvent = {
         //find the festival date inside the reward param
         let result = [];
         let rewardId = reward.festivalId ? reward.festivalId: null;
-        let festival = festivals.filter(item => {
-            return item.id == rewardId;
-        })
+        let festival;
+        if (festivals && festivals.length > 0) {
+            festival = festivals.filter(item => {
+                return item.id == rewardId;
+            })
+        }
         result = ( festival && festival[0] ) ? festival[0] : [];
         return result
     },
@@ -2851,7 +2843,56 @@ var dbRewardEvent = {
         return applyPeriod;
     },
 
+    getAllPromoCode: function () {
+        // getting general promoCode
+        let promoCodeProm = dbconfig.collection_promoCodeType.find({$or: [{deleteFlag: false}, {deleteFlag: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        // getting openPromoCode
+        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        //getting autoPromoCode
+        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
 
+        let list = [];
+        return Promise.all([promoCodeProm, openPromoCodeProm, autoPromoCodeProm]).then(
+            retData => {
+                if (retData && retData.length){
+                    retData[0].forEach(
+                        p => {
+                            p.category = 'promoCode';
+                            return p;
+                        }
+                    )
+
+                    retData[1].forEach(
+                        p => {
+                            p.category = 'openPromoCode';
+                            return p;
+                        }
+                    )
+
+                    retData[2].forEach(
+                        p => {
+                            p.category = 'autoPromoCode';
+                            return p;
+                        }
+                    )
+
+                    retData.forEach(
+                        dataList => {
+                            if (dataList && dataList.length){
+                               list.push({
+                                   category: dataList[0].category,
+                                   data: dataList
+                               })
+                            }
+
+                        }
+                    )
+                    return list
+                }
+                return [];
+            }
+        )
+    },
     /**
      * Find reward events by query
      * @param {String} query
@@ -3077,6 +3118,23 @@ var dbRewardEvent = {
 
     updateRewardEventGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
+    updateForbidRewardEvents: function (rewardObjId) {
+        if (rewardObjId){
+            let rewardObjIdString = rewardObjId.toString();
+            return dbconfig.collection_players.find({'forbidRewardEvents': {$all: [rewardObjId] } }).then(
+                players => {
+                    if (players && players.length){
+                        let playerObjIdList = players.map(p => {return p._id});
+
+                        if (playerObjIdList){
+                            return dbconfig.collection_players.update({_id: {$in: playerObjIdList}}, {$pull: {forbidRewardEvents: rewardObjIdString}}, {multi: true});
+                        }
+                    }
+                }
+            )
+        }
     },
 
     updateExpiredRewardEventToGroup: function (query, updateData) {

@@ -3926,7 +3926,7 @@ let dbPlayerReward = {
             return groupData;
         }
     ),
-    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, name: {$ne: "次权限禁用组（预设）"}}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
@@ -3944,7 +3944,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -4242,7 +4242,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj && playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -5880,6 +5880,7 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumberAndBankCard(eventData, playerData);
         // Set reward param for player level to use
         let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
+        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
         // Query setup
@@ -5902,6 +5903,25 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
+                actualAmount = rewardData.selectedTopup.amount;
+
+                // Check top up is created within reward interval period
+                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
+                // Check if there is withdraw after top up
+                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Calculate the daily applied reward amount
+                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
+            } else {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Invalid top up"
+                });
+            }
+
             // Set reward param step to use
             if (eventData.param && eventData.param.isMultiStepReward) {
                 if (eventData.param.isSteppingReward) {
@@ -5927,25 +5947,6 @@ let dbPlayerReward = {
                         message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
                 }
-            }
-
-            if (rewardData && rewardData.selectedTopup) {
-                selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
-                actualAmount = rewardData.selectedTopup.amount;
-
-                // Check top up is created within reward interval period
-                await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
-                // Check if there is withdraw after top up
-                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
-                // Calculate the daily applied reward amount
-                rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
-            } else {
-                return Promise.reject({
-                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                    name: "DataError",
-                    message: "Invalid top up"
-                });
             }
         }
 
@@ -6193,12 +6194,21 @@ let dbPlayerReward = {
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
             if (!rewardData.festivalItemId) {
-                return Q.reject({name: "DataError", message: "The Festival Item is not Exist"});
+                return Q.reject({name: "DataError", message: localization.localization.translate("The Festival Item is not Exist")});
             }
             selectedRewardParam = selectedRewardParam.filter( item => {
                 return item.id == rewardData.festivalItemId;
             })
+
             selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+
+            if (eventData.condition.isPlayerLevelDiff) {
+                let isQualifyThisLevel = dbPlayerReward.checkQualifyThisLevel(selectedRewardParam, nextLevelRewardParam);
+                if (!isQualifyThisLevel) {
+                    return Q.reject({name: "DataError", message: localization.localization.translate("Player not qualify of next level reward")});
+                }
+            }
+
             // if that's a birthday event and this player didnt set his birthday in profile
             if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
                 return Q.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
@@ -6212,7 +6222,7 @@ let dbPlayerReward = {
             console.log('MT --checking intervalTime', intervalTime);
 
             if (!selectedRewardParam || selectedRewardParam.length == 0) {
-                return Q.reject({name: "DataError", message: "The Festival Item is Not Exist"});
+                return Q.reject({name: "DataError", message: localization.localization.translate("The Festival Item is Not Exist")});
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
@@ -7628,7 +7638,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "You need to topup before apply this reward."
+                                message: localization.localization.translate("Your topup dont satisty the requirement")
                             });
                         }
 
@@ -7672,51 +7682,19 @@ let dbPlayerReward = {
                             useConsumptionAmount = consumptionToParticipates;
                             reachConsumptionCondition = true;
                         }
-
-                        if (operationOptions) { // true = and, false = or
-                            if (!reachTopUpCondition) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough top up amount"
-                                });
-                            }
-                            if (!reachConsumptionCondition) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough consumption"
-                                });
-                            }
-                        } else {
-                            if ((!reachTopUpCondition || !reachConsumptionCondition)) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough top up or consumption amount"
-                                });
-                            }
-                            //Only use one of the condition, reset another
-                            if (reachTopUpCondition && reachConsumptionCondition) {
-                                // if both condition true, then use TopUpAmount first
-                                if (isUpdateMultiTopupRecord){
-                                    useConsumptionAmount = 0;
-                                    isUpdateMultiConsumptionRecord = false;
-                                }
-                                else if (isUpdateMultiConsumptionRecord){
-                                    useTopUpAmount = 0;
-                                    isUpdateMultiTopupRecord = false;
-                                }
-                            } else {
-                                if (reachTopUpCondition) {
-                                    useConsumptionAmount = 0;
-                                    isUpdateMultiConsumptionRecord = false;
-                                }
-                                if (reachConsumptionCondition) {
-                                    useTopUpAmount = 0;
-                                    isUpdateMultiTopupRecord = false;
-                                }
-                            }
+                        if (!reachTopUpCondition) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("Your topup dont satisty the requirement")
+                            });
+                        }
+                        if (!reachConsumptionCondition) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("Your consumption dont satisfy the requirement")
+                            });
                         }
                         break;
                     // type 6
@@ -8723,11 +8701,14 @@ let dbPlayerReward = {
                                         }
 
                                         if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+
                                             let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
                                             if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
                                                 outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
                                             }
-                                            outputMsg += ( selectedRewardParam && selectedRewardParam.rewardAmount ) ? selectedRewardParam.rewardAmount : '';
+                                            // show the mintopup field - calculation is amount * percent
+                                            let rewardAmt = ( proposalData.data && proposalData.data.rewardAmount ) ? proposalData.data.rewardAmount : '';
+                                            outputMsg += rewardAmt;
                                             outputMsg += localization.localization.translate('RMB');
 
                                             let festivalRewardRes = {
@@ -8782,6 +8763,25 @@ let dbPlayerReward = {
                 retObj = eventData.param.rewardParam[0].value;
             }
 
+            return retObj;
+        }
+
+        function setNextLevelRewardParam (eventData, playerData) {
+            let retObj = [];
+            if (eventData.condition.isPlayerLevelDiff) {
+                // filter the reward after this player's level
+                let isReach = false;
+                if (eventData.param.rewardParam && eventData.param.rewardParam.length > 0) {
+                    eventData.param.rewardParam.forEach(item => {
+                        if (isReach) {
+                            retObj.push(item);
+                        }
+                        if (item.levelId == String(playerData.playerLevel)) {
+                            isReach = true;
+                        }
+                    })
+                }
+            }
             return retObj;
         }
 
@@ -9266,7 +9266,28 @@ let dbPlayerReward = {
             }
         )
     },
-
+    checkQualifyThisLevel: function (selectedRewardParam, nextLevelRewardParam) {
+        let result = true;
+        // check if we dont have anything can apply in this level
+        if ((!selectedRewardParam || !selectedRewardParam.applyTimes) && nextLevelRewardParam && nextLevelRewardParam.length > 0) {
+            let countType = 0;
+            nextLevelRewardParam.forEach(nextLevelReward => {
+                if (nextLevelReward && nextLevelReward.value && nextLevelReward.value.length > 0) {
+                    // check if we can in next level
+                    nextLevelReward.value.forEach(levelReward => {
+                        if (levelReward && levelReward.applyTimes && levelReward.rewardType == selectedRewardParam.rewardType ) {
+                            console.log('MT --checking qualifylevel', levelReward.applyTimes, levelReward.rewardType, selectedRewardParam.rewardType)
+                            countType++;
+                        }
+                    })
+                }
+                if (countType > 0) {
+                    result = false;
+                }
+            })
+        }
+        return result;
+    },
     checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
         // check the consumptionSlipRewardEvent
         return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
@@ -10594,9 +10615,14 @@ function getFestivalRewardDate(reward, festivals) {
     //find the festival date inside the reward param
     let result = [];
     let rewardId = reward.festivalId ? reward.festivalId: null;
-    let festival = festivals.filter(item => {
-        return item.id == rewardId;
-    })
+    let festival;
+
+    if ( festivals && festivals.length > 0 ) {
+        festival = festivals.filter(item => {
+            return item.id == rewardId;
+        })
+    }
+
     result = ( festival && festival[0] ) ? festival[0] : [];
     return result
 }
