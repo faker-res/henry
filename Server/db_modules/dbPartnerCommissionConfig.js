@@ -650,6 +650,24 @@ const dbPartnerCommissionConfig = {
             }
         );
     },
+
+    createUpdatePartnerMainCommRateConfig: function  (query, data) {
+        return dbconfig.collection_partnerMainCommRateConfig.findOne({platform: query.platform}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionRateConfig = new dbconfig.collection_partnerMainCommRateConfig(data);
+                    return newCommissionRateConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerMainCommRateConfig.findOneAndUpdate(query, data);
+                }
+            });
+    },
+
+    getPartnerMainCommRateConfig: function (query) {
+        return dbconfig.collection_partnerMainCommRateConfig.find(query);
+    },
 };
 
 function clearParent (partnerObjId, platformObjId) {

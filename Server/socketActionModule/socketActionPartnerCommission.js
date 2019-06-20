@@ -92,6 +92,18 @@ function socketActionPartnerCommission(socketIO, socket) {
             let isValidData = Boolean(data && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartnerCommission.getAllDownlinePartnerWithDetails, [data.partnerObjId], actionName, isValidData);
         },
+
+        createUpdatePartnerMainCommRateConfig: function createUpdatePartnerMainCommRateConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.createUpdatePartnerMainCommRateConfig, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        getPartnerMainCommRateConfig: function getPartnerMainCommRateConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPartnerMainCommRateConfig, [data.query], actionName, isValidData);
+        },
     };
 
     socketActionPartnerCommission.actions = this.actions;
