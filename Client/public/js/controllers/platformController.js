@@ -33084,7 +33084,7 @@ define(['js/app'], function (myApp) {
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
                         disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
-                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,\
+                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         ipCheckPeriod: srcData.ipCheckPeriod,
