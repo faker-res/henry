@@ -10441,6 +10441,7 @@ function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
 function getCommissionPeriod (commissionType) {
     switch (commissionType) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getYesterdaySGTime();
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
@@ -10457,6 +10458,7 @@ function getCommissionPeriod (commissionType) {
 function getCurrentCommissionPeriod (commissionType) {
     switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getTodaySGTime();
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
@@ -10473,6 +10475,7 @@ function getCurrentCommissionPeriod (commissionType) {
 function getTargetCommissionPeriod (commissionType, date) {
     switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getDayTime(date);
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
