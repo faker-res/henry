@@ -276,6 +276,7 @@ const dbPartnerCommission = {
             }
 
             let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
+            console.log('multiLevelCommissionRate.parentRatios', multiLevelCommissionRate.parentRatios)
             if (partner.partnerName == "plevel3") console.log('rawCommission', rawCommission, 'multiLevelCommissionRate.commissionRate', multiLevelCommissionRate.commissionRate)
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
 
