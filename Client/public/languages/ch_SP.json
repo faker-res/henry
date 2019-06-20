@@ -4903,6 +4903,10 @@
   "UpdateCardGroupType": "派卡逻辑修改",
   "MULTI_LEVEL_PARTNER": "多级代理",
   "DIRECT_DOWN_LINE": "直属下线",
+  "(": "（",
+  ")": "）",
+  "DOWNLINE_LEVEL": "级",
+  "(bonus amount/consumption amount)": "（输赢值/投注额）",
 
   "Please enter the player name that you wanted to update bank info:": "请输入您需要银行资料修改的玩家帐号：",
   "Please enter your account's phone number, note that you wil receive SMS verification code afterward.": "请输入该帐号绑定电话号码，将发送短信验证码",

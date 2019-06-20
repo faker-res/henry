@@ -1040,6 +1040,42 @@ const dbPartnerCommission = {
         }
     },
 
+
+    getAllDownlinePartnerWithDetails: async (partnerObjId) => {
+        let partnerObjs = await getAllDownlinePartner(partnerObjId);
+        let promArr = [];
+
+        partnerObjs.map(partner => {
+            let playerProm = dbconfig.collection_players.aggregate([
+                {
+                    $match: {
+                        partner: partner._id
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        consumptionSum: {$sum: "$consumptionSum"},
+                        bonusAmountSum: {$sum: "$bonusAmountSum"}
+                    }
+                }
+            ]).read("secondaryPreferred").then(
+                data => {
+                    if (data && data.length) {
+                        partner.consumptionSum = data[0].consumptionSum;
+                        partner.bonusAmountSum = data[0].bonusAmountSum;
+                    } else {
+                        partner.consumptionSum = 0;
+                        partner.bonusAmountSum = 0;
+                    }
+                    return partner;
+                }
+            )
+            promArr.push(playerProm);
+        })
+        return Promise.all(promArr);
+    },
+
     applyPartnerCommissionSettlement: async (commissionLog, statusApply, adminInfo, remark) => {
         let childDetail = await dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
         let proposalType = await dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean();
@@ -1135,6 +1171,36 @@ const dbPartnerCommission = {
 let proto = dbPartnerCommissionFunc.prototype;
 proto = Object.assign(proto, dbPartnerCommission);
 module.exports = dbPartnerCommission;
+
+function getAllDownlinePartner (partnerObjId, chainArray, partnerParentLvl) {
+    chainArray = chainArray || [];
+    partnerParentLvl = partnerParentLvl || 2; // start from level 2, level 1 is the main partner himself
+    let query = {};
+
+    if (partnerObjId instanceof Array) {
+        query.parent = {$in: partnerObjId}
+    } else {
+        query.parent = partnerObjId;
+    }
+
+    return dbconfig.collection_partner.find(query, {partnerName: 1, realName: 1}).lean().then(
+        partnerData => {
+            if (partnerData && partnerData.length) {
+                let partnerObjIds = [];
+                partnerData.map(partner => {
+                    partner.partnerParentLvl = partnerParentLvl;
+                    if (partner._id) {
+                        partnerObjIds.push(partner._id);
+                    }
+                    return partner;
+                });
+                chainArray = chainArray.concat(partnerData);
+                return getAllDownlinePartner(partnerObjIds, chainArray, ++partnerParentLvl);
+            }
+            return chainArray;
+        }
+    )
+}
 
 function getPaymentProposalTypes (platformObjId) {
     return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
