@@ -10030,6 +10030,7 @@ function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId,
 
 function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, providerGroups) {
     // todo :: if hour summary is stable, refactor to use hour summary instead
+    console.log(playerObjId,'ddddddddddddddddddd1z')
     return dbconfig.collection_playerConsumptionRecord.aggregate([
         {
             $match: {
@@ -10104,6 +10105,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
 }
 
 function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpTypes) {
+    console.log(playerObjId,'ddddddddddddddddddd2z')
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10170,6 +10172,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
 }
 
 function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
+    console.log(playerObjId,'ddddddddddddddddddd3z')
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10668,6 +10671,7 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
 }
 
 function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewardTypes) {
+    console.log(playerObjId,'ddddddddddddddddddd4z')
     let rewardProm = dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10732,6 +10736,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
                 playerRewardDetail.total += rewardTypeTotal.amount;
             }
 
+            console.log('ddddddddddddddddddddddddddddd4')
             return playerRewardDetail;
         }
     );
