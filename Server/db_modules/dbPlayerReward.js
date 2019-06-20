@@ -8701,11 +8701,14 @@ let dbPlayerReward = {
                                         }
 
                                         if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+
                                             let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
                                             if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
                                                 outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
                                             }
-                                            outputMsg += ( selectedRewardParam && selectedRewardParam.rewardAmount ) ? selectedRewardParam.rewardAmount : '';
+                                            // show the mintopup field - calculation is amount * percent
+                                            let rewardAmt = ( proposalData.data && proposalData.data.rewardAmount ) ? proposalData.data.rewardAmount : '';
+                                            outputMsg += rewardAmt;
                                             outputMsg += localization.localization.translate('RMB');
 
                                             let festivalRewardRes = {
