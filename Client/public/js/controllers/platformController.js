@@ -33084,15 +33084,11 @@ define(['js/app'], function (myApp) {
                         display: srcData.display,
                         useEbetWallet: srcData.useEbetWallet,
                         disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
-                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
-<<<<<<< HEAD
+                        providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,\
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
-                        ipCheckPeriod: srcData.ipCheckPeriod
-
-=======
-                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
->>>>>>> upstream/develop-1.1
+                        ipCheckPeriod: srcData.ipCheckPeriod,
+                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus
                     }
                 };
                 let isProviderGroupOn = false;
