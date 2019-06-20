@@ -5085,7 +5085,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerDepositAnalysisDetails = function (playerObjId) {
             let sendQuery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.depositAnalysisQuery.platformId,
                 query: {
                     playerObjId: playerObjId,
                     start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
@@ -5108,7 +5108,7 @@ define(['js/app'], function (myApp) {
 
         vm.addPlayerToDepositTrackingReport = function (playerObjId) {
             let sendQuery = {
-                platformObjId: vm.curPlatformId,
+                platformObjId: vm.depositAnalysisQuery.platformId,
                 playerObjId: playerObjId
             };
             console.log('sendQuery', sendQuery);
