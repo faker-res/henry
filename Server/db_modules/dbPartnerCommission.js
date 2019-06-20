@@ -28,6 +28,7 @@ const dbPartnerCommission = {
         let partner = await dbconfig.collection_partner.findOne({_id: partnerObjId})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa')
         if (!partner) {
             return Promise.reject({
                 name: "DataError",
@@ -48,6 +49,7 @@ const dbPartnerCommission = {
         partnerChain = partnerChain || [];
         let parentChain = [];
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa2')
         let mainPartnerObjId = partnerChain[partnerChain.length - 1] && partnerChain[partnerChain.length - 1]._id;
         let isMainPartner = Boolean(!mainPartnerObjId || String(mainPartnerObjId) === String(partnerObjId));
 
@@ -72,6 +74,7 @@ const dbPartnerCommission = {
 
         let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa3')
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
         let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
@@ -81,12 +84,14 @@ const dbPartnerCommission = {
 
         let [commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa4')
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
 
         let activeDownLines = getActiveDownLineCount(playerRawDetail);
 
         let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa5')
         let totalTopUp = 0;
         let totalReward = 0;
         let totalWithdrawal = 0;
@@ -136,6 +141,7 @@ const dbPartnerCommission = {
         }
 
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa6')
         commConfig = commConfig || [];
 
         let parentCommissionDetail = {};
@@ -165,6 +171,7 @@ const dbPartnerCommission = {
             };
         }
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa7')
         let allConsumption = 0; // use to divide fee
 
         if (bonusBased) {
@@ -194,6 +201,7 @@ const dbPartnerCommission = {
             }
         }
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa8')
         let rawCommissions = [];
         let nettCommission = 0;
         for (let i = 0; i < commConfig.length; i++) {
@@ -273,6 +281,7 @@ const dbPartnerCommission = {
                     .done();
             }
 
+            console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa9')
             let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
 
@@ -300,6 +309,7 @@ const dbPartnerCommission = {
                 ratioSum = multiLevelCommissionRate.parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
             }
 
+            console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa10')
             let totalAllParentRate = 0;
             let totalParentGrossCommission = 0;
             for (let j = 0; j < parentChain.length; j++) {
@@ -337,6 +347,7 @@ const dbPartnerCommission = {
             }
         }
 
+        console.log(partnerObjId,'aaaaaaaaaaaaaaaaaaaaaaa11')
         let returnObj = {
             partner: partner._id,
             platform: platform._id,
@@ -797,9 +808,6 @@ const dbPartnerCommission = {
                     partnerObjId = partner._id;
 
                     commissionType = partner.commissionType;
-                    // stream = dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id:1}).cursor({batchSize: 100});
-                    // return dbconfig.collection_partner.find({$or: [{_id: partner._id}, {parent: partner._id}]}, {_id: 1});
-                    // above code only cater for 1 layer, need to fix for multiple level of partners
 
                     return getAllChildrenPartners(partnerObjId).then( // including partner himself
                         allPartners => {
