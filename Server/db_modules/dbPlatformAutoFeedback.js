@@ -269,7 +269,7 @@ let dbPlatformAutoFeedback = {
                 return Promise.all([departmentProm]).then(() => {
                     let registerStartTime = feedback.registerStartTime;
                     let registerEndTime = feedback.registerEndTime;
-                    let playerQuery = {platform: platformObjId, forbidPromoCode: false};
+                    let playerQuery = {platform: platformObjId, 'permission.allowPromoCode': true};
 
                     let addMultipleOr = function (orArr) {
                         if(!orArr || !orArr.length) {

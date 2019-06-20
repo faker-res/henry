@@ -9773,6 +9773,11 @@ let dbPartner = {
         )
     },
 
+    getDownLinePlayerTimeSequence: (platformId) => {
+        console.log('platformId', platformId);
+        return Promise.resolve(true);
+    },
+
     checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
