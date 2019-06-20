@@ -108,6 +108,7 @@
                 "updateDeviceId",
                 "generateUpdatePasswordToken",
                 "updatePasswordWithToken",
+                "checkIsAppPlayerAndAppliedReward",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
             ];
