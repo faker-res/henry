@@ -275,10 +275,9 @@ const dbPartnerCommission = {
                 if (partner.partnerName == "plevel3") console.log('consumptionAfterFeeMulti', consumptionAfterFeeMulti, totalConsumption, platformFeeMulti, rewardFeeMulti, topUpFeeMulti, withdrawalFeeMulti)
             }
 
-            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
-            console.log('multiLevelCommissionRate.parentRatios', multiLevelCommissionRate.parentRatios)
-            console.log('multiLevelCommissionRate.parentRate', multiLevelCommissionRate.parentRate)
-            if (partner.partnerName == "plevel3") console.log('rawCommission', rawCommission, 'multiLevelCommissionRate.commissionRate', multiLevelCommissionRate.commissionRate)
+            let mainParentCommissionRate = multiLevelCommissionRate.parentRate[multiLevelCommissionRate.parentRate.length - 1] || multiLevelCommissionRate.commissionRate;
+            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(mainParentCommissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
+            if (partner.partnerName == "plevel3") console.log('rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
 
             rawCommissions.push({
