@@ -35521,9 +35521,15 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initCreateUrl = function () {
+                vm.currentUrlEditSelect.platformId = "";
+                vm.promoUrlAdminList = [];
                 vm.urlTableAdd = true;
                 vm.addOfficerUrl = {};
                 vm.currentlyFocusedAnnouncement = vm.addOfficerUrl;
+            };
+
+            vm.initEditUrl = function () {
+                vm.urlTableEdit = true;
             };
 
             vm.urlCancelEditOrAdd = function () {

@@ -2813,9 +2813,12 @@ var dbRewardEvent = {
         //find the festival date inside the reward param
         let result = [];
         let rewardId = reward.festivalId ? reward.festivalId: null;
-        let festival = festivals.filter(item => {
-            return item.id == rewardId;
-        })
+        let festival;
+        if (festivals && festivals.length > 0) {
+            festival = festivals.filter(item => {
+                return item.id == rewardId;
+            })
+        }
         result = ( festival && festival[0] ) ? festival[0] : [];
         return result
     },
