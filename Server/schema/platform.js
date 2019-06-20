@@ -532,6 +532,8 @@ var platformSchema = new Schema({
     disableProviderAfterConsecutiveTimeoutCount: {type: Number},
     // provider consecutively timed out search time frame (last N minutes)
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
+    // check is phone number bound to a player before apply bonus
+    isPhoneNumberBoundToPlayerBeforeApplyBonus: {type: Boolean, default: false},
     // disable auto player level up reward switch
     disableAutoPlayerLevelUpReward: {type: Boolean, default: false},
     // service charge rate setting
