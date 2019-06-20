@@ -2655,31 +2655,6 @@ var dbRewardEvent = {
                             returnData.condition.reward.status = 2;
                         }
 
-                        // if (festivalData && festivalData.length > 0) {
-                        //     festivalData = festivalData.map( item => {
-                        //         let meetTopUp = false;
-                        //         let meetConsumption = false;
-                        //         // reward type 2, 5 need minTopUpAmount
-                        //         if (item.rewardType == 2 || item.rewardType == 5) {
-                        //             topUpDatas.forEach(topup => {
-                        //                 if (topup.amount > item.minTopUpAmount) {
-                        //                     meetTopUp = true;
-                        //                 }
-                        //             })
-                        //             if (meetTopUp) {
-                        //                 return item;
-                        //             }
-                        //         } else if (item.rewardType == 3 || item.rewardType == 6) {
-                        //             // reward type 3, 6 need totalConsumptionInInterval
-                        //             if (consumptionSum > item.totalConsumptionInInterval) {
-                        //                 meetConsumption = true;
-                        //                 return item;
-                        //             }
-                        //         } else {
-                        //             return item
-                        //         }
-                        //     })
-                        // }
                         console.log('MT --checking after festivalData', festivalData)
                         console.log('MT --checking selectedRewardParam',selectedRewardParam);
                         console.log('MT --checking topUpDatas', topUpDatas);
