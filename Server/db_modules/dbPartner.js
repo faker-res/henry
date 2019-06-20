@@ -10097,6 +10097,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
 
             consumptionDetail.consumptionProviderDetail = consumptionProviderDetail;
 
+            console.log(playerObjId,'ddddddddddddddddddd1')
             return consumptionDetail;
         }
     );
@@ -10162,6 +10163,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
                 playerTopUpDetail.topUpTimes += topUpTypeRecord.count;
             }
 
+            console.log(playerObjId,'ddddddddddddddddddd2')
             return playerTopUpDetail;
         }
     );
@@ -10195,6 +10197,8 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
 
             let withdrawalTotal = withdrawalInfo[0];
 
+
+            console.log(playerObjId,'ddddddddddddddddddd3')
             return {
                 withdrawalTimes: withdrawalTotal.count || 0,
                 withdrawalAmount: withdrawalTotal.amount || 0,
@@ -10243,6 +10247,8 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                     playerIds.push(String(player._id));
                 })
             }
+
+            console.log(playerObjId,'ddddddddddddddddddd4a')
             return dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
@@ -10264,7 +10270,13 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                 }
             ]).read("secondaryPreferred")
         }
-    );
+    ).then(
+        data => {
+
+            console.log(playerObjId,'ddddddddddddddddddd4b')
+            return data;
+        }
+    )
 }
 
 function getAllPlayersCommissionConsumptionDetail (partnerId, platformId, startTime, endTime, providerGroups) {
