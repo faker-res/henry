@@ -2854,7 +2854,56 @@ var dbRewardEvent = {
         return applyPeriod;
     },
 
+    getAllPromoCode: function () {
+        // getting general promoCode
+        let promoCodeProm = dbconfig.collection_promoCodeType.find({$or: [{deleteFlag: false}, {deleteFlag: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        // getting openPromoCode
+        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        //getting autoPromoCode
+        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
 
+        let list = [];
+        return Promise.all([promoCodeProm, openPromoCodeProm, autoPromoCodeProm]).then(
+            retData => {
+                if (retData && retData.length){
+                    retData[0].forEach(
+                        p => {
+                            p.category = 'promoCode';
+                            return p;
+                        }
+                    )
+
+                    retData[1].forEach(
+                        p => {
+                            p.category = 'openPromoCode';
+                            return p;
+                        }
+                    )
+
+                    retData[2].forEach(
+                        p => {
+                            p.category = 'autoPromoCode';
+                            return p;
+                        }
+                    )
+
+                    retData.forEach(
+                        dataList => {
+                            if (dataList && dataList.length){
+                               list.push({
+                                   category: dataList[0].category,
+                                   data: dataList
+                               })
+                            }
+
+                        }
+                    )
+                    return list
+                }
+                return [];
+            }
+        )
+    },
     /**
      * Find reward events by query
      * @param {String} query
