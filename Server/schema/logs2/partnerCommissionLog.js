@@ -58,6 +58,8 @@ var partnerCommissionLog = new Schema({
     calcTime: {type: Date, default: Date.now},
     // remarks
     remarks: {type: String, default: ""},
+    // is new (urgent use)
+    isNewComm: {type: Boolean},
 });
 
 module.exports = partnerCommissionLog;

@@ -2813,9 +2813,12 @@ var dbRewardEvent = {
         //find the festival date inside the reward param
         let result = [];
         let rewardId = reward.festivalId ? reward.festivalId: null;
-        let festival = festivals.filter(item => {
-            return item.id == rewardId;
-        })
+        let festival;
+        if (festivals && festivals.length > 0) {
+            festival = festivals.filter(item => {
+                return item.id == rewardId;
+            })
+        }
         result = ( festival && festival[0] ) ? festival[0] : [];
         return result
     },
@@ -3077,6 +3080,23 @@ var dbRewardEvent = {
 
     updateRewardEventGroup: function (query, updateData) {
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
+    updateForbidRewardEvents: function (rewardObjId) {
+        if (rewardObjId){
+            let rewardObjIdString = rewardObjId.toString();
+            return dbconfig.collection_players.find({'forbidRewardEvents': {$all: [rewardObjId] } }).then(
+                players => {
+                    if (players && players.length){
+                        let playerObjIdList = players.map(p => {return p._id});
+
+                        if (playerObjIdList){
+                            return dbconfig.collection_players.update({_id: {$in: playerObjIdList}}, {$pull: {forbidRewardEvents: rewardObjIdString}}, {multi: true});
+                        }
+                    }
+                }
+            )
+        }
     },
 
     updateExpiredRewardEventToGroup: function (query, updateData) {

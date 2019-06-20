@@ -171,6 +171,9 @@
         div(ng-if='vm.showPageName=="CONSUMPTION_MODE_REPORT"')
             #consumptionModeReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                    select.spicker.form-control(ng-model='vm.consumptionModeQuery.platformList', bsp, multiple, data-actions-box='true' ng-change="vm.dynamicPlatform()", ng-options='v._id as v.name$ for v in vm.platformList')
+                .search-filters-item
                     label {{"Game Type"|translate}}
                     select.form-control(ng-model="vm.consumptionModeQuery.gameProvider" ng-change="vm.dynamicGameType()")
                         option(ng-repeat="(i,v) in vm.allGameProviders" value="{{v}}") {{v.name}}
@@ -2237,7 +2240,7 @@
                     .endTime
                 .search-filters-item
                     label {{'WEBSITE_MULTI_SELECTION' | translate}}
-                    select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
+                    select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{'LOCKED_ADMIN' | translate}}
                     select.form-control.merchantNoList(ng-model='vm.paymentMonitorQuery.lockedAdmin', ng-options='v._id as v.adminName for v in vm.paymentMonitorLockedAdmin', multiple, bsp, data-actions-box='true')

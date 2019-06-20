@@ -10030,6 +10030,7 @@ function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId,
 
 function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, providerGroups) {
     // todo :: if hour summary is stable, refactor to use hour summary instead
+    console.log(playerObjId,'ddddddddddddddddddd1z')
     return dbconfig.collection_playerConsumptionRecord.aggregate([
         {
             $match: {
@@ -10052,6 +10053,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
+            console.log('kkkkkkkkkkkkkkk1')
             if (!consumptionData || !consumptionData[0]) {
                 consumptionData = [];
             }
@@ -10097,12 +10099,14 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
 
             consumptionDetail.consumptionProviderDetail = consumptionProviderDetail;
 
+            console.log(playerObjId,'ddddddddddddddddddd1')
             return consumptionDetail;
         }
     );
 }
 
 function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpTypes) {
+    console.log(playerObjId,'ddddddddddddddddddd2z')
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10125,6 +10129,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
         }
     ]).read("secondaryPreferred").then(
         topUpData => {
+            console.log('kkkkkkkk2')
             if (!topUpData || !topUpData[0]) {
                 topUpData = [];
             }
@@ -10162,12 +10167,14 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
                 playerTopUpDetail.topUpTimes += topUpTypeRecord.count;
             }
 
+            console.log(playerObjId,'ddddddddddddddddddd2')
             return playerTopUpDetail;
         }
     );
 }
 
 function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
+    console.log(playerObjId,'ddddddddddddddddddd3z')
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10189,12 +10196,15 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
         }
     ]).read("secondaryPreferred").then(
         withdrawalInfo => {
+            console.log('kkkkkkkkkkkk3')
             if (!withdrawalInfo || !withdrawalInfo[0]) {
                 withdrawalInfo = [{}];
             }
 
             let withdrawalTotal = withdrawalInfo[0];
 
+
+            console.log(playerObjId,'ddddddddddddddddddd3')
             return {
                 withdrawalTimes: withdrawalTotal.count || 0,
                 withdrawalAmount: withdrawalTotal.amount || 0,
@@ -10243,6 +10253,8 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                     playerIds.push(String(player._id));
                 })
             }
+
+            console.log(playerObjId,'ddddddddddddddddddd4a')
             return dbconfig.collection_proposal.aggregate([
                 {
                     "$match": {
@@ -10264,7 +10276,13 @@ function getAllPlayersCommissionTopUpDetail (partnerId, platformId, startTime, e
                 }
             ]).read("secondaryPreferred")
         }
-    );
+    ).then(
+        data => {
+
+            console.log(playerObjId,'ddddddddddddddddddd4b')
+            return data;
+        }
+    )
 }
 
 function getAllPlayersCommissionConsumptionDetail (partnerId, platformId, startTime, endTime, providerGroups) {
@@ -10441,6 +10459,7 @@ function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
 function getCommissionPeriod (commissionType) {
     switch (commissionType) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getYesterdaySGTime();
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
@@ -10457,6 +10476,7 @@ function getCommissionPeriod (commissionType) {
 function getCurrentCommissionPeriod (commissionType) {
     switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getTodaySGTime();
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
@@ -10473,6 +10493,7 @@ function getCurrentCommissionPeriod (commissionType) {
 function getTargetCommissionPeriod (commissionType, date) {
     switch (Number(commissionType)) {
         case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+        case constPartnerCommissionType.DAILY_CONSUMPTION:
             return dbutility.getDayTime(date);
         case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
         case constPartnerCommissionType.WEEKLY_CONSUMPTION:
@@ -10549,26 +10570,33 @@ function getPaymentProposalTypes (platformObjId) {
 }
 
 function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1',playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement)
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups).catch(err => {
         console.error('getPlayerCommissionConsumptionDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1a')
     let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes).catch(err => {
         console.error('getPlayerCommissionTopUpDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1b')
     let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime).catch(err => {
         console.error('getPlayerCommissionWithdrawDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1c')
     let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes).catch(err => {
         console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1d')
     let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
 
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1e')
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
+            console.log(playerObjId,'cccccccccccccccccccccccccccccccc2')
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
@@ -10651,6 +10679,7 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
 }
 
 function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewardTypes) {
+    console.log(playerObjId,'ddddddddddddddddddd4z')
     let rewardProm = dbconfig.collection_proposal.aggregate([
         {
             "$match": {
@@ -10674,6 +10703,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
 
     return rewardProm.then(
         rewardData => {
+            console.log('kkkkkkkkk4')
             if (!rewardData || !rewardData[0]) {
                 rewardData = [];
             }
@@ -10715,6 +10745,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
                 playerRewardDetail.total += rewardTypeTotal.amount;
             }
 
+            console.log('ddddddddddddddddddddddddddddd4')
             return playerRewardDetail;
         }
     );
@@ -11838,58 +11869,100 @@ function getAllPlayerCommissionRawDetailsWithSettlement (players, commissionType
     );
 }
 
-function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
-    let log = {};
+async function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
+    let log = await dbPartner.findPartnerCommissionLog({_id: logObjId}, true);
+    if (!log) {
+        return Promise.reject({
+            message: "Error in getting partner commission log."
+        });
+    }
 
-    return dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
-        logData => {
-            if (!logData) {
-                return Promise.reject({
-                    message: "Error in getting partner commission log."
-                });
-            }
+    let resetProposal;
 
-            log = logData;
+    if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+        remark = "结算前清空馀额：" + remark;
+        resetProposal = await dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+    }
 
-            let resetProm = Promise.resolve();
-            if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
-                remark = "结算前清空馀额：" + remark;
-                resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
-            }
-            return resetProm;
+    updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+
+    if (resetProposal && resetProposal.proposalId) {
+        remark = "(" + resetProposal.proposalId + ") "+ remark;
+    }
+    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+        remark = "结算后清空馀额：" + remark;
+    }
+
+    if (settleType == constPartnerCommissionLogStatus.SKIPPED) {
+        return;
+    }
+
+    if (log.isNewComm) {
+        return dbPartnerCommission.applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+    } else {
+        let proposal = await applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+        if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+            && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
+            && !(log.parentPartnerCommissionDetail instanceof Array)
+        ) {
+            updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+                console.trace("Update parent partner commission");
+                return errorUtils.reportError(error);
+            })
         }
-    ).then(
-        resetProposal => {
-            updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
-            if (resetProposal && resetProposal.proposalId) {
-                remark = "(" + resetProposal.proposalId + ") "+ remark;
-            }
-            if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
-                remark = "结算后清空馀额：" + remark;
-            }
 
-            if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
-                return applyMultiLevelCommissionSettlement(log, settleType, adminInfo, remark).then(() => {
-                    return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
-                });
-            }
-        }
-    ).then(
-        proposal => {
+        return proposal;
+    }
 
-            if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
-                && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
-                && !(log.parentPartnerCommissionDetail instanceof Array)
-            ) {
-                updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
-                    console.trace("Update parent partner commission");
-                    return errorUtils.reportError(error);
-                })
-            }
-
-            return proposal;
-        }
-    );
+    // return dbPartner.findPartnerCommissionLog({_id: logObjId}, true).then(
+    //     logData => {
+    //         if (!logData) {
+    //             return Promise.reject({
+    //                 message: "Error in getting partner commission log."
+    //             });
+    //         }
+    //
+    //         log = logData;
+    //
+    //         let resetProm = Promise.resolve();
+    //         if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+    //             remark = "结算前清空馀额：" + remark;
+    //             resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+    //         }
+    //         return resetProm;
+    //     }
+    // ).then(
+    //     resetProposal => {
+    //         updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+    //         if (resetProposal && resetProposal.proposalId) {
+    //             remark = "(" + resetProposal.proposalId + ") "+ remark;
+    //         }
+    //         if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+    //             remark = "结算后清空馀额：" + remark;
+    //         }
+    //
+    //         if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
+    //             return applyMultiLevelCommissionSettlement(log, settleType, adminInfo, remark).then(() => {
+    //                 return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+    //             });
+    //         }
+    //     }
+    // ).then(
+    //     proposal => {
+    //
+    //         if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
+    //             && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED
+    //             && !(log.parentPartnerCommissionDetail instanceof Array)
+    //         ) {
+    //             updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
+    //                 console.trace("Update parent partner commission");
+    //                 return errorUtils.reportError(error);
+    //             })
+    //         }
+    //
+    //         return proposal;
+    //     }
+    // );
 }
 
 function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
