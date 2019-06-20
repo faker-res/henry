@@ -1388,24 +1388,21 @@ define(['js/app'], function (myApp) {
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemarks');
 
-            setTimeout(()=> {
-                remarkSelect.multipleSelect({
-                    showCheckbox: true,
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: false,
-                    countSelected: $translate('# of % selected')
-                });
-                $scope.safeApply();
-            },1)
-
+            remarkSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            $scope.safeApply();
         };
 
         vm.setupRemarksMultiInputDepositAnalysis = function () {
             let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
-            if (remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1476,11 +1473,25 @@ define(['js/app'], function (myApp) {
             );
         };
 
-        vm.playerReportOnPlatformChange = (platformObjId) => {
-            vm.getCredibilityRemarksByPlatformId(platformObjId).then(()=>{vm.setupRemarksMultiInput()});
-            vm.getPlayerLevelByPlatformId(platformObjId);
-            vm.getPlatformProvider(platformObjId);
-            vm.getDepartmentDetailsByPlatformObjId(platformObjId);
+        vm.reportOnPlatformChange = (platformObjId) => {
+            switch(vm.showPageName) {
+                case "PLAYER_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupRemarksMultiInput()
+                    });
+                    vm.getPlayerLevelByPlatformId(platformObjId);
+                    vm.getPlatformProvider(platformObjId);
+                    vm.getDepartmentDetailsByPlatformObjId(platformObjId);
+                    break;
+
+                case "PLAYER_DEPOSIT_ANALYSIS_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupRemarksMultiInputDepositAnalysis()
+                    });
+                    vm.getPlayerLevelByPlatformId(platformObjId);
+                    vm.getPlatformProvider(platformObjId);
+                    break;
+            }
         };
 
         vm.getProposalTypeByPlatformId = function (id) {
@@ -4848,7 +4859,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositAnalysisReportTableSpin').show();
             let sendQuery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.depositAnalysisQuery.platformId,
                 query: {
                     name: vm.depositAnalysisQuery.name,
                     credibilityRemarks: vm.depositAnalysisQuery.credibilityRemarks,

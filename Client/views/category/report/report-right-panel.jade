@@ -290,7 +290,7 @@
             .col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}}
-                    select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.playerReportOnPlatformChange(vm.playerQuery.platformId)')
+                    select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.playerQuery.platformId)')
                         option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{"CREDIBILITY"|translate}}
@@ -412,6 +412,10 @@
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
             .col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.depositAnalysisQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.depositAnalysisQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control(ng-model="vm.depositAnalysisQuery.name")
