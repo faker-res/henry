@@ -597,7 +597,7 @@ define(['js/app'], function (myApp) {
         }
 
         //set selected platform node
-        async function selectPlatformNode(platformObj, option, skipVariable) {
+        async function selectPlatformNode(platformObj, option, skipResetPartnerTable) {
             vm.selectedPlatform = {
                 text: platformObj.name,
                 id: platformObj._id,
@@ -623,6 +623,40 @@ define(['js/app'], function (myApp) {
             //     return;
             // }
             getProposalTypeByPlatformId(vm.selectedPlatform.id);
+            if (!skipResetPartnerTable) {
+                vm.advancedPartnerQueryObj = {
+                    limit: 10,
+                    index: 0
+                };
+                vm.partnerAdvanceSearchQuery = {
+                    creditsOperator: ">=",
+                    dailyActivePlayerOperator: ">=",
+                    weeklyActivePlayerOperator: ">=",
+                    monthlyActivePlayerOperator: ">=",
+                    validPlayersOperator: ">=",
+                    totalPlayerDownlineOperator: ">=",
+                    totalChildrenDepositOperator: ">=",
+                    totalChildrenBalanceOperator: ">=",
+                    totalSettledCommissionOperator: ">=",
+                };
+                vm.playerAdvanceSearchQuery = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+                vm.advancedQueryObj = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+
+                //load partner
+                utilService.actionAfterLoaded("#partnerTablePage", function () {
+                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {
+                        pageSize: 10
+                    }, $translate, function (curP, pageSize) {
+                        commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData);
+                    });
+                })
+            }
 
             // Zero dependencies variable
             [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
@@ -666,49 +700,15 @@ define(['js/app'], function (myApp) {
                 commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
             ]);
 
-            if (!skipVariable) {
-                vm.bankCards = preValue1[0];
+            vm.bankCards = preValue1[0];
 
-                // check settlement buttons
-                let nowDate = new Date().toLocaleDateString();
-                let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
-                let weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
-                vm.showDailySettlement = nowDate != dailyDate;
-                vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
-                vm.platformSettlement = {};
-                vm.advancedPartnerQueryObj = {
-                    limit: 10,
-                    index: 0
-                };
-                vm.partnerAdvanceSearchQuery = {
-                    creditsOperator: ">=",
-                    dailyActivePlayerOperator: ">=",
-                    weeklyActivePlayerOperator: ">=",
-                    monthlyActivePlayerOperator: ">=",
-                    validPlayersOperator: ">=",
-                    totalPlayerDownlineOperator: ">=",
-                    totalChildrenDepositOperator: ">=",
-                    totalChildrenBalanceOperator: ">=",
-                    totalSettledCommissionOperator: ">=",
-                };
-                vm.playerAdvanceSearchQuery = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-                vm.advancedQueryObj = {
-                    creditOperator: ">=",
-                    playerType: 'Real Player (all)'
-                };
-
-                //load partner
-                utilService.actionAfterLoaded("#partnerTablePage", function () {
-                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {
-                        pageSize: 10
-                    }, $translate, function (curP, pageSize) {
-                        commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData);
-                    });
-                })
-            }
+            // check settlement buttons
+            let nowDate = new Date().toLocaleDateString();
+            let dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
+            let weeklyDate = new Date(vm.selectedPlatform.data.lastWeeklySettlementTime).toLocaleDateString();
+            vm.showDailySettlement = nowDate != dailyDate;
+            vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
+            vm.platformSettlement = {};
 
             $scope.$evalAsync(() => {
                 // vm.loadAlldepartment();
@@ -5901,7 +5901,7 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.getChildrenDetails = function (partnerId) {
+        vm.getChildrenDetails = function (partnerId, skipDownline) {
             let sendQuery = {
                 partnerId: partnerId,
                 platform: vm.selectedPlatform.id
@@ -5965,10 +5965,19 @@ define(['js/app'], function (myApp) {
                         vm.playerDetailsSummary.sumOfTotalBonus = sumOfTotalBonus;
                         vm.playerDetailsSummary.sumOfTotalDeposit = sumOfTotalDeposit;
                         vm.playerDetailsSummary.sumOfTotalBalance = sumOfTotalBalance;
-                        $('#modalPlayerDetailsSummaryTable').modal().show();
+                        // $('#modalPlayerDetailsSummaryTable').modal().show();
                     })
                 }
             })
+
+            if (skipDownline) {
+                $('#modalPlayerDetailsSummaryTable').modal().show();
+            } else {
+                vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
+                vm.getAllDownlinePartner();
+                $('#modalPlayerDetailsSummaryTableMulti').modal().show();
+            }
+            $scope.$evalAsync()
         };
 
         //draw partner table based on data
@@ -6916,9 +6925,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showActivePartnerInfoModal = function (partnerObjId, activeType) {
+        vm.showActivePartnerInfoModal = function (partnerObjId, activeType, skipDownline) {
 
             vm.selectedPartnerObjArr = {}
+            // activeType = activeType || "VALID_ACTIVE";
             switch (activeType) {
                 case "DAILY_ACTIVE":
                     vm.selectedPartnerObjArr.title = "Daily Active Player";
@@ -6942,8 +6952,26 @@ define(['js/app'], function (myApp) {
                     break;
             }
 
-            $('#modalActivePartnerInfo').modal().show();
+            if (skipDownline || activeType != "VALID_ACTIVE") {
+                $('#modalActivePartnerInfo').modal().show();
+            } else {
+                vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
+                vm.getAllDownlinePartner();
+                $('#modalActivePartnerInfoMulti').modal().show();
+            }
+            $scope.$evalAsync();
         };
+
+        vm.getAllDownlinePartner = function () {
+            vm.downlinePartnerDetail = [];
+            socketService.$socket($scope.AppSocket, 'getAllDownlinePartnerWithDetails', {partnerObjId: vm.selectedSinglePartner._id}, function (data) {
+                if (data && data.data) {
+                    $scope.$evalAsync(() => {
+                        vm.downlinePartnerDetail = data.data;
+                    });
+                }
+            })
+        }
 
         vm.getProvince = function (curProvince) {
             vm.showProvinceStr = '';
