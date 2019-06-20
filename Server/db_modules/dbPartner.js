@@ -10053,6 +10053,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         }
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
+            console.log('kkkkkkkkkkkkkkk1')
             if (!consumptionData || !consumptionData[0]) {
                 consumptionData = [];
             }
@@ -10128,6 +10129,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
         }
     ]).read("secondaryPreferred").then(
         topUpData => {
+            console.log('kkkkkkkk2')
             if (!topUpData || !topUpData[0]) {
                 topUpData = [];
             }
@@ -10194,6 +10196,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
         }
     ]).read("secondaryPreferred").then(
         withdrawalInfo => {
+            console.log('kkkkkkkkkkkk3')
             if (!withdrawalInfo || !withdrawalInfo[0]) {
                 withdrawalInfo = [{}];
             }
@@ -10700,6 +10703,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
 
     return rewardProm.then(
         rewardData => {
+            console.log('kkkkkkkkk4')
             if (!rewardData || !rewardData[0]) {
                 rewardData = [];
             }
