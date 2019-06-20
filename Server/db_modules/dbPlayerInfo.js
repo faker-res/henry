@@ -12958,6 +12958,16 @@ let dbPlayerInfo = {
                         };
 
                         platform = playerData.platform;
+                        player = playerData;
+
+                        if (platform && platform.isPhoneNumberBoundToPlayerBeforeApplyBonus) {
+                            if (playerData && !playerData.phoneNumber) {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    errorMessage: localization.localization.translate("Please complete the phone number, thank you")
+                                });
+                            }
+                        }
 
                         // if no withdrawal bank was selected, use default first bank in player data
                         if (!withdrawalBank && !bankId) {

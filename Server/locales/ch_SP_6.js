@@ -507,6 +507,8 @@ var simplifiedChinese = {
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
     "allTopUp": "所有存款",
+    "Player does not have matching bank info": "玩家没有匹配的银行信息",
+    "Please complete the phone number, thank you": "请完善手机号，谢谢",
     "Username should be alphanumeric": "用户名只能包含数字和字母",
     "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
     "Insufficient amount to transfer out": "无可用额度，请充值后进入游戏",
