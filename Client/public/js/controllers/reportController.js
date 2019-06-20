@@ -1490,6 +1490,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getPlayerLevelByPlatformId(platformObjId);
                     vm.getPlatformProvider(platformObjId);
+                    vm.getDepositTrackingGroupByPlatformId(platformObjId);
                     break;
             }
         };
