@@ -7812,77 +7812,6 @@ define(['js/app'], function (myApp) {
 
                         utilService.setupPopover({
                             context: container,
-                            elem: '.forbidPromoCodePopover',
-                            content: function () {
-                                var data = JSON.parse(this.dataset.row);
-                                vm.forbidPromoCodePopover = data;
-                                vm.forbidPromoCode = [];
-                                vm.forbidPromoCodeDisable = true;
-                                vm.selectedAllPromoCode = false;
-                                let totalLength  = 0;
-                                vm.promoCodeByPlatform.forEach(
-                                    p => {
-                                        if (p && p.data){
-                                            totalLength += p.data.length;
-                                        }
-                                    }
-                                )
-                                if (vm.promoCodeByPlatform && vm.forbidPromoCodePopover && vm.forbidPromoCodePopover.forbidPromoCode && (totalLength === vm.forbidPromoCodePopover.forbidPromoCode.length)) {
-                                    vm.selectedAllPromoCode = true;
-                                }
-                                $scope.safeApply();
-                                return $compile($('#forbidPromoCodePopover').html())($scope);
-                            },
-                            callback: function () {
-                                let thisPopover = utilService.$getPopoverID(this);
-                                let rowData = JSON.parse(this.dataset.row);
-                                $scope.safeApply();
-
-                                $("input.playerPromoCodeForbid").on('click', function () {
-                                    let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
-                                    let forbidPromoCode = [];
-                                    $.each(forbidPromoCodeList, function (i, v) {
-                                        if ($(v).prop('checked')) {
-                                            forbidPromoCode.push($(v).attr('data-provider'));
-                                        }
-                                    });
-
-                                    vm.forbidPromoCodeDisable = vm.isForbidChanged(forbidPromoCode, vm.forbidPromoCodePopover.forbidPromoCodeList);
-                                    $scope.safeApply();
-                                });
-
-                                $("button.forbidPromoCodeCancel").on('click', function () {
-                                    $(".forbidPromoCodePopover").popover('hide');
-                                });
-
-                                $("button.showForbidPromoCode").on('click', function () {
-                                    $(".forbidPromoCodePopover").popover('hide');
-                                });
-
-                                $("button.forbidPromoCodeConfirm").on('click', function () {
-                                    if ($(this).hasClass('disabled')) {
-                                        return;
-                                    }
-                                    let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
-                                    let forbidPromoCode = [];
-                                    $.each(forbidPromoCodeList, function (i, v) {
-                                        if ($(v).prop('checked') && $(v).attr('data-provider')) {
-                                            forbidPromoCode.push($(v).attr('data-provider'));
-                                        }
-                                    });
-                                    let sendData = {
-                                        _id: rowData._id,
-                                        forbidPromoCodeList: forbidPromoCode,
-                                        adminName: authService.adminName
-                                    };
-                                    vm.updatePlayerForbidPromoCode(sendData);
-                                    $(".forbidPromoCodePopover").popover('hide');
-                                });
-                            }
-                        });
-
-                        utilService.setupPopover({
-                            context: container,
                             elem: '.forbidRewardEventPopover',
                             content: function () {
                                 $scope.$evalAsync(()=>{
@@ -37961,7 +37890,7 @@ define(['js/app'], function (myApp) {
                                         // isForbidLevelMaintainReward: vm.isForbidLevelMaintainReward,
                                         adminName: authService.adminName
                                     };
-                                    
+
                                     vm.batchPermitModifySucc = false;
                                     $(".forbidPromoCodePopover").popover('hide');
                                     vm.updateBatchPlayerForbidPromoCode(sendData);
