@@ -272,12 +272,12 @@ const dbPartnerCommission = {
                     .round(2)
                     .done();
 
-                if (partner.partnerName == "plevel3") console.log('consumptionAfterFeeMulti', consumptionAfterFeeMulti, totalConsumption, platformFeeMulti, rewardFeeMulti, topUpFeeMulti, withdrawalFeeMulti)
+                if (partner.partnerName == "plevel4") console.log('consumptionAfterFeeMulti', consumptionAfterFeeMulti, totalConsumption, platformFeeMulti, rewardFeeMulti, topUpFeeMulti, withdrawalFeeMulti)
             }
 
             let mainParentCommissionRate = multiLevelCommissionRate.parentRate[multiLevelCommissionRate.parentRate.length - 1] || multiLevelCommissionRate.commissionRate;
             let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(mainParentCommissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
-            if (partner.partnerName == "plevel3") console.log('rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
+            if (partner.partnerName == "plevel4") console.log('rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
 
             rawCommissions.push({
@@ -313,7 +313,7 @@ const dbPartnerCommission = {
                 let parentRate = math.chain(multiLevelCommissionRate.parentRate[j] || 0).subtract(previousParentRate).round(8).done(); //multiLevelCommissionRate.parentRate[j] - previousParentRate;
                 previousParentRate = multiLevelCommissionRate.parentRate[j] || 0;
                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
-                if (partner.partnerName == "plevel3") console.log(parent.parentName, 'parentRatio', parentRatio, 'ratioSum', ratioSum)
+                if (partner.partnerName == "plevel4") console.log(parent.parentName, 'parentRatio', parentRatio, 'ratioSum', ratioSum)
                 let detail = {
                     groupName: groupRate.groupName,
                     groupId: groupRate.groupId,
@@ -328,7 +328,7 @@ const dbPartnerCommission = {
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     amount: math.chain(rawCommission).multiply(parentRatio).round(2).done(),
                 };
-                if (partner.partnerName == "plevel3") console.log(parent.parentName, 'amount', detail.amount)
+                if (partner.partnerName == "plevel4") console.log(parent.parentName, 'amount', detail.amount)
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
                 parentCommissionDetail[objId].totalPlatformFee += detail.platformFee || 0;
