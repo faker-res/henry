@@ -24,7 +24,361 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPartnerCommission = {
-    calculatePartnerCommission: (partnerObjId, startTime, endTime, commissionType) => {
+    calculatePartnerCommission: async (partnerObjId, startTime, endTime, commissionType) => {
+        let partner = await dbconfig.collection_partner.findOne({_id: partnerObjId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+
+        if (!partner) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting partner data",
+            });
+        }
+
+        let platform = partner.platform;
+
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platform._id}).lean();
+        let partnerChainProm = Promise.resolve([partner._id]);
+        if (partner.parent) {
+            partnerChainProm = dbPartnerCommissionConfig.getPartnerParentChain(partner._id);
+        }
+
+        let [providerGroups, partnerChain] = await Promise.all([providerGroupProm, partnerChainProm]);
+        providerGroups = providerGroups || [];
+        partnerChain = partnerChain || [];
+        let parentChain = [];
+
+        let mainPartnerObjId = partnerChain[partnerChain.length - 1] && partnerChain[partnerChain.length - 1]._id;
+        let isMainPartner = Boolean(!mainPartnerObjId || String(mainPartnerObjId) === String(partnerObjId));
+
+        let mainPartner = isMainPartner ? partner : partnerChain[partnerChain.length - 1];
+
+        for (let i = 1; i < partnerChain.length; i++) {
+            parentChain.push(partnerChain[i]);
+        }
+
+        mainPartner.commissionType = commissionType || mainPartner.commissionType;
+        if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
+            return Promise.reject({message: "Please select a commission type"});
+        }
+
+        let commissionPeriod = getCommissionPeriod(mainPartner.commissionType);
+        if (startTime && endTime) {
+            commissionPeriod = {
+                startTime: startTime,
+                endTime: endTime
+            };
+        }
+
+        let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
+
+        let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
+        let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id);
+        let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
+        let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
+        let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
+        let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
+
+        let [commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
+
+        let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
+
+        let activeDownLines = getActiveDownLineCount(playerRawDetail);
+
+        let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
+
+        let totalTopUp = 0;
+        let totalReward = 0;
+        let totalWithdrawal = 0;
+        let totalWinLose = 0;
+        let depositCrewDetail = [];
+        let withdrawCrewDetail = [];
+        let bonusCrewDetail = [];
+        playerRawDetail.map(player => {
+            totalTopUp += player.topUpDetail.topUpAmount || 0;
+            totalReward += player.rewardDetail.total || 0;
+            totalWithdrawal += player.withdrawalDetail.withdrawalAmount || 0;
+            totalWinLose += player.consumptionDetail.bonusAmount || 0;
+            if (player.topUpDetail.topUpAmount) {
+                depositCrewDetail.push({
+                    crewAccount: player.name,
+                    crewDepositAmount: player.topUpDetail.topUpAmount
+                })
+            }
+            if (player.withdrawalDetail.withdrawalAmount) {
+                withdrawCrewDetail.push({
+                    crewAccount: player.name,
+                    crewWithdrawAmount: player.withdrawalDetail.withdrawalAmount
+                })
+            }
+            if (player.rewardDetail.total) {
+                bonusCrewDetail.push({
+                    crewAccount: player.name,
+                    crewBonusAmount: player.rewardDetail.total
+                })
+            }
+        });
+
+        let totalPlatformFee = 0;
+        let totalRewardFee = 0;
+        let totalTopUpFee = 0;
+        let totalWithdrawalFee = 0;
+        let totalMRewardFee = 0;
+        let totalMTopUpFee = 0;
+        let totalMWithdrawalFee = 0;
+        if (bonusBased) {
+            totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
+            totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
+            totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
+            totalMRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done(); // todo :: using different rate
+            totalMTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done(); // todo :: using different rate
+            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done(); // todo :: using different rate
+        }
+
+
+        commConfig = commConfig || [];
+
+        let parentCommissionDetail = {};
+        for (let i = 0; i < parentChain.length; i++) {
+            let parent = parentChain[i];
+            let objId = String(parent._id);
+            parentCommissionDetail[objId] = parentCommissionDetail[objId] || {
+                parentObjId: objId,
+                parentName: parent.partnerName,
+                parentRealName: parent.realName,
+                startTime: startTime,
+                partnerObjId: partner._id,
+                partnerName: partner.partnerName,
+                partnerRealName: partner.realName,
+                rawCommissions: [],
+                activeCount: activeDownLines,
+                grossCommission: 0,
+                platformFee: 0,
+                totalParentRate: 0,
+                totalTopUpFee: 0,
+                totalWithdrawalFee: 0,
+                totalRewardFee: 0,
+                totalPlatformFee: 0,
+                rewardFeeRate: commRate.rateAfterRebatePromo, // todo :: use multi rate
+                topUpFeeRate: commRate.rateAfterRebateTotalDeposit, // todo :: use multi rate
+                withdrawalFeeRate: commRate.rateAfterRebateTotalWithdrawal, // todo :: use multi rate
+            };
+        }
+
+        let allConsumption = 0; // use to divide fee
+
+        if (bonusBased) {
+            for(let groupName in providerGroupConsumptionData){
+                if(this.hasOwnProperty(groupName)){
+                    let groupConsumption = providerGroupConsumptionData[groupName];
+                    if (!groupConsumption) continue;
+
+                    if (-groupConsumption.bonusAmount > 0) {
+                        // sum all negative bonus amount
+                        allConsumption += -groupConsumption.bonusAmount || 0;
+                    }
+                }
+            }
+
+            // if its still 0
+            if (allConsumption === 0) {
+                for(let groupName in providerGroupConsumptionData){
+                    if(this.hasOwnProperty(groupName)){
+                        let groupConsumption = providerGroupConsumptionData[groupName];
+                        if (!groupConsumption) continue;
+
+                        // sum all negative bonus amount
+                        allConsumption += -groupConsumption.bonusAmount || 0;
+                    }
+                }
+            }
+        }
+
+        let rawCommissions = [];
+        let nettCommission = 0;
+        for (let i = 0; i < commConfig.length; i++) {
+            let groupRate = commConfig[i];
+            let totalConsumption = bonusBased ? -providerGroupConsumptionData[groupRate.groupName].bonusAmount : providerGroupConsumptionData[groupRate.groupName].validAmount;
+            let directCommissionGroupRate = directCommConfig.find(group => {
+                return groupRate.groupId == group.groupId;
+            });
+            let multiLevelCommissionRate = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
+            let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
+
+
+            // platform fee rate (that needed to separate multilevel with direct)
+            let platformFeeRateData = {
+                rate : 0,
+                isCustom: false
+            };
+
+            if (bonusBased && commRate && commRate.rateAfterRebateGameProviderGroup
+                && commRate.rateAfterRebateGameProviderGroup.length > 0) {
+                commRate.rateAfterRebateGameProviderGroup.map(group => {
+                    if (group.name === groupRate.groupName) {
+                        platformFeeRateData.rate = group.rate || 0;
+                    }
+                });
+            }
+            // ====================================================================
+
+            let platformFeeRateDirect = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
+            let platformFeeRateMulti = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
+
+            let consumptionAfterFeeDirect = totalConsumption;
+            let consumptionAfterFeeMulti = totalConsumption;
+
+            let platformFeeDirect = 0;
+            let platformFeeMulti = 0;
+            let rewardFeeMulti = 0;
+            let topUpFeeMulti = 0;
+            let withdrawalFeeMulti = 0;
+            if (bonusBased) {
+                let feeMultiplier = 0;
+                if (allConsumption === 0) { // This if else statement is base on what Ken said
+                    // if all is zero, just cost parent everything
+                    feeMultiplier = 1;
+                } else if (allConsumption > 0) {
+                    // if there are any positive, only distribute against those that are positive (refer to above allConsumption calculation)
+                    feeMultiplier = totalConsumption > 0 ? math.chain(totalConsumption).divide(allConsumption).round(12).done() : 0;
+                } else {
+                    // if there are no positive but there are negatives, then only distribute with negatives
+                    feeMultiplier = math.chain(totalConsumption).divide(allConsumption).round(12).done() || 0;
+                }
+                platformFeeDirect = math.chain(totalConsumption).multiply(platformFeeRateDirect).round(2).done();
+                let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done();
+                let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done();
+                let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done();
+                platformFeeMulti = math.chain(totalConsumption).multiply(platformFeeRateMulti).round(2).done();
+                rewardFeeMulti = math.chain(totalMRewardFee).multiply(feeMultiplier).round(2).done();
+                topUpFeeMulti = math.chain(totalMTopUpFee).multiply(feeMultiplier).round(2).done();
+                withdrawalFeeMulti = math.chain(totalMWithdrawalFee).multiply(feeMultiplier).round(2).done();
+
+                totalPlatformFee += platformFeeDirect;
+
+                consumptionAfterFeeDirect = math.chain(totalConsumption)
+                    .subtract(platformFeeDirect)
+                    .subtract(rewardFee)
+                    .subtract(topUpFee)
+                    .subtract(withdrawalFee)
+                    .round(2)
+                    .done();
+
+                consumptionAfterFeeMulti = math.chain(totalConsumption)
+                    .subtract(platformFeeMulti)
+                    .subtract(rewardFeeMulti)
+                    .subtract(topUpFeeMulti)
+                    .subtract(withdrawalFeeMulti)
+                    .round(2)
+                    .done();
+            }
+
+            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
+            let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
+
+            rawCommissions.push({
+                crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
+                groupName: groupRate.groupName,
+                groupId: groupRate.groupId,
+                amount: rawDirectCommission, // direct amount, nett commission
+                totalConsumption: totalConsumption,
+                commissionRate: directCommissionRate.commissionRate,
+                platformFee: platformFeeDirect,
+                platformFeeRate: platformFeeRateDirect,
+                siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                noRate: Boolean(directCommissionRate.noRate),
+            });
+
+            nettCommission += rawDirectCommission;
+
+            // individual commission for each parent each provider
+            let previousParentRate = 0;
+            multiLevelCommissionRate.parentRatios = multiLevelCommissionRate.parentRatios || [];
+            let ratioSum = 0;
+            if (multiLevelCommissionRate.parentRatios.length) {
+                ratioSum = multiLevelCommissionRate.parentRatios.reduce((a, b) => (Number(a) || 0) + (Number(b) || 0));
+            }
+
+            let totalAllParentRate = 0;
+            let totalParentGrossCommission = 0;
+            for (let j = 0; j < parentChain.length; j++) {
+                let parent = parentChain[j];
+                let objId = String(parent._id);
+                let parentRatio = multiLevelCommissionRate.parentRatios[j] || 0;
+                let parentRate = math.chain(multiLevelCommissionRate.parentRate[j] || 0).subtract(previousParentRate).round(8).done(); //multiLevelCommissionRate.parentRate[j] - previousParentRate;
+                previousParentRate = multiLevelCommissionRate.parentRate[j] || 0;
+                parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
+                let detail = {
+                    groupName: groupRate.groupName,
+                    groupId: groupRate.groupId,
+                    parentRate: parentRate,
+                    noRate: Boolean(multiLevelCommissionRate.noRate),
+                    totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
+                    crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
+                    platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    platformFeeRate: math.chain(platformFeeRateMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    amount: math.chain(rawCommission).multiply(parentRatio).round(2).done(),
+                };
+
+                parentCommissionDetail[objId].grossCommission += detail.amount || 0;
+                parentCommissionDetail[objId].totalPlatformFee += detail.platformFee || 0;
+                parentCommissionDetail[objId].totalRewardFee += detail.rewardFee || 0;
+                parentCommissionDetail[objId].totalTopUpFee += detail.topUpFee || 0;
+                parentCommissionDetail[objId].totalWithdrawalFee += detail.withdrawalFee || 0;
+                parentCommissionDetail[objId].platformFee += detail.platformFee || 0;
+                parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
+                totalAllParentRate += Number(detail.parentRate) || 0;
+                totalParentGrossCommission += detail.amount || 0;
+                parentCommissionDetail[objId].rawCommissions.push(detail);
+            }
+        }
+
+        let returnObj = {
+            partner: partner._id,
+            platform: platform._id,
+            commissionType: mainPartner.commissionType,
+            startTime: commissionPeriod.startTime,
+            endTime: commissionPeriod.endTime,
+            partnerId: partner.partnerId,
+            partnerName: partner.partnerName,
+            partnerRealName: partner.realName,
+            partnerCredit: partner.credits,
+            downLinesRawCommissionDetail: playerRawDetail,
+            activeDownLines: activeDownLines,
+            partnerCommissionRateConfig: commRate,
+            rawCommissions: rawCommissions,
+            totalReward: totalReward,
+            totalRewardFee: totalRewardFee,
+            rewardFeeRate: commRate.rateAfterRebatePromo / 100,
+            totalPlatformFee: totalPlatformFee,
+            totalTopUp: totalTopUp,
+            totalTopUpFee: totalTopUpFee,
+            topUpFeeRate: commRate.rateAfterRebateTotalDeposit / 100,
+            totalWithdrawal: totalWithdrawal,
+            totalWithdrawalFee: totalWithdrawalFee,
+            withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
+            status: constPartnerCommissionLogStatus.PREVIEW,
+            grossCommission: nettCommission,
+            nettCommission: nettCommission,
+            disableCommissionSettlement: Boolean(partner.permission && partner.permission.disableCommSettlement),
+            depositCrewDetail: depositCrewDetail,
+            withdrawCrewDetail: withdrawCrewDetail,
+            bonusCrewDetail: bonusCrewDetail,
+            parentPartnerCommissionDetail: parentCommissionDetail,
+            calcTime: new Date(),
+            remarks: "",
+            isNewComm: true,
+        };
+
+        return returnObj;
+
+    },
+
+    calculatePartnerCommission2: (partnerObjId, startTime, endTime, commissionType) => {
         let platform, partner;
         // let players = [];
         let providerGroups = [];
