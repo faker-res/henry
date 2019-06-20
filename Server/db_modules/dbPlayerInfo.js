@@ -615,14 +615,13 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
                     platformData = platformInfo;
-                    inputData.lastLoginIp = '102:103:104:105'
-                    if (platformInfo.ipCheckPeriod) {
-                        let endTime = new Date();
-                        let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
-                        console.log('********', startTime, endTime, platformInfo.ipCheckPeriod);
-                        console.log('platformInfo._id',platformInfo._id)
-                        return dbconfig.collection_playerRegisterIP.find({platformObjId: platformInfo._id, createTime: {$gte: startTime, $lt: endTime} }).lean();
+                    if (!platformInfo.ipCheckPeriod) {
+                        // if ipCheckPeriod not set, default 60 mins
+                        platformInfo.ipCheckPeriod = 60;
                     }
+                    let endTime = new Date();
+                    let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
+                    return dbconfig.collection_playerRegisterIP.find({platformObjId: platformInfo._id, createTime: {$gte: startTime, $lt: endTime} }).lean();
                 }
             ).then(
                 ipData => {
@@ -632,15 +631,13 @@ let dbPlayerInfo = {
                     let playerIPRegisterCount = 0;
                     let playerIPRegionLimitCount = 0;
                     let playerIPRegionSplit = inputData.lastLoginIp.split(':');
-                    console.log('**ipdata', ipData);
                     ipData.forEach(ip => {
                         let regionCount = 0;
-                        console.log('***********ip.ipAddress',ip.ipAddress, inputData.lastLoginIp);
                         if (ip.ipAddress && ip.ipAddress == inputData.lastLoginIp) {
                             playerIPRegisterCount += 1;
                         }
-                        let ipSplit = ip.ipAddress.split(':');
-
+                        let ipSplit = ip.ipAddress.split('.');
+                        // compare 3 region of ip , for example :  10.1.1.182,  10.1.1.192<-> first 3 is equal ? yes, because 10.1.1 is same
                         if (ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
                             regionCount++;
                         }
@@ -656,18 +653,17 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    console.log('playerIPRegisterCount*****' ,playerIPRegisterCount, playerIPRegisterLimit)
-                    console.log('playerIPRegionLimit',playerIPRegionLimitCount, playerIPRegionLimit )
-                    if (playerIPRegisterCount > playerIPRegisterLimit) {
+                    if (playerIPRegisterCount > playerIPRegisterLimit && !connPartnerId) {
+                        console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount > playerIPRegionLimit) {
+                    if (playerIPRegionLimitCount > playerIPRegionLimit && !connPartnerId) {
+                        console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
                 }
             ).then(
                 () => {
-                    return
                     if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
@@ -2193,7 +2189,11 @@ let dbPlayerInfo = {
                             )
                         )
                     }
-                    let ipSave = dbconfig.collection_playerRegisterIP({ipAddress:playerData.lastLoginIp, platformObjId:playerData.platform}).save();
+                    // if the create user request from front-end , then we record the ip.
+                    let ipSave = Promise.resolve();
+                    if (!adminId) {
+                        ipSave = dbconfig.collection_playerRegisterIP({ipAddress:playerData.lastLoginIp, platformObjId:playerData.platform}).save();
+                    }
                     return Promise.all(proms, ipSave);
                 }
                 else {
