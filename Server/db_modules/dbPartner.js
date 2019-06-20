@@ -9825,6 +9825,10 @@ let dbPartner = {
             path: "admin",
             model: dbconfig.collection_admin
         })
+    },
+
+    getDownLinePlayerInfo: (platformId, partnerId, period, whosePlayer, playerType, crewAccount, requestPage, count, sortType, sort) => {
+
     }
 };
 

@@ -469,6 +469,7 @@
                 "getDownPartnerContribution",
                 "getPartnerTransferList",
                 "getDownLinePlayerTimeSequence",
+                "getDownLinePlayerInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
