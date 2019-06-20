@@ -2701,7 +2701,8 @@ var dbRewardEvent = {
                 }
 
                 let isRightApplyTime = checkIfRightApplyTime(item, festivalDate);
-                if (isRightApplyTime) {
+                // show festival by correct time && show birthday at whatever time)
+                if (isRightApplyTime || ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 ) ) {
                     // check is today is in between the apply period
                     let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
                     proms.push(prom)
@@ -2711,7 +2712,20 @@ var dbRewardEvent = {
         }
         return Promise.all(proms).then(
             data => {
+                if (eventData.condition && eventData.condition.festivalType == 1) {
+                    //4,5,6 is birthday event , we only show 1 collection by festivaltype.
+                    data = data.filter(item => {
+                        return item.rewardType && ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 )
+                    })
+                } else if  (eventData.condition && eventData.condition.festivalType == 2) {
+                    //1,2,3 is festival event
+                    data = data.filter(item => {
+                        return item.rewardType && ( item.rewardType == 1 || item.rewardType == 2 || item.rewardType == 3 )
+                    })
+                }
+
                 console.log('MT --checking festival match time period', data);
+
                 return data;
             }
         )

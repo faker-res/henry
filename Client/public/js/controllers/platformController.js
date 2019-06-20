@@ -31000,6 +31000,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.useEbetWallet = platformData.useEbetWallet;
                         vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = platformData.disableProviderAfterConsecutiveTimeoutCount;
                         vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame = platformData.providerConsecutiveTimeoutSearchTimeFrame;
+                        vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                     });
                 })
             };
@@ -33081,6 +33082,7 @@ define(['js/app'], function (myApp) {
                         useEbetWallet: srcData.useEbetWallet,
                         disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
                         providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
+                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                     }
                 };
                 let isProviderGroupOn = false;
