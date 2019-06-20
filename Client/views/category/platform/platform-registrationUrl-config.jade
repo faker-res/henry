@@ -134,7 +134,7 @@
             button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Create')", ng-click="vm.initCreateUrl()")
                 text {{'CREATE' | translate}}
                 img.img-create
-            button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Update')", ng-disabled="!vm.selectedOfficerUrl", ng-click='vm.urlTableEdit=true')
+            button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Update')", ng-disabled="!vm.selectedOfficerUrl", ng-click='vm.initEditUrl();vm.pickCSbyPlatform(vm.selectedOfficerUrl.platformId);vm.getPromoteWay(vm.selectedOfficerUrl.platformId)')
                 text {{'EDIT' | translate}}
                 img.img-edit
             button.btn.btn-primary.common-button(ng-if="!vm.urlTableEdit && !vm.urlTableAdd && checkViewPermission('Platform', 'RegistrationUrlConfig','Delete')", ng-disabled="!vm.selectedOfficerUrl", ng-click='vm.deleteUrl()')
