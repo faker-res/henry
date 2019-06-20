@@ -10567,25 +10567,30 @@ function getPaymentProposalTypes (platformObjId) {
 }
 
 function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
-    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1')
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1',playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement)
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups).catch(err => {
         console.error('getPlayerCommissionConsumptionDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1a')
     let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes).catch(err => {
         console.error('getPlayerCommissionTopUpDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1b')
     let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime).catch(err => {
         console.error('getPlayerCommissionWithdrawDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1c')
     let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes).catch(err => {
         console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
         return Promise.reject(err);
     });
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1d')
     let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
 
+    console.log(playerObjId,'cccccccccccccccccccccccccccccccc1e')
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
             console.log(playerObjId,'cccccccccccccccccccccccccccccccc2')
