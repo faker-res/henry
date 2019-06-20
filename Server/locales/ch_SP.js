@@ -558,6 +558,7 @@ var simplifiedChinese = {
     "Over the apply limit already": "超过了此优惠的申请上限",
     "Not allowed to transfer from test environment.": "只允许测试账号操作转入",
     "DOB": "生日",
+    "Player not qualify of next level reward": "玩家无此权限",
     "The Festival Item is not Exist": "节日不存在",
     "You need to set your birthday before apply this event": "您需要绑定您的生日日期。",
     "Congratulation! you got festival reward: ": "恭喜您获得节日免费红包",
