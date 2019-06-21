@@ -358,9 +358,6 @@ const dbPartnerCommission = {
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
-                if (parentRatio === ratioSum) {
-                    parentRatio = 1;
-                }
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 let logDetail = {
