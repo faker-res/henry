@@ -316,7 +316,7 @@ const dbPartnerCommission = {
                 crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                 groupName: groupRate.groupName,
                 groupId: groupRate.groupId,
-                amount: rawDirectCommission, // direct amount, nett commission
+                amount: math.round(rawDirectCommission, 2), // direct amount, nett commission
                 totalConsumption: totalConsumption,
                 commissionRate: directCommissionRate.commissionRate,
                 platformFee: platformFeeDirect,
@@ -403,7 +403,7 @@ const dbPartnerCommission = {
             downLinesRawCommissionDetail: playerRawDetail,
             activeDownLines: activeDownLines,
             partnerCommissionRateConfig: commRate,
-            rawCommissions: math.round(rawCommissions, 2),
+            rawCommissions: rawCommissions,
             totalReward: totalReward,
             totalRewardFee: totalRewardFee,
             rewardFeeRate: commRate.rateAfterRebatePromo / 100,
