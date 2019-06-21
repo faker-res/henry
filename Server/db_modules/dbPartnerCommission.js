@@ -1873,8 +1873,12 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
             let commSetting = parentRateTable && parentRateTable.commissionSetting && parentRateTable.commissionSetting[i] || {};
             currentRequirement.parentRate.push(commSetting.commissionRate);
 
-            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate || !currentRequirement.commissionRate) {
+            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
                 return 0;
+            }
+
+            if (!currentRequirement.commissionRate) {
+                currentRequirement.commissionRate = commSetting.commissionRate;
             }
 
             
