@@ -1677,6 +1677,40 @@ var dbUtility = {
         return timeFrames;
     },
 
+    splitTimeFrameToHourly: (startTime, endTime) => {
+        let timeSlots = [];
+        let st = new Date(startTime);
+        let et = new Date(endTime);
+
+        while (st < et) {
+            let addObj = {
+                startTime: st,
+                endTime: moment(st).add(1, 'hour').toDate()
+            };
+            timeSlots.push(addObj);
+            st = moment(st).add(1, 'hour').toDate();
+        }
+
+        return timeSlots;
+    },
+
+    splitTimeFrameToDaily: (startTime, endTime) => {
+        let timeSlots = [];
+        let st = new Date(startTime);
+        let et = new Date(endTime);
+
+        while (st < et) {
+            let addObj = {
+                startTime: st,
+                endTime: moment(st).add(1, 'day').toDate()
+            };
+            timeSlots.push(addObj);
+            st = moment(st).add(1, 'day').toDate();
+        }
+
+        return timeSlots;
+    },
+
     isNumeric: function (value) {
         return !isNaN( parseFloat(value) ) && isFinite( value );
     },
