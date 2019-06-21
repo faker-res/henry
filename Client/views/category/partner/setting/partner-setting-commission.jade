@@ -4,9 +4,9 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
         .panel(style="box-shadow: none;")
             .panel-body
                 label.margin-right-5 {{'customizePartnerCommission' | translate}}
-                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission)', ng-value='false', ng-checked='!vm.multiLvlSelected')
+                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='false', ng-checked='!vm.multiLvlSelected')
                 label.margin-right-5 {{'customizeMultiLevelPartnerCommission' | translate}}
-                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission)', ng-value='true', ng-checked='vm.multiLvlSelected')
+                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='true', ng-checked='vm.multiLvlSelected')
                 .padding-all-5
                     .panel.panel-primary
                         .panel-heading.common-left-panel-heading

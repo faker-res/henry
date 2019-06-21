@@ -6042,7 +6042,7 @@ define(['js/app'], function (myApp) {
                             data = data || '';
                             if ($scope.checkViewPermission('Partner', 'Partner', 'EditCommission')) {
                                 if (row && row.isCustomizeSettingExist) {
-                                    return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
+                                    return $('<a style="z-index: auto;" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                             'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
                                         .attr('data-row', JSON.stringify(row))
@@ -7692,6 +7692,7 @@ define(['js/app'], function (myApp) {
                         editPartnerWithdrawPermission: $scope.checkViewPermission('Partner', 'Partner', 'BankDetail'),
                         editPartnerCommissionPermission: $scope.checkViewPermission('Partner', 'Partner', 'EditCommission'),
                         vmm: vm,
+                        getCommissionRateGameProviderGroup: vm.getCommissionRateGameProviderGroup,
                         selectedTab: vm.editPartnerSelectedTab,
                         tabClicked: vm.tabClicked,
                         modifyCritical: vm.modifyCritical,
@@ -7717,6 +7718,7 @@ define(['js/app'], function (myApp) {
                         rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
                         rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
                         commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig),
+                        // commissionRateConfig: vm.commissionRateConfig,
                         commissionSettingEditRow: vm.commissionSettingEditRow,
                         commissionSettingEditAll: vm.commissionSettingEditAll,
                         commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
@@ -12153,6 +12155,7 @@ define(['js/app'], function (myApp) {
                 isRevert: isRevert,
                 isPlatformRate: true,
                 isDelete: isDelete,
+                isMultiLevel: vm.isMultiLevelCommission,
                 commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
             };
 
@@ -12174,8 +12177,15 @@ define(['js/app'], function (myApp) {
             vm.rateAfterRebatePlatform = null;
             vm.rateAfterRebateTotalDeposit = null;
             vm.rateAfterRebateTotalWithdrawal = null;
-            vm.custCommissionRateConfig = [];
             vm.srcCommissionRateConfig = {};
+
+            if (vm.custCommissionRateConfig) {// to avoid clear reference
+                if (vm.custCommissionRateConfig.length) {
+                    vm.custCommissionRateConfig.splice(0, vm.custCommissionRateConfig.length)
+                }
+            } else {
+                vm.custCommissionRateConfig = [];
+            }
 
             let sendData = {
                 query: {
@@ -12183,7 +12193,21 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            return $scope.$socketPromise('getPartnerCommissionRateConfig', sendData).then( function (data) {
+            for (let key in vm.commissionRateConfig) { // to avoid clear reference
+                if (!(key == "isEditing" || key == "isCustomized")) {
+                    delete vm.commissionRateConfig[key];
+                }
+            }
+
+            let socketActionStr;
+
+            if (vm.isMultiLevelCommission) {
+                socketActionStr = "getPartnerMainCommRateConfig"
+            } else {
+                socketActionStr = "getPartnerCommissionRateConfig"
+            }
+
+            return $scope.$socketPromise(socketActionStr, sendData).then( function (data) {
                 if (data && data.data && data.data.length > 0) {
                     data.data.forEach(config => {
                         if (config.partner) {
@@ -12191,7 +12215,11 @@ define(['js/app'], function (myApp) {
                         } else {
                             // source config
                             vm.srcCommissionRateConfig = config;
-                            vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
+                            // vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
+                            vm.commissionRateConfig = vm.commissionRateConfig? vm.commissionRateConfig: {};
+                            for (let key in config) { // to avoid clear reference
+                                vm.commissionRateConfig[key] = config[key];
+                            }
 
                             vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                             vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
@@ -12227,6 +12255,8 @@ define(['js/app'], function (myApp) {
                         })
                     }
                 }
+                vm.commissionRateConfig = commonService.applyPartnerCustomRate(vm.selectedSinglePartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig)
+                $scope.$evalAsync();
             });
         };
 
@@ -12260,11 +12290,19 @@ define(['js/app'], function (myApp) {
                 },
                 updateData: updateDate
             }
-            socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
-                console.log('commissionRateConfig success ', data);
-                vm.isCommissionRateEditing = false;
-                $scope.safeApply();
-            });
+            if (vm.isMultiLevelCommission) {
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerMainCommRateConfig', sendData, function (data) {
+                    console.log('UpdatePartnerMainCommRateConfig success ', data);
+                    vm.isCommissionRateEditing = false;
+                    $scope.$evalAsync();
+                });
+            } else {
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
+                    console.log('commissionRateConfig success ', data);
+                    vm.isCommissionRateEditing = false;
+                    $scope.safeApply();
+                });
+            }
         };
 
         vm.validateNumber = function (value, fieldName, idx) {

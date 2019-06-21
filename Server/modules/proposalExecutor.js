@@ -6287,14 +6287,20 @@ function updatePartnerCommRateConfig (proposalData) {
         platform: proposalData.data.newRate.platform,
         partner: proposalData.data.partnerObjId
     };
+    let collectionName;
+    if (proposalData.data.isMultiLevel) {
+        collectionName = "collection_partnerMainCommRateConfig"
+    } else {
+        collectionName = "collection_partnerCommissionRateConfig"
+    }
     if (proposalData.data.isDelete) {
-        return dbconfig.collection_partnerCommissionRateConfig.findOneAndRemove(qObj);
+        return dbconfig[collectionName].findOneAndRemove(qObj);
     } else {
         proposalData.data.newRate.partner = proposalData.data.partnerObjId;
         delete proposalData.data.newRate._id;
         delete proposalData.data.newRate.__v;
         delete proposalData.data.newRate.isEditing;
-        return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
+        return dbconfig[collectionName].findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
 }
 
