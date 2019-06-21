@@ -777,6 +777,12 @@
         this.playerService.updatePasswordWithToken.once(callback);
     };
 
+    proto.checkIsAppPlayerAndAppliedReward = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.checkIsAppPlayerAndAppliedReward.request(data);
+        this.playerService.checkIsAppPlayerAndAppliedReward.once(callback);
+    };
+
     proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.playerLoginOrRegisterWithSMS.request(data);

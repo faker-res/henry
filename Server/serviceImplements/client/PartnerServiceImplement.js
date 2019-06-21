@@ -505,6 +505,16 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTransferList, [data.platformId, data.partnerId, data.startTime, data.endTime, data.requestPage, data.count], isValidData, false, false, true);
     };
 
+    this.getDownLinePlayerTimeSequence.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && conn.partnerId && data.period && data.sortMode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId], isValidData);
+    };
+
+    this.getDownLinePlayerInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerInfo, [data.platformId, conn.partnerId, data.period, data.whosePlayer, data.playerType, data.crewAccount, data.requestPage, data.count, data.sortType, data.sort], isValidData, false, false, true);
+    };
+
     this.notifyNewMail.addListener(
         function (data) {
             WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);

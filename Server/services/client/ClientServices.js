@@ -108,6 +108,7 @@
                 "updateDeviceId",
                 "generateUpdatePasswordToken",
                 "updatePasswordWithToken",
+                "checkIsAppPlayerAndAppliedReward",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
             ];
@@ -468,6 +469,8 @@
                 "partnerCreditToPlayer",
                 "getDownPartnerContribution",
                 "getPartnerTransferList",
+                "getDownLinePlayerTimeSequence",
+                "getDownLinePlayerInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
