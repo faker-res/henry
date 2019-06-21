@@ -168,31 +168,55 @@ const dbPartnerCommission = {
         let allConsumption = 0; // use to divide fee
 
         if (bonusBased) {
-            for(let groupName in providerGroupConsumptionData){
-                if(this.hasOwnProperty(groupName)){
+            for (let i = 0; i < commConfig.length; i++) {
+                let groupName = commConfig[i].groupName;
+                let groupConsumption = providerGroupConsumptionData[groupName];
+                if (!groupConsumption) continue;
+
+                if (-groupConsumption.bonusAmount > 0) {
+                    // sum all negative bonus amount
+                    allConsumption += -groupConsumption.bonusAmount || 0;
+                }
+            }
+
+            if (allConsumption === 0) {
+                for (let i = 0; i < commConfig.length; i++) {
+                    let groupName = commConfig[i].groupName;
                     let groupConsumption = providerGroupConsumptionData[groupName];
                     if (!groupConsumption) continue;
 
-                    if (-groupConsumption.bonusAmount > 0) {
-                        // sum all negative bonus amount
-                        allConsumption += -groupConsumption.bonusAmount || 0;
-                    }
+                    // sum all negative bonus amount
+                    allConsumption += -groupConsumption.bonusAmount || 0;
                 }
+
             }
+
+            // for(let groupName in providerGroupConsumptionData){
+            //     if(this.hasOwnProperty(groupName)){
+            //         let groupConsumption = providerGroupConsumptionData[groupName];
+            //         if (!groupConsumption) continue;
+            //
+            //         if (-groupConsumption.bonusAmount > 0) {
+            //             // sum all negative bonus amount
+            //             allConsumption += -groupConsumption.bonusAmount || 0;
+            //         }
+            //     }
+            // }
 
             // if its still 0
-            if (allConsumption === 0) {
-                for(let groupName in providerGroupConsumptionData){
-                    if(this.hasOwnProperty(groupName)){
-                        let groupConsumption = providerGroupConsumptionData[groupName];
-                        if (!groupConsumption) continue;
-
-                        // sum all negative bonus amount
-                        allConsumption += -groupConsumption.bonusAmount || 0;
-                    }
-                }
-            }
+            // if (allConsumption === 0) {
+            //     for(let groupName in providerGroupConsumptionData){
+            //         if(this.hasOwnProperty(groupName)){
+            //             let groupConsumption = providerGroupConsumptionData[groupName];
+            //             if (!groupConsumption) continue;
+            //
+            //             // sum all negative bonus amount
+            //             allConsumption += -groupConsumption.bonusAmount || 0;
+            //         }
+            //     }
+            // }
         }
+        if (partner.partnerName == "plevel4") console.log('allConsumption', allConsumption);
 
         let rawCommissions = [];
         let nettCommission = 0;
