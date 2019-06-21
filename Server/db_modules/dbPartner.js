@@ -9773,6 +9773,11 @@ let dbPartner = {
         )
     },
 
+    getDownLinePlayerTimeSequence: (platformId) => {
+        console.log('platformId', platformId);
+        return Promise.resolve(true);
+    },
+
     checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
@@ -9820,6 +9825,10 @@ let dbPartner = {
             path: "admin",
             model: dbconfig.collection_admin
         })
+    },
+
+    getDownLinePlayerInfo: (platformId, partnerId, period, whosePlayer, playerType, crewAccount, requestPage, count, sortType, sort) => {
+
     }
 };
 

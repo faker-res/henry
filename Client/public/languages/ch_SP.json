@@ -5621,6 +5621,7 @@
   "PROVIDER_CONSUMPTION_REPORT": "提供商投注报表",
   "Set provider to maintenance after consecutive timeout count": "在N次连续超时后将游戏提供商设为维护状态",
   "Provider consecutive timeout count search time frame (minutes; default 3 minutes)": "游戏提供商连续超时搜索范围（最后N分钟；默认3分钟）",
+  "Check Is Phone Number Bound To A Player Before Apply Bonus": "提款前会员是否绑定手机号",
   "Contact Customer": "联系客户",
   "setPhoneNumber": "绑定手机号",
   "Fail Counter": "失败计数",

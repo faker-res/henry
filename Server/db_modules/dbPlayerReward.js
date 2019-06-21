@@ -7638,7 +7638,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "You need to topup before apply this reward."
+                                message: localization.localization.translate("Your topup dont satisty the requirement")
                             });
                         }
 
@@ -7682,51 +7682,19 @@ let dbPlayerReward = {
                             useConsumptionAmount = consumptionToParticipates;
                             reachConsumptionCondition = true;
                         }
-
-                        if (operationOptions) { // true = and, false = or
-                            if (!reachTopUpCondition) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough top up amount"
-                                });
-                            }
-                            if (!reachConsumptionCondition) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough consumption"
-                                });
-                            }
-                        } else {
-                            if ((!reachTopUpCondition || !reachConsumptionCondition)) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Player does not have enough top up or consumption amount"
-                                });
-                            }
-                            //Only use one of the condition, reset another
-                            if (reachTopUpCondition && reachConsumptionCondition) {
-                                // if both condition true, then use TopUpAmount first
-                                if (isUpdateMultiTopupRecord){
-                                    useConsumptionAmount = 0;
-                                    isUpdateMultiConsumptionRecord = false;
-                                }
-                                else if (isUpdateMultiConsumptionRecord){
-                                    useTopUpAmount = 0;
-                                    isUpdateMultiTopupRecord = false;
-                                }
-                            } else {
-                                if (reachTopUpCondition) {
-                                    useConsumptionAmount = 0;
-                                    isUpdateMultiConsumptionRecord = false;
-                                }
-                                if (reachConsumptionCondition) {
-                                    useTopUpAmount = 0;
-                                    isUpdateMultiTopupRecord = false;
-                                }
-                            }
+                        if (!reachTopUpCondition) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("Your topup dont satisty the requirement")
+                            });
+                        }
+                        if (!reachConsumptionCondition) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: localization.localization.translate("Your consumption dont satisfy the requirement")
+                            });
                         }
                         break;
                     // type 6
@@ -8733,11 +8701,14 @@ let dbPlayerReward = {
                                         }
 
                                         if(eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+
                                             let outputMsg = localization.localization.translate('Congratulation! you got festival reward: ');
                                             if (selectedRewardParam && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 ){
                                                 outputMsg = localization.localization.translate('Congratulation! you got birthday reward: ')
                                             }
-                                            outputMsg += ( selectedRewardParam && selectedRewardParam.rewardAmount ) ? selectedRewardParam.rewardAmount : '';
+                                            // show the mintopup field - calculation is amount * percent
+                                            let rewardAmt = ( proposalData.data && proposalData.data.rewardAmount ) ? proposalData.data.rewardAmount : '';
+                                            outputMsg += rewardAmt;
                                             outputMsg += localization.localization.translate('RMB');
 
                                             let festivalRewardRes = {
