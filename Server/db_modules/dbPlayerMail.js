@@ -792,7 +792,7 @@ const dbPlayerMail = {
                         || purpose === constSMSPurpose.PARTNER_REGISTRATION
                         || purpose === constSMSPurpose.NEW_PHONE_NUMBER
                         || purpose === constSMSPurpose.SET_PHONE_NUMBER
-                        || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
+                        // || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
                     ) {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
