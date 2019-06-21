@@ -1118,6 +1118,23 @@ const dbPartnerCommission = {
         return Promise.all(promArr);
     },
 
+    checkPartnersChild: (platformObjId, partnersName) => {
+        return dbconfig.collection_partner.find({
+            platform: platformObjId,
+            partnerName: {$in: partnersName},
+            children:{$exists:true, $ne: []}
+        }).lean().then(
+            partnersData => {
+                let isChildExists = false;
+                if (partnersData && partnersData.length) {
+                    isChildExists = true
+                }
+                return {isChildExists: isChildExists}
+            }
+        )
+
+    },
+
     applyPartnerCommissionSettlement: async (commissionLog, statusApply, adminInfo, remark) => {
         let childDetail = await dbconfig.collection_parentPartnerCommissionDetail.find({parentObjId: commissionLog.partner, startTime: commissionLog.startTime}).sort({partnerName: 1}).lean().read("secondaryPreferred");
         let proposalType = await dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean();

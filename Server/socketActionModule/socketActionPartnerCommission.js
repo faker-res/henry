@@ -104,6 +104,12 @@ function socketActionPartnerCommission(socketIO, socket) {
             let isValidData = Boolean(data && data.query);
             socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPartnerMainCommRateConfig, [data.query], actionName, isValidData);
         },
+
+        checkPartnersChild: function checkPartnersChild(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.partnersName && data.partnersName.length);
+            socketUtil.emitter(self.socket, dbPartnerCommission.checkPartnersChild, [data.platformObjId, data.partnersName], actionName, isValidData);
+        },
     };
 
     socketActionPartnerCommission.actions = this.actions;
