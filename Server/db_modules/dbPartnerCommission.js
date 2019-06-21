@@ -1873,18 +1873,18 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
             let commSetting = parentRateTable && parentRateTable.commissionSetting && parentRateTable.commissionSetting[i] || {};
             currentRequirement.parentRate.push(commSetting.commissionRate);
 
-            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
+            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate || !currentRequirement.commissionRate) {
                 return 0;
             }
 
             
             let currentRate = math.chain(Number(commSetting.commissionRate) - Number(previousPartnerRate)).divide(currentRequirement.commissionRate).round(8).done();
-            console.log('(curPartnerRate', Number(commSetting.commissionRate), "- previousPartnerRate", previousPartnerRate, ")/curComRate", currentRequirement.commissionRate);
+            if (currentRequirement.commissionRate === 0.005) console.log('(curPartnerRate', Number(commSetting.commissionRate), "- previousPartnerRate", previousPartnerRate, ")/curComRate", currentRequirement.commissionRate);
 
             previousPartnerRate = commSetting.commissionRate;
             return currentRate;
         });
-        console.log('currentRequirement.parentRatios', currentRequirement.parentRatios)
+        if (currentRequirement.commissionRate === 0.005) console.log('currentRequirement.parentRatios', currentRequirement.parentRatios)
     }
 
     if (incompleteSetting) {
