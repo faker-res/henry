@@ -631,6 +631,11 @@ let dbPlayerInfo = {
                     let playerIPRegisterCount = 0;
                     let playerIPRegionLimitCount = 0;
                     let playerIPRegionSplit = inputData.lastLoginIp.split('.');
+                    let fromFontEnd = true;
+                    if (adminName ||connPartnerId) {
+                        //if new player acc is created from backend or partner 
+                        fromFontEnd = false;
+                    }
                     ipData.forEach(ip => {
                         let regionCount = 0;
                         if (ip.ipAddress && ip.ipAddress == inputData.lastLoginIp) {
@@ -653,11 +658,11 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && !connPartnerId) {
+                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
                         console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && !connPartnerId) {
+                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
                         console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
