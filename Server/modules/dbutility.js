@@ -1282,6 +1282,15 @@ var dbUtility = {
                     inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
                 }
             }
+            // Native app
+            else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
+                if (isPartnerProposal) {
+                    inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PARTNER;
+                }
+                else {
+                    inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+                }
+            }
             else {
                 if (isPartnerProposal) {
                     inputDevice = constPlayerRegistrationInterface.WEB_AGENT;

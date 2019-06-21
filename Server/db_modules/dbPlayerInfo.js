@@ -24072,6 +24072,30 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    checkIsAppPlayerAndAppliedReward: async function (playerObjId) {
+        let returnObj = {
+            isAppRegistered: false,
+            isAppliedRewardFromApp: false
+        };
+
+        let isAppRegistered = await dbconfig.collection_players.findOne({
+            _id: playerObjId,
+            registrationInterface: constPlayerRegistrationInterface.APP_NATIVE_PLAYER
+        });
+        returnObj.isAppRegistered = Boolean(isAppRegistered);
+
+        let isAppliedRewardFromApp = await dbconfig.collection_proposal.findOne({
+            "data.playerObjId": playerObjId,
+            inputDevice: constPlayerRegistrationInterface.APP_NATIVE_PLAYER,
+            mainType: "Reward",
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+        });
+        returnObj.isAppliedRewardFromApp = Boolean(isAppliedRewardFromApp);
+
+        return returnObj;
+
+    },
+
     getClientData: function (playerId) {
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             playerData => {
@@ -25702,12 +25726,13 @@ function determineRegistrationInterface(inputData) {
                 inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
             }
         }
+        // Native app
         else if (userAgent.os == "" && userAgent.browser == "" && userAgent.device =="") {
             if (inputData.partner) {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_NATIVE_PARTNER;
             }
             else {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                inputData.registrationInterface = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
             }
         }
         else {

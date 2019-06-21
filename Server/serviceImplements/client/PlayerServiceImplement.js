@@ -1520,6 +1520,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData, false, false, true);
     };
 
+    this.checkIsAppPlayerAndAppliedReward.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn && conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkIsAppPlayerAndAppliedReward, [conn.playerObjId], isValidData);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
