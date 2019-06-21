@@ -10757,25 +10757,27 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
             for (let i = 0, len = rewardData.length; i < len; i++) {
                 let rewardTypeTotal = rewardData[i];
 
-                switch (String(rewardTypeTotal.typeId)) {
-                    case rewardTypes.manualReward:
-                        playerRewardDetail.manualReward = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.consumptionReturn:
-                        playerRewardDetail.consumptionReturn = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.limitedOffer:
-                        playerRewardDetail.limitedOffer = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.promoCode:
-                        playerRewardDetail.promoCode = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.convertRewardPoint:
-                    case rewardTypes.autoConvertRewardPoint:
-                        playerRewardDetail.pointConversion += rewardTypeTotal.amount;
-                        break;
-                    default:
-                        playerRewardDetail.systemReward += rewardTypeTotal.amount;
+                if (rewardTypes) {
+                    switch (String(rewardTypeTotal.typeId)) {
+                        case rewardTypes.manualReward:
+                            playerRewardDetail.manualReward = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.consumptionReturn:
+                            playerRewardDetail.consumptionReturn = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.limitedOffer:
+                            playerRewardDetail.limitedOffer = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.promoCode:
+                            playerRewardDetail.promoCode = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.convertRewardPoint:
+                        case rewardTypes.autoConvertRewardPoint:
+                            playerRewardDetail.pointConversion += rewardTypeTotal.amount;
+                            break;
+                        default:
+                            playerRewardDetail.systemReward += rewardTypeTotal.amount;
+                    }
                 }
 
                 playerRewardDetail.total += rewardTypeTotal.amount;
