@@ -631,14 +631,17 @@ let dbPlayerInfo = {
                     let playerIPRegisterCount = 0;
                     let playerIPRegionLimitCount = 0;
                     let playerIPRegionSplit = [];
-                    if ( inputData.lastLoginIp ) {
-                        inputData.lastLoginIp.split('.');
-                    }
+
                     let fromFontEnd = true;
                     if (adminName ||connPartnerId) {
                         //if new player acc is created from backend or partner
                         fromFontEnd = false;
                     }
+                    if ( inputData.lastLoginIp && fromFontEnd) {
+                        console.log('MT --checking lastLoginIp', inputData.lastLoginIp)
+                        inputData.lastLoginIp.split('.');
+                    }
+
                     ipData.forEach(ip => {
                         let regionCount = 0;
                         if (ip.ipAddress && ip.ipAddress == inputData.lastLoginIp) {
@@ -646,13 +649,13 @@ let dbPlayerInfo = {
                         }
                         let ipSplit = ip.ipAddress.split('.');
                         // compare 3 region of ip , for example :  10.1.1.182,  10.1.1.192<-> first 3 is equal ? yes, because 10.1.1 is same
-                        if (ipSplit[0] && ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
+                        if (ipSplit[0] && playerIPRegionSplit[0] && ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
                             regionCount++;
                         }
-                        if (ipSplit[1] && ipSplit[1] == playerIPRegionSplit[1] && ipSplit[1] != '') {
+                        if (ipSplit[1] && playerIPRegionSplit[1] && ipSplit[1] == playerIPRegionSplit[1] && ipSplit[1] != '') {
                             regionCount++;
                         }
-                        if (ipSplit[2] && ipSplit[2] == playerIPRegionSplit[2] && ipSplit[2] != '') {
+                        if (ipSplit[2] && playerIPRegionSplit[2] && ipSplit[2] == playerIPRegionSplit[2] && ipSplit[2] != '') {
                             regionCount++;
                         }
 
