@@ -24001,14 +24001,9 @@ let dbPlayerInfo = {
     checkIsAppPlayerAndAppliedReward: async function (playerObjId) {
         let returnObj = {
             isAppRegistered: false,
-            isAppliedRewardFromApp: false
+            isAppliedRewardFromApp: false,
+            isSMSValidated: false
         };
-
-        let isAppRegistered = await dbconfig.collection_players.findOne({
-            _id: playerObjId,
-            registrationInterface: constPlayerRegistrationInterface.APP_NATIVE_PLAYER
-        });
-        returnObj.isAppRegistered = Boolean(isAppRegistered);
 
         let isAppliedRewardFromApp = await dbconfig.collection_proposal.findOne({
             "data.playerObjId": playerObjId,
@@ -24017,6 +24012,15 @@ let dbPlayerInfo = {
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         });
         returnObj.isAppliedRewardFromApp = Boolean(isAppliedRewardFromApp);
+
+        let playerObj = await dbconfig.collection_players.findById(playerObjId, {playerId: 1, registrationInterface: 1}).lean();
+
+        if (playerObj) {
+            returnObj.isAppRegistered = Boolean(playerObj.registrationInterface === constPlayerRegistrationInterface.APP_NATIVE_PLAYER);
+
+            let smsLog = await dbconfig.collection_smsLog.findOne({playerId: playerObj.playerId, used: true}).lean();
+            returnObj.isSMSValidated = Boolean(smsLog);
+        }
 
         return returnObj;
 
