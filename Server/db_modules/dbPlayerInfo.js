@@ -630,7 +630,10 @@ let dbPlayerInfo = {
                     let playerIPRegionLimit = platformData.playerIPRegionLimit;
                     let playerIPRegisterCount = 0;
                     let playerIPRegionLimitCount = 0;
-                    let playerIPRegionSplit = inputData.lastLoginIp.split('.');
+                    let playerIPRegionSplit = [];
+                    if ( inputData.lastLoginIp ) {
+                        inputData.lastLoginIp.split('.');
+                    }
                     let fromFontEnd = true;
                     if (adminName ||connPartnerId) {
                         //if new player acc is created from backend or partner
