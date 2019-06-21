@@ -16578,7 +16578,6 @@ define(['js/app'], function (myApp) {
             vm.getUpdateChildPartnerName();
 
             if (!isConfirm) {
-                let isShowModal = false;
                 let newChildPartnerArr = [];
                 let removedChildPartnerArr = [];
 
