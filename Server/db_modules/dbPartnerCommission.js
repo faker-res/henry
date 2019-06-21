@@ -196,6 +196,7 @@ const dbPartnerCommission = {
 
         let rawCommissions = [];
         let nettCommission = 0;
+        let absoluteFeeMultiplierUsed = false;
         for (let i = 0; i < commConfig.length; i++) {
             let groupRate = commConfig[i];
             let totalConsumption = bonusBased ? -providerGroupConsumptionData[groupRate.groupName].bonusAmount : providerGroupConsumptionData[groupRate.groupName].validAmount;
@@ -237,7 +238,10 @@ const dbPartnerCommission = {
                 let feeMultiplier = 0;
                 if (allConsumption === 0) { // This if else statement is base on what Ken said
                     // if all is zero, just cost parent everything
-                    feeMultiplier = 1;
+                    if (!absoluteFeeMultiplierUsed) {
+                        feeMultiplier = 1;
+                        absoluteFeeMultiplierUsed = true;
+                    }
                 } else if (allConsumption > 0) {
                     // if there are any positive, only distribute against those that are positive (refer to above allConsumption calculation)
                     feeMultiplier = totalConsumption > 0 ? math.chain(totalConsumption).divide(allConsumption).round(12).done() : 0;
