@@ -245,11 +245,11 @@ const dbPartnerCommission = {
                     // if there are no positive but there are negatives, then only distribute with negatives
                     feeMultiplier = math.chain(totalConsumption).divide(allConsumption).round(12).done() || 0;
                 }
-                platformFeeDirect = math.chain(totalConsumption).multiply(platformFeeRateDirect).round(2).done();
+                platformFeeDirect = math.chain(totalConsumption).multiply(platformFeeRateDirect).abs().round(2).done();
                 let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done();
                 let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done();
                 let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done();
-                platformFeeMulti = math.chain(totalConsumption).multiply(platformFeeRateMulti).round(2).done();
+                platformFeeMulti = math.chain(totalConsumption).multiply(platformFeeRateMulti).abs().round(2).done();
                 rewardFeeMulti = math.chain(totalMRewardFee).multiply(feeMultiplier).round(2).done();
                 topUpFeeMulti = math.chain(totalMTopUpFee).multiply(feeMultiplier).round(2).done();
                 withdrawalFeeMulti = math.chain(totalMWithdrawalFee).multiply(feeMultiplier).round(2).done();
