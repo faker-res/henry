@@ -304,18 +304,12 @@ const dbPartnerCommission = {
                     .round(2)
                     .done();
 
-                if (partner.partnerName == "ptest005") console.log("ptest005", 'consumptionAfterFeeMulti', consumptionAfterFeeMulti, totalConsumption, platformFeeMulti, rewardFeeMulti, topUpFeeMulti, withdrawalFeeMulti)
-                if (partner.partnerName == "ptest004") console.log("ptest004",'consumptionAfterFeeMulti', consumptionAfterFeeMulti, totalConsumption, platformFeeMulti, rewardFeeMulti, topUpFeeMulti, withdrawalFeeMulti)
             }
 
             let mainParentCommissionRate = multiLevelCommissionRate.parentRate[multiLevelCommissionRate.parentRate.length - 1] || multiLevelCommissionRate.commissionRate;
 
             let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
-            if (partner.partnerName == "ptest005") console.log("ptest005", 'rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
-            if (partner.partnerName == "ptest004") console.log("ptest004",'rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
-            if (partner.partnerName == "ptest004") console.log("ptest004",'rawDirectCommission', rawDirectCommission, 'directCommissionRate.commissionRate', directCommissionRate.commissionRate)
-            console.log('partnerName', partner.partnerName, "consumptionAfterFeeMulti", consumptionAfterFeeMulti, "consumptionAfterFeeDirect", consumptionAfterFeeDirect, 'multiLevelCommissionRate.commissionRate', multiLevelCommissionRate.commissionRate, 'directCommissionRate.commissionRate', directCommissionRate.commissionRate)
 
             rawCommissions.push({
                 crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
@@ -350,8 +344,6 @@ const dbPartnerCommission = {
                 let parentRate = math.chain(multiLevelCommissionRate.parentRate[j] || 0).subtract(previousParentRate).round(8).done(); //multiLevelCommissionRate.parentRate[j] - previousParentRate;
                 previousParentRate = multiLevelCommissionRate.parentRate[j] || 0;
                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
-                if (partner.partnerName == "ptest005") console.log("ptest005",  'parentRatio', parentRatio, 'ratioSum', ratioSum)
-                if (partner.partnerName == "ptest004") console.log("ptest004", 'parentRatio', parentRatio, 'ratioSum', ratioSum)
 
                 let detail = {
                     groupName: groupRate.groupName,
@@ -370,8 +362,22 @@ const dbPartnerCommission = {
                     parentRatio = 1;
                 }
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
-                if (partner.partnerName == "ptest005") console.log("ptest005",  'amount', detail.amount)
-                if (partner.partnerName == "ptest004") console.log("ptest004", 'amount', detail.amount)
+
+                let logDetail = {
+                    partnerName: partner.partnerName,
+                    consumptionAfterFeeMulti,
+                    consumptionAfterFeeDirect,
+                    "multiLevelCommissionRate.commissionRate": multiLevelCommissionRate.commissionRate,
+                    "directCommissionRate.commissionRate": directCommissionRate.commissionRate,
+                    rawCommission,
+                    parentRatio,
+                    ratioSum,
+                    parentRate,
+                    'detail.amount': detail.amount,
+                };
+                if (partner.partnerName == "ptest005" || partner.partnerName == "ptest004" ) {
+                    console.log(JSON.stringify(logDetail, null, 2))
+                }
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
                 parentCommissionDetail[objId].totalPlatformFee += detail.platformFee || 0;
