@@ -566,6 +566,7 @@ var simplifiedChinese = {
     "Congratulation! you got festival reward: ": "恭喜您获得节日免费红包",
     "Congratulation! you got birthday reward: ": "恭喜您获得生日免费红包",
     "RMB": "元",
+    "Process too many times, please contact customer service for asistance": "当前操作过于频繁，请联系客服协助",
     "You need to topup before apply this reward.": "您的存款条件不满足此优惠",
     "Your Birthday is Not In the Period of This Reward.": "您的生日日期不符合优惠申请条件",
     "Not In the Period of This Reward.": "您需要节日当天才可以领取该优惠",

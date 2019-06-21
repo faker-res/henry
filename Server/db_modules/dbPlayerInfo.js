@@ -604,22 +604,77 @@ let dbPlayerInfo = {
         let platformPrefix = "";
         let platformObj = null;
         let platformId = null;
+        let platformData = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
         else if (inputData.platformId) {
             return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).then(
-                platformData => {
-                    if (!platformData) {
+                platformInfo => {
+                    if (!platformInfo) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
+                    platformData = platformInfo;
+                    if (!platformInfo.ipCheckPeriod) {
+                        // if ipCheckPeriod not set, default 60 mins
+                        platformInfo.ipCheckPeriod = 60;
+                    }
+                    let endTime = new Date();
+                    let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
+                    return dbconfig.collection_playerRegisterIP.find({platformObjId: platformInfo._id, createTime: {$gte: startTime, $lt: endTime} }).lean();
+                }
+            ).then(
+                ipData => {
+
+                    let playerIPRegisterLimit = platformData.playerIPRegisterLimit;
+                    let playerIPRegionLimit = platformData.playerIPRegionLimit;
+                    let playerIPRegisterCount = 0;
+                    let playerIPRegionLimitCount = 0;
+                    let playerIPRegionSplit = inputData.lastLoginIp.split('.');
+                    let fromFontEnd = true;
+                    if (adminName ||connPartnerId) {
+                        //if new player acc is created from backend or partner
+                        fromFontEnd = false;
+                    }
+                    ipData.forEach(ip => {
+                        let regionCount = 0;
+                        if (ip.ipAddress && ip.ipAddress == inputData.lastLoginIp) {
+                            playerIPRegisterCount += 1;
+                        }
+                        let ipSplit = ip.ipAddress.split('.');
+                        // compare 3 region of ip , for example :  10.1.1.182,  10.1.1.192<-> first 3 is equal ? yes, because 10.1.1 is same
+                        if (ipSplit[0] && ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
+                            regionCount++;
+                        }
+                        if (ipSplit[1] && ipSplit[1] == playerIPRegionSplit[1] && ipSplit[1] != '') {
+                            regionCount++;
+                        }
+                        if (ipSplit[2] && ipSplit[2] == playerIPRegionSplit[2] && ipSplit[2] != '') {
+                            regionCount++;
+                        }
+
+                        if (regionCount == 3) {
+                            playerIPRegionLimitCount++;
+                        }
+
+                    })
+                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
+                        console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
+                    }
+                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
+                        console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
+                    }
+                }
+            ).then(
+                () => {
                     if (platformData.requireSMSVerification && inputData.phoneNumber && inputData.phoneNumber.toString().length != 11) {
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
                         });
                     }
-
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
@@ -2139,7 +2194,12 @@ let dbPlayerInfo = {
                             )
                         )
                     }
-                    return Promise.all(proms);
+                    // if the create user request from front-end , then we record the ip.
+                    let ipSave = Promise.resolve();
+                    if (!adminId) {
+                        ipSave = dbconfig.collection_playerRegisterIP({ipAddress:playerData.lastLoginIp, platformObjId:playerData.platform}).save();
+                    }
+                    return Promise.all(proms, ipSave);
                 }
                 else {
                     //todo::if there is no player level on platform...improve the handling here

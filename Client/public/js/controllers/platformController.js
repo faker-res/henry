@@ -21823,7 +21823,7 @@ define(['js/app'], function (myApp) {
                                     }
 
                                 }
-                                
+
                                 if (el == "app" || el == "h5" || el == "web" || el == "backStage"){
                                     //get Player Level
                                     let playerLevels = {};
@@ -31000,6 +31000,9 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.useEbetWallet = platformData.useEbetWallet;
                         vm.platformBasic.disableProviderAfterConsecutiveTimeoutCount = platformData.disableProviderAfterConsecutiveTimeoutCount;
                         vm.platformBasic.providerConsecutiveTimeoutSearchTimeFrame = platformData.providerConsecutiveTimeoutSearchTimeFrame;
+                        vm.platformBasic.playerIPRegisterLimit = platformData.playerIPRegisterLimit;
+                        vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
+                        vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                     });
                 })
@@ -33082,7 +33085,10 @@ define(['js/app'], function (myApp) {
                         useEbetWallet: srcData.useEbetWallet,
                         disableProviderAfterConsecutiveTimeoutCount: srcData.disableProviderAfterConsecutiveTimeoutCount,
                         providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
-                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
+                        playerIPRegisterLimit: srcData.playerIPRegisterLimit,
+                        playerIPRegionLimit: srcData.playerIPRegionLimit,
+                        ipCheckPeriod: srcData.ipCheckPeriod,
+                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus
                     }
                 };
                 let isProviderGroupOn = false;
