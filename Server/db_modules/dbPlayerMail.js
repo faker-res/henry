@@ -472,7 +472,6 @@ const dbPlayerMail = {
                                 purpose === constSMSPurpose.INQUIRE_ACCOUNT
                                 || purpose === constSMSPurpose.PLAYER_LOGIN
                                 || purpose === constSMSPurpose.PLAYER_APP_LOGIN
-                                || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
                             )
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
@@ -508,7 +507,7 @@ const dbPlayerMail = {
 
                                 } else {
                                     console.log('MT --checking purpose, device', purpose , inputDevice);
-                                    if (purpose && (purpose === constSMSPurpose.PLAYER_LOGIN || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD)) {
+                                    if (purpose && purpose === constSMSPurpose.PLAYER_LOGIN) {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: "Phone number not found, please register first!"
