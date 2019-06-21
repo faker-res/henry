@@ -5299,7 +5299,7 @@ define(['js/app'], function (myApp) {
 
         vm.modifyPlayerDepositTrackingGroup = function (playerId, trackingGroup) {
             let sendData = {
-                platform: vm.curPlatformId,
+                platform: vm.depositAnalysisQuery.platformId,
                 playerId: playerId,
                 trackingGroup: trackingGroup
             };
