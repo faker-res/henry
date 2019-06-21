@@ -546,6 +546,7 @@ const dbPlayerMail = {
                         || purpose === constSMSPurpose.PARTNER_REGISTRATION
                         || purpose === constSMSPurpose.PLAYER_LOGIN
                         || purpose === constSMSPurpose.PLAYER_APP_LOGIN
+                        || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
                     )
                 ) {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
@@ -791,6 +792,7 @@ const dbPlayerMail = {
                         || purpose === constSMSPurpose.PARTNER_REGISTRATION
                         || purpose === constSMSPurpose.NEW_PHONE_NUMBER
                         || purpose === constSMSPurpose.SET_PHONE_NUMBER
+                        || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
                     ) {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0
