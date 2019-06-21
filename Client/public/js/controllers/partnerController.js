@@ -11906,7 +11906,7 @@ define(['js/app'], function (myApp) {
                             vm.modalYesNo = {};
                             vm.modalYesNo.modalTitle = $translate("Please reset the commission rate after binding");
 
-                            vm.modalYesNo.modalText = $translate("Are you sure");
+                            vm.modalYesNo.modalText = $translate("Please reset the commission rate after binding");
                             vm.modalYesNo.actionYes = () => customizeCommissioinFunc();
                             vm.modalYesNo.actionNo = () => {
                                 vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
@@ -16574,8 +16574,42 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.submitChildPartner = function () {
+        vm.submitChildPartner = function (isConfirm) {
             vm.getUpdateChildPartnerName();
+
+            if (!isConfirm) {
+                let isShowModal = false;
+                let newChildPartnerArr = [];
+                let removedChildPartnerArr = [];
+
+                if (vm.updateChildPartner) {
+                    newChildPartnerArr = vm.updateChildPartner.filter(partner => !vm.curChildPartner.includes(partner));
+                }
+
+                if (vm.curChildPartner) {
+                    removedChildPartnerArr = vm.curChildPartner.filter(partner => !vm.updateChildPartner.includes(partner));
+                }
+
+                let updatePartnerArr = newChildPartnerArr.concat(removedChildPartnerArr)
+                if (updatePartnerArr && updatePartnerArr.length) {
+                    return $scope.$socketPromise('checkPartnersChild', {
+                        platformObjId: vm.selectedSinglePartner.platform,
+                        partnersName: updatePartnerArr
+                    }).then(data => {
+                        if (data && data.data && data.data.isChildExists) {
+                            vm.modalYesNo = {};
+                            vm.modalYesNo.modalTitle = $translate("Please reset downline commission rate");
+                            vm.modalYesNo.modalText = $translate("Please reset downline commission rate");
+                            vm.modalYesNo.actionYes = () => vm.submitChildPartner(true);
+                            $('#modalYesNo').modal();
+                            $scope.$evalAsync();
+                        } else {
+                            vm.submitChildPartner(true);
+                        }
+                    });
+                }
+            }
+
             console.log('updateData', vm.updateChildPartner);
             let countUpdateChildPartner = vm.updateChildPartner.length;
 
