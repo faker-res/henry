@@ -1216,7 +1216,7 @@
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.playerIPRegionLimit')
 
                             tr
-                                td {{'IP Check Time Period (Default:1 hours)' | translate}}
+                                td {{'IP Check Time Period (Default:1 minute)' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.ipCheckPeriod}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.ipCheckPeriod')

@@ -616,8 +616,8 @@ let dbPlayerInfo = {
                     }
                     platformData = platformInfo;
                     if (!platformInfo.ipCheckPeriod) {
-                        // if ipCheckPeriod not set, default 60 mins
-                        platformInfo.ipCheckPeriod = 60;
+                        // if ipCheckPeriod not set, default 1 mins
+                        platformInfo.ipCheckPeriod = 1;
                     }
                     let endTime = new Date();
                     let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
