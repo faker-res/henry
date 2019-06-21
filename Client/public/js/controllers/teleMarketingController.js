@@ -249,6 +249,10 @@ define(['js/app'], function (myApp) {
                 vm.showPlatformSpin = false;
                 // vm.buildPlatformList(data.data);
                 vm.allPlatformData = data.data;
+                if (data.data) {
+                    vm.buildPlatformList(data.data);
+                    commonService.sortAndAddPlatformDisplayName(vm.allPlatformData);
+                }
 
                 //select platform from cookies data
                 let storedPlatform = $cookies.get("platform");
@@ -415,8 +419,11 @@ define(['js/app'], function (myApp) {
             return obj;
         };
 
-        vm.getPlatformProviderGroup = () => {
-            return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+        vm.getPlatformProviderGroup = (platformObjId) => {
+            let sendData = {
+                platformObjId: platformObjId || vm.selectedPlatform.data._id
+            };
+            return $scope.$socketPromise('getPlatformProviderGroup', sendData).then(function (data) {
                 vm.gameProviderGroup = data.data;
                 vm.gameProviderGroupNames = {};
                 for (let i = 0; i < vm.gameProviderGroup.length; i++) {
@@ -527,7 +534,7 @@ define(['js/app'], function (myApp) {
             }
             vm.getPlatformProviderGroup();
             vm.getAllPlayerFeedbackResults();
-            vm.getPlayerFeedbackTopic();
+            // vm.getPlayerFeedbackTopic();
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
@@ -1694,13 +1701,16 @@ define(['js/app'], function (myApp) {
                 });
                 vm.getTeleMarketingOverview(true);
             });
-        }
+        };
 
         vm.getTeleMarketingOverview = function (newSearch) {
+            if (vm.teleMarketingOverview && !vm.teleMarketingOverview.platformObjId) {
+                return;
+            }
             vm.loadingTeleMarketingOverviewTable = true;
 
             let sendquery = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.teleMarketingOverview.platformObjId,
                 query: {
                 },
                 index: newSearch ? 0 : (vm.teleMarketingOverview.index || 0),
@@ -1744,6 +1754,12 @@ define(['js/app'], function (myApp) {
                         item['createTime'] = vm.dateReformat(item.createTime);
                         item.sentMessageListCount$ = item.sentMessageListCount + "/" + item.importedListCount;
                         //item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                     });
 
                     $scope.$evalAsync(vm.drawTeleMarketingOverviewTable(newSearch, result, vm.teleMarketingOverview.totalCount));
@@ -1781,12 +1797,16 @@ define(['js/app'], function (myApp) {
 
                     },
                     {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "platform$"
+                    },
+                    {
                         title: $translate('TASK_NAME'),
                         data: "name",
                         render: function (data, type, row) {
                             var link = $('<a>', {
 
-                                'ng-click': 'vm.showTeleMarketingTaskModal("' + row['_id'] + '")'
+                                'ng-click': 'vm.showTeleMarketingTaskModal("' + row['_id'] + '","' + row['platform'] +'")'
 
                             }).text(data);
                             return link.prop('outerHTML');
@@ -1800,7 +1820,7 @@ define(['js/app'], function (myApp) {
                         data: "sentMessageListCount$",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("smsTableAnchor"); vm.initTelePlayerSendingMsgTable()'
+                                'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '","' + row['platform'] +'");  vm.setAnchor("smsTableAnchor"); vm.initTelePlayerSendingMsgTable()'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1811,7 +1831,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             var link = $('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer", "", "' + row['platform'] +'"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1821,7 +1841,7 @@ define(['js/app'], function (myApp) {
                         data: "topUpPlayerCount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp","' + row['topUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp","' + row['topUpPlayerArr'] +'","' + row['platform'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1831,7 +1851,7 @@ define(['js/app'], function (myApp) {
                         data: "multiTopUpPlayerCount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp","' + row['multiTopUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp","' + row['multiTopUpPlayerArr'] +'","' + row['platform'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1841,7 +1861,7 @@ define(['js/app'], function (myApp) {
                         data: "totalValidConsumptionCount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'","' + row['platform'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1851,7 +1871,7 @@ define(['js/app'], function (myApp) {
                         data: "totalPlayerDepositAmount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'","' + row['platform'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1861,7 +1881,7 @@ define(['js/app'], function (myApp) {
                         data: "totalValidConsumptionAmount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
+                                'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'","' + row['platform'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -1951,11 +1971,11 @@ define(['js/app'], function (myApp) {
             return utilService.getFormatTime(data);
         };
 
-        vm.showTeleMarketingTaskModal = function (id) {
+        vm.showTeleMarketingTaskModal = function (id, platformId) {
             vm.editTeleMarketing = null;
             vm.editTaskResult = ''
             socketService.$socket($scope.AppSocket, 'getDxMission', {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformId,
                 '_id': id
             }, function (data) {
                 vm.editTeleMarketing = data.data[0];
@@ -1973,7 +1993,7 @@ define(['js/app'], function (myApp) {
         //create teleMarketing task
         vm.createTeleMarketingTask = function () {
             let sendData = {
-                platform: vm.selectedPlatform.data._id,
+                platform: vm.createTeleMarketing.platformObjId,
                 name: vm.createTeleMarketing.name,
                 description: vm.createTeleMarketing.description,
                 playerPrefix: vm.createTeleMarketing.playerPrefix,
@@ -2674,7 +2694,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformSmsGroups =  () => {
-            return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+            return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedSinglePlayer.platform}).then(function (data) {
                 vm.smsGroups = data.data;
                 console.log('vm.smsGroups', vm.smsGroups);
                 vm.getNoInGroupSmsSetting();
@@ -2868,7 +2888,7 @@ define(['js/app'], function (myApp) {
                     playerId: data.playerId,
                     name: data.name,
                     nickName: data.nickName || "",
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: vm.selectedSinglePlayer.platformId,
                     channel: $scope.channelList[0],
                     hasPhone: data.phoneNumber
                 }
@@ -3027,8 +3047,11 @@ define(['js/app'], function (myApp) {
                 console.log("vm.allPlayerFeedbackTopics", err)
             });
         };
-        vm.getPlayerFeedbackTopic = function () {
-            return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: vm.importPlatformForXLS}).then(
+        vm.getPlayerFeedbackTopic = function (platformId) {
+            let sendData = {
+                platform: platformId || vm.selectedSinglePlayer.platform
+            };
+            return $scope.$socketPromise('getPlayerFeedbackTopic', sendData).then(
                 function (data) {
                     vm.playerFeedbackTopic = data.data;
                     console.log("vm.allPlayerFeedbackTopics", data.data);
@@ -3125,7 +3148,7 @@ define(['js/app'], function (myApp) {
             let reqData = {};
             reqData.key = vm.addPlayerFeedbackTopicData.value;
             reqData.value = vm.addPlayerFeedbackTopicData.value;
-            reqData.platform = vm.selectedPlatform.id;
+            reqData.platform = vm.selectedSinglePlayer.platform;
             console.log(reqData);
             return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
                 function (data) {
@@ -3192,7 +3215,7 @@ define(['js/app'], function (myApp) {
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
                 playerId: vm.isOneSelectedPlayer()._id,
-                platform: vm.selectedPlatform.id,
+                platform: vm.selectedSinglePlayer.platform,
                 createTime: Date.now(),
                 adminId: authService.adminId,
                 content: vm.playerFeedback.content,
@@ -3362,7 +3385,7 @@ define(['js/app'], function (myApp) {
 
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
-            commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})).then(v => {
+            commonService.getBankTypeList($scope, vm.selectedSinglePlayer.platform).catch(err => Promise.resolve({})).then(v => {
                 vm.allBankTypeList = v;
             });
             vm.provinceList = [];
@@ -3396,7 +3419,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllBankCard = function () {
-            socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.data.platformId},
+            socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedSinglePlayer.platformId},
                 data => {
                     var data = data.data;
                     vm.bankCards = data.data ? data.data : false;
@@ -3507,7 +3530,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.getAllAlipaysByAlipayGroup = function () {
-            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedPlatform.data.platformId},
+            socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroup', {platform: vm.selectedSinglePlayer.platformId},
                 data => {
 
                   $scope.$evalAsync(()=>{
@@ -3595,7 +3618,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllWechatpaysByWechatpayGroup = function () {
-            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedPlatform.data.platformId},
+            socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroup', {platform: vm.selectedSinglePlayer.platformId},
                 data => {
                   $scope.$evalAsync(()=>{
                       let wechatAccs = data && data.data && data.data.data ? data.data.data : false;
@@ -3732,7 +3755,7 @@ define(['js/app'], function (myApp) {
             if (vm.playerBonus.bForce == true){
                 let sendQuery = {
                     playerObjId: vm.isOneSelectedPlayer()._id,
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.selectedSinglePlayer.platform,
                 };
                 socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposalById', sendQuery, function (data) {
 
@@ -3853,7 +3876,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardTaskGroupProposalList.forEach( listData => {
                             listData.forEach( rewardTask => {
                                 let sendData = {
-                                    platformId: vm.selectedPlatform.id,
+                                    platformId: vm.selectedSinglePlayer.platform,
                                     playerId: vm.isOneSelectedPlayer()._id,
                                     unlockTime: new Date().toISOString(),
                                     creator: {
@@ -3916,7 +3939,7 @@ define(['js/app'], function (myApp) {
                 vm.playerCreditDetails = null;
                 $('#rewardTaskLogTbl').empty();
 
-                $scope.$socketPromise('getPrevious10PlayerRTG', {platformId: vm.selectedPlatform.id , playerId: vm.selectedSinglePlayer._id})
+                $scope.$socketPromise('getPrevious10PlayerRTG', {platformId: vm.selectedSinglePlayer.platform , playerId: vm.selectedSinglePlayer._id})
                     .then(last30Data => console.log('Player last 30 RTG', last30Data));
             }
         };
@@ -4896,7 +4919,7 @@ define(['js/app'], function (myApp) {
             if (!authService.checkViewPermission('Platform', 'Reward', 'Read')) {
                 return;
             }
-            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform.id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedSinglePlayer.platform}, function (data) {
                 vm.allRewardEvent = data.data;
                 console.log("vm.allRewardEvent", data.data);
                 vm.showApplyRewardEvent = data.data.filter(item => {
@@ -4924,7 +4947,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
-            vm.getPlatformProviderGroup();
+            vm.getPlatformProviderGroup(vm.selectedSinglePlayer.platform);
         };
 
         //********************************** end of AddReward functions **********************************
@@ -5056,7 +5079,7 @@ define(['js/app'], function (myApp) {
             vm.processDataTableinModal(modalID, '#playerRepairPaymentTbl', null, function () {
                 var queryData = {
                     playerId: vm.isOneSelectedPlayer()._id,
-                    platformId: vm.selectedPlatform.data._id
+                    platformId: vm.selectedSinglePlayer.platform
                 }
                 socketService.$socket($scope.AppSocket, 'getPlayerPendingPaymentProposal', queryData, function (data) {
                     vm.allPendingRequest = data.data ? data.data.map(item => {
@@ -5173,7 +5196,7 @@ define(['js/app'], function (myApp) {
 
         vm.updatePlayerCredit = function () {
             var sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.selectedSinglePlayer.platform,
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 data: {
                     playerObjId: vm.isOneSelectedPlayer()._id,
@@ -5287,10 +5310,11 @@ define(['js/app'], function (myApp) {
         };
         //********************************** end of RewardPointAdjustment functions **********************************
 
-        vm.setPlayerInfoQuery = function(dxMissionId, type, searchCriteria) {
+        vm.setPlayerInfoQuery = function(dxMissionId, type, searchCriteria, platformId) {
             vm.playerInfoQuery.dxMission = dxMissionId;
             vm.playerInfoQuery.type = type;
-            vm.playerInfoQuery.searchCriteria = searchCriteria
+            vm.playerInfoQuery.searchCriteria = searchCriteria;
+            vm.playerInfoQuery.platform = platformId;
         };
 
         vm.showPagedTelePlayerTable = function () {
@@ -5307,17 +5331,17 @@ define(['js/app'], function (myApp) {
         vm.getPagedTelePlayerTable = function (newSearch) {
             vm.loadingTeleMarketingOverviewTable = true;
             let sendQuery = {
-                platform: vm.selectedPlatform.id ,
+                platform: vm.playerInfoQuery.platform,
                 dxMission: vm.playerInfoQuery.dxMission || "",
                 type: vm.playerInfoQuery.type || "",
                 searchCriteria: vm.playerInfoQuery.searchCriteria || "",
                 index: newSearch ? 0 : (vm.teleMarketingPlayerInfo.index || 0),
                 limit: vm.teleMarketingPlayerInfo.limit || 10,
                 sortCol: vm.teleMarketingPlayerInfo.sortCol || -1
-            }
+            };
 
             socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
-                if(data){
+                if (data) {
                     vm.teleMarketingPlayerInfo.count = data.data && data.data.totalCount ? data.data.totalCount : 0;
                     vm.teleMarketingPlayerInfo.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : {};
                     vm.teleMarketingPlayerInfo.missionData = data.data && data.data.dxMissionData ? data.data.dxMissionData : {};
@@ -5326,8 +5350,14 @@ define(['js/app'], function (myApp) {
                 vm.showPlayerTable = true;
 
                 vm.teleMarketingPlayerInfo.data.forEach((item) => {
-                    if(item){
+                    if (item) {
                         item.registrationTime = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].platformId) {
+                                item.platformId = matchedPlatformData[0].platformId;
+                            }
+                        }
                     }
                 });
 
@@ -5691,8 +5721,9 @@ define(['js/app'], function (myApp) {
             }
         };
         // generate telePlayer Sending Message function table ====================Start==================
-        vm.showTelePlayerSendingMsgTable = function (dxMission) {
+        vm.showTelePlayerSendingMsgTable = function (dxMission, platformId) {
             vm.telePlayerSendingMsgTable = {};
+            vm.telePlayerSendingMsgTable.selectedPlatform = platformId;
 
             vm.telePlayerSendingMsgTable.dxMissionId = dxMission;
             // vm.telePlayerTable.type = 'none';
@@ -5701,21 +5732,21 @@ define(['js/app'], function (myApp) {
                 // vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
                 //     vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
                 // });
-                vm.getTelePlayerSendingMsgTable(true, dxMission);
+                vm.getTelePlayerSendingMsgTable(true, dxMission, platformId);
                 $scope.safeApply()
             });
-        }
+        };
 
-        vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission) {
+        vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission, platformId) {
             vm.loadingTelePlayerSendingSMSTable = true;
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: platformId,
                 dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
                 index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
                 limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,
                 sortCol: vm.telePlayerSendingMsgTable.sortCol,
 
-            }
+            };
             if (vm.telePlayerSendingMsgTable){
                 sendQuery.customerType= vm.telePlayerSendingMsgTable.customerType ? vm.telePlayerSendingMsgTable.customerType : "all";
 
@@ -6026,8 +6057,7 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'telePlayerSendingMsgTable', vm.getTelePlayerSendingMsgTable);
             });
             $('#telePlayerSendingMsgTable').resize();
-
-        }
+        };
 
         vm.changePlayerMsgTableRemark = function (obj) {
             let remark = "";
@@ -6035,15 +6065,14 @@ define(['js/app'], function (myApp) {
                 remark = vm.teleSendSmsDataholder[obj._id].remark$;
             }
             vm.phoneNumberInfo.remark[obj._id] = remark;
-        }
+        };
 
-        vm.savePhoneNumberInfoRemark = function (data){
-
-            var sendObj = {
-                platform: vm.selectedPlatform.id,
+        vm.savePhoneNumberInfoRemark = function (data) {
+            let sendObj = {
+                platform: vm.telePlayerSendingMsgTable.selectedPlatform,
                 dxMission: vm.telePlayerSendingMsgTable.dxMissionId,
                 remarkObj: vm.phoneNumberInfo.remark
-            }
+            };
 
             socketService.$socket($scope.AppSocket, 'updatePhoneNumberRemark', sendObj, function (data) {
                 //assign remark to old data
@@ -6060,10 +6089,10 @@ define(['js/app'], function (myApp) {
                 console.log("update phone number remark status", data)
             }, function (error) {
                 console.log("error", error);
-            })
+            });
 
             vm.showPhoneNumberRemark = false;
-        }
+        };
 
         vm.callNewPlayerBtn = function (phoneNumber, data) {
 
@@ -6080,8 +6109,8 @@ define(['js/app'], function (myApp) {
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
             $scope.safeApply();
-            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
-        }
+            $scope.makePhoneCall(vm.selectedSinglePlayer.platformId);
+        };
 
         // generate telePlayer Sending Message function table ====================End==================
 
@@ -6112,7 +6141,7 @@ define(['js/app'], function (myApp) {
 
             vm.totalmsg = vm.msgSendingGroupData.length;
             $scope.safeApply();
-        }
+        };
 
         vm.sendMsgToTelePlayer = function () {
             if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0) {
@@ -6149,7 +6178,7 @@ define(['js/app'], function (myApp) {
                     console.log("error", error);
                 })
             }
-        }
+        };
 
         vm.setQueryRole = (modal) => {
             vm.queryRoles = [];
