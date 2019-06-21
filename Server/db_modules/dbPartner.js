@@ -1224,29 +1224,6 @@ let dbPartner = {
             }
         );
     },
-    // getPartnerPhoneNumber: function (partnerObjId) {
-    //     return dbconfig.collection_partner.findOne({_id: partnerObjId}).then(
-    //         partnerData => {
-    //             if (partnerData) {
-    //                 if (partnerData.phoneNumber) {
-    //                     if (partnerData.phoneNumber.length > 20) {
-    //                         try {
-    //                             partnerData.phoneNumber = rsaCrypto.decrypt(partnerData.phoneNumber);
-    //                         }
-    //                         catch (err) {
-    //                             console.log(err);
-    //                         }
-    //                     }
-    //                     return partnerData.phoneNumber;
-    //                 } else {
-    //                     return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
-    //                 }
-    //             } else {
-    //                 return Q.reject({name: "DataError", message: "Can not find player"});
-    //             }
-    //         }
-    //     );
-    // },
 
     /**
      * Get partners player info
@@ -9773,9 +9750,166 @@ let dbPartner = {
         )
     },
 
-    getDownLinePlayerTimeSequence: (platformId) => {
-        console.log('platformId', platformId);
-        return Promise.resolve(true);
+    getDownLinePlayerTimeSequence: async (platformId, partnerObjId, period, sortMode, requestPage, count) => {
+
+        let retList = [];
+        let timeSlots = getTimeSlotsForPeriod(period);
+        let partnerSearchArr = [];
+        partnerSearchArr.push(partnerObjId);
+
+        while (partnerSearchArr && partnerSearchArr.length) {
+            let partnerToSearch = partnerSearchArr.shift();
+            let partnerDetail = await dbconfig.collection_partner.findById(partnerToSearch, {_id: 1, platform: 1, commissionType: 1}).lean();
+
+            // Search member details for this partner
+            if (partnerDetail) {
+                // Push child partner to process list
+                // todo:: currently unlimited child processing
+                let children = await dbconfig.collection_partner.find({platform: partnerDetail.platform, parent: partnerDetail._id}, {_id: 1}).lean();
+
+                if (children && children.length) {
+                    children.forEach(p => partnerSearchArr.push(p._id));
+                }
+
+                // Get members detail
+                let activePlayerRequirement = await getRelevantActivePlayerRequirement(partnerDetail.platform, partnerDetail.commissionType);
+                let members = await dbconfig.collection_players.find({platform: partnerDetail.platform, partner: partnerDetail._id}, {_id: 1}).lean();
+                members = members.map(m => m._id);
+
+                let mProms = [];
+                timeSlots.forEach(slot => {
+                    members.forEach(id => mProms.push(
+                        getAllPlayerCommissionRawDetails(
+                            id, null, slot.startTime, slot.endTime, null, null, null, activePlayerRequirement
+                        ).then(
+                            memberDetail => {
+                                retList.push({
+                                    date: slot.startTime,
+                                    isNew: memberDetail.isNew,
+                                    isActive: memberDetail.active,
+                                    bonusAmount: memberDetail.consumptionDetail.bonusAmount,
+                                    topupAmount: memberDetail.topUpDetail.topUpAmount,
+                                    withdrawAmount: memberDetail.withdrawalDetail.withdrawalAmount,
+                                    validBet: memberDetail.consumptionDetail.validAmount,
+                                    promoAmount: memberDetail.rewardDetail.total
+                                })
+                            }
+                        )
+                    ));
+                });
+                await Promise.all(mProms);
+            }
+        }
+
+        // Process return list
+        retList = retList.reduce((a, b) => {
+            if (a.length) {
+                let index = a.findIndex(idx => new Date(idx.date).getTime() === new Date(b.date).getTime());
+
+                if (index !== -1) {
+                    a[index].newPlayerCount = b.isNew ? a[index].newPlayerCount + 1 : a[index].newPlayerCount;
+                    a[index].activeCrewCount = b.isActive ? a[index].activeCrewCount + 1 : a[index].activeCrewCount;
+                    a[index].crewProfit = a[index].crewProfit + b.bonusAmount;
+                    a[index].depositCount = a[index].depositCount + b.topupAmount;
+                    a[index].withdrawAmount = a[index].withdrawAmount + b.withdrawAmount;
+                    a[index].validBet = a[index].validBet + b.validBet;
+                    a[index].promoAmount = a[index].promoAmount + b.promoAmount;
+                } else {
+                    a.push({
+                        date: b.date,
+                        newPlayerCount: b.isNew ? 1 : 0,
+                        activeCrewCount: b.isActive ? 1 : 0,
+                        crewProfit: b.bonusAmount,
+                        depositCount: b.topupAmount,
+                        withdrawAmount: b.withdrawAmount,
+                        validBet: b.validBet,
+                        promoAmount: b.promoAmount
+                    })
+                }
+            } else {
+                a.push({
+                    date: b.date,
+                    newPlayerCount: b.isNew ? 1 : 0,
+                    activeCrewCount: b.isActive ? 1 : 0,
+                    crewProfit: b.bonusAmount,
+                    depositCount: b.topupAmount,
+                    withdrawAmount: b.withdrawAmount,
+                    validBet: b.validBet,
+                    promoAmount: b.promoAmount
+                })
+            }
+
+            return a;
+        }, []);
+
+        // Sort return list
+        retList.sort((a, b) => sortRetList(a, b, sortMode));
+
+        let totalListCount = retList.length;
+
+        // Limit return list
+        if (requestPage && count) {
+            retList = retList.slice((requestPage - 1) * count, requestPage * count);
+        }
+
+        return Promise.resolve({
+            stats: {
+                totalCount: totalListCount,
+                currentPage: requestPage ? requestPage : 1,
+                totalPage: count ? Math.ceil(totalListCount / count) : 1
+            },
+            list: retList
+        });
+
+        function getTimeSlotsForPeriod (period) {
+            if (period === 1) {
+                let todayTime = dbUtil.getTodaySGTime();
+                return dbUtil.splitTimeFrameToHourly(todayTime.startTime, todayTime.endTime);
+            } else if (period === 2) {
+                let thisWeekTime = dbUtil.getCurrentWeekSGTime();
+                return dbUtil.splitTimeFrameToDaily(thisWeekTime.startTime, thisWeekTime.endTime);
+            } else {
+                let thisMonthTime = dbUtil.getCurrentMonthSGTIme();
+                return dbUtil.splitTimeFrameToDaily(thisMonthTime.startTime, thisMonthTime.endTime);
+            }
+        }
+
+        function sortRetList (a, b, sortMode) {
+            let sortField;
+
+            switch (sortMode) {
+                case 1:
+                    sortField = "depositCount";
+                    break;
+                case 2:
+                    sortField = "withdrawAmount";
+                    break;
+                case 3:
+                    sortField = "crewProfit";
+                    break;
+                case 4:
+                    sortField = "validBet";
+                    break;
+                case 5:
+                    sortField = "newPlayerCount";
+                    break;
+                case 6:
+                    sortField = "activeCrewCount";
+                    break;
+                case 7:
+                    sortField = "promoAmount";
+                    break;
+            }
+
+            // first sort
+            if (a[sortField] > b[sortField]) {
+                return 1;
+            } else if (a[sortField] < b[sortField]) {
+                return -1;
+            } else {
+                return new Date(a.date).getTime() - new Date(b.date).getTime();
+            }
+        }
     },
 
     checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
@@ -10495,7 +10629,7 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
         console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
         return Promise.reject(err);
     });
-    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
+    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1, registrationTime: 1}).lean();
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
@@ -10505,6 +10639,7 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
             let rewardDetail = data[3];
             let name = (data[4] && data[4].name) || "";
             let realName = (data[4] && data[4].realName) || "";
+            let isNew = data[4] && data[4].registrationTime ? new Date(data[4].registrationTime).getTime() > new Date(startTime.getTime()) : false;
 
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
 
@@ -10516,6 +10651,7 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
                 withdrawalDetail,
                 rewardDetail,
                 active,
+                isNew
             };
         }
     );

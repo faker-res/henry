@@ -506,8 +506,8 @@ var PartnerServiceImplement = function () {
     };
 
     this.getDownLinePlayerTimeSequence.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && conn.partnerId && data.period && data.sortMode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId], isValidData);
+        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId && data.period && data.sortMode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId, conn.partnerObjId, data.period, data.sortMode, data.requestPage, data.count], isValidData);
     };
 
     this.notifyNewMail.addListener(
