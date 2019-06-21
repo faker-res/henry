@@ -364,6 +364,7 @@ const dbPartnerCommission = {
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 let logDetail = {
+                    parent,
                     partnerName: partner.partnerName,
                     consumptionAfterFeeMulti,
                     consumptionAfterFeeDirect,
@@ -375,7 +376,7 @@ const dbPartnerCommission = {
                     parentRate,
                     'detail.amount': detail.amount,
                 };
-                if (partner.partnerName == "ptest006" || partner.partnerName == "ptest004" ) {
+                if (partner.partnerName == "ptest006" && rawCommission) {
                     console.log("\\(OwO)/ !!!", JSON.stringify(logDetail, null, 2))
                 }
 
