@@ -373,7 +373,7 @@ const dbPartnerCommission = {
                     parentRate,
                     'detail.amount': detail.amount,
                 };
-                if (partner.partnerName == "ptest003" && rawCommission) {
+                if (partner.partnerName == "plevel2" && rawCommission) {
                     console.log("\\(OwO)/ !!!", JSON.stringify(logDetail, null, 2))
                 }
 
@@ -1880,12 +1880,12 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
 
             
             let currentRate = math.chain(Number(commSetting.commissionRate) - Number(previousPartnerRate)).divide(currentRequirement.commissionRate).round(8).done();
-            if (currentRequirement.commissionRate === 0.005) console.log('(curPartnerRate', Number(commSetting.commissionRate), "- previousPartnerRate", previousPartnerRate, ")/curComRate", currentRequirement.commissionRate);
+            if (currentRequirement.commissionRate === 0.39) console.log('(curPartnerRate', Number(commSetting.commissionRate), "- previousPartnerRate", previousPartnerRate, ")/curComRate", currentRequirement.commissionRate);
 
             previousPartnerRate = commSetting.commissionRate;
             return currentRate;
         });
-        if (currentRequirement.commissionRate === 0.005) console.log('currentRequirement.parentRatios', currentRequirement.parentRatios)
+        if (currentRequirement.commissionRate === 0.39) console.log('currentRequirement.parentRatios', currentRequirement.parentRatios)
     }
 
     if (incompleteSetting) {
