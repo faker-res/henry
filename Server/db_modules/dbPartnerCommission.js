@@ -375,8 +375,8 @@ const dbPartnerCommission = {
                     parentRate,
                     'detail.amount': detail.amount,
                 };
-                if (partner.partnerName == "ptest005" || partner.partnerName == "ptest004" ) {
-                    console.log(JSON.stringify(logDetail, null, 2))
+                if (partner.partnerName == "ptest006" || partner.partnerName == "ptest004" ) {
+                    console.log("\\(OwO)/ !!!", JSON.stringify(logDetail, null, 2))
                 }
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
