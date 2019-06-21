@@ -308,8 +308,8 @@ const dbPartnerCommission = {
 
             let mainParentCommissionRate = multiLevelCommissionRate.parentRate[multiLevelCommissionRate.parentRate.length - 1] || multiLevelCommissionRate.commissionRate;
 
-            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(2).done(); // this is useless for partner himself, only use to count relative partner's commission
-            let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
+            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(8).done(); // this is useless for partner himself, only use to count relative partner's commission
+            let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(8).done();
 
             rawCommissions.push({
                 crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
@@ -403,7 +403,7 @@ const dbPartnerCommission = {
             downLinesRawCommissionDetail: playerRawDetail,
             activeDownLines: activeDownLines,
             partnerCommissionRateConfig: commRate,
-            rawCommissions: rawCommissions,
+            rawCommissions: math.round(rawCommissions, 2),
             totalReward: totalReward,
             totalRewardFee: totalRewardFee,
             rewardFeeRate: commRate.rateAfterRebatePromo / 100,
