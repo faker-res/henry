@@ -318,6 +318,7 @@ const dbPartnerCommission = {
                 parentCommissionDetail[objId].rawCommissions = parentCommissionDetail[objId].rawCommissions || [];
                 if (partner.partnerName == "plevel4") console.log("plevel4",  'parentRatio', parentRatio, 'ratioSum', ratioSum)
                 if (partner.partnerName == "plevel5") console.log("plevel5", 'parentRatio', parentRatio, 'ratioSum', ratioSum)
+
                 let detail = {
                     groupName: groupRate.groupName,
                     groupId: groupRate.groupId,
@@ -330,8 +331,11 @@ const dbPartnerCommission = {
                     rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
-                    amount: math.chain(rawCommission).multiply(parentRatio).round(2).done(),
                 };
+                if (parentRatio === ratioSum) {
+                    parentRatio = 1;
+                }
+                detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
                 if (partner.partnerName == "plevel4") console.log("plevel4",  'amount', detail.amount)
                 if (partner.partnerName == "plevel5") console.log("plevel5", 'amount', detail.amount)
 
