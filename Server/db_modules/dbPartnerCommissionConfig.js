@@ -67,13 +67,24 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: (partnerObjId) => {
-        return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
+    getPartnerCommRate: (partnerObjId) => { // for direct, require main partner's partnerobjid
+        return dbconfig.collection_partnerCommissionRateConfig.findOne({partner: partnerObjId}).lean().then(
             config => {
                 if (config) {
                     return config;
                 }
                 return createDefaultPartnerCommRate (partnerObjId);
+            }
+        )
+    },
+
+    getPartnerMultiLvlCommRate: (partnerObjId) => { // for multi, require main partner's partnerobjid
+        return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
+            config => {
+                if (config) {
+                    return config;
+                }
+                return createDefaultPartnerCommRate (partnerObjId, true);
             }
         )
     },
@@ -901,8 +912,10 @@ function getPartnerParentChain (parentObjId, chainArray) {
     );
 }
 
-function createDefaultPartnerCommRate (partnerObjId) {
+function createDefaultPartnerCommRate (partnerObjId, isMulti) {
     let partner;
+    let commRateSchema = isMulti ? dbconfig.collection_partnerMainCommRateConfig : dbconfig.collection_partnerCommissionRateConfig;
+
     return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
         partnerData => {
             if (!partnerData) {
@@ -911,7 +924,7 @@ function createDefaultPartnerCommRate (partnerObjId) {
 
             partner = partnerData;
 
-            return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: partner.platform, partner: null}).lean();
+            return commRateSchema.findOne({platform: partner.platform, partner: null}).lean();
         }
     ).then(
         defaultConfig => {
@@ -923,11 +936,11 @@ function createDefaultPartnerCommRate (partnerObjId) {
             delete defaultConfigClone._id;
             defaultConfigClone.partner = partner._id;
 
-            return dbconfig.collection_partnerMainCommRateConfig(defaultConfigClone).save();
+            return commRateSchema(defaultConfigClone).save();
         }
     ).then(
         () => {
-            return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean();
+            return commRateSchema.findOne({partner: partnerObjId}).lean();
         }
     );
 }

@@ -74,12 +74,13 @@ const dbPartnerCommission = {
 
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
         let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id);
+        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainPartner._id);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
         let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
         let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
         let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
-        let [commConfig, commRate, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
+        let [commConfig, commRate, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
 
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
 
@@ -130,9 +131,9 @@ const dbPartnerCommission = {
             totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
             totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
             totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
-            totalMRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done(); // todo :: using different rate
-            totalMTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done(); // todo :: using different rate
-            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done(); // todo :: using different rate
+            totalMRewardFee = math.chain(totalReward).multiply(commRateMulti.rateAfterRebatePromo).divide(100).round(2).done();
+            totalMTopUpFee = math.chain(totalTopUp).multiply(commRateMulti.rateAfterRebateTotalDeposit).divide(100).round(2).done();
+            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRateMulti.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
         }
 
 
@@ -159,9 +160,9 @@ const dbPartnerCommission = {
                 totalWithdrawalFee: 0,
                 totalRewardFee: 0,
                 totalPlatformFee: 0,
-                rewardFeeRate: commRate.rateAfterRebatePromo, // todo :: use multi rate
-                topUpFeeRate: commRate.rateAfterRebateTotalDeposit, // todo :: use multi rate
-                withdrawalFeeRate: commRate.rateAfterRebateTotalWithdrawal, // todo :: use multi rate
+                rewardFeeRate: commRateMulti.rateAfterRebatePromo,
+                topUpFeeRate: commRateMulti.rateAfterRebateTotalDeposit,
+                withdrawalFeeRate: commRateMulti.rateAfterRebateTotalWithdrawal,
             };
         }
 
@@ -245,10 +246,23 @@ const dbPartnerCommission = {
                     }
                 });
             }
+            let platformFeeRateMultiData = {
+                rate : 0,
+                isCustom: false
+            };
+
+            if (bonusBased && commRateMulti && commRateMulti.rateAfterRebateGameProviderGroup
+                && commRateMulti.rateAfterRebateGameProviderGroup.length > 0) {
+                commRateMulti.rateAfterRebateGameProviderGroup.map(group => {
+                    if (group.name === groupRate.groupName) {
+                        platformFeeRateMultiData.rate = group.rate || 0;
+                    }
+                });
+            }
             // ====================================================================
 
             let platformFeeRateDirect = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
-            let platformFeeRateMulti = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
+            let platformFeeRateMulti = math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0;
 
             let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
