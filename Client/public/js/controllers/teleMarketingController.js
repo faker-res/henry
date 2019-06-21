@@ -2443,7 +2443,7 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
-                platformObjId: vm.importPlatformForXLS,
+                platformObjId: vm.importPlatformForDX,
                 arrayPhoneXLS: rowArrayMerge,
                 isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
