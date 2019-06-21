@@ -639,7 +639,7 @@ let dbPlayerInfo = {
                     }
                     if ( inputData.lastLoginIp && fromFontEnd) {
                         console.log('MT --checking lastLoginIp', inputData.lastLoginIp)
-                        inputData.lastLoginIp.split('.');
+                        playerIPRegionSplit = inputData.lastLoginIp.split('.');
                     }
 
                     ipData.forEach(ip => {
