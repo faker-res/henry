@@ -1414,9 +1414,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInputDepositTracking = function () {
             let remarkSelect = $('select#selectCredibilityRemarksDepositTracking');
-            if (remarkSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -5276,7 +5276,7 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
-                        vm.depositTrackingQuery = {};
+                        vm.depositTrackingQuery = {platformId: vm.depositTrackingQuery.platformId};
                         vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
                         // vm.searchPlayerDepositTrackingReport();
                     });
@@ -5294,7 +5294,7 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
-                        vm.depositTrackingQuery = {};
+                        vm.depositTrackingQuery = {platformId: vm.depositTrackingQuery.platformId};
                         vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
                         // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
