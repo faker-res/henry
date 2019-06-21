@@ -307,7 +307,7 @@ const dbPartnerCommission = {
 
             let totalAllParentRate = 0;
             let totalParentGrossCommission = 0;
-            for (let j = 0; j < parentChain.length; j++) {
+            for (let j = 0; j < parentChain.length; j++) {个
                 let parent = parentChain[j];
                 let objId = String(parent._id);
                 let parentRatio = multiLevelCommissionRate.parentRatios[j] || 0;
@@ -327,7 +327,7 @@ const dbPartnerCommission = {
                     rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
-                    amount: math.chain(rawCommission).multiply(parentRatio).round(2).done(),
+                    amount: math.chain(rawCommission).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
                 if (partner.partnerName == "plevel5") console.log(parent.parentName, 'amount', detail.amount)
 
