@@ -637,7 +637,7 @@ const dbPartnerCommission = {
                                     platformFee: math.chain(platformFee).divide(ratioSum).multiply(parentRatio).round(2).done(),
                                     platformFeeRate: math.chain(platformFeeRate).divide(ratioSum).multiply(parentRatio).round(2).done(),
                                 };
-                                detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
+                                detail.amount = math.chain(rawCommission).multiply(parentRatio).round(8).done();
                                 // if (i === 0) {
                                 //     detail.amount = math.chain(detail.amount).add(detail.amount).round(2).done();
                                     // this is done to adjust that current level of multi level commission is also given to immediate parent
@@ -735,7 +735,7 @@ const dbPartnerCommission = {
                         downLinesRawCommissionDetail: playerRawDetail,
                         activeDownLines: activeDownLines,
                         partnerCommissionRateConfig: commRate,
-                        rawCommissions: rawCommissions,
+                        rawCommissions: math.round(rawCommissions, 2),
                         totalReward: totalReward,
                         totalRewardFee: totalRewardFee,
                         rewardFeeRate: commRate.rateAfterRebatePromo / 100,
