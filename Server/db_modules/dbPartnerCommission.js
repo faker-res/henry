@@ -315,6 +315,7 @@ const dbPartnerCommission = {
             if (partner.partnerName == "ptest004") console.log("ptest004",'rawCommission', rawCommission, 'mainParentCommissionRate', mainParentCommissionRate)
             let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(2).done();
             if (partner.partnerName == "ptest004") console.log("ptest004",'rawDirectCommission', rawDirectCommission, 'directCommissionRate.commissionRate', directCommissionRate.commissionRate)
+            console.log('partnerName', partner.partnerName, "consumptionAfterFeeMulti", consumptionAfterFeeMulti, "consumptionAfterFeeDirect", consumptionAfterFeeDirect, 'multiLevelCommissionRate.commissionRate', multiLevelCommissionRate.commissionRate, 'directCommissionRate.commissionRate', directCommissionRate.commissionRate)
 
             rawCommissions.push({
                 crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
