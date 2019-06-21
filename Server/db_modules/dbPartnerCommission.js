@@ -364,7 +364,7 @@ const dbPartnerCommission = {
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 let logDetail = {
-                    parent,
+                    parent: parent.partnerName,
                     partnerName: partner.partnerName,
                     consumptionAfterFeeMulti,
                     consumptionAfterFeeDirect,
