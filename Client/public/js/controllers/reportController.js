@@ -1474,7 +1474,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.reportOnPlatformChange = (platformObjId) => {
-            switch(vm.showPageName) {
+            switch(vm.showPageName.toUpperCase()) {
                 case "PLAYER_REPORT":
                     vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
                         vm.setupRemarksMultiInput()
@@ -1492,6 +1492,12 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformProvider(platformObjId);
                     vm.getDepositTrackingGroupByPlatformId(platformObjId);
                     break;
+
+                case "PLAYER_DEPOSIT_TRACKING_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupRemarksMultiInputDepositTracking();
+                    });
+                    vm.getDepositTrackingGroupByPlatformId(platformObjId);
             }
         };
 
@@ -5127,7 +5133,7 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositTrackingReportTableSpin').show();
             let sendQuery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.depositTrackingQuery.platformId,
                 query: {
                     name: vm.depositTrackingQuery.name,
                     credibilityRemarks: vm.depositTrackingQuery.credibilityRemarks,
@@ -5260,7 +5266,7 @@ define(['js/app'], function (myApp) {
         vm.saveDepositTrackingGroup = function (isDelete, index) {
             if (isDelete) {
                 let deleteData = {
-                    platformObjId: vm.curPlatformId,
+                    platformObjId: vm.depositTrackingQuery.platformId,
                     trackingGroupObjId: index
                 };
 
@@ -5271,13 +5277,13 @@ define(['js/app'], function (myApp) {
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
                         vm.depositTrackingQuery = {};
-                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
+                        vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
                         // vm.searchPlayerDepositTrackingReport();
                     });
                 });
             } else {
                 let addData = {
-                    platformObjId: vm.curPlatformId,
+                    platformObjId: vm.depositTrackingQuery.platformId,
                     groupData: vm.newDepositTrackingGroup,
                     modifyData: vm.depositTrackingGroup
                 };
@@ -5289,7 +5295,7 @@ define(['js/app'], function (myApp) {
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
                         vm.depositTrackingQuery = {};
-                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
+                        vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
                         // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
                     });
@@ -5298,8 +5304,9 @@ define(['js/app'], function (myApp) {
         };
 
         vm.modifyPlayerDepositTrackingGroup = function (playerId, trackingGroup) {
+            let platform = vm.showPageName == "PLAYER_DEPOSIT_ANALYSIS_REPORT" ? vm.depositAnalysisQuery.platformId : vm.depositTrackingQuery.platformId;
             let sendData = {
-                platform: vm.depositAnalysisQuery.platformId,
+                platform: platform,
                 playerId: playerId,
                 trackingGroup: trackingGroup
             };
@@ -5319,7 +5326,7 @@ define(['js/app'], function (myApp) {
 
         vm.removePlayerFromDepositTrackingReport = function (playerId) {
             let sendData = {
-                platform: vm.curPlatformId,
+                platform: vm.depositTrackingQuery.platformId,
                 playerId: playerId
 
             };
@@ -5333,7 +5340,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerDepositTrackingMonthlyDetails = function(playerId) {
             let sendData = {
-                platform: vm.curPlatformId,
+                platform: vm.depositTrackingQuery.platformId,
                 playerId: playerId
             };
 

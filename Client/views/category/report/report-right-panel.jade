@@ -511,6 +511,10 @@
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_TRACKING_REPORT"')
             #depositTrackingReport.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.depositTrackingQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.depositTrackingQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.depositTrackingQuery.name")
                 .search-filters-item
