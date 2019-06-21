@@ -373,7 +373,7 @@ const dbPartnerCommission = {
                     parentRate,
                     'detail.amount': detail.amount,
                 };
-                if ( rawCommission) {
+                if (partner.partnerName === "plevel2") {
                     console.log("\\(OwO)/ !!!", JSON.stringify(logDetail, null, 2))
                 }
 
