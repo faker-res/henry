@@ -307,7 +307,7 @@ const dbPartnerCommission = {
 
             let totalAllParentRate = 0;
             let totalParentGrossCommission = 0;
-            for (let j = 0; j < parentChain.length; j++) {个
+            for (let j = 0; j < parentChain.length; j++) {
                 let parent = parentChain[j];
                 let objId = String(parent._id);
                 let parentRatio = multiLevelCommissionRate.parentRatios[j] || 0;
