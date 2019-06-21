@@ -1124,6 +1124,11 @@ define(['js/app'], function (myApp) {
         //draw player table based on data
         vm.drawProposalTable = function (data, size, summary, newSearch) {
             console.log("whole data", data);
+            data.map(item => {
+                if(item && item.data && item.data.bankCardNo && !item.data.bankCardNo.startsWith("******") && item.type && item.type.name && item.type.name === "ManualPlayerTopUp"){
+                    return item.data.bankCardNo = "******" + item.data.bankCardNo.slice(-6);
+                }
+            });
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
 
