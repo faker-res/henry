@@ -616,8 +616,8 @@ let dbPlayerInfo = {
                     }
                     platformData = platformInfo;
                     if (!platformInfo.ipCheckPeriod) {
-                        // if ipCheckPeriod not set, default 60 mins
-                        platformInfo.ipCheckPeriod = 60;
+                        // if ipCheckPeriod not set, default 1 mins
+                        platformInfo.ipCheckPeriod = 1;
                     }
                     let endTime = new Date();
                     let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
@@ -630,12 +630,18 @@ let dbPlayerInfo = {
                     let playerIPRegionLimit = platformData.playerIPRegionLimit;
                     let playerIPRegisterCount = 0;
                     let playerIPRegionLimitCount = 0;
-                    let playerIPRegionSplit = inputData.lastLoginIp.split('.');
+                    let playerIPRegionSplit = [];
+
                     let fromFontEnd = true;
                     if (adminName ||connPartnerId) {
                         //if new player acc is created from backend or partner
                         fromFontEnd = false;
                     }
+                    if ( inputData.lastLoginIp && fromFontEnd) {
+                        console.log('MT --checking lastLoginIp', inputData.lastLoginIp)
+                        playerIPRegionSplit = inputData.lastLoginIp.split('.');
+                    }
+
                     ipData.forEach(ip => {
                         let regionCount = 0;
                         if (ip.ipAddress && ip.ipAddress == inputData.lastLoginIp) {
@@ -643,13 +649,13 @@ let dbPlayerInfo = {
                         }
                         let ipSplit = ip.ipAddress.split('.');
                         // compare 3 region of ip , for example :  10.1.1.182,  10.1.1.192<-> first 3 is equal ? yes, because 10.1.1 is same
-                        if (ipSplit[0] && ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
+                        if (ipSplit[0] && playerIPRegionSplit[0] && ipSplit[0] == playerIPRegionSplit[0] && ipSplit[0] != '') {
                             regionCount++;
                         }
-                        if (ipSplit[1] && ipSplit[1] == playerIPRegionSplit[1] && ipSplit[1] != '') {
+                        if (ipSplit[1] && playerIPRegionSplit[1] && ipSplit[1] == playerIPRegionSplit[1] && ipSplit[1] != '') {
                             regionCount++;
                         }
-                        if (ipSplit[2] && ipSplit[2] == playerIPRegionSplit[2] && ipSplit[2] != '') {
+                        if (ipSplit[2] && playerIPRegionSplit[2] && ipSplit[2] == playerIPRegionSplit[2] && ipSplit[2] != '') {
                             regionCount++;
                         }
 
@@ -17897,7 +17903,7 @@ let dbPlayerInfo = {
 
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
-                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            status: constProposalStatus.SUCCESS,
                             createTime: {$gte: startDate, $lte: endDate},
                             'data.platformId': platform
                         };
@@ -17957,7 +17963,9 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
-                                        option: null,
+                                        option: {
+                                            isDepositReport: true
+                                        },
                                         isPromoteWay: true
                                     });
                                 },
@@ -18304,6 +18312,9 @@ let dbPlayerInfo = {
 
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
+                    // Filter out players who has 0 topup and 0 bets
+                    returnedObj.data = returnedObj.data.filter(a => a.topUpTimes !== 0 || a.bonusTimes !== 0 || a.consumptionTimes !== 0);
+
                     returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
                     returnedObj.data = returnedObj.data.slice(0, limit);
 
@@ -24135,14 +24146,9 @@ let dbPlayerInfo = {
     checkIsAppPlayerAndAppliedReward: async function (playerObjId) {
         let returnObj = {
             isAppRegistered: false,
-            isAppliedRewardFromApp: false
+            isAppliedRewardFromApp: false,
+            isSMSValidated: false
         };
-
-        let isAppRegistered = await dbconfig.collection_players.findOne({
-            _id: playerObjId,
-            registrationInterface: constPlayerRegistrationInterface.APP_NATIVE_PLAYER
-        });
-        returnObj.isAppRegistered = Boolean(isAppRegistered);
 
         let isAppliedRewardFromApp = await dbconfig.collection_proposal.findOne({
             "data.playerObjId": playerObjId,
@@ -24151,6 +24157,15 @@ let dbPlayerInfo = {
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         });
         returnObj.isAppliedRewardFromApp = Boolean(isAppliedRewardFromApp);
+
+        let playerObj = await dbconfig.collection_players.findById(playerObjId, {playerId: 1, registrationInterface: 1}).lean();
+
+        if (playerObj) {
+            returnObj.isAppRegistered = Boolean(playerObj.registrationInterface === constPlayerRegistrationInterface.APP_NATIVE_PLAYER);
+
+            let smsLog = await dbconfig.collection_smsLog.findOne({playerId: playerObj.playerId, used: true}).lean();
+            returnObj.isSMSValidated = Boolean(smsLog);
+        }
 
         return returnObj;
 
