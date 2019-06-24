@@ -12258,6 +12258,7 @@ define(['js/app'], function (myApp) {
                                         name: gameProviderGroup.name
                                     });
                                     vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                                    vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
                                 })
                             }
                         }
@@ -12269,6 +12270,7 @@ define(['js/app'], function (myApp) {
                                     name: gameProviderGroup.name
                                 });
                                 vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                                vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
                             })
                         }
                     }
