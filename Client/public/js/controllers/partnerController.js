@@ -12249,6 +12249,18 @@ define(['js/app'], function (myApp) {
                                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                             }
                         })
+
+                        if (!(vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length)) {
+                            if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                    vm.rateAfterRebateGameProviderGroup.push({
+                                        gameProviderGroupId: gameProviderGroup._id,
+                                        name: gameProviderGroup.name
+                                    });
+                                    vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                                })
+                            }
+                        }
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
