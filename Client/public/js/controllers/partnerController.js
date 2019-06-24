@@ -16611,11 +16611,19 @@ define(['js/app'], function (myApp) {
                     removedChildPartnerArr = vm.curChildPartner.filter(partner => !vm.updateChildPartner.includes(partner));
                 }
 
-                let updatePartnerArr = newChildPartnerArr.concat(removedChildPartnerArr)
-                if (updatePartnerArr && updatePartnerArr.length) {
+                // let updatePartnerArr = newChildPartnerArr.concat(removedChildPartnerArr)
+                if (newChildPartnerArr && newChildPartnerArr.length) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Please reset downline commission rate");
+                    vm.modalYesNo.modalText = $translate("Please reset downline commission rate");
+                    vm.modalYesNo.actionYes = () => vm.submitChildPartner(true);
+                    $('#modalYesNo').modal();
+                    $scope.$evalAsync();
+                    return;
+                } else if (removedChildPartnerArr && removedChildPartnerArr.length) {
                     return $scope.$socketPromise('checkPartnersChild', {
                         platformObjId: vm.selectedSinglePartner.platform,
-                        partnersName: updatePartnerArr
+                        partnersName: removedChildPartnerArr
                     }).then(data => {
                         if (data && data.data && data.data.isChildExists) {
                             vm.modalYesNo = {};
