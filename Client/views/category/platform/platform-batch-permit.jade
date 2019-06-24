@@ -203,7 +203,7 @@ style.
                     label {{"PlayerLevelMaintain" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelMaintainReward' ng-change='vm.forbidFixedRewardModification("forbidLevelMaintainReward");vm.isForbidLevelMaintainReward=true')
                         span(id="{{'c-forbidLevelMaintainReward'}}")
-                div(ng-repeat='(i,v) in vm.allRewardEvent')
+                div(ng-repeat='(i,v) in vm.allRewardEventNoXima')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1 || vm.selectedAllForbidRewardEvent')
                         span(id="{{'c-'+v._id}}")
