@@ -1225,6 +1225,10 @@
                                 td {{'Check Is Phone Number Bound To A Player Before Apply Bonus' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'App Data Version' | translate}}
+                                td
+                                    input(type='text', ng-model='vm.platformBasic.appDataVer', ng-disabled='!vm.configTableEdit')
 
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
