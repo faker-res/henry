@@ -31004,6 +31004,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
+                        vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
                 })
             };
@@ -33088,7 +33089,8 @@ define(['js/app'], function (myApp) {
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         ipCheckPeriod: srcData.ipCheckPeriod,
-                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus
+                        isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
+                        appDataVer: srcData.appDataVer
                     }
                 };
                 let isProviderGroupOn = false;

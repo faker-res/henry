@@ -160,7 +160,7 @@ var platformSchema = new Schema({
             displayStatus: {type: Number},
             functionName: {type: String},
         }],
-        domainName:[]
+        domainName: []
     }],
 
     //email address used when sending emails to players
@@ -221,9 +221,9 @@ var platformSchema = new Schema({
     // check if require sms code when update bankcard for the first time
     requireSMSCodeForBankRegistrationAtFirstTime: {type: Boolean, default: false},
     // white listing phone number
-    whiteListingPhoneNumbers: [{type:String}],
+    whiteListingPhoneNumbers: [{type: String}],
     // black listing phone number
-    blackListingPhoneNumbers: [{type:String}],
+    blackListingPhoneNumbers: [{type: String}],
     // Partner auto approve bonus proposal platform switch
     partnerEnableAutoApplyBonus: {type: Boolean, default: false},
     // Partner auto approve single withdrawal limit
@@ -317,9 +317,9 @@ var platformSchema = new Schema({
     // same partner phone number to register count
     partnerSamePhoneNumberRegisterCount: {type: Number, default: 1},
     // partner white listing phone number
-    partnerWhiteListingPhoneNumbers: [{type:String}],
+    partnerWhiteListingPhoneNumbers: [{type: String}],
     // partner black listing phone number
-    partnerBlackListingPhoneNumbers: [{type:String}],
+    partnerBlackListingPhoneNumbers: [{type: String}],
     // Platform-wide SMS Verification Setting, for create partners
     partnerRequireSMSVerification: {type: Boolean, default: false},
     // SMS Verification Setting For partner Password Update
@@ -369,17 +369,19 @@ var platformSchema = new Schema({
             winRatio: {type: Number, default: 10},
         },
         // top up times criteria score configuration
-        topUpTimesScores: {type: JSON, default: [{name:0, score:0}, {name:1, score:1}]},
+        topUpTimesScores: {type: JSON, default: [{name: 0, score: 0}, {name: 1, score: 1}]},
         // played game types count criteria score configuration
-        gameTypeCountScores: {type: JSON, default: [{name:0, score:0}, {name:1, score:1}]},
+        gameTypeCountScores: {type: JSON, default: [{name: 0, score: 0}, {name: 1, score: 1}]},
         // win ratio criteria score configuration
-        winRatioScores: {type: JSON, default: [
-            {"name": -100, "score": 8},
-            {"name": -20, "score": 2},
-            {"name": 0, "score": -1},
-            {"name": 20, "score": -2},
-            {"name": 100, "score": -10}
-        ]},
+        winRatioScores: {
+            type: JSON, default: [
+                {"name": -100, "score": 8},
+                {"name": -20, "score": 2},
+                {"name": 0, "score": -1},
+                {"name": 20, "score": -2},
+                {"name": 100, "score": -10}
+            ]
+        },
         // default score for credibility remark criteria
         credibilityScoreDefault: {type: Number, default: 5}
     },
@@ -389,7 +391,7 @@ var platformSchema = new Schema({
     }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
-    bonusSetting: {type: JSON,default:{}},
+    bonusSetting: {type: JSON, default: {}},
     withdrawalFeeNoDecimal: {type: Boolean, default: false},
     // promocode last config setting set isActive time
     promoCodeStartTime: {type: Date},
@@ -414,11 +416,11 @@ var platformSchema = new Schema({
     // set this live800companyId to binding with live800 system
     live800CompanyId: [{type: String}],
     // get the CS Department for display livechat related conversation
-    csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    csDepartment: [{type: Schema.ObjectId, ref: 'department', default: null}],
     // get the QI Department for display livechat related conversation
-    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    qiDepartment: [{type: Schema.ObjectId, ref: 'department', default: null}],
     // Demo Player Prefix Code
-    demoPlayerPrefix: {type:String},
+    demoPlayerPrefix: {type: String},
     // Demo Player Default Credit
     demoPlayerDefaultCredit: {type: Number, min: 0, default: 0},
     // manual audit for player first time withdrawal
@@ -465,8 +467,8 @@ var platformSchema = new Schema({
         playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true}
     }],
     // CDN/FTP route setting
-    playerRouteSetting:{type: String},
-    partnerRouteSetting:{type: String},
+    playerRouteSetting: {type: String},
+    partnerRouteSetting: {type: String},
     // financial settlement setting
     financialSettlement: {
         //financial settlement switch
@@ -546,6 +548,8 @@ var platformSchema = new Schema({
     pmsServiceCharge: {type: Number},
     // service charge rate setting
     fpmsServiceCharge: {type: Number},
+    // native app version number
+    appDataVer: {type: String}
 });
 
 //add platform id before save
