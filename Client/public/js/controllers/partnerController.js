@@ -12139,7 +12139,10 @@ define(['js/app'], function (myApp) {
             });
 
             config.rateAfterRebateGameProviderGroup.forEach(e => {
-                let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+                let src = [];
+                if (vm.srcCommissionRateConfig && vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup && vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.length) {
+                    src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+                }
 
                 if (src && e.rate != src.rate) {
                     isDelete = false;
@@ -12208,55 +12211,60 @@ define(['js/app'], function (myApp) {
             }
 
             return $scope.$socketPromise(socketActionStr, sendData).then( function (data) {
-                if (data && data.data && data.data.length > 0) {
-                    data.data.forEach(config => {
-                        if (config.partner) {
-                            vm.custCommissionRateConfig.push(config);
-                        } else {
-                            // source config
-                            vm.srcCommissionRateConfig = config;
-                            // vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
-                            vm.commissionRateConfig = vm.commissionRateConfig? vm.commissionRateConfig: {};
-                            for (let key in config) { // to avoid clear reference
-                                vm.commissionRateConfig[key] = config[key];
-                            }
+                $scope.$evalAsync(() => {
+                    vm.commissionRateConfig = vm.commissionRateConfig ? vm.commissionRateConfig : {};
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(config => {
+                            if (config.partner) {
+                                vm.custCommissionRateConfig.push(config);
+                            } else {
+                                // source config
+                                vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(config));;
+                                // vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
+                                for (let key in config) { // to avoid clear reference
+                                    vm.commissionRateConfig[key] = config[key];
+                                }
 
-                            vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
-                            vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                            if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                                vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                    let providerGroupRate = {
-                                        gameProviderGroupId: gameProviderGroup._id,
-                                        name: gameProviderGroup.name
-                                    };
-                                    if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
-                                        vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
-                                            if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
-                                                providerGroupRate = availableProviderGroupRate;
-                                            }
-                                        })
-                                    }
-                                    vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
-                                })
-                            }
+                                vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
+                                vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
+                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let providerGroupRate = {
+                                            gameProviderGroupId: gameProviderGroup._id,
+                                            name: gameProviderGroup.name
+                                        };
+                                        if (vm.commissionRateConfig && vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length > 0) {
+                                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                    providerGroupRate = availableProviderGroupRate;
+                                                }
+                                            })
+                                        }
+                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                    })
+                                }
 
-                            vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
-                            vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-                            vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
-                        }
-                    })
-                } else {
-                    if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                        vm.gameProviderGroup.forEach(gameProviderGroup => {
-                            vm.rateAfterRebateGameProviderGroup.push({
-                                gameProviderGroupId: gameProviderGroup._id,
-                                name: gameProviderGroup.name
-                            });
+                                vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
+                                vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
+                                vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                            }
                         })
+                    } else {
+                        if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                vm.rateAfterRebateGameProviderGroup.push({
+                                    gameProviderGroupId: gameProviderGroup._id,
+                                    name: gameProviderGroup.name
+                                });
+                                vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                            })
+                        }
                     }
-                }
-                vm.commissionRateConfig = commonService.applyPartnerCustomRate(vm.selectedSinglePartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig)
-                $scope.$evalAsync();
+
+                    if (vm.selectedSinglePartner && vm.selectedSinglePartner._id && vm.currentTab != "Config") {
+                        vm.commissionRateConfig = commonService.applyPartnerCustomRate(vm.selectedSinglePartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig)
+                    }
+                });
             });
         };
 
