@@ -79,9 +79,9 @@ var env = {
         function isTheOtherConfig (o) {
             if (
                 envConf[o].mode === selfMode
-                && envConf[o].redisUrl === selfUrl
-                && envConf[o].redisPort !== selfPort
                 && envConf[o].isGateway !== true
+                && (envConf[o].redisUrl === selfUrl || envConf[o].redisPort !== selfPort)
+                && (envConf[o].redisPort === selfPort || envConf[o].redisUrl !== selfUrl)
             ) {
                 return true;
             }

@@ -17900,7 +17900,7 @@ let dbPlayerInfo = {
 
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
-                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            status: constProposalStatus.SUCCESS,
                             createTime: {$gte: startDate, $lte: endDate},
                             'data.platformId': platform
                         };
@@ -17960,7 +17960,9 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
-                                        option: null,
+                                        option: {
+                                            isDepositReport: true
+                                        },
                                         isPromoteWay: true
                                     });
                                 },

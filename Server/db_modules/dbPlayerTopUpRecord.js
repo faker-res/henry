@@ -219,7 +219,7 @@ var dbPlayerTopUpRecord = {
                                 "$lt": new Date(endTime)
                             },
                             "mainType": "PlayerBonus",
-                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            "status": constProposalStatus.SUCCESS
                         }
                     },
                     {
