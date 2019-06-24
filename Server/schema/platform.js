@@ -491,7 +491,7 @@ var platformSchema = new Schema({
         themeId: {type: String},
         themeIdObjId: {type: Schema.ObjectId, index: true}
     },
-    // partner theme setting 
+    // partner theme setting
     partnerThemeSetting: {
         themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
         themeId: {type: String},
@@ -532,6 +532,12 @@ var platformSchema = new Schema({
     disableProviderAfterConsecutiveTimeoutCount: {type: Number},
     // provider consecutively timed out search time frame (last N minutes)
     providerConsecutiveTimeoutSearchTimeFrame: {type: Number},
+    // Using same player's IP cannot over this limit during registration.
+    playerIPRegisterLimit: {type: Number},
+    // Using same player's IP Region cannot over this limit during registration.
+    playerIPRegionLimit: {type: Number},
+    // the time-period to checking If the playerIP/ IP Region is fulfil.
+    ipCheckPeriod: {type: Number},
     // check is phone number bound to a player before apply bonus
     isPhoneNumberBoundToPlayerBeforeApplyBonus: {type: Boolean, default: false},
     // disable auto player level up reward switch

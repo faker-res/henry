@@ -610,6 +610,9 @@ let commCalcParentModel = dbLogs2.model('commCalcParent', commCalcParentSchema, 
 let parentPartnerCommissionDetailSchema = require('./../schema/logs2/parentPartnerCommissionDetail');
 let parentPartnerCommissionDetailModel = dbLogs2.model('parentPartnerCommissionDetail', parentPartnerCommissionDetailSchema, 'parentPartnerCommissionDetail');
 
+let playerRegisterIPSchema = require('./../schema/logs2/playerRegisterIP');
+let playerRegisterIPModel = dbLogs2.model('playerRegisterIP', playerRegisterIPSchema, 'playerRegisterIP');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -886,6 +889,7 @@ var dbProperties = {
     collection_commCalcParent: commCalcParentModel,
     collection_parentPartnerCommissionDetail: parentPartnerCommissionDetailModel,
 
+    collection_playerRegisterIP: playerRegisterIPModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

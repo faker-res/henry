@@ -20,6 +20,7 @@ const constSMSPurpose = {
     PLAYER_LOGIN: 'playerLogin',
     PLAYER_APP_LOGIN: 'playerAppLogin',
     SET_PHONE_NUMBER: 'setPhoneNumber',
+    FIRST_APP_APPLY_REWARD: 'firstAppApplyReward',
 };
 
 module.exports = constSMSPurpose;

@@ -1787,7 +1787,8 @@ let dbPlayerCreditTransfer = {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     console.log('playerCreditTransferFROMEbetWallets group', group);
-                    if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0 && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
+                    console.log("gameCredit ", gameCredit);
+                    if(group.hasOwnProperty('ebetWallet') && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
                         let hasEbet = false;
                         group.providers.forEach(provider => {
                             if(provider.code.toUpperCase() === "EBET" || provider.code.toUpperCase() === "EBETSLOTS") {
