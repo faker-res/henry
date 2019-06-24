@@ -652,7 +652,7 @@ const dbPartnerCommissionConfig = {
     },
 
     createUpdatePartnerMainCommRateConfig: function  (query, data) {
-        return dbconfig.collection_partnerMainCommRateConfig.findOne({platform: query.platform}).lean().then(
+        return dbconfig.collection_partnerMainCommRateConfig.findOne({platform: query.platform, partner: null}).lean().then(
             configData => {
                 //check if config exist
                 if (!configData) {

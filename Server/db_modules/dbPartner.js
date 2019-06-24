@@ -3588,7 +3588,7 @@ let dbPartner = {
     },
 
     updateParentCommissionRateConfig: function  (query, data) {
-        return dbconfig.collection_partnerCommissionRateConfig.find({platform: query.platform}).lean().then(
+        return dbconfig.collection_partnerCommissionRateConfig.find({platform: query.platform, partner: null}).lean().then(
             configData => {
                 //check if config exist
                 if (configData && configData.length > 0) {
