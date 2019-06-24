@@ -17903,7 +17903,7 @@ let dbPlayerInfo = {
 
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
-                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            status: constProposalStatus.SUCCESS,
                             createTime: {$gte: startDate, $lte: endDate},
                             'data.platformId': platform
                         };
@@ -17963,7 +17963,9 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
-                                        option: null,
+                                        option: {
+                                            isDepositReport: true
+                                        },
                                         isPromoteWay: true
                                     });
                                 },
@@ -18310,6 +18312,9 @@ let dbPlayerInfo = {
 
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
+                    // Filter out players who has 0 topup and 0 bets
+                    returnedObj.data = returnedObj.data.filter(a => a.topUpTimes !== 0 || a.bonusTimes !== 0 || a.consumptionTimes !== 0);
+
                     returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
                     returnedObj.data = returnedObj.data.slice(0, limit);
 
