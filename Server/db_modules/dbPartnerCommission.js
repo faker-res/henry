@@ -1042,7 +1042,8 @@ const dbPartnerCommission = {
 
 
     getAllDownlinePartnerWithDetails: async (partnerObjId) => {
-        let partnerObjs = await getAllDownlinePartner(partnerObjId);
+        let partnerLvl = await getPartnerLevel (null, partnerObjId);
+        let partnerObjs = await getAllDownlinePartner(partnerObjId, null, partnerLvl);
         let promArr = [];
 
         partnerObjs.map(partner => {
@@ -1189,9 +1190,34 @@ let proto = dbPartnerCommissionFunc.prototype;
 proto = Object.assign(proto, dbPartnerCommission);
 module.exports = dbPartnerCommission;
 
+function getPartnerLevel (platformObjId, partnerObj, partnerLevel) {
+    partnerLevel = partnerLevel || 1;
+    let query = {
+        _id: partnerObj
+    };
+    if (platformObjId) {
+        query.platform = platformObjId;
+    }
+
+    if (!partnerObj) {
+        return Promise.reject({name: "DataError", message: "Invalid data get partner level"});
+    }
+
+    return dbconfig.collection_partner.findOne(query, {parent: 1}).lean().then(
+        partner => {
+            if (partner) {
+                if (partner.parent) {
+                    return getPartnerLevel(platformObjId, partner.parent, ++partnerLevel);
+                }
+            }
+            return partnerLevel;
+        }
+    );
+}
+
 function getAllDownlinePartner (partnerObjId, chainArray, partnerParentLvl) {
     chainArray = chainArray || [];
-    partnerParentLvl = partnerParentLvl || 2; // start from level 2, level 1 is the main partner himself
+    partnerParentLvl = partnerParentLvl? ++partnerParentLvl: 2; // start from level 2, level 1 is the main partner himself
     let query = {};
 
     if (partnerObjId instanceof Array) {
@@ -1212,7 +1238,7 @@ function getAllDownlinePartner (partnerObjId, chainArray, partnerParentLvl) {
                     return partner;
                 });
                 chainArray = chainArray.concat(partnerData);
-                return getAllDownlinePartner(partnerObjIds, chainArray, ++partnerParentLvl);
+                return getAllDownlinePartner(partnerObjIds, chainArray, partnerParentLvl);
             }
             return chainArray;
         }

@@ -11961,6 +11961,12 @@ define(['js/app'], function (myApp) {
                 });
             }
             if (oldConfigArr && newConfigArr && oldConfigArr.length > 0 && newConfigArr.length > 0) {
+                // // Convert back commissionRate to percentage
+                newConfigArr.forEach(newConfig => {
+                    newConfig.commissionSetting.forEach(e => {
+                        e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
+                    });
+                })
                 if (vm.isMultiLevelCommission && !isValidCommissionRate) {
                     socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
                     vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
