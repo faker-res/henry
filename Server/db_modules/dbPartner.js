@@ -10111,7 +10111,7 @@ let dbPartner = {
                                     validBet: data.consumptionDetail.validAmount,
                                     promoAmount: data.rewardDetail.total,
                                     totalPlatformFee: data.totalPlatformFee,
-                                    totalDepositWithdrawFee: data.topUpMerchantFees
+                                    totalDepositWithdrawFee: data.totalDepositWithdrawFee
                                 };
 
                                 allActivePlayerList.push(tempData);
@@ -10423,9 +10423,8 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
     });
     let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1, valueScore:1, registrationTime: 1, lastAccessTime: 1}).lean();
     let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id);
-    let topUpMerchantFeeProm = getPlayerTopUpMerchantFee(playerObjId, startTime, endTime, platformRecord._id);
 
-    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm, topUpMerchantFeeProm]).then(
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
         data => {
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
@@ -10438,7 +10437,6 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             let lastAccessTime = (data[4] && data[4].lastAccessTime) || "";
             let commRate = data[5];
             let gameProviderGroupRate = data[5] && data[5].rateAfterRebateGameProviderGroup && data[5].rateAfterRebateGameProviderGroup.length > 0 ? data[5].rateAfterRebateGameProviderGroup : [];
-            let topUpMerchantFees = data[6];
 
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             let valid = isPlayerValid(validPlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount, valueScore);
@@ -10461,6 +10459,20 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 }
             }
 
+            let depositChargeFee = 0;
+            let depositChargeRate = commRate && commRate.rateAfterRebateTotalDeposit ? Number(commRate.rateAfterRebateTotalDeposit) : 0;
+            if (topUpDetail && topUpDetail.topUpAmount) {
+                depositChargeFee = depositChargeRate * topUpDetail.topUpAmount / 100
+            }
+
+            let withdrawalChargeFee = 0;
+            let withdrawalChargeRate = commRate && commRate.rateAfterRebateTotalWithdrawal ? Number(commRate.rateAfterRebateTotalWithdrawal) : 0;
+            if (withdrawalDetail && withdrawalDetail.withdrawalAmount) {
+                withdrawalChargeFee = depositChargeRate * withdrawalDetail.withdrawalAmount / 100
+            }
+
+            let totalDepositWithdrawFee = dbutility.twoDecimalPlacesToFixed(depositChargeFee) + dbutility.twoDecimalPlacesToFixed(withdrawalChargeFee);
+
             return {
                 name,
                 realName,
@@ -10473,53 +10485,8 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 active,
                 valid,
                 totalPlatformFee,
-                topUpMerchantFees
+                totalDepositWithdrawFee
             };
-        }
-    );
-}
-
-function getPlayerTopUpMerchantFee (playerObjId, startTime, endTime, platformObjId) {
-    return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_TOP_UP}).lean().then(
-        proposalType => {
-            if (!proposalType) {
-                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
-            }
-
-            return dbconfig.collection_proposal.aggregate([
-                {
-                    "$match": {
-                        "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
-                        "createTime": {
-                            "$gte": new Date(startTime),
-                            "$lte": new Date(endTime)
-                        },
-                        "mainType": "TopUp",
-                        "type": proposalType._id,
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    }
-                },
-                {
-                    "$project": {
-                        "proposalId": 1,
-                        "merchantFee": { "$multiply": [ "$data.amount", "$data.rate" ] } } },
-                {
-                    "$group": {
-                        "_id": null,
-                        "totalMerchantFee": {"$sum": "$merchantFee"}
-                    }
-                }
-            ]).read("secondaryPreferred").then(
-                data => {
-                    let totalMerchantFee = 0;
-
-                    if (data && data[0] && data[0].totalMerchantFee) {
-                        totalMerchantFee = dbutility.twoDecimalPlacesToFixed(data[0].totalMerchantFee);
-                    }
-
-                    return totalMerchantFee;
-                }
-            );
         }
     );
 }
