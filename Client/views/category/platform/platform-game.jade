@@ -133,7 +133,7 @@
                 div(ng-if='vm.curGame')
                     div(ng-if='vm.showGameCate=="include"')
                         div
-                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameImageUploader");')
+                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameImageUploader", vm.filterGamePlatform);')
                                 i.fa.fa-upload
                                 text {{"Upload Image" | translate}}
                             input(type='file', name='file' id='gameImageUploader' style="display: inline !important")

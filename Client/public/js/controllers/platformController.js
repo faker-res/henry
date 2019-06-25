@@ -40070,11 +40070,9 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync();
             };
 
-            vm.updateImageUrl = function(uploaderName){
+            vm.updateImageUrl = function(uploaderName, platformId){
                 let imageFile = document.getElementById(uploaderName);
                 if(imageFile.files.length > 0){
-                    let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
-                        ? vm.selectedPlatform.data.platformId : null;
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
                     let sendQuery = {
