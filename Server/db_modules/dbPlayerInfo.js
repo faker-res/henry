@@ -1447,6 +1447,13 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayerPermissionByName: function (playerName, platformObjId){
+      if (playerName && platformObjId)  {
+          return dbconfig.collection_players.findOne({name: playerName, platform: ObjectId(platformObjId)}, {permission: 1}).lean();
+      }
+      return;
+    },
+
     getPlayerDataWithOutPlatformPrefix: function (playerObj) {
         var platformObjId = playerObj.platform || playerObj.platform._id;
         if (platformObjId) {
