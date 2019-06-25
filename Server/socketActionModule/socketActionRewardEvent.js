@@ -43,12 +43,6 @@ function socketActionRewardEvent(socketIO, socket) {
          * Get all reward events for platform
          * @param {json} data - data has to contain platform
          */
-        getAllPromoCode: function getAllPromoCode() {
-            var actionName = arguments.callee.name;
-            var isValidData = true;
-            socketUtil.emitter(self.socket, dbRewardEvent.getAllPromoCode, [], actionName, isValidData);
-        },
-
         getRewardEventsForPlatform: function getRewardEventsForPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
