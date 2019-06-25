@@ -297,7 +297,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission)")
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission, null, vm.importPlatformForDX)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
