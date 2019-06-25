@@ -1806,7 +1806,9 @@ define(['js/app'], function (myApp) {
                 vm.merchantFilterOptions.status = {
                     "ENABLED": true,
                     "DISABLED": true,
-                    "CLOSE": true
+                    "CLOSE": true,
+                    "UNAVAILABLE": true,
+                    "Undetermined": true
                 }
             }
 
@@ -1839,6 +1841,11 @@ define(['js/app'], function (myApp) {
 
             if (vm.merchantGroupUsed == "PMS" || vm.paymentSystemName !== "FPMS") {
                 vm.allMerchantList = merchantGroup.merchants;
+                vm.allMerchantList.map(item => {
+                    if(item && item.status && item.status === "PENDING"){
+                        return item.status = "Undetermined";
+                    }
+                });
                 vm.cloneAllMerchantList = vm.allMerchantList ? JSON.parse(JSON.stringify(vm.allMerchantList)) : [];
                 $scope.$evalAsync();
             }
