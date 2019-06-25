@@ -6286,17 +6286,17 @@ let dbPartner = {
     },
 
     updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo, isMultiLevel, isUpdateChild) => {
-        if (newConfigArr && newConfigArr.length > 0) {
-            newConfigArr.forEach(config => {
-                if (config && config.commissionSetting && config.commissionSetting.length > 0) {
-                    config.commissionSetting.forEach(setting => {
-                        if (setting) {
-                            setting.commissionRate = parseFloat((setting.commissionRate / 100).toFixed(4));
-                        }
-                    });
-                }
-            });
-        }
+        // if (newConfigArr && newConfigArr.length > 0) {
+        //     newConfigArr.forEach(config => {
+        //         if (config && config.commissionSetting && config.commissionSetting.length > 0) {
+        //             config.commissionSetting.forEach(setting => {
+        //                 if (setting) {
+        //                     setting.commissionRate = parseFloat((setting.commissionRate / 100).toFixed(4));
+        //                 }
+        //             });
+        //         }
+        //     });
+        // }
 
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).populate({
             path: "parent",
