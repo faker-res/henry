@@ -2694,7 +2694,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlatformSmsGroups =  () => {
-            return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedSinglePlayer.platform}).then(function (data) {
+            let sendData = {
+                platformObjId: vm.selectedSinglePlayer.platform || vm.selectedPlatform.data._id
+            };
+            return $scope.$socketPromise('getPlatformSmsGroups', sendData).then(function (data) {
                 vm.smsGroups = data.data;
                 console.log('vm.smsGroups', vm.smsGroups);
                 vm.getNoInGroupSmsSetting();
