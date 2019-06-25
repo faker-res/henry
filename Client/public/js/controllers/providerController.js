@@ -302,7 +302,7 @@ define(['js/app'], function (myApp) {
         var providerStatusColorObj = {
             1: 'colorLimegreen',
             2: 'colorYellow',
-            3: 'colorRed'
+            3: ''
         }
 
         // vm.gePlatformSpecifictProviderStatus = (provider) => {
