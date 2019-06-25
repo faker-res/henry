@@ -22335,6 +22335,13 @@ let dbPlayerInfo = {
                         // check the game credit from the same platform
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
+                    // if the status = 3 , means this provider is closed, we dont show to frontend
+                    console.log('returnData.gameCreditList',returnData.gameCreditList)
+                    if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
+                        returnData.gameCreditList = returnData.gameCreditList.filter( item => {
+                            return item.status != 3;
+                        })
+                    }
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22354,7 +22361,7 @@ let dbPlayerInfo = {
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
                             rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
                                 gameData.forEach(gameItem => {
-                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != 3) {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
@@ -22396,7 +22403,7 @@ let dbPlayerInfo = {
                         let dataList = [];
                         allGroupData[l].providers.forEach(allGroup => {
                             gameData.forEach(gameItem => {
-                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != 3) {
                                     dataList.push({
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
