@@ -12216,10 +12216,35 @@ define(['js/app'], function (myApp) {
                     if (data && data.data && data.data.length > 0) {
                         data.data.forEach(config => {
                             if (config.partner) {
+                                let configCopy = JSON.parse(JSON.stringify(config));
+                                config.rateAfterRebateGameProviderGroup = [];
+                                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                                    vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let isAddedGroupProvider = false;
+                                        let providerGroupRate = {
+                                            gameProviderGroupId: gameProviderGroup._id,
+                                            name: gameProviderGroup.name
+                                        };
+                                        if (configCopy.rateAfterRebateGameProviderGroup && configCopy.rateAfterRebateGameProviderGroup.length > 0) {
+                                            configCopy.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
+                                                if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
+                                                    availableProviderGroupRate.name = gameProviderGroup.name;
+                                                    providerGroupRate = availableProviderGroupRate;
+                                                    config.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                                    isAddedGroupProvider = true;
+                                                }
+                                            })
+                                        }
+
+                                        if (!isAddedGroupProvider) {
+                                            config.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        }
+                                    })
+                                }
                                 vm.custCommissionRateConfig.push(config);
                             } else {
                                 // source config
-                                vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(config));;
+                                vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(config));
                                 // vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
                                 for (let key in config) { // to avoid clear reference
                                     vm.commissionRateConfig[key] = config[key];
