@@ -7087,12 +7087,13 @@ define(['js/app'], function (myApp) {
 
         // start new account report
         vm.searchNewPlayerRecord = function () {
+            let platformObjId = vm.newPlayerQuery.platformId;
             vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
-                platform: vm.curPlatformId,
+                platform: platformObjId,
                 startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
-            }
+            };
             socketService.$socket($scope.AppSocket, 'getNewAccountReportData', sendData, function (data) {
                 console.log('data', data.data);
                 let retData = data.data;
@@ -7100,7 +7101,8 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerQuery.newPlayers = retData[0];
                 vm.newPlayerQuery.domain = retData[1];
 
-                return Promise.all([vm.getAllPromoteWay(), vm.getPartnerLevelConfig(), vm.getAllAdmin(), vm.getPlatformPartner(), vm.getPlatformCsOfficeUrl()]).then(
+                return Promise.all([vm.getAllPromoteWay(platformObjId), vm.getPartnerLevelConfig(platformObjId),
+                    vm.getAllAdmin(), vm.getPlatformPartner(platformObjId), vm.getPlatformCsOfficeUrl(platformObjId)]).then(
                     () => {
                         $scope.$evalAsync(() => {
                             findReportSearchTime();
@@ -7193,16 +7195,16 @@ define(['js/app'], function (myApp) {
 
             return returnObj;
         };
-        vm.getPlatformPartner = () => {
-            return $scope.$socketPromise('getPartnerByQuery', {platform: vm.curPlatformId}).then(
+        vm.getPlatformPartner = (platformObjId) => {
+            return $scope.$socketPromise('getPartnerByQuery', {platform: platformObjId || vm.curPlatformId}).then(
                 data => {
                     vm.platformPartner = data.data;
                 }
             )
         };
 
-        vm.getPlatformCsOfficeUrl = () => {
-            return $scope.$socketPromise('getAllUrl', {platformId: vm.curPlatformId}).then(
+        vm.getPlatformCsOfficeUrl = (platformObjId) => {
+            return $scope.$socketPromise('getAllUrl', {platformId: platformObjId || vm.curPlatformId}).then(
                 data => {
                     vm.platformCsOfficerUrl = data.data;
                 }
@@ -7250,17 +7252,17 @@ define(['js/app'], function (myApp) {
             else
                 return player.domain == vm.newPlayerQuery.validPlayerGraphDomainAnalysis;
         };
-        vm.getPartnerLevelConfig = function () {
-            return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
+        vm.getPartnerLevelConfig = function (platformObjId) {
+            return $scope.$socketPromise('getPartnerLevelConfig', {platform: platformObjId || vm.curPlatformId})
                 .then(function (data) {
                     vm.partnerLevelConfig = data.data[0];
                 });
         };
 
-        vm.getAllPromoteWay = function () {
+        vm.getAllPromoteWay = function (platformObjId) {
             vm.allPromoteWay = {};
             let query = {
-                platformId: vm.curPlatformId,
+                platformId: platformObjId || vm.curPlatformId,
             };
             return $scope.$socketPromise('getAllPromoteWay', query).then(
                 data => {
@@ -10685,7 +10687,7 @@ define(['js/app'], function (myApp) {
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
-                    vm.searchNewPlayerRecord(true);
+                    // vm.searchNewPlayerRecord(true);
                 });
             } else if (choice == "WINRATE_REPORT") {
 

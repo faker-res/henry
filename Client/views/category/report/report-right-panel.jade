@@ -601,6 +601,10 @@
         div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
             #newPlayerReportQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.newPlayerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.newPlayerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
                 .search-filters-item
