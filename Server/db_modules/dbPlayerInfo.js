@@ -22336,7 +22336,6 @@ let dbPlayerInfo = {
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
                     // if the status = 3 , means this provider is closed, we dont show to frontend
-                    console.log('returnData.gameCreditList',returnData.gameCreditList)
                     if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
                         returnData.gameCreditList = returnData.gameCreditList.filter( item => {
                             return item.status != 3;
