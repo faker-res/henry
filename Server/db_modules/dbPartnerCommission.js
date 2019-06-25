@@ -573,7 +573,7 @@ const dbPartnerCommission = {
                             && commRate.rateAfterRebateGameProviderGroup.length > 0) {
                             commRate.rateAfterRebateGameProviderGroup.map(group => {
                                 if (group.name === groupRate.groupName) {
-                                    platformFeeRateData.rate = group.rate || 0;
+                                    platformFeeRateData.rate = group.rate || commRate.rateAfterRebatePlatform || 0;
                                 }
                             });
                         }
