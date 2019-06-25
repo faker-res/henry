@@ -2412,7 +2412,7 @@ define(['js/app'], function (myApp) {
         /****************** List - end ******************/
 
         /****************** XLS - start ******************/
-        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission, isCreateTsNewList) {
+        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission, isCreateTsNewList, platformObjId) {
             let rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
             let sheet = {};
             let rowArray = [];
@@ -2443,10 +2443,11 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
-                platformObjId: vm.importPlatformForDX,
+                platformObjId: platformObjId,
                 arrayPhoneXLS: rowArrayMerge,
                 isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
+            console.log('sendData', sendData);
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
                 console.log("uploadPhoneFileXLS ret", data);
@@ -6305,7 +6306,12 @@ define(['js/app'], function (myApp) {
                     vm.checkAnalyticsFilterAndImportSystem();
                 }
 
-                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.importPlatformForXLS, tsPhoneList: rowData._id}, function (data) {
+                let sendData = {
+                    platform: rowData && rowData.platform ? rowData.platform : vm.importPlatformForXLS,
+                    tsPhoneList: rowData._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', sendData, function (data) {
                     if (data && data.data  && data.data.length) {
                         $scope.$evalAsync(() => {
                             data.data.forEach(tsImportRecord => {
@@ -6403,7 +6409,7 @@ define(['js/app'], function (myApp) {
             )
         };
 
-        vm.importToTsPhoneList = () => {
+        vm.importToTsPhoneList = (platformObjId) => {
             if (vm.selectedTab == "RECYCLE_BIN") {
                 // import unused/ unregistered phone number and import associated feedback record
                 if (vm.showPageName && (vm.showPageName == "New Phone" || vm.showPageName == "OTHER_DEPARTMENT_TS_LIST")) {
@@ -6444,7 +6450,7 @@ define(['js/app'], function (myApp) {
                     )
                 }
             } else {
-                vm.uploadPhoneFileXLS('', true, null, true)
+                vm.uploadPhoneFileXLS('', true, null, true, platformObjId)
             }
             vm.checkFilterIsDisable = true;
         };
