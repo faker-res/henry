@@ -61,44 +61,44 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
 
         /* login user button handler */
         $scope.login = function () {
-            getUserLocalIP(
-                function(localIp){
-                    let formData = {};
-                    let userName = $('#username').val();
-                    let password = $('#password').val();
-                    let selectedServer = $('#mgntServer').val();
+            let loginStarted = false;
+            let loginProcess = function(localIp){
+                let formData = {};
+                let userName = $('#username').val();
+                let password = $('#password').val();
+                let selectedServer = $('#mgntServer').val();
 
-                    formData['username'] = userName;
-                    formData['password'] = password;
-                    formData['localIp'] = localIp;
+                formData['username'] = userName;
+                formData['password'] = password;
+                formData['localIp'] = localIp;
 
-                    $scope.showError = false;
+                $scope.showError = false;
 
-                    selectedServer = selectedServer === '' ? fastestServer : selectedServer;
-                    $cookies.put('curFPMSServer', selectedServer);
-                    let url = 'http://' + WSCONFIG[selectedServer].socketURL;
+                selectedServer = selectedServer === '' ? fastestServer : selectedServer;
+                $cookies.put('curFPMSServer', selectedServer);
+                let url = 'http://' + WSCONFIG[selectedServer].socketURL;
 
-                    if (selectedServer === 'Default') {
-                        url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
+                if (selectedServer === 'Default') {
+                    url = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL;
+                }
+
+                function gotoPage(page) {
+                    if (page) {
+                        page = '/' + page.toLowerCase();
+                        $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + page;
+                    } else {
+                        $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
                     }
+                }
 
-                    function gotoPage(page) {
-                        if (page) {
-                            page = '/' + page.toLowerCase();
-                            $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + page;
-                        } else {
-                            $window.location.href = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/platform";
-                        }
+                $.ajax(
+                    {
+                        type: 'post',
+                        data: formData,
+                        url: url + '/login',
+                        timeout: 5000
                     }
-
-                    $.ajax(
-                        {
-                            type: 'post',
-                            data: formData,
-                            url: url + '/login',
-                            timeout: 5000
-                        }
-                    )
+                )
                     .done(function (data) {
                         if (data.token && data.adminName) {
                             var exp = new Date();
@@ -131,10 +131,20 @@ define(['js/services/authService', 'js/login', 'js/wsconfig'], function () {
                             showError('Service is not available, please try again later.');
                         }
                     });
+            };
+            getUserLocalIP((localIp) => {
+                loginStarted = true;
+                loginProcess(localIp)
             },
             function(err){
                 showError('Failed to get local Ip address.');
             });
+
+            setTimeout(() => {
+                if (loginStarted) return;
+                console.log("LOCAL IP GET FAIL, JUST LOGIN ALREADY")
+                loginProcess("0.0.0.0");
+            },1000)
         };
 
         $scope.requestPasswordReset = function () {
