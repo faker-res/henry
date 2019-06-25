@@ -780,7 +780,7 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.initSMSModal();' + "vm.telorMessageToTsPhoneBtn('" +
+                                'ng-click': 'vm.initSMSModal(' + JSON.stringify(row.platform) + ');' + "vm.telorMessageToTsPhoneBtn('" +
                                     "msg" + "', " +  JSON.stringify(row) + ");",
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
@@ -2693,8 +2693,12 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.getPlatformSmsGroups =  () => {
-            return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedSinglePlayer.platform}).then(function (data) {
+        vm.getPlatformSmsGroups =  (platformObjId) => {
+            let sendData = {
+                platformObjId: platformObjId ? platformObjId : vm.selectedPlatform.data._id
+            };
+            console.log('sendData', sendData);
+            return $scope.$socketPromise('getPlatformSmsGroups', sendData).then(function (data) {
                 vm.smsGroups = data.data;
                 console.log('vm.smsGroups', vm.smsGroups);
                 vm.getNoInGroupSmsSetting();
@@ -2702,13 +2706,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.initSMSModal = function () {
+        vm.initSMSModal = function (platformObjId) {
             $('#smsToPlayerTab').addClass('active');
             $('#smsLogTab').removeClass('active');
             $('#smsSettingTab').removeClass('active');
             vm.smsModalTab = "smsToPlayerPanel";
             vm.playerSmsSetting = {smsGroup:{}};
-            vm.getPlatformSmsGroups();
+            vm.getPlatformSmsGroups(platformObjId);
             vm.getAllMessageTypes();
             $scope.safeApply();
         };
@@ -5512,7 +5516,7 @@ define(['js/app'], function (myApp) {
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initSMSModal();' + "vm.onClickPlayerCheck(" +
+                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initSMSModal(' + JSON.stringify(row.platform) + ');' + "vm.onClickPlayerCheck(" +
                                 JSON.stringify(row._id) + ", " + "vm.telorMessageToPlayerBtn" +
                                 ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
                                 'data-row': JSON.stringify(row),
