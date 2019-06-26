@@ -3426,17 +3426,36 @@ define(['js/app'], function (myApp) {
 
                 if (vm.sendMultiMessage.messageType === "sms") {
                     vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                        $scope.AppSocket.emit('sendSMSToPlayer', {
-                            playerId: data.playerId,
+                        let query = {
                             platformId: vm.selectedPlatform.data.platformId,
                             channel: vm.sendMultiMessage.channel,
                             message: vm.sendMultiMessage.messageContent
-                        });
+                        };
+                        if (vm.filterPlayerPromoCodeForbidden){
+                            if (data && data.permission && data.permission.allowPromoCode){
+                                query.playerId = data.playerId;
+                            }
+                            else{
+                                query.playerId = [];
+                            }
+                        }
+                        else {
+                            query.playerId = data.playerId;
+                        }
+                        $scope.AppSocket.emit('sendSMSToPlayer',query);
                     });
                 } else if (vm.sendMultiMessage.messageType === "mail") {
                     let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId, selectedPlayers) => {
-                        if (selectedPlayers._id) {
-                            tempPlayersId.push(selectedPlayers._id);
+                        if (selectedPlayers && selectedPlayers._id) {
+                            if (vm.filterPlayerPromoCodeForbidden){
+                                if (selectedPlayers.permission && selectedPlayers.permission.allowPromoCode){
+                                    tempPlayersId.push(selectedPlayers._id);
+                                }
+                            }
+                            else{
+                                tempPlayersId.push(selectedPlayers._id);
+                            }
+
                         }
                         return tempPlayersId;
                     }, []);
@@ -3446,7 +3465,8 @@ define(['js/app'], function (myApp) {
                         adminName: authService.adminName,
                         platformId: vm.selectedPlatform.id,
                         title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
+                        content: vm.sendMultiMessage.messageContent,
+                        filterPlayerPromoCodeForbidden: vm.filterPlayerPromoCodeForbidden || false,
                     };
 
                     if (vm.isSentToAll) {
