@@ -1546,7 +1546,7 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     });
     let useDefault = false;
 
-    if (!targetConfig) {
+    if (!targetConfig || !targetConfig.commissionSetting || !targetConfig.commissionSetting.length) {
         useDefault = true;
 
         targetConfig = partnerConfig.find(config => {
