@@ -547,7 +547,7 @@ style.
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        .col-md-3(ng-repeat="(status, show) in vm.merchantFilterOptions.status")
+                        .col-md-2(ng-repeat="(status, show) in vm.merchantFilterOptions.status")
                             input(type="checkbox" ng-model="vm.merchantFilterOptions.status[status]")
                             span {{status === "DISABLED" ? "DISABLE" : status | translate}}
             .modal-footer

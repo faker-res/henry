@@ -4189,7 +4189,7 @@ define(['js/app'], function (myApp) {
                  if (str == vm.allGameStatusString.ENABLE) {
                      return 'colorGreen';
                  } else if (str == vm.allGameStatusString.DISABLE) {
-                     return 'colorRed';
+                     return '';
                  } else if (str == vm.allGameStatusString.MAINTENANCE) {
                      return 'colorOrangeImportant text-bold';
                  } else {
@@ -21387,11 +21387,17 @@ define(['js/app'], function (myApp) {
                 }
                 let sendData = {
                     platform: platformObjId || null
-                }
+                };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.allRewardEvent = data.data;
+                        vm.allRewardEventNoXima = vm.allRewardEvent.filter(event => {
+                            // don't display xima at player secondary permission
+                            if (event && event.type && event.type.name && event.type.name !== 'PlayerConsumptionReturn') {
+                                return event;
+                            }
+                        });
                         vm.showApplyRewardEvent = data.data.filter(item => {
                             return item.needApply || (item.condition && item.condition.applyType && item.condition.applyType == "1")
                         }).length > 0
@@ -37213,7 +37219,7 @@ define(['js/app'], function (myApp) {
                 ];
 
                 $scope.safeApply();
-            }
+            };
 
             // Batch Permit Edit
             vm.initBatchPermit = function () {
@@ -37223,11 +37229,12 @@ define(['js/app'], function (myApp) {
                         vm.prepareCredibilityConfig(platform._id || vm.selectedPlatform.id || null);
                         vm.initBatchParams();
                         vm.drawBatchPermitTable();
+                        vm.rewardTabClicked(null, platform._id);
                     }, 0);
                 }
             };
 
-            vm.initBatchParams = function(){
+            vm.initBatchParams = function() {
                 vm.resetBatchEditData();
                 // init edit data
                 vm.forbidCredibilityAddList = [];
@@ -37251,7 +37258,7 @@ define(['js/app'], function (myApp) {
             vm.resetBatchEditUI = function(){
                 vm.initBatchParams();
                 return vm.batchEditData;
-            }
+            };
 
             vm.localRemarkUpdate = function () {
                 let platform = getSelectedPlatform();
@@ -37489,6 +37496,10 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
                                 }));
 
+                                link.append($('<i>', {
+                                    'class': 'fa fa-repeat margin-right-5 ' + (perm.forbidPlayerConsumptionReturn === true ? "text-danger" : "text-primary"),
+                                }));
+
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
@@ -37669,6 +37680,13 @@ define(['js/app'], function (myApp) {
                                     phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
                                     SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
+                                    forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
+                                    allowPromoCode: {
+                                        imgType: 'img',
+                                        src: "images/icon/promoCodeBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
                                     rewardPointsTask: {
                                         imgType: 'img',
                                         src: "images/icon/rewardPointsBlue.png",
@@ -39926,11 +39944,9 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync();
             };
 
-            vm.updateImageUrl = function(uploaderName){
+            vm.updateImageUrl = function(uploaderName, platformId){
                 let imageFile = document.getElementById(uploaderName);
                 if(imageFile.files.length > 0){
-                    let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
-                        ? vm.selectedPlatform.data.platformId : null;
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
                     let sendQuery = {

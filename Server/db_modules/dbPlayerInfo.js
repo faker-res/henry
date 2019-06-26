@@ -3461,16 +3461,17 @@ let dbPlayerInfo = {
                         platform: platformObjId
                     }).lean().count();
 
-                    // let sameBankAccountCountProm = dbconfig.collection_players.find({
-                    //     bankAccount: updateData.bankAccount,
-                    //     platform: platformObjId,
-                    //     'permission.forbidPlayerFromLogin': false
-                    // }).lean().count();
+                    let sameBankAccountCountProm = dbconfig.collection_players.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: platformObjId,
+                        'permission.forbidPlayerFromLogin': false
+                    }).lean().count();
 
                     let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
                         platformObjId: playerObj.platform,
                         bankAccount: updateData.bankAccount,
-                        bankName: updateData.bankName
+                        bankName: updateData.bankName,
+                        playerObjId: {$ne: playerObj._id}
                     }).lean().count();
 
                     let propQuery = {
@@ -3488,7 +3489,7 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    return Promise.all([realNameCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
+                    return Promise.all([realNameCountProm, sameBankAccountCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
                 }
                 else{
                     return Promise.reject({
@@ -3507,10 +3508,10 @@ let dbPlayerInfo = {
                 }
 
                 duplicatedRealNameCount = data[0] || 0;
-                // sameBankAccountCount = data[1] || 0;
-                bankAccountBindingRecordCount = data[1] || 0;
+                sameBankAccountCount = data[1] || 0;
+                bankAccountBindingRecordCount = data[2] || 0;
 
-                if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                if (data && data[3] && data[3].hasOwnProperty('isFirstBankInfo') && data[3].isFirstBankInfo) {
                     isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
@@ -3562,13 +3563,13 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
-                    //     return Q.reject({
-                    //         name: "DataError",
-                    //         code: constServerCode.INVALID_DATA,
-                    //         message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
-                    //     });
-                    // }
+                    if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
+                        });
+                    }
                     // check if the limit of using the same bank account number
                     if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
@@ -3647,7 +3648,7 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
-                if(playerObj.bankAccount != updateData.bankAccount) {
+                if(playerObj.bankAccount != updateData.bankAccount && skipProposal) {
                     let bankAccountBindingRecord = new dbconfig.collection_bankAccountBindingRecord({
                         platformObjId: playerObj.platform,
                         playerObjId: playerObj._id,
@@ -6367,23 +6368,25 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.find(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
                                                 {phoneNumber: loginData.phoneNumber},
-                                                {phoneNumber: enOldPhoneNumber}
+                                                {phoneNumber: enOldPhoneNumber},
+                                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
                                             platform: platformData._id
                                         }
-                                    ).lean();
+                                    ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
                             }
                         ).then(
                             player => {
+                                if (player && player.length) {
+                                    let thisPlayer = player[0];
 
-                                if (player) {
-                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                    if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
@@ -7080,16 +7083,17 @@ let dbPlayerInfo = {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                    return dbconfig.collection_players.findOne(
+                    return dbconfig.collection_players.find(
                         {
                             $or: [
                                 {phoneNumber: encryptedPhoneNumber},
                                 {phoneNumber: loginData.phoneNumber},
-                                {phoneNumber: enOldPhoneNumber}
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                             ],
                             platform: platformData._id
                         }
-                    ).lean();
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -7100,8 +7104,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data) {
-                    playerObj = data;
+                if (data && data.length) {
+                    playerObj = data[0];
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
@@ -18091,7 +18095,7 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
-        if (diffInDays < 1) {
+        if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
         } else {
@@ -22278,6 +22282,12 @@ let dbPlayerInfo = {
                         // check the game credit from the same platform
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
+                    // if the status = 3 , means this provider is closed, we dont show to frontend
+                    if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
+                        returnData.gameCreditList = returnData.gameCreditList.filter( item => {
+                            return item.status != constProviderStatus.HALT;
+                        })
+                    }
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22297,7 +22307,7 @@ let dbPlayerInfo = {
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
                             rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
                                 gameData.forEach(gameItem => {
-                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != constProviderStatus.HALT) {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
@@ -22339,7 +22349,7 @@ let dbPlayerInfo = {
                         let dataList = [];
                         allGroupData[l].providers.forEach(allGroup => {
                             gameData.forEach(gameItem => {
-                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != constProviderStatus.HALT) {
                                     dataList.push({
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
@@ -24441,17 +24451,18 @@ let dbPlayerInfo = {
         )
     },
 
-    checkDuplicatedBankAccount: function (bankAccount, platform) {
+    checkDuplicatedBankAccount: function (bankAccount, platform, playerObjId) {
 
-        // let sameBankAccountCountProm = dbconfig.collection_players.find({
-        //     bankAccount: bankAccount,
-        //     platform: ObjectId(platform),
-        //     'permission.forbidPlayerFromLogin': false
-        // }).lean().count();
+        let sameBankAccountProm = dbconfig.collection_players.find({
+            bankAccount: bankAccount,
+            platform: ObjectId(platform),
+            'permission.forbidPlayerFromLogin': false
+        }).lean();
 
         let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
             platformObjId: ObjectId(platform),
             bankAccount: bankAccount,
+            playerObjId: {$ne: playerObjId}
         }).populate({
             path: 'playerObjId',
             model: dbconfig.collection_players
@@ -24461,7 +24472,7 @@ let dbPlayerInfo = {
             _id: ObjectId(platform)
         });
 
-        return Promise.all([bankAccountBindingRecordProm, platformProm]).then(
+        return Promise.all([sameBankAccountProm, bankAccountBindingRecordProm, platformProm]).then(
             data => {
                 if (!data){
                     return Promise.reject({
@@ -24477,16 +24488,18 @@ let dbPlayerInfo = {
                     })
                 }
 
-                let bankAccountBindingRecord = data[0];
+                let sameBankAccount = data[0];
+                let sameBankAccountCount = sameBankAccount.length || 0;
+                let bankAccountBindingRecord = data[1];
                 let bankAccountBindingRecordCount = bankAccountBindingRecord.length || 0;
-                let platformData = data[1];
+                let platformData = data[2];
 
                 if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount){
                     return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
                 }
-                // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
-                //     return Promise.resolve(false)
-                // }
+                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
+                    return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
+                }
                 return Promise.resolve(true);
             }
         )
