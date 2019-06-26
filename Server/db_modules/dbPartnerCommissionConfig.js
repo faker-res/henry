@@ -695,6 +695,10 @@ const dbPartnerCommissionConfig = {
             return Promise.reject({message: "Partner not found"});
         }
 
+        if (!Array.isArray(commissionRate)) {
+            return Promise.reject({message: "Commission Rate content unknown"});
+        }
+
         let child = await dbconfig.collection_partner.findOne({partnerId: targetPartnerId, platform: editor.platform, parent: editor._id}).lean();
         if (!child || String(editor.platform) !== String(child.platform)) {
             return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."}); // todo :: translate, add constant
