@@ -17100,7 +17100,8 @@ define(['js/app'], function (myApp) {
                             commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
                             provider: {
                                 $in: gameProviderGroupId
-                            }
+                            },
+                            partner: null
                         }
                     }
                 } else {

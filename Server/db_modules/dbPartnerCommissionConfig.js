@@ -170,9 +170,12 @@ const dbPartnerCommissionConfig = {
         if (parentObjId) { // checking - only update main partner commission
             return;
         }
+
+        let providerArr = providerGroups.map(provider => provider._id);
+        providerArr.push(null); // default group
         let defConfigs = await dbconfig.collection_platformPartnerCommConfig.find({
             // provider: providerGroups[i]._id,
-            provider: {$in: providerGroups.map(provider => provider._id)},
+            provider: {$in: providerArr},
             platform: platformObjId,
             commissionType
         }).lean();
