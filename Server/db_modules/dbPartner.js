@@ -10097,7 +10097,7 @@ let dbPartner = {
                             if (index > -1) {
                                 allActivePlayerList[index].crewProfit += data.consumptionDetail.bonusAmount,
                                     allActivePlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
-                                    allActivePlayerList[index].withdrawalAmount += data.withdrawalDetail.withdrawalAmount,
+                                    allActivePlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
                                     allActivePlayerList[index].validBet += data.consumptionDetail.validAmount,
                                     allActivePlayerList[index].promoAmount += data.rewardDetail.total
                             } else {
