@@ -1608,14 +1608,6 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
         rateTable = false;
     }
 
-    if (useDefault) {
-        console.log('ddddddddddddddddddddd',{
-            groupId: group.providerGroupId,
-            groupName: group.name,
-            rateTable: rateTable || []
-        })
-    }
-
     return {
         groupId: group.providerGroupId,
         groupName: group.name,
@@ -1696,52 +1688,84 @@ function getDirectCommissionRateTables (platformObjId, commissionType, partnerOb
     return Promise.all(proms);
 }
 
-function getDirectCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
+async function getDirectCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
     providerGroupObjId = providerGroupObjId || {$exists: false};
 
-    let platformConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
-        platform: platformObjId,
-        commissionType: commissionType,
-        provider: providerGroupObjId,
-        partner: {$exists: false}
-    }).lean();
-
-    let customConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+    let providerConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
         platform: platformObjId,
         commissionType: commissionType,
         provider: providerGroupObjId,
         partner: partnerObjId
     }).lean();
 
-    return Promise.all([platformConfigProm, customConfigProm]).then(
-        data => {
-            let platformConfig = {};
+    if (providerConfig && providerConfig.commissionSetting && providerConfig.commissionSetting.length) {
+        return providerConfig.commissionSetting;
+    }
 
-            if (!data[0]) {
-                platformConfig.commissionSetting = [];
-            } else {
-                platformConfig = data[0];
-            }
+    let defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
+        platform: platformObjId,
+        commissionType: commissionType,
+        provider: null,
+        partner: partnerObjId
+    }).lean();
 
-            if (data[1]) {
-                let customConfig = data[1];
-                platformConfig.commissionSetting.map(platformRate => {
-                    customConfig.commissionSetting.map(customRate => {
-                        if (platformRate.playerConsumptionAmountFrom === customRate.playerConsumptionAmountFrom
-                            && platformRate.playerConsumptionAmountTo === customRate.playerConsumptionAmountTo
-                            && platformRate.activePlayerValueFrom === customRate.activePlayerValueFrom
-                            && platformRate.activePlayerValueTo === customRate.activePlayerValueTo
-                            && platformRate.commissionRate !== customRate.commissionRate) {
-                            platformRate.isCustom = true;
-                            platformRate.commissionRate = customRate.commissionRate;
-                        }
-                    });
-                });
-            }
+    if (defaultConfig && defaultConfig.commissionSetting && defaultConfig.commissionSetting.length) {
+        return defaultConfig.commissionSetting;
+    }
 
-            return platformConfig.commissionSetting;
-        }
-    );
+    return [];
+
+
+    // let platformConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+    //     platform: platformObjId,
+    //     commissionType: commissionType,
+    //     provider: providerGroupObjId,
+    //     partner: {$exists: false}
+    // }).lean();
+    //
+    // let customConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+    //     platform: platformObjId,
+    //     commissionType: commissionType,
+    //     provider: providerGroupObjId,
+    //     partner: partnerObjId
+    // }).lean();
+    //
+    // let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+    //     platform: platformObjId,
+    //     commissionType: commissionType,
+    //     provider: null,
+    //     partner: partnerObjId
+    // }).lean();
+    //
+    // return Promise.all([platformConfigProm, customConfigProm, defaultConfigProm]).then(
+    //     data => {
+    //         let platformConfig = {};
+    //
+    //         if (!data[0]) {
+    //             platformConfig.commissionSetting = [];
+    //         } else {
+    //             platformConfig = data[0];
+    //         }
+    //
+    //         if (data[1]) {
+    //             let customConfig = data[1];
+    //             platformConfig.commissionSetting.map(platformRate => {
+    //                 customConfig.commissionSetting.map(customRate => {
+    //                     if (platformRate.playerConsumptionAmountFrom === customRate.playerConsumptionAmountFrom
+    //                         && platformRate.playerConsumptionAmountTo === customRate.playerConsumptionAmountTo
+    //                         && platformRate.activePlayerValueFrom === customRate.activePlayerValueFrom
+    //                         && platformRate.activePlayerValueTo === customRate.activePlayerValueTo
+    //                         && platformRate.commissionRate !== customRate.commissionRate) {
+    //                         platformRate.isCustom = true;
+    //                         platformRate.commissionRate = customRate.commissionRate;
+    //                     }
+    //                 });
+    //             });
+    //         }
+    //
+    //         return platformConfig.commissionSetting;
+    //     }
+    // );
 }
 
 function getDirectCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
