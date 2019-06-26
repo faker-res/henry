@@ -1879,7 +1879,7 @@
   "AuctionRewardPromotion": "促销优惠竟拍",
   "AuctionRealPrize": "实体奖品竟拍",
   "AuctionRewardPointChange": "积分变化竟拍",
-  "openPromoCode": "开放式优惠代码",
+  "openPromoCode": "开放代码",
   "promotion": "促销优惠",
   "realPrize": "实体奖品",
   "rewardPointsChange": "积分变化",
@@ -3015,16 +3015,11 @@
   "TRANSFER_OUT": "转出",
   "BET": "投注",
   "PAYOUT": "派彩",
-  "ALL_PROMO_CODE": "所有优惠代码",
   "Max Reward Times": "每日申请次数",
   "PlayerDoubleTopUpReward": "玩家多次充值",
   "rejectPlayerDoubleTopUpReward": "玩家多次充值未通过",
   "PlayerDoubleTopUpReturn": "玩家多次充值优惠",
   "banReward": "所有优惠",
-  "allowPromoCode": "所有优惠代码",
-  "FORBID_PROMOCODE": "禁用优惠代码",
-  "autoPromoCode": "自动式优惠代码",
-  "ForbidPromoCode": "禁用优惠代码",
   "DEPOSIT_TIME": "存款时间",
   "TOTAL_TOP_UP": "总存款",
   "fixed": "已修复",
@@ -4605,7 +4600,7 @@
 
   "Same IP FrontEnd Registration Limitation": "同IP前端注册次数",
   "First Three IP Region Limitation": "前3段IP相同注册次数",
-  "IP Check Time Period (Default:1 hours)": "IP注册检查时间范围（默认1小时）",
+  "IP Check Time Period (Default:1 minute)": "IP注册检查时间范围（默认1分钟）",
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",
   "Distribution Name List Details": "名单派发详情",
@@ -5734,5 +5729,6 @@
   "No Reward Task": "无优惠任务",
   "Player(s) are not of selected platform": "账号所属平台错误",
   "Platform Selection": "选择导入产品",
-  "Some player(s) are not of selected platform": "部分玩家所属平台错误"
+  "Some player(s) are not of selected platform": "部分玩家所属平台错误",
+  "App Data Version": "APP版本号"
 }

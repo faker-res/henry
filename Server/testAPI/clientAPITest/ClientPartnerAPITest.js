@@ -332,6 +332,12 @@
         this.partnerService.getDownLinePlayerInfo.once(callback);
     };
 
+    proto.getDownLinePartnerInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownLinePartnerInfo.request(data);
+        this.partnerService.getDownLinePartnerInfo.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);

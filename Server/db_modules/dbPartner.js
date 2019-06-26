@@ -35,6 +35,7 @@ const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const RESTUtils = require('../modules/RESTUtils');
+const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig');
 
 let env = require('../config/env').config();
 
@@ -10131,9 +10132,313 @@ let dbPartner = {
     },
 
     getDownLinePlayerInfo: (platformId, partnerId, period, whosePlayer, playerType, crewAccount, requestPage, count, sortType, sort) => {
+        let platformRecord;
+        let partnerRecord;
+        let intervalTime;
+        let partnerObjIdList = [];
+        let providerGroups = [];
+        let paymentProposalTypes = [];
+        let rewardProposalTypes = [];
+        let allActivePlayerList = [];
+        let newPlayerList = [];
+        let allValidPlayerList = [];
+        let validPlayerRequirement = {};
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
+        let limit = count || 10;
+        let statsObj = {};
+        let totalCount = 0;
+        let totalPage = 1;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
+
+        switch (period) {
+            case 1:
+                intervalTime = dbUtil.getTodaySGTime();
+                break;
+            case 2:
+                intervalTime = dbUtil.getCurrentWeekSGTime();
+                break;
+            case 3:
+                intervalTime = dbUtil.getCurrentMonthSGTIme();
+                break;
+        }
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                platformRecord = platformData;
+
+                let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformRecord._id}).lean();
+                let paymentProposalTypesProm = getPaymentProposalTypes(platformRecord._id);
+                let rewardProposalTypesProm = getRewardProposalTypes(platformRecord._id);
+                let validPlayerRequirementProm = getValidPlayerRequirement(platformRecord._id);
+
+                return Promise.all([providerGroupProm, paymentProposalTypesProm, rewardProposalTypesProm, validPlayerRequirementProm]);
+            }
+        ).then(
+            data => {
+                providerGroups = data[0];
+                paymentProposalTypes = data[1];
+                rewardProposalTypes = data[2];
+                validPlayerRequirement = data[3];
+
+                return dbconfig.collection_partner.findOne({platform: platformRecord._id, partnerId: partnerId}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+
+                partnerRecord = partnerData;
+
+                return getAllChildrenPartners(partnerRecord._id);
+            }
+        ).then(
+            allPartnerData => {
+                switch (whosePlayer) {
+                    case 1:
+                        partnerObjIdList = allPartnerData && allPartnerData.length > 0 ? allPartnerData : [partnerRecord._id];
+                        break;
+                    case 2:
+                        partnerObjIdList = [partnerRecord._id];
+                        break;
+                    case 3:
+                        partnerObjIdList = allPartnerData && allPartnerData.length > 0 ? allPartnerData.filter(item => !item.includes(partnerRecord._id)) : [partnerRecord._id];
+                        break;
+                }
+
+                return partnerObjIdList;
+            }
+        ).then(
+            partnerObjIdData => {
+                let proms = [];
+
+                if (partnerObjIdData && partnerObjIdData.length > 0) {
+                    partnerObjIdData.forEach(partnerObjId => {
+                        proms.push(getPartnerAndDownlinePlayerData(platformRecord._id, partnerObjId, crewAccount))
+                    });
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            partnerAndDownlinePlayerData => {
+                let dayStartTime = new Date(intervalTime.startTime);
+                let endDate = new Date(intervalTime.endTime);
+                let getNextDate;
+                let dateRange = 0;
+                let periodRange = 0;
+
+                periodRange = 24 * 3600 * 1000;
+                dateRange = (new Date(endDate) - new Date(dayStartTime)) || 0;
+                getNextDate = function (date, day) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + day));
+                }
+                let loopTimes = dateRange / periodRange;
+
+                return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, loopTimes, getNextDate, dayStartTime, intervalTime, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
+
+            }
+        ).then(
+            allPlayerData => {
+                if (allPlayerData && allPlayerData.length > 0) {
+                    allPlayerData.forEach(data => {
+                        if (data && data.active && (data.active.toString() === 'true')) {
+                            let index = allActivePlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
+                            if (index > -1) {
+                                allActivePlayerList[index].crewProfit += data.consumptionDetail.bonusAmount,
+                                    allActivePlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
+                                    allActivePlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
+                                    allActivePlayerList[index].validBet += data.consumptionDetail.validAmount,
+                                    allActivePlayerList[index].promoAmount += data.rewardDetail.total
+                            } else {
+                                let tempData = {
+                                    crewAccount: data.name,
+                                    crewRegisterTime: data.registrationTime,
+                                    crewLastLoginTime: data.lastAccessTime,
+                                    crewProfit: data.consumptionDetail.bonusAmount,
+                                    depositAmount: data.topUpDetail.topUpAmount,
+                                    withdrawAmount: data.withdrawalDetail.withdrawalAmount,
+                                    validBet: data.consumptionDetail.validAmount,
+                                    promoAmount: data.rewardDetail.total,
+                                    totalPlatformFee: data.totalPlatformFee,
+                                    totalDepositWithdrawFee: data.totalDepositWithdrawFee
+                                };
+
+                                allActivePlayerList.push(tempData);
+                            }
+                        }
+
+                        if (intervalTime && intervalTime.startTime && intervalTime.endTime) {
+                            newPlayerList = allActivePlayerList.filter(player =>
+                                new Date(player.crewRegisterTime).getTime() >= intervalTime.startTime.getTime() &&
+                                new Date(player.crewRegisterTime).getTime() < intervalTime.endTime.getTime());
+                        }
+
+
+                        switch (playerType) {
+                            case 1:
+                            case 3:
+                                if (data && data.valid && (data.valid.toString() === 'true')) {
+                                    let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
+                                    if (index === -1) {
+                                        allValidPlayerList.push(data.name);
+                                    }
+                                }
+                                break;
+                            case 2:
+                                if (data && data.valid && (data.valid.toString() === 'true') &&
+                                    new Date(data.registrationTime).getTime() >= intervalTime.startTime.getTime() &&
+                                    new Date(data.registrationTime).getTime() < intervalTime.endTime.getTime()) {
+                                    let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
+                                    if (index === -1) {
+                                        allValidPlayerList.push(data.name);
+                                    }
+                                }
+                                break;
+                        }
+                    });
+                }
+
+                totalCount = allActivePlayerList.length ? allActivePlayerList.length : 0;
+                totalPage = Math.ceil(totalCount / limit);
+
+                statsObj.totalCount = totalCount;
+                statsObj.totalPage = totalPage;
+                statsObj.currentPage = currentPage;
+                statsObj.totalNewPlayerCount = newPlayerList.length || 0;
+                statsObj.totalValidCrewPlayer = allValidPlayerList.length || 0;
+
+
+                let result = [];
+                switch (playerType) {
+                    case 1:
+                    case 3:
+                        statsObj.totalDepositCount = allActivePlayerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalWithdrawAmount = allActivePlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
+                        statsObj.totalPromoAmount = allActivePlayerList.reduce((a,b) => a + b.promoAmount, 0);
+                        statsObj.totalCrewProfit = allActivePlayerList.reduce((a,b) => a + b.crewProfit, 0);
+                        statsObj.totalPlatformFee = allActivePlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
+                        statsObj.totalDepositWithdrawFee = allActivePlayerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+
+                        result = allActivePlayerList.length > 0 ? allActivePlayerList.slice(index, index + limit) : [];
+                        break;
+                    case 2:
+                        statsObj.totalDepositCount = newPlayerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalWithdrawAmount = newPlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
+                        statsObj.totalPromoAmount = newPlayerList.reduce((a,b) => a + b.promoAmount, 0);
+                        statsObj.totalCrewProfit = newPlayerList.reduce((a,b) => a + b.crewProfit, 0);
+                        statsObj.totalPlatformFee = newPlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
+                        statsObj.totalDepositWithdrawFee = newPlayerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+
+                        result = newPlayerList.length > 0 ? newPlayerList.slice(index, index + limit) : [];
+                        break;
+                }
+
+                result.sort((a, b) => sortList(a, b, sortType, sort));
+
+                return {stats: statsObj, list: result};
+            }
+        )
+
+
+        function getAllChildrenPartners (partnerObjId, holder, count) {
+            // mechanism to prevent infinite loop
+            count = count || 0;
+            count++;
+            if (count > 100) {
+                return;
+            }
+
+            // actual implementation
+            holder = holder || [String(partnerObjId)];
+            return dbconfig.collection_partner.find({parent: partnerObjId}, {_id: 1}).lean().then(
+                children => {
+                    let proms = [];
+                    if (children && children.length) {
+                        for (let i = 0; i < children.length; i++) {
+                            let child = children[i];
+                            if (holder.includes(String(child._id))) {
+                                continue;
+                            }
+                            holder.push(String(child._id));
+                            let prom = getAllChildrenPartners(child._id, holder, count);
+                            proms.push(prom);
+                        }
+                    }
+                    if (proms.length) {
+                        return Promise.all(proms);
+                    }
+                    return Promise.resolve();
+                }
+            ).then(
+                () => {
+                    return holder;
+                }
+            );
+        }
+
+        function sortList (a, b, sortType, sortBy) {
+            let sortField;
+
+            switch (Number(sortType)) {
+                case 1:
+                    sortField = "depositAmount";
+                    break;
+                case 2:
+                    sortField = "withdrawAmount";
+                    break;
+                case 3:
+                    sortField = "crewProfit";
+                    break;
+                case 4:
+                    sortField = "validBet";
+                    break;
+                case 5:
+                    sortField = "promoAmount";
+                    break;
+                case 6:
+                    sortField = "platformFee";
+                    break;
+                case 7:
+                    sortField = "totalDepositWithdrawFee";
+                    break;
+                default:
+                    sortField = "crewRegisterTime";
+                    break;
+            }
+
+            if (sortBy && sortBy.toString() === 'false') {
+                return b[sortField] - a[sortField];
+            } else if (sortBy && sortBy.toString() === 'true') {
+                return a[sortField] - b[sortField];
+            }
+        }
+    },
+
+    getDownLinePartnerInfo: (platformId, partnerId, period, partnerType, partnerAccount, requestPage, count, sortType, sort) => {
 
     }
 };
+
 
 async function getAllPartnerDownlinePartnerWithPlayers (partnerObjId, platformObjId) {
     let partnerLevel = await dbPartner.getPartnerLevel(platformObjId, partnerObjId);
@@ -10181,6 +10486,231 @@ function getPartnerPlayerDetail (partnerObjId) {
             realName: 1,
             bonusAmountSum: 1
         }).lean()
+}
+
+function getPartnerAndDownlinePlayerData (platformObjId, partnerObjId, crewAccount) {
+    let partner = {};
+    let activePlayerRequirement = {};
+    let downLines = [];
+
+    return dbconfig.collection_partner.findOne({platform: platformObjId, _id: partnerObjId}).lean().then(
+        partnerData => {
+            if (!partnerData) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Cannot find partner"
+                });
+            }
+
+            partner = partnerData;
+
+            return getActivePlayerRequirement(platformObjId, partner.commissionType);
+        }
+    ).then(
+        activePlayerConfigData => {
+            activePlayerRequirement = activePlayerConfigData;
+
+            if(crewAccount){
+                return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId, name: crewAccount}).lean();
+            }
+            else{
+                return dbconfig.collection_players.find({platform: platformObjId, partner: partnerObjId}).lean();
+            }
+        }
+    ).then(
+        downLineData => {
+            downLines = downLineData || [];
+
+            return {
+                partner,
+                activePlayerRequirement,
+                downLines
+            };
+        }
+    );
+
+    function getActivePlayerRequirement (platformObjId, commissionType) {
+        let configPrefix = "dailyActive";
+        switch (Number(commissionType)) {
+            case constPartnerCommissionType.DAILY_CONSUMPTION:
+                configPrefix = "dailyActive";
+                break;
+            case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+                configPrefix = "weeklyActive";
+                break;
+        }
+
+        return dbconfig.collection_activeConfig.findOne({platform: platformObjId}).lean().then(
+            partnerActiveConfig => {
+                return {
+                    topUpTimes: partnerActiveConfig && partnerActiveConfig[configPrefix + "PlayerTopUpTimes"] || 0,
+                    topUpAmount: partnerActiveConfig && partnerActiveConfig[configPrefix + "PlayerTopUpAmount"] || 0,
+                    consumptionTimes: partnerActiveConfig && partnerActiveConfig[configPrefix + "PlayerConsumptionTimes"] || 0,
+                    consumptionAmount: partnerActiveConfig && partnerActiveConfig[configPrefix + "PlayerConsumptionAmount"] || 0,
+                }
+            }
+        );
+    }
+}
+
+function getValidPlayerRequirement (platformObjId) {
+    return dbconfig.collection_activeConfig.findOne({platform: platformObjId}).lean().then(
+        partnerValidConfig => {
+            return {
+                validPlayerTopUpTimes: partnerValidConfig && partnerValidConfig.validPlayerTopUpTimes || 0,
+                validPlayerTopUpAmount: partnerValidConfig && partnerValidConfig.validPlayerTopUpAmount || 0,
+                validPlayerConsumptionTimes: partnerValidConfig && partnerValidConfig.validPlayerConsumptionTimes || 0,
+                validPlayerConsumptionAmount: partnerValidConfig && partnerValidConfig.validPlayerConsumptionAmount || 0,
+                validPlayerValue: partnerValidConfig && partnerValidConfig.validPlayerTopUpTimes || 0,
+            }
+        }
+    );
+}
+
+function isPlayerValid (validPlayerRequirement, playerConsumptionTimes, playerConsumptionAmount, playerTopUpTimes, playerTopUpAmount, valueScore) {
+    return Boolean(
+        (playerConsumptionTimes >= validPlayerRequirement.validPlayerConsumptionTimes)
+        && (playerConsumptionAmount >= validPlayerRequirement.validPlayerConsumptionAmount)
+        && (playerTopUpTimes >= validPlayerRequirement.validPlayerTopUpTimes)
+        && (playerTopUpAmount >= validPlayerRequirement.validPlayerTopUpAmount)
+        && (valueScore >= validPlayerRequirement.validPlayerValue)
+    );
+}
+
+function getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, loopTimes, getNextDate, dayStartTime, intervalTime, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord) {
+    let outputProms = [];
+
+    if (partnerAndDownlinePlayerData && partnerAndDownlinePlayerData.length > 0) {
+        partnerAndDownlinePlayerData.forEach(data => {
+            if (data && data.partner && data.partner.commissionType) {
+                for(let i = 1; i <= loopTimes; i++) {
+                    let currentDate = getNextDate.call(this, dayStartTime, i);
+
+                    let startTime = new Date(currentDate.setHours(0, 0, 0, 0));
+                    let endTime = new Date(currentDate.setHours(23, 59, 59, 999));
+
+                    if (i == 1) {
+                        // reset back to selected startTime if is first date
+                        startTime = new Date(intervalTime.startTime);
+                    }
+
+                    if (i == loopTimes) {
+                        // reset back to selected endTime if is last date
+                        endTime = new Date(intervalTime.endTime);
+                    }
+
+                    if (data.downLines && data.downLines.length > 0) {
+                        data.downLines.forEach(player => {
+                            if (player && player._id) {
+                                let prom = getAllPlayerDetails(
+                                    player._id,
+                                    data.partner.commissionType,
+                                    startTime,
+                                    endTime,
+                                    providerGroups,
+                                    paymentProposalTypes,
+                                    rewardProposalTypes,
+                                    data.activePlayerRequirement,
+                                    validPlayerRequirement,
+                                    data.partner,
+                                    platformRecord);
+                                outputProms.push(prom);
+                            }
+                        });
+                    }
+                }
+            }
+        })
+    }
+
+    return Promise.all(outputProms);
+}
+
+function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement, validPlayerRequirement, partnerRecord, platformRecord) {
+    let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups).catch(err => {
+        console.error('getPlayerCommissionConsumptionDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes).catch(err => {
+        console.error('getPlayerCommissionTopUpDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime).catch(err => {
+        console.error('getPlayerCommissionWithdrawDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes).catch(err => {
+        console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
+        return Promise.reject(err);
+    });
+    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1, valueScore:1, registrationTime: 1, lastAccessTime: 1}).lean();
+    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id);
+
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
+        data => {
+            let consumptionDetail = data[0];
+            let topUpDetail = data[1];
+            let withdrawalDetail = data[2];
+            let rewardDetail = data[3];
+            let name = (data[4] && data[4].name) || "";
+            let realName = (data[4] && data[4].realName) || "";
+            let valueScore = (data[4] && data[4].valueScore) || "";
+            let registrationTime = (data[4] && data[4].registrationTime) || "";
+            let lastAccessTime = (data[4] && data[4].lastAccessTime) || "";
+            let commRate = data[5];
+            let gameProviderGroupRate = data[5] && data[5].rateAfterRebateGameProviderGroup && data[5].rateAfterRebateGameProviderGroup.length > 0 ? data[5].rateAfterRebateGameProviderGroup : [];
+
+            let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
+            let valid = isPlayerValid(validPlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount, valueScore);
+
+            let totalPlatformFee = 0;
+            if (Number(commissionType) !== constPartnerCommissionType.DAILY_CONSUMPTION) {
+                if (gameProviderGroupRate && gameProviderGroupRate.length > 0 && consumptionDetail && consumptionDetail.consumptionProviderDetail && Object.keys(consumptionDetail.consumptionProviderDetail).length > 0) {
+                    gameProviderGroupRate.forEach(groupRate => {
+                        let totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;;
+                        let platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
+                        let platformFee =  platformFeeRate * totalBonusAmount / 100;
+                        platformFee = platformFee >= 0 ? platformFee : 0;
+                        totalPlatformFee += platformFee;
+                    });
+                } else {
+                    let platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
+                    let platformFee =  platformFeeRate * -consumptionDetail.bonusAmount / 100;
+                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    totalPlatformFee += platformFee;
+                }
+            }
+
+            let depositChargeFee = 0;
+            let depositChargeRate = commRate && commRate.rateAfterRebateTotalDeposit ? Number(commRate.rateAfterRebateTotalDeposit) : 0;
+            if (topUpDetail && topUpDetail.topUpAmount) {
+                depositChargeFee = depositChargeRate * topUpDetail.topUpAmount / 100
+            }
+
+            let withdrawalChargeFee = 0;
+            let withdrawalChargeRate = commRate && commRate.rateAfterRebateTotalWithdrawal ? Number(commRate.rateAfterRebateTotalWithdrawal) : 0;
+            if (withdrawalDetail && withdrawalDetail.withdrawalAmount) {
+                withdrawalChargeFee = depositChargeRate * withdrawalDetail.withdrawalAmount / 100
+            }
+
+            let totalDepositWithdrawFee = dbutility.twoDecimalPlacesToFixed(depositChargeFee) + dbutility.twoDecimalPlacesToFixed(withdrawalChargeFee);
+
+            return {
+                name,
+                realName,
+                registrationTime,
+                lastAccessTime,
+                consumptionDetail,
+                topUpDetail,
+                withdrawalDetail,
+                rewardDetail,
+                active,
+                valid,
+                totalPlatformFee,
+                totalDepositWithdrawFee
+            };
+        }
+    );
 }
 
 function getPreviousNCommissionPeriod (commissionType, n) {
@@ -10978,25 +11508,27 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
             for (let i = 0, len = rewardData.length; i < len; i++) {
                 let rewardTypeTotal = rewardData[i];
 
-                switch (String(rewardTypeTotal.typeId)) {
-                    case rewardTypes.manualReward:
-                        playerRewardDetail.manualReward = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.consumptionReturn:
-                        playerRewardDetail.consumptionReturn = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.limitedOffer:
-                        playerRewardDetail.limitedOffer = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.promoCode:
-                        playerRewardDetail.promoCode = rewardTypeTotal.amount;
-                        break;
-                    case rewardTypes.convertRewardPoint:
-                    case rewardTypes.autoConvertRewardPoint:
-                        playerRewardDetail.pointConversion += rewardTypeTotal.amount;
-                        break;
-                    default:
-                        playerRewardDetail.systemReward += rewardTypeTotal.amount;
+                if (rewardTypes) {
+                    switch (String(rewardTypeTotal.typeId)) {
+                        case rewardTypes.manualReward:
+                            playerRewardDetail.manualReward = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.consumptionReturn:
+                            playerRewardDetail.consumptionReturn = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.limitedOffer:
+                            playerRewardDetail.limitedOffer = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.promoCode:
+                            playerRewardDetail.promoCode = rewardTypeTotal.amount;
+                            break;
+                        case rewardTypes.convertRewardPoint:
+                        case rewardTypes.autoConvertRewardPoint:
+                            playerRewardDetail.pointConversion += rewardTypeTotal.amount;
+                            break;
+                        default:
+                            playerRewardDetail.systemReward += rewardTypeTotal.amount;
+                    }
                 }
 
                 playerRewardDetail.total += rewardTypeTotal.amount;

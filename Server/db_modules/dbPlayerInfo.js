@@ -616,8 +616,8 @@ let dbPlayerInfo = {
                     }
                     platformData = platformInfo;
                     if (!platformInfo.ipCheckPeriod) {
-                        // if ipCheckPeriod not set, default 60 mins
-                        platformInfo.ipCheckPeriod = 60;
+                        // if ipCheckPeriod not set, default 1 mins
+                        platformInfo.ipCheckPeriod = 1;
                     }
                     let endTime = new Date();
                     let startTime = new moment().subtract(platformInfo.ipCheckPeriod, 'minutes').toDate();
@@ -3454,16 +3454,17 @@ let dbPlayerInfo = {
                         platform: platformObjId
                     }).lean().count();
 
-                    // let sameBankAccountCountProm = dbconfig.collection_players.find({
-                    //     bankAccount: updateData.bankAccount,
-                    //     platform: platformObjId,
-                    //     'permission.forbidPlayerFromLogin': false
-                    // }).lean().count();
+                    let sameBankAccountCountProm = dbconfig.collection_players.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: platformObjId,
+                        'permission.forbidPlayerFromLogin': false
+                    }).lean().count();
 
                     let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
                         platformObjId: playerObj.platform,
                         bankAccount: updateData.bankAccount,
-                        bankName: updateData.bankName
+                        bankName: updateData.bankName,
+                        playerObjId: {$ne: playerObj._id}
                     }).lean().count();
 
                     let propQuery = {
@@ -3481,7 +3482,7 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    return Promise.all([realNameCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
+                    return Promise.all([realNameCountProm, sameBankAccountCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
                 }
                 else{
                     return Promise.reject({
@@ -3500,10 +3501,10 @@ let dbPlayerInfo = {
                 }
 
                 duplicatedRealNameCount = data[0] || 0;
-                // sameBankAccountCount = data[1] || 0;
-                bankAccountBindingRecordCount = data[1] || 0;
+                sameBankAccountCount = data[1] || 0;
+                bankAccountBindingRecordCount = data[2] || 0;
 
-                if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                if (data && data[3] && data[3].hasOwnProperty('isFirstBankInfo') && data[3].isFirstBankInfo) {
                     isfirstTimeRegistration = true;
                     if (updateData && updateData.bankAccountName) {
                         updateData.realName = updateData.bankAccountName;
@@ -3555,13 +3556,13 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
-                    //     return Q.reject({
-                    //         name: "DataError",
-                    //         code: constServerCode.INVALID_DATA,
-                    //         message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
-                    //     });
-                    // }
+                    if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
+                        });
+                    }
                     // check if the limit of using the same bank account number
                     if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
@@ -3640,7 +3641,7 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
-                if(playerObj.bankAccount != updateData.bankAccount) {
+                if(playerObj.bankAccount != updateData.bankAccount && skipProposal) {
                     let bankAccountBindingRecord = new dbconfig.collection_bankAccountBindingRecord({
                         platformObjId: playerObj.platform,
                         playerObjId: playerObj._id,
@@ -3805,15 +3806,6 @@ let dbPlayerInfo = {
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
-
-    updatePlayerForbidPromoCode: function (playerObjId, forbidPromoCodeList) {
-        let updateData = {};
-        if (forbidPromoCodeList) {
-            updateData.forbidPromoCodeList = forbidPromoCodeList;
-        }
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
-    },
-
     managingDataList: function (dataList, addList, removeList) {
         let result = [];
         // add those new Item to List first
@@ -3861,27 +3853,6 @@ let dbPlayerInfo = {
                     if (changeData.isForbidLevelMaintainReward) {
                         updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
                     }
-                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                        'name': name,
-                        'platform': platformObjId
-                    }, updateData, constShardKeys.collection_players);
-                })
-            proms.push(prom);
-        });
-        return Promise.all(proms);
-    },
-
-    updateBatchPlayerForbidPromoCode: function (platformObjId, playerNames, forbidPromoCode, changeData) {
-        let addList = forbidPromoCode && forbidPromoCode.addList ? forbidPromoCode.addList : [];
-        let removeList = forbidPromoCode && forbidPromoCode.removeList ? forbidPromoCode.removeList: [];
-        let proms = [];
-        playerNames.forEach(name => {
-            let updateData = {};
-            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
-                .then(data => {
-                    let playerForbidPromoCodeList = data.forbidPromoCodeList || [];
-                    updateData.forbidPromoCodeList = dbPlayerInfo.managingDataList(playerForbidPromoCodeList, addList, removeList);
-
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
                         'platform': platformObjId
@@ -6390,23 +6361,25 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.find(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
                                                 {phoneNumber: loginData.phoneNumber},
-                                                {phoneNumber: enOldPhoneNumber}
+                                                {phoneNumber: enOldPhoneNumber},
+                                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
                                             platform: platformData._id
                                         }
-                                    ).lean();
+                                    ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
                             }
                         ).then(
                             player => {
+                                if (player && player.length) {
+                                    let thisPlayer = player[0];
 
-                                if (player) {
-                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                    if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
@@ -7103,16 +7076,17 @@ let dbPlayerInfo = {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                    return dbconfig.collection_players.findOne(
+                    return dbconfig.collection_players.find(
                         {
                             $or: [
                                 {phoneNumber: encryptedPhoneNumber},
                                 {phoneNumber: loginData.phoneNumber},
-                                {phoneNumber: enOldPhoneNumber}
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                             ],
                             platform: platformData._id
                         }
-                    ).lean();
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -7123,8 +7097,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data) {
-                    playerObj = data;
+                if (data && data.length) {
+                    playerObj = data[0];
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
@@ -17903,7 +17877,7 @@ let dbPlayerInfo = {
 
                         let proposalQuery = {
                             mainType: {$in: ["PlayerBonus", "TopUp"]},
-                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            status: constProposalStatus.SUCCESS,
                             createTime: {$gte: startDate, $lte: endDate},
                             'data.platformId': platform
                         };
@@ -17963,7 +17937,9 @@ let dbPlayerInfo = {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
                                         }),
-                                        option: null,
+                                        option: {
+                                            isDepositReport: true
+                                        },
                                         isPromoteWay: true
                                     });
                                 },
@@ -18112,7 +18088,7 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
-        if (diffInDays < 1) {
+        if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
         } else {
@@ -18310,6 +18286,9 @@ let dbPlayerInfo = {
 
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
+                    // Filter out players who has 0 topup and 0 bets
+                    returnedObj.data = returnedObj.data.filter(a => a.topUpTimes !== 0 || a.bonusTimes !== 0 || a.consumptionTimes !== 0);
+
                     returnedObj.data.sort((a, b) => sortBySortCol(a, b, sortCol));
                     returnedObj.data = returnedObj.data.slice(0, limit);
 
@@ -21144,17 +21123,6 @@ let dbPlayerInfo = {
         return dbconfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
     },
 
-    createForbidPromoCodeLog: function (playerId, adminId, forbidPromoCodeNames, remark) {
-        remark = remark || "";
-        let logDetails = {
-            player: playerId,
-            admin: adminId,
-            forbidPromoCodeNames: forbidPromoCodeNames,
-            remark: remark
-        };
-        return dbconfig.collection_playerForbidPromoCodeLog(logDetails).save().then().catch(errorUtils.reportError);
-    },
-
     getForbidRewardLog: function (playerId, startTime, endTime, index, limit) {
         let logProm = dbconfig.collection_playerForbidRewardLog.find({
             player: playerId,
@@ -21166,29 +21134,6 @@ let dbPlayerInfo = {
             {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
-
-        return Promise.all([logProm, countProm]).then(
-            data => {
-                let logs = data[0];
-                let count = data[1];
-
-                return {data: logs, size: count};
-            }
-        )
-    },
-
-    getForbidPromoCodeLog: function (playerId, startTime, endTime, index, limit) {
-        let query = {
-            player: playerId,
-            createTime: {
-                $gte: new Date(startTime),
-                $lt: new Date(endTime)
-            }
-        };
-        let logProm = dbconfig.collection_playerForbidPromoCodeLog.find(query).skip(index).limit(limit).sort({createTime: -1}).populate(
-            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
-        ).lean();
-        let countProm = dbconfig.collection_playerForbidPromoCodeLog.find({player: playerId}).count();
 
         return Promise.all([logProm, countProm]).then(
             data => {
@@ -22330,6 +22275,12 @@ let dbPlayerInfo = {
                         // check the game credit from the same platform
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
+                    // if the status = 3 , means this provider is closed, we dont show to frontend
+                    if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
+                        returnData.gameCreditList = returnData.gameCreditList.filter( item => {
+                            return item.status != constProviderStatus.HALT;
+                        })
+                    }
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22349,7 +22300,7 @@ let dbPlayerInfo = {
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
                             rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
                                 gameData.forEach(gameItem => {
-                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != constProviderStatus.HALT) {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
@@ -22391,7 +22342,7 @@ let dbPlayerInfo = {
                         let dataList = [];
                         allGroupData[l].providers.forEach(allGroup => {
                             gameData.forEach(gameItem => {
-                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != constProviderStatus.HALT) {
                                     dataList.push({
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
@@ -24141,14 +24092,9 @@ let dbPlayerInfo = {
     checkIsAppPlayerAndAppliedReward: async function (playerObjId) {
         let returnObj = {
             isAppRegistered: false,
-            isAppliedRewardFromApp: false
+            isAppliedRewardFromApp: false,
+            isSMSValidated: false
         };
-
-        let isAppRegistered = await dbconfig.collection_players.findOne({
-            _id: playerObjId,
-            registrationInterface: constPlayerRegistrationInterface.APP_NATIVE_PLAYER
-        });
-        returnObj.isAppRegistered = Boolean(isAppRegistered);
 
         let isAppliedRewardFromApp = await dbconfig.collection_proposal.findOne({
             "data.playerObjId": playerObjId,
@@ -24157,6 +24103,15 @@ let dbPlayerInfo = {
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
         });
         returnObj.isAppliedRewardFromApp = Boolean(isAppliedRewardFromApp);
+
+        let playerObj = await dbconfig.collection_players.findById(playerObjId, {playerId: 1, registrationInterface: 1}).lean();
+
+        if (playerObj) {
+            returnObj.isAppRegistered = Boolean(playerObj.registrationInterface === constPlayerRegistrationInterface.APP_NATIVE_PLAYER);
+
+            let smsLog = await dbconfig.collection_smsLog.findOne({playerId: playerObj.playerId, used: true}).lean();
+            returnObj.isSMSValidated = Boolean(smsLog);
+        }
 
         return returnObj;
 
@@ -24489,17 +24444,18 @@ let dbPlayerInfo = {
         )
     },
 
-    checkDuplicatedBankAccount: function (bankAccount, platform) {
+    checkDuplicatedBankAccount: function (bankAccount, platform, playerObjId) {
 
-        // let sameBankAccountCountProm = dbconfig.collection_players.find({
-        //     bankAccount: bankAccount,
-        //     platform: ObjectId(platform),
-        //     'permission.forbidPlayerFromLogin': false
-        // }).lean().count();
+        let sameBankAccountProm = dbconfig.collection_players.find({
+            bankAccount: bankAccount,
+            platform: ObjectId(platform),
+            'permission.forbidPlayerFromLogin': false
+        }).lean();
 
         let bankAccountBindingRecordProm = dbconfig.collection_bankAccountBindingRecord.find({
             platformObjId: ObjectId(platform),
             bankAccount: bankAccount,
+            playerObjId: {$ne: playerObjId}
         }).populate({
             path: 'playerObjId',
             model: dbconfig.collection_players
@@ -24509,7 +24465,7 @@ let dbPlayerInfo = {
             _id: ObjectId(platform)
         });
 
-        return Promise.all([bankAccountBindingRecordProm, platformProm]).then(
+        return Promise.all([sameBankAccountProm, bankAccountBindingRecordProm, platformProm]).then(
             data => {
                 if (!data){
                     return Promise.reject({
@@ -24525,16 +24481,18 @@ let dbPlayerInfo = {
                     })
                 }
 
-                let bankAccountBindingRecord = data[0];
+                let sameBankAccount = data[0];
+                let sameBankAccountCount = sameBankAccount.length || 0;
+                let bankAccountBindingRecord = data[1];
                 let bankAccountBindingRecordCount = bankAccountBindingRecord.length || 0;
-                let platformData = data[1];
+                let platformData = data[2];
 
                 if (platformData.sameBankAccountCount && bankAccountBindingRecordCount >= platformData.sameBankAccountCount){
                     return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
                 }
-                // if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
-                //     return Promise.resolve(false)
-                // }
+                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
+                    return Promise.resolve({allow:false,player:bankAccountBindingRecord[0].playerObjId.name});
+                }
                 return Promise.resolve(true);
             }
         )

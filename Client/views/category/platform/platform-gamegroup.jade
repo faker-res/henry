@@ -141,7 +141,7 @@
                             i.fa.fa-minus-square
                             text {{"EXCLUDE" | translate}}
                         div(style="inline-flex;")
-                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameGroupImageUploader");')
+                            buton.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'UploadImage')", ng-click='vm.updateImageUrl("gameGroupImageUploader", vm.filterGamePlatform);')
                                 i.fa.fa-upload
                                 text {{"Upload Image" | translate}}
                             input(type='file', name='file' id='gameGroupImageUploader' style="display: inline !important")

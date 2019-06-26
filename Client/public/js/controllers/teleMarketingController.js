@@ -780,7 +780,7 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.initSMSModal();' + "vm.telorMessageToTsPhoneBtn('" +
+                                'ng-click': 'vm.initSMSModal(' + JSON.stringify(row.platform) + ');' + "vm.telorMessageToTsPhoneBtn('" +
                                     "msg" + "', " +  JSON.stringify(row) + ");",
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
@@ -2412,7 +2412,7 @@ define(['js/app'], function (myApp) {
         /****************** List - end ******************/
 
         /****************** XLS - start ******************/
-        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission, isCreateTsNewList) {
+        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission, isCreateTsNewList, platformObjId) {
             let rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
             let sheet = {};
             let rowArray = [];
@@ -2443,10 +2443,11 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 filterAllPlatform: vm.filterAllPlatform,
-                platformObjId: vm.importPlatformForXLS,
+                platformObjId: platformObjId,
                 arrayPhoneXLS: rowArrayMerge,
                 isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
+            console.log('sendData', sendData);
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
                 console.log("uploadPhoneFileXLS ret", data);
@@ -2693,8 +2694,12 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.getPlatformSmsGroups =  () => {
-            return $scope.$socketPromise('getPlatformSmsGroups', {platformObjId: vm.selectedSinglePlayer.platform}).then(function (data) {
+        vm.getPlatformSmsGroups =  (platformObjId) => {
+            let sendData = {
+                platformObjId: platformObjId ? platformObjId : vm.selectedPlatform.data._id
+            };
+            console.log('sendData', sendData);
+            return $scope.$socketPromise('getPlatformSmsGroups', sendData).then(function (data) {
                 vm.smsGroups = data.data;
                 console.log('vm.smsGroups', vm.smsGroups);
                 vm.getNoInGroupSmsSetting();
@@ -2702,13 +2707,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.initSMSModal = function () {
+        vm.initSMSModal = function (platformObjId) {
             $('#smsToPlayerTab').addClass('active');
             $('#smsLogTab').removeClass('active');
             $('#smsSettingTab').removeClass('active');
             vm.smsModalTab = "smsToPlayerPanel";
             vm.playerSmsSetting = {smsGroup:{}};
-            vm.getPlatformSmsGroups();
+            vm.getPlatformSmsGroups(platformObjId);
             vm.getAllMessageTypes();
             $scope.safeApply();
         };
@@ -5512,7 +5517,7 @@ define(['js/app'], function (myApp) {
                             link.append($('<a>', {
                                 'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initSMSModal();' + "vm.onClickPlayerCheck(" +
+                                'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row) + ' ;vm.initSMSModal(' + JSON.stringify(row.platform) + ');' + "vm.onClickPlayerCheck(" +
                                 JSON.stringify(row._id) + ", " + "vm.telorMessageToPlayerBtn" +
                                 ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
                                 'data-row': JSON.stringify(row),
@@ -6301,7 +6306,12 @@ define(['js/app'], function (myApp) {
                     vm.checkAnalyticsFilterAndImportSystem();
                 }
 
-                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.importPlatformForXLS, tsPhoneList: rowData._id}, function (data) {
+                let sendData = {
+                    platform: rowData && rowData.platform ? rowData.platform : vm.importPlatformForXLS,
+                    tsPhoneList: rowData._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', sendData, function (data) {
                     if (data && data.data  && data.data.length) {
                         $scope.$evalAsync(() => {
                             data.data.forEach(tsImportRecord => {
@@ -6399,7 +6409,7 @@ define(['js/app'], function (myApp) {
             )
         };
 
-        vm.importToTsPhoneList = () => {
+        vm.importToTsPhoneList = (platformObjId) => {
             if (vm.selectedTab == "RECYCLE_BIN") {
                 // import unused/ unregistered phone number and import associated feedback record
                 if (vm.showPageName && (vm.showPageName == "New Phone" || vm.showPageName == "OTHER_DEPARTMENT_TS_LIST")) {
@@ -6440,7 +6450,7 @@ define(['js/app'], function (myApp) {
                     )
                 }
             } else {
-                vm.uploadPhoneFileXLS('', true, null, true)
+                vm.uploadPhoneFileXLS('', true, null, true, platformObjId)
             }
             vm.checkFilterIsDisable = true;
         };

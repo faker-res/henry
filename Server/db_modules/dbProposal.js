@@ -1688,7 +1688,8 @@ var proposal = {
                                 noSteps: true,
                                 process: null,
                                 status: constProposalStatus.CANCEL,
-                                "data.cancelBy": "秒杀礼包已过期"
+                                "data.cancelBy": "秒杀礼包已过期",
+                                "settleTime": new Date(),
                             },
                             {new: true}
                         );
