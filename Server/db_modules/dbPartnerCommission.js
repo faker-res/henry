@@ -1544,17 +1544,30 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     let targetConfig = partnerConfig.find(config => {
         return String(config.provider) === String(group._id);
     });
+    let useDefault = false;
+
     if (!targetConfig) {
-        return {
-            groupId: group.providerGroupId,
-            groupName: group.name,
-            rateTable: []
-        };
+        useDefault = true;
+
+        targetConfig = partnerConfig.find(config => {
+            return !Boolean(config.provider);
+        });
+
+        if (!targetConfig) {
+            return {
+                groupId: group.providerGroupId,
+                groupName: group.name,
+                rateTable: []
+            };
+        }
     }
     let rateTable = targetConfig.commissionSetting;
 
     let parentsRateTables = parentConfigs.map(parentConfig => {
         let parentTargetConfig = parentConfig.find(config => {
+            if (useDefault) {
+                return !Boolean(config.provider);
+            }
             return String(config.provider) === String(group._id);
         });
         return parentTargetConfig || [];
