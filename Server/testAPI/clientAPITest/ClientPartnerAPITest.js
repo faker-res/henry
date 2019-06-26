@@ -320,6 +320,12 @@
         this.partnerService.getDownLinePlayerTimeSequence.once(callback);
     };
 
+    proto.getPartnerTotalInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getPartnerTotalInfo.request(data);
+        this.partnerService.getPartnerTotalInfo.once(callback);
+    };
+
     proto.getDownLinePlayerInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getDownLinePlayerInfo.request(data);

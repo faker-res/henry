@@ -470,6 +470,7 @@
                 "getDownPartnerContribution",
                 "getPartnerTransferList",
                 "getDownLinePlayerTimeSequence",
+                "getPartnerTotalInfo",
                 "getDownLinePlayerInfo",
                 "notifyNewMail",
                 "getMailList",
