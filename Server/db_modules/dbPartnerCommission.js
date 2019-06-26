@@ -1710,6 +1710,7 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
             let dupConfig = JSON.parse(JSON.stringify(platformConfig));
             delete dupConfig._id;
             delete dupConfig.__v;
+            dupConfig.partner = partnerObjId;
             providerConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
                 platform: platformObjId,
                 commissionType: commissionType,
@@ -1743,6 +1744,7 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
             let dupConfig = JSON.parse(JSON.stringify(platformDefConfig));
             delete dupConfig._id;
             delete dupConfig.__v;
+            dupConfig.partner = partnerObjId;
             defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
                 platform: platformObjId,
                 commissionType: commissionType,
