@@ -34,8 +34,12 @@ var dbGameProvider = {
     /**
      * Get the information of all the gameProviders
      */
-    getAllGameProviders: function () {
-        return dbconfig.collection_gameProvider.find({name: {$exists: true}}).sort({name: 1}).exec();
+    getAllGameProviders: function (hideDisabledProvider) {
+        let query = {name: {$exists: true}};
+        if (hideDisabledProvider) {
+            query.status = {$ne: constProviderStatus.HALT};
+        }
+        return dbconfig.collection_gameProvider.find(query).sort({name: 1}).exec();
     },
 
     /**
@@ -337,6 +341,8 @@ var dbGameProvider = {
                     }
 
                     if (bDetail) {
+                        // filter out disabled provider
+                        data.gameProviders = data.gameProviders.filter(item => {return item.status != constProviderStatus.HALT});
                         deferred.resolve(data.gameProviders);
                     }
                     else {
@@ -350,7 +356,6 @@ var dbGameProvider = {
                                 if (forbiddenProviders.indexOf(String(gameProvider._id)) >= 0) {
                                     gameProviderStatus = constProviderStatus.MAINTENANCE;
                                 }
-
                                 return {
                                     providerId: gameProvider.providerId,
                                     name: gameProvider.name,
@@ -361,6 +366,8 @@ var dbGameProvider = {
                                 };
                             }
                         );
+                        // filter out disabled provider
+                        providers = providers.filter(item => {return item.status != constProviderStatus.HALT});
                         deferred.resolve(providers);
                     }
                 }

@@ -4169,7 +4169,7 @@ define(['js/app'], function (myApp) {
                  if (str == vm.allGameStatusString.ENABLE) {
                      return 'colorGreen';
                  } else if (str == vm.allGameStatusString.DISABLE) {
-                     return 'colorRed';
+                     return '';
                  } else if (str == vm.allGameStatusString.MAINTENANCE) {
                      return 'colorOrangeImportant text-bold';
                  } else {
