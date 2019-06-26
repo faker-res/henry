@@ -4,6 +4,10 @@ module.exports = new dbPartnerCommissionConfigFunc();
 
 const dbconfig = require('./../modules/dbproperties');
 const errorUtils = require('./../modules/errorUtils');
+const math = require('mathjs');
+const constServerCode = require('./../const/constServerCode');
+const constProposalType = require('./../const/constProposalType');
+const dbProposal = require('./../db_modules/dbProposal');
 
 const dbPartnerCommissionConfig = {
     getPlatformPartnerCommConfig: (platformObjId) => {
@@ -678,6 +682,224 @@ const dbPartnerCommissionConfig = {
 
     getPartnerMainCommRateConfig: function (query) {
         return dbconfig.collection_partnerMainCommRateConfig.find(query);
+    },
+
+    setDLPartnerCommissionRateAPI: async (currentPartnerId, targetPartnerId, commissionRate) => {
+        let output = [];
+        let editor = await dbconfig.collection_partner.findOne({partnerId: currentPartnerId}).lean();
+        if (!editor) {
+            // generally not going to happen unless bug exist
+            return Promise.reject({message: "Partner not found"});
+        }
+
+        let child = await dbconfig.collection_partner.findOne({partnerId: targetPartnerId, platform: editor.platform, parent: editor._id}).lean();
+        if (!child || String(editor.platform) !== String(child.platform)) {
+            return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."}); // todo :: translate, add constant
+        }
+
+        let grandChildrenProm = dbconfig.collection_partner.find({parent: child._id, platform: editor.platform}, {_id: 1}).lean();
+        let editorCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(editor._id, editor.commissionType);
+        let childCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(child._id, editor.commissionType);
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: editor.platform}, {providerGroupId: 1, name: 1}).lean();
+        let [grandChildren, editorCommConfig, childCommConfig, providerGroups] = await Promise.all([grandChildrenProm, editorCommConfigProm, childCommConfigProm, providerGroupProm]);
+
+        let grandChildrenCommConfig = {};
+        for (let i = 0; i < grandChildren.length; i++) {
+            let grandChild = grandChildren[i];
+            let grandChildCommConfigs = await dbconfig.collection_partnerDownLineCommConfig.find({partner: grandChild._id, commissionType: editor.commissionType}).lean();
+            for (let j = 0; j < grandChildCommConfigs.length; j++) {
+                let config = grandChildCommConfigs[j];
+                if (!config || !config._id) continue;
+
+                let currentGroup = providerGroups.find(group => {
+                    return String(group._id) === String(config.provider);
+                });
+                if (!currentGroup) continue;
+
+                grandChildrenCommConfig[currentGroup.name] = grandChildrenCommConfig[currentGroup.name] || [];
+                grandChildrenCommConfig[currentGroup.name].push(config);
+            }
+        }
+
+        // for each rate given, check if its below the max and above the min allowed
+        let proposalProms = [];
+        for (let i = 0; i < commissionRate.length; i++) {
+            let groupRate = commissionRate[i];
+            let groupRateList = groupRate && groupRate.list || [];
+            if (!groupRateList || !groupRateList.length) continue;
+
+            let group = providerGroups.find(group => String(group.name) === String(groupRate.providerGroupName));
+            if (!group) {
+                console.log('group rate provider group not found', groupRate);
+                continue;
+            }
+
+            // console.log("group", group)
+            // console.log("groupRate", groupRate)
+
+            // compare with original see if anything change
+            // get original
+
+            let originalGroupRate = childCommConfig.find(config => String(config.provider) === String(group._id));
+            // console.log('originalGroupRate', group.providerGroupId, originalGroupRate)
+            let originalGroupRateList = originalGroupRate && originalGroupRate.commissionSetting || [];
+            if (!originalGroupRateList || !originalGroupRateList.length) continue;
+            // groupRate.list
+            // originalGroupRate.commissionSetting
+
+            // console.log('originalGroupRateList', JSON.stringify(originalGroupRateList, null ,2))
+            // console.log('groupRateList', JSON.stringify(groupRateList, null ,2))
+            let rateChanged = false;
+            for (let j = 0; j < originalGroupRateList.length; j++) {
+                let originalRequirementRate = originalGroupRateList[j];
+                if (!originalRequirementRate) continue;
+                for (let k = 0; k < groupRateList.length; k++) {
+                    let updatedRequirementRate = groupRateList[k];
+                    if (!updatedRequirementRate || updatedRequirementRate.matched) continue;
+                    updatedRequirementRate.activePlayerValueTo = updatedRequirementRate.activePlayerValueTo === "-" ? null : updatedRequirementRate.activePlayerValueTo;
+                    updatedRequirementRate.playerConsumptionAmountTo = updatedRequirementRate.playerConsumptionAmountTo === "-" ? null : updatedRequirementRate.playerConsumptionAmountTo;
+
+                    if (
+                        String(originalRequirementRate.playerConsumptionAmountFrom) === String(updatedRequirementRate.playerConsumptionAmountFrom) &&
+                        String(originalRequirementRate.playerConsumptionAmountTo) === String(updatedRequirementRate.playerConsumptionAmountTo) &&
+                        String(originalRequirementRate.activePlayerValueFrom) === String(updatedRequirementRate.activePlayerValueFrom) &&
+                        String(originalRequirementRate.activePlayerValueTo) === String(updatedRequirementRate.activePlayerValueTo)
+                    ) {
+                        // same requirement
+                        updatedRequirementRate.matched = true;
+                        if (Number(originalRequirementRate.commissionRate) !== Number(updatedRequirementRate.commissionRate)) {
+                            // commission rate changed
+                            rateChanged = true;
+                            originalRequirementRate.changed = true;
+                            originalRequirementRate.changeTo = updatedRequirementRate.commissionRate;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!rateChanged) continue;
+
+            let editorGroupRate = editorCommConfig.find(config => String(config.provider) === String(group._id));
+            if (!editorGroupRate) {
+                console.error("Parent rate error. Please contact CS. (#01)");
+                return Promise.reject({message: "Parent rate error. Please contact CS."}); // todo :: translate
+            }
+
+            let editorGroupRateList = editorGroupRate && editorGroupRate.commissionSetting || [];
+            if (!editorGroupRateList || !editorGroupRateList.length || editorGroupRateList.length !== originalGroupRateList.length) {
+                console.error("Parent rate error. Please contact CS. (#02)");
+                return Promise.reject({message: "Parent rate error. Please contact CS."});
+            }
+
+            // find similar rate requirement from editor
+            // if not exist, return error
+            for (let j = 0; j < originalGroupRateList.length; j++) {
+                let originalRequirementRate = originalGroupRateList[j];
+                if (!originalRequirementRate) continue;
+                let editorRequirementRate = editorGroupRateList[j];
+                if (!editorRequirementRate) continue;
+
+                if (!(
+                    String(originalRequirementRate.playerConsumptionAmountFrom) === String(editorRequirementRate.playerConsumptionAmountFrom) &&
+                    String(originalRequirementRate.playerConsumptionAmountTo) === String(editorRequirementRate.playerConsumptionAmountTo) &&
+                    String(originalRequirementRate.activePlayerValueFrom) === String(editorRequirementRate.activePlayerValueFrom) &&
+                    String(originalRequirementRate.activePlayerValueTo) === String(editorRequirementRate.activePlayerValueTo)
+                )) {
+                    console.error("Parent rate error. Please contact CS. (#03)");
+                    return Promise.reject({message: "Parent rate error. Please contact CS."});
+                }
+
+                if (!originalRequirementRate.changed) continue;
+
+                if (originalRequirementRate.changeTo > math.subtract(editorRequirementRate.commissionRate, 0.01)) {
+                    // between parent and child must have 1% different minimum
+                    console.log('between parent and child must have 1% different minimum', originalRequirementRate.changeTo, '>', editorRequirementRate.commissionRate , '- 0.01');
+                    return Promise.reject({
+                        status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                        message: "You must at least take 1% commission from your lower level partner to earn money."  // todo :: translate
+                    });
+                }
+            }
+
+            // find highest similar rate requirement from child
+            // todo:: debug start from here
+            let currentProviderGrandChildren = grandChildrenCommConfig[String(group.name)];
+            if (currentProviderGrandChildren && currentProviderGrandChildren.length) {
+                let gcRateLists = currentProviderGrandChildren.map(gc => gc && gc.commissionSetting)
+                gcRateLists = gcRateLists.filter(requirementList => requirementList && requirementList.length === originalGroupRateList.length);
+
+                for (let j = 0; j < originalGroupRateList.length; j++) {
+                    let originalRequirementRate = originalGroupRateList[j];
+                    if (!originalRequirementRate) continue;
+                    if (!originalRequirementRate.changed) continue;
+
+                    let highestChildRate = gcRateLists.reduce((rate, requirementList) => {
+                        let gcRequirementRate = requirementList[j];
+                        if (!gcRequirementRate) {
+                            return rate;
+                        }
+
+                        return Number(gcRequirementRate.commissionRate) > rate ? gcRequirementRate.commissionRate : rate;
+                    }, 0);
+
+                    if (originalRequirementRate.changeTo < math.add(highestChildRate, 0.01)) {
+                        console.log('child compared too low', originalRequirementRate.changeTo, '<', highestChildRate + 0.01);
+                        return Promise.reject({
+                            status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                            message: "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting."  // todo :: translate
+                        });
+                    }
+                }
+            }
+
+            let newGroupRate = JSON.parse(JSON.stringify(originalGroupRate));
+            if (newGroupRate && newGroupRate.commissionSetting && newGroupRate.commissionSetting.length) {
+                newGroupRate.commissionSetting.forEach(requirementRate => {
+                    if (requirementRate.changed) {
+                        requirementRate.commissionRate = requirementRate.changeTo;
+                    }
+                });
+            }
+
+            let creatorData = {
+                type: 'partner',
+                name: editor.partnerName,
+                id: editor._id
+            };
+
+            let proposalData ={
+                creator: creatorData,
+                platformObjId: editor.platform,
+                partnerObjId: child._id,
+                partnerName: child.partnerName,
+                parentObjId: editor._id,
+                isUpdateChild: true,
+                settingObjId: originalGroupRate._id,
+                commissionType: editor.commissionType,
+                isMultiLevel: true,
+                oldRate: originalGroupRate,
+                newRate: newGroupRate,
+                remark: "代理设置下级佣金",
+            };
+
+            let prom = await dbProposal.createProposalWithTypeName(editor.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {
+                creator: creatorData,
+                data: proposalData
+            });
+
+            let outputData = groupRate;
+            if (outputData && outputData.list && outputData.list.length) {
+                outputData.list.forEach(requirementRate => {
+                    delete requirementRate.matched;
+                });
+            }
+            output.push(outputData);
+            proposalProms.push(prom);
+        }
+        let result = await Promise.all(proposalProms);
+
+        return output;
     },
 };
 

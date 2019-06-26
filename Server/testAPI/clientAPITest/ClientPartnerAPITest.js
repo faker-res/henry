@@ -326,6 +326,17 @@
         this.partnerService.getDownLinePlayerInfo.once(callback);
     };
 
+    proto.setPartnerCommissionRate = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.setPartnerCommissionRate.request(data);
+        this.partnerService.setPartnerCommissionRate.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);

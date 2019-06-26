@@ -6196,6 +6196,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('MONTHLY_ACTIVE'),
                         data: "monthlyActivePlayer",
+                        visible: false,
                         // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {

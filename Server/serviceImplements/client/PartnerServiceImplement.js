@@ -16,6 +16,7 @@ var queryPhoneLocation = require('query-mobile-phone-area');
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
 let dbPlatform = require('./../../db_modules/dbPlatform');
+let dbPartnerCommissionConfig = require('./../../db_modules/dbPartnerCommissionConfig');
 
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
@@ -539,6 +540,11 @@ var PartnerServiceImplement = function () {
     this.readMail.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.readMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
+    };
+
+    this.setPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.partnerId && data.commissionRate);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.setDLPartnerCommissionRateAPI, [conn.partnerId, data.partnerId, data.commissionRate], isValidData);
     };
 
 };
