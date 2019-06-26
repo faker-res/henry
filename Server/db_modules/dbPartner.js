@@ -9913,6 +9913,175 @@ let dbPartner = {
         }
     },
 
+    getPartnerTotalInfo: async (platformId, partnerObjId, detailType) => {
+        detailType = Number(detailType) || 1;
+        const constDetailType = [1,2,3];
+        if (!constDetailType.includes(detailType)) {
+            return Promise.reject({name: "DataError", message: "Invalid detail type"});
+        }
+
+        let returnData = {
+            stats: {
+                downLinePlayerCount: 0,
+                downLinePartnerPlayerCount: 0,
+                downLinePartnerCount: 0,
+                downLinePlayerValid: 0,
+                downLinePartnerPlayerValid: 0,
+                crewProfitTotal: {
+                    downLinePlayer: 0,
+                    downLinePartnerPlayer: 0
+                }
+            }
+        }
+        let platformObj = await dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+        if (!platformObj) {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+        let partnerProm;
+        let playerProm;
+        let partnersObj;
+        let playersObj;
+
+        returnData.partnerDetail = [];
+        returnData.playerDetail = [];
+        partnerProm = getAllPartnerDownlinePartnerWithPlayers(partnerObjId, platformObj._id);
+
+        playerProm = getPartnerPlayerDetail(partnerObjId);
+
+        [partnersObj, playersObj] = await Promise.all([partnerProm, playerProm]);
+        if (partnersObj && partnersObj.length) {
+            returnData.stats.downLinePartnerCount = partnersObj.length;
+            let promArr = [];
+            partnersObj.map(partner=> {
+                partner.partnerDownlinePlayerList = [];
+
+               if (partner.downlinePlayers && partner.downlinePlayers.length) {
+                   returnData.stats.downLinePartnerPlayerCount += partner.downlinePlayers.length;
+                   partner.downlinePlayers.map(player => {
+                       let playerTempObj = {
+                           crewAccount: player.name,
+                           crewRegisterTime: player.registrationTime,
+                           crewLastLoginTime: player.lastAccessTime
+                       }
+                       partner.partnerDownlinePlayerList.push(playerTempObj);
+                       returnData.stats.crewProfitTotal.downLinePartnerPlayer += player.bonusAmountSum;
+                   })
+
+                   let downlinePartnerPlayerValidProm = dbPartner.getValidPlayers(partner.downlinePlayers).then(
+                       validPlayer => {
+                           if (validPlayer && validPlayer.size) {
+                               returnData.stats.downLinePartnerPlayerValid += validPlayer.size;
+                           }
+                       }
+                   );
+                   promArr.push(downlinePartnerPlayerValidProm);
+               }
+
+                let partnerTempObj = {
+                    partnerAccount: partner.partnerName,
+                    partnerRegisterTime: partner.registrationTime,
+                    partnerLastLoginTime: partner.lastAccessTime,
+                    commissionType: partner.commissionType,
+                    partnerLevel: partner.partnerLevel,
+                    partnerDownlinePlayerList: partner.partnerDownlinePlayerList,
+                }
+                returnData.partnerDetail.push(partnerTempObj);
+
+            });
+
+            await Promise.all(promArr).catch(errorUtils.reportError);
+
+        }
+
+        if (playersObj && playersObj.length) {
+            playersObj.map(player=> {
+                let playerTempObj = {
+                    crewAccount:player.name,
+                    crewRegisterTime: player.registrationTime,
+                    crewLastLoginTime: player.lastAccessTime
+                };
+                returnData.playerDetail.push(playerTempObj);
+                returnData.stats.crewProfitTotal.downLinePlayer += player.bonusAmountSum;
+            })
+            returnData.stats.downLinePlayerCount = playersObj.length;
+            returnData.stats.downLinePartnerPlayerCount += playersObj.length;
+            await dbPartner.getValidPlayers(playersObj).then(
+                validPlayer => {
+                    if (validPlayer && validPlayer.size) {
+                        returnData.stats.downLinePlayerValid += validPlayer.size;
+                    }
+                }
+            );
+        }
+
+        if (detailType == 2) {
+            delete returnData.partnerDetail;
+        } else if (detailType == 3) {
+            delete returnData.playerDetail;
+        }
+
+        return returnData;
+    },
+
+    getPartnerLevel: function (platformObjId, partnerObj, partnerLevel) {
+        partnerLevel = partnerLevel || 1;
+        let query = {
+            _id: partnerObj
+        };
+        if (platformObjId) {
+            query.platform = platformObjId;
+        }
+
+        if (!partnerObj) {
+            return Promise.reject({name: "DataError", message: "Invalid data get partner level"});
+        }
+
+        return dbconfig.collection_partner.findOne(query, {parent: 1}).lean().then(
+            partner => {
+                if (partner) {
+                    if (partner.parent) {
+                        return dbPartner.getPartnerLevel(platformObjId, partner.parent, ++partnerLevel);
+                    }
+                }
+                return partnerLevel;
+            }
+        );
+    },
+
+    getAllPartnerDownlinePartner: (partnerObjId, platformObjId, chainArr, partnerLevel) => {
+        partnerLevel = partnerLevel? ++partnerLevel: 2; //start from level 2, level 1 is the main partner himself
+        chainArr = chainArr || [];
+        let query = {
+            platform: platformObjId
+        };
+        if (partnerObjId instanceof Array) {
+            if (!partnerObjId.length) {
+                return chainArr;
+            }
+            query.parent = {$in: partnerObjId};
+        } else {
+            query.parent = partnerObjId;
+        }
+        if (chainArr.includes(String(partnerObjId))) {
+            // prevent potential infinite loop
+            return chainArr;
+        }
+        return dbconfig.collection_partner.find(query, {partnerName: 1, registrationTime: 1, lastAccessTime: 1, commissionType: 1}).lean().then(
+            partnersData => {
+                if (partnersData && partnersData.length) {
+                    partnersData.map(
+                        partner => {
+                            partner.partnerLevel = partnerLevel;
+                        }
+                    )
+                    chainArr = chainArr.concat(partnersData);
+                    return dbPartner.getAllPartnerDownlinePartner(partnersData.map(partner => partner._id), platformObjId, chainArr, partnerLevel);
+                }
+                return chainArr
+            }
+        );
+    },
+
     checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
@@ -10269,6 +10438,45 @@ let dbPartner = {
 
     }
 };
+
+
+async function getAllPartnerDownlinePartnerWithPlayers (partnerObjId, platformObjId) {
+    let partnerLevel = await dbPartner.getPartnerLevel(platformObjId, partnerObjId);
+    return dbPartner.getAllPartnerDownlinePartner(partnerObjId, platformObjId, null, partnerLevel).then(
+        partners => {
+            if (partners && partners.length) {
+                let promArr = [];
+                partners.map(partner=> {
+                    let getPlayerProm = getPartnerPlayerDetail(partner._id).then(
+                        playerData => {
+                            if (!(playerData && playerData.length)) {
+                                return;
+                            }
+                            partner.downlinePlayers = playerData;
+                        }
+                    );
+                    promArr.push(getPlayerProm);
+                })
+                return Promise.all(promArr).then(() => partners);
+            }
+            return partners;
+        }
+    );
+}
+
+function getPartnerPlayerDetail (partnerObjId) {
+    return dbconfig.collection_players.find({partner: partnerObjId},
+        {
+            registrationTime: 1,
+            lastAccessTime: 1,
+            platform: 1,
+            partner: 1,
+            valueScore: 1,
+            name: 1,
+            realName: 1,
+            bonusAmountSum: 1
+        }).lean()
+}
 
 function getPartnerAndDownlinePlayerData (platformObjId, partnerObjId, crewAccount) {
     let partner = {};
