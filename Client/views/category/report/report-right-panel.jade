@@ -1110,6 +1110,10 @@
         div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.dxNewPlayerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.dxNewPlayerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"USER TYPE"|translate}}
                     select.form-control(ng-model='vm.dxNewPlayerQuery.userType')
                         option(value='') {{'REAL_PLAYER_ALL' | translate}}
