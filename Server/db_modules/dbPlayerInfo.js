@@ -22338,7 +22338,7 @@ let dbPlayerInfo = {
                     // if the status = 3 , means this provider is closed, we dont show to frontend
                     if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
                         returnData.gameCreditList = returnData.gameCreditList.filter( item => {
-                            return item.status != 3;
+                            return item.status != constProviderStatus.HALT;
                         })
                     }
                     return dbconfig.collection_rewardTaskGroup.find({
@@ -22360,7 +22360,7 @@ let dbPlayerInfo = {
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
                             rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
                                 gameData.forEach(gameItem => {
-                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != 3) {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != constProviderStatus.HALT) {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
@@ -22402,7 +22402,7 @@ let dbPlayerInfo = {
                         let dataList = [];
                         allGroupData[l].providers.forEach(allGroup => {
                             gameData.forEach(gameItem => {
-                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != 3) {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != constProviderStatus.HALT) {
                                     dataList.push({
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,
