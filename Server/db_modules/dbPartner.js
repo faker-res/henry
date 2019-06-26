@@ -5461,7 +5461,7 @@ let dbPartner = {
             let platformId = ObjectId(partnerDetail[0].platform);
             let partnerId = ObjectId(partnerDetail[0].partner);
 
-            return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
                     Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
@@ -5473,18 +5473,18 @@ let dbPartner = {
                         activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes ? config.dailyActivePlayerConsumptionTimes : 0;
                         activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount ? config.dailyActivePlayerConsumptionAmount : 0;
                         break;
-                    case 'month':
-                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes ? config.monthlyActivePlayerTopUpTimes : 0;
-                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount ? config.monthlyActivePlayerTopUpAmount : 0;
-                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes ? config.monthlyActivePlayerConsumptionTimes : 0;
-                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount ? config.monthlyActivePlayerConsumptionAmount : 0;
-                        break;
                     case 'week':
-                    default:
                         activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes ? config.weeklyActivePlayerTopUpTimes : 0;
                         activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount ? config.weeklyActivePlayerTopUpAmount : 0;
                         activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes ? config.weeklyActivePlayerConsumptionTimes : 0;
                         activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount ? config.weeklyActivePlayerConsumptionAmount : 0;
+                        break;
+                    case 'month':
+                    default:
+                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes ? config.monthlyActivePlayerTopUpTimes : 0;
+                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount ? config.monthlyActivePlayerTopUpAmount : 0;
+                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes ? config.monthlyActivePlayerConsumptionTimes : 0;
+                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount ? config.monthlyActivePlayerConsumptionAmount : 0;
                         break;
                 }
 
@@ -5729,7 +5729,7 @@ let dbPartner = {
             let platformId = ObjectId(partnerDetail[0].platform);
             let partnerId = ObjectId(partnerDetail[0].partner);
 
-            return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
                     Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
