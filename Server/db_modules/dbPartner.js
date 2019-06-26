@@ -10107,7 +10107,7 @@ let dbPartner = {
                                     crewLastLoginTime: data.lastAccessTime,
                                     crewProfit: data.consumptionDetail.bonusAmount,
                                     depositAmount: data.topUpDetail.topUpAmount,
-                                    withdrawalAmount: data.withdrawalDetail.withdrawalAmount,
+                                    withdrawAmount: data.withdrawalDetail.withdrawalAmount,
                                     validBet: data.consumptionDetail.validAmount,
                                     promoAmount: data.rewardDetail.total,
                                     totalPlatformFee: data.totalPlatformFee,
@@ -10164,7 +10164,7 @@ let dbPartner = {
                     case 1:
                     case 3:
                         statsObj.totalDepositCount = allActivePlayerList.reduce((a,b) => a + b.depositAmount, 0);
-                        statsObj.totalWithdrawAmount = allActivePlayerList.reduce((a,b) => a + b.withdrawalAmount, 0);
+                        statsObj.totalWithdrawAmount = allActivePlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
                         statsObj.totalPromoAmount = allActivePlayerList.reduce((a,b) => a + b.promoAmount, 0);
                         statsObj.totalCrewProfit = allActivePlayerList.reduce((a,b) => a + b.crewProfit, 0);
                         statsObj.totalPlatformFee = allActivePlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
@@ -10174,7 +10174,7 @@ let dbPartner = {
                         break;
                     case 2:
                         statsObj.totalDepositCount = newPlayerList.reduce((a,b) => a + b.depositAmount, 0);
-                        statsObj.totalWithdrawAmount = newPlayerList.reduce((a,b) => a + b.withdrawalAmount, 0);
+                        statsObj.totalWithdrawAmount = newPlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
                         statsObj.totalPromoAmount = newPlayerList.reduce((a,b) => a + b.promoAmount, 0);
                         statsObj.totalCrewProfit = newPlayerList.reduce((a,b) => a + b.crewProfit, 0);
                         statsObj.totalPlatformFee = newPlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
@@ -10235,7 +10235,7 @@ let dbPartner = {
                     sortField = "depositAmount";
                     break;
                 case 2:
-                    sortField = "withdrawalAmount";
+                    sortField = "withdrawAmount";
                     break;
                 case 3:
                     sortField = "crewProfit";
