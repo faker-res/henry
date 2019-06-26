@@ -1539,9 +1539,9 @@
     </div>
     <div>
         <label>sort
-            <input type="checkbox" id="sort" name="sort" value="false">
-            <button onclick="check()">Check</button>
-            <button onclick="uncheck()">Uncheck</button>
+            <input type="checkbox" id="sortPlayerInfo" name="sort" value="false">
+            <button onclick="check('sortPlayerInfo')">Check</button>
+            <button onclick="uncheck('sortPlayerInfo')">Uncheck</button>
         </label>
 
         <p>
@@ -1591,7 +1591,7 @@
     </div>
     <div>
         <label>Partner Account
-            <input name="partnerAccount" type="number">
+            <input name="partnerAccount" type="text">
         </label>
         <p>
     </div>
@@ -1618,9 +1618,9 @@
     </div>
     <div>
         <label>sort
-            <input type="checkbox" id="sort" name="sort" value="false">
-            <button onclick="check()">Check</button>
-            <button onclick="uncheck()">Uncheck</button>
+            <input type="checkbox" id="sortPartnerInfo" name="sort" value="false">
+            <button onclick="check('sortPartnerInfo')">Check</button>
+            <button onclick="uncheck('sortPartnerInfo')">Uncheck</button>
         </label>
 
         <p>
@@ -1698,14 +1698,14 @@
         }
     );
 
-    function check() {
-        document.getElementById("sort").checked = true;
-        document.getElementById("sort").value = Boolean(true);
+    function check(id) {
+        document.getElementById(id).checked = true;
+        document.getElementById(id).value = Boolean(true);
     }
 
-    function uncheck() {
-        document.getElementById("sort").checked = false;
-        document.getElementById("sort").value = Boolean(false);
+    function uncheck(id) {
+        document.getElementById(id).checked = false;
+        document.getElementById(id).value = Boolean(false);
     }
 </script>
 </body>
