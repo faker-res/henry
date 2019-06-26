@@ -1702,6 +1702,7 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
         return providerConfig.commissionSetting;
     }
 
+    console.log('here dddddddddddddddd')
     let defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
         platform: platformObjId,
         commissionType: commissionType,
@@ -1709,6 +1710,7 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
         partner: partnerObjId
     }).lean();
 
+    console.log('defaultConfig', defaultConfig);
     if (defaultConfig && defaultConfig.commissionSetting && defaultConfig.commissionSetting.length) {
         return defaultConfig.commissionSetting;
     }
