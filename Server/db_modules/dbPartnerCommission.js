@@ -1698,17 +1698,59 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
         partner: partnerObjId
     }).lean();
 
+    if(!providerConfig) {
+        let platformConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: providerGroupObjId,
+            partner: null
+        }).lean();
+
+        if (platformConfig) {
+            let dupConfig = JSON.parse(JSON.stringify(platformConfig));
+            delete dupConfig._id;
+            delete dupConfig.__v;
+            providerConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+                platform: platformObjId,
+                commissionType: commissionType,
+                provider: providerGroupObjId,
+                partner: partnerObjId
+            }, dupConfig, {upsert: true, new: true}).lean()
+        }
+    }
+
     if (providerConfig && providerConfig.commissionSetting && providerConfig.commissionSetting.length) {
         return providerConfig.commissionSetting;
     }
 
-    console.log('here dddddddddddddddd')
+    console.log('here eeeeeeeeeeeeeee')
     let defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
         platform: platformObjId,
         commissionType: commissionType,
         provider: null,
         partner: partnerObjId
     }).lean();
+
+    if (!defaultConfig) {
+        let platformDefConfig = await dbconfig.collection_partnerCommissionConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: null,
+            partner: null
+        }).lean();
+
+        if (platformDefConfig) {
+            let dupConfig = JSON.parse(JSON.stringify(platformDefConfig));
+            delete dupConfig._id;
+            delete dupConfig.__v;
+            defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+                platform: platformObjId,
+                commissionType: commissionType,
+                provider: null,
+                partner: partnerObjId
+            }, dupConfig, {upsert: true, new: true}).lean()
+        }
+    }
 
     console.log('defaultConfig', defaultConfig);
     if (defaultConfig && defaultConfig.commissionSetting && defaultConfig.commissionSetting.length) {
