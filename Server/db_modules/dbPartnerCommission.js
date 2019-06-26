@@ -1521,9 +1521,9 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
 
 function getCommissionTables (partnerObjId, parentChain, commissionType, providerGroups) {
     providerGroups = providerGroups || [];
-    let partnerConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(partnerObjId, commissionType);
+    let partnerConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(partnerObjId, commissionType, false, true);
     let parentConfigsProm = parentChain.map(parent => {
-        return dbPartnerCommissionConfig.getPartnerCommConfig(parent._id, commissionType);
+        return dbPartnerCommissionConfig.getPartnerCommConfig(parent._id, commissionType, false, true);
     });
     let partnerConfig, parentConfigs;
 
