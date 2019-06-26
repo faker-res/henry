@@ -10169,12 +10169,15 @@ let dbPartner = {
 
         switch (period) {
             case 1:
+                intervalTime = dbUtil.getTodaySGTime();
                 timeSlots = getTimeSlotsForPeriod(1);
                 break;
             case 2:
+                intervalTime = dbUtil.getCurrentWeekSGTime();
                 timeSlots = getTimeSlotsForPeriod(2);
                 break;
             case 3:
+                intervalTime = dbUtil.getCurrentMonthSGTIme();
                 timeSlots = getTimeSlotsForPeriod(3);
                 break;
         }
