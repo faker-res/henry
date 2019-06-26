@@ -471,6 +471,7 @@
                 "getPartnerTransferList",
                 "getDownLinePlayerTimeSequence",
                 "getDownLinePlayerInfo",
+                "setPartnerCommissionRate",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
