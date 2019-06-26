@@ -10263,6 +10263,10 @@ let dbPartner = {
                 return a[sortField] - b[sortField];
             }
         }
+    },
+
+    getDownLinePartnerInfo: (platformId, partnerId, period, partnerType, partnerAccount, requestPage, count, sortType, sort) => {
+
     }
 };
 
