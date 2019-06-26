@@ -6361,23 +6361,25 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.find(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
                                                 {phoneNumber: loginData.phoneNumber},
-                                                {phoneNumber: enOldPhoneNumber}
+                                                {phoneNumber: enOldPhoneNumber},
+                                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
                                             platform: platformData._id
                                         }
-                                    ).lean();
+                                    ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
                             }
                         ).then(
                             player => {
+                                if (player && player.length) {
+                                    let thisPlayer = player[0];
 
-                                if (player) {
-                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                    if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
@@ -7074,16 +7076,17 @@ let dbPlayerInfo = {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                    return dbconfig.collection_players.findOne(
+                    return dbconfig.collection_players.find(
                         {
                             $or: [
                                 {phoneNumber: encryptedPhoneNumber},
                                 {phoneNumber: loginData.phoneNumber},
-                                {phoneNumber: enOldPhoneNumber}
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                             ],
                             platform: platformData._id
                         }
-                    ).lean();
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -7094,8 +7097,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data) {
-                    playerObj = data;
+                if (data && data.length) {
+                    playerObj = data[0];
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
