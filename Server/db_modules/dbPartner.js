@@ -10449,20 +10449,10 @@ async function getAllPartnerDownlinePartnerWithPlayers (partnerObjId, platformOb
                 partners.map(partner=> {
                     let getPlayerProm = getPartnerPlayerDetail(partner._id).then(
                         playerData => {
-                            // partner.partnerDownlinePlayerList = [];
                             if (!(playerData && playerData.length)) {
                                 return;
                             }
                             partner.downlinePlayers = playerData;
-
-                            // playerData.map(player=> {
-                            //     let playerTempObj = {
-                            //         crewAccount:player.name,
-                            //         crewRegisterTime: player.registrationTime,
-                            //         crewLastLoginTime: player.lastAccessTime
-                            //     }
-                            //     partner.partnerDownlinePlayerList.push(playerTempObj);
-                            // })
                         }
                     );
                     promArr.push(getPlayerProm);
