@@ -1547,11 +1547,14 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     let useDefault = false;
 
     if (!targetConfig || !targetConfig.commissionSetting || !targetConfig.commissionSetting.length) {
+        console.log('here')
         useDefault = true;
 
         targetConfig = partnerConfig.find(config => {
+            console.log('config.provider', config.provider, Boolean(config.provider))
             return !Boolean(config.provider);
         });
+        console.log('targetConfig', targetConfig)
 
         if (!targetConfig) {
             return {
