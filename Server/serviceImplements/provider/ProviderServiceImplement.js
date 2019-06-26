@@ -32,7 +32,8 @@ var ProviderServiceImplement = function () {
 
     this.getProviderList.expectsData = '';
     this.getProviderList.onRequest = function (wsFunc, conn, data) {
-        WebSocketUtil.performAction(conn, wsFunc,  data,dbGameProvider.getAllGameProviders, [{}], true);
+        let hideDisabledProvider = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getAllGameProviders, [hideDisabledProvider], true);
     };
 
     this.modifyCode.expectsData = 'oldCode, newCode';
