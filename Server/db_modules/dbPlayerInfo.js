@@ -6405,7 +6405,8 @@ let dbPlayerInfo = {
                                                 {phoneNumber: enOldPhoneNumber},
                                                 {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
-                                            platform: platformData._id
+                                            platform: platformData._id,
+                                            'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
                                     ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
@@ -7120,7 +7121,8 @@ let dbPlayerInfo = {
                                 {phoneNumber: enOldPhoneNumber},
                                 {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                             ],
-                            platform: platformData._id
+                            platform: platformData._id,
+                            'permission.forbidPlayerFromLogin': {$ne: true}
                         }
                     ).sort({lastAccessTime: -1}).limit(1).lean();
                 }
