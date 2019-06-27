@@ -1449,6 +1449,13 @@ let dbPlayerInfo = {
         );
     },
 
+    getPlayerPermissionByName: function (playerName, platformObjId){
+      if (playerName && platformObjId)  {
+          return dbconfig.collection_players.findOne({name: playerName, platform: ObjectId(platformObjId)}, {permission: 1}).lean();
+      }
+      return;
+    },
+
     getPlayerDataWithOutPlatformPrefix: function (playerObj) {
         var platformObjId = playerObj.platform || playerObj.platform._id;
         if (platformObjId) {
@@ -3808,6 +3815,15 @@ let dbPlayerInfo = {
 
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+
+    updatePlayerForbidPromoCode: function (playerObjId, forbidPromoCodeList) {
+        let updateData = {};
+        if (forbidPromoCodeList) {
+            updateData.forbidPromoCodeList = forbidPromoCodeList;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
     managingDataList: function (dataList, addList, removeList) {
         let result = [];
         // add those new Item to List first
@@ -3855,6 +3871,27 @@ let dbPlayerInfo = {
                     if (changeData.isForbidLevelMaintainReward) {
                         updateData.forbidLevelMaintainReward = changeData.forbidLevelMaintainReward;
                     }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+            proms.push(prom);
+        });
+        return Promise.all(proms);
+    },
+
+    updateBatchPlayerForbidPromoCode: function (platformObjId, playerNames, forbidPromoCode, changeData) {
+        let addList = forbidPromoCode && forbidPromoCode.addList ? forbidPromoCode.addList : [];
+        let removeList = forbidPromoCode && forbidPromoCode.removeList ? forbidPromoCode.removeList: [];
+        let proms = [];
+        playerNames.forEach(name => {
+            let updateData = {};
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidPromoCodeList = data.forbidPromoCodeList || [];
+                    updateData.forbidPromoCodeList = dbPlayerInfo.managingDataList(playerForbidPromoCodeList, addList, removeList);
+
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         'name': name,
                         'platform': platformObjId
@@ -21122,6 +21159,17 @@ let dbPlayerInfo = {
         return dbconfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
     },
 
+    createForbidPromoCodeLog: function (playerId, adminId, forbidPromoCodeNames, remark) {
+        remark = remark || "";
+        let logDetails = {
+            player: playerId,
+            admin: adminId,
+            forbidPromoCodeNames: forbidPromoCodeNames,
+            remark: remark
+        };
+        return dbconfig.collection_playerForbidPromoCodeLog(logDetails).save().then().catch(errorUtils.reportError);
+    },
+
     getForbidRewardLog: function (playerId, startTime, endTime, index, limit) {
         let logProm = dbconfig.collection_playerForbidRewardLog.find({
             player: playerId,
@@ -21133,6 +21181,29 @@ let dbPlayerInfo = {
             {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
         ).lean();
         let countProm = dbconfig.collection_playerForbidRewardLog.find({player: playerId}).count();
+
+        return Promise.all([logProm, countProm]).then(
+            data => {
+                let logs = data[0];
+                let count = data[1];
+
+                return {data: logs, size: count};
+            }
+        )
+    },
+
+    getForbidPromoCodeLog: function (playerId, startTime, endTime, index, limit) {
+        let query = {
+            player: playerId,
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            }
+        };
+        let logProm = dbconfig.collection_playerForbidPromoCodeLog.find(query).skip(index).limit(limit).sort({createTime: -1}).populate(
+            {path: "admin", select: 'adminName', model: dbconfig.collection_admin}
+        ).lean();
+        let countProm = dbconfig.collection_playerForbidPromoCodeLog.find({player: playerId}).count();
 
         return Promise.all([logProm, countProm]).then(
             data => {

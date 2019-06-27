@@ -12,6 +12,7 @@ var simplifiedChinese = {
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "Please register phone number and bank card before applying this reward, thank you.": "领取优惠请先绑定「电话」、「银行资料」， 谢谢。",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
+    "The requirement is not fulfilled, please contact CS.": "不符合优惠要求，请联系客服人员",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
