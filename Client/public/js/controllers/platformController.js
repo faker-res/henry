@@ -27128,30 +27128,25 @@ define(['js/app'], function (myApp) {
                 return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission || promoCode.isInForbidList;
             };
 
-            vm.checkIsForbidPromoCode = function (promoCodeObj, playerNames, promoCodeType) {
-                return new Promise((resolve, reject) => {
-                    let playerNameList = playerNames ? playerNames.split("\n") : playerNames;
-                    if (playerNameList && playerNameList.length > 0 && playerNames.indexOf("\n") < 0 && vm.filterCreatePromoCodePlatform && promoCodeType && promoCodeType._id) {
-                        let sendQuery = {
-                            name:  playerNameList[0],
-                            platform: vm.filterCreatePromoCodePlatform,
-                            promoCodeType: promoCodeType._id
-                        };
-                        return $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).then(ret => {
-                            $scope.$evalAsync( () => {
-                                if (ret && ret.data){
-                                    promoCodeObj.isInForbidList = true;
-                                }
-                                else{
-                                    promoCodeObj.isInForbidList = false;
-                                }
+            vm.checkIsForbidPromoCode = async function (promoCodeObj, playerNames, promoCodeType) {
+                let playerNameList = playerNames ? playerNames.split("\n") : playerNames;
+                if (playerNameList && playerNameList.length > 0 && playerNames.indexOf("\n") < 0 && vm.filterCreatePromoCodePlatform && promoCodeType && promoCodeType._id) {
+                    let sendQuery = {
+                        name:  playerNameList[0],
+                        platform: vm.filterCreatePromoCodePlatform,
+                        promoCodeType: promoCodeType._id
+                    };
+                    return await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).then(ret => {
+                        if (ret && ret.data){
+                            promoCodeObj.isInForbidList = true;
+                        }
+                        else{
+                            promoCodeObj.isInForbidList = false;
+                        }
 
-                                // vm.checkPromoCodeDisabled(promoCodeObj);
-                                resolve(promoCodeObj);
-                            })
-                        })
-                    }
-                })
+                        return promoCodeObj;
+                    })
+                }
             };
 
             vm.checkPlayerName = function (el, id, index) {
@@ -27271,8 +27266,8 @@ define(['js/app'], function (myApp) {
 
                             p = p.then(function () {
                                 return vm.checkIsForbidPromoCode(data, el, data.promoCodeType).then(
-                                    data => {
-                                        newData.isInForbidList = data.isInForbidList;
+                                    retData => {
+                                        newData.isInForbidList = retData.isInForbidList;
                                         return vm.promoCodeNewRow(col, type, newData, true);
                                     }
                                 )
