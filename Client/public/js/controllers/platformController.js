@@ -3427,17 +3427,36 @@ define(['js/app'], function (myApp) {
 
                 if (vm.sendMultiMessage.messageType === "sms") {
                     vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                        $scope.AppSocket.emit('sendSMSToPlayer', {
-                            playerId: data.playerId,
+                        let query = {
                             platformId: vm.selectedPlatform.data.platformId,
                             channel: vm.sendMultiMessage.channel,
                             message: vm.sendMultiMessage.messageContent
-                        });
+                        };
+                        if (vm.filterPlayerPromoCodeForbidden){
+                            if (data && data.permission && data.permission.allowPromoCode){
+                                query.playerId = data.playerId;
+                            }
+                            else{
+                                query.playerId = [];
+                            }
+                        }
+                        else {
+                            query.playerId = data.playerId;
+                        }
+                        $scope.AppSocket.emit('sendSMSToPlayer',query);
                     });
                 } else if (vm.sendMultiMessage.messageType === "mail") {
                     let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId, selectedPlayers) => {
-                        if (selectedPlayers._id) {
-                            tempPlayersId.push(selectedPlayers._id);
+                        if (selectedPlayers && selectedPlayers._id) {
+                            if (vm.filterPlayerPromoCodeForbidden){
+                                if (selectedPlayers.permission && selectedPlayers.permission.allowPromoCode){
+                                    tempPlayersId.push(selectedPlayers._id);
+                                }
+                            }
+                            else{
+                                tempPlayersId.push(selectedPlayers._id);
+                            }
+
                         }
                         return tempPlayersId;
                     }, []);
@@ -3447,7 +3466,8 @@ define(['js/app'], function (myApp) {
                         adminName: authService.adminName,
                         platformId: vm.selectedPlatform.id,
                         title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
+                        content: vm.sendMultiMessage.messageContent,
+                        filterPlayerPromoCodeForbidden: vm.filterPlayerPromoCodeForbidden || false,
                     };
 
                     if (vm.isSentToAll) {
@@ -18523,6 +18543,40 @@ define(['js/app'], function (myApp) {
                 vm.assignRandomRewards.push({playerName:'', rewardName:''});
             }
 
+            vm.isPlayerForbidPromoCode = function (playerName, randomRewardId, rewardCollection) {
+                if (playerName && randomRewardId && rewardCollection && vm.filterRewardPlatform) {
+                    let isPromoCodeAllowed = true;
+                    return new Promise((resolve, reject) => {
+                        $scope.$socketPromise('getPlayerPermissionByName', {
+                            playerName: playerName,
+                            platformObjId: vm.filterRewardPlatform,
+                        }).then(
+                            player => {
+                                isPromoCodeAllowed = player && player.data && player.data.permission && player.data.permission.hasOwnProperty('allowPromoCode') ? player.data.permission.allowPromoCode ? true : false : true;
+                                resolve(isPromoCodeAllowed);
+                            }
+                        )
+                    }).then(
+                        promoCodeAllowed => {
+                            if (typeof promoCodeAllowed  == 'boolean'){
+
+                                $scope.$evalAsync ( () => {
+                                    let selectedReward = rewardCollection.filter (p => p.id == randomRewardId);
+                                    selectedReward = selectedReward && selectedReward.length ? selectedReward[0] : null;
+                                    if (!promoCodeAllowed && selectedReward && selectedReward.rewardType && (selectedReward.rewardType ==2 || selectedReward.rewardType == 3 || selectedReward.rewardType == 4)){
+                                        vm.isPlayerAllowedPromoCode = false;
+                                        return socketService.showErrorMessage( playerName + ' ' + $translate("has forbidden from applying promo code"));
+                                    }
+                                    else{
+                                        vm.isPlayerAllowedPromoCode = true;
+                                    }
+                                })
+                            }
+                        }
+                    )
+                }
+            };
+
             vm.assignRandomRewardToUser = function (id) {
                 return new Promise((resolve, reject) => {
                     vm.assignRandomRewards;
@@ -21558,6 +21612,10 @@ define(['js/app'], function (myApp) {
                             if (v && v.params && v.params.condition && v.params.condition.generalCond
                                 && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
                                 v.params.condition.generalCond.imageUrl.value = [""];
+                            }
+
+                            if (v && v.name && v.name == "PlayerRandomRewardGroup") {
+                                vm.isPlayerAllowedPromoCode = true;
                             }
 
                             if (v && v.name && v.name == "PlayerConsumptionReturn") {
