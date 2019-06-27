@@ -728,10 +728,13 @@ const dbPartnerCommissionConfig = {
             }
         }
 
+        // add a default provider group
+        providerGroups.push({_id: null, name: "default"});
+
         // imo this checking part is unnecessary, but reynold say so
         for (let i = 0; i < commissionRate.length; i++) {
             let groupRate = commissionRate[i];
-            if (!groupRate || !groupRate.providerGroupId || !groupRate.providerGroupName || !groupRate.list) {
+            if (!groupRate || !groupRate.providerGroupName || !groupRate.list) {
                 return Promise.reject({message: "Commission Rate content unknown"});
             }
 
@@ -765,21 +768,12 @@ const dbPartnerCommissionConfig = {
                 continue;
             }
 
-            // console.log("group", group)
-            // console.log("groupRate", groupRate)
-
             // compare with original see if anything change
             // get original
-
             let originalGroupRate = childCommConfig.find(config => String(config.provider) === String(group._id));
-            // console.log('originalGroupRate', group.providerGroupId, originalGroupRate)
             let originalGroupRateList = originalGroupRate && originalGroupRate.commissionSetting || [];
             if (!originalGroupRateList || !originalGroupRateList.length) continue;
-            // groupRate.list
-            // originalGroupRate.commissionSetting
 
-            // console.log('originalGroupRateList', JSON.stringify(originalGroupRateList, null ,2))
-            // console.log('groupRateList', JSON.stringify(groupRateList, null ,2))
             let rateChanged = false;
             for (let j = 0; j < originalGroupRateList.length; j++) {
                 let originalRequirementRate = originalGroupRateList[j];
