@@ -710,6 +710,9 @@ const dbPartnerCommissionConfig = {
         let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: editor.platform}, {providerGroupId: 1, name: 1}).lean();
         let [grandChildren, editorCommConfig, childCommConfig, providerGroups] = await Promise.all([grandChildrenProm, editorCommConfigProm, childCommConfigProm, providerGroupProm]);
 
+        // add a default provider group
+        providerGroups.push({_id: null, name: "default"});
+
         let grandChildrenCommConfig = {};
         for (let i = 0; i < grandChildren.length; i++) {
             let grandChild = grandChildren[i];
@@ -727,9 +730,6 @@ const dbPartnerCommissionConfig = {
                 grandChildrenCommConfig[currentGroup.name].push(config);
             }
         }
-
-        // add a default provider group
-        providerGroups.push({_id: null, name: "default"});
 
         // imo this checking part is unnecessary, but reynold say so
         for (let i = 0; i < commissionRate.length; i++) {
