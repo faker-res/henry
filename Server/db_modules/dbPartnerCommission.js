@@ -160,9 +160,9 @@ const dbPartnerCommission = {
                 totalWithdrawalFee: 0,
                 totalRewardFee: 0,
                 totalPlatformFee: 0,
-                rewardFeeRate: commRateMulti.rateAfterRebatePromo,
-                topUpFeeRate: commRateMulti.rateAfterRebateTotalDeposit,
-                withdrawalFeeRate: commRateMulti.rateAfterRebateTotalWithdrawal,
+                rewardFeeRate: bonusBased ? commRateMulti.rateAfterRebatePromo : 0,
+                topUpFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalDeposit : 0,
+                withdrawalFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalWithdrawal : 0,
             };
         }
 
@@ -260,8 +260,8 @@ const dbPartnerCommission = {
             }
             // ====================================================================
 
-            let platformFeeRateDirect = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
-            let platformFeeRateMulti = math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0;
+            let platformFeeRateDirect = bonusBased ? math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateMulti = bonusBased ? math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0 : 0;
 
             let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
@@ -398,18 +398,18 @@ const dbPartnerCommission = {
             partnerCredit: partner.credits,
             downLinesRawCommissionDetail: playerRawDetail,
             activeDownLines: activeDownLines,
-            partnerCommissionRateConfig: commRate,
+            partnerCommissionRateConfig: bonusBased ? commRate : {},
             rawCommissions: rawCommissions,
             totalReward: totalReward,
             totalRewardFee: totalRewardFee,
-            rewardFeeRate: commRate.rateAfterRebatePromo / 100,
+            rewardFeeRate: bonusBased ? commRate.rateAfterRebatePromo / 100 : 0,
             totalPlatformFee: totalPlatformFee,
             totalTopUp: totalTopUp,
             totalTopUpFee: totalTopUpFee,
-            topUpFeeRate: commRate.rateAfterRebateTotalDeposit / 100,
+            topUpFeeRate: bonusBased ? commRate.rateAfterRebateTotalDeposit / 100 : 0,
             totalWithdrawal: totalWithdrawal,
             totalWithdrawalFee: totalWithdrawalFee,
-            withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
+            withdrawFeeRate: bonusBased ? commRate.rateAfterRebateTotalWithdrawal / 100 : 0,
             status: constPartnerCommissionLogStatus.PREVIEW,
             grossCommission: nettCommission,
             nettCommission: nettCommission,
@@ -815,7 +815,7 @@ const dbPartnerCommission = {
         for (let i = 0; i < childDetail.length; i++) {
             let child = childDetail[i];
             tCAmount += child.grossCommission || 0;
-            tCNettAmount += child.nettCommission || 0;
+            tCNettAmount += child.grossCommission || 0;
             if (child.rawCommissions && child.rawCommissions.length) {
                 for (let j = 0; j < child.rawCommissions.length; j++) {
                     let raw = child.rawCommissions[j];
@@ -828,7 +828,7 @@ const dbPartnerCommission = {
             tCPlatformFee += child.totalPlatformFee || 0;
             tcTopUpFee += child.totalTopUpFee || 0;
             tcWithdrawalFee += child.totalWithdrawalFee || 0;
-            finalAmount += child.nettCommission || 0;
+            finalAmount += child.grossCommission || 0;
         }
         tCAmount = math.round(tCAmount, 2);
         tCCompanyProfit = math.round(tCCompanyProfit, 2);
