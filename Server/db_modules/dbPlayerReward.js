@@ -7885,14 +7885,19 @@ let dbPlayerReward = {
                                 }
                             }
                         }
-                        console.log("checking initial selectedRewardParam", selectedRewardParam)
-                        console.log("checking presetList", presetList)
+                        console.log("checking initial selectedRewardParam", [playerData.name, selectedRewardParam])
+                        console.log("checking presetList", [playerData.name, presetList])
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        console.log("checking applyRewardTimes", applyRewardTimes)
+                        console.log("checking applyRewardTimes", [playerData.name, applyRewardTimes])
                         if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
-                            selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
+                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && !playerData.permission.allowPromoCode) {
+                                selectedRewardParam = selectedRewardParam.filter( p => p.rewardType != 2 && p.rewardType != 3 && p.rewardType != 4 && Number.isFinite(p.possibility))
+                            }
+                            else{
+                                selectedRewardParam = selectedRewardParam.filter( p => p.rewardType == eventData.condition.defaultRewardTypeInTheFirstTime && Number.isFinite(p.possibility))
+                            }
                         }
                         // check if the player has been pre-set
                         else if (presetList && presetList.randomReward){
@@ -7906,6 +7911,11 @@ let dbPlayerReward = {
                         // random pick
                         else{
 
+                        }
+
+                        // check if the obtained pre-set reward is promoCode and if the player is forbidden from applying promo code
+                        if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && !playerData.permission.allowPromoCode){
+                            selectedReward = null;
                         }
 
                         // randomRewardMode: 0 is possibility; 1 is topupCondition
@@ -7993,11 +8003,15 @@ let dbPlayerReward = {
                             }
 
                             console.log("checking rewardNameListInInterval", rewardNameListInInterval)
-                            if (rewardNameListInInterval.length){
+                            if (rewardNameListInInterval && rewardNameListInInterval.length){
                                 selectedRewardParam = selectedRewardParam.filter( p => rewardNameListInInterval.indexOf(p.title) == -1)
                             }
 
-                            console.log("checking after filter selectedRewardParam", selectedRewardParam)
+                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && !playerData.permission.allowPromoCode){
+                                selectedRewardParam = selectedRewardParam.filter( p => p.rewardType != 2 && p.rewardType != 3 && p.rewardType != 4)
+                            }
+
+                            console.log("checking after filter selectedRewardParam", [playerData.name, selectedRewardParam])
                             // check if the next reward cannot be the same as previous one
                             if (eventData.condition && eventData.condition.sameRewardOnTheNextTrial && gottenRewardInInterval && gottenRewardInInterval.length){
                                 let lastGottenRewardName = gottenRewardInInterval[gottenRewardInInterval.length-1] && gottenRewardInInterval[gottenRewardInInterval.length-1].data && gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName ? gottenRewardInInterval[gottenRewardInInterval.length-1].data.rewardName : null;
@@ -8020,7 +8034,7 @@ let dbPlayerReward = {
                             if (!selectedRewardParam || (selectedRewardParam && selectedRewardParam.length == 0)){
                                 return Promise.reject({
                                     name: "DataError",
-                                    message: "No reward is available. Please check the reward setting"
+                                    message: localization.localization.translate("The requirement is not fulfilled, please contact CS.")
                                 })
                             }
                             let pNumber = Math.random() * totalProbability;
@@ -8036,7 +8050,7 @@ let dbPlayerReward = {
                             );
 
                         }
-                        console.log("checking final selectedReward", selectedReward)
+                        console.log("checking final selectedReward", [playerData.name, selectedReward])
 
                         if (!selectedReward){
                             return Promise.reject({
