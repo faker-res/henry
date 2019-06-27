@@ -314,9 +314,10 @@ var dbPlayerTopUpDaySummary = {
                 if(data && data.length > 0){
                     console.log("LH check player report 16------", data.length);
                     return data;
-                }else{
-                    return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
                 }
+                // else{
+                //     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
+                // }
             },
             function (error){
                 return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
