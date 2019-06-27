@@ -38,6 +38,7 @@ const extConfig = require('../config/externalPayment/paymentSystems');
 const RESTUtils = require('../modules/RESTUtils');
 const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig');
 let moment = require('moment-timezone');
+const math = require('mathjs');
 
 let env = require('../config/env').config();
 
@@ -10198,10 +10199,154 @@ let dbPartner = {
             return Promise.reject({message: "Partner not found"});
         }
 
+        if (!Array.isArray(commissionRate)) {
+            return Promise.reject({message: "Commission Rate content unknown"});
+        }
 
+        // imo this checking part is unnecessary, but reynold say so
+        for (let i = 0; i < commissionRate.length; i++) {
+            let groupRate = commissionRate[i];
+            if (!groupRate || !groupRate.providerGroupName || !groupRate.list) {
+                return Promise.reject({message: "Commission Rate content unknown"});
+            }
 
+            if (groupRate.list.length) {
+                for (let j = 0; j < groupRate.list.length; j++) {
+                    let requirementRate = groupRate.list[j];
+                    let keys = Object.keys(requirementRate);
+                    if (
+                        !keys.includes("commissionRate") ||
+                        !keys.includes("activePlayerValueTo") ||
+                        !keys.includes("activePlayerValueFrom") ||
+                        !keys.includes("playerConsumptionAmountTo") ||
+                        !keys.includes("playerConsumptionAmountFrom")
+                    ) {
+                        return Promise.reject({message: "Commission Rate content unknown"});
+                    }
+                }
+            }
+        }
 
-        return 'reee'
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: parent.platform}, {providerGroupId: 1, name: 1}).lean();
+        let parentCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(parent._id, parent.commissionType, false, true);
+
+        let [providerGroups, parentCommConfig] = await Promise.all([providerGroupProm, parentCommConfigProm]);
+
+        // add a default provider group
+        providerGroups.push({_id: null, name: "default"});
+
+        let validGroupRate = [];
+
+        for (let i = 0; i < parentCommConfig.length; i++) {
+            let parentGroupRate = parentCommConfig[i];
+            let parentGroupRateList = parentGroupRate && parentGroupRate.commissionSetting || [];
+
+            let group = providerGroups.find(group => String(group._id) === String(parentGroupRate.provider));
+            if (!group) continue;
+
+            let childGroupRate = commissionRate.find(config => String(group.name) === String(config.providerGroupName));
+            if (!childGroupRate) {
+                console.log("incomplete update commission rate for child (#01)");
+                return Promise.reject({status: constServerCode.PARTNER_RATE_INAPPROPRIATE, message: "incomplete update commission rate for child"});
+            }
+
+            let childGroupRateList = childGroupRate && childGroupRate.list || [];
+            if (parentGroupRateList.length !== childGroupRateList.length) {
+                console.log("incomplete update commission rate for child (#02)");
+                return Promise.reject({status: constServerCode.PARTNER_RATE_INAPPROPRIATE, message: "incomplete update commission rate for child"});
+            }
+
+            let validCommissionSetting = [];
+
+            for (let j = 0; j < parentGroupRateList.length; j++) {
+                let parentRequirementRate = parentGroupRateList[j];
+                if (!parentRequirementRate) continue;
+                let matched = false;
+                for (let k = 0; k < childGroupRateList.length; k++) {
+                    let childRequirementRate = childGroupRateList[k];
+                    if (!childRequirementRate || childRequirementRate.matched) continue;
+                    childRequirementRate.activePlayerValueTo = childRequirementRate.activePlayerValueTo === "-" ? null : childRequirementRate.activePlayerValueTo;
+                    childRequirementRate.playerConsumptionAmountTo = childRequirementRate.playerConsumptionAmountTo === "-" ? null : childRequirementRate.playerConsumptionAmountTo;
+
+                    if (
+                        String(parentRequirementRate.playerConsumptionAmountFrom) === String(childRequirementRate.playerConsumptionAmountFrom) &&
+                        String(parentRequirementRate.playerConsumptionAmountTo) === String(childRequirementRate.playerConsumptionAmountTo) &&
+                        String(parentRequirementRate.activePlayerValueFrom) === String(childRequirementRate.activePlayerValueFrom) &&
+                        String(parentRequirementRate.activePlayerValueTo) === String(childRequirementRate.activePlayerValueTo)
+                    ) {
+                        // same requirement
+                        matched = true;
+                        childRequirementRate.matched = true;
+                        if (math.subtract(Number(parentRequirementRate.commissionRate), 0.01)  < Number(childRequirementRate.commissionRate)) {
+                            // commission rate changed
+                            return Promise.reject({
+                                status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                                message: "You must at least take 1% commission from your lower level partner to earn money."
+                            });
+                        }
+
+                        if (Number(childRequirementRate.commissionRate) < 0.01) {
+                            return Promise.reject({
+                                status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                                message: "Minimum commission rate must be 1%"
+                            });
+                        }
+                        validCommissionSetting.push(childRequirementRate);
+                        break;
+                    }
+                }
+                if (!matched) {
+                    console.log("incomplete update commission rate for child (#03)", parentRequirementRate);
+                    return Promise.reject({status: constServerCode.PARTNER_RATE_INAPPROPRIATE, message: "incomplete update commission rate for child"});
+                }
+            }
+
+            let rateObj = {
+                platform: parentGroupRate.platform,
+                provider: parentGroupRate.provider,
+                commissionType: parentGroupRate.commissionType,
+                commissionSetting: validCommissionSetting
+            };
+
+            validGroupRate.push(rateObj)
+        }
+
+        let newPartner = await dbPartner.createPartner({
+            partnerName: account,
+            password: password,
+            platform: parent.platform,
+            commissionType: parent.commissionType,
+            parent: parent._id,
+            depthInTree: parent.depthInTree++,
+        }, true);
+
+        if (!newPartner || !newPartner._id) {
+            // usually it wont come here
+            return Promise.reject("Partner create failure");
+        }
+
+        let newPartnerCommConfigProms = [];
+        for (let i = 0; i < validGroupRate.length; i++) {
+            let curGroupRate = validGroupRate[i];
+            curGroupRate.partner = newPartner._id;
+            let newPartnerCommConfigProm = dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({
+                platform: curGroupRate.platform,
+                provider: curGroupRate.provider,
+                commissionType: curGroupRate.commissionType,
+                partner: curGroupRate.partner,
+            }, curGroupRate, {new: true, upsert: true}).lean();
+
+            newPartnerCommConfigProms.push(newPartnerCommConfigProm);
+        }
+
+        let childCommConfigs = await Promise.all(newPartnerCommConfigProms);
+
+        let output = await dbconfig.collection_partner.findOne({_id: newPartner._id}, {password: 0}).lean();
+        output.multiLevelCommissionRate = childCommConfigs;
+
+        dbconfig.collection_partner.findOneAndUpdate({_id: parent._id, platform: parent.platform}, {$push: {children: newPartner._id}}, {new: true}).lean().catch(errorUtils.reportError);
+
+        return output;
     },
 
     getPartnerPermissionLog: function (platform, id, createTime) {

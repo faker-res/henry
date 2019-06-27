@@ -518,7 +518,14 @@ var simplifiedChinese = {
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
     "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
-    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
+    "Payment is not available, please contact customer service": "支付维护中，请联系客服",
+    "Commission Rate content unknown": "佣金比例格式错误",
+    "Child partner not found.": "此下级代理不存在",
+    "Parent rate error. Please contact CS.": "您的佣金比例有问题，详情请联系客服谘询。",
+    "You must at least take 1% commission from your lower level partner to earn money.": "必须最少抽取1%佣金。请降低下级佣金让其低于您的佣金最少1%。",
+    "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting.": "下级必须最少抽取1%佣金。请提高下级可抽取的佣金，详情请联系客服谘询。",
+    "There is no relevant commission to update": "没有需要修改的佣金比例。",
+    "Minimum commission rate must be 1%": "最低佣金1%",
 
     //todo::add missing messages here
 

@@ -580,6 +580,7 @@ var simplifiedChinese = {
     "You must at least take 1% commission from your lower level partner to earn money.": "必须最少抽取1%佣金。请降低下级佣金让其低于您的佣金最少1%。",
     "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting.": "下级必须最少抽取1%佣金。请提高下级可抽取的佣金，详情请联系客服谘询。",
     "There is no relevant commission to update": "没有需要修改的佣金比例。",
+    "Minimum commission rate must be 1%": "最低佣金1%",
 
 
     //todo::add missing messages here

@@ -845,6 +845,13 @@ const dbPartnerCommissionConfig = {
                         message: "You must at least take 1% commission from your lower level partner to earn money."
                     });
                 }
+
+                if (Number(originalRequirementRate.changeTo) < 0.01) {
+                    return Promise.reject({
+                        status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                        message: "Minimum commission rate must be 1%"
+                    })
+                }
             }
 
             // find highest similar rate requirement from child
