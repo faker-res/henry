@@ -3926,7 +3926,7 @@ let dbPlayerReward = {
             return groupData;
         }
     ),
-    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, name: {$ne: "次权限禁用组（预设）"}}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (playerId, promoCode, adminInfo, userAgent) => {
@@ -3944,7 +3944,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -4242,7 +4242,7 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.forbidPromoCode) {
+                if (playerObj && playerObj.permission && !playerObj.permission.allowPromoCode) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -5887,6 +5887,8 @@ let dbPlayerReward = {
         let topupMatchQuery = setupTopupMatchQuery(eventData, playerData, intervalTime);
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = setupEventQuery(eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime);
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
         // Get top up count in interval period
         let topupInPeriodData = await dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         // Check top up count is sufficient for reward application
@@ -6207,11 +6209,6 @@ let dbPlayerReward = {
                 if (!isQualifyThisLevel) {
                     return Q.reject({name: "DataError", message: localization.localization.translate("Player not qualify of next level reward")});
                 }
-            }
-
-            // if that's a birthday event and this player didnt set his birthday in profile
-            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
-                return Q.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
             }
 
             let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
