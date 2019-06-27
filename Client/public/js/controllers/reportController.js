@@ -1443,6 +1443,34 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.setupMultiInputDXTracking = function () {
+            let trackingGroupSelect = $('select#selectDXTracking');
+            if (trackingGroupSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            trackingGroupSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+        };
+
+        vm.setupMultiInputDXTrackingProvider = function () {
+            let trackingGroupSelect = $('select#selectDXTrackingProvider');
+            if (trackingGroupSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            trackingGroupSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+        };
+
         vm.getProposalTypeByPlatformId = function (id) {
             var deferred = Q.defer();
             socketService.$socket($scope.AppSocket, 'getProposalTypeByPlatformId', {platformId: id}, function (data) {
@@ -5312,6 +5340,60 @@ define(['js/app'], function (myApp) {
             });
         };
         ///////////////// END player deposit tracking report /////////////////////////////
+
+
+
+        ///////////////// Begin Telemarketing Tracking Report ////////////////////////////
+        vm.searchDXTrackingReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#dxTrackingReportTableSpin').show();
+
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    name: vm.dxTrackingQuery.name,
+
+                    credibilityRemarks: vm.dxTrackingQuery.credibilityRemarks,
+                    start: vm.dxTrackingQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.dxTrackingQuery.end.data('datetimepicker').getLocalDate(),
+                    queryStart: vm.dxTrackingQuery.queryStart.data('datetimepicker').getLocalDate(),
+                    queryEnd: vm.dxTrackingQuery.queryEnd.data('datetimepicker').getLocalDate(),
+                    topUpTimesOperator: vm.dxTrackingQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.dxTrackingQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.dxTrackingQuery.topUpTimesValueTwo,
+                    bonusTimesOperator: vm.dxTrackingQuery.bonusTimesOperator,
+                    bonusTimesValue: vm.dxTrackingQuery.bonusTimesValue,
+                    bonusTimesValueTwo: vm.dxTrackingQuery.bonusTimesValueTwo,
+                    topUpAmountOperator: vm.dxTrackingQuery.topUpAmountOperator,
+                    topUpAmountValue: vm.dxTrackingQuery.topUpAmountValue,
+                    topUpAmountValueTwo: vm.dxTrackingQuery.topUpAmountValueTwo,
+                    providerId: vm.dxTrackingQuery.providerId,
+                }
+            }
+
+            console.log('sendQuery', sendQuery);
+
+
+            socketService.$socket($scope.AppSocket, 'getDXTrackingReport', sendQuery, function (data) {
+                console.log('getDXTrackingReport', data);
+
+            });
+
+        };
+
+
+        ///////////////// End Telemarketing Tracking Report /////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
@@ -10187,6 +10269,37 @@ define(['js/app'], function (myApp) {
                     vm.reportSearchTime = 0;
                     vm.dynamicPlatform();
                     break;
+
+                case "DX_TRACKING_REPORT":
+                    vm.reportSearchTime = 0;
+                    vm.dxTrackingQuery = {
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
+
+
+                    utilService.actionAfterLoaded('#dxTrackingReportTable', function () {
+                        let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                        let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        let todayEndTime = utilService.getTodayEndTime();
+                        vm.setupMultiInputDXTracking();
+                        // vm.setupMultiInputDXTrackingProvider();
+                        vm.dxTrackingQuery.totalCount = 0;
+                        vm.dxTrackingQuery.start = utilService.createDatePicker('#dxTrackingReportQuery .startTime');
+                        vm.dxTrackingQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxTrackingQuery.end = utilService.createDatePicker('#dxTrackingReportQuery .endTime');
+                        vm.dxTrackingQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.dxTrackingQuery.queryStart = utilService.createDatePicker('#dxTrackingReportQuery .queryStartTime');
+                        vm.dxTrackingQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxTrackingQuery.queryEnd = utilService.createDatePicker('#dxTrackingReportQuery .queryEndTime');
+                        vm.dxTrackingQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                    });
+                    break;
+
+
+
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;
                     utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {

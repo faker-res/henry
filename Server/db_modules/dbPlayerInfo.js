@@ -20122,7 +20122,36 @@ let dbPlayerInfo = {
         });
     },
 
-    getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
+        getDXTrackingReport: function (platform, query, index, limit, sortCol) {
+            let startDate = new Date(query.start);
+            let endDate = new Date(query.end);
+            let consumptionStartTime;
+            let consumptionEndTime;
+
+            if (query.queryStart && query.queryEnd) {
+                consumptionStartTime = new Date(query.queryStart);
+                consumptionEndTime = new Date(query.queryEnd);
+            }
+
+            let matchObj = {
+                platform: platform,
+                name: query.name,
+                registrationTime: {$gte: startDate, $lt: endDate},
+            };
+
+
+            if (query && query.name) {
+                return dbconfig.collection_players.find({
+                    name: query.name,
+                    platform: platform
+                }, {_id: 1}).read("secondaryPreferred").lean()
+            }
+
+            // return dbconfig.collection_players.find({platform: platform, name: query.name, registrationTime: {$gte: startDate, $lt: endDate}}).lean()
+
+        },
+
+        getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;
         query = query ? query : {};
