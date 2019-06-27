@@ -854,7 +854,6 @@ const dbPartnerCommissionConfig = {
             }
 
             // find highest similar rate requirement from child
-            // todo:: debug start from here
             let currentProviderGrandChildren = grandChildrenCommConfig[String(group.name)];
             if (currentProviderGrandChildren && currentProviderGrandChildren.length) {
                 let gcRateLists = currentProviderGrandChildren.map(gc => gc && gc.commissionSetting)
@@ -899,7 +898,7 @@ const dbPartnerCommissionConfig = {
                 id: editor._id
             };
 
-            let proposalData ={
+            let proposalData = {
                 creator: creatorData,
                 platformObjId: editor.platform,
                 partnerObjId: child._id,

@@ -472,6 +472,7 @@
                 "getDownLinePlayerTimeSequence",
                 "getPartnerTotalInfo",
                 "getDownLinePlayerInfo",
+                "createDownLinePartner",
                 "setPartnerCommissionRate",
                 "getDownLinePartnerInfo",
                 "notifyNewMail",

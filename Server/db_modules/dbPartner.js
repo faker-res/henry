@@ -10192,6 +10192,18 @@ let dbPartner = {
         })
     },
 
+    createDownLinePartner: async function (parentId, account, password, commissionRate) {
+        let parent = await dbconfig.collection_partner.findOne({partnerId: parentId}).lean();
+        if (!parent) {
+            return Promise.reject({message: "Partner not found"});
+        }
+
+
+
+
+        return 'reee'
+    },
+
     getPartnerPermissionLog: function (platform, id, createTime) {
         var query = {
             platform: platform,

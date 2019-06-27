@@ -332,6 +332,17 @@
         this.partnerService.getDownLinePlayerInfo.once(callback);
     };
 
+    proto.createDownLinePartner = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.createDownLinePartner.request(data);
+        this.partnerService.createDownLinePartner.once(callback);
+    };
+
     proto.setPartnerCommissionRate = function (callback, requestData) {
         var data = requestData || {};
 

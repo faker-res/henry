@@ -526,6 +526,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePartnerInfo, [data.platformId, conn.partnerId, data.period, data.partnerType, data.partnerAccount, data.requestPage, data.count, data.sortType, data.sort], isValidData, false, false, true);
     };
 
+    this.createDownLinePartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.account && data.password && data.commissionRate)
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate], isValidData);
+    };
+
     this.notifyNewMail.addListener(
         function (data) {
             WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);
