@@ -2839,9 +2839,9 @@ var dbRewardEvent = {
         // getting general promoCode
         let promoCodeProm = dbconfig.collection_promoCodeType.find({platformObjId: {$ne: null}, $or: [{deleteFlag: false}, {deleteFlag: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
         // getting openPromoCode
-        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
         //getting autoPromoCode
-        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
 
         let list = [];
         return Promise.all([promoCodeProm, openPromoCodeProm, autoPromoCodeProm]).then(
