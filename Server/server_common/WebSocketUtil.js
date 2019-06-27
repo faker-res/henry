@@ -411,10 +411,10 @@ var WebSocketUtility = {
             var wss = service._wss._wss;
             wss.clients.forEach(
                 client => {
-                    if ((client.partnerId && String(client.partnerId) == String(data.partnerId)) ||
+                    if (client && ((client.partnerId && String(client.partnerId) == String(data.partnerId)) ||
                         (client.partnerId && String(client.partnerId) == String(data.recipientId)) ||
                         (client.partnerObjId && String(client.partnerObjId) == String(data.partnerId)) ||
-                        (client.partnerObjId && String(client.partnerObjId) == String(data.recipientId))
+                        (client.partnerObjId && String(client.partnerObjId) == String(data.recipientId)))
                     ) {
                         if (service[functionName]) {
                             service[functionName].response(client, {status: 200, data: data});
