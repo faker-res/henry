@@ -320,6 +320,12 @@
         this.partnerService.getDownLinePlayerTimeSequence.once(callback);
     };
 
+    proto.getPartnerTotalInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getPartnerTotalInfo.request(data);
+        this.partnerService.getPartnerTotalInfo.once(callback);
+    };
+
     proto.getDownLinePlayerInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getDownLinePlayerInfo.request(data);
@@ -335,6 +341,12 @@
 
         this.partnerService.setPartnerCommissionRate.request(data);
         this.partnerService.setPartnerCommissionRate.once(callback);
+    };
+
+    proto.getDownLinePartnerInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownLinePartnerInfo.request(data);
+        this.partnerService.getDownLinePartnerInfo.once(callback);
     };
 
     proto.notifyNewMail = function (callback, requestData) {

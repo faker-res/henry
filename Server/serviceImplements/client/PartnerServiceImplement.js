@@ -511,9 +511,19 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId, conn.partnerObjId, data.period, data.sortMode, data.requestPage, data.count], isValidData);
     };
 
+    this.getPartnerTotalInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTotalInfo, [data.platformId, conn.partnerObjId, data.detailType], isValidData);
+    };
+
     this.getDownLinePlayerInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && conn.partnerId);
+        let isValidData = Boolean(data && data.platformId && conn.partnerId && data.period && data.whosePlayer && data.playerType);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerInfo, [data.platformId, conn.partnerId, data.period, data.whosePlayer, data.playerType, data.crewAccount, data.requestPage, data.count, data.sortType, data.sort], isValidData, false, false, true);
+    };
+
+    this.getDownLinePartnerInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && conn.partnerId && data.period && data.partnerType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePartnerInfo, [data.platformId, conn.partnerId, data.period, data.partnerType, data.partnerAccount, data.requestPage, data.count, data.sortType, data.sort], isValidData, false, false, true);
     };
 
     this.notifyNewMail.addListener(

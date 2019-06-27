@@ -32,6 +32,8 @@ var queryPhoneLocation = require('query-mobile-phone-area');
 const rsaCrypto = require("../modules/rsaCrypto");
 const RESTUtils = require("../modules/RESTUtils");
 
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const constPMSClientType = require("../const/constPMSClientType");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constClientQnA = require("../const/constClientQnA");
 var dbRewardType = require("../db_modules/dbRewardType.js");
@@ -2188,6 +2190,7 @@ var proposalExecutor = {
                         //         decryptedPhoneNo = "";
                         //     }
                         // }
+
                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                        let message = {
@@ -2202,7 +2205,8 @@ var proposalExecutor = {
                            bankAddress: player.bankAddress || "",
                            bankName: player.bankName || "",
                            loginName: player.name || "",
-                           applyTime: cTimeString
+                           applyTime: cTimeString,
+                           clientType: pmsClientType(proposalData.inputDevice)
                         };
 
                        console.log('withdrawAPIAddr player req:', message);
@@ -2312,7 +2316,8 @@ var proposalExecutor = {
                             bankAddress: partner.bankAddress || "",
                             bankName: partner.bankName || "",
                             loginName: partner.partnerName || "",
-                            applyTime: cTimeString
+                            applyTime: cTimeString,
+                            clientType: pmsClientType(proposalData.inputDevice)
                         };
 
                         console.log('withdrawAPIAddr partner req:', message);
@@ -6470,6 +6475,36 @@ function getPlayerCreditInProviders (playerData, platformData) {
             }
         }
     )
+}
+
+function pmsClientType (inputDevice) {
+    let clientType;
+
+    switch (inputDevice) {
+        case constPlayerRegistrationInterface.BACKSTAGE:
+            clientType = constPMSClientType.BACKSTAGE;
+            break;
+        case constPlayerRegistrationInterface.WEB_AGENT:
+        case constPlayerRegistrationInterface.WEB_PLAYER:
+            clientType = constPMSClientType.WEB;
+            break;
+        case constPlayerRegistrationInterface.H5_AGENT:
+        case constPlayerRegistrationInterface.H5_PLAYER:
+            clientType = constPMSClientType.H5;
+            break;
+        case constPlayerRegistrationInterface.APP_AGENT:
+        case constPlayerRegistrationInterface.APP_PLAYER:
+            clientType = constPMSClientType.APP;
+            break;
+        case constPlayerRegistrationInterface.APP_NATIVE_PARTNER:
+        case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+            clientType = constPMSClientType.NATIVE_APP;
+            break;
+        default:
+            clientType = constPMSClientType.BACKSTAGE;
+    }
+
+    return clientType;
 }
 
 var proto = proposalExecutorFunc.prototype;
