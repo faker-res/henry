@@ -31,11 +31,13 @@ const translate = localization.localization.translate;
 var serverInstance = require("../modules/serverInstance");
 var ObjectId = mongoose.Types.ObjectId;
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+const dbPartnerCommission = require("../db_modules/dbPartnerCommission");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const RESTUtils = require('../modules/RESTUtils');
 const dbPartnerCommissionConfig = require('../db_modules/dbPartnerCommissionConfig');
+let moment = require('moment-timezone');
 
 let env = require('../config/env').config();
 
@@ -10150,6 +10152,7 @@ let dbPartner = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
+        let timeSlots = [];
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -10167,12 +10170,15 @@ let dbPartner = {
         switch (period) {
             case 1:
                 intervalTime = dbUtil.getTodaySGTime();
+                timeSlots = getTimeSlotsForPeriod(1);
                 break;
             case 2:
                 intervalTime = dbUtil.getCurrentWeekSGTime();
+                timeSlots = getTimeSlotsForPeriod(2);
                 break;
             case 3:
                 intervalTime = dbUtil.getCurrentMonthSGTIme();
+                timeSlots = getTimeSlotsForPeriod(3);
                 break;
         }
 
@@ -10240,21 +10246,8 @@ let dbPartner = {
             }
         ).then(
             partnerAndDownlinePlayerData => {
-                let dayStartTime = new Date(intervalTime.startTime);
-                let endDate = new Date(intervalTime.endTime);
-                let getNextDate;
-                let dateRange = 0;
-                let periodRange = 0;
 
-                periodRange = 24 * 3600 * 1000;
-                dateRange = (new Date(endDate) - new Date(dayStartTime)) || 0;
-                getNextDate = function (date, day) {
-                    let newDate = new Date(date);
-                    return new Date(newDate.setDate(newDate.getDate() + day));
-                }
-                let loopTimes = dateRange / periodRange;
-
-                return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, loopTimes, getNextDate, dayStartTime, intervalTime, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
+                return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
 
             }
         ).then(
@@ -10268,7 +10261,9 @@ let dbPartner = {
                                     allActivePlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
                                     allActivePlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
                                     allActivePlayerList[index].validBet += data.consumptionDetail.validAmount,
-                                    allActivePlayerList[index].promoAmount += data.rewardDetail.total
+                                    allActivePlayerList[index].promoAmount += data.rewardDetail.total,
+                                    allActivePlayerList[index].totalPlatformFee += data.totalPlatformFee,
+                                    allActivePlayerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee
                             } else {
                                 let tempData = {
                                     crewAccount: data.name,
@@ -10332,7 +10327,7 @@ let dbPartner = {
                 switch (playerType) {
                     case 1:
                     case 3:
-                        statsObj.totalDepositCount = allActivePlayerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalDepositAmount = allActivePlayerList.reduce((a,b) => a + b.depositAmount, 0);
                         statsObj.totalWithdrawAmount = allActivePlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
                         statsObj.totalPromoAmount = allActivePlayerList.reduce((a,b) => a + b.promoAmount, 0);
                         statsObj.totalCrewProfit = allActivePlayerList.reduce((a,b) => a + b.crewProfit, 0);
@@ -10342,7 +10337,7 @@ let dbPartner = {
                         result = allActivePlayerList.length > 0 ? allActivePlayerList.slice(index, index + limit) : [];
                         break;
                     case 2:
-                        statsObj.totalDepositCount = newPlayerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalDepositAmount = newPlayerList.reduce((a,b) => a + b.depositAmount, 0);
                         statsObj.totalWithdrawAmount = newPlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
                         statsObj.totalPromoAmount = newPlayerList.reduce((a,b) => a + b.promoAmount, 0);
                         statsObj.totalCrewProfit = newPlayerList.reduce((a,b) => a + b.crewProfit, 0);
@@ -10359,6 +10354,18 @@ let dbPartner = {
             }
         )
 
+        function getTimeSlotsForPeriod (period) {
+            if (period === 1) {
+                let todayTime = dbUtil.getTodaySGTime();
+                return dbUtil.splitTimeFrameToDaily(todayTime.startTime, todayTime.endTime);
+            } else if (period === 2) {
+                let thisWeekTime = dbUtil.getCurrentWeekSGTime();
+                return dbUtil.splitTimeFrameToDaily(thisWeekTime.startTime, thisWeekTime.endTime);
+            } else {
+                let thisMonthTime = dbUtil.getCurrentMonthSGTIme();
+                return dbUtil.splitTimeFrameToDaily(thisMonthTime.startTime, thisMonthTime.endTime);
+            }
+        }
 
         function getAllChildrenPartners (partnerObjId, holder, count) {
             // mechanism to prevent infinite loop
@@ -10435,7 +10442,301 @@ let dbPartner = {
     },
 
     getDownLinePartnerInfo: (platformId, partnerId, period, partnerType, partnerAccount, requestPage, count, sortType, sort) => {
+        let platformRecord;
+        let partnerRecord;
+        let providerGroups = [];
+        let paymentProposalTypes = [];
+        let rewardProposalTypes = [];
+        let allPartnerList = [];
+        let newPartnerList = [];
 
+        let intervalTime;
+
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
+        let limit = count || 10;
+        let statsObj = {};
+        let totalCount = 0;
+        let totalPage = 1;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                platformRecord = platformData;
+
+                let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformRecord._id}).lean();
+                let paymentProposalTypesProm = getPaymentProposalTypes(platformRecord._id);
+                let rewardProposalTypesProm = getRewardProposalTypes(platformRecord._id);
+
+                return Promise.all([providerGroupProm, paymentProposalTypesProm, rewardProposalTypesProm]);
+            }
+        ).then(
+            data => {
+                providerGroups = data[0];
+                paymentProposalTypes = data[1];
+                rewardProposalTypes = data[2];
+
+                return dbconfig.collection_partner.findOne({platform: platformRecord._id, partnerId: partnerId}).lean();
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+
+                partnerRecord = partnerData;
+
+                if(partnerAccount){
+                    return dbconfig.collection_partner.find({parent: partnerRecord._id, platform: platformRecord._id, partnerName: partnerAccount}).lean();
+                }
+                else{
+                    return dbconfig.collection_partner.find({parent: partnerRecord._id}).lean().then(
+                        partnerData => {
+                            let proms = []
+                            if (partnerData && partnerData.length > 0) {
+                                partnerData.forEach(partner => {
+                                    proms.push(dbPartner.getPartnerLevel(platformRecord._id, partner._id).then(
+                                        partnerLevel => {
+                                            partnerLevel = partnerLevel? ++partnerLevel: 2; //start from level 2, level 1 is the main partner himself
+                                            partner.partnerLevel = partnerLevel;
+                                            return partner;
+                                        }
+                                    ));
+                                })
+                            }
+
+                            return Promise.all(proms);
+                        }
+                    );
+                }
+
+            }
+        ).then(
+            downLinePartnerData => {
+                let proms = [];
+                let timeSlots = [];
+
+                if (downLinePartnerData && downLinePartnerData.length > 0) {
+                    downLinePartnerData.forEach(partner => {
+
+                        switch (period) {
+                            case 1:
+                                intervalTime = dbUtil.getTodaySGTime();
+                                timeSlots = getTimeSlotsForPeriod(1);
+                                break;
+                            case 2:
+                                intervalTime = dbUtil.getCurrentWeekSGTime();
+                                timeSlots = getTimeSlotsForPeriod(2);
+                                break;
+                            case 3:
+                                intervalTime = dbUtil.getCurrentMonthSGTIme();
+                                timeSlots = getTimeSlotsForPeriod(3);
+                                break;
+                            case 4:
+                                if (partner && partner.commissionType && Number(partner.commissionType) === constPartnerCommissionType.DAILY_CONSUMPTION) {
+                                    intervalTime = dbUtil.getTodaySGTime();
+                                    timeSlots = getTimeSlotsForPeriod(1);
+                                } else if (partner && partner.commissionType && Number(partner.commissionType) === constPartnerCommissionType.WEEKLY_BONUS_AMOUNT) {
+                                    intervalTime = dbUtil.getCurrentWeekSGTime();
+                                    timeSlots = getTimeSlotsForPeriod(2);
+                                }
+                                break;
+                        }
+
+                        if (timeSlots && timeSlots.length > 0) {
+                            timeSlots.forEach(item => {
+                                proms.push(dbPartnerCommission.calculatePartnerCommission(partner._id, item.startTime, item.endTime).then(
+                                    data => {
+                                        if (data) {
+                                            return {
+                                                partnerName: data.partnerName,
+                                                partnerLevel: partner.partnerLevel,
+                                                registrationTime: partner.registrationTime,
+                                                lastAccessTime: partner.lastAccessTime,
+                                                commissionType: data.commissionType,
+                                                promoAmount: data.totalReward,
+                                                depositAmount: data.totalTopUp,
+                                                withdrawAmount: data.totalWithdrawal,
+                                                crewProfit: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail[0]
+                                                && data.downLinesRawCommissionDetail[0].consumptionDetail && data.downLinesRawCommissionDetail[0].consumptionDetail.bonusAmount ?
+                                                    data.downLinesRawCommissionDetail[0].consumptionDetail.bonusAmount : 0,
+                                                validBet: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail[0]
+                                                    && data.downLinesRawCommissionDetail[0].consumptionDetail && data.downLinesRawCommissionDetail[0].consumptionDetail.validAmount ?
+                                                    data.downLinesRawCommissionDetail[0].consumptionDetail.validAmount : 0,
+                                                platformFee: data.totalPlatformFee,
+                                                totalDepositWithdrawFee: data.totalTopUpFee + data.totalWithdrawalFee,
+                                                commission: data.parentPartnerCommissionDetail && data.parentPartnerCommissionDetail.nettCommission ? data.parentPartnerCommissionDetail.nettCommission : 0
+                                            }
+                                        }
+                                    }
+                                ));
+                            })
+                        }
+                    });
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            allPartnerData => {
+                if (allPartnerData && allPartnerData.length > 0) {
+                    allPartnerData.forEach(data => {
+                        let index = allPartnerList.findIndex(x => x && x.partnerAccount && data.partnerName && (x.partnerAccount === data.partnerName));
+
+                        let commType;
+                        if (Number(data.commissionType) === constPartnerCommissionType.DAILY_CONSUMPTION) {
+                            commType = 1;
+                        } else {
+                            commType = Number(data.commissionType);
+                        }
+
+                        if (index > -1) {
+                            allPartnerList[index].crewProfit += data.crewProfit,
+                                allPartnerList[index].depositAmount += data.depositAmount,
+                                allPartnerList[index].withdrawAmount += data.withdrawAmount,
+                                allPartnerList[index].validBet += data.validBet,
+                                allPartnerList[index].promoAmount += data.promoAmount,
+                                allPartnerList[index].platformFee += data.platformFee,
+                                allPartnerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee,
+                                allPartnerList[index].commission += data.commission
+                        } else {
+                            let tempData = {
+                                partnerAccount: data.partnerName,
+                                partnerRegisterTime: data.registrationTime,
+                                partnerLastLoginTime: data.lastAccessTime,
+                                commissionType: commType,
+                                partnerLevel: data.partnerLevel,
+                                crewProfit: data.crewProfit,
+                                depositAmount: data.depositAmount,
+                                withdrawAmount: data.withdrawAmount,
+                                validBet: data.validBet,
+                                promoAmount: data.promoAmount,
+                                platformFee: data.platformFee,
+                                totalDepositWithdrawFee: data.totalDepositWithdrawFee,
+                                commission: data.commission
+                            };
+
+                            allPartnerList.push(tempData);
+                        }
+
+                        if (intervalTime && intervalTime.startTime && intervalTime.endTime) {
+                            newPartnerList = allPartnerList.filter(partner =>
+                                new Date(partner.partnerRegisterTime).getTime() >= intervalTime.startTime.getTime() &&
+                                new Date(partner.partnerRegisterTime).getTime() < intervalTime.endTime.getTime());
+                        }
+                    });
+                }
+
+                totalCount = allPartnerList.length ? allPartnerList.length : 0;
+                totalPage = Math.ceil(totalCount / limit);
+
+                statsObj.totalCount = totalCount;
+                statsObj.totalPage = totalPage;
+                statsObj.currentPage = currentPage;
+                statsObj.totalNewPartnerCount = newPartnerList.length || 0;
+                statsObj.totalPartnerCount = allPartnerList.length || 0;
+
+                let result = [];
+                switch (partnerType) {
+                    case 1:
+                        statsObj.totalDepositAmount = allPartnerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalWithdrawAmount = allPartnerList.reduce((a,b) => a + b.withdrawAmount, 0);
+                        statsObj.totalPromoAmount = allPartnerList.reduce((a,b) => a + b.promoAmount, 0);
+                        statsObj.totalCrewProfit = allPartnerList.reduce((a,b) => a + b.crewProfit, 0);
+                        statsObj.totalPlatformFee = allPartnerList.reduce((a,b) => a + b.platformFee, 0);
+                        statsObj.totalHandlingFee = allPartnerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+                        statsObj.totalCommission = allPartnerList.reduce((a,b) => a + b.commission, 0);
+
+                        result = allPartnerList.length > 0 ? allPartnerList.slice(index, index + limit) : [];
+                        break;
+                    case 2:
+                        statsObj.totalDepositAmount = newPartnerList.reduce((a,b) => a + b.depositAmount, 0);
+                        statsObj.totalWithdrawAmount = newPartnerList.reduce((a,b) => a + b.withdrawAmount, 0);
+                        statsObj.totalPromoAmount = newPartnerList.reduce((a,b) => a + b.promoAmount, 0);
+                        statsObj.totalCrewProfit = newPartnerList.reduce((a,b) => a + b.crewProfit, 0);
+                        statsObj.totalPlatformFee = newPartnerList.reduce((a,b) => a + b.platformFee, 0);
+                        statsObj.totalHandlingFee = newPartnerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+                        statsObj.totalCommission = newPartnerList.reduce((a,b) => a + b.commission, 0);
+
+                        result = newPartnerList.length > 0 ? newPartnerList.slice(index, index + limit) : [];
+                        break;
+                }
+
+                result.sort((a, b) => sortList(a, b, sortType, sort));
+
+                return {stats: statsObj, list: result};
+            }
+        )
+
+        function sortList (a, b, sortType, sortBy) {
+            let sortField;
+
+            switch (Number(sortType)) {
+                case 1:
+                    sortField = "depositAmount";
+                    break;
+                case 2:
+                    sortField = "withdrawAmount";
+                    break;
+                case 3:
+                    sortField = "crewProfit";
+                    break;
+                case 4:
+                    sortField = "validBet";
+                    break;
+                case 5:
+                    sortField = "promoAmount";
+                    break;
+                case 6:
+                    sortField = "platformFee";
+                    break;
+                case 7:
+                    sortField = "totalDepositWithdrawFee";
+                    break;
+                case 8:
+                    sortField = "commission";
+                    break;
+                default:
+                    sortField = "partnerRegisterTime";
+                    break;
+            }
+
+            if (sortBy && sortBy.toString() === 'false') {
+                return b[sortField] - a[sortField];
+            } else if (sortBy && sortBy.toString() === 'true') {
+                return a[sortField] - b[sortField];
+            }
+        }
+
+        function getTimeSlotsForPeriod (period) {
+            if (period === 1) {
+                let todayTime = dbUtil.getTodaySGTime();
+                return dbUtil.splitTimeFrameToDaily(todayTime.startTime, todayTime.endTime);
+            } else if (period === 2) {
+                let thisWeekTime = dbUtil.getCurrentWeekSGTime();
+                return dbUtil.splitTimeFrameToDaily(thisWeekTime.startTime, thisWeekTime.endTime);
+            } else {
+                let thisMonthTime = dbUtil.getCurrentMonthSGTIme();
+                return dbUtil.splitTimeFrameToDaily(thisMonthTime.startTime, thisMonthTime.endTime);
+            }
+        }
     }
 };
 
@@ -10567,47 +10868,34 @@ function isPlayerValid (validPlayerRequirement, playerConsumptionTimes, playerCo
     );
 }
 
-function getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, loopTimes, getNextDate, dayStartTime, intervalTime, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord) {
+function getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord) {
     let outputProms = [];
 
     if (partnerAndDownlinePlayerData && partnerAndDownlinePlayerData.length > 0) {
         partnerAndDownlinePlayerData.forEach(data => {
             if (data && data.partner && data.partner.commissionType) {
-                for(let i = 1; i <= loopTimes; i++) {
-                    let currentDate = getNextDate.call(this, dayStartTime, i);
-
-                    let startTime = new Date(currentDate.setHours(0, 0, 0, 0));
-                    let endTime = new Date(currentDate.setHours(23, 59, 59, 999));
-
-                    if (i == 1) {
-                        // reset back to selected startTime if is first date
-                        startTime = new Date(intervalTime.startTime);
-                    }
-
-                    if (i == loopTimes) {
-                        // reset back to selected endTime if is last date
-                        endTime = new Date(intervalTime.endTime);
-                    }
-
-                    if (data.downLines && data.downLines.length > 0) {
-                        data.downLines.forEach(player => {
-                            if (player && player._id) {
-                                let prom = getAllPlayerDetails(
-                                    player._id,
-                                    data.partner.commissionType,
-                                    startTime,
-                                    endTime,
-                                    providerGroups,
-                                    paymentProposalTypes,
-                                    rewardProposalTypes,
-                                    data.activePlayerRequirement,
-                                    validPlayerRequirement,
-                                    data.partner,
-                                    platformRecord);
-                                outputProms.push(prom);
-                            }
-                        });
-                    }
+                if (timeSlots && timeSlots.length > 0) {
+                    timeSlots.forEach(item => {
+                        if (data.downLines && data.downLines.length > 0) {
+                            data.downLines.forEach(player => {
+                                if (player && player._id) {
+                                    let prom = getAllPlayerDetails(
+                                        player._id,
+                                        data.partner.commissionType,
+                                        item.startTime,
+                                        item.endTime,
+                                        providerGroups,
+                                        paymentProposalTypes,
+                                        rewardProposalTypes,
+                                        data.activePlayerRequirement,
+                                        validPlayerRequirement,
+                                        data.partner,
+                                        platformRecord);
+                                    outputProms.push(prom);
+                                }
+                            });
+                        }
+                    })
                 }
             }
         })
@@ -10674,13 +10962,13 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             let depositChargeFee = 0;
             let depositChargeRate = commRate && commRate.rateAfterRebateTotalDeposit ? Number(commRate.rateAfterRebateTotalDeposit) : 0;
             if (topUpDetail && topUpDetail.topUpAmount) {
-                depositChargeFee = depositChargeRate * topUpDetail.topUpAmount / 100
+                depositChargeFee = depositChargeRate * topUpDetail.topUpAmount / 100;
             }
 
             let withdrawalChargeFee = 0;
             let withdrawalChargeRate = commRate && commRate.rateAfterRebateTotalWithdrawal ? Number(commRate.rateAfterRebateTotalWithdrawal) : 0;
             if (withdrawalDetail && withdrawalDetail.withdrawalAmount) {
-                withdrawalChargeFee = depositChargeRate * withdrawalDetail.withdrawalAmount / 100
+                withdrawalChargeFee = withdrawalChargeRate * withdrawalDetail.withdrawalAmount / 100;
             }
 
             let totalDepositWithdrawFee = dbutility.twoDecimalPlacesToFixed(depositChargeFee) + dbutility.twoDecimalPlacesToFixed(withdrawalChargeFee);
