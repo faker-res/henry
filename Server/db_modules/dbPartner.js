@@ -8,7 +8,6 @@ var bcrypt = require('bcrypt');
 const constSystemParam = require('../const/constSystemParam');
 const constShardKeys = require('../const/constShardKeys');
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbPartnerCommissionConfig = require('./../db_modules/dbPartnerCommissionConfig');
 var dbUtil = require('../modules/dbutility');
 var dataUtils = require("../modules/dataUtils.js");
 var mongoose = require('mongoose');

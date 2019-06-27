@@ -701,7 +701,7 @@ const dbPartnerCommissionConfig = {
 
         let child = await dbconfig.collection_partner.findOne({partnerId: targetPartnerId, platform: editor.platform, parent: editor._id}).lean();
         if (!child || String(editor.platform) !== String(child.platform)) {
-            return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."}); // todo :: translate, add constant
+            return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
         }
 
         let grandChildrenProm = dbconfig.collection_partner.find({parent: child._id, platform: editor.platform}, {_id: 1}).lean();
@@ -725,6 +725,30 @@ const dbPartnerCommissionConfig = {
 
                 grandChildrenCommConfig[currentGroup.name] = grandChildrenCommConfig[currentGroup.name] || [];
                 grandChildrenCommConfig[currentGroup.name].push(config);
+            }
+        }
+
+        // imo this checking part is unnecessary, but reynold say so
+        for (let i = 0; i < commissionRate.length; i++) {
+            let groupRate = commissionRate[i];
+            if (!groupRate || !groupRate.providerGroupId || !groupRate.providerGroupName || !groupRate.list) {
+                return Promise.reject({message: "Commission Rate content unknown"});
+            }
+
+            if (groupRate.list.length) {
+                for (let j = 0; j < groupRate.list.length; j++) {
+                    let requirementRate = groupRate.list[j];
+                    let keys = Object.keys(requirementRate);
+                    if (
+                        !keys.includes("commissionRate") ||
+                        !keys.includes("activePlayerValueTo") ||
+                        !keys.includes("activePlayerValueFrom") ||
+                        !keys.includes("playerConsumptionAmountTo") ||
+                        !keys.includes("playerConsumptionAmountFrom")
+                    ) {
+                        return Promise.reject({message: "Commission Rate content unknown"});
+                    }
+                }
             }
         }
 
@@ -790,7 +814,7 @@ const dbPartnerCommissionConfig = {
             let editorGroupRate = editorCommConfig.find(config => String(config.provider) === String(group._id));
             if (!editorGroupRate) {
                 console.error("Parent rate error. Please contact CS. (#01)");
-                return Promise.reject({message: "Parent rate error. Please contact CS."}); // todo :: translate
+                return Promise.reject({message: "Parent rate error. Please contact CS."});
             }
 
             let editorGroupRateList = editorGroupRate && editorGroupRate.commissionSetting || [];
@@ -824,7 +848,7 @@ const dbPartnerCommissionConfig = {
                     console.log('between parent and child must have 1% different minimum', originalRequirementRate.changeTo, '>', editorRequirementRate.commissionRate , '- 0.01');
                     return Promise.reject({
                         status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                        message: "You must at least take 1% commission from your lower level partner to earn money."  // todo :: translate
+                        message: "You must at least take 1% commission from your lower level partner to earn money."
                     });
                 }
             }
@@ -854,7 +878,7 @@ const dbPartnerCommissionConfig = {
                         console.log('child compared too low', originalRequirementRate.changeTo, '<', highestChildRate + 0.01);
                         return Promise.reject({
                             status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                            message: "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting."  // todo :: translate
+                            message: "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting."
                         });
                     }
                 }
@@ -904,6 +928,10 @@ const dbPartnerCommissionConfig = {
             output.push(outputData);
             proposalProms.push(prom);
         }
+        if (proposalProms.length === 0) {
+            return Promise.reject({message: "There is no relevant commission to update"});
+        }
+
         let result = await Promise.all(proposalProms);
 
         return output;
