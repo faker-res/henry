@@ -2871,10 +2871,10 @@ var dbRewardEvent = {
                     retData.forEach(
                         dataList => {
                             if (dataList && dataList.length){
-                               list.push({
-                                   category: dataList[0].category,
-                                   data: dataList
-                               })
+                                list.push({
+                                    category: dataList[0].category,
+                                    data: dataList
+                                })
                             }
 
                         }
@@ -2885,6 +2885,7 @@ var dbRewardEvent = {
             }
         )
     },
+
     /**
      * Find reward events by query
      * @param {String} query

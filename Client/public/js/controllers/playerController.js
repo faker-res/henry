@@ -6459,14 +6459,12 @@ define(['js/app'], function (myApp) {
                                 // },
                                 banReward: {imgType: 'i', iconClass: "fa fa-gift"},
                                 forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
-
                                 allowPromoCode: {
                                     imgType: 'img',
                                     src: "images/icon/promoCodeBlue.png",
                                     width: "26px",
                                     height: '26px'
                                 },
-
                                 rewardPointsTask: {
                                     imgType: 'img',
                                     src: "images/icon/rewardPointsBlue.png",
@@ -7252,7 +7250,7 @@ define(['js/app'], function (myApp) {
             vm.promoCodeByPlatform = [];
             let tempData = [];
             if (vm.allPromoCode && platformObjId){
-               vm.allPromoCode.forEach(
+                vm.allPromoCode.forEach(
                     promoCodeList => {
                         if (promoCodeList && promoCodeList.data){
                             tempData = promoCodeList.data.filter(p => {
@@ -8212,7 +8210,8 @@ define(['js/app'], function (myApp) {
 
                                     socketService.$socket($scope.AppSocket, 'checkDuplicatedBankAccount', {
                                         bankAccount: playerPaymentData.newBankAccount,
-                                        platform: vm.isOneSelectedPlayer().platform || vm.selectedPlatform.id
+                                        platform: vm.isOneSelectedPlayer().platform || vm.selectedPlatform.id,
+                                        playerObjId: selectedPlayer._id
                                     }, function (data) {
                                         if (data && data.data === true) {
                                             if (playerPaymentData.newBankAccount.length >= 16 && playerPaymentData.newBankAccount.length <= 19) {
@@ -15105,6 +15104,23 @@ define(['js/app'], function (myApp) {
                     row.admin = row.isSystem ? {adminName: "System"} : row.admin;
                 });
                 vm.playerPermissionHistory = data.data || [];
+                vm.playerPermissionHistory.map(item => {
+                    let toggleGroup = {
+                        banReward : item.oldData.banReward,
+                        disableWechatPay : item.oldData.disableWechatPay,
+                        forbidPlayerConsumptionReturn : item.oldData.forbidPlayerConsumptionReturn,
+                        forbidPlayerFromEnteringGame : item.oldData.forbidPlayerFromEnteringGame,
+                        forbidPlayerFromLogin : item.oldData.forbidPlayerFromLogin
+                    };
+                    for (let v in toggleGroup){
+                        if(item.oldData.hasOwnProperty(v)){
+                            item.oldData[v] = !item.oldData[v];
+                        }
+                        if(item.newData.hasOwnProperty(v)){
+                            item.newData[v] = !item.newData[v];
+                        }
+                    }
+                });
                 vm.playerPermissionQuery.searching = false;
                 $scope.safeApply();
             });

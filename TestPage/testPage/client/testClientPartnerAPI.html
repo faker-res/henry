@@ -1539,9 +1539,9 @@
     </div>
     <div>
         <label>sort
-            <input type="checkbox" id="sort" name="sort">
-            <button onclick="check()">Check</button>
-            <button onclick="uncheck()">Uncheck</button>
+            <input type="checkbox" id="sortPlayerInfo" name="sort" value="false">
+            <button onclick="check('sortPlayerInfo')">Check</button>
+            <button onclick="uncheck('sortPlayerInfo')">Uncheck</button>
         </label>
 
         <p>
@@ -1549,6 +1549,85 @@
     <p></p>
     <div>
         <button id="getDownLinePlayerInfo" data-api-name="getDownLinePlayerInfo">Get</button>
+    </div>
+</div>
+
+<h3> Get Partner Total Info (查询代理统计信息)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Detail Type
+            <input type="test" name="detailType">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getPartnerTotalInfo" data-api-name="getPartnerTotalInfo">Get</button>
+    </div>
+</div>
+
+<h3> Get Down Line Partner Info (查询代理的下级代理信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input name="period" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Partner Type
+            <input name="partnerType" type="number">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>Partner Account
+            <input name="partnerAccount" type="text">
+        </label>
+        <p>
+    </div>
+    <div>
+        <label>Request Page
+            <input name="requestPage" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Count
+            <input name="count" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>Sort Type
+            <input name="sortType" type="number">
+        </label>
+
+        <p>
+    </div>
+    <div>
+        <label>sort
+            <input type="checkbox" id="sortPartnerInfo" name="sort" value="false">
+            <button onclick="check('sortPartnerInfo')">Check</button>
+            <button onclick="uncheck('sortPartnerInfo')">Uncheck</button>
+        </label>
+
+        <p>
+    </div>
+    <p></p>
+    <div>
+        <button id="getDownLinePartnerInfo" data-api-name="getDownLinePartnerInfo">Get</button>
     </div>
 </div>
 
@@ -1619,14 +1698,14 @@
         }
     );
 
-    function check() {
-        document.getElementById("sort").checked = true;
-        document.getElementById("sort").value = Boolean(true);
+    function check(id) {
+        document.getElementById(id).checked = true;
+        document.getElementById(id).value = Boolean(true);
     }
 
-    function uncheck() {
-        document.getElementById("sort").checked = false;
-        document.getElementById("sort").value = Boolean(false);
+    function uncheck(id) {
+        document.getElementById(id).checked = false;
+        document.getElementById(id).value = Boolean(false);
     }
 </script>
 </body>
