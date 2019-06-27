@@ -597,7 +597,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
-        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
+        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
         let platformObjId = null;
@@ -1038,6 +1038,7 @@ let dbPlayerInfo = {
             return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                 data => {
                     if (data) {
+                        console.log("checking partner Data if there is matching ownDomain", data._id)
                         inputData.partner = data._id;
                         if (data.partnerId) {
                             inputData.partnerId = data.partnerId;
@@ -1121,6 +1122,7 @@ let dbPlayerInfo = {
             }).sort({createTime: -1}).lean().then(
                 ipDomainLog => {
                     if (ipDomainLog) {
+                        console.log("checking ipDomainLog when binding with partner", ipDomainLog)
                         if (ipDomainLog.partnerId) {
                             return dbconfig.collection_partner.findOne({partnerId: ipDomainLog.partnerId}, {
                                 _id: 1,
@@ -2038,7 +2040,7 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.domain) {
-                        console.log("checking domain name when register from DX", [playerData.name, playerData.domain])
+                        console.log("checking domain name when register from DX", [playerData.name, playerData.domain, playerData.partner])
                         delete playerData.referral;
                         let filteredDomain = dbUtility.filterDomainName(playerData.domain);
                         // while (filteredDomain.indexOf("/") !== -1) {
@@ -2093,7 +2095,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log("checking if there is a binding promote way when register from DX", [promoteWay, csOfficer])
+                console.log("checking if there is a binding promote way when register from DX", [promoteWay, csOfficer, playerData.partner])
                 // Add source url from ip
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
