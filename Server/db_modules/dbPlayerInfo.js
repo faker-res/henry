@@ -17902,6 +17902,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platform;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -18611,7 +18616,8 @@ let dbPlayerInfo = {
                             platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
-                            valueScore: 1
+                            valueScore: 1,
+                            platform: 1
                         };
 
                         return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
@@ -18629,6 +18635,7 @@ let dbPlayerInfo = {
                                     let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
 
                                     if(indexNo > -1){
+                                        playerReportSummaryData[indexNo].platform = player.platform || "";
                                         playerReportSummaryData[indexNo].name = player.name || "";
                                         playerReportSummaryData[indexNo].city = player.city || "";
                                         playerReportSummaryData[indexNo].province = player.province || "";
