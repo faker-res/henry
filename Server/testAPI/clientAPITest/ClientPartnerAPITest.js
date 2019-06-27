@@ -360,6 +360,14 @@
         this.partnerService.getDownLinePartnerInfo.once(callback);
     };
 
+
+    proto.getPartnerCommissionInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPartnerCommissionInfo.request(data);
+        this.partnerService.getPartnerCommissionInfo.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);

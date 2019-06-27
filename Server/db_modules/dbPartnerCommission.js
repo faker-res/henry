@@ -427,7 +427,6 @@ const dbPartnerCommission = {
 
     },
 
-
     generateCurrentPartnersCommissionDetail: async function (partnerObjIds, startTime, endTime, commissionType) {
         let proms = [];
         // let parentPartnerCommissionDetail, downLinesRawCommissionDetail;
@@ -744,7 +743,6 @@ const dbPartnerCommission = {
         }
     },
 
-
     getAllDownlinePartnerWithDetails: async (partnerObjId) => {
         let partnerLvl = await getPartnerLevel (null, partnerObjId);
         let partnerObjs = await getAllDownlinePartner(partnerObjId, null, partnerLvl);
@@ -887,6 +885,114 @@ const dbPartnerCommission = {
         };
 
         return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+    },
+
+    getPartnerCommissionInfoAPI: async (partnerId, previousPeriod = 0) => {
+        if (previousPeriod) {
+            return dbPartnerCommission.getPreviousCommissionInfoAPI(partnerId, previousPeriod);
+        }
+
+        return dbPartnerCommission.getCurrentPeriodCommissionInfoAPI(partnerId);
+    },
+
+    getCurrentPeriodCommissionInfoAPI: async (partnerId) => {
+        let partner = await dbconfig.collection_partner.findOne({partnerId}).lean();
+
+        let [detail] = await dbPartnerCommission.getCurrentPartnerCommissionDetail(partner.platform, partner.commissionType, partner.partnerName);
+
+        let totalPromoAmount = detail.totalRewardFee;
+
+        let totalCrewProfit = 0;
+        if (detail.rawCommissions && detail.rawCommissions.length) {
+            for (let i = 0; i < detail.rawCommissions.length; i++) {
+                let groupComm = detail.rawCommissions[i];
+
+                if (groupComm && groupComm.crewProfit) {
+                    totalCrewProfit = math.add(groupComm.crewProfit, totalCrewProfit);
+                }
+            }
+        }
+
+        let totalPlatformFee = detail.totalPlatformFee;
+
+        let totalDepositWithdrawFee = math.add(detail.totalTopUpFee, detail.totalWithdrawalFee);
+
+        let totalDownLinePartnerCom = 0;
+        if (detail.childComm && detail.childComm.length) {
+            for (let i = 0; i < detail.childComm.length; i++) {
+                let child = detail.childComm[i];
+
+                if (child && child.grossCommission) {
+                    totalDownLinePartnerCom = math.add(child.grossCommission, totalDownLinePartnerCom);
+                }
+            }
+        }
+
+        let downLinePlayerCom = detail.grossCommission;
+
+        let preditCommission = math.add(totalDownLinePartnerCom, downLinePlayerCom);
+
+        return {
+            stats: {
+                totalPromoAmount,
+                totalCrewProfit,
+                totalPlatformFee,
+                totalDepositWithdrawFee,
+                totalDownLinePartnerCom,
+                downLinePlayerCom,
+                preditCommission,
+            }
+        };
+    },
+
+    getPreviousCommissionInfoAPI: async (partnerId, previousPeriod) => {
+        let partner = await dbconfig.collection_partner.findOne({partnerId}).lean();
+        let proposalType = await dbconfig.collection_proposalType.findOne({platformId: partner.platform, name: constProposalType.SETTLE_PARTNER_COMMISSION}, {_id: 1}).lean();
+        let settlementProposals = await dbconfig.collection_proposal.find({"data.partnerId": partner.partnerId, type: proposalType._id}).sort({_id: -1}).limit(previousPeriod).lean();
+
+        let list = settlementProposals.map(prop => {
+            if (!prop) return;
+
+            let commissionAmount = prop.data && Number(prop.data.amount) || 0;
+            commissionAmount = math.round(commissionAmount, 2);
+
+            return {
+                date: prop.createTime,
+                commissionAmount
+            };
+        });
+
+        let highestAmount = 0;
+        let lowestAmount = 0;
+        let totalAmount = 0;
+
+        for (let i = 0; i < list.length; i++) {
+            let commission = list[i];
+            if (i === 0) {
+                highestAmount = Number(commission.commissionAmount);
+                lowestAmount = Number(commission.commissionAmount);
+                totalAmount = Number(commission.commissionAmount);
+            } else {
+                highestAmount = highestAmount < Number(commission.commissionAmount) ? Number(commission.commissionAmount) : highestAmount;
+                lowestAmount = lowestAmount > Number(commission.commissionAmount) ? Number(commission.commissionAmount) : lowestAmount;
+                totalAmount = math.add(totalAmount, Number(commission.commissionAmount));
+            }
+        }
+
+        highestAmount = math.round(highestAmount, 2);
+        lowestAmount = math.round(lowestAmount, 2);
+        let averageAmount = math.chain(totalAmount).divide(list.length).round(2).done();
+        totalAmount = math.round(totalAmount, 2);
+
+        return {
+            stats: {
+                highestAmount,
+                lowestAmount,
+                totalAmount,
+                averageAmount,
+            },
+            list
+        };
     },
 };
 

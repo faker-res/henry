@@ -17,6 +17,7 @@ let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
 let dbPlatform = require('./../../db_modules/dbPlatform');
 let dbPartnerCommissionConfig = require('./../../db_modules/dbPartnerCommissionConfig');
+let dbPartnerCommission = require('./../../db_modules/dbPartnerCommission');
 
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
@@ -529,6 +530,10 @@ var PartnerServiceImplement = function () {
     this.createDownLinePartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.account && data.password && data.commissionRate)
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate], isValidData);
+    };
+
+    this.getPartnerCommissionInfo.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.getPartnerCommissionInfoAPI, [conn.partnerId, data.searchPreviousPeriod], true);
     };
 
     this.notifyNewMail.addListener(

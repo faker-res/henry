@@ -1693,6 +1693,26 @@
     </div>
 </div>
 
+<h3> Get Partner Commission Info (查询代理佣金数据)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input name="searchPreviousPeriod" type="number">
+        </label>
+    </div>
+
+    <p></p>
+    <div>
+        <button id="getPartnerCommissionInfo" data-api-name="getPartnerCommissionInfo">Get</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

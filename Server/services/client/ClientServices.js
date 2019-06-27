@@ -475,6 +475,7 @@
                 "createDownLinePartner",
                 "setPartnerCommissionRate",
                 "getDownLinePartnerInfo",
+                "getPartnerCommissionInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
