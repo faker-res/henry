@@ -337,6 +337,17 @@
         this.partnerService.setPartnerCommissionRate.once(callback);
     };
 
+    proto.getPartnerCommissionRate = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.getPartnerCommissionRate.request(data);
+        this.partnerService.getPartnerCommissionRate.once(callback);
+    };
+
     proto.notifyNewMail = function (callback, requestData) {
         //var data = requestData || {};
         //this.partnerService.notifyNewMail.request(data);

@@ -687,6 +687,101 @@ const dbPartnerCommissionConfig = {
         return dbconfig.collection_partnerMainCommRateConfig.find(query);
     },
 
+    getPartnerCommissionRate: async function (currentPartnerObjId, currentPartnerId, targetPartnerId, platformId, commissionClass) {
+        const constCommissionClass = [1,2];
+        commissionClass = Number(commissionClass);
+        if (!constCommissionClass.includes(commissionClass)) {
+            return Promise.reject({name: "DataError", message: "Invalid commission class"});
+        }
+
+        let chosenPartnerObj;
+        if (String(currentPartnerId) != String(targetPartnerId)) {
+            let platformObj = await dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+            chosenPartnerObj = await checkIsPartnerChildren(currentPartnerObjId, targetPartnerId, null, platformObj._id);
+        } else {
+            chosenPartnerObj = await dbconfig.collection_partner.findOne({_id: currentPartnerObjId}, {parent: 1, commissionType: 1, platform: 1}).lean();
+            if (!chosenPartnerObj) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner"});
+            }
+        }
+
+        let commissionType = 0; //default, check commission type
+        let partnerCommConfig = [];
+        let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: chosenPartnerObj.platform} , {_id: 1, name: 1, providerGroupId: 1}).lean();
+        providerGroups = providerGroups || [];
+        providerGroups.push({
+            _id: null,
+            name: "default",
+            providerGroupId: null
+        })
+
+        if (chosenPartnerObj.commissionType) {
+            // commission const different with API
+            if (chosenPartnerObj.commissionType == 7) {
+                commissionType = 1;
+            } else if (chosenPartnerObj.commissionType == 2) {
+                commissionType = 2;
+            }
+        }
+
+        if (commissionClass == 1) {
+            let commissionQuery = {
+                partner: {$in: [chosenPartnerObj._id, null]},
+                platform: chosenPartnerObj.platform,
+                commissionType: chosenPartnerObj.commissionType,
+                provider: {
+                    $in: providerGroups.map(provider => provider._id)
+                }
+            }
+            // let partnerConfig = [];
+            let platformConfig = [];
+            let commissionConfig = await dbconfig.collection_partnerCommissionConfig.find(commissionQuery).lean();
+            if (commissionConfig && commissionConfig.length) {
+                commissionConfig.map(config => {
+                    if (config.partner) {
+                        partnerCommConfig.push(config);
+                    } else {
+                        platformConfig.push(config);
+                    }
+                })
+                if (platformConfig.length && partnerCommConfig.length != providerGroups.length) {
+                    let partnerNoCustomizeConfig = [];
+                    platformConfig.map(
+                        platformRate => {
+                            let isIncluded = false;
+                            for (let i = 0; i < partnerCommConfig.length; i++) {
+                                if (String(partnerCommConfig[i].provider) == String(platformRate.provider)) {
+                                    isIncluded = true;
+                                    break;
+                                }
+                            }
+                            if (!isIncluded) {
+                                partnerNoCustomizeConfig.push(platformRate);
+                            }
+                        }
+                    )
+                    partnerCommConfig = partnerCommConfig.concat(partnerNoCustomizeConfig);
+                }
+            }
+        } else {
+            partnerCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(chosenPartnerObj._id, chosenPartnerObj.commissionType, true, true);
+        }
+
+        partnerCommConfig = partnerCommConfig.map(config => {
+            let matchedProvider = providerGroups.find(provider => String(provider._id) == String(config.provider));
+            let changedObj = {
+                providerGroupId: matchedProvider && matchedProvider.providerGroupId,
+                providerGroupName: matchedProvider && matchedProvider.name,
+                commissionType: commissionType,
+                list: config.commissionSetting || []
+            }
+            return changedObj;
+        })
+
+        return partnerCommConfig;
+
+    },
+
     setDLPartnerCommissionRateAPI: async (currentPartnerId, targetPartnerId, commissionRate) => {
         let output = [];
         let editor = await dbconfig.collection_partner.findOne({partnerId: currentPartnerId}).lean();
@@ -909,6 +1004,39 @@ const dbPartnerCommissionConfig = {
         return output;
     },
 };
+
+function checkIsPartnerChildren (parentObjId, childPartnerId, childObjId, platformObjId, childrenObj) {
+    let query = {
+        platform: platformObjId
+    }
+
+    if (childObjId) {
+        query._id = childObjId;
+    } else if (childPartnerId) {
+        query.partnerId = childPartnerId;
+    } else {
+        return Promise.reject({name: "DataError", message: "Invalid data"});
+    }
+
+    return dbconfig.collection_partner.findOne(query, {parent: 1, commissionType: 1, platform: 1}).lean().then(
+        partner => {
+            if (!partner) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner"});
+            }
+            if (!childrenObj) {
+                childrenObj = partner;
+            }
+            if (String(partner._id) == String(parentObjId)) {
+                return childrenObj;
+            }
+            if (partner.parent) {
+                return checkIsPartnerChildren(parentObjId, null, partner.parent, platformObjId, childrenObj)
+            } else {
+                return Promise.reject({name: "DataError", message: "Partner down line does not exists"});
+            }
+        }
+    )
+}
 
 function clearParent (partnerObjId, platformObjId) {
     return dbconfig.collection_partner.findOneAndUpdate({_id: partnerObjId, platform: platformObjId}, {$unset: {parent: ""}}, {new:true}).lean();

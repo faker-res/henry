@@ -547,6 +547,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.setDLPartnerCommissionRateAPI, [conn.partnerId, data.partnerId, data.commissionRate], isValidData);
     };
 
+    this.getPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.partnerId && data.platformId && data.commissionClass);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.getPartnerCommissionRate, [conn.partnerObjId, conn.partnerId, data.partnerId, data.platformId, data.commissionClass], isValidData);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;
