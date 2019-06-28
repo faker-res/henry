@@ -3433,11 +3433,11 @@ define(['js/app'], function (myApp) {
                             message: vm.sendMultiMessage.messageContent
                         };
                         if (vm.filterPlayerPromoCodeForbidden){
-                            if (data && data.permission && data.permission.allowPromoCode){
-                                query.playerId = data.playerId;
+                            if (data && data.permission && data.permission.hasOwnProperty('allowPromoCode') && data.permission.allowPromoCode === false){
+                                query.playerId = [];
                             }
                             else{
-                                query.playerId = [];
+                                query.playerId = data.playerId;
                             }
                         }
                         else {
@@ -3449,7 +3449,10 @@ define(['js/app'], function (myApp) {
                     let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId, selectedPlayers) => {
                         if (selectedPlayers && selectedPlayers._id) {
                             if (vm.filterPlayerPromoCodeForbidden){
-                                if (selectedPlayers.permission && selectedPlayers.permission.allowPromoCode){
+                                if (selectedPlayers.permission && selectedPlayers.permission.hasOwnProperty('allowPromoCode') && selectedPlayers.permission.allowPromoCode === false){
+                                   // do nothing
+                                }
+                                else{
                                     tempPlayersId.push(selectedPlayers._id);
                                 }
                             }
