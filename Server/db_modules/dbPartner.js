@@ -10664,9 +10664,9 @@ let dbPartner = {
                     break;
             }
 
-            if (sortBy && sortBy.toString() === 'false') {
+            if (String(sortBy) === 'false') {
                 return b[sortField] - a[sortField];
-            } else if (sortBy && sortBy.toString() === 'true') {
+            } else if (String(sortBy) === 'true') {
                 return a[sortField] - b[sortField];
             }
         }
