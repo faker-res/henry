@@ -3725,6 +3725,12 @@ let dbPlayerReward = {
                 }
             )
         }
+        else{
+            return Promise.reject({
+                name: "DataError",
+                message: "Missing required param"
+            })
+        }
     },
 
     // check the availability of promoCodeType

@@ -27194,16 +27194,19 @@ define(['js/app'], function (myApp) {
                         platform: vm.filterCreatePromoCodePlatform,
                         promoCodeType: promoCodeType._id
                     };
-                    return await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).then(ret => {
-                        if (ret && ret.data){
-                            promoCodeObj.isInForbidList = true;
-                        }
-                        else{
-                            promoCodeObj.isInForbidList = false;
-                        }
 
-                        return promoCodeObj;
-                    })
+                    let ret = await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).catch(
+                        err => {
+                            return Promise.reject(err)
+                        }
+                    );
+
+                    promoCodeObj.isInForbidList = false;
+                    if (ret && ret.data){
+                        promoCodeObj.isInForbidList = true;
+                    }
+                    $scope.$evalAsync();
+                    return promoCodeObj;
                 }
             };
 
