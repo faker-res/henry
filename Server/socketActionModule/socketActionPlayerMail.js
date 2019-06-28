@@ -28,7 +28,7 @@ function socketActionPlayerMail (socketIO, socket) {
             var actionName = arguments.callee.name;
             var adminObjId = self.socket.decoded_token._id;
             var isValidData = Boolean(data && data.platformId && data.adminName && (data.title || data.content));
-            socketUtil.emitter(self.socket, dbPlayerMail.sendPlayerMailFromAdminToAllPlayers, [data.platformId, adminObjId, data.adminName, data.title, data.content], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerMail.sendPlayerMailFromAdminToAllPlayers, [data.platformId, adminObjId, data.adminName, data.title, data.content, data.filterPlayerPromoCodeForbidden], actionName, isValidData);
         },
         /**
          * Send a message to a player from the given player

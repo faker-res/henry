@@ -6709,7 +6709,7 @@ define(['js/app'], function (myApp) {
                             //adminId: authService.adminId,
                             adminName: authService.adminName,
                             platformId: vm.selectedPlatform.id,
-                            partnerId: vm.selectedSinglePartner.data._id,
+                            partnerId: vm.selectedSinglePartner._id || vm.selectedSinglePartner.data && vm.selectedSinglePartner.data._id,
                             title: vm.messageForPartner.title,
                             content: vm.messageForPartner.content
                         };

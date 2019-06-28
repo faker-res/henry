@@ -252,6 +252,7 @@ var roleChecker = {
                 ForbidRewards: [],
                 ForbidProviders: [],
                 ForbidRewardPointsEvent: [],
+                ForbidPromoCode: [],
             },
             "TopUp": {
                 ApplyManualTopup: ['applyManualTopUpRequest', 'cancelManualTopupRequest'],

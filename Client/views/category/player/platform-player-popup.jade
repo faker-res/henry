@@ -1740,23 +1740,24 @@
                 .panel.panel-primary
                     .panel-head
                         .panel-title
-                            .col-md-2 {{"date" | translate}}
-                            .col-md-5 {{"CONTENT" | translate}}
-                            .col-md-2 {{"ADMIN" | translate}}
-                            .col-md-3 {{"remark" | translate}}
+                            .col-xs-3 {{"date" | translate}}
+                            .col-xs-2 {{"CONTENT" | translate}}
+                            .col-xs-2 {{"STATUS" | translate}}
+                            .col-xs-2 {{"ADMIN" | translate}}
+                            .col-xs-3 {{"remark" | translate}}
                     .panel-body(style='max-height:400px;overflow-y:auto')
                         .row(ng-repeat='(i,v) in vm.playerPermissionHistory', class='{{i%2==0 ? "bg-grey":""}}')
-                            .col-md-2 {{vm.dateReformat(v.createTime)}}
-                            .col-md-5
-                                ul.list-unstyled(ng-repeat='(k,l) in v.oldData', style='margin-bottom:0;')
-                                    li
-                                        label {{k | translate}}
-                                        .pull-right
-                                            text(class='{{l ? "text-primary" : "text-danger"}}') {{l}}
-                                            text &nbsp;-->&nbsp;
-                                            text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k]}}
-                            .col-md-2.text-center {{v.admin.adminName || ' '}}
-                            .col-md-3.text-center {{v.remark}}
+                            .col-xs-3 {{vm.dateReformat(v.createTime)}}
+                            .col-xs-4
+                                div(ng-repeat='(k,l) in v.oldData')
+                                    label(style="width:90px; margin-left: -1em;") {{k | translate}}
+                                    text(style="margin-left:2em;", class='{{l ? "text-primary" : "text-danger"}}') {{l === true ? 'Open' : 'Closed' | translate}}
+                                    text &nbsp;-->&nbsp;
+                                    text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k] === true ? 'Open' : 'Closed'| translate}}
+                                    br
+
+                            .col-xs-2 {{v.admin.adminName || ' '}}
+                            .col-xs-3 {{v.remark}}
 
 #modalRewardPointsLogDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

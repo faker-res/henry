@@ -4768,7 +4768,7 @@ define(['js/app'], function (myApp) {
                     playerCurrentCommonTopUpCount: rowData.$playerCurrentCommonTopUpCount,
                     playerCommonTopUpTotalCount: rowData.$playerAllCommonTopUpCount,
                     playerGapTime: rowData.$playerGapTime,
-                    amount: rowData.amount$,
+                    //amount: rowData.amount$,
                     proposalCreateTime: rowData.createTime,
                     createTime: new Date(),
                     lockedAdminId: rowData.data.lockedAdminId || authService.adminId,
@@ -4781,6 +4781,10 @@ define(['js/app'], function (myApp) {
                     wechatAccount: rowData.data.wechatAccount,
                     weChatAccount: rowData.data.weChatAccount
                 };
+
+                if (rowData && rowData.amount$ && rowData.amount$ !== "NaN") {
+                    followUpData.amount = rowData.amount$;
+                }
 
             }
 
