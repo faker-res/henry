@@ -269,7 +269,7 @@ let dbPlatformAutoFeedback = {
                 return Promise.all([departmentProm]).then(() => {
                     let registerStartTime = feedback.registerStartTime;
                     let registerEndTime = feedback.registerEndTime;
-                    let playerQuery = {platform: platformObjId, 'permission.allowPromoCode': true};
+                    let playerQuery = {platform: platformObjId};
 
                     let addMultipleOr = function (orArr) {
                         if(!orArr || !orArr.length) {
@@ -281,6 +281,9 @@ let dbPlatformAutoFeedback = {
                             playerQuery.$and = [{$or: orArr}];
                         }
                     };
+
+                    let basicCondition = [{"permission.allowPromoCode": true}, {"permission.allowPromoCode": {$exists: false}}];
+                    addMultipleOr(basicCondition);
 
                     if (feedback.playerType && feedback.playerType != null) {
                         switch (feedback.playerType) {
