@@ -550,6 +550,9 @@ let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', p
 let playerForbidRewardLogSchema = require('./../schema/logs/playerForbidRewardLog');
 let playerForbidRewardLogModel = dbLogs.model('playerForbidRewardLog', playerForbidRewardLogSchema, 'playerForbidRewardLog');
 
+let playerForbidPromoCodeLogSchema = require('./../schema/logs2/playerForbidPromoCodeLog');
+let playerForbidPromoCodeLogModel = dbLogs2.model('playerForbidPromoCodeLog', playerForbidPromoCodeLogSchema, 'playerForbidPromoCodeLog');
+
 let playerForbidRewardPointsEventLogSchema = require('./../schema/logs/playerForbidRewardPointsEventLog');
 let playerForbidRewardPointsEventLogModel = dbLogs.model('playerForbidRewardPointsEventLog', playerForbidRewardPointsEventLogSchema, 'playerForbidRewardPointsEventLog');
 
@@ -831,6 +834,7 @@ var dbProperties = {
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
     collection_playerForbidRewardPointsEventLog: playerForbidRewardPointsEventLogModel,
     collection_playerForbidRewardLog: playerForbidRewardLogModel,
+    collection_playerForbidPromoCodeLog: playerForbidPromoCodeLogModel,
     collection_playerForbidGameLog: playerForbidGameLogModel,
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
     collection_playerOnlineTime: playerOnlineTimeModel,
