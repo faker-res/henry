@@ -37342,8 +37342,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.localRemarkUpdate = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : null;
+                let platformObjId = vm.batchSettingSelectedPlatform;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {
