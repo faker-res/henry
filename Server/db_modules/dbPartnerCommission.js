@@ -981,7 +981,7 @@ const dbPartnerCommission = {
 
         highestAmount = math.round(highestAmount, 2);
         lowestAmount = math.round(lowestAmount, 2);
-        let averageAmount = math.chain(totalAmount).divide(list.length).round(2).done();
+        let averageAmount = list.length ? math.chain(totalAmount).divide(list.length).round(2).done() || 0 : 0;
         totalAmount = math.round(totalAmount, 2);
 
         return {
