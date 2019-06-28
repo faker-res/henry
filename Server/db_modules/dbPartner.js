@@ -10031,27 +10031,29 @@ let dbPartner = {
             partnersObj.map(partner=> {
                 partner.partnerDownlinePlayerList = [];
 
-               if (partner.downlinePlayers && partner.downlinePlayers.length) {
-                   returnData.stats.downLinePartnerPlayerCount += partner.downlinePlayers.length;
-                   partner.downlinePlayers.map(player => {
-                       let playerTempObj = {
-                           crewAccount: player.name,
-                           crewRegisterTime: player.registrationTime,
-                           crewLastLoginTime: player.lastAccessTime
-                       }
-                       partner.partnerDownlinePlayerList.push(playerTempObj);
-                       returnData.stats.crewProfitTotal.downLinePartnerPlayer += player.bonusAmountSum;
-                   })
+                if (partner.downlinePlayers && partner.downlinePlayers.length) {
+                    returnData.stats.downLinePartnerPlayerCount += partner.downlinePlayers.length;
+                    partner.downlinePlayers.map(player => {
+                        let playerTempObj = {
+                            crewAccount: player.name,
+                            crewRegisterTime: player.registrationTime,
+                            crewLastLoginTime: player.lastAccessTime
+                        }
+                        partner.partnerDownlinePlayerList.push(playerTempObj);
+                        returnData.stats.crewProfitTotal.downLinePartnerPlayer += player.bonusAmountSum;
+                    })
 
-                   let downlinePartnerPlayerValidProm = dbPartner.getValidPlayers(partner.downlinePlayers).then(
-                       validPlayer => {
-                           if (validPlayer && validPlayer.size) {
-                               returnData.stats.downLinePartnerPlayerValid += validPlayer.size;
-                           }
-                       }
-                   );
-                   promArr.push(downlinePartnerPlayerValidProm);
-               }
+                    let downlinePartnerPlayerValidProm = dbPartner.getValidPlayers(partner.downlinePlayers).then(
+                        validPlayer => {
+                            if (validPlayer && validPlayer.size) {
+                                returnData.stats.downLinePartnerPlayerValid += validPlayer.size;
+                            }
+                        }
+                    );
+                    promArr.push(downlinePartnerPlayerValidProm);
+                }
+                if (partner.partnerName == 'jjdragon')
+                console.log('partner aaaaaaaaaaaaaaaaaaaaaaa', partner)
 
                 let partnerTempObj = {
                     partnerAccount: partner.partnerName,
@@ -10143,7 +10145,7 @@ let dbPartner = {
             // prevent potential infinite loop
             return chainArr;
         }
-        return dbconfig.collection_partner.find(query, {partnerName: 1, registrationTime: 1, lastAccessTime: 1, commissionType: 1}).lean().then(
+        return dbconfig.collection_partner.find(query, {partnerName: 1, registrationTime: 1, lastAccessTime: 1, commissionType: 1, partnerId: 1}).lean().then(
             partnersData => {
                 if (partnersData && partnersData.length) {
                     partnersData.map(
