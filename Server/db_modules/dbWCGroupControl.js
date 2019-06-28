@@ -416,6 +416,12 @@ var dbWCGroupControl = {
         let platformList = [];
         let csOfficerList = [];
         let adminQuery = {};
+        let size = 0;
+        let wcGroupSessionRecord = [];
+        let adminRecord = [];
+        let platformRecord = [];
+        let deviceRecord = [];
+        let result = [];
 
         if (platformIds && platformIds.length > 0) {
             platformIds.forEach(x => {
@@ -446,97 +452,112 @@ var dbWCGroupControl = {
 
         let adminProm = dbConfig.collection_admin.find(adminQuery, {adminName: 1}).lean();
         let platformProm = dbConfig.collection_platform.find({}, {name:1, platformId: 1}).lean();
+        let deviceProm = dbConfig.collection_wcDevice.find({platformObjId: {$in: platformList}}, {deviceId: 1}).lean().then(
+            deviceData => {
+                let list = [];
+                if (deviceData && deviceData.length > 0) {
+                    deviceData.forEach(device => {
+                        if (device && device.deviceId) {
+                            list.push(device.deviceId);
+                        }
+                    })
+                }
 
-        let countWCGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
-            {
-                $match: match
-            },
-            {
-                $group: {
-                    _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
-                    csOfficer: {$last: '$csOfficer'},
-                    connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
-                    status: {$last: '$status'},
-                    createTime: {$last: '$createTime'},
-                    lastUpdateTime: {$last: '$lastUpdateTime'}
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                        count: { $sum: 1 }
-                }
+                return list;
             }
-        ]).read("secondaryPreferred");
+        );
 
-        let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
-            {
-                $match: match
-            },
-            {
-                $sort : { _id : 1}
-            },
-            {
-                $group: {
-                    _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
-                    csOfficer: {$last: '$csOfficer'},
-                    connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
-                    status: {$last: '$status'},
-                    createTime: {$last: '$createTime'},
-                    lastUpdateTime: {$last: '$lastUpdateTime'}
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    csOfficer: 1,
-                    status: 1,
-                    connectionAbnormalClickTimes: 1,
-                    createTime: 1,
-                    lastUpdateTime: 1,
-                    duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
-                }
-            },
-            {   $sort: sortCol },
-            {   $skip: index },
-            {   $limit: limit },
-            {
-                $project: {
-                    _id: 0,
-                    platformObjId: "$_id.platformObjId",
-                    deviceNickName: "$_id.deviceNickName",
-                    deviceId: "$_id.deviceId",
-                    csOfficer: 1,
-                    status: 1,
-                    connectionAbnormalClickTimes: 1,
-                    createTime: 1,
-                    lastUpdateTime: 1,
-                    duration: 1
-                }
-            }
-        ]).read("secondaryPreferred");
-
-        return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
+        return Promise.all([adminProm, platformProm, deviceProm]).then(
             data => {
-                let size = 0;
-                let wcGroupSessionRecord = [];
-                let adminRecord = [];
-                let platformRecord = [];
-                let result = [];
+                adminRecord = data && data[0] ? data[0] : [];
+                platformRecord = data && data[1] ? data[1] : [];
+                deviceRecord = data && data[2] ? data[2] : [];
 
-                if (data) {
-                    size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
-                    wcGroupSessionRecord =  data[1] ? data[1] : [];
-                    adminRecord = data[2] ? data[2] : [];
-                    platformRecord = data[3] ? data[3] : [];
+                match.deviceId = {$in: deviceRecord};
 
-                    result = rearrangeWCGroupControlSessionPlatformAndAdminInfo(wcGroupSessionRecord, adminRecord, platformRecord);
+                let countWCGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
+                    {
+                        $match: match
+                    },
+                    {
+                        $group: {
+                            _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
+                            csOfficer: {$last: '$csOfficer'},
+                            connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
+                            status: {$last: '$status'},
+                            createTime: {$last: '$createTime'},
+                            lastUpdateTime: {$last: '$lastUpdateTime'}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            count: { $sum: 1 }
+                        }
+                    }
+                ]).read("secondaryPreferred");
 
-                }
+                let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
+                    {
+                        $match: match
+                    },
+                    {
+                        $sort : { _id : 1}
+                    },
+                    {
+                        $group: {
+                            _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
+                            csOfficer: {$last: '$csOfficer'},
+                            connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
+                            status: {$last: '$status'},
+                            createTime: {$last: '$createTime'},
+                            lastUpdateTime: {$last: '$lastUpdateTime'}
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            csOfficer: 1,
+                            status: 1,
+                            connectionAbnormalClickTimes: 1,
+                            createTime: 1,
+                            lastUpdateTime: 1,
+                            duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
+                        }
+                    },
+                    {   $sort: sortCol },
+                    {   $skip: index },
+                    {   $limit: limit },
+                    {
+                        $project: {
+                            _id: 0,
+                            platformObjId: "$_id.platformObjId",
+                            deviceNickName: "$_id.deviceNickName",
+                            deviceId: "$_id.deviceId",
+                            csOfficer: 1,
+                            status: 1,
+                            connectionAbnormalClickTimes: 1,
+                            createTime: 1,
+                            lastUpdateTime: 1,
+                            duration: 1
+                        }
+                    }
+                ]).read("secondaryPreferred");
 
-                return {data: result, size: size};
-            });
+                return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm]).then(
+                    data => {
+                        if (data) {
+                            size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                            wcGroupSessionRecord =  data[1] ? data[1] : [];
 
+                            result = rearrangeWCGroupControlSessionPlatformAndAdminInfo(wcGroupSessionRecord, adminRecord, platformRecord);
+
+                        }
+
+                        return {data: result, size: size};
+                    });
+            }
+        )
     },
 
     getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit, sortCol) => {
