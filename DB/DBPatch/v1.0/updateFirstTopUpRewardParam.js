@@ -1499,6 +1499,11 @@ db.rewardParam.update({
                     des: "Random Reward Mode",
                     detail: "Possibility - based on possibility; Top Up Condition - based on player total top up / top up count from yesterday",
                     options: "randomRewardMode",
+                },
+                isNotEntitledWhenForbidPromoCode: {
+                    index: 50,
+                    type: "checkbox",
+                    des: "Is not entitled when promo code is forbidden",
                 }
 
             }

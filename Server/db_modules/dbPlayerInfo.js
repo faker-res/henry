@@ -597,7 +597,7 @@ let dbPlayerInfo = {
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
     createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
-        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp] : 'undefined');
+        console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
         let platformObjId = null;
@@ -1038,6 +1038,7 @@ let dbPlayerInfo = {
             return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
                 data => {
                     if (data) {
+                        console.log("checking partner Data if there is matching ownDomain", data._id)
                         inputData.partner = data._id;
                         if (data.partnerId) {
                             inputData.partnerId = data.partnerId;
@@ -1121,6 +1122,7 @@ let dbPlayerInfo = {
             }).sort({createTime: -1}).lean().then(
                 ipDomainLog => {
                     if (ipDomainLog) {
+                        console.log("checking ipDomainLog when binding with partner", ipDomainLog)
                         if (ipDomainLog.partnerId) {
                             return dbconfig.collection_partner.findOne({partnerId: ipDomainLog.partnerId}, {
                                 _id: 1,
@@ -1445,6 +1447,13 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getPlayerPermissionByName: function (playerName, platformObjId){
+      if (playerName && platformObjId)  {
+          return dbconfig.collection_players.findOne({name: playerName, platform: ObjectId(platformObjId)}, {permission: 1}).lean();
+      }
+      return;
     },
 
     getPlayerDataWithOutPlatformPrefix: function (playerObj) {
@@ -2031,7 +2040,7 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.domain) {
-                        console.log("checking domain name when register from DX", [playerData.name, playerData.domain])
+                        console.log("checking domain name when register from DX", [playerData.name, playerData.domain, playerData.partner])
                         delete playerData.referral;
                         let filteredDomain = dbUtility.filterDomainName(playerData.domain);
                         // while (filteredDomain.indexOf("/") !== -1) {
@@ -2086,7 +2095,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log("checking if there is a binding promote way when register from DX", [promoteWay, csOfficer])
+                console.log("checking if there is a binding promote way when register from DX", [promoteWay, csOfficer, playerData.partner])
                 // Add source url from ip
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
@@ -6391,23 +6400,26 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.findOne(
+                                    return dbconfig.collection_players.find(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
                                                 {phoneNumber: loginData.phoneNumber},
-                                                {phoneNumber: enOldPhoneNumber}
+                                                {phoneNumber: enOldPhoneNumber},
+                                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
-                                            platform: platformData._id
+                                            platform: platformData._id,
+                                            'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
-                                    ).lean();
+                                    ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
                             }
                         ).then(
                             player => {
+                                if (player && player.length) {
+                                    let thisPlayer = player[0];
 
-                                if (player) {
-                                    if (checkLastDeviceId && player.deviceId && loginData.deviceId && player.deviceId != loginData.deviceId) {
+                                    if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
@@ -7104,16 +7116,18 @@ let dbPlayerInfo = {
                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                    return dbconfig.collection_players.findOne(
+                    return dbconfig.collection_players.find(
                         {
                             $or: [
                                 {phoneNumber: encryptedPhoneNumber},
                                 {phoneNumber: loginData.phoneNumber},
-                                {phoneNumber: enOldPhoneNumber}
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                             ],
-                            platform: platformData._id
+                            platform: platformData._id,
+                            'permission.forbidPlayerFromLogin': {$ne: true}
                         }
-                    ).lean();
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
@@ -7124,8 +7138,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (data) {
-                    playerObj = data;
+                if (data && data.length) {
+                    playerObj = data[0];
 
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
@@ -18115,7 +18129,7 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
-        if (diffInDays < 1) {
+        if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
         } else {
@@ -22336,6 +22350,12 @@ let dbPlayerInfo = {
                         // check the game credit from the same platform
                     }
                     totalGameCreditAmount = calculateGameCredit(amountGameProviderList, gameCreditList);
+                    // if the status = 3 , means this provider is closed, we dont show to frontend
+                    if (returnData.gameCreditList && returnData.gameCreditList.length > 0) {
+                        returnData.gameCreditList = returnData.gameCreditList.filter( item => {
+                            return item.status != constProviderStatus.HALT;
+                        })
+                    }
                     return dbconfig.collection_rewardTaskGroup.find({
                         platformId: playerDetails.platformObjId,
                         playerId: playerObjId,
@@ -22355,7 +22375,7 @@ let dbPlayerInfo = {
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
                             rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
                                 gameData.forEach(gameItem => {
-                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString() &&  gameItem.status != constProviderStatus.HALT) {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
@@ -22397,7 +22417,7 @@ let dbPlayerInfo = {
                         let dataList = [];
                         allGroupData[l].providers.forEach(allGroup => {
                             gameData.forEach(gameItem => {
-                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString() && gameItem.status != constProviderStatus.HALT) {
                                     dataList.push({
                                         providerId: gameItem.providerId,
                                         nickName: gameItem.nickName,

@@ -23,6 +23,7 @@ var simplifiedChinese = {
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",
     "Authentification Failed": "身份验证失败",
     "Authentification Passed": "身份验证通过",
+    "The requirement is not fulfilled, please contact CS.": "不符合优惠要求，请联系客服人员",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "SUBMIT": "提交",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
