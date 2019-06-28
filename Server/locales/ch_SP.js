@@ -57,6 +57,8 @@ var simplifiedChinese = {
     "This game has been added before": "该游戏已经收藏",
     "defaultRewardEventGroup*": "默认组别*",
     "endedRewardEventGroup*": "已结束优惠组*",
+    "Invalid commission class": "无效佣金分类",
+    "Partner down line does not exists": "代理下线不存在",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",

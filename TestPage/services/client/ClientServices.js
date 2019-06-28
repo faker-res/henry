@@ -474,6 +474,7 @@
                 "getDownLinePlayerInfo",
                 "createDownLinePartner",
                 "setPartnerCommissionRate",
+                "getPartnerCommissionRate",
                 "getDownLinePartnerInfo",
                 "getPartnerCommissionInfo",
                 "notifyNewMail",
