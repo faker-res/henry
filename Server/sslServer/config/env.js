@@ -79,11 +79,15 @@ var env = {
         function isTheOtherConfig (o) {
             if (
                 envConf[o].mode === selfMode
-                && envConf[o].redisUrl === selfUrl
-                && envConf[o].redisPort !== selfPort
                 && envConf[o].isGateway !== true
             ) {
-                return true;
+                if (envConf[o].redisUrl === selfUrl && envConf[o].redisPort !== selfPort) {
+                    return true;
+                }
+
+                if (envConf[o].redisPort === selfPort && envConf[o].redisUrl !== selfUrl) {
+                    return true;
+                }
             }
         }
     },

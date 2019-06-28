@@ -886,6 +886,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data, data.platform], actionName, isValidData);
         },
 
+        getPlayerPermissionByName: function getPlayerPermissionByName (data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.playerName);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPermissionByName, [data.playerName, data.platformObjId], actionName, isValidData);
+        },
+
         getPushNotification: function getPushNotification(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId);
@@ -1390,8 +1396,8 @@ function socketActionPlayer(socketIO, socket) {
 
         checkDuplicatedBankAccount: function checkDuplicatedBankAccount(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.bankAccount && data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.checkDuplicatedBankAccount, [data.bankAccount, data.platform], actionName, isValidData);
+            let isValidData = Boolean(data && data.bankAccount && data.platform && data.playerObjId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.checkDuplicatedBankAccount, [data.bankAccount, data.platform, data.playerObjId], actionName, isValidData);
         },
 
         getPlayerCreditByName: function getPlayerCreditByName(data) {

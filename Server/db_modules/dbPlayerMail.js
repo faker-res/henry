@@ -109,8 +109,15 @@ const dbPlayerMail = {
         });
     },
 
-    sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
-        let stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+    sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content, filterPlayerPromoCodeForbidden) {
+        let stream;
+        if (filterPlayerPromoCodeForbidden){
+            stream = dbconfig.collection_players.find({platform: ObjectId(platformId), $or: [{"permission.allowPromoCode": true},{"permission.allowPromoCode": {$exists: false}}]}).cursor({batchSize: 10000});
+        }
+        else{
+            stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+        }
+
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             return balancer.processStream(
@@ -792,7 +799,7 @@ const dbPlayerMail = {
                         || purpose === constSMSPurpose.PARTNER_REGISTRATION
                         || purpose === constSMSPurpose.NEW_PHONE_NUMBER
                         || purpose === constSMSPurpose.SET_PHONE_NUMBER
-                        || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
+                        // || purpose === constSMSPurpose.FIRST_APP_APPLY_REWARD
                     ) {
                         if (!(platform[whiteListPhone]
                                 && platform[whiteListPhone].length > 0

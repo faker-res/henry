@@ -25,6 +25,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
             .panel-body.common-right-panel-body
                 div(ng-show="vm.teleMarketingTaskTab == 'TELEMARKETING_TASK_OVERVIEW'")
                     #teleMarketingOverview.tab-pane.fade.in.active
+                        .search-filters-item
+                            label {{'PRODUCT_NAME' | translate}}
+                            select.form-control(ng-model='vm.teleMarketingOverview.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData')
                         .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTaskName')")
                             label {{'TASK_NAME' | translate}}
                             input.form-control(type='text', ng-model='vm.teleMarketingOverview.taskName')
@@ -236,6 +239,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     .col-md-12
                         form(name='form_create_telemarketing_task', novalidate)
                             div
+                                .full-width-input-block
+                                    label {{"PRODUCT_NAME" | translate}}: (*)
+                                    select.form-control(type='text', ng-model='vm.createTeleMarketing.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData' required)
                                 .full-width-input-block
                                     label {{"Please Enter Task Name" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.name', required)

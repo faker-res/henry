@@ -2699,15 +2699,9 @@ var dbRewardEvent = {
                 } else {
                     festivalDate = dbRewardEvent.getFestivalRewardDate(item, eventData.param.others);
                 }
-
-                let isRightApplyTime = checkIfRightApplyTime(item, festivalDate);
                 // show festival by correct time && show birthday at whatever time)
-                if (isRightApplyTime || ( item.rewardType == 4 || item.rewardType == 5 || item.rewardType == 6 ) ) {
-                    // check is today is in between the apply period
-                    let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
-                    proms.push(prom)
-                }
-
+                let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
+                proms.push(prom)
             })
         }
         return Promise.all(proms).then(
@@ -2723,9 +2717,7 @@ var dbRewardEvent = {
                         return item.rewardType && ( item.rewardType == 1 || item.rewardType == 2 || item.rewardType == 3 )
                     })
                 }
-
                 console.log('MT --checking festival match time period', data);
-
                 return data;
             }
         )
@@ -2758,14 +2750,14 @@ var dbRewardEvent = {
                     let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others, DOB);
                     if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
                         console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
-                        resolve({status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType})
+                        resolve({status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 })
                     } else {
                         console.log('***MT --checking cannot apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
-                        resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType});
+                        resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 });
                     }
                 } else {
                     console.log('***MT --checking festival proposal not found');
-                    resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType});
+                    resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 });
                 }
             })
         })
@@ -2845,11 +2837,11 @@ var dbRewardEvent = {
 
     getAllPromoCode: function () {
         // getting general promoCode
-        let promoCodeProm = dbconfig.collection_promoCodeType.find({$or: [{deleteFlag: false}, {deleteFlag: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        let promoCodeProm = dbconfig.collection_promoCodeType.find({platformObjId: {$ne: null}, $or: [{deleteFlag: false}, {deleteFlag: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
         // getting openPromoCode
-        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        let openPromoCodeProm = dbconfig.collection_openPromoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
         //getting autoPromoCode
-        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({$or: [{isDeleted: false}, {isDeleted: {exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
+        let autoPromoCodeProm = dbconfig.collection_promoCodeTemplate.find({platformObjId: {$ne: null}, $or: [{isDeleted: false}, {isDeleted: {$exists: false}}]}, {name: 1, platformObjId: 1}).sort({type: 1}).lean();
 
         let list = [];
         return Promise.all([promoCodeProm, openPromoCodeProm, autoPromoCodeProm]).then(
@@ -2879,10 +2871,10 @@ var dbRewardEvent = {
                     retData.forEach(
                         dataList => {
                             if (dataList && dataList.length){
-                               list.push({
-                                   category: dataList[0].category,
-                                   data: dataList
-                               })
+                                list.push({
+                                    category: dataList[0].category,
+                                    data: dataList
+                                })
                             }
 
                         }
@@ -2893,6 +2885,7 @@ var dbRewardEvent = {
             }
         )
     },
+
     /**
      * Find reward events by query
      * @param {String} query
