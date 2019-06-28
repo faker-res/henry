@@ -10055,12 +10055,13 @@ let dbPartner = {
 
                 let partnerTempObj = {
                     partnerAccount: partner.partnerName,
+                    partnerId: partner.partnerId,
                     partnerRegisterTime: partner.registrationTime,
                     partnerLastLoginTime: partner.lastAccessTime,
                     commissionType: partner.commissionType,
                     partnerLevel: partner.partnerLevel,
                     partnerDownlinePlayerList: partner.partnerDownlinePlayerList,
-                }
+                };
                 returnData.partnerDetail.push(partnerTempObj);
 
             });
