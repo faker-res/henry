@@ -630,6 +630,9 @@ let dbPlatformAutoFeedback = {
                                                         }).then(template => {
                                                             console.log("autoFeedback template",template);
                                                             if(template) {
+                                                                if (player && player.forbidPromoCodeList && player.forbidPromoCodeList.length && player.forbidPromoCodeList.map( p => {return p.toString()}).includes(template._id.toString())){
+                                                                    return null;
+                                                                }
                                                                 newPromoCodeEntry = JSON.parse(JSON.stringify(template));
                                                                 delete newPromoCodeEntry._id;
                                                                 delete newPromoCodeEntry.createTime;
