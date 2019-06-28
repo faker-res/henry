@@ -3713,6 +3713,26 @@ let dbPlayerReward = {
 
     },
 
+    checkPlayerForbidPromoCodeList: (platformObjId, playerName, promoCodeTypeObjId) => {
+        if (platformObjId && playerName && promoCodeTypeObjId)  {
+            return dbConfig.collection_players.findOne({platform: ObjectId(platformObjId), name: playerName, forbidPromoCodeList: {$all: promoCodeTypeObjId}}, {_id: 1}).then(
+                player => {
+                    if (!player){
+                        return false
+                    }
+
+                    return true
+                }
+            )
+        }
+        else{
+            return Promise.reject({
+                name: "DataError",
+                message: "Missing required param"
+            })
+        }
+    },
+
     // check the availability of promoCodeType
     checkPromoCodeTypeAvailability: (platformObjId, promoCodeTypeObjId) => {
         return expirePromoCode().then(() => {

@@ -100,6 +100,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.checkPromoCodeTypeAvailability, [data.platformObjId, data.promoCodeTypeObjId], actionName, isValidData);
         },
 
+        checkPlayerForbidPromoCodeList: function checkPlayerForbidPromoCodeList(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.name && data.promoCodeType);
+            socketUtil.emitter(self.socket, dbPlayerReward.checkPlayerForbidPromoCodeList, [data.platform, data.name, data.promoCodeType], actionName, isValidData);
+        },
+
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry && data.newPromoCodeEntry.promoCodeType);
