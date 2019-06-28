@@ -11353,7 +11353,7 @@ let dbPlayerInfo = {
 
         let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
             + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
-            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform';
 
         let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -18870,6 +18870,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -19292,6 +19297,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }

@@ -4893,6 +4893,10 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit analysis report /////////////////////////////
         vm.searchPlayerDepositAnalysisReport = function (newSearch) {
+
+            if (!vm.depositAnalysisQuery || !vm.depositAnalysisQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositAnalysisReportTableSpin').show();
             let sendQuery = {
@@ -4926,6 +4930,7 @@ define(['js/app'], function (myApp) {
 
                     let drawData = data.data.data.map(item => {
                         let breakLine = ", ";
+                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -5160,6 +5165,9 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit tracking report /////////////////////////////
         vm.searchPlayerDepositTrackingReport = function (newSearch) {
+            if (!vm.depositTrackingQuery || !vm.depositTrackingQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositTrackingReportTableSpin').show();
             let sendQuery = {
@@ -5185,6 +5193,7 @@ define(['js/app'], function (myApp) {
 
                     let drawData = data.data.data.map(item => {
                         let breakLine = ", ";
+                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -5404,6 +5413,9 @@ define(['js/app'], function (myApp) {
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
+            if (!vm.dxNewPlayerQuery || !vm.dxNewPlayerQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#dxNewPlayerReportTableSpin').show();
 
@@ -5464,6 +5476,7 @@ define(['js/app'], function (myApp) {
                 // get game data.then(
                 // map
                 vm.drawDXNewPlayerReport(data.data.data.map(item => {
+                    item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                     item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -5573,33 +5586,34 @@ define(['js/app'], function (myApp) {
         vm.drawDXNewPlayerReport = function (data, size, newSearch, isExport) {
             var tableOptions = {
                 data: data,
-                "order": vm.dxNewPlayerQuery.aaSorting || [[2, 'desc']],
+                "order": vm.dxNewPlayerQuery.aaSorting || [[3, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'playerLevel', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
@@ -7117,6 +7131,9 @@ define(['js/app'], function (myApp) {
 
         // start new account report
         vm.searchNewPlayerRecord = function () {
+            if (!vm.newPlayerQuery || !vm.newPlayerQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             let platformObjId = vm.newPlayerQuery.platformId;
             vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
@@ -7130,6 +7147,10 @@ define(['js/app'], function (myApp) {
 
                 vm.newPlayerQuery.newPlayers = retData[0];
                 vm.newPlayerQuery.domain = retData[1];
+
+                vm.newPlayerQuery.newPlayers.forEach(item => {
+                    item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
+                });
 
                 return Promise.all([vm.getAllPromoteWay(platformObjId), vm.getPartnerLevelConfig(platformObjId),
                     vm.getAllAdmin(), vm.getPlatformPartner(platformObjId), vm.getPlatformCsOfficeUrl(platformObjId)]).then(
@@ -7217,6 +7238,9 @@ define(['js/app'], function (myApp) {
                 playerWithTopup: newPlayerData.filter(player => player.topUpTimes > 0).length,
                 playerWithMultiTopup: newPlayerData.filter(player => player.topUpTimes > 1).length,
                 validPlayer: validPlayer
+            };
+            if(newPlayerData && newPlayerData.length > 0 && newPlayerData[0].platform$){
+                returnObj.platform$ = newPlayerData[0].platform$;
             }
             if (ratioBasedOn != 'validPlayer')
                 returnObj.ratio = parseFloat((returnObj[ratioBasedOn] !== 0 ? returnObj[ratioBasedOn] / ratioCalculateBy * 100 : 0).toFixed(2))
