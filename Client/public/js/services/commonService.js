@@ -148,6 +148,10 @@ define([], () => {
             )
         };
 
+        self.getAllPromoCode = ($scope) => {
+            return $scope.$socketPromise('getAllPromoCode').then(data => data.data)
+        };
+
         self.getRewardEventsByPlatform = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId}).then(data => data.data)
         };
@@ -1251,7 +1255,7 @@ define([], () => {
 
                 proposalDetail["REQUIRED_PROMO_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN")
                     + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo || 0) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
                     vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
@@ -1281,7 +1285,7 @@ define([], () => {
 
                 proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN")
                     + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit || 0) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
                     vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
@@ -1290,7 +1294,7 @@ define([], () => {
 
                 proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN")
                     + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal || 0) + "%)";
 
                 if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
                     vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;

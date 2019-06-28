@@ -160,9 +160,9 @@ const dbPartnerCommission = {
                 totalWithdrawalFee: 0,
                 totalRewardFee: 0,
                 totalPlatformFee: 0,
-                rewardFeeRate: commRateMulti.rateAfterRebatePromo,
-                topUpFeeRate: commRateMulti.rateAfterRebateTotalDeposit,
-                withdrawalFeeRate: commRateMulti.rateAfterRebateTotalWithdrawal,
+                rewardFeeRate: bonusBased ? commRateMulti.rateAfterRebatePromo : 0,
+                topUpFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalDeposit : 0,
+                withdrawalFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalWithdrawal : 0,
             };
         }
 
@@ -260,8 +260,8 @@ const dbPartnerCommission = {
             }
             // ====================================================================
 
-            let platformFeeRateDirect = math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0;
-            let platformFeeRateMulti = math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0;
+            let platformFeeRateDirect = bonusBased ? math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateMulti = bonusBased ? math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0 : 0;
 
             let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
@@ -398,18 +398,18 @@ const dbPartnerCommission = {
             partnerCredit: partner.credits,
             downLinesRawCommissionDetail: playerRawDetail,
             activeDownLines: activeDownLines,
-            partnerCommissionRateConfig: commRate,
+            partnerCommissionRateConfig: bonusBased ? commRate : {},
             rawCommissions: rawCommissions,
             totalReward: totalReward,
             totalRewardFee: totalRewardFee,
-            rewardFeeRate: commRate.rateAfterRebatePromo / 100,
+            rewardFeeRate: bonusBased ? commRate.rateAfterRebatePromo / 100 : 0,
             totalPlatformFee: totalPlatformFee,
             totalTopUp: totalTopUp,
             totalTopUpFee: totalTopUpFee,
-            topUpFeeRate: commRate.rateAfterRebateTotalDeposit / 100,
+            topUpFeeRate: bonusBased ? commRate.rateAfterRebateTotalDeposit / 100 : 0,
             totalWithdrawal: totalWithdrawal,
             totalWithdrawalFee: totalWithdrawalFee,
-            withdrawFeeRate: commRate.rateAfterRebateTotalWithdrawal / 100,
+            withdrawFeeRate: bonusBased ? commRate.rateAfterRebateTotalWithdrawal / 100 : 0,
             status: constPartnerCommissionLogStatus.PREVIEW,
             grossCommission: nettCommission,
             nettCommission: nettCommission,
@@ -426,7 +426,6 @@ const dbPartnerCommission = {
         return returnObj;
 
     },
-
 
     generateCurrentPartnersCommissionDetail: async function (partnerObjIds, startTime, endTime, commissionType) {
         let proms = [];
@@ -744,7 +743,6 @@ const dbPartnerCommission = {
         }
     },
 
-
     getAllDownlinePartnerWithDetails: async (partnerObjId) => {
         let partnerLvl = await getPartnerLevel (null, partnerObjId);
         let partnerObjs = await getAllDownlinePartner(partnerObjId, null, partnerLvl);
@@ -815,7 +813,7 @@ const dbPartnerCommission = {
         for (let i = 0; i < childDetail.length; i++) {
             let child = childDetail[i];
             tCAmount += child.grossCommission || 0;
-            tCNettAmount += child.nettCommission || 0;
+            tCNettAmount += child.grossCommission || 0;
             if (child.rawCommissions && child.rawCommissions.length) {
                 for (let j = 0; j < child.rawCommissions.length; j++) {
                     let raw = child.rawCommissions[j];
@@ -828,7 +826,7 @@ const dbPartnerCommission = {
             tCPlatformFee += child.totalPlatformFee || 0;
             tcTopUpFee += child.totalTopUpFee || 0;
             tcWithdrawalFee += child.totalWithdrawalFee || 0;
-            finalAmount += child.nettCommission || 0;
+            finalAmount += child.grossCommission || 0;
         }
         tCAmount = math.round(tCAmount, 2);
         tCCompanyProfit = math.round(tCCompanyProfit, 2);
@@ -887,6 +885,114 @@ const dbPartnerCommission = {
         };
 
         return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+    },
+
+    getPartnerCommissionInfoAPI: async (partnerId, previousPeriod = 0) => {
+        if (previousPeriod) {
+            return dbPartnerCommission.getPreviousCommissionInfoAPI(partnerId, previousPeriod);
+        }
+
+        return dbPartnerCommission.getCurrentPeriodCommissionInfoAPI(partnerId);
+    },
+
+    getCurrentPeriodCommissionInfoAPI: async (partnerId) => {
+        let partner = await dbconfig.collection_partner.findOne({partnerId}).lean();
+
+        let [detail] = await dbPartnerCommission.getCurrentPartnerCommissionDetail(partner.platform, partner.commissionType, partner.partnerName);
+
+        let totalPromoAmount = detail.totalRewardFee;
+
+        let totalCrewProfit = 0;
+        if (detail.rawCommissions && detail.rawCommissions.length) {
+            for (let i = 0; i < detail.rawCommissions.length; i++) {
+                let groupComm = detail.rawCommissions[i];
+
+                if (groupComm && groupComm.crewProfit) {
+                    totalCrewProfit = math.add(groupComm.crewProfit, totalCrewProfit);
+                }
+            }
+        }
+
+        let totalPlatformFee = detail.totalPlatformFee;
+
+        let totalDepositWithdrawFee = math.add(detail.totalTopUpFee, detail.totalWithdrawalFee);
+
+        let totalDownLinePartnerCom = 0;
+        if (detail.childComm && detail.childComm.length) {
+            for (let i = 0; i < detail.childComm.length; i++) {
+                let child = detail.childComm[i];
+
+                if (child && child.grossCommission) {
+                    totalDownLinePartnerCom = math.add(child.grossCommission, totalDownLinePartnerCom);
+                }
+            }
+        }
+
+        let downLinePlayerCom = detail.grossCommission;
+
+        let preditCommission = math.add(totalDownLinePartnerCom, downLinePlayerCom);
+
+        return {
+            stats: {
+                totalPromoAmount,
+                totalCrewProfit,
+                totalPlatformFee,
+                totalDepositWithdrawFee,
+                totalDownLinePartnerCom,
+                downLinePlayerCom,
+                preditCommission,
+            }
+        };
+    },
+
+    getPreviousCommissionInfoAPI: async (partnerId, previousPeriod) => {
+        let partner = await dbconfig.collection_partner.findOne({partnerId}).lean();
+        let proposalType = await dbconfig.collection_proposalType.findOne({platformId: partner.platform, name: constProposalType.SETTLE_PARTNER_COMMISSION}, {_id: 1}).lean();
+        let settlementProposals = await dbconfig.collection_proposal.find({"data.partnerId": partner.partnerId, type: proposalType._id}).sort({_id: -1}).limit(previousPeriod).lean();
+
+        let list = settlementProposals.map(prop => {
+            if (!prop) return;
+
+            let commissionAmount = prop.data && Number(prop.data.amount) || 0;
+            commissionAmount = math.round(commissionAmount, 2);
+
+            return {
+                date: prop.createTime,
+                commissionAmount
+            };
+        });
+
+        let highestAmount = 0;
+        let lowestAmount = 0;
+        let totalAmount = 0;
+
+        for (let i = 0; i < list.length; i++) {
+            let commission = list[i];
+            if (i === 0) {
+                highestAmount = Number(commission.commissionAmount);
+                lowestAmount = Number(commission.commissionAmount);
+                totalAmount = Number(commission.commissionAmount);
+            } else {
+                highestAmount = highestAmount < Number(commission.commissionAmount) ? Number(commission.commissionAmount) : highestAmount;
+                lowestAmount = lowestAmount > Number(commission.commissionAmount) ? Number(commission.commissionAmount) : lowestAmount;
+                totalAmount = math.add(totalAmount, Number(commission.commissionAmount));
+            }
+        }
+
+        highestAmount = math.round(highestAmount, 2);
+        lowestAmount = math.round(lowestAmount, 2);
+        let averageAmount = math.chain(totalAmount).divide(list.length).round(2).done();
+        totalAmount = math.round(totalAmount, 2);
+
+        return {
+            stats: {
+                highestAmount,
+                lowestAmount,
+                totalAmount,
+                averageAmount,
+            },
+            list
+        };
     },
 };
 

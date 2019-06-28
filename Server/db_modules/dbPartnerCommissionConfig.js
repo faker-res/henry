@@ -796,7 +796,7 @@ const dbPartnerCommissionConfig = {
 
         let child = await dbconfig.collection_partner.findOne({partnerId: targetPartnerId, platform: editor.platform, parent: editor._id}).lean();
         if (!child || String(editor.platform) !== String(child.platform)) {
-            return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."}); // todo :: translate, add constant
+            return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
         }
 
         let grandChildrenProm = dbconfig.collection_partner.find({parent: child._id, platform: editor.platform}, {_id: 1}).lean();
@@ -804,6 +804,9 @@ const dbPartnerCommissionConfig = {
         let childCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(child._id, editor.commissionType);
         let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: editor.platform}, {providerGroupId: 1, name: 1}).lean();
         let [grandChildren, editorCommConfig, childCommConfig, providerGroups] = await Promise.all([grandChildrenProm, editorCommConfigProm, childCommConfigProm, providerGroupProm]);
+
+        // add a default provider group
+        providerGroups.push({_id: null, name: "default"});
 
         let grandChildrenCommConfig = {};
         for (let i = 0; i < grandChildren.length; i++) {
@@ -823,6 +826,30 @@ const dbPartnerCommissionConfig = {
             }
         }
 
+        // imo this checking part is unnecessary, but reynold say so
+        for (let i = 0; i < commissionRate.length; i++) {
+            let groupRate = commissionRate[i];
+            if (!groupRate || !groupRate.providerGroupName || !groupRate.list) {
+                return Promise.reject({message: "Commission Rate content unknown"});
+            }
+
+            if (groupRate.list.length) {
+                for (let j = 0; j < groupRate.list.length; j++) {
+                    let requirementRate = groupRate.list[j];
+                    let keys = Object.keys(requirementRate);
+                    if (
+                        !keys.includes("commissionRate") ||
+                        !keys.includes("activePlayerValueTo") ||
+                        !keys.includes("activePlayerValueFrom") ||
+                        !keys.includes("playerConsumptionAmountTo") ||
+                        !keys.includes("playerConsumptionAmountFrom")
+                    ) {
+                        return Promise.reject({message: "Commission Rate content unknown"});
+                    }
+                }
+            }
+        }
+
         // for each rate given, check if its below the max and above the min allowed
         let proposalProms = [];
         for (let i = 0; i < commissionRate.length; i++) {
@@ -836,21 +863,12 @@ const dbPartnerCommissionConfig = {
                 continue;
             }
 
-            // console.log("group", group)
-            // console.log("groupRate", groupRate)
-
             // compare with original see if anything change
             // get original
-
             let originalGroupRate = childCommConfig.find(config => String(config.provider) === String(group._id));
-            // console.log('originalGroupRate', group.providerGroupId, originalGroupRate)
             let originalGroupRateList = originalGroupRate && originalGroupRate.commissionSetting || [];
             if (!originalGroupRateList || !originalGroupRateList.length) continue;
-            // groupRate.list
-            // originalGroupRate.commissionSetting
 
-            // console.log('originalGroupRateList', JSON.stringify(originalGroupRateList, null ,2))
-            // console.log('groupRateList', JSON.stringify(groupRateList, null ,2))
             let rateChanged = false;
             for (let j = 0; j < originalGroupRateList.length; j++) {
                 let originalRequirementRate = originalGroupRateList[j];
@@ -885,7 +903,7 @@ const dbPartnerCommissionConfig = {
             let editorGroupRate = editorCommConfig.find(config => String(config.provider) === String(group._id));
             if (!editorGroupRate) {
                 console.error("Parent rate error. Please contact CS. (#01)");
-                return Promise.reject({message: "Parent rate error. Please contact CS."}); // todo :: translate
+                return Promise.reject({message: "Parent rate error. Please contact CS."});
             }
 
             let editorGroupRateList = editorGroupRate && editorGroupRate.commissionSetting || [];
@@ -919,13 +937,19 @@ const dbPartnerCommissionConfig = {
                     console.log('between parent and child must have 1% different minimum', originalRequirementRate.changeTo, '>', editorRequirementRate.commissionRate , '- 0.01');
                     return Promise.reject({
                         status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                        message: "You must at least take 1% commission from your lower level partner to earn money."  // todo :: translate
+                        message: "You must at least take 1% commission from your lower level partner to earn money."
                     });
+                }
+
+                if (Number(originalRequirementRate.changeTo) < 0.01) {
+                    return Promise.reject({
+                        status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                        message: "Minimum commission rate must be 1%"
+                    })
                 }
             }
 
             // find highest similar rate requirement from child
-            // todo:: debug start from here
             let currentProviderGrandChildren = grandChildrenCommConfig[String(group.name)];
             if (currentProviderGrandChildren && currentProviderGrandChildren.length) {
                 let gcRateLists = currentProviderGrandChildren.map(gc => gc && gc.commissionSetting)
@@ -949,7 +973,7 @@ const dbPartnerCommissionConfig = {
                         console.log('child compared too low', originalRequirementRate.changeTo, '<', highestChildRate + 0.01);
                         return Promise.reject({
                             status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                            message: "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting."  // todo :: translate
+                            message: "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting."
                         });
                     }
                 }
@@ -970,7 +994,7 @@ const dbPartnerCommissionConfig = {
                 id: editor._id
             };
 
-            let proposalData ={
+            let proposalData = {
                 creator: creatorData,
                 platformObjId: editor.platform,
                 partnerObjId: child._id,
@@ -999,6 +1023,10 @@ const dbPartnerCommissionConfig = {
             output.push(outputData);
             proposalProms.push(prom);
         }
+        if (proposalProms.length === 0) {
+            return Promise.reject({message: "There is no relevant commission to update"});
+        }
+
         let result = await Promise.all(proposalProms);
 
         return output;

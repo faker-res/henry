@@ -677,7 +677,7 @@
                             .inlineBlk.pull-right
                                 button.btn.btn-primary.common-button.excluded(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
                             .inlineBlk.pull-right
-                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id') {{'SAVE' | translate }}
+                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id', ng-disabled="!vm.isPlayerAllowedPromoCode") {{'SAVE' | translate }}
                             .inlineBlk.pull-right
                                 div.text-success {{ vm.saveRandomRewardMsg }}
                             //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
@@ -698,16 +698,16 @@
                                                 input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
                                             td(ng-show='v.status=="1"')
                                                 //input(type='string', ng-model='v.randomReward')
-                                                select.form-control(ng-model='v.rewardName', ng-change='v.isEdit = true')
+                                                select.form-control(ng-model='v.rewardName', ng-change="v.isEdit = true; vm.isPlayerForbidPromoCode(v.playerName, v.rewardName, vm.rewardMainParamTable[0].value)")
                                                     option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
                                         tr(ng-repeat="(i,v) in vm.assignRandomRewards")
                                             td
-                                                i.fa.fa-plus(ng-click='vm.addRandowRewardItem()')
+                                                i.fa.fa-plus(ng-show="vm.isPlayerAllowedPromoCode", ng-click='vm.addRandowRewardItem()')
                                             td
                                                 input.excluded(type='string', ng-model='v.playerName')
                                             td
-                                                select.form-control.excluded(ng-model='v.rewardName')
+                                                select.form-control.excluded(ng-model='v.rewardName' ng-change="vm.isPlayerForbidPromoCode(v.playerName, v.rewardName, vm.rewardMainParamTable[0].value)")
                                                     option(ng-repeat='(i,v) in vm.rewardMainParamTable[0].value', value='{{v.id}}') {{ v.title }}
 
 

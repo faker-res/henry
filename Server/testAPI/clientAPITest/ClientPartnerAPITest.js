@@ -320,10 +320,27 @@
         this.partnerService.getDownLinePlayerTimeSequence.once(callback);
     };
 
+    proto.getPartnerTotalInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getPartnerTotalInfo.request(data);
+        this.partnerService.getPartnerTotalInfo.once(callback);
+    };
+
     proto.getDownLinePlayerInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getDownLinePlayerInfo.request(data);
         this.partnerService.getDownLinePlayerInfo.once(callback);
+    };
+
+    proto.createDownLinePartner = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.createDownLinePartner.request(data);
+        this.partnerService.createDownLinePartner.once(callback);
     };
 
     proto.setPartnerCommissionRate = function (callback, requestData) {
@@ -346,6 +363,20 @@
 
         this.partnerService.getPartnerCommissionRate.request(data);
         this.partnerService.getPartnerCommissionRate.once(callback);
+    }
+
+    proto.getDownLinePartnerInfo = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.getDownLinePartnerInfo.request(data);
+        this.partnerService.getDownLinePartnerInfo.once(callback);
+    };
+
+
+    proto.getPartnerCommissionInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPartnerCommissionInfo.request(data);
+        this.partnerService.getPartnerCommissionInfo.once(callback);
     };
 
     proto.notifyNewMail = function (callback, requestData) {

@@ -141,6 +141,9 @@
                         div
                             input(type='checkbox', ng-model='vm.isSentToAll', ng-init="false", ng-click='vm.sentMailToAllPlayers()')
                             label.radio-space {{'Sent to all Players' | translate}}
+                        div
+                            input(type='checkbox', ng-model='vm.filterPlayerPromoCodeForbidden', ng-init="false")
+                            label.radio-space {{'Not to send to players with promo code forbidden' | translate}}
 
                         div(ng-if="checkViewPermission('Platform', 'groupMessage', 'SendGroupMessage')")
                             button.btn.btn-primary.btn-sm(ng-click="vm.sendMessages()", ng-disabled='!vm.sendMultiMessage.messageContent || !vm.sendMultiMessage.numRecipient || vm.sendMultiMessage.sendInitiated') {{vm.sendMultiMessage.sendBtnText}}

@@ -17,6 +17,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "The requirement is not fulfilled, please contact CS.": "不符合优惠要求，请联系客服人员",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
     "Please register phone number and bank card before applying this reward, thank you.": "领取优惠请先绑定「电话」、「银行资料」， 谢谢。",
@@ -520,7 +521,14 @@ var simplifiedChinese = {
     "Your phone number is registered, please verify and login.": "您的手机号已注册账号，请核实后登入",
     "Your device has registered. Use your original phone number to login.": "您的设备已注册过",
     "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
-    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
+    "Payment is not available, please contact customer service": "支付维护中，请联系客服",
+    "Commission Rate content unknown": "佣金比例格式错误",
+    "Child partner not found.": "此下级代理不存在",
+    "Parent rate error. Please contact CS.": "您的佣金比例有问题，详情请联系客服谘询。",
+    "You must at least take 1% commission from your lower level partner to earn money.": "必须最少抽取1%佣金。请降低下级佣金让其低于您的佣金最少1%。",
+    "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting.": "下级必须最少抽取1%佣金。请提高下级可抽取的佣金，详情请联系客服谘询。",
+    "There is no relevant commission to update": "没有需要修改的佣金比例。",
+    "Minimum commission rate must be 1%": "最低佣金1%",
 
     //todo::add missing messages here
 

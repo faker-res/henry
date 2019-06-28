@@ -267,6 +267,9 @@ http.createServer(function (req, res) {
 getKeyFromOtherInstance();
 
 function getKeyFromOtherInstance () {
+
+    console.log('theOtherEnv', theOtherEnv);
+
     let privateKeyProm = privateKey ? Promise.resolve(privateKey) : getPrivateKey();
     let replPrivateKeyProm = replacedPrivateKey ? Promise.resolve(replacedPrivateKey) : getReplPrivateKey();
     let publicKeyProm = publicKey ? Promise.resolve(publicKey) : getPublicKey();
