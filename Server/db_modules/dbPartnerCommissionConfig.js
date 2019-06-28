@@ -772,6 +772,14 @@ const dbPartnerCommissionConfig = {
 
         partnerCommConfig = partnerCommConfig.map(config => {
             let matchedProvider = providerGroups.find(provider => String(provider._id) == String(config.provider));
+            if (config.commissionSetting && config.commissionSetting.length) {
+                config.commissionSetting.map(
+                    commSett => {
+                        if (commSett.commissionRate) {
+                            commSett.commissionRate = math.round(commSett.commissionRate, 4)
+                        }
+                    })
+            }
             let changedObj = {
                 providerGroupId: matchedProvider && matchedProvider.providerGroupId,
                 providerGroupName: matchedProvider && matchedProvider.name,
