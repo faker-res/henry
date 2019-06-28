@@ -1,3 +1,4 @@
+"use strict";
 let dbPartnerCommissionConfigFunc = function () {
 };
 module.exports = new dbPartnerCommissionConfigFunc();
@@ -8,6 +9,8 @@ const math = require('mathjs');
 const constServerCode = require('./../const/constServerCode');
 const constProposalType = require('./../const/constProposalType');
 const dbProposal = require('./../db_modules/dbProposal');
+const dbPartnerCommission = require('./../db_modules/dbPartnerCommission');
+const constProposalStatus = require('./../const/constProposalStatus');
 
 const dbPartnerCommissionConfig = {
     getPlatformPartnerCommConfig: (platformObjId) => {
@@ -799,6 +802,26 @@ const dbPartnerCommissionConfig = {
             return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
         }
 
+        let currentWeek = dbPartnerCommission.getTargetCommissionPeriod(2, new Date());
+        let proposalType = await dbconfig.collection_proposalType.findOne({platformId: editor.platform, name: constProposalType.CUSTOMIZE_PARTNER_COMM_RATE}, {_id: 1}).lean();
+
+        let existingProposal;
+
+        if (proposalType) {
+            existingProposal = await dbconfig.collection_proposal.findOne({
+                type: proposalType._id,
+                createTime: {$gte: new Date(currentWeek.startTime), $lte: new Date(currentWeek.endTime)},
+                "data.isUpdateChild": true,
+                "data.partnerId": child.partnerId,
+                "data.parentObjId": editor._id,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            }, {_id: 1}).lean();
+        }
+
+        if (existingProposal) {
+            return Promise.reject({message: "Partner can only update child commission once a week."});
+        }
+
         let grandChildrenProm = dbconfig.collection_partner.find({parent: child._id, platform: editor.platform}, {_id: 1}).lean();
         let editorCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(editor._id, editor.commissionType);
         let childCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(child._id, editor.commissionType);
@@ -996,6 +1019,7 @@ const dbPartnerCommissionConfig = {
 
             let proposalData = {
                 creator: creatorData,
+                partnerId: child.partnerId,
                 platformObjId: editor.platform,
                 partnerObjId: child._id,
                 partnerName: child.partnerName,

@@ -994,6 +994,10 @@ const dbPartnerCommission = {
             list
         };
     },
+
+    getTargetCommissionPeriod: (commissionType, date) => {
+        return getTargetCommissionPeriod(commissionType, date);
+    },
 };
 
 let proto = dbPartnerCommissionFunc.prototype;

@@ -529,6 +529,7 @@ var simplifiedChinese = {
     "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting.": "下级必须最少抽取1%佣金。请提高下级可抽取的佣金，详情请联系客服谘询。",
     "There is no relevant commission to update": "没有需要修改的佣金比例。",
     "Minimum commission rate must be 1%": "最低佣金1%",
+    "Partner can only update child commission once a week.": "每个下级代理佣金比例每周最多只能编辑一次。",
 
     //todo::add missing messages here
 
