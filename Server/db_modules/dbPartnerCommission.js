@@ -128,12 +128,12 @@ const dbPartnerCommission = {
         let totalMTopUpFee = 0;
         let totalMWithdrawalFee = 0;
         if (bonusBased) {
-            totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo).divide(100).round(2).done();
-            totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit).divide(100).round(2).done();
-            totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
-            totalMRewardFee = math.chain(totalReward).multiply(commRateMulti.rateAfterRebatePromo).divide(100).round(2).done();
-            totalMTopUpFee = math.chain(totalTopUp).multiply(commRateMulti.rateAfterRebateTotalDeposit).divide(100).round(2).done();
-            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRateMulti.rateAfterRebateTotalWithdrawal).divide(100).round(2).done();
+            totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo || 0).divide(100).round(2).done();
+            totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit || 0).divide(100).round(2).done();
+            totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal || 0).divide(100).round(2).done();
+            totalMRewardFee = math.chain(totalReward).multiply(commRateMulti.rateAfterRebatePromo || 0).divide(100).round(2).done();
+            totalMTopUpFee = math.chain(totalTopUp).multiply(commRateMulti.rateAfterRebateTotalDeposit || 0).divide(100).round(2).done();
+            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRateMulti.rateAfterRebateTotalWithdrawal || 0).divide(100).round(2).done();
         }
 
 
@@ -260,8 +260,8 @@ const dbPartnerCommission = {
             }
             // ====================================================================
 
-            let platformFeeRateDirect = bonusBased ? math.chain(platformFeeRateData.rate).divide(100).round(8).done() || 0 : 0;
-            let platformFeeRateMulti = bonusBased ? math.chain(platformFeeRateMultiData.rate).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateDirect = bonusBased ? math.chain(platformFeeRateData.rate || 0).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateMulti = bonusBased ? math.chain(platformFeeRateMultiData.rate || 0).divide(100).round(8).done() || 0 : 0;
 
             let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
