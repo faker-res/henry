@@ -5715,6 +5715,8 @@ let dbPlayerInfo = {
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
+                                    playerData[ind].totalCredit = playerData[ind].validCredit + playerData[ind].lockedCredit;
+
                                     if (isProviderGroup) {
                                         newInfo = getRewardGroupData(playerData[ind]);
                                     } else {
