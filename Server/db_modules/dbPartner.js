@@ -477,6 +477,25 @@ let dbPartner = {
                 if (data && data.lastLoginIp) {
                     dbPartner.updateGeoipws(data._id, data.platform, data.lastLoginIp);
                 }
+
+                return dbconfig.collection_partner.findOne({_id: data._id}).lean();
+            }
+        ).then(
+            function (data) {
+                data.commissionHeapCycleStart = "";
+                data.commissionHeapCycleEnd = "";
+                if (data.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || data.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                    let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(data.commissionType, new Date());
+                    data.commissionHeapCycleStart = currentPeriod.startTime;
+                    data.commissionHeapCycleEnd = currentPeriod.endTime;
+                }
+
+                let depthInTree =  data.parent ? 1 : 0;
+                data.partnerLevel = depthInTree + 1;
+                if (data.parent) {
+                    data.downLineLevel = depthInTree + 1;
+                }
+
                 deferred.resolve(data);
             },
             function (error) {
@@ -697,6 +716,14 @@ let dbPartner = {
                     }
                     apiData = data;
 
+                    apiData.commissionHeapCycleStart = "";
+                    apiData.commissionHeapCycleEnd = "";
+                    if (apiData.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || apiData.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                        let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(apiData.commissionType, new Date());
+                        apiData.commissionHeapCycleStart = currentPeriod.startTime;
+                        apiData.commissionHeapCycleEnd = currentPeriod.endTime;
+                    }
+
                     var a, b, c;
 
                     // a = apiData.bankAccountProvince ? pmsAPI.foundation_getProvince({
@@ -715,8 +742,9 @@ let dbPartner = {
                     a = apiData.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: apiData.bankAccountProvince}) : true;
                     b = apiData.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: apiData.bankAccountCity}) : true;
                     c = apiData.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: apiData.bankAccountDistrict}) : true;
+                    let partnerLevelProm = dbPartner.getPartnerLevel(apiData.platform, apiData._id);
 
-                    return Q.all([a, b, c]);
+                    return Q.all([a, b, c, partnerLevelProm]);
                 }
                 deferred.resolve(data);
             },
@@ -732,6 +760,10 @@ let dbPartner = {
                     apiData.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : apiData.bankAccountProvince;
                     apiData.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : apiData.bankAccountCity;
                     apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
+                }
+                apiData.partnerLevel = zoneData[3];
+                if (apiData.parent) {
+                    apiData.downLineLevel = zoneData[3];
                 }
                 deferred.resolve(apiData);
             },
@@ -1644,6 +1676,15 @@ let dbPartner = {
                                     }).lean().then(
                                         res => {
                                             retObj = res;
+
+                                            res.commissionHeapCycleStart = "";
+                                            res.commissionHeapCycleEnd = "";
+                                            if (res.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || res.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                                                let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(res.commissionType, new Date());
+                                                res.commissionHeapCycleStart = currentPeriod.startTime;
+                                                res.commissionHeapCycleEnd = currentPeriod.endTime;
+                                            }
+
                                             // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
@@ -1651,8 +1692,9 @@ let dbPartner = {
                                             let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
                                             let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
                                             let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
+                                            let partnerLevelProm = dbPartner.getPartnerLevel(res.platform, res._id);
 
-                                            return Q.all([a, b, c]);
+                                            return Q.all([a, b, c, partnerLevelProm]);
                                         }
                                     ).then(
                                         zoneData => {
@@ -1660,6 +1702,10 @@ let dbPartner = {
                                             retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                                             retObj.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
+                                            retObj.partnerLevel = zoneData[3];
+                                            if (retObj.parent) {
+                                                retObj.downLineLevel = zoneData[3];
+                                            }
                                             return Q.resolve(retObj);
                                         },
                                         errorZone => {
