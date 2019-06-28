@@ -17,7 +17,7 @@ const restartFPMSPath = "./public/restartFPMS";
 const fpmsKey = "Fr0m_FPM$!";
 const testKeyPairText = 'TEST ENCRYPTION';
 const ts = jwt.sign(fpmsKey, secret);
-const uh = crypto.createHash('md5').update(env.redisUrl).digest("hex");
+const uh = crypto.createHash('md5').update(env.mode).digest("hex");
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
@@ -286,7 +286,7 @@ function getKeyFromOtherInstance () {
         return rp(getKeyUrl("playerPhone.key.pem", ts)).then(
             data => {
                 if (data) {
-                    let hash = cred.getHash(env.redisUrl);
+                    let hash = cred.getHash(env.mode);
 
                     if (hash === data) {
                         let secondVerification = cred.getCipherIV(hash, fpmsKey);
@@ -311,7 +311,7 @@ function getKeyFromOtherInstance () {
         return rp(getKeyUrl("playerPhone.key.pem.bak", ts)).then(
             data => {
                 if (data) {
-                    let hash = cred.getHash(env.redisUrl);
+                    let hash = cred.getHash(env.mode);
 
                     if (hash === data) {
                         let secondVerification = cred.getCipherIV(hash, fpmsKey);
@@ -336,7 +336,7 @@ function getKeyFromOtherInstance () {
         return rp(getKeyUrl("playerPhone.pub", ts)).then(
             data => {
                 if (data) {
-                    let hash = cred.getHash(env.redisUrl);
+                    let hash = cred.getHash(env.mode);
 
                     if (hash === data) {
                         let secondVerification = cred.getCipherIV(hash, fpmsKey);
@@ -361,7 +361,7 @@ function getKeyFromOtherInstance () {
         return rp(getKeyUrl("playerPhone.pub.bak", ts)).then(
             data => {
                 if (data) {
-                    let hash = cred.getHash(env.redisUrl);
+                    let hash = cred.getHash(env.mode);
 
                     if (hash === data) {
                         let secondVerification = cred.getCipherIV(hash, fpmsKey);
