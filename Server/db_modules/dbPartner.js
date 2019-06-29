@@ -492,9 +492,7 @@ let dbPartner = {
 
                 let depthInTree =  data.parent ? 1 : 0;
                 data.partnerLevel = depthInTree + 1;
-                if (data.parent) {
-                    data.downLineLevel = depthInTree + 1;
-                }
+                data.downLineLevel = data.partnerLevel + 1;
 
                 deferred.resolve(data);
             },
@@ -762,9 +760,7 @@ let dbPartner = {
                     apiData.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : apiData.bankAccountDistrict;
                 }
                 apiData.partnerLevel = zoneData[3];
-                if (apiData.parent) {
-                    apiData.downLineLevel = zoneData[3];
-                }
+                apiData.downLineLevel = apiData.partnerLevel + 1;
                 deferred.resolve(apiData);
             },
             zoneError => {
@@ -1703,9 +1699,7 @@ let dbPartner = {
                                             retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
                                             retObj.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
                                             retObj.partnerLevel = zoneData[3];
-                                            if (retObj.parent) {
-                                                retObj.downLineLevel = zoneData[3];
-                                            }
+                                            retObj.downLineLevel = zoneData[3] + 1;
                                             return Q.resolve(retObj);
                                         },
                                         errorZone => {
