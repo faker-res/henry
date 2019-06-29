@@ -3292,6 +3292,11 @@ var dbPlatform = {
                                 }
                             }
                         })
+
+                        if (subject == 'partner') {
+                            return appendPartnerConfig(platformData._id, returnedObj);
+                        }
+
                         return returnedObj;
                     }
                 }
@@ -7194,6 +7199,30 @@ function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSy
     //         }
     //     }
     // );
+}
+
+async function appendPartnerConfig(platformObjId, returnObj) {
+    let activeConfig = await dbconfig.collection_activeConfig.findOne({platform: platformObjId}, {
+        validPlayerTopUpTimes: 1,
+        validPlayerTopUpAmount: 1,
+        validPlayerConsumptionTimes: 1,
+        validPlayerConsumptionAmount: 1,
+        validPlayerValue: 1,
+        dailyActivePlayerTopUpTimes: 1,
+        dailyActivePlayerTopUpAmount: 1,
+        dailyActivePlayerConsumptionTimes: 1,
+        dailyActivePlayerConsumptionAmount: 1,
+        dailyActivePlayerValue: 1,
+        weeklyActivePlayerTopUpTimes: 1,
+        weeklyActivePlayerTopUpAmount: 1,
+        weeklyActivePlayerConsumptionTimes: 1,
+        weeklyActivePlayerConsumptionAmount: 1,
+        weeklyActivePlayerValue: 1,
+        _id: 0
+    }).lean() || {};
+
+    returnObj.activeConfig = activeConfig;
+    return returnObj;
 }
 
 var proto = dbPlatformFunc.prototype;
