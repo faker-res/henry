@@ -2317,18 +2317,29 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReportFromSummary: async function (startTime, endTime, providerId, platformId, listAll) {
+    winRateReportFromSummary: async function (startTime, endTime, providerId, platformList, listAll) {
         let participantsProm;
         let groupById = null;
         let returnedObj;
+        let platformListQuery;
+        let platformQuery = {};
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+            platformQuery = { platformObjIdList: platformList.map(item=>{return ObjectId(item)})};
+        }
+
 
         const matchObj = {
             date: {
                 $gte: startTime,
                 $lt: endTime
-            },
-            platformId: ObjectId(platformId),
+            }
         };
+
+        if (platformListQuery) {
+            matchObj.platformId = platformListQuery;
+        }
 
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
@@ -2336,7 +2347,7 @@ var dbPlayerConsumptionRecord = {
 
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
-            groupById = "$providerId";
+            groupById = {"providerId": "$providerId", "platformId": "$platformId"};
             participantsProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
                 {
                     $match: matchObj
@@ -2359,7 +2370,8 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: listAll ? "$providerId" : null,
+                    // _id: listAll ? "$providerId" : null,
+                    _id: groupById,
                     total_amount: { $sum: "$consumptionAmount"},
                     validAmount: { $sum: "$consumptionValidAmount"},
                     consumptionTimes: { $sum: "$consumptionTimes"},
@@ -2368,11 +2380,15 @@ var dbPlayerConsumptionRecord = {
             }
         ]).read("secondaryPreferred");
 
-        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
-            return (data && data.gameProviders) ? data.gameProviders : [];
+        let gameProviderProm = dbPlatform.getProviderListByPlatform(platformQuery).then(data => {
+            return data ? data : [];
         });
 
-        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+        let allPlatformGameProm = dbPlatform.getAllProviderListByPlatform(platformQuery).then(data => {
+            return data ? data : [];
+        });
+
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm, allPlatformGameProm]).then(
             data => {
                 let participantNumber = 0;
                 let consumptionTimes = 0;
@@ -2383,6 +2399,7 @@ var dbPlayerConsumptionRecord = {
                 let totalSumData = data[1] ? data[1] : [];
                 let gameProviders = data[2];
                 let participantData = data[0] ? data[0] : [];
+                let allPlatformGameProviders = data[3];
 
                 console.log('totalSumData', totalSumData);
 
@@ -2396,7 +2413,7 @@ var dbPlayerConsumptionRecord = {
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
                     // return  detail of each provider's winrate data
-                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(gameProviders, participantData, totalSumData);
+                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(allPlatformGameProviders, participantData, totalSumData);
                 }
                 return returnData;
             }
@@ -2408,7 +2425,7 @@ var dbPlayerConsumptionRecord = {
 
                 if (new Date(endTime) > twoDaysAgo) {
                     startTime = twoDaysAgo;
-                    return dbPlayerConsumptionRecord.winRateReport(startTime, endTime, providerId, platformId, listAll);
+                    return dbPlayerConsumptionRecord.winRateReport(startTime, endTime, providerId, platformList, listAll);
                 }
             }
         ).then(
@@ -2418,16 +2435,20 @@ var dbPlayerConsumptionRecord = {
                     twoDaysWinRateReportData.forEach(
                         twoDaysData => {
                             let indexNo = returnedObj.findIndex(r => r && r.providerId && twoDaysData && twoDaysData.providerId
-                                                                       && r.providerId.toString() === twoDaysData.providerId.toString());
+                                                                       && r.providerId.toString() === twoDaysData.providerId.toString()
+                                                                       && r.platformObjId && twoDaysData.platformObjId
+                                                                       && r.platformObjId.toString() === twoDaysData.platformObjId.toString());
 
                             if (indexNo === -1) {
-                                returnedObj[0].consumptionTimes += twoDaysData.consumptionTimes;
-                                returnedObj[0].totalAmount += twoDaysData.totalAmount;
-                                returnedObj[0].validAmount += twoDaysData.validAmount;
-                                returnedObj[0].bonusAmount += twoDaysData.bonusAmount;
-                                let profit = (-returnedObj[0].bonusAmount / returnedObj[0].validAmount * 100) || 0;
-                                profit = profit.toFixed(2);
-                                returnedObj[0].profit = Math.round(profit * 100) / 100;
+                                if (returnedObj && returnedObj[0]) {
+                                    returnedObj[0].consumptionTimes += twoDaysData.consumptionTimes;
+                                    returnedObj[0].totalAmount += twoDaysData.totalAmount;
+                                    returnedObj[0].validAmount += twoDaysData.validAmount;
+                                    returnedObj[0].bonusAmount += twoDaysData.bonusAmount;
+                                    let profit = (-returnedObj[0].bonusAmount / returnedObj[0].validAmount * 100) || 0;
+                                    profit = profit.toFixed(2);
+                                    returnedObj[0].profit = Math.round(profit * 100) / 100;
+                                }
                             } else {
                                 returnedObj[indexNo].consumptionTimes += twoDaysData.consumptionTimes;
                                 returnedObj[indexNo].totalAmount += twoDaysData.totalAmount;
@@ -2445,18 +2466,29 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReport: function (startTime, endTime, providerId, platformId, listAll) {
+    winRateReport: function (startTime, endTime, providerId, platformList, listAll) {
         let participantsProm;
+        let platformListQuery;
+        let platformQuery = {};
+
+        if(platformList && platformList.length > 0) {
+            platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
+            platformQuery = { platformObjIdList: platformList.map(item=>{return ObjectId(item)})};
+        }
+
         const matchObj = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            platformId: ObjectId(platformId),
             isDuplicate: {
                 $ne: true
             }
         };
+
+        if (platformListQuery) {
+            matchObj.platformId = platformListQuery;
+        }
 
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
@@ -2465,7 +2497,7 @@ var dbPlayerConsumptionRecord = {
         let groupById = null;
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
-            groupById = "$providerId";
+            groupById = {"providerId": "$providerId", "platformId": "$platformId"};
             participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                     $match: matchObj
                 },
@@ -2495,11 +2527,15 @@ var dbPlayerConsumptionRecord = {
             }
         ]).read("secondaryPreferred");
 
-        let gameProviderProm = dbPlatform.getPlatform({ _id: platformId }).then(data => {
-            return (data && data.gameProviders) ? data.gameProviders : [];
-        })
+        let gameProviderProm = dbPlatform.getProviderListByPlatform(platformQuery).then(data => {
+            return data ? data : [];
+        });
 
-        return Promise.all([participantsProm, totalAmountProm, gameProviderProm]).then(
+        let allPlatformGameProm = dbPlatform.getAllProviderListByPlatform(platformQuery).then(data => {
+            return data ? data : [];
+        });
+
+        return Promise.all([participantsProm, totalAmountProm, gameProviderProm, allPlatformGameProm]).then(
             data => {
                 let participantNumber = 0;
                 let consumptionTimes = 0;
@@ -2510,6 +2546,7 @@ var dbPlayerConsumptionRecord = {
                 let totalSumData = data[1] ? data[1] : [];
                 let gameProviders = data[2];
                 let participantData = data[0] ? data[0] : [];
+                let allPlatformGameProviders = data[3];
 
                 if (!listAll && data && data[0] && data[1] && data[1][0]) {
                     participantNumber = data[0].length;
@@ -2521,7 +2558,7 @@ var dbPlayerConsumptionRecord = {
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
                     // return  detail of each provider's winrate data
-                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(gameProviders, participantData, totalSumData);
+                    returnData = dbPlayerConsumptionRecord.getProvidersWinRate(allPlatformGameProviders, participantData, totalSumData);
                 }
                 return returnData;
             }
@@ -2560,25 +2597,30 @@ var dbPlayerConsumptionRecord = {
         let result = [];
         if (gameProviders && gameProviders.length > 0) {
             gameProviders.forEach(provider => {
+                console.log('provider xxx', provider);
+                console.log('participantData xxx', participantData);
+                console.log('totalSumData xxx', totalSumData);
                 //count how many player consumption (non-repeat)
                 let providerSum;
                 let participant;
                 let participantNumber = 0;
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(item => {
-                        return item._id.equals(provider._id);
+                        return item._id.providerId.equals(provider._id) && item._id.platformId.equals(provider.platformObjId);
                     })
                     participant = (participant && participant[0]) ? participant[0] : null;
                     participantNumber = (participant && participant.playerId) ? participant.playerId.length : 0;
                 }
                 //pair the provider - dump aggregate data into that provider object
                 let sumData = totalSumData.filter(sum => {
-                    if (sum._id.equals(provider._id)) {
+                    if (sum._id.providerId.equals(provider._id) && sum._id.platformId.equals(provider.platformObjId)) {
                         return sum;
                     }
                 })
                 sumData = (sumData && sumData[0]) ? sumData[0] : [];
                 providerSum = {
+                    platformObjId: provider.platformObjId,
+                    platformName: provider.platformName,
                     providerId: provider._id,
                     providerName: provider.name,
                     participantNumber: participantNumber || 0,

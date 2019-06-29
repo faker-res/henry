@@ -163,8 +163,8 @@ var dbPlayerTopUpDaySummary = {
 
     },
 
-    reCalculateWinRateReportSummary: function(platformId, start, end){
-        if(!platformId || !start || ! end){
+    reCalculateWinRateReportSummary: function(platformList, start, end){
+        if(!start || ! end){
             return;
         }
 
@@ -187,7 +187,11 @@ var dbPlayerTopUpDaySummary = {
             endDate = dbutility.getDayStartTime(endDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime())) {
-                p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+                if(platformList && platformList.length > 0) {
+                    platformList.forEach(item => {
+                        p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, ObjectId(item)));
+                    })
+                }
             }
         }
 
