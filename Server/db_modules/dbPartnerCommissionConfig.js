@@ -1218,8 +1218,7 @@ async function getMainCommConfig (partnerObjId, platformObjId, commissionType, i
     }
 
     let defProviderDefConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({provider: null, platform: platformObjId, commissionType}).lean();
-    console.log('defProviderDefConfig', defProviderDefConfig)
-    if (!defProviderDefConfig || !defProviderDefConfig.commissionSetting || !!defProviderDefConfig.commissionSetting.length) {
+    if (!defProviderDefConfig || !defProviderDefConfig.commissionSetting || !defProviderDefConfig.commissionSetting.length) {
         return Promise.reject({message: "Incomplete commission rate configuration"})
     }
 
