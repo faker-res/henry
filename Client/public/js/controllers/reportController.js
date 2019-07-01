@@ -5355,7 +5355,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     if (data.success && data.data) {
                         vm.modifyDepositTrackingGroupResult = 'SUCCESS';
-                        if(vm.showPageName == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
+                        if(vm.showPageName == "PLAYER_DEPOSIT_TRACKING_REPORT") {
                             vm.searchPlayerDepositTrackingReport();
                         }
                         vm.selectedDepositTrackingGroup = '';
