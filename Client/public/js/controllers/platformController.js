@@ -3433,11 +3433,11 @@ define(['js/app'], function (myApp) {
                             message: vm.sendMultiMessage.messageContent
                         };
                         if (vm.filterPlayerPromoCodeForbidden){
-                            if (data && data.permission && data.permission.allowPromoCode){
-                                query.playerId = data.playerId;
+                            if (data && data.permission && data.permission.hasOwnProperty('allowPromoCode') && data.permission.allowPromoCode === false){
+                                query.playerId = [];
                             }
                             else{
-                                query.playerId = [];
+                                query.playerId = data.playerId;
                             }
                         }
                         else {
@@ -3449,7 +3449,10 @@ define(['js/app'], function (myApp) {
                     let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId, selectedPlayers) => {
                         if (selectedPlayers && selectedPlayers._id) {
                             if (vm.filterPlayerPromoCodeForbidden){
-                                if (selectedPlayers.permission && selectedPlayers.permission.allowPromoCode){
+                                if (selectedPlayers.permission && selectedPlayers.permission.hasOwnProperty('allowPromoCode') && selectedPlayers.permission.allowPromoCode === false){
+                                   // do nothing
+                                }
+                                else{
                                     tempPlayersId.push(selectedPlayers._id);
                                 }
                             }
@@ -27183,8 +27186,32 @@ define(['js/app'], function (myApp) {
             }
 
             vm.checkPromoCodeDisabled = function (promoCode) {
-                return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission;
-            }
+                return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission || promoCode.isInForbidList;
+            };
+
+            vm.checkIsForbidPromoCode = async function (promoCodeObj, playerNames, promoCodeType) {
+                let playerNameList = playerNames ? playerNames.split("\n") : playerNames;
+                if (playerNameList && playerNameList.length > 0 && playerNames.indexOf("\n") < 0 && vm.filterCreatePromoCodePlatform && promoCodeType && promoCodeType._id) {
+                    let sendQuery = {
+                        name:  playerNameList[0],
+                        platform: vm.filterCreatePromoCodePlatform,
+                        promoCodeType: promoCodeType._id
+                    };
+
+                    let ret = await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).catch(
+                        err => {
+                            return Promise.reject(err)
+                        }
+                    );
+
+                    promoCodeObj.isInForbidList = false;
+                    if (ret && ret.data){
+                        promoCodeObj.isInForbidList = true;
+                    }
+                    $scope.$evalAsync();
+                    return promoCodeObj;
+                }
+            };
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
@@ -27215,6 +27242,10 @@ define(['js/app'], function (myApp) {
 
                     if (rowNumber) {
                         cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    }
+
+                    if (el.isInForbidList){
+                        bgColor = "lightGray";
                     }
 
                     if (isBlockPermission) {
@@ -27255,8 +27286,9 @@ define(['js/app'], function (myApp) {
                         collection[index].expirationTime.data('datetimepicker').setDate(date);
                     }
                     vm.checkPlayerName(collection[index], tableId, index);
+                    $scope.$evalAsync();
                     return collection;
-                }, 10);
+                }, 500);
             };
             vm.cancelPromoCode = function (col, index) {
               $scope.$evalAsync(()=>{
@@ -27297,9 +27329,13 @@ define(['js/app'], function (myApp) {
                             delete newData.$$hashKey;
 
                             p = p.then(function () {
-                                return vm.promoCodeNewRow(col, type, newData, true);
+                                return vm.checkIsForbidPromoCode(data, el, data.promoCodeType).then(
+                                    retData => {
+                                        newData.isInForbidList = retData.isInForbidList;
+                                        return vm.promoCodeNewRow(col, type, newData, true);
+                                    }
+                                )
                             });
-
                         });
 
                         // return p.then(vm.endLoadWeekDay);
@@ -27311,7 +27347,7 @@ define(['js/app'], function (myApp) {
                             status: 1
                         };
 
-                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission) {
+                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission && !data.isInForbidList) {
                             if (!data.amount) {
                                 if (type == 3) {
                                     return socketService.showErrorMessage($translate("Promo Reward % is required"));
@@ -37309,8 +37345,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.localRemarkUpdate = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : null;
+                let platformObjId = vm.batchSettingSelectedPlatform;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {

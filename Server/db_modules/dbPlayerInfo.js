@@ -5752,6 +5752,8 @@ let dbPlayerInfo = {
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
+                                    playerData[ind].totalCredit = playerData[ind].validCredit + playerData[ind].lockedCredit;
+
                                     if (isProviderGroup) {
                                         newInfo = getRewardGroupData(playerData[ind]);
                                     } else {
@@ -11431,7 +11433,7 @@ let dbPlayerInfo = {
 
         let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
             + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
-            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform';
 
         let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -17982,6 +17984,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platform;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -18694,7 +18701,8 @@ let dbPlayerInfo = {
                             platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
-                            valueScore: 1
+                            valueScore: 1,
+                            platform: 1
                         };
 
                         return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
@@ -18712,6 +18720,7 @@ let dbPlayerInfo = {
                                     let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
 
                                     if(indexNo > -1){
+                                        playerReportSummaryData[indexNo].platform = player.platform || "";
                                         playerReportSummaryData[indexNo].name = player.name || "";
                                         playerReportSummaryData[indexNo].city = player.city || "";
                                         playerReportSummaryData[indexNo].province = player.province || "";
@@ -18946,6 +18955,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -19368,6 +19382,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }

@@ -1504,6 +1504,7 @@ db.rewardParam.update({
                     index: 50,
                     type: "checkbox",
                     des: "Is not entitled when promo code is forbidden",
+                    value: true
                 }
 
             }
