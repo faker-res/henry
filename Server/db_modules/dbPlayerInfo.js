@@ -14551,7 +14551,9 @@ let dbPlayerInfo = {
                                         providerData.providerId == "51"
                                         || providerData.providerId == "57" // ISBSLOTS
                                         || providerData.providerId == "41"
+                                        || providerData.providerId == "56" // EBET
                                         || providerData.providerId == "70"
+                                        || providerData.providerId == "72" // EBETSLOTS
                                         || providerData.providerId == "82" // IG
                                         || providerData.providerId == "83"
                                         || providerData.providerId == "86" // SABA
