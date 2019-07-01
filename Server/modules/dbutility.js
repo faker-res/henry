@@ -1202,7 +1202,9 @@ var dbUtility = {
         return  "******" +  str.slice(-6);
     },
     encodePhoneNum: function (str) {
-        str = str || '';
+        if (!str) {
+            return '';
+        }
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 
