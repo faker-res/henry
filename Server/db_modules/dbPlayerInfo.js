@@ -20263,6 +20263,11 @@ let dbPlayerInfo = {
                             });
                         },
                         processResponse: function (record) {
+                            if(record && record.data) {
+                                record.data.forEach(item => {
+                                    item.platform = platform;
+                                })
+                            }
                             result = result.concat(record.data);
                         }
                     }
