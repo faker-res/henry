@@ -2386,6 +2386,11 @@ let dbPlayerInfo = {
                     data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
 
+                // to handle old data that without registrationInterface
+                if (!data.hasOwnProperty('registrationInterface') ){
+                    data.registrationInterface = 1; // web
+                }
+
                 // if there is guestDeviceId, the registrationInterface has to be APP
                 if (data.guestDeviceId){
                     data.registrationInterface = 5;
@@ -20248,6 +20253,11 @@ let dbPlayerInfo = {
                             });
                         },
                         processResponse: function (record) {
+                            if(record && record.data) {
+                                record.data.forEach(item => {
+                                    item.platform = platformObjId;
+                                })
+                            }
                             result = result.concat(record.data);
                         }
                     }
