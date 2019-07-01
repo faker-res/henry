@@ -1277,11 +1277,12 @@ function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commis
                     return String(config.provider) == String(providerGroups[i]._id);
                 });
 
-                if (config) {
+                if (config && config.commissionSetting && config.commissionSetting.length) {
                     configs.push(config);
                 }
                 else {
-                    let prom = dbconfig.collection_partnerDefDownLineCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, partner: parentObjId, commissionType}).lean();
+                    // let prom = dbconfig.collection_partnerDefDownLineCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, partner: parentObjId, commissionType}).lean();
+                    let prom = dbconfig.collection_partnerMainCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, partner: parentObjId, commissionType}).lean();
                     proms.push(prom);
                 }
             }
@@ -1303,6 +1304,12 @@ function getDownLineCommConfig (partnerObjId, platformObjId, parentObjId, commis
                 delete defConfig._id;
                 delete defConfig.__v;
                 defConfig.partner = partnerObjId;
+                if (defConfig.commissionSetting && defConfig.commissionSetting.length) {
+                    for (let j = 0; j < defConfig.commissionSetting.length; j++) {
+                        defConfig.commissionSetting[j].commissionRate = 0;
+                    }
+                }
+
                 let updateProm = dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({platform: platformObjId, partner:partnerObjId, provider: defConfig.provider}, defConfig, {upsert: true, new: true}).lean().catch(errorUtils.reportError);
                 configs.push(updateProm);
             }
