@@ -1195,6 +1195,7 @@ async function getMainCommConfig (partnerObjId, platformObjId, commissionType, i
 
 
     let proms = [];
+    let promsGroupObjIdOrder = [];
     for (let i = 0; i < providerGroups.length; i++) {
         if ((!providerGroups[i] || !providerGroups[i]._id) && !(providerGroups[i] && providerGroups[i].name == "default")) {
             continue;
@@ -1207,6 +1208,7 @@ async function getMainCommConfig (partnerObjId, platformObjId, commissionType, i
             configs.push(config);
         }
         else {
+            promsGroupObjIdOrder.push(providerGroups[i]._id);
             let prom = dbconfig.collection_platformPartnerCommConfig.findOne({provider: providerGroups[i]._id, platform: platformObjId, commissionType}).lean();
             proms.push(prom);
         }
@@ -1227,7 +1229,7 @@ async function getMainCommConfig (partnerObjId, platformObjId, commissionType, i
 
         if (!defConfig || !defConfig.commissionSetting || !defConfig.commissionSetting.length) {
             // use default to replace
-            let curProvider = defConfig.provider;
+            let curProvider = promsGroupObjIdOrder[i];
             defConfig = JSON.parse(JSON.stringify(defProviderDefConfig));
             defConfig.provider = curProvider;
         }
