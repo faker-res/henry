@@ -9096,6 +9096,11 @@ let dbPlayerInfo = {
         ).then(
             rewardEventList => {
                 rewardList = rewardEventList;
+                // to handle old data without registrationInterface; set to WEB
+                if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){
+                    playerDetail.registrationInterface = 1 // WEB
+                }
+
                 if (playerObjId && playerDetail && playerDetail.hasOwnProperty('registrationInterface')) {
                     let checkVisibleArr = [];
                     //check homePopupShow, rewardEntryShow, and rewardListShow for each reward event
@@ -9144,12 +9149,17 @@ let dbPlayerInfo = {
             }
             switch (playerDetail.registrationInterface) {
                 case 1:
+                case 2:
                     device = "web";
                     break;
                 case 3:
+                case 4:
                     device = 'h5';
                     break;
                 case 5:
+                case 6:
+                case 7:
+                case 8:
                     device = 'app';
                     break;
                 default:
