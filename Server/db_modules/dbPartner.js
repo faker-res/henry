@@ -10271,7 +10271,7 @@ let dbPartner = {
         }
 
         let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: parent.platform}, {providerGroupId: 1, name: 1}).lean();
-        let parentCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(parent._id, parent.commissionType, false, true);
+        let parentCommConfigProm = dbPartnerCommissionConfig.getPartnerCommConfig(parent._id, parent.commissionType);
 
         let [providerGroups, parentCommConfig] = await Promise.all([providerGroupProm, parentCommConfigProm]);
 
