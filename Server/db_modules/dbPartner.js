@@ -10236,7 +10236,7 @@ let dbPartner = {
         })
     },
 
-    createDownLinePartner: async function (parentId, account, password, commissionRate) {
+    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber) {
         let parent = await dbconfig.collection_partner.findOne({partnerId: parentId}).lean();
         if (!parent) {
             return Promise.reject({message: "Partner not found"});
@@ -10360,8 +10360,9 @@ let dbPartner = {
             platform: parent.platform,
             commissionType: parent.commissionType,
             parent: parent._id,
+            phoneNumber: phoneNumber,
             depthInTree: parent.depthInTree++,
-        }, true);
+        });
 
         if (!newPartner || !newPartner._id) {
             // usually it wont come here
