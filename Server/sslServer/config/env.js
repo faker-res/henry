@@ -13,14 +13,16 @@ var envConf = {
         redisUrl : 'http://localhost',
         redisPort : '1802',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
-        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair',
+        instanceNo: 1
     },
     local_2: {
         mode: "local",
         redisUrl : 'http://localhost',
         redisPort : '1804',
         socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
-        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair'
+        fpmsUpdateKeyAddress: 'http://localhost:7100/updateKeyPair',
+        instanceNo: 2
     },
 
     // Development
@@ -71,24 +73,28 @@ var env = {
 
     getAnotherConfig: function () {
         let selfMode = this.config().mode;
-        let selfUrl = this.config().redisUrl;
-        let selfPort = this.config().redisPort;
+        let selfInstance = this.config().instanceNo;
+        let nextInstance = selfInstance + 1;
 
-        return Object.keys(envConf).filter(isTheOtherConfig).map(o => envConf[o]);
+        // Find next instance available, else get first instance
+        let nextConfig = Object.keys(envConf).filter(getNextInstance).map(o => envConf[o]);
 
-        function isTheOtherConfig (o) {
-            if (
-                envConf[o].mode === selfMode
+        if (nextConfig && nextConfig[0]) {
+            return nextConfig;
+        } else {
+            return Object.keys(envConf).filter(getFirstInstance).map(o => envConf[o]);
+        }
+
+        function getNextInstance (o) {
+            return envConf[o].mode === selfMode
                 && envConf[o].isGateway !== true
-            ) {
-                if (envConf[o].redisUrl === selfUrl && envConf[o].redisPort !== selfPort) {
-                    return true;
-                }
+                && envConf[o].instanceNo === nextInstance
+        }
 
-                if (envConf[o].redisPort === selfPort && envConf[o].redisUrl !== selfUrl) {
-                    return true;
-                }
-            }
+        function getFirstInstance (o) {
+            return envConf[o].mode === selfMode
+                && envConf[o].isGateway !== true
+                && envConf[o].instanceNo === 1
         }
     },
 
