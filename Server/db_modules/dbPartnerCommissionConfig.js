@@ -768,7 +768,7 @@ const dbPartnerCommissionConfig = {
                 }
             }
         } else {
-            partnerCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(chosenPartnerObj._id, chosenPartnerObj.commissionType, true);
+            partnerCommConfig = await dbPartnerCommissionConfig.getPartnerCommConfig(chosenPartnerObj._id, chosenPartnerObj.commissionType);
         }
 
         partnerCommConfig = partnerCommConfig.map(config => {
