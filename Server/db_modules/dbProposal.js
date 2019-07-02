@@ -8377,7 +8377,7 @@ var proposal = {
     },
 
     calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8386,7 +8386,8 @@ var proposal = {
                             $gte: startDate,
                             $lt: endDate
                         },
-                        playerId: {$in: playerObjIds}
+                        playerId: {$in: playerObjIds},
+                        isDuplicate: {$ne: true}
                     };
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate(
