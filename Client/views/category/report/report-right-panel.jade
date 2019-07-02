@@ -207,6 +207,10 @@
             //提供商报表
             #operationReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.queryOperation.platformId' ng-change='vm.getPlatformProvider(vm.queryOperation.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"Provider"|translate}}
                     select.form-control(ng-model='vm.queryOperation.providerId', required)
                         option(value="all") {{'all' | translate}}
@@ -249,6 +253,10 @@
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.playerExpenseQuery.platformId' ng-change='vm.getPlatformProvider(vm.playerExpenseQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"Player ID"|translate}}
                     input.form-control(type="text", ng-model="vm.playerExpenseQuery.playerId")
                 .search-filters-item
@@ -280,6 +288,10 @@
 
         div(ng-if='vm.showPageName=="PLAYER_REPORT"')
             .col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.playerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
@@ -401,6 +413,10 @@
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
             .col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.depositAnalysisQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.depositAnalysisQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control(ng-model="vm.depositAnalysisQuery.name")
                 .search-filters-item
@@ -457,11 +473,12 @@
                 table.simple-table(id="playerDepositAnalysisExcelReportTable{{$index}}" style='width:auto; min-width:99.9%;')
                     thead
                         tr
-                            th(colspan=8) {{'FULFIL' | translate}} {{pda.day | translate}}/{{vm.playerDepositAnalysisDays| translate}} {{'DAYS' | translate}}
+                            th(colspan=9) {{'FULFIL' | translate}} {{pda.day | translate}}/{{vm.playerDepositAnalysisDays| translate}} {{'DAYS' | translate}}
                             th(colspan=3) {{'Total' | translate}}
                             th {{'ACTION_BUTTON' | translate}}
                         tr
                             th {{'ORDER' | translate}}
+                            th {{'PRODUCT_NAME' | translate}}
                             th {{'PLAYERNAME' | translate}}
                             th {{'realName' | translate}}
                             th {{'PlayerValue' | translate}}
@@ -476,6 +493,7 @@
                     tbody
                         tr(ng-repeat='playerData in pda.playerData track by $index')
                             td {{$index+1}}
+                            td {{playerData.platform$}}
                             td(ng-class='playerData.isDepositTracked ? "yellow-background" : ""')
                                 a(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupModifyTable', ng-click="vm.selectedDepositTrackingGroupPlayerId = playerData._id; vm.modifyDepositTrackingGroupResult = ''; vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
                             td {{playerData.realName}}
@@ -494,6 +512,10 @@
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_TRACKING_REPORT"')
             #depositTrackingReport.col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.depositTrackingQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.depositTrackingQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.depositTrackingQuery.name")
@@ -526,6 +548,7 @@
                     thead
                         tr
                             th {{'ORDER' | translate}}
+                            th {{'PRODUCT_NAME' | translate}}
                             th {{'TRACKING_GROUP' | translate}}
                             th {{'PLAYERNAME' | translate}}
                             th {{'realName' | translate}}
@@ -552,6 +575,7 @@
                     tbody
                         tr(ng-repeat="playerData in vm.playerDepositTracking track by $index" ng-if="vm.playerDepositTracking.length > 0")
                             td {{$index+1}}
+                            td {{playerData.platform$}}
                             td
                                 a(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupModifyTable', ng-click="vm.selectedDepositTrackingGroupPlayerId = playerData._id; vm.modifyDepositTrackingGroupResult = '';") {{playerData.depositTrackingGroupName}}
                             td {{playerData.name}}
@@ -580,6 +604,10 @@
 
         div(ng-if='vm.showPageName=="NEWACCOUNT_REPORT"')
             #newPlayerReportQuery.col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.newPlayerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.newPlayerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime
@@ -611,6 +639,7 @@
                 table.playerLvlTable#newAccountTable.widthto100
                     thead
                         tr
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
@@ -618,6 +647,8 @@
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                     tbody
                         tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.promoteWaySort | filter: vm.filterNoNewAccountPromoteWay')
+                            td
+                                span {{v.platform$}}
                             td
                                 span {{v.promoteWayName}}
                             td
@@ -629,6 +660,8 @@
                             td
                                 span {{v.validPlayer}}
                         tr
+                            td
+                                span
                             td
                                 span {{ "total" | translate}}
                             td
@@ -651,11 +684,14 @@
                             table.playerLvlTable#validPlayerPromoteWay.widthto100
                                 thead
                                     tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayer')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName') {{v.promoteWayName}}
                                         td
@@ -663,6 +699,8 @@
                                         td
                                             span {{v.ratio}}%
                                     tr
+                                        td
+
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData); vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
                                         td
@@ -676,6 +714,7 @@
                             table.common-table.playerLvlTable#validPlayerPromoteWayDetails
                                 thead
                                     tr
+                                        th {{ "PRODUCT_NAME" | translate}}
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                         th {{ "realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
@@ -696,6 +735,8 @@
                                         th {{ "partner" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerPromoteWayTable')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             span {{v.name}}
                                         td
@@ -747,11 +788,14 @@
                             table.playerLvlTable#validPlayerCSOfficer.widthto100
                                 thead
                                     tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Create Account Cs Name" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.csAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerCsAnalysisGraphSort | filter: vm.filterNoValidPlayer')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphCsAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
@@ -759,6 +803,7 @@
                                         td
                                             span {{v.ratio}}%
                                     tr
+                                        td
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphCsAnalysis = null') {{ "total" | translate}}
                                         td
@@ -772,6 +817,7 @@
                             table.common-table.playerLvlTable#validPlayerCSOfficerDetails
                                 thead
                                     tr
+                                        th {{ "PRODUCT_NAME" | translate}}
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                         th {{ "realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
@@ -792,6 +838,8 @@
                                         th {{ "partner" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerCsAnalysisTable')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             span {{v.name}}
                                         td
@@ -843,6 +891,7 @@
                             table.playerLvlTable#validPlayerPartner.widthto100
                                 thead
                                     tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"partner" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
@@ -851,6 +900,8 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.partnerAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort | filter: vm.filterNoNewPlayer')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
@@ -864,6 +915,7 @@
                                         td
                                             span {{ v.ratio }}%
                                     tr
+                                        td
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = null') {{ "total" | translate}}
                                         td
@@ -883,6 +935,7 @@
                             table.common-table.playerLvlTable#validPlayerPartnerDetails
                                 thead
                                     tr
+                                        th {{ "PRODUCT_NAME" | translate}}
                                         th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                         th {{ "realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
@@ -903,6 +956,8 @@
                                         th {{ "partner" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerPartnerAnalysisTable')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             span {{v.name}}
                                         td
@@ -954,6 +1009,7 @@
                             table.playerLvlTable#validPlayerDomain.widthto100
                                 thead
                                     tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Registration Domain" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
@@ -962,6 +1018,8 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.domainAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerDomainGraphSort | filter: vm.filterNoNewPlayer')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
@@ -975,6 +1033,7 @@
                                         td
                                             span {{ v.ratio }}%
                                     tr
+                                        td
                                         td
                                             a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = null') {{ "total" | translate}}
                                         td
@@ -994,6 +1053,7 @@
                             table.common-table.playerLvlTable#validPlayerDomainDetails
                                 thead
                                     tr
+                                        th {{"PRODUCT_NAME" | translate}}
                                         th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
                                         th {{"realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
@@ -1014,6 +1074,8 @@
                                         th {{ "partner" | translate}}
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerDomainAnalysisTable')
+                                        td
+                                            span {{v.platform$}}
                                         td
                                             span {{v.name}}
                                         td
@@ -1085,6 +1147,10 @@
 
         div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.dxNewPlayerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.dxNewPlayerQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
                     label {{"USER TYPE"|translate}}
                     select.form-control(ng-model='vm.dxNewPlayerQuery.userType')

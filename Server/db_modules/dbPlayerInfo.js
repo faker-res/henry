@@ -2386,6 +2386,11 @@ let dbPlayerInfo = {
                     data.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
 
+                // to handle old data that without registrationInterface
+                if (!data.hasOwnProperty('registrationInterface') ){
+                    data.registrationInterface = 1; // web
+                }
+
                 // if there is guestDeviceId, the registrationInterface has to be APP
                 if (data.guestDeviceId){
                     data.registrationInterface = 5;
@@ -5752,6 +5757,8 @@ let dbPlayerInfo = {
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
+                                    playerData[ind].totalCredit = playerData[ind].validCredit + playerData[ind].lockedCredit;
+
                                     if (isProviderGroup) {
                                         newInfo = getRewardGroupData(playerData[ind]);
                                     } else {
@@ -9089,6 +9096,11 @@ let dbPlayerInfo = {
         ).then(
             rewardEventList => {
                 rewardList = rewardEventList;
+                // to handle old data without registrationInterface; set to WEB
+                if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){
+                    playerDetail.registrationInterface = 1 // WEB
+                }
+
                 if (playerObjId && playerDetail && playerDetail.hasOwnProperty('registrationInterface')) {
                     let checkVisibleArr = [];
                     //check homePopupShow, rewardEntryShow, and rewardListShow for each reward event
@@ -9137,12 +9149,17 @@ let dbPlayerInfo = {
             }
             switch (playerDetail.registrationInterface) {
                 case 1:
+                case 2:
                     device = "web";
                     break;
                 case 3:
+                case 4:
                     device = 'h5';
                     break;
                 case 5:
+                case 6:
+                case 7:
+                case 8:
                     device = 'app';
                     break;
                 default:
@@ -11434,7 +11451,7 @@ let dbPlayerInfo = {
 
         let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
             + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
-            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform';
 
         let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -14549,7 +14566,9 @@ let dbPlayerInfo = {
                                         providerData.providerId == "51"
                                         || providerData.providerId == "57" // ISBSLOTS
                                         || providerData.providerId == "41"
+                                        || providerData.providerId == "56" // EBET
                                         || providerData.providerId == "70"
+                                        || providerData.providerId == "72" // EBETSLOTS
                                         || providerData.providerId == "82" // IG
                                         || providerData.providerId == "83"
                                         || providerData.providerId == "86" // SABA
@@ -17985,6 +18004,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platform;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -18697,7 +18721,8 @@ let dbPlayerInfo = {
                             platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
-                            valueScore: 1
+                            valueScore: 1,
+                            platform: 1
                         };
 
                         return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
@@ -18715,6 +18740,7 @@ let dbPlayerInfo = {
                                     let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
 
                                     if(indexNo > -1){
+                                        playerReportSummaryData[indexNo].platform = player.platform || "";
                                         playerReportSummaryData[indexNo].name = player.name || "";
                                         playerReportSummaryData[indexNo].city = player.city || "";
                                         playerReportSummaryData[indexNo].province = player.province || "";
@@ -18949,6 +18975,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -19371,6 +19402,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -20229,6 +20265,11 @@ let dbPlayerInfo = {
                             });
                         },
                         processResponse: function (record) {
+                            if(record && record.data) {
+                                record.data.forEach(item => {
+                                    item.platform = platform;
+                                })
+                            }
                             result = result.concat(record.data);
                         }
                     }

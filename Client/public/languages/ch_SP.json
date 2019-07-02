@@ -176,6 +176,7 @@
   "CONFIRM TO DELETE?": "请确认是否删除？",
   "MOVE_TO_ANOTHER_GROUP": "移到他组",
   "MAIN_PERMISSION_DISABLE": "主权限禁用",
+  "SECONDARY_PERMISSION_DISABLE": "次权限禁用",
   "Delete reward events in the group?": "一并删除组内优惠？",
   "Delete group only, reward events will move to default group?": "只删除组别，优惠移动到默认组别？",
   "This group still contain reward events, which of the following operations do you want to do?": "该组内仍有优惠，请问要进行下列哪项操作？",

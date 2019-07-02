@@ -3713,6 +3713,26 @@ let dbPlayerReward = {
 
     },
 
+    checkPlayerForbidPromoCodeList: (platformObjId, playerName, promoCodeTypeObjId) => {
+        if (platformObjId && playerName && promoCodeTypeObjId)  {
+            return dbConfig.collection_players.findOne({platform: ObjectId(platformObjId), name: playerName, forbidPromoCodeList: {$all: promoCodeTypeObjId}}, {_id: 1}).then(
+                player => {
+                    if (!player){
+                        return false
+                    }
+
+                    return true
+                }
+            )
+        }
+        else{
+            return Promise.reject({
+                name: "DataError",
+                message: "Missing required param"
+            })
+        }
+    },
+
     // check the availability of promoCodeType
     checkPromoCodeTypeAvailability: (platformObjId, promoCodeTypeObjId) => {
         return expirePromoCode().then(() => {
@@ -3939,12 +3959,12 @@ let dbPlayerReward = {
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
-            })
+            }).lean();
         }).then(
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj.permission && !playerObj.permission.allowPromoCode) {
+                if (playerObj && playerObj.permission && playerObj.permission.hasOwnProperty('allowPromoCode') && playerObj.permission.allowPromoCode === false) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -3970,7 +3990,7 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            promoCodeObjs => {
+            async promoCodeObjs => {
                 if (promoCodeObjs && promoCodeObjs.length > 0) {
                     promoCodeObjs.some(e => {
                         if (e.code == promoCode) {
@@ -3981,13 +4001,15 @@ let dbPlayerReward = {
                         }
                     });
 
-                    if (!promoCodeObj) {
+                    if (!promoCodeObj || (promoCodeObj && !promoCodeObj.promoCodeTypeObjId)) {
                         return Q.reject({
                             status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                             name: "ConditionError",
                             message: "Wrong promo code has entered"
                         })
                     }
+
+                    await dbPlayerReward.checkIsInForbidList(promoCodeObj.promoCodeTypeObjId._id, playerObj);
 
                     if (!promoCodeObj.minTopUpAmount) {
                         isType2Promo = true;
@@ -4237,12 +4259,13 @@ let dbPlayerReward = {
         return expirePromoCode(true).then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
-            })
+            }).lean();
         }).then(
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                if (playerObj && playerObj.permission && !playerObj.permission.allowPromoCode) {
+
+                if (playerObj && playerObj.permission && playerObj.permission.hasOwnProperty('allowPromoCode') && playerObj.permission.allowPromoCode === false) {
                     return Q.reject({name: "DataError", message: "Player does not have this permission"});
                 }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
@@ -4260,10 +4283,11 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            promoCodeObjs => {
+            async promoCodeObjs => {
                 if (promoCodeObjs && promoCodeObjs.length != 0) {
                     // if there is valid openPromoCode, check proposal
                     promoCodeObj = promoCodeObjs[0];
+                    await dbPlayerReward.checkIsInForbidList(promoCodeObj._id, playerObj);
 
                     return dbConfig.collection_proposalType.findOne({
                         platformId: platformObjId,
@@ -4564,6 +4588,15 @@ let dbPlayerReward = {
             }
             throw err;
         })
+    },
+
+    checkIsInForbidList: (templateObjId, playerObj) => {
+        if (playerObj && playerObj.forbidPromoCodeList && playerObj.forbidPromoCodeList.length && templateObjId && playerObj.forbidPromoCodeList.map(p => {return p.toString()}).includes(templateObjId.toString())){
+            return Promise.reject({
+                name: "SystemError",
+                message: "The requirement is not fulfilled"
+            })
+        }
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeTypeName, isTypeCPromo, index, limit) => {
@@ -7878,7 +7911,7 @@ let dbPlayerReward = {
                         // check if the player is first time and if there is pre-set reward for first time player
                         console.log("checking applyRewardTimes", [playerData.name, applyRewardTimes])
                         if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
-                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && !playerData.permission.allowPromoCode) {
+                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false) {
                                 selectedRewardParam = selectedRewardParam.filter( p => p.rewardType != 2 && p.rewardType != 3 && p.rewardType != 4 && Number.isFinite(p.possibility))
                             }
                             else{
@@ -7900,7 +7933,7 @@ let dbPlayerReward = {
                         }
 
                         // check if the obtained pre-set reward is promoCode and if the player is forbidden from applying promo code
-                        if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && !playerData.permission.allowPromoCode){
+                        if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
                             selectedReward = null;
                         }
 
@@ -7993,7 +8026,7 @@ let dbPlayerReward = {
                                 selectedRewardParam = selectedRewardParam.filter( p => rewardNameListInInterval.indexOf(p.title) == -1)
                             }
 
-                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && !playerData.permission.allowPromoCode){
+                            if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
                                 selectedRewardParam = selectedRewardParam.filter( p => p.rewardType != 2 && p.rewardType != 3 && p.rewardType != 4)
                             }
 
