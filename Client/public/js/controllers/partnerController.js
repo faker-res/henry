@@ -1001,7 +1001,8 @@ define(['js/app'], function (myApp) {
                 }
             );
 
-            getAllPartnerCommSettPreview();
+            // getAllPartnerCommSettPreview();
+            vm.refreshAllPartnerCommSettPreview();
         };
 
         vm.generatePartnerCommSettPreview = (modeObj) => {
@@ -18237,6 +18238,31 @@ define(['js/app'], function (myApp) {
 
 
         // endregion report
+
+        // region settlement
+        vm.getPlatformInSettlement = () => {
+            if (vm.settlePlatform) {
+                let selectedPlatform = vm.platformList.find(platformData => {
+                    return platformData && platformData.data && platformData.data.platformId && (vm.settlePlatform == platformData.data.platformId);
+                });
+                vm.platformInSettlementTab = selectedPlatform.data;
+                commonService.getAllPartnerCommSettPreview($scope, vm.platformInSettlementTab._id).catch(err => Promise.resolve([])).then(data => {
+                    vm.allPartnerCommSettPreview = data;
+                    $scope.$evalAsync();
+                });
+
+                vm.getConfigData();
+            }
+        };
+
+        vm.refreshAllPartnerCommSettPreview = () => {
+            if (!vm.platformInSettlementTab || !vm.platformInSettlementTab._id) return;
+            commonService.getAllPartnerCommSettPreview($scope, vm.platformInSettlementTab._id).catch(err => Promise.resolve([])).then(data => {
+                vm.allPartnerCommSettPreview = data;
+                $scope.$evalAsync();
+            });
+        };
+        // endregion settlement
 
         vm.debugCommCalc = function (partnerObjId, startTime, endTime) {
             socketService.$socket($scope.AppSocket, 'debugCommCalc', {partnerObjId, startTime, endTime}, function (data) {
