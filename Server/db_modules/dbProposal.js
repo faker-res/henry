@@ -3513,6 +3513,70 @@ var proposal = {
         let promoCodeProposalQuery = {
             name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
         };
+        let groupObj = {
+            _id: null,
+            players: {$addToSet: "$data.playerName"},
+            totalAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.amount", NaN]},
+                        0,
+                        "$data.amount"
+                    ]
+                }
+            },
+            totalRewardAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.rewardAmount", NaN]},
+                        0,
+                        "$data.rewardAmount"
+                    ]
+                }
+            },
+            totalTopUpAmount: {
+                $sum: {
+                    $cond: [
+                        {$or: [
+                                {$eq: ["$data.topUpAmount", NaN]},
+                                {$setIsSubset: [
+                                        ["$type"],
+                                        playerPromoCodeRewardObjId
+                                    ]}
+                            ]},
+                        0,
+                        "$data.topUpAmount"
+                    ]
+                }
+            },
+            totalUpdateAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.updateAmount", NaN]},
+                        0,
+                        "$data.updateAmount"
+                    ]
+                }
+            },
+            totalNegativeProfitAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.negativeProfitAmount", NaN]},
+                        0,
+                        "$data.negativeProfitAmount"
+                    ]
+                }
+            },
+            totalCommissionAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.commissionAmount", NaN]},
+                        0,
+                        "$data.commissionAmount"
+                    ]
+                }
+            },
+        };
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -3637,38 +3701,7 @@ var proposal = {
                                     $match: queryData
                                 },
                                 {
-                                    $group: {
-                                        _id: null,
-                                        totalAmount: {$sum: "$data.amount"},
-                                        totalRewardAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.rewardAmount", NaN]},
-                                                    0,
-                                                    "$data.rewardAmount"
-                                                ]
-                                            }
-                                        },
-                                        // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                        totalTopUpAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$or: [
-                                                            {$eq: ["$data.topUpAmount", NaN]},
-                                                            {$setIsSubset: [
-                                                                ["$type"],
-                                                                playerPromoCodeRewardObjId
-                                                            ]}
-                                                        ]},
-                                                    0,
-                                                    "$data.topUpAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalUpdateAmount: {$sum: "$data.updateAmount"},
-                                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
-                                    }
+                                    $group: groupObj
                                 }
                             ]).read("secondaryPreferred");
                         }
@@ -3802,70 +3835,7 @@ var proposal = {
                                     $match: reqData
                                 },
                                 {
-                                    $group: {
-                                        _id: null,
-                                        players: {$addToSet: "$data.playerName"},
-                                        totalAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.amount", NaN]},
-                                                    0,
-                                                    "$data.amount"
-                                                ]
-                                            }
-                                        },
-                                        totalRewardAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.rewardAmount", NaN]},
-                                                    0,
-                                                    "$data.rewardAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalTopUpAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$or: [
-                                                        {$eq: ["$data.topUpAmount", NaN]},
-                                                        {$setIsSubset: [
-                                                            ["$type"],
-                                                            playerPromoCodeRewardObjId
-                                                        ]}
-                                                    ]},
-                                                    0,
-                                                    "$data.topUpAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalUpdateAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.updateAmount", NaN]},
-                                                    0,
-                                                    "$data.updateAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalNegativeProfitAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.negativeProfitAmount", NaN]},
-                                                    0,
-                                                    "$data.negativeProfitAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalCommissionAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.commissionAmount", NaN]},
-                                                    0,
-                                                    "$data.commissionAmount"
-                                                ]
-                                            }
-                                        },
-                                    }
+                                    $group: groupObj
                                 }
                             ]).read("secondaryPreferred");
                         }
