@@ -4992,7 +4992,6 @@ define(['js/app'], function (myApp) {
                         day.playerData.forEach(player => {
                             drawData.forEach(data => {
                                 if (player._id.toString() === data._id.toString()) {
-                                    player.platform$ = data.platform$;
                                     player.credibility$ = data.credibility$;
                                     player.playerLevel$ = data.playerLevel$;
                                     player.provider$ = data.provider$;
@@ -5355,9 +5354,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     if (data.success && data.data) {
                         vm.modifyDepositTrackingGroupResult = 'SUCCESS';
-                        if(vm.showPageName == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
-                            vm.searchPlayerDepositTrackingReport();
-                        }
+                        vm.searchPlayerDepositTrackingReport();
                         vm.selectedDepositTrackingGroup = '';
                     } else {
                         vm.modifyDepositTrackingGroupResult = 'FAIL';
@@ -5398,7 +5395,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerDepositTrackingDailyDetails = function(date) {
             let sendData = {
-                platform: vm.depositTrackingQuery.platformId,
+                platform: vm.curPlatformId,
                 playerId: vm.depositTrackingMonthlyDetails.playerId,
                 date: date
             };
