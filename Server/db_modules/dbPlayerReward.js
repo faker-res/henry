@@ -5920,8 +5920,6 @@ let dbPlayerReward = {
         let topupMatchQuery = setupTopupMatchQuery(eventData, playerData, intervalTime);
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = setupEventQuery(eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime);
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
         // Get top up count in interval period
         let topupInPeriodData = await dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         // Check top up count is sufficient for reward application
@@ -6242,6 +6240,11 @@ let dbPlayerReward = {
                 if (!isQualifyThisLevel) {
                     return Q.reject({name: "DataError", message: localization.localization.translate("Player not qualify of next level reward")});
                 }
+            }
+
+            // if that's a birthday event and this player didnt set his birthday in profile
+            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
+                return Q.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
             }
 
             let festivalDate = getFestivalItem (selectedRewardParam, playerData.DOB, eventData);
