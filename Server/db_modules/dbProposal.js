@@ -1067,7 +1067,6 @@ var proposal = {
                         }
 
                         // Some extra data
-                        addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                         addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
                         addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
@@ -1094,6 +1093,10 @@ var proposal = {
                         addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
                         addDetailToProp(updObj.data, 'name', callbackData.name);
                         addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+
+                        if (callbackData.remark) {
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                        }
 
                         // Add playername if cancelled
                         if (status === constProposalStatus.CANCEL && (proposalObj.data && !proposalObj.data.cancelBy)) {
@@ -3718,6 +3721,7 @@ var proposal = {
             let searchQuery = {
                 name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+
             if(reqData.platformList && reqData.platformList.length > 0) {
                 searchQuery.platformId = platformListQuery;
             }
@@ -3736,9 +3740,11 @@ var proposal = {
                 let query = {
                     name: reqData.type
                 };
-                if(reqData.platformList && reqData.platformList.length > 0) {
+
+                if (reqData.platformList && reqData.platformList.length > 0) {
                     query.platformId = platformListQuery;
                 }
+
                 return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
             }).then(
                 (selectedProposalTypeList) => {
@@ -3775,6 +3781,8 @@ var proposal = {
                         reqData["$and"].push({$or: orQuery});
                     }
 
+                    console.log('proposal report query data', reqData);
+
                     a = dbconfig.collection_proposal.find(reqData).lean().count();
                     b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -3794,6 +3802,7 @@ var proposal = {
                                 {
                                     $group: {
                                         _id: null,
+                                        players: {$addToSet: "$data.playerName"},
                                         totalAmount: {
                                             $sum: {
                                                 $cond: [
@@ -3860,16 +3869,18 @@ var proposal = {
                         }
                     );
 
-                    d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
-
-                    return Promise.all([a, b, c, d])
+                    return Promise.all([a, b, c])
                 }
             ).then(
                 data => {
+                    console.log('proposal report prom done');
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
-                    totalPlayer = data[3] && data[3].length || 0;
+                    totalPlayer = summary && summary.players && summary.players.length || 0;
+
+                    // Remove the players set from the rest of function
+                    delete summary.players;
 
                     return resultArray;
                 },
@@ -3882,6 +3893,47 @@ var proposal = {
                 }
             );
         }
+
+        return prom.then(
+            function (data) {
+                data = resultArray;
+
+                if (data && data.length > 0) {
+                    removeRemarksContainPhoneAndAddress(data);
+
+                    let total = 0;
+
+                    if (summary[0]) {
+                        total += summary[0].totalAmount;
+                        total += summary[0].totalRewardAmount;
+                        total += summary[0].totalTopUpAmount;
+                        total += summary[0].totalUpdateAmount;
+                        total += summary[0].totalNegativeProfitAmount;
+                        total += summary[0].totalCommissionAmount;
+                    }
+                    total = dbutility.decimalAdjust("floor", total, -2);
+
+                    if (isExport) {
+                        return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
+                    } else {
+                        return {
+                            size: totalSize,
+                            totalPlayer: totalPlayer,
+                            data: resultArray,
+                            summary: {amount: total}, //parseFloat(total).toFixed(2)
+                        };
+                    }
+                }
+
+            },
+            function (error) {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error in getting proposals in the selected platform.",
+                    error: error
+                })
+            }
+        );
 
         // specially made for proposal Player Minus Reward Points only - requested by Yuki
         // remove proposal remark that contains player phone number and address
@@ -3914,75 +3966,6 @@ var proposal = {
                 })
             }
         }
-
-        return prom.then(
-            function (data) {
-                data = resultArray;
-                let allProm = [];
-                if (data && data.length > 0) {
-                    removeRemarksContainPhoneAndAddress(data);
-                    for (var i in data) {
-                        if (data[i].data.playerId || data[i].data.playerId) {
-                            try {
-                                if (ObjectId(data[i].data.playerId)) {
-                                }
-                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}).lean());
-                            }
-                            catch (err) {
-                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}).lean());
-                            }
-                        } else {
-                            allProm.push({playerId: 'NA'});
-                        }
-                    }
-                }
-                return Promise.all(allProm);
-            },
-            function (error) {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in getting proposals in the selected platform.",
-                    error: error
-                })
-            }
-        ).then(
-            function (playerData) {
-                for (let i in playerData) {
-                    if (playerData[i] && playerData[i].playerId) {
-                        resultArray[i].data.playerShortId = playerData[i].playerId
-                    }
-                }
-                let total = 0;
-
-                if (summary[0]) {
-                    total += summary[0].totalAmount;
-                    total += summary[0].totalRewardAmount;
-                    total += summary[0].totalTopUpAmount;
-                    total += summary[0].totalUpdateAmount;
-                    total += summary[0].totalNegativeProfitAmount;
-                    total += summary[0].totalCommissionAmount;
-                }
-                total = dbutility.decimalAdjust("floor", total, -2);
-
-                if (isExport) {
-                    return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
-                } else {
-                    return {
-                        size: totalSize,
-                        totalPlayer: totalPlayer,
-                        data: resultArray,
-                        summary: {amount: total}, //parseFloat(total).toFixed(2)
-                    };
-                }
-            },
-            function (error) {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in getting player ID information.",
-                    error: error
-                })
-            }
-        );
     },
 
     getFinancialReportByDay: function (reqData) {

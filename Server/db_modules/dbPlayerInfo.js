@@ -3707,13 +3707,25 @@ let dbPlayerInfo = {
     },
 
     updatePlayerForbidPaymentType: (query, forbidTopUpTypes) => {
-        return dbconfig.collection_players.findOne(query).lean().then(playerData => {
+        return dbconfig.collection_players.findOne(query)
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(playerData => {
             if (playerData) {
                 return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerData._id, platform: playerData.platform},
+                    {_id: playerData._id, platform: playerData.platform._id},
                     {forbidTopUpType: forbidTopUpTypes},
                     {new: true}
-                ).lean();
+                ).lean().then(
+                    data => {
+                        return updatePlayerForbidPaymentTypeToPMS(playerData.name, playerData.platform.platformId, forbidTopUpTypes).then(
+                            apiRes => {
+                                return data;
+                            },
+                            error => {
+                                return data;
+                            }
+                        )
+                    }
+                );
             }
 
             return Promise.reject({
@@ -3721,6 +3733,17 @@ let dbPlayerInfo = {
                 message: "Invalid player data"
             });
         });
+
+        function updatePlayerForbidPaymentTypeToPMS (playerName, platformId, forbidTopUpTypes) {
+            let sendData = {
+                timestamp: Date.now(),
+                platformId: platformId,
+                username: playerName,
+                topupOnlineMethods: forbidTopUpTypes.map(item => Number(item))
+            };
+
+            return RESTUtils.getPMS2Services("patchSubTopupTypePermission", sendData);
+        }
     },
 
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
@@ -3728,10 +3751,12 @@ let dbPlayerInfo = {
         let playerNames = query.playerNames;
         let addList = forbidTopUpTypes.addList;
         let removeList = forbidTopUpTypes.removeList;
+        let pmsData = [];
 
         playerNames.forEach(name => {
             let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
                 .then(data => {
                     let playerForbidTopupType = data.forbidTopUpType.filter(item => {
                         return item != "undefined"
@@ -3740,15 +3765,58 @@ let dbPlayerInfo = {
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidTopUpType = [];
                     }
+
+                    let sendData = {
+                        timestamp: Date.now(),
+                        platformId: data.platform.platformId,
+                        username: data.name,
+                        topupOnlineMethods: updateData.forbidTopUpType.map(item => Number(item))
+                    };
+
+                    pmsData.push(sendData);
+
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         name: name,
                         platform: query.platformObjId
                     }, updateData, constShardKeys.collection_players);
                 });
-            proms.push(prom)
+            proms.push(prom);
         });
 
-        return Promise.all(proms);
+        return Promise.all(proms).then(
+            data => {
+                if (pmsData && pmsData.length > 0) {
+                    return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", pmsData).then(data => {
+                        return data;
+                    }, error => {
+                        return data;
+                    });
+                }
+
+                return data;
+            }
+        );
+    },
+
+    updatePlayerSubTopupTypePermissionToPMS: (platformId, playerObjArr, topUpSystemType) => {
+        let sendObjArr = [];
+
+        playerObjArr.forEach(playerData => {
+            if (playerData && playerData.forbidTopUpType && playerData.forbidTopUpType.length > 0) {
+                let data = {
+                    timestamp: Date.now(),
+                    platformId: platformId,
+                    username: playerData.name,
+                    topupOnlineMethods: playerData.forbidTopUpType.map(item => Number(item))
+                }
+
+                sendObjArr.push(data);
+            }
+        });
+
+        if (sendObjArr.length) {
+            return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", {requests: sendObjArr});
+        }
     },
 
     /**
@@ -11459,7 +11527,7 @@ let dbPlayerInfo = {
 
         let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
             + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
-            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider';
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform';
 
         let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})
@@ -18012,6 +18080,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platform;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -18724,7 +18797,8 @@ let dbPlayerInfo = {
                             platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
-                            valueScore: 1
+                            valueScore: 1,
+                            platform: 1
                         };
 
                         return dbconfig.collection_players.find(playerQuery, playerRequiredFields)
@@ -18742,6 +18816,7 @@ let dbPlayerInfo = {
                                     let indexNo = playerReportSummaryData.findIndex(p => p.playerId.toString() == player._id.toString());
 
                                     if(indexNo > -1){
+                                        playerReportSummaryData[indexNo].platform = player.platform || "";
                                         playerReportSummaryData[indexNo].name = player.name || "";
                                         playerReportSummaryData[indexNo].city = player.city || "";
                                         playerReportSummaryData[indexNo].province = player.province || "";
@@ -18976,6 +19051,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -19398,6 +19478,11 @@ let dbPlayerInfo = {
                                     });
                                 },
                                 processResponse: function (record) {
+                                    if(record && record.data) {
+                                        record.data.forEach(item => {
+                                            item.platform = platformObjId;
+                                        })
+                                    }
                                     result = result.concat(record.data);
                                 }
                             }
@@ -20256,6 +20341,11 @@ let dbPlayerInfo = {
                             });
                         },
                         processResponse: function (record) {
+                            if(record && record.data) {
+                                record.data.forEach(item => {
+                                    item.platform = platform;
+                                })
+                            }
                             result = result.concat(record.data);
                         }
                     }
