@@ -1743,7 +1743,7 @@ define(['js/app'], function (myApp) {
                 depositMethod: vm.queryTopup.depositMethod,
                 bankTypeId: vm.queryTopup.bankTypeId,
                 merchantNo: vm.queryTopup.merchantNo,
-                platformList: vm.queryTopup.platformList,
+                platformList: vm.queryTopup.platformList ? vm.queryTopup.platformList : vm.platformList.map(item => item._id),
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
