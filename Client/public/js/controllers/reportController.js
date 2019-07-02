@@ -4603,12 +4603,9 @@ define(['js/app'], function (myApp) {
         };
 
         vm.reCalculatePlayerReportSummary = function (){
-            if (!vm.playerQuery || !vm.playerQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             $('#loadingPlayerReportTableSpin').show();
             var sendquery = {
-                platformId: vm.playerQuery.platformId,
+                platformId: vm.curPlatformId,
                 start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
                 end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
             };
