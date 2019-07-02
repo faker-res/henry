@@ -2614,6 +2614,21 @@ define(['js/app'], function (myApp) {
                 $.each(vm.platformProviderList, function (i, v) {
                     vm.providerListCheck[v._id] = true;
                 })
+
+                // sort provider name alphabetically
+                let providerNames = [];
+                let sortedProviderList = [];
+                vm.platformProviderList.forEach(provider => providerNames.push(provider.name));
+                providerNames.sort();
+                providerNames.forEach(name => {
+                    vm.platformProviderList.forEach(provider => {
+                        if (name === provider.name) {
+                            sortedProviderList.push(provider);
+                        }
+                    });
+                });
+                vm.sortedPlatformProviderList = sortedProviderList;
+
                 //payment list init
                 vm.platformPaymentChList = data.data.paymentChannels;
                 vm.paymentListCheck = {};
@@ -10098,6 +10113,7 @@ define(['js/app'], function (myApp) {
             if (vm.selectedPlatform.data.useProviderGroup) {
                 vm.creditTransfer.showValidCredit = row.validCredit;
                 vm.creditTransfer.showRewardAmount = row.lockedCredit;
+                vm.creditTransfer.showTotalCredit = row.totalCredit;
             } else {
                 vm.getRewardTask(row._id, function (data) {
                     // Add up amounts from all available reward tasks
@@ -10109,6 +10125,7 @@ define(['js/app'], function (myApp) {
                     }
                     vm.creditTransfer.showRewardAmount = showRewardAmount;
                     vm.creditTransfer.showValidCredit = row.validCredit;
+                    vm.creditTransfer.showTotalCredit = row.totalCredit;
                 });
             }
 
