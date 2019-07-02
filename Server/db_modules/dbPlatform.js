@@ -5467,6 +5467,10 @@ var dbPlatform = {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
+        if (domain){
+            domain = dbUtility.filterDomainName(domain);
+        }
+
         console.log("checking sourceUrl", sourceUrl)
         return dbconfig.collection_platform.findOne({
             platformId: platformId
