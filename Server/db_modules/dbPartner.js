@@ -7147,12 +7147,12 @@ let dbPartner = {
                 }
             });
 
-            let sortKey = sortCol[Object.keys(sortCol)[0]];
+            let sortKey = Object.keys(sortCol)[0];
             retData.sort(function(a,b){
                 if(a[sortKey] < b[sortKey]) {
-                    return sortCol[sortKey];
-                } else if(a[sortKey] > b[sortKey]) {
                     return -sortCol[sortKey];
+                } else if(a[sortKey] > b[sortKey]) {
+                    return sortCol[sortKey];
                 } else {
                     return 0;
                 }
