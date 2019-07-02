@@ -1067,7 +1067,6 @@ var proposal = {
                         }
 
                         // Some extra data
-                        addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                         addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
                         addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
@@ -1094,6 +1093,10 @@ var proposal = {
                         addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
                         addDetailToProp(updObj.data, 'name', callbackData.name);
                         addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+
+                        if (callbackData.remark) {
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                        }
 
                         // Add playername if cancelled
                         if (status === constProposalStatus.CANCEL && (proposalObj.data && !proposalObj.data.cancelBy)) {

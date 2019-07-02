@@ -2187,7 +2187,8 @@ var proposalExecutor = {
                            bankName: player.bankName || "",
                            loginName: player.name || "",
                            applyTime: cTimeString,
-                           clientType: pmsClientType(proposalData.inputDevice)
+                           clientType: pmsClientType(proposalData.inputDevice),
+                           entryType: proposalData.entryType
                         };
 
                        console.log('withdrawAPIAddr player req:', message);
@@ -2298,7 +2299,8 @@ var proposalExecutor = {
                             bankName: partner.bankName || "",
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString,
-                            clientType: pmsClientType(proposalData.inputDevice)
+                            clientType: pmsClientType(proposalData.inputDevice),
+                            entryType: proposalData.entryType
                         };
 
                         console.log('withdrawAPIAddr partner req:', message);
