@@ -596,6 +596,10 @@ define(['js/app'], function (myApp) {
             if (isChange) return serchFunc.call(this);
         }
 
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            commonPageChangeHandler(curP, pageSize, objKey, searchFunc)
+        }
+
         //set selected platform node
         async function selectPlatformNode(platformObj, option, skipResetPartnerTable) {
             vm.selectedPlatform = {
@@ -17642,7 +17646,374 @@ define(['js/app'], function (myApp) {
                     vm.selectedCommissionPeriod = 0;
                     vm.reportSearchTime = 0;
                     break;
+
+                case "PARTNER_SETTLEMENT_HISTORY_REPORT":
+                    vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
+                    vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
+                    vm.partnerSettlementQuery = {};
+                    vm.partnerSettlementQuery.totalCount = 0;
+                    vm.partnerSettlementQuery.commissionType = '';
+                    vm.partnerSettlementQuery.partnerName = '';
+                    vm.reportSearchTime = 0;
+                    let dateTimePickerStartPopup, dateTimePickerEndPopup;
+
+                    let getStartTimePlatformPartnerSettlementStatus = function(callback) {
+                        let refDate = vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate();
+                        refDate = new Date(refDate.setDate(1));
+                        let startDate = refDate.setMonth(
+                            vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryStartDateCurMonthOffset-1);
+                        refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
+                        let endDate = refDate.setDate(refDate.getDate());
+                        vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
+                    };
+                    let styleDateTimePickerStart = function(ev) {
+                        if(ev.target == dateTimePickerStartPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
+                            vm.partnerSettlementQueryStartDateCurMonthOffset--;
+                        }
+                        if(ev.target == dateTimePickerStartPopup.querySelector('.datepicker-days thead .next') && !ev.target.classList.contains('disabled')) {
+                            vm.partnerSettlementQueryStartDateCurMonthOffset++;
+                        }
+                        if(ev.type == "changeDate") {
+                            vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
+                        }
+
+                        setTimeout(function() {
+                            getStartTimePlatformPartnerSettlementStatus(function () {
+                                vm.commonChangeDatePickerStyle(
+                                    vm.partnerSettlementQuery.startTime.data('datetimepicker'),
+                                    {monthOffset: vm.partnerSettlementQueryStartDateCurMonthOffset}
+                                )
+                            })
+                        }, 0);
+                    };
+
+                    let getEndTimePlatformPartnerSettlementStatus = function(callback) {
+                        let refDate = vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate();
+                        refDate = new Date(refDate.setDate(1));
+                        let startDate = refDate.setMonth(
+                            vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryEndDateCurMonthOffset-1);
+                        refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
+                        let endDate = refDate.setDate(refDate.getDate());
+                        vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
+                    };
+                    let styleDateTimePickerEnd = function(ev) {
+                        if(ev.target == dateTimePickerEndPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
+                            vm.partnerSettlementQueryEndDateCurMonthOffset--;
+                        }
+                        if(ev.target == dateTimePickerEndPopup.querySelector('.datepicker-days thead .next') && !ev.target.classList.contains('disabled')) {
+                            vm.partnerSettlementQueryEndDateCurMonthOffset++;
+                        }
+                        if(ev.type == "changeDate") {
+                            vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
+                        }
+
+                        setTimeout(function() {
+                            getEndTimePlatformPartnerSettlementStatus(function(){
+                                vm.commonChangeDatePickerStyle(
+                                    vm.partnerSettlementQuery.endTime.data('datetimepicker'),
+                                    {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
+                                )
+                            });
+                        }, 0);
+                    };
+
+                    utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {
+                        vm.commonInitTime(vm.partnerSettlementQuery, '#partnerSettlementQuery');
+                        vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
+                        });
+
+                        dateTimePickerStartPopup = vm.partnerSettlementQuery.startTime.data('datetimepicker').widget[0];
+                        dateTimePickerStartPopup.querySelector('.datepicker-days thead .prev').addEventListener('click', styleDateTimePickerStart);
+                        dateTimePickerStartPopup.querySelector('.datepicker-days thead .next').addEventListener('click', styleDateTimePickerStart);
+                        vm.partnerSettlementQuery.startTime.on('show', styleDateTimePickerStart);
+                        vm.partnerSettlementQuery.startTime.on('changeDate', styleDateTimePickerStart);
+
+                        dateTimePickerEndPopup = vm.partnerSettlementQuery.endTime.data('datetimepicker').widget[0];
+                        dateTimePickerEndPopup.querySelector('.datepicker-days thead .prev').addEventListener('click', styleDateTimePickerEnd);
+                        dateTimePickerEndPopup.querySelector('.datepicker-days thead .next').addEventListener('click', styleDateTimePickerEnd);
+                        vm.partnerSettlementQuery.endTime.on('show', styleDateTimePickerEnd);
+                        vm.partnerSettlementQuery.endTime.on('changeDate', styleDateTimePickerEnd);
+                    });
+                    $scope.safeApply();
             }
+        }
+
+        vm.getPlatformPartnerSettlementStatus = function(startTime, endTime, callback) {
+            if (!(vm.partnerSettlementQuery && vm.partnerSettlementQuery.platformObjId)) {
+                return;
+            }
+
+            let sendData = {
+                platformObjId: vm.partnerSettlementQuery.platformObjId,
+                commissionType: vm.partnerSettlementQuery.commissionType,
+                startTime: startTime,
+                endTime: endTime
+            };
+            console.log("getPlatformPartnerSettlementStatus sendData", sendData);
+            if(sendData.commissionType) {
+                socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
+                    vm.platformPartnerSettlementStatus = data.data;
+                    callback();
+                });
+            } else {
+                vm.platformPartnerSettlementStatus = [];
+                callback();
+            }
+        };
+        //dtp is dateTimePicker
+        vm.commonChangeDatePickerStyle = function(dtp, options) {
+            let status = vm.platformPartnerSettlementStatus;
+            let monthOffset = options.monthOffset;
+            let daysInMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day:not(.old):not(.new)');
+            let daysInPreviousMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.old');
+            let daysInNextMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.new');
+            let selectedYear = dtp.getLocalDate().getFullYear();
+            let selectedMonth = dtp.getLocalDate().getMonth() + 1;
+            let selectedDate = dtp.getLocalDate().getDate();
+            let curYear = selectedYear;
+            let curMonth = selectedMonth + monthOffset;
+            let displayDate;
+
+            function renderStyle(dayHolder, year, month, date) {
+                let dayStatus = (status[year] && status[year][month]) ? status[year][month][date] : null;
+                switch(dayStatus) {
+                    case $scope.constPartnerCommissionLogStatus.SKIPPED:
+                        dayHolder.style.background = 'grey';
+                        dayHolder.style.textDecoration = 'line-through';
+                        break;
+                    case $scope.constPartnerCommissionLogStatus.EXECUTED:
+                    case $scope.constPartnerCommissionLogStatus.RESET_THEN_EXECUTED:
+                    case $scope.constPartnerCommissionLogStatus.EXECUTED_THEN_RESET:
+                        dayHolder.style.background = 'green';
+                        break;
+                    case $scope.constPartnerCommissionLogStatus.PREVIEW:
+                    default:
+                        dayHolder.style.background = 'white';
+                        dayHolder.style.textDecoration = 'none';
+                        break;
+                }
+
+                dayHolder.style.borderRadius = '0px';
+                if(month == curMonth) {
+                    dayHolder.style.border = '1px solid black';
+                }
+                if(date == selectedDate && month == selectedMonth && year == selectedYear) {
+                    dayHolder.style.borderRadius = '100%';
+                    dayHolder.style.border = '2px solid rgb(51, 122, 183)';
+                    dayHolder.style.color = 'black';
+                    dayHolder.style.fontWeight = 'bold';
+                }
+            }
+
+            function dateAdjustment(date) {
+                if (date.month < 1) {
+                    date.month = 12 + date.month;
+                    date.year--;
+                } else if (date.month > 12) {
+                    date.month = date.month - 12;
+                    date.year++;
+                }
+                return date;
+            }
+
+            displayDate = dateAdjustment({year: curYear, month: curMonth});
+            curYear = displayDate.year;
+            curMonth = displayDate.month;
+            //current month
+            daysInMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            });
+            //previous month
+            displayDate = dateAdjustment({year: curYear, month: curMonth-1});
+            daysInPreviousMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            });
+            //next month
+            displayDate = dateAdjustment({year: curYear, month: curMonth+1});
+            daysInNextMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            })
+        };
+
+        vm.searchPartnerSettlementHistory = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            vm.partnerSettlementQuery.message = '';
+            let loadingSpinner = $('#partnerSettlementTableSpin');
+            let commissionType = vm.partnerSettlementQuery.commissionType;
+            let partnerName = vm.partnerSettlementQuery.partnerName;
+            utilService.getDataTablePageSize("#partnerSettlementTablePage", vm.partnerSettlementQuery, 30);
+            let sendData = {
+                platformObjId: vm.partnerSettlementQuery.platformObjId,
+                startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
+                endTime: new Date(vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate()),
+                limit: isExport ? 5000 : (vm.partnerSettlementQuery.limit || 10),
+                index: isExport ? 0 : (newSearch ? 0 : (vm.partnerSettlementQuery.index || 0)),
+                sortCol: vm.partnerSettlementQuery.sortCol || {}
+            };
+            if(commissionType === '' && partnerName === '') {
+                vm.partnerSettlementQuery.message = 'Either Commission Type or Partner Name must be filled in';
+                return;
+            }
+            if(commissionType !== '') {
+                sendData.commissionType = commissionType;
+            }
+            if(partnerName !== '') {
+                sendData.partnerName = partnerName;
+            }
+
+            loadingSpinner.show();
+            console.log('searchPartnerSettlementHistory sendData',sendData);
+            $scope.$socketPromise('getPartnerSettlementHistory', sendData, true).then(data => {
+                findReportSearchTime();
+                console.log('searchPartnerSettlementHistory retData',data);
+                $scope.$evalAsync(() => {
+                    vm.partnerSettlementQuery.totalCount = data.data.count || 0;
+                });
+                let searchResult = data.data.data;
+                searchResult.map(item => {
+                    if(item) {
+                        item.isAnyCustomPlatformFeeRate = false;
+                        if (item.rawCommissions) {
+                            (item.rawCommissions).forEach((group, idxgroup) => {
+                                group.commissionRate = +(group.commissionRate * 100).toFixed(2);
+                                item.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : item.isAnyCustomPlatformFeeRate;
+                                if (group.isCustomPlatformFeeRate == true) {
+                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                }
+                            });
+                        }
+
+                        item.childSummary = {
+                            grossCommission: 0
+                        };
+
+                        let numSum = {
+                            totalRewardFee: item.totalRewardFee || 0,
+                            totalPlatformFee: item.totalPlatformFee || 0,
+                            totalTopUpFee: item.totalTopUpFee || 0,
+                            totalWithdrawalFee: item.totalWithdrawalFee || 0,
+                            nettCommission: item.nettCommission || 0,
+                        };
+
+                        if (item.childComm && item.childComm.length) {
+                            item.childComm.forEach( childComm => {
+                                item.childSummary.grossCommission += childComm.grossCommission || 0;
+                                numSum.totalRewardFee += childComm.totalRewardFee || 0;
+                                numSum.totalPlatformFee += childComm.totalPlatformFee || 0;
+                                numSum.totalTopUpFee += childComm.totalTopUpFee || 0;
+                                numSum.totalWithdrawalFee += childComm.totalWithdrawalFee || 0;
+                                numSum.nettCommission += childComm.nettCommission || 0;
+                            });
+                        }
+
+                        item.numSum = numSum;
+
+                        item.partnerRealName$ = item.partnerRealName ? item.partnerRealName : "";
+                        item.commissionType$ = $translate($scope.constPartnerCommissionSettlementType[item.commissionType]);
+                        for (let i in item.groupCommissions) {
+                            if (item.groupCommissions.hasOwnProperty(i)) {
+                                item.groupCommissions[i + '$'] = parseFloat(item.groupCommissions[i]).toFixed(2);
+                            }
+                        }
+
+                        item.totalPlatformFee$ = parseFloat(item.totalPlatformFee).toFixed(2);
+                        item.multiLevelComm$ = parseFloat(item.multiLevelComm).toFixed(2);
+                        item.totalSumCommission$ = parseFloat(item.totalSumCommission).toFixed(2);
+                        item.nettCommission$ = parseFloat(item.nettCommission).toFixed(2);
+                    }
+                });
+                loadingSpinner.hide();
+                vm.currentUseCommDetail = searchResult;
+
+                vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch, isExport);
+            });
+        };
+        vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch, isExport) {
+            let tableOptions = {
+                data: tableData,
+                "order": vm.partnerSettlementQuery.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'partnerName', 'aTargets': [0]},
+                    {'sortCol': 'partnerRealName', 'aTargets': [1]},
+                    {'sortCol': 'commissionType', 'aTargets': [2]},
+                    {'sortCol': 'nettCommission', 'aTargets': [3]},
+                    {'sortCol': 'multiLevelComm', 'aTargets': [4]},
+                    {'sortCol': 'totalPlatformFee', 'aTargets': [5]},
+                    {'sortCol': 'totalSumCommission', 'aTargets': [6]},
+                    {targets: '_all', defaultContent: 0, bSortable: true}
+                ],
+                columns: [
+                    {title: $translate("PARTNER_NAME"), data: "partnerName", bSortable: false},
+                    {title: $translate('REAL_NAME'), data: "partnerRealName$"},
+                    {title: $translate('COMMISSION_TYPE'), data: "commissionType$"},
+                    {
+                        title: $translate('DIRECT_DOWN_LINE_COMMISSION'),
+                        data: "nettCommission$",
+                        render: function (data, type, row, dataIndex) {
+                            let rowIndex = dataIndex.row;
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showModalCommDetail("' + rowIndex + '", '+ JSON.stringify(row) +');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modalCommDetail',
+                                // 'title': $translate(""),
+                                'data-placement': 'left',
+                            }).text(data);
+
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('MULTI_LAYER_PARTNER_COMMISSION'),
+                        data: "multiLevelComm$",
+                        render: function (data, type, row, dataIndex) {
+                            let rowIndex = dataIndex.row;
+                            let link = $('<a>', {
+                                'ng-click': 'vm.partnerCommVar.partner=' + rowIndex,
+                                'data-toggle': 'modal',
+                                'data-target': '#modalChildComm',
+                                'data-placement': 'left',
+                            }).text(data);
+
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {title: $translate('REQUIRED_PLATFORM_FEES_DEDUCTION'), data: "totalPlatformFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('totalCommissionAmount'), data: "totalSumCommission$", sClass: "sumFloat alignRight"},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                vm.partnerSettlementTable = utilService.createDatatableWithFooter('#partnerSettlementExcelTable', tableOptions, {}, true);
+
+                $('#partnerSettlementExcelTable_wrapper').hide();
+                vm.exportToExcel('partnerSettlementExcelTable', 'PARTNER_SETTLEMENT_HISTORY_REPORT');
+            }else{
+                vm.partnerSettlementTable = utilService.createDatatableWithFooter('#partnerSettlementTable', tableOptions, {}, true);
+                vm.partnerSettlementQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#partnerSettlementTable').off('order.dt');
+                $('#partnerSettlementTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerSettlementQuery', vm.searchPartnerSettlementHistory);
+                });
+                setTimeout(function () {
+                    $('#partnerSettlementTable_wrapper').resize();
+                }, 500);
+            }
+        };
+
+        vm.showModalCommDetail = function (dataIndex, rowData) {
+            vm.partnerCommVar = {};
+            vm.partnerCommVar.partner = dataIndex;
+            vm.partnerCommVar.group = rowData.rawCommissions[0];
+            vm.partnerCommVar.selectTab = 0;
+            vm.calculatePartnerDLTotalDetail(rowData.downLinesRawCommissionDetail,'consumptionDetail')
         }
 
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
