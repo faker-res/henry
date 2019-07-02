@@ -88,6 +88,8 @@ const dbPartnerCommission = {
 
         let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
 
+        commRateMulti = commRateMulti || {};
+
         let totalTopUp = 0;
         let totalReward = 0;
         let totalWithdrawal = 0;
