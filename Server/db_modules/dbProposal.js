@@ -3658,13 +3658,11 @@ var proposal = {
                     }else if(isSuccess){
                         delete queryData.status;
                         queryData["$and"] = [];
-                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
-                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
+
+                        orQuery.push({type: {$in: proposalTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
 
                         queryData["$and"].push({$or: orQuery});
-                    }else{
-                        let allTypeList = proposalTypeList.concat(approveProposalTypeList);
-                        queryData.type = {$in: allTypeList};
                     }
 
                     let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
@@ -3859,7 +3857,6 @@ var proposal = {
                 }
             ).then(
                 data => {
-                    console.log('proposal report prom done');
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
