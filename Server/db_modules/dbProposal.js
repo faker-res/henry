@@ -3671,8 +3671,7 @@ var proposal = {
                         }
                     );
 
-                    let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
-                    return Promise.all([a, b, c, d]);
+                    return Promise.all([a, b, c]);
                 },
                 function (error) {
                     return Promise.reject({
@@ -3685,9 +3684,12 @@ var proposal = {
                 function (data) {
                     if (data && data[1]) {
                         totalSize = data[0];
-                        totalPlayer = data[3] && data[3].length || 0;
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
+                        totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                        // Remove the players set from the rest of function
+                        delete summary[0].players;
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3713,7 +3715,7 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a, b, c, d;
+            let a, b, c;
 
             let searchQuery = {
                 name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
@@ -3874,10 +3876,10 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
-                    totalPlayer = summary && summary.players && summary.players.length || 0;
+                    totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
 
                     // Remove the players set from the rest of function
-                    delete summary.players;
+                    delete summary[0].players;
 
                     return resultArray;
                 },
