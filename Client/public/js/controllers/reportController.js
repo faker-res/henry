@@ -7751,27 +7751,27 @@ define(['js/app'], function (myApp) {
                     item.nettCommission$ = parseFloat(item.nettCommission).toFixed(2);
                 });
                 loadingSpinner.hide();
-                if($('#partnerSettlementTable_wrapper').length) {
-                    let parent = $('#partnerSettlementTable_wrapper').parent()[0];
-                    $('#partnerSettlementTable_wrapper').remove();
-                    $('#partnerSettlementTablePage').remove();
-
-                    let tableElem = document.createElement("table");
-                    tableElem.id = "partnerSettlementTable";
-                    tableElem.className = "common-table display";
-                    tableElem.style.width = "inherit";
-                    tableElem.style.minWidth = "100%";
-                    tableElem.style.overflowX = "scroll";
-
-                    let tablePageElem = document.createElement("div");
-                    tablePageElem.id = "partnerSettlementTablePage";
-
-                    parent.appendChild(tableElem);
-                    parent.appendChild(tablePageElem);
-                }
-                vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
-                });
+                // if($('#partnerSettlementTable_wrapper').length) {
+                //     let parent = $('#partnerSettlementTable_wrapper').parent()[0];
+                //     $('#partnerSettlementTable_wrapper').remove();
+                //     $('#partnerSettlementTablePage').remove();
+                //
+                //     let tableElem = document.createElement("table");
+                //     tableElem.id = "partnerSettlementTable";
+                //     tableElem.className = "common-table display";
+                //     tableElem.style.width = "inherit";
+                //     tableElem.style.minWidth = "100%";
+                //     tableElem.style.overflowX = "scroll";
+                //
+                //     let tablePageElem = document.createElement("div");
+                //     tablePageElem.id = "partnerSettlementTablePage";
+                //
+                //     parent.appendChild(tableElem);
+                //     parent.appendChild(tablePageElem);
+                // }
+                // vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
+                // });
                 vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch, isExport);
             });
         };
@@ -10973,7 +10973,7 @@ define(['js/app'], function (myApp) {
 
                 utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {
                     vm.commonInitTime(vm.partnerSettlementQuery, '#partnerSettlementQuery');
-                    vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
                     });
 

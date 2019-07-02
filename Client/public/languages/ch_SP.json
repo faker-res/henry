@@ -5296,6 +5296,8 @@
   "Fail to get CTI data twice, click search to try again": "连续两次获取CTI数据失败，点击搜索以再度尝试",
   "COMMISSION_CONTRIBUTED": "佣金贡献",
   "MULTI_LAYER_PARTNER_COMMISSION_TOTAL": "多级代理佣金总计",
+  "MULTI_LAYER_PARTNER_COMMISSION": "多级代理佣金",
+  "DIRECT_DOWN_LINE_COMMISSION": "直属下线佣金",
   "EXIT": "退出",
 
   "WinnerMonitor": "盈利监控",

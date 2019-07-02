@@ -7106,6 +7106,18 @@ let dbPartner = {
                     v.rawCommissions.forEach(v2=>{
                         retData[retData.length - 1].groupCommissions[v2.groupName] = v2.amount;
                     });
+                    retData[retData.length - 1].totalSumCommission = v.nettCommission || 0;
+                    retData[retData.length - 1].multiLevelComm = 0;
+                    if (v.childComm && v.childComm.length) {
+                        v.childComm.map(
+                            comm => {
+                               if (comm.grossCommission) {
+                                   retData[retData.length - 1].totalSumCommission += comm.grossCommission;
+                                   retData[retData.length - 1].multiLevelComm += comm.grossCommission;
+                               }
+                            }
+                        );
+                    }
                 } else {
                     v.rawCommissions.forEach(v2=>{
                         retData[filterDataIndex].groupCommissions[v2.groupName] += v2.amount;
@@ -7121,6 +7133,17 @@ let dbPartner = {
                     retData[filterDataIndex].totalWithdrawal += v.totalWithdrawal;
                     retData[filterDataIndex].totalWithdrawalFee += v.totalWithdrawalFee;
                     retData[filterDataIndex].nettCommission += v.nettCommission;
+                    retData[filterDataIndex].totalSumCommission += v.nettCommission;
+                    if (v.childComm && v.childComm.length) {
+                        v.childComm.map(
+                            comm => {
+                                if (comm.grossCommission) {
+                                    retData[filterDataIndex].totalSumCommission += comm.grossCommission;
+                                    retData[filterDataIndex].multiLevelComm += comm.grossCommission;
+                                }
+                            }
+                        );
+                    }
                 }
             });
 
@@ -7134,8 +7157,9 @@ let dbPartner = {
                     return 0;
                 }
             });
+            let dataSize = retData.length || 0;
             retData = retData.splice(index, limit);
-            return {count: data[0], data: retData};
+            return {count: dataSize, data: retData};
         })
     },
 
