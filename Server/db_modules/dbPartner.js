@@ -10340,6 +10340,19 @@ let dbPartner = {
                 let parentRequirementRate = parentGroupRateList[j];
                 if (!parentRequirementRate) continue;
                 let matched = false;
+
+                if (Number(parentRequirementRate.commissionRate) === 0) {
+                    let childRequirementRate = {
+                        playerConsumptionAmountFrom: parentRequirementRate.playerConsumptionAmountFrom,
+                        playerConsumptionAmountTo: parentRequirementRate.playerConsumptionAmountTo,
+                        activePlayerValueFrom: parentRequirementRate.activePlayerValueFrom,
+                        activePlayerValueTo: parentRequirementRate.activePlayerValueTo,
+                        commissionRate: parentRequirementRate.commissionRate,
+                    }
+                    validCommissionSetting.push(childRequirementRate);
+                    continue;
+                }
+
                 for (let k = 0; k < childGroupRateList.length; k++) {
                     let childRequirementRate = childGroupRateList[k];
                     if (!childRequirementRate || childRequirementRate.matched) continue;

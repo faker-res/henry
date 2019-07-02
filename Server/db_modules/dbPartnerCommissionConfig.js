@@ -964,6 +964,8 @@ const dbPartnerCommissionConfig = {
 
                 if (!originalRequirementRate.changed) continue;
 
+                if (Number(editorRequirementRate.commissionRate) === 0) continue;
+
                 if (originalRequirementRate.changeTo > math.subtract(editorRequirementRate.commissionRate, 0.01)) {
                     // between parent and child must have 1% different minimum
                     console.log('between parent and child must have 1% different minimum', originalRequirementRate.changeTo, '>', editorRequirementRate.commissionRate , '- 0.01');
@@ -991,6 +993,7 @@ const dbPartnerCommissionConfig = {
                     let originalRequirementRate = originalGroupRateList[j];
                     if (!originalRequirementRate) continue;
                     if (!originalRequirementRate.changed) continue;
+                    if (!originalRequirementRate.changed === 0) continue;
 
                     let highestChildRate = gcRateLists.reduce((rate, requirementList) => {
                         let gcRequirementRate = requirementList[j];
