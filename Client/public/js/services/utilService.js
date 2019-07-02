@@ -77,12 +77,19 @@ define([], function () {
                   if (data.registrationInterface == 0){
                       data.registrationInterface$ = "BACKSTAGE"
                   }
-                  else if (data.registrationInterface == 1){
+                  else if (data.registrationInterface == 1 || data.registrationInterface == 2){
                       data.registrationInterface$ = "WEB"
                   }
-                  else if (data.registrationInterface == 3){
+                  else if (data.registrationInterface == 3 || data.registrationInterface == 4){
                       data.registrationInterface$ = "H5"
                   }
+                  else if (data.registrationInterface == 5 || data.registrationInterface == 6){
+                      data.registrationInterface$ = "APP"
+                  }
+              }
+              else{
+                  // to handle old data that without registrationInterface; categorized under WEB
+                  data.registrationInterface$ = "WEB"
               }
           }
 
