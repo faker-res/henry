@@ -232,7 +232,6 @@ const dbPartnerCommission = {
             let multiLevelCommissionRate = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
             let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
 
-
             // platform fee rate (that needed to separate multilevel with direct)
             let platformFeeRateData = {
                 rate : 0,
@@ -262,8 +261,8 @@ const dbPartnerCommission = {
             }
             // ====================================================================
 
-            let platformFeeRateDirect = bonusBased ? math.chain(platformFeeRateData.rate || 0).divide(100).round(8).done() || 0 : 0;
-            let platformFeeRateMulti = bonusBased ? math.chain(platformFeeRateMultiData.rate || 0).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateDirect = bonusBased && !directCommissionRate.zeroRate ? math.chain(platformFeeRateData.rate || 0).divide(100).round(8).done() || 0 : 0;
+            let platformFeeRateMulti = bonusBased && !multiLevelCommissionRate.zeroRate ? math.chain(platformFeeRateMultiData.rate || 0).divide(100).round(8).done() || 0 : 0;
 
             let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
@@ -273,7 +272,7 @@ const dbPartnerCommission = {
             let rewardFeeMulti = 0;
             let topUpFeeMulti = 0;
             let withdrawalFeeMulti = 0;
-            if (bonusBased) {
+            if (bonusBased && !multiLevelCommissionRate.zeroRate) {
                 let feeMultiplier = 0;
                 if (allConsumption === 0) { // This if else statement is base on what Ken said
                     // if all is zero, just cost parent everything
@@ -1595,6 +1594,7 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
     let lastValidParentRate = [];
     let isCustom = false;
     let noRate = true;
+    let zeroRate = true;
 
     if (consumptionAmount < 0) {
         consumptionAmount *= -1;
@@ -1606,6 +1606,9 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
 
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
+        if (commissionRequirement && commissionRequirement.commissionRate > 0) {
+            zeroRate = false;
+        }
 
         if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
             || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo
@@ -1627,6 +1630,7 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
         parentRatios: lastValidParentRatios,
         parentRate: lastValidParentRate,
         noRate: noRate,
+        zeroRate: zeroRate,
         isCustom: isCustom
     };
 }
@@ -1928,6 +1932,7 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
     let lastValidCommissionRate = 0;
     let isCustom = false;
     let noRate = true;
+    let zeroRate = true;
 
     if (consumptionAmount < 0) {
         consumptionAmount *= -1;
@@ -1941,6 +1946,9 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
 
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
+        if (commissionRequirement && commissionRequirement.commissionRate > 0) {
+            zeroRate = false;
+        }
 
         if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
             || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo
@@ -1958,6 +1966,7 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
     return {
         commissionRate: lastValidCommissionRate,
         noRate: noRate,
+        zeroRate: zeroRate,
         isCustom: isCustom
     };
 }
