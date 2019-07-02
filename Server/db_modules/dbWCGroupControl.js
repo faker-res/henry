@@ -289,7 +289,20 @@ var dbWCGroupControl = {
 
 
     getWechatSessionDeviceNickName: (platformIds) => {
-        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: {$in: platformIds}}).lean();
+        return getDeviceIdAndDeviceNickName(platformIds).then(
+            data => {
+                let deviceIdRecord = data && data[0] ? data[0] : [];
+                let deviceNickNameRecord = data && data[1] ? data[1] : [];
+                let query = {
+                    platformObjId: {$in: platformIds}
+                };
+
+                query.$and = [{deviceId: {$in: deviceIdRecord}}, {deviceNickName: {$in: deviceNickNameRecord}}];
+
+                return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', query).lean();
+            }
+        )
+
     },
 
     getWechatSessionCsOfficer: (platformIds, deviceNickNames) => {
@@ -421,6 +434,7 @@ var dbWCGroupControl = {
         let adminRecord = [];
         let platformRecord = [];
         let deviceRecord = [];
+        let deviceNickNameRecord = [];
         let result = [];
 
         if (platformIds && platformIds.length > 0) {
@@ -452,28 +466,16 @@ var dbWCGroupControl = {
 
         let adminProm = dbConfig.collection_admin.find(adminQuery, {adminName: 1}).lean();
         let platformProm = dbConfig.collection_platform.find({}, {name:1, platformId: 1}).lean();
-        let deviceProm = dbConfig.collection_wcDevice.find({platformObjId: {$in: platformList}}, {deviceId: 1}).lean().then(
-            deviceData => {
-                let list = [];
-                if (deviceData && deviceData.length > 0) {
-                    deviceData.forEach(device => {
-                        if (device && device.deviceId) {
-                            list.push(device.deviceId);
-                        }
-                    })
-                }
-
-                return list;
-            }
-        );
+        let deviceProm = getDeviceIdAndDeviceNickName(platformList);
 
         return Promise.all([adminProm, platformProm, deviceProm]).then(
             data => {
                 adminRecord = data && data[0] ? data[0] : [];
                 platformRecord = data && data[1] ? data[1] : [];
-                deviceRecord = data && data[2] ? data[2] : [];
+                deviceRecord = data && data[2] && data[2][0] ? data[2][0] : [];
+                deviceNickNameRecord = data && data[2] && data[2][1] ? data[2][1] : [];
 
-                match.deviceId = {$in: deviceRecord};
+                match.$and = [{deviceId: {$in: deviceRecord}}, {deviceNickName: {$in: deviceNickNameRecord}}];
 
                 let countWCGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
                     {
@@ -623,6 +625,29 @@ function rearrangeWCGroupControlSessionPlatformAndAdminInfo(sessionRecords, admi
             return session;
         });
     }
+}
+
+function getDeviceIdAndDeviceNickName (platformList) {
+    return dbConfig.collection_wcDevice.find({platformObjId: {$in: platformList}}, {deviceId: 1, deviceNickName: 1}).lean().then(
+        deviceData => {
+            let deviceIdList = [];
+            let deviceNickNameList = [];
+
+            if (deviceData && deviceData.length > 0) {
+                deviceData.forEach(device => {
+                    if (device && device.deviceId) {
+                        deviceIdList.push(device.deviceId);
+                    }
+
+                    if (device && device.deviceNickName) {
+                        deviceNickNameList.push(device.deviceNickName);
+                    }
+                })
+            }
+
+            return [deviceIdList, deviceNickNameList];
+        }
+    )
 }
 
 module.exports = dbWCGroupControl;
