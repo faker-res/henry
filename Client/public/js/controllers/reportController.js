@@ -1743,7 +1743,7 @@ define(['js/app'], function (myApp) {
                 depositMethod: vm.queryTopup.depositMethod,
                 bankTypeId: vm.queryTopup.bankTypeId,
                 merchantNo: vm.queryTopup.merchantNo,
-                platformList: vm.queryTopup.platformList,
+                platformList: vm.queryTopup.platformList ? vm.queryTopup.platformList : vm.platformList.map(item => item._id),
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
@@ -2629,6 +2629,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
             vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
             vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.platformList = vm.curWinRateQuery.platformList && vm.curWinRateQuery.platformList.length > 0 ? vm.curWinRateQuery.platformList : vm.platformList.map(item => item._id),
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
@@ -2644,18 +2645,19 @@ define(['js/app'], function (myApp) {
                 vm.winRateReportLoadingStatus = "";
                 $('#winRateTableSpin').hide();
                 vm.winRateSummaryData = (data.data && data.data[0]) ? data.data[0] : [];
-                if (vm.curWinRateQuery.providerId && vm.curWinRateQuery.providerId != 'all') {
-                    vm.winRateLayer1 = false;
-                    vm.winRateLayer2 = true;
-                    vm.winRateLayer3 = false;
-                    vm.winRateLayer4 = false;
-                    vm.drawWinRateLayer2Report(data, data.length, {}, true);
-                } else {
+                // if (vm.curWinRateQuery.providerId && vm.curWinRateQuery.providerId != 'all') {
+                //     vm.winRateLayer1 = false;
+                //     vm.winRateLayer2 = true;
+                //     vm.winRateLayer3 = false;
+                //     vm.winRateLayer4 = false;
+                //     vm.drawWinRateLayer2Report(data, data.length, {}, true);
+                // } else {
                     vm.winRateLayer1 = true;
-                    vm.winRateLayer2 = true;
+                    // vm.winRateLayer2 = true;
+                    vm.winRateLayer2 = false;
                     vm.winRateLayer3 = false;
                     vm.winRateLayer4 = false;
-                }
+                // }
                 $scope.$evalAsync();
             }, function(err) {
                 $('#winRateTableSpin').hide();
@@ -2668,6 +2670,7 @@ define(['js/app'], function (myApp) {
             $('#winRateTableSpin').show();
             var sendquery = {
                 platformId: vm.curPlatformId,
+                platformList: vm.winRateQuery.platformList && vm.winRateQuery.platformList.length > 0 ? vm.winRateQuery.platformList : vm.platformList.map(item => item._id),
                 start: vm.winRateQuery.startTime.data('datetimepicker').getLocalDate(),
                 end: vm.winRateQuery.endTime.data('datetimepicker').getLocalDate()
             };
@@ -2688,6 +2691,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
             vm.curWinRateQuery.providerId = vm.curWinRateQuery.providerId == "all" ? null : vm.curWinRateQuery.providerId;
             vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.platformList = vm.curWinRateQuery.platformList && vm.curWinRateQuery.platformList.length > 0 ? vm.curWinRateQuery.platformList : vm.platformList.map(item => item._id),
 
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
@@ -2704,6 +2708,7 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
+                console.log('getWinRateAllPlatformReport::', data);
                 vm.drawWinRateLayer2Report(data, data.length, {}, true);
                 findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
@@ -2716,7 +2721,7 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
-        vm.getWinRateByGameType = function (providerId, providerName) {
+        vm.getWinRateByGameType = function (providerId, providerName, platformName, platformObjId) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
@@ -2724,7 +2729,7 @@ define(['js/app'], function (myApp) {
             vm.winRateLayer4 = false;
 
             vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
-            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.platformId = platformObjId || vm.selectedPlatform._id;
             vm.curWinRateQuery.providerName = providerName;
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.providerId = providerId;
@@ -2746,6 +2751,15 @@ define(['js/app'], function (myApp) {
                     let uniqueParticipant = participantArr.filter((x, index, array) => array.indexOf(x) == index)
                     data.data.summaryData.participantNumber = uniqueParticipant.length;
                 }
+
+                if (data && data.data && data.data.data) {
+                    data.data.data.map(item => {
+                        item.platformName = platformName;
+                        item.platformObjId = platformObjId || vm.selectedPlatform._id;
+                        return item;
+                    })
+                }
+
                 vm.drawWinRateLayer3Report(data.data, data.length, data.data.summaryData, true);
                 $scope.$evalAsync();
             }, function(err) {
@@ -2754,7 +2768,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.getWinRateByPlayers = function (cpGameType, providerId) {
+        vm.getWinRateByPlayers = function (cpGameType, providerId, platformObjId) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
@@ -2762,7 +2776,7 @@ define(['js/app'], function (myApp) {
 
             vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
             vm.curWinRateQuery.providerId = providerId;
-            vm.curWinRateQuery.platformId = vm.selectedPlatform._id;
+            vm.curWinRateQuery.platformId = platformObjId || vm.selectedPlatform._id;
 
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.cpGameType = cpGameType;
@@ -2788,16 +2802,18 @@ define(['js/app'], function (myApp) {
                 data: data.data,
                 "order": [[0, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'providerName', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'profit', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'platformName', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'providerName', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [7]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
                     {title: $translate('PROVIDER'), data: "providerName"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber"},
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
@@ -2833,7 +2849,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
-                            return "<div ng-click='vm.getWinRateByGameType(\"" + row.providerId +'\",\"'+ row.providerName+"\")'><a>" + txt + "</a></div>";
+                            return "<div ng-click='vm.getWinRateByGameType(\"" + row.providerId +'\",\"' + row.providerName +'\",\"' + row.platformName +'\",\"'+ row.platformObjId+"\")'><a>" + txt + "</a></div>";
                         }
                     },
 
@@ -2851,15 +2867,17 @@ define(['js/app'], function (myApp) {
                 data: data.data,
                 "order": [[0, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'profit', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'plaftormName', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
                     {title: $translate('PROVIDER'), data: "providerName"},
                     {title: $translate('GAME_TYPE'), data: "cpGameType", "width": "7%"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
@@ -2896,7 +2914,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
-                            return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"'+ row.providerId+"\")'><a>" + txt + "</a></div>";
+                            return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"' + row.providerId +'\",\"'+ row.platformObjId+"\")'><a>" + txt + "</a></div>";
                         }
                     }
                 ],
@@ -2907,12 +2925,12 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             vm.winRateSummaryLayer3Table = utilService.createDatatableWithFooter('#winRateSummaryLayer3Table', tableOptions, {
-                2: summary.participantNumber,
-                3: summary.consumptionTimes,
-                4: summary.totalAmount,
-                5: summary.validAmount,
-                6: summary.bonusAmount,
-                7: summary.profit
+                3: summary.participantNumber,
+                4: summary.consumptionTimes,
+                5: summary.totalAmount,
+                6: summary.validAmount,
+                7: summary.bonusAmount,
+                8: summary.profit
             }, true);
             $('#winRateLayer3Table').resize();
         }
@@ -4603,9 +4621,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.reCalculatePlayerReportSummary = function (){
+            if (!vm.playerQuery || !vm.playerQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             $('#loadingPlayerReportTableSpin').show();
             var sendquery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.playerQuery.platformId,
                 start: vm.playerQuery.start.data('datetimepicker').getLocalDate(),
                 end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
             };
@@ -5355,7 +5376,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     if (data.success && data.data) {
                         vm.modifyDepositTrackingGroupResult = 'SUCCESS';
-                        if(vm.showPageName == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
+                        if(vm.showPageName == "PLAYER_DEPOSIT_TRACKING_REPORT") {
                             vm.searchPlayerDepositTrackingReport();
                         }
                         vm.selectedDepositTrackingGroup = '';

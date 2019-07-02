@@ -3707,13 +3707,25 @@ let dbPlayerInfo = {
     },
 
     updatePlayerForbidPaymentType: (query, forbidTopUpTypes) => {
-        return dbconfig.collection_players.findOne(query).lean().then(playerData => {
+        return dbconfig.collection_players.findOne(query)
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(playerData => {
             if (playerData) {
                 return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerData._id, platform: playerData.platform},
+                    {_id: playerData._id, platform: playerData.platform._id},
                     {forbidTopUpType: forbidTopUpTypes},
                     {new: true}
-                ).lean();
+                ).lean().then(
+                    data => {
+                        return updatePlayerForbidPaymentTypeToPMS(playerData.name, playerData.platform.platformId, forbidTopUpTypes).then(
+                            apiRes => {
+                                return data;
+                            },
+                            error => {
+                                return data;
+                            }
+                        )
+                    }
+                );
             }
 
             return Promise.reject({
@@ -3721,6 +3733,17 @@ let dbPlayerInfo = {
                 message: "Invalid player data"
             });
         });
+
+        function updatePlayerForbidPaymentTypeToPMS (playerName, platformId, forbidTopUpTypes) {
+            let sendData = {
+                timestamp: Date.now(),
+                platformId: platformId,
+                username: playerName,
+                topupOnlineMethods: forbidTopUpTypes.map(item => Number(item))
+            };
+
+            return RESTUtils.getPMS2Services("patchSubTopupTypePermission", sendData);
+        }
     },
 
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
@@ -3728,10 +3751,12 @@ let dbPlayerInfo = {
         let playerNames = query.playerNames;
         let addList = forbidTopUpTypes.addList;
         let removeList = forbidTopUpTypes.removeList;
+        let pmsData = [];
 
         playerNames.forEach(name => {
             let updateData = {};
             let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
                 .then(data => {
                     let playerForbidTopupType = data.forbidTopUpType.filter(item => {
                         return item != "undefined"
@@ -3740,15 +3765,58 @@ let dbPlayerInfo = {
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidTopUpType = [];
                     }
+
+                    let sendData = {
+                        timestamp: Date.now(),
+                        platformId: data.platform.platformId,
+                        username: data.name,
+                        topupOnlineMethods: updateData.forbidTopUpType.map(item => Number(item))
+                    };
+
+                    pmsData.push(sendData);
+
                     return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
                         name: name,
                         platform: query.platformObjId
                     }, updateData, constShardKeys.collection_players);
                 });
-            proms.push(prom)
+            proms.push(prom);
         });
 
-        return Promise.all(proms);
+        return Promise.all(proms).then(
+            data => {
+                if (pmsData && pmsData.length > 0) {
+                    return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", {requests: pmsData}).then(data => {
+                        return data;
+                    }, error => {
+                        return data;
+                    });
+                }
+
+                return data;
+            }
+        );
+    },
+
+    updatePlayerSubTopupTypePermissionToPMS: (platformId, playerObjArr, topUpSystemType) => {
+        let sendObjArr = [];
+
+        playerObjArr.forEach(playerData => {
+            if (playerData && playerData.forbidTopUpType && playerData.forbidTopUpType.length > 0) {
+                let data = {
+                    timestamp: Date.now(),
+                    platformId: platformId,
+                    username: playerData.name,
+                    topupOnlineMethods: playerData.forbidTopUpType.map(item => Number(item))
+                }
+
+                sendObjArr.push(data);
+            }
+        });
+
+        if (sendObjArr.length) {
+            return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", {requests: sendObjArr});
+        }
     },
 
     /**
@@ -5883,7 +5951,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -5951,6 +6019,12 @@ let dbPlayerInfo = {
                             code: constServerCode.NO_USER_FOUND
                         });
                     }
+
+                    // bypass checking the password if it is login from APP
+                    if (loginFromApp){
+                        return Promise.resolve(true);
+                    }
+
                     db_password = String(data.password); // hashedPassword from db
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(playerData.password) == db_password) {
@@ -6429,7 +6503,7 @@ let dbPlayerInfo = {
                                     if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                                     }
-                                    return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified)
+                                    return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified, checkLastDeviceId)
                                 } else {
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
@@ -7108,7 +7182,7 @@ let dbPlayerInfo = {
         )
     },
 
-    playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
+    playerLoginWithSMS: function (loginData, userAgent, isSMSVerified, checkLastDeviceId) {
         let newAgentArray = [];
         let platformId = null;
         let uaObj = null;
@@ -7148,137 +7222,139 @@ let dbPlayerInfo = {
                 if (data && data.length) {
                     playerObj = data[0];
 
-                    if (playerObj.permission.forbidPlayerFromLogin) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Player is not enable",
-                            code: constServerCode.PLAYER_IS_FORBIDDEN
-                        });
-                    }
-                    newAgentArray = playerObj.userAgent || [];
-                    uaObj = {
-                        browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || '',
-                        os: userAgent.os.name || '',
-                    };
-                    let bExit = false;
-                    if (newAgentArray && typeof newAgentArray.forEach == "function") {
-                        newAgentArray.forEach(
-                            agent => {
-                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
-                                    bExit = true;
-                                }
-                            }
-                        );
-                    }
-                    else {
-                        newAgentArray = [];
-                        bExit = true;
-                    }
-
-                    if (!bExit) {
-                        newAgentArray.push(uaObj);
-                    }
-
-                    let bUpdateIp = false;
-                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
-                        bUpdateIp = true;
-                    }
-
-                    //let geo = geoip.lookup(loginData.lastLoginIp);
-                    let updateData = {
-                        isLogin: true,
-                        lastLoginIp: loginData.lastLoginIp,
-                        userAgent: newAgentArray,
-                        lastAccessTime: new Date().getTime(),
-                    };
-                    // let geoInfo = {};
-                    // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
-                    //     geoInfo = {
-                    //         country: geo ? geo.country : null,
-                    //         city: geo ? geo.city : null,
-                    //         longitude: geo && geo.ll ? geo.ll[1] : null,
-                    //         latitude: geo && geo.ll ? geo.ll[0] : null
-                    //     }
+                    playerObj.platformId = loginData.platformId;
+                    return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
+                    // if (playerObj.permission.forbidPlayerFromLogin) {
+                    //     return Promise.reject({
+                    //         name: "DataError",
+                    //         message: "Player is not enable",
+                    //         code: constServerCode.PLAYER_IS_FORBIDDEN
+                    //     });
                     // }
-                    //Object.assign(updateData, geoInfo);
-                    if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
-                        updateData.$push = {loginIps: loginData.lastLoginIp};
-                    }
-
-                    return dbconfig.collection_players.findOneAndUpdate({
-                        _id: playerObj._id,
-                        platform: playerObj.platform
-                    }, updateData).populate({
-                        path: "playerLevel",
-                        model: dbconfig.collection_playerLevel
-                    }).then(
-                        data => {
-                            //add player login record
-                            let recordData = {
-                                player: data._id,
-                                platform: platformId,
-                                loginIP: loginData.lastLoginIp,
-                                clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
-                                userAgent: uaObj,
-                                // isRealPlayer: playerObj.isRealPlayer,
-                                // isTestPlayer: playerObj.isTestPlayer,
-                                // partner: playerObj.partner ? playerObj.partner : null
-                            };
-                            if (recordData.userAgent) {
-                                recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
-                            }
-                            //Object.assign(recordData, geoInfo);
-
-                            let record = new dbconfig.collection_playerLoginRecord(recordData);
-                            return record.save()
-                            .then(
-                                () => {
-                                    return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
-                                        path: "platform",
-                                        model: dbconfig.collection_platform
-                                    }).populate({
-                                        path: "playerLevel",
-                                        model: dbconfig.collection_playerLevel
-                                    }).lean().then(
-                                        res => {
-                                            // res.name = res.name.replace(platformPrefix, "");
-                                            retObj = res;
-                                            // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
-                                            // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
-                                            // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-
-                                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
-                                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
-                                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
-
-                                            let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
-
-                                            return Q.all([a, b, c, creditProm]);
-                                        }
-                                    ).then(
-                                        zoneData => {
-                                            retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
-                                            retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
-                                            retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
-                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                                            return retObj;
-                                        },
-                                        errorZone => {
-                                            return retObj;
-                                        }
-                                    );
-                                }
-                            );
-                        },
-                        error => {
-                            return Promise.reject({
-                                name: "DBError",
-                                message: "Error in updating player",
-                                error: error
-                            });
-                        }
-                    );
+                    // newAgentArray = playerObj.userAgent || [];
+                    // uaObj = {
+                    //     browser: userAgent.browser.name || '',
+                    //     device: userAgent.device.name || '',
+                    //     os: userAgent.os.name || '',
+                    // };
+                    // let bExit = false;
+                    // if (newAgentArray && typeof newAgentArray.forEach == "function") {
+                    //     newAgentArray.forEach(
+                    //         agent => {
+                    //             if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                    //                 bExit = true;
+                    //             }
+                    //         }
+                    //     );
+                    // }
+                    // else {
+                    //     newAgentArray = [];
+                    //     bExit = true;
+                    // }
+                    //
+                    // if (!bExit) {
+                    //     newAgentArray.push(uaObj);
+                    // }
+                    //
+                    // let bUpdateIp = false;
+                    // if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                    //     bUpdateIp = true;
+                    // }
+                    //
+                    // //let geo = geoip.lookup(loginData.lastLoginIp);
+                    // let updateData = {
+                    //     isLogin: true,
+                    //     lastLoginIp: loginData.lastLoginIp,
+                    //     userAgent: newAgentArray,
+                    //     lastAccessTime: new Date().getTime(),
+                    // };
+                    // // let geoInfo = {};
+                    // // if (geo && geo.ll && !(geo.ll[1] == 0 && geo.ll[0] == 0)) {
+                    // //     geoInfo = {
+                    // //         country: geo ? geo.country : null,
+                    // //         city: geo ? geo.city : null,
+                    // //         longitude: geo && geo.ll ? geo.ll[1] : null,
+                    // //         latitude: geo && geo.ll ? geo.ll[0] : null
+                    // //     }
+                    // // }
+                    // //Object.assign(updateData, geoInfo);
+                    // if (loginData.lastLoginIp && loginData.lastLoginIp != playerObj.lastLoginIp) {
+                    //     updateData.$push = {loginIps: loginData.lastLoginIp};
+                    // }
+                    //
+                    // return dbconfig.collection_players.findOneAndUpdate({
+                    //     _id: playerObj._id,
+                    //     platform: playerObj.platform
+                    // }, updateData).populate({
+                    //     path: "playerLevel",
+                    //     model: dbconfig.collection_playerLevel
+                    // }).then(
+                    //     data => {
+                    //         //add player login record
+                    //         let recordData = {
+                    //             player: data._id,
+                    //             platform: platformId,
+                    //             loginIP: loginData.lastLoginIp,
+                    //             clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
+                    //             userAgent: uaObj,
+                    //             // isRealPlayer: playerObj.isRealPlayer,
+                    //             // isTestPlayer: playerObj.isTestPlayer,
+                    //             // partner: playerObj.partner ? playerObj.partner : null
+                    //         };
+                    //         if (recordData.userAgent) {
+                    //             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                    //         }
+                    //         //Object.assign(recordData, geoInfo);
+                    //
+                    //         let record = new dbconfig.collection_playerLoginRecord(recordData);
+                    //         return record.save()
+                    //         .then(
+                    //             () => {
+                    //                 return dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                    //                     path: "platform",
+                    //                     model: dbconfig.collection_platform
+                    //                 }).populate({
+                    //                     path: "playerLevel",
+                    //                     model: dbconfig.collection_playerLevel
+                    //                 }).lean().then(
+                    //                     res => {
+                    //                         // res.name = res.name.replace(platformPrefix, "");
+                    //                         retObj = res;
+                    //                         // let a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
+                    //                         // let b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
+                    //                         // let c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
+                    //
+                    //                         let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}) : true;
+                    //                         let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}) : true;
+                    //                         let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}) : true;
+                    //
+                    //                         let creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                    //
+                    //                         return Q.all([a, b, c, creditProm]);
+                    //                     }
+                    //                 ).then(
+                    //                     zoneData => {
+                    //                         retObj.bankAccountProvince = zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                    //                         retObj.bankAccountCity = zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                    //                         retObj.bankAccountDistrict = zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+                    //                         retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                    //                         return retObj;
+                    //                     },
+                    //                     errorZone => {
+                    //                         return retObj;
+                    //                     }
+                    //                 );
+                    //             }
+                    //         );
+                    //     },
+                    //     error => {
+                    //         return Promise.reject({
+                    //             name: "DBError",
+                    //             message: "Error in updating player",
+                    //             error: error
+                    //         });
+                    //     }
+                    // );
                 } else {
                     return Promise.reject({
                         name: "DataError",
@@ -9096,6 +9172,11 @@ let dbPlayerInfo = {
         ).then(
             rewardEventList => {
                 rewardList = rewardEventList;
+                // to handle old data without registrationInterface; set to WEB
+                if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){
+                    playerDetail.registrationInterface = 1 // WEB
+                }
+
                 if (playerObjId && playerDetail && playerDetail.hasOwnProperty('registrationInterface')) {
                     let checkVisibleArr = [];
                     //check homePopupShow, rewardEntryShow, and rewardListShow for each reward event
@@ -9144,12 +9225,17 @@ let dbPlayerInfo = {
             }
             switch (playerDetail.registrationInterface) {
                 case 1:
+                case 2:
                     device = "web";
                     break;
                 case 3:
+                case 4:
                     device = 'h5';
                     break;
                 case 5:
+                case 6:
+                case 7:
+                case 8:
                     device = 'app';
                     break;
                 default:
@@ -14556,7 +14642,9 @@ let dbPlayerInfo = {
                                         providerData.providerId == "51"
                                         || providerData.providerId == "57" // ISBSLOTS
                                         || providerData.providerId == "41"
+                                        || providerData.providerId == "56" // EBET
                                         || providerData.providerId == "70"
+                                        || providerData.providerId == "72" // EBETSLOTS
                                         || providerData.providerId == "82" // IG
                                         || providerData.providerId == "83"
                                         || providerData.providerId == "86" // SABA
@@ -20255,7 +20343,7 @@ let dbPlayerInfo = {
                         processResponse: function (record) {
                             if(record && record.data) {
                                 record.data.forEach(item => {
-                                    item.platform = platformObjId;
+                                    item.platform = platform;
                                 })
                             }
                             result = result.concat(record.data);
