@@ -1387,7 +1387,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInput = function () {
             let remarkSelect = $('select#selectCredibilityRemarks');
-
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1395,14 +1397,15 @@ define(['js/app'], function (myApp) {
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
+
             $scope.safeApply();
         };
 
         vm.setupRemarksMultiInputDepositAnalysis = function () {
             let remarkSelect = $('select#selectCredibilityRemarksDepositAnalysis');
-            // if (remarkSelect.css('display').toLowerCase() === "none") {
-            //     return;
-            // }
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1414,9 +1417,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupRemarksMultiInputDepositTracking = function () {
             let remarkSelect = $('select#selectCredibilityRemarksDepositTracking');
-            // if (remarkSelect.css('display').toLowerCase() === "none") {
-            //     return;
-            // }
+            if (remarkSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
             remarkSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1438,75 +1441,6 @@ define(['js/app'], function (myApp) {
                 displayValues: false,
                 countSelected: $translate('# of % selected')
             });
-        };
-
-        vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
-            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
-                data => {
-                    $scope.$evalAsync(() => {
-                        let parentId;
-                        vm.queryDepartments = [];
-                        vm.queryRoles = [];
-
-                        vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
-                        });
-
-                        endLoadMultipleSelect('.spicker');
-
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-                }
-            );
-        };
-
-        vm.reportOnPlatformChange = (platformObjId) => {
-            switch(vm.showPageName.toUpperCase()) {
-                case "PLAYER_REPORT":
-                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
-                        vm.setupRemarksMultiInput()
-                    });
-                    vm.getPlayerLevelByPlatformId(platformObjId);
-                    vm.getPlatformProvider(platformObjId);
-                    vm.getDepartmentDetailsByPlatformObjId(platformObjId);
-                    break;
-
-                case "PLAYER_DEPOSIT_ANALYSIS_REPORT":
-                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
-                        vm.setupRemarksMultiInputDepositAnalysis()
-                    });
-                    vm.getPlayerLevelByPlatformId(platformObjId);
-                    vm.getPlatformProvider(platformObjId);
-                    vm.getDepositTrackingGroupByPlatformId(platformObjId);
-                    break;
-
-                case "PLAYER_DEPOSIT_TRACKING_REPORT":
-                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
-                        vm.setupRemarksMultiInputDepositTracking();
-                    });
-                    vm.getDepositTrackingGroupByPlatformId(platformObjId);
-                    break;
-
-                case "DX_NEWACCOUNT_REPORT":
-                    vm.getAllPromoteWay(platformObjId).then(() => {
-                        endLoadMultipleSelect('.spicker');
-                    });
-                    vm.getDepartmentDetailsByPlatformObjId(platformObjId);
-                    break;
-            }
         };
 
         vm.getProposalTypeByPlatformId = function (id) {
@@ -2000,9 +1934,6 @@ define(['js/app'], function (myApp) {
 
         //Start operation report
         vm.searchOperationRecord = function () {
-            if (!vm.queryOperation || !vm.queryOperation.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             var data = null;
 
@@ -2012,8 +1943,8 @@ define(['js/app'], function (myApp) {
 
             vm.curQueryOperation = $.extend(true, {}, vm.queryOperation); //vm.queryOperation || {};
             vm.curQueryOperation.providerId = vm.curQueryOperation.providerId == "all" ? null : vm.curQueryOperation.providerId;
-            vm.curPlatformId = vm.queryOperation.platformId;
-            vm.curQueryOperation.platformId = vm.queryOperation.platformId;
+            vm.curPlatformId = vm.selectedPlatform._id;
+            vm.curQueryOperation.platformId = vm.selectedPlatform._id;
             // if (vm.curQueryOperation.providerId == 'all') {
             //     vm.curQueryOperation.providerId = null;
             // }
@@ -2066,7 +1997,6 @@ define(['js/app'], function (myApp) {
             data = data || [];
             var tableOptions = {
                 data: data.map(item => {
-                    item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -2082,10 +2012,6 @@ define(['js/app'], function (myApp) {
                         data: null,
                         "className": 'expandProvider expand',
                         "orderable": false
-                    },
-                    {
-                        "title": $translate('PRODUCT_NAME'),
-                        data: "platform$"
                     },
                     {title: $translate('PROVIDER_ID'), data: "providerId"},
                     {
@@ -2173,7 +2099,7 @@ define(['js/app'], function (myApp) {
                 startTime: vm.curQueryOperation.startTime,
                 endTime: vm.curQueryOperation.endTime,
                 providerId: data._id,
-                platformId: data.platform,
+                platformId: vm.curPlatformId,
                 index: newSearch ? 0 : index,
                 limit: limit || 10,
                 sortCol: sortCol || {}
@@ -2412,9 +2338,6 @@ define(['js/app'], function (myApp) {
 
         //////////////////// draw player table - start /////////////////
         vm.searchProviderPlayerRecord = function (newSearch, isExport = false) {
-            if (!vm.playerExpenseQuery || !vm.playerExpenseQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             console.log("vm.playerExpenseQuery", vm.playerExpenseQuery);
 
@@ -2444,7 +2367,7 @@ define(['js/app'], function (myApp) {
                     var sendData = {
                         startTime: startTime,
                         endTime: endTime,
-                        platformId: vm.playerExpenseQuery.platformId,
+                        platformId: vm.curPlatformId,
                         playerId: vm.newPlayerExpenseQuery.playerId,
                         playerName: vm.newPlayerExpenseQuery.playerName,
                         providerId: vm.newPlayerExpenseQuery.providerId,
@@ -2461,12 +2384,7 @@ define(['js/app'], function (myApp) {
                         $('#playerExpenseTableSpin').hide();
                         console.log('player data', data);
                         vm.playerExpenseQuery.totalCount = data.data.size;
-                        let drawData = data.data.data;
-                        drawData = drawData.map(item => {
-                            item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
-                            return item;
-                        });
-                        vm.drawPlayerProviderReport(drawData, data.data.size, data.data.summary, newSearch, isExport);
+                        vm.drawPlayerProviderReport(data.data.data, data.data.size, data.data.summary, newSearch, isExport);
                         $scope.safeApply();
                     }, function (err) {
                         $('#playerExpenseTableSpin').hide();
@@ -2480,9 +2398,9 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.playerExpenseQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'totalConsumedAmount', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'timesConsumed', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'totalConsumedAmount', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'timesConsumed', bSortable: true, 'aTargets': [5]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2492,7 +2410,6 @@ define(['js/app'], function (myApp) {
                         "className": 'expandProvider expand',
                         "orderable": false
                     },
-                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYER ID'), data: "_id.playerId"},
                     {title: $translate('PLAYERNAME'), data: "_id.playerName", sClass: "sumText"},
                     {
@@ -4430,9 +4347,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchPlayerReport = function (newSearch, isExport = false) {
-            if (!vm.playerQuery || !vm.playerQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerReportTableSpin').show();
 
@@ -4463,7 +4377,7 @@ define(['js/app'], function (myApp) {
 
             utilService.getDataTablePageSize("#playerReportTablePage", vm.playerQuery, 10000);
             var sendquery = {
-                platformId: vm.playerQuery.platformId,
+                platformId: vm.curPlatformId,
                 query: {
                     credibilityRemarks: vm.playerQuery.credibilityRemarks,
                     playerLevel: vm.playerQuery.level,
@@ -4511,7 +4425,6 @@ define(['js/app'], function (myApp) {
                     // get game data.then(
                     // map
                     vm.drawPlayerReport(data.data.data.map(item => {
-                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                         item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
@@ -4618,33 +4531,32 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerReport = function (data, total, size, newSearch, isExport) {
             var tableOptions = {
                 data: data,
-                "order": vm.playerQuery.aaSorting || [[17, 'desc']],
+                "order": vm.playerQuery.aaSorting || [[16, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'playerLevel', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
                     // {'sortCol': 'credibilityRemarks', 'aTargets': [2], bSortable: true},
                     // {'sortCol': 'provider', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [18], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [22], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [23], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [22], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('LEVEL'), data: "playerLevel$"},
@@ -4893,14 +4805,10 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit analysis report /////////////////////////////
         vm.searchPlayerDepositAnalysisReport = function (newSearch) {
-
-            if (!vm.depositAnalysisQuery || !vm.depositAnalysisQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositAnalysisReportTableSpin').show();
             let sendQuery = {
-                platformId: vm.depositAnalysisQuery.platformId,
+                platformId: vm.curPlatformId,
                 query: {
                     name: vm.depositAnalysisQuery.name,
                     credibilityRemarks: vm.depositAnalysisQuery.credibilityRemarks,
@@ -4930,7 +4838,6 @@ define(['js/app'], function (myApp) {
 
                     let drawData = data.data.data.map(item => {
                         let breakLine = ", ";
-                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -5127,7 +5034,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerDepositAnalysisDetails = function (playerObjId) {
             let sendQuery = {
-                platformId: vm.depositAnalysisQuery.platformId,
+                platformId: vm.curPlatformId,
                 query: {
                     playerObjId: playerObjId,
                     start: vm.depositAnalysisQuery.start.data('datetimepicker').getLocalDate(),
@@ -5150,7 +5057,7 @@ define(['js/app'], function (myApp) {
 
         vm.addPlayerToDepositTrackingReport = function (playerObjId) {
             let sendQuery = {
-                platformObjId: vm.depositAnalysisQuery.platformId,
+                platformObjId: vm.curPlatformId,
                 playerObjId: playerObjId
             };
             console.log('sendQuery', sendQuery);
@@ -5165,13 +5072,10 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit tracking report /////////////////////////////
         vm.searchPlayerDepositTrackingReport = function (newSearch) {
-            if (!vm.depositTrackingQuery || !vm.depositTrackingQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositTrackingReportTableSpin').show();
             let sendQuery = {
-                platformId: vm.depositTrackingQuery.platformId,
+                platformId: vm.curPlatformId,
                 query: {
                     name: vm.depositTrackingQuery.name,
                     credibilityRemarks: vm.depositTrackingQuery.credibilityRemarks,
@@ -5193,7 +5097,6 @@ define(['js/app'], function (myApp) {
 
                     let drawData = data.data.data.map(item => {
                         let breakLine = ", ";
-                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                         item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
@@ -5305,7 +5208,7 @@ define(['js/app'], function (myApp) {
         vm.saveDepositTrackingGroup = function (isDelete, index) {
             if (isDelete) {
                 let deleteData = {
-                    platformObjId: vm.depositTrackingQuery.platformId,
+                    platformObjId: vm.curPlatformId,
                     trackingGroupObjId: index
                 };
 
@@ -5315,14 +5218,14 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
-                        vm.depositTrackingQuery = {platformId: vm.depositTrackingQuery.platformId};
-                        vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
+                        vm.depositTrackingQuery = {};
+                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         // vm.searchPlayerDepositTrackingReport();
                     });
                 });
             } else {
                 let addData = {
-                    platformObjId: vm.depositTrackingQuery.platformId,
+                    platformObjId: vm.curPlatformId,
                     groupData: vm.newDepositTrackingGroup,
                     modifyData: vm.depositTrackingGroup
                 };
@@ -5333,8 +5236,8 @@ define(['js/app'], function (myApp) {
                             $('#selectTrackingGroupDepositTracking').multipleSelect('refresh');
                         }, 500);
                         vm.playerDepositTracking = {}; // reset report table become blank
-                        vm.depositTrackingQuery = {platformId: vm.depositTrackingQuery.platformId};
-                        vm.getDepositTrackingGroupByPlatformId(vm.depositTrackingQuery.platformId);
+                        vm.depositTrackingQuery = {};
+                        vm.getDepositTrackingGroupByPlatformId(vm.curPlatformId);
                         // vm.searchPlayerDepositTrackingReport();
                         vm.newDepositTrackingGroup = [];
                     });
@@ -5343,9 +5246,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.modifyPlayerDepositTrackingGroup = function (playerId, trackingGroup) {
-            let platform = vm.showPageName == "PLAYER_DEPOSIT_ANALYSIS_REPORT" ? vm.depositAnalysisQuery.platformId : vm.depositTrackingQuery.platformId;
             let sendData = {
-                platform: platform,
+                platform: vm.curPlatformId,
                 playerId: playerId,
                 trackingGroup: trackingGroup
             };
@@ -5365,7 +5267,7 @@ define(['js/app'], function (myApp) {
 
         vm.removePlayerFromDepositTrackingReport = function (playerId) {
             let sendData = {
-                platform: vm.depositTrackingQuery.platformId,
+                platform: vm.curPlatformId,
                 playerId: playerId
 
             };
@@ -5379,7 +5281,7 @@ define(['js/app'], function (myApp) {
 
         vm.getPlayerDepositTrackingMonthlyDetails = function(playerId) {
             let sendData = {
-                platform: vm.depositTrackingQuery.platformId,
+                platform: vm.curPlatformId,
                 playerId: playerId
             };
 
@@ -5413,9 +5315,6 @@ define(['js/app'], function (myApp) {
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
-            if (!vm.dxNewPlayerQuery || !vm.dxNewPlayerQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#dxNewPlayerReportTableSpin').show();
 
@@ -5440,7 +5339,7 @@ define(['js/app'], function (myApp) {
             }
 
             let sendquery = {
-                platformId: vm.dxNewPlayerQuery.platformId,
+                platformId: vm.curPlatformId,
                 query: {
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
@@ -5476,7 +5375,6 @@ define(['js/app'], function (myApp) {
                 // get game data.then(
                 // map
                 vm.drawDXNewPlayerReport(data.data.data.map(item => {
-                    item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
                     item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -5586,34 +5484,33 @@ define(['js/app'], function (myApp) {
         vm.drawDXNewPlayerReport = function (data, size, newSearch, isExport) {
             var tableOptions = {
                 data: data,
-                "order": vm.dxNewPlayerQuery.aaSorting || [[3, 'desc']],
+                "order": vm.dxNewPlayerQuery.aaSorting || [[2, 'desc']],
                 aoColumnDefs: [
-                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
@@ -7131,16 +7028,12 @@ define(['js/app'], function (myApp) {
 
         // start new account report
         vm.searchNewPlayerRecord = function () {
-            if (!vm.newPlayerQuery || !vm.newPlayerQuery.platformId) {
-                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
-            }
-            let platformObjId = vm.newPlayerQuery.platformId;
             vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
-                platform: platformObjId,
+                platform: vm.curPlatformId,
                 startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
-            };
+            }
             socketService.$socket($scope.AppSocket, 'getNewAccountReportData', sendData, function (data) {
                 console.log('data', data.data);
                 let retData = data.data;
@@ -7148,12 +7041,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerQuery.newPlayers = retData[0];
                 vm.newPlayerQuery.domain = retData[1];
 
-                vm.newPlayerQuery.newPlayers.forEach(item => {
-                    item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
-                });
-
-                return Promise.all([vm.getAllPromoteWay(platformObjId), vm.getPartnerLevelConfig(platformObjId),
-                    vm.getAllAdmin(), vm.getPlatformPartner(platformObjId), vm.getPlatformCsOfficeUrl(platformObjId)]).then(
+                return Promise.all([vm.getAllPromoteWay(), vm.getPartnerLevelConfig(), vm.getAllAdmin(), vm.getPlatformPartner(), vm.getPlatformCsOfficeUrl()]).then(
                     () => {
                         $scope.$evalAsync(() => {
                             findReportSearchTime();
@@ -7238,9 +7126,6 @@ define(['js/app'], function (myApp) {
                 playerWithTopup: newPlayerData.filter(player => player.topUpTimes > 0).length,
                 playerWithMultiTopup: newPlayerData.filter(player => player.topUpTimes > 1).length,
                 validPlayer: validPlayer
-            };
-            if(newPlayerData && newPlayerData.length > 0 && newPlayerData[0].platform$){
-                returnObj.platform$ = newPlayerData[0].platform$;
             }
             if (ratioBasedOn != 'validPlayer')
                 returnObj.ratio = parseFloat((returnObj[ratioBasedOn] !== 0 ? returnObj[ratioBasedOn] / ratioCalculateBy * 100 : 0).toFixed(2))
@@ -7249,16 +7134,16 @@ define(['js/app'], function (myApp) {
 
             return returnObj;
         };
-        vm.getPlatformPartner = (platformObjId) => {
-            return $scope.$socketPromise('getPartnerByQuery', {platform: platformObjId || vm.curPlatformId}).then(
+        vm.getPlatformPartner = () => {
+            return $scope.$socketPromise('getPartnerByQuery', {platform: vm.curPlatformId}).then(
                 data => {
                     vm.platformPartner = data.data;
                 }
             )
         };
 
-        vm.getPlatformCsOfficeUrl = (platformObjId) => {
-            return $scope.$socketPromise('getAllUrl', {platformId: platformObjId || vm.curPlatformId}).then(
+        vm.getPlatformCsOfficeUrl = () => {
+            return $scope.$socketPromise('getAllUrl', {platformId: vm.curPlatformId}).then(
                 data => {
                     vm.platformCsOfficerUrl = data.data;
                 }
@@ -7306,26 +7191,23 @@ define(['js/app'], function (myApp) {
             else
                 return player.domain == vm.newPlayerQuery.validPlayerGraphDomainAnalysis;
         };
-        vm.getPartnerLevelConfig = function (platformObjId) {
-            return $scope.$socketPromise('getPartnerLevelConfig', {platform: platformObjId || vm.curPlatformId})
+        vm.getPartnerLevelConfig = function () {
+            return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
                 .then(function (data) {
                     vm.partnerLevelConfig = data.data[0];
                 });
         };
 
-        vm.getAllPromoteWay = function (platformObjId) {
-            return new Promise(function (resolve) {
-                vm.allPromoteWay = {};
-                let query = {
-                    platformId: platformObjId || vm.curPlatformId,
-                };
-                return $scope.$socketPromise('getAllPromoteWay', query).then(
-                    data => {
-                        vm.allPromoteWay = data.data;
-                        resolve(vm.allPromoteWay);
-                    }
-                )
-            });
+        vm.getAllPromoteWay = function () {
+            vm.allPromoteWay = {};
+            let query = {
+                platformId: vm.curPlatformId,
+            };
+            return $scope.$socketPromise('getAllPromoteWay', query).then(
+                data => {
+                    vm.allPromoteWay = data.data;
+                }
+            )
         };
 
         vm.drawValidPlayerGraphByElementId = function (elementId, promoteWayData, highlightPromoteWay, pieDataName = 'validPlayer') {
@@ -10313,54 +10195,54 @@ define(['js/app'], function (myApp) {
                         let todayEndTime = utilService.getTodayEndTime();
 
                         // Get Promote CS and way lists
-                        // vm.allPromoteWay = {};
-                        // let query = {
-                        //     platformId: vm.selectedPlatform._id
-                        // };
-                        // socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
-                        //     function (data) {
-                        //         $scope.$evalAsync(() => {
-                        //             vm.allPromoteWay = data.data;
-                        //             endLoadMultipleSelect('.spicker');
-                        //         })
-                        //     },
-                        //     function (err) {
-                        //         console.log(err);
-                        //     }
-                        // );
-                        //
-                        // // Get Departments Detail
-                        // socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
-                        //     data => {
-                        //         $scope.$evalAsync(() => {
-                        //             let parentId;
-                        //             vm.queryDepartments = [];
-                        //             vm.queryRoles = [];
-                        //             vm.queryAdmins = [];
-                        //
-                        //             vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
-                        //
-                        //             data.data.map(e => {
-                        //                 if (e.departmentName == vm.selectedPlatform.name) {
-                        //                     vm.queryDepartments.push(e);
-                        //                     parentId = e._id;
-                        //                 }
-                        //             });
-                        //
-                        //             data.data.map(e => {
-                        //                 if (String(parentId) == String(e.parent)) {
-                        //                     vm.queryDepartments.push(e);
-                        //                 }
-                        //             });
-                        //
-                        //             endLoadMultipleSelect('.spicker');
-                        //
-                        //             if (typeof(callback) == 'function') {
-                        //                 callback(data.data);
-                        //             }
-                        //         });
-                        //     }
-                        // );
+                        vm.allPromoteWay = {};
+                        let query = {
+                            platformId: vm.selectedPlatform._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                            function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allPromoteWay = data.data;
+                                    endLoadMultipleSelect('.spicker');
+                                })
+                            },
+                            function (err) {
+                                console.log(err);
+                            }
+                        );
+
+                        // Get Departments Detail
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                            data => {
+                                $scope.$evalAsync(() => {
+                                    let parentId;
+                                    vm.queryDepartments = [];
+                                    vm.queryRoles = [];
+                                    vm.queryAdmins = [];
+
+                                    vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                                    data.data.map(e => {
+                                        if (e.departmentName == vm.selectedPlatform.name) {
+                                            vm.queryDepartments.push(e);
+                                            parentId = e._id;
+                                        }
+                                    });
+
+                                    data.data.map(e => {
+                                        if (String(parentId) == String(e.parent)) {
+                                            vm.queryDepartments.push(e);
+                                        }
+                                    });
+
+                                    endLoadMultipleSelect('.spicker');
+
+                                    if (typeof(callback) == 'function') {
+                                        callback(data.data);
+                                    }
+                                });
+                            }
+                        );
 
                         vm.dxNewPlayerQuery = {
                             // days: 1,
@@ -10744,7 +10626,7 @@ define(['js/app'], function (myApp) {
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
-                    // vm.searchNewPlayerRecord(true);
+                    vm.searchNewPlayerRecord(true);
                 });
             } else if (choice == "WINRATE_REPORT") {
 
