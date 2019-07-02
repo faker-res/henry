@@ -27198,7 +27198,7 @@ define(['js/app'], function (myApp) {
                         promoCodeType: promoCodeType._id
                     };
 
-                    let ret = await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).catch(
+                    let ret = await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).then(data => data).catch(
                         err => {
                             return Promise.reject(err)
                         }
