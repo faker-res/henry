@@ -2191,6 +2191,7 @@ var proposalExecutor = {
                            entryType: proposalData.entryType
                         };
 
+                       console.log('check status before postWithdraw player:', proposalData.status);
                        console.log('withdrawAPIAddr player req:', message);
 
                        return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
