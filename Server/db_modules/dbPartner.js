@@ -9895,6 +9895,16 @@ let dbPartner = {
 
                 let mProms = [];
                 timeSlots.forEach(slot => {
+                    retList.push({ // add a default value so even if there is no downline, return will not be empty list
+                        date: slot.startTime,
+                        isNew: false,
+                        isActive: false,
+                        bonusAmount: 0,
+                        topupAmount: 0,
+                        withdrawAmount: 0,
+                        validBet: 0,
+                        promoAmount: 0
+                    });
                     members.forEach(id => mProms.push(
                         getAllPlayerCommissionRawDetails(
                             id, null, slot.startTime, slot.endTime, null, null, null, activePlayerRequirement
@@ -9919,6 +9929,7 @@ let dbPartner = {
         }
 
         // Process return list
+        console.log('retList', retList)
         retList = retList.reduce((a, b) => {
             if (a.length) {
                 let index = a.findIndex(idx => new Date(idx.date).getTime() === new Date(b.date).getTime());
