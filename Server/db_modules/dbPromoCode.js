@@ -8,10 +8,19 @@ const ObjectId = mongoose.Types.ObjectId;
 
 let dbPromoCode = {
     isPromoCodeValid: function (playerId, promoCode, amount) {
-        return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(playerData => {
+        let playerObj;
+        return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1, permission: 1, forbidPromoCodeList: 1}).lean().then(playerData => {
             if (playerData) {
+                playerObj = playerData;
                 let playerObjId = playerData._id;
                 let platformObjId = playerData.platform;
+
+                if (playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
+                    return Promise.reject({
+                        name: "DataError",
+                        errorMessage: "No available promo code at the moment"
+                    })
+                }
 
                 let promoCodeQuery = {
                     playerObjId: playerObjId,
@@ -39,6 +48,17 @@ let dbPromoCode = {
             for (let i = 0; i < promoCodeData.length; i++) {
                 let promoCodeObj = promoCodeData[i];
                 if (promoCodeObj.code.toString() == promoCode) {
+                    // check if it is in the forbidPromoCodeList
+                    if (playerObj && playerObj.forbidPromoCodeList && playerObj.forbidPromoCodeList.length && promoCodeObj && (promoCodeObj.promoCodeTemplateObjId || promoCodeObj.promoCodeTypeObjId)){
+                        let templateObjId = promoCodeObj.promoCodeTemplateObjId ? promoCodeObj.promoCodeTemplateObjId : promoCodeObj.promoCodeTypeObjId;
+                        if (playerObj.forbidPromoCodeList.map(p => {return p.toString()}).includes(templateObjId.toString())){
+                            return Promise.reject({
+                                status: constServerCode.DOCUMENT_NOT_FOUND,
+                                name: "DataError",
+                                errorMessage: "No available promo code at the moment"
+                            });
+                        }
+                    }
                     if (amount && typeof amount === "number") {
                         if (amount >= promoCodeObj.minTopUpAmount || !promoCodeObj.minTopUpAmount) {
                             return true;
@@ -65,9 +85,17 @@ let dbPromoCode = {
     isOpenPromoCodeValid: function (playerId, promoCode, amount, lastLoginIp) {
         let promoCodeObj;
         let platformObjId;
-        return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(playerData => {
+        let playerObj;
+        return dbconfig.collection_players.findOne({playerId: playerId}, {platform: 1, permission: 1, forbidPromoCodeList: 1}).lean().then(playerData => {
             if (playerData) {
+                if (playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
+                    return Promise.reject({
+                        name: "DataError",
+                        errorMessage: "No available promo code at the moment"
+                    })
+                }
 
+                playerObj = playerData;
                 platformObjId = playerData.platform;
 
                 let openPromoCodeQuery = {
@@ -95,6 +123,15 @@ let dbPromoCode = {
 
             if (promoCodeObj.code.toString() == promoCode) {
                 if (amount && typeof amount === "number") {
+                    // check if it is in the forbidPromoCodeList
+                    if (playerObj && playerObj.forbidPromoCodeList && playerObj.forbidPromoCodeList.length && promoCodeObj && promoCodeObj._id && playerObj.forbidPromoCodeList.map(p => {return p.toString()}).includes(promoCodeObj._id.toString())){
+                        return Promise.reject({
+                            status: constServerCode.DOCUMENT_NOT_FOUND,
+                            name: "DataError",
+                            errorMessage: "No available promo code at the moment"
+                        });
+                    }
+
                     if (amount >= promoCodeObj.minTopUpAmount || !promoCodeObj.minTopUpAmount) {
                         return true;
                     } else {

@@ -5294,7 +5294,7 @@ function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo, payment
 }
 
 function updateProposalRemark (proposalData, remark) {
-    if(proposalData && proposalData._id){
+    if(proposalData && proposalData._id && remark){
         return dbconfig.collection_proposal.findByIdAndUpdate(proposalData._id, {'data.remark': remark})
     }
     else{
