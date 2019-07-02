@@ -3786,7 +3786,7 @@ let dbPlayerInfo = {
         return Promise.all(proms).then(
             data => {
                 if (pmsData && pmsData.length > 0) {
-                    return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", pmsData).then(data => {
+                    return RESTUtils.getPMS2Services("postBatchSubTopupTypePermission", {requests: pmsData}).then(data => {
                         return data;
                     }, error => {
                         return data;
