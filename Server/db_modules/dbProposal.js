@@ -3696,6 +3696,22 @@ var proposal = {
                                 playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
 
+                            groupObj.totalTopUpAmount = {
+                                $sum: {
+                                    $cond: [
+                                        {$or: [
+                                                {$eq: ["$data.topUpAmount", NaN]},
+                                                {$setIsSubset: [
+                                                        ["$type"],
+                                                        playerPromoCodeRewardObjId
+                                                    ]}
+                                            ]},
+                                        0,
+                                        "$data.topUpAmount"
+                                    ]
+                                }
+                            };
+
                             return dbconfig.collection_proposal.aggregate([
                                 {
                                     $match: queryData
@@ -3829,6 +3845,22 @@ var proposal = {
                             if(promoCodeProposalType && promoCodeProposalType.length){
                                 playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
                             }
+
+                            groupObj.totalTopUpAmount = {
+                                $sum: {
+                                    $cond: [
+                                        {$or: [
+                                                {$eq: ["$data.topUpAmount", NaN]},
+                                                {$setIsSubset: [
+                                                        ["$type"],
+                                                        playerPromoCodeRewardObjId
+                                                    ]}
+                                            ]},
+                                        0,
+                                        "$data.topUpAmount"
+                                    ]
+                                }
+                            };
 
                             return dbconfig.collection_proposal.aggregate([
                                 {
