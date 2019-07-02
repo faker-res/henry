@@ -3534,21 +3534,6 @@ var proposal = {
                     ]
                 }
             },
-            totalTopUpAmount: {
-                $sum: {
-                    $cond: [
-                        {$or: [
-                                {$eq: ["$data.topUpAmount", NaN]},
-                                {$setIsSubset: [
-                                        ["$type"],
-                                        playerPromoCodeRewardObjId
-                                    ]}
-                            ]},
-                        0,
-                        "$data.topUpAmount"
-                    ]
-                }
-            },
             totalUpdateAmount: {
                 $sum: {
                     $cond: [
