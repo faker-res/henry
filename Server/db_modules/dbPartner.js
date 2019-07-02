@@ -10341,18 +10341,6 @@ let dbPartner = {
                 if (!parentRequirementRate) continue;
                 let matched = false;
 
-                if (Number(parentRequirementRate.commissionRate) === 0) {
-                    let childRequirementRate = {
-                        playerConsumptionAmountFrom: parentRequirementRate.playerConsumptionAmountFrom,
-                        playerConsumptionAmountTo: parentRequirementRate.playerConsumptionAmountTo,
-                        activePlayerValueFrom: parentRequirementRate.activePlayerValueFrom,
-                        activePlayerValueTo: parentRequirementRate.activePlayerValueTo,
-                        commissionRate: parentRequirementRate.commissionRate,
-                    }
-                    validCommissionSetting.push(childRequirementRate);
-                    continue;
-                }
-
                 for (let k = 0; k < childGroupRateList.length; k++) {
                     let childRequirementRate = childGroupRateList[k];
                     if (!childRequirementRate || childRequirementRate.matched) continue;
@@ -10368,20 +10356,31 @@ let dbPartner = {
                         // same requirement
                         matched = true;
                         childRequirementRate.matched = true;
-                        if (math.subtract(Number(parentRequirementRate.commissionRate), 0.01)  < Number(childRequirementRate.commissionRate)) {
-                            // commission rate changed
-                            return Promise.reject({
-                                status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                                message: "You must at least take 1% commission from your lower level partner to earn money."
-                            });
+
+                        if (Number(parentRequirementRate.commissionRate) === 0) {
+                            if (Number(childRequirementRate.commissionRate) !== 0) {
+                                return Promise.reject({
+                                    status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                                    message: "incomplete update commission rate for child"
+                                });
+                            }
+                        } else {
+                            if (math.subtract(Number(parentRequirementRate.commissionRate), 0.01)  < Number(childRequirementRate.commissionRate)) {
+                                // commission rate changed
+                                return Promise.reject({
+                                    status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                                    message: "You must at least take 1% commission from your lower level partner to earn money."
+                                });
+                            }
+
+                            if (Number(childRequirementRate.commissionRate) < 0.01) {
+                                return Promise.reject({
+                                    status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
+                                    message: "Minimum commission rate must be 1%"
+                                });
+                            }
                         }
 
-                        if (Number(childRequirementRate.commissionRate) < 0.01) {
-                            return Promise.reject({
-                                status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
-                                message: "Minimum commission rate must be 1%"
-                            });
-                        }
                         validCommissionSetting.push(childRequirementRate);
                         break;
                     }
