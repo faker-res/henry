@@ -462,12 +462,12 @@ let dbPlayerPartner = {
                     }
                 }
 
-                if (phoneAlreadyExist || bindedRecs.length) {
+                if ((phoneAlreadyExist && phoneAlreadyExist[0]) || bindedRecs.length) {
                     // Filter out binded to self
                     bindedRecs = bindedRecs.filter(rec => String(rec.playerObjId) !== String(playerData._id));
                     console.log('filtered bindedRecs', bindedRecs);
 
-                    let dupCount = Boolean(phoneAlreadyExist) ? 1 : 0;
+                    let dupCount = phoneAlreadyExist && phoneAlreadyExist[0] ? 1 : 0;
                     dupCount = dupCount + bindedRecs.length;
 
                     if (platform.allowSamePhoneNumberToRegister === true) {
