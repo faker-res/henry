@@ -10,7 +10,8 @@ let smsVerificationLogSchema = new Schema ({
     code: {type: String, required: true},
     delay: {type: Number, default: 0},
     createTime: {type: Date, default: Date.now, index: true},
-    loginAttempts: {type: Number, default: 0}
+    loginAttempts: {type: Number, default: 0},
+    playerName: {type: String, index: true},
 });
 
 module.exports = smsVerificationLogSchema;
