@@ -62,8 +62,7 @@ form(name="form_new_player", novalidate)
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"PARTNER" | translate}}
-			input.form-control(type="text", placeholder='{{"PARTNER" | translate}}', ng-model="vm.newPlayer.partnerName")
-			//label.form-control(ng-click='vm.showPartnerSelectModal(vm.newPlayer)') {{vm.partnerIdObj[vm.newPlayer.partner].partnerName}}
+			label.form-control(ng-click='vm.showPartnerSelectModal(vm.newPlayer)') {{vm.partnerIdObj[vm.newPlayer.partner].partnerName}}
 			//select.form-control(name="partner", ng-model="vm.newPlayer.partner", ng-click='vm.showPartnerSelectModal()')
 				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
 				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}

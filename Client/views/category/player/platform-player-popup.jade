@@ -626,7 +626,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"TOTAL_CREDIT"|translate}} : {{vm.creditTransfer.showTotalCredit || 0 | noRoundTwoDecimalPlaces}})  ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}}) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}})
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}} )
             .modal-body
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
@@ -659,7 +659,7 @@
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
                                 tbody
-                                    tr(ng-repeat='(i,v) in vm.sortedPlatformProviderList')
+                                    tr(ng-repeat='(i,v) in vm.platformProviderList')
                                         td {{v.name}}
                                         td {{v.providerId}}
                                         td
