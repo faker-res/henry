@@ -1171,7 +1171,7 @@ const dbPlayerMail = {
                     });
                 }
 
-                if (verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
+                if (playerName && verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
                         name: "ValidationError",
