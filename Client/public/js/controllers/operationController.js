@@ -753,6 +753,9 @@ define(['js/app'], function (myApp) {
 
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
+            // if(obj && obj.data.updateData.qq){
+            //     obj.data.updateData.qq = utilService.encodeQQ(obj.data.updateData.qq);
+            // }
             var result = val || val === false ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
@@ -1128,6 +1131,7 @@ define(['js/app'], function (myApp) {
                 if(item && item.data && item.data.bankCardNo && !item.data.bankCardNo.startsWith("******") && item.type && item.type.name && item.type.name === "ManualPlayerTopUp"){
                     return item.data.bankCardNo = "******" + item.data.bankCardNo.slice(-6);
                 }
+
             });
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;

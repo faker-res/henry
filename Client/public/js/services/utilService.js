@@ -26,6 +26,13 @@ define([], function () {
             return str.substring(0, 3) + "******" + str.slice(-4);
         }
 
+        this.encodeQQ = function (str) {
+            str = str || '';
+            var newStr = str.replace(str, "****");
+            return newStr + "@qq.com";
+            // return str.substring(0, 3) + "***" + str.slice(-2);
+        }
+
         this.setNDaysAgo = function (inputDate, n) {
             if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
                 return;

@@ -761,6 +761,7 @@ var proposal = {
                                     .populate({path: "operator", model: dbconfig.collection_admin})
                             );
                         }
+
                         return Q.all(allProm).then(
                             function (processSteps) {
                                 proposalData.process.steps = [];
@@ -771,6 +772,7 @@ var proposal = {
                             }
                         )
                     } else {
+
                         return proposalData;
                     }
                 }
@@ -780,6 +782,7 @@ var proposal = {
                         if (player && player.playerId) {
                             proposalData.data.playerId = player.playerId;
                         }
+
                         return proposalData;
                     })
                 } else {
@@ -794,8 +797,13 @@ var proposal = {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
+
+
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
+                    if (proposalData && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                        proposalData.data.updateData.qq = dbutility.encodeQQ(proposalData.data.updateData.qq);
                     }
                     if (proposalData && proposalData.data && proposalData.data.phoneNumber) {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
@@ -1756,6 +1764,9 @@ var proposal = {
                                     if (item.data && item.data.phoneNumber) {
                                         item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                     }
+                                    // if(item.data.updateData && item.data.updateData.qq){
+                                    //     item.data.updateData.qq = dbutility.encodeQQ(item.data.updateData.qq);
+                                    // }
 
                                     return item;
                                 });
@@ -3658,14 +3669,16 @@ var proposal = {
                     }else if(isSuccess){
                         delete queryData.status;
                         queryData["$and"] = [];
-                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
-                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
+
+                        orQuery.push({type: {$in: proposalTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
 
                         queryData["$and"].push({$or: orQuery});
-                    }else{
-                        let allTypeList = proposalTypeList.concat(approveProposalTypeList);
-                        queryData.type = {$in: allTypeList};
+                    } else {
+                        queryData["data.platformId"] = platformListQuery;
                     }
+
+                    console.log('queryData', queryData);
 
                     let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
                     let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
@@ -3724,6 +3737,10 @@ var proposal = {
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
                         totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                        if (summary && summary[0] && summary[0].players) {
+                            delete summary[0].players;
+                        }
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3812,6 +3829,8 @@ var proposal = {
                         orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
 
                         reqData["$and"].push({$or: orQuery});
+                    } else {
+                        queryData["data.platformId"] = platformListQuery;
                     }
 
                     console.log('proposal report query data', reqData);
@@ -3859,11 +3878,14 @@ var proposal = {
                 }
             ).then(
                 data => {
-                    console.log('proposal report prom done');
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
                     totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                    if (summary && summary[0] && summary[0].players) {
+                        delete summary[0].players;
+                    }
 
                     return resultArray;
                 },
@@ -8360,7 +8382,7 @@ var proposal = {
     },
 
     calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8369,7 +8391,8 @@ var proposal = {
                             $gte: startDate,
                             $lt: endDate
                         },
-                        playerId: {$in: playerObjIds}
+                        playerId: {$in: playerObjIds},
+                        isDuplicate: {$ne: true}
                     };
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate(
