@@ -3930,7 +3930,7 @@
   "Less than and equal to (<=)": "小过或等于 (<=)",
   "Equal to (=)": "等于 (=)",
   "Interval (>=, <)": "区间 (>=, <)",
-  "Phone Number Already Exists":"电话号码已存在",
+  "Phone Number Already Exists":"此手机号已被注册，请联系客服人员",
   "Real Name Already Exists":"真实姓名已存在",
   "SMS": "短信",
   "Approved Time": "成功执行时间",
