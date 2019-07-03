@@ -884,6 +884,7 @@ const dbPlayerMail = {
                         channel: channel,
                         platformObjId: platformObjId,
                         platformId: platformId,
+                        playerName: playerName,
                         code: code,
                         delay: 0
                     };
@@ -1164,6 +1165,14 @@ const dbPlayerMail = {
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
                         name: "ValidationError",
                         message: "There is no valid SMS Code. Please get another one."
+                    });
+                }
+                
+                if (verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                        name: "ValidationError",
+                        message: "The player name to be registered is different from the one in SMS log. Please get a new one."
                     });
                 }
 
