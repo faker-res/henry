@@ -654,6 +654,22 @@ let dbPlayerPartner = {
                 return true;
             }
         )
+
+        function checkPhoneNumberBindedBefore (inputData, platformObj) {
+            return dbConfig.collection_phoneNumberBindingRecord.find({
+                platformObjId: platformObj._id,
+                phoneNumber: {$in: [
+                        rsaCrypto.encrypt(inputData.phoneNumber),
+                        rsaCrypto.oldEncrypt(inputData.phoneNumber),
+                        rsaCrypto.legacyEncrypt(inputData.phoneNumber)
+                    ]}
+            }).count().then(
+                cnt => {
+                    console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                    return cnt;
+                }
+            );
+        }
     },
 
     /**
