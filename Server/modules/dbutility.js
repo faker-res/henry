@@ -1247,7 +1247,7 @@ var dbUtility = {
         } else {
             ua = uaParser(inputUserAgent);
         }
-        console.log('ua JY ==========', ua);
+
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
