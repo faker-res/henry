@@ -580,6 +580,9 @@ let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTim
 let bankAccountBindingRecordSchema = require('./../schema/logs2/bankAccountBindingRecord');
 let bankAccountBindingRecordModel = dbLogs2.model('bankAccountBindingRecord', bankAccountBindingRecordSchema, 'bankAccountBindingRecord');
 
+let phoneNumberBindingRecordSchema = require('./../schema/logs2/phoneNumberBindingRecord');
+let phoneNumberBindingRecordModel = dbLogs2.model('phoneNumberBindingRecord', phoneNumberBindingRecordSchema, 'phoneNumberBindingRecord');
+
 let platformPartnerCommConfigSchema = require('../schema/platformPartnerCommConfig');
 let platformPartnerCommConfigModel = db_admin.model('platformPartnerCommConfig', platformPartnerCommConfigSchema, 'platformPartnerCommConfig');
 
@@ -876,6 +879,7 @@ var dbProperties = {
     collection_queryCreditTimeout: queryCreditTimeoutModel,
     collection_playerRandomReward: playerRandomRewardSchemaModel,
     collection_bankAccountBindingRecord: bankAccountBindingRecordModel,
+    collection_phoneNumberBindingRecord: phoneNumberBindingRecordModel,
 
     collection_platformPartnerCommConfig: platformPartnerCommConfigModel,
     collection_partnerMainCommConfig: partnerMainCommConfigModel,
