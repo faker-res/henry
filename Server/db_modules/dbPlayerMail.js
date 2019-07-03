@@ -1178,7 +1178,7 @@ const dbPlayerMail = {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
                         name: "ValidationError",
-                        message: "The player name to be registered is different from the one in SMS log. Please get a new one."
+                        message: localization.localization.translate("The player name to be registered is different from the one in SMS log. Please get a new one.")
                     });
                 }
 
