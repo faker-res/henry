@@ -302,7 +302,6 @@ var proposal = {
         function checkPhoneNumberBindedBefore (inputData, platformObj) {
             return dbconfig.collection_phoneNumberBindingRecord.find({
                 platformObjId: platformObj._id,
-                playerObjId: inputData.playerObjId,
                 phoneNumber: {$in: [
                         rsaCrypto.encrypt(inputData.phoneNumber),
                         rsaCrypto.oldEncrypt(inputData.phoneNumber),
