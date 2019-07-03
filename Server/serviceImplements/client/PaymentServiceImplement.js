@@ -89,6 +89,7 @@ var PaymentServiceImplement = function () {
     this.applyBonus.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
+        console.log('userAgent JY ==========', userAgent);
         var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId], isValidData, true, false, false).then(
             function (res) {

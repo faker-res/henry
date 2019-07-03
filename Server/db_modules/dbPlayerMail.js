@@ -899,6 +899,9 @@ const dbPlayerMail = {
                     if (playerName){
                         saveObj.playerName = playerName;
                     }
+
+                    console.log("checking playerName", playerName || "NULL")
+                    console.log("checking saveObj", saveObj)
                     // Log the verification SMS before send
                     dbconfig.collection_smsVerificationLog.remove({tel: telNum, platformId: platformId}).then(
                         () => {
