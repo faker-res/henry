@@ -819,9 +819,23 @@ var proposalExecutor = {
                             });
                         }
                     );
+
+                    createPhoneNumberBindingRecord({
+                        platform: proposalData.data.platformId,
+                        _id: proposalData.data.playerObjId,
+                        phoneNumber: rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber)
+                    });
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player phone number proposal data"});
+                }
+
+                function createPhoneNumberBindingRecord (playerData) {
+                    return dbconfig.collection_phoneNumberBindingRecord({
+                        platformObjId: playerData.platform,
+                        playerObjId: playerData._id,
+                        phoneNumber: playerData.phoneNumber
+                    }).save();
                 }
             },
 
