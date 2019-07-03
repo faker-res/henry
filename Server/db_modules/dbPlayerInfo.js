@@ -5747,7 +5747,8 @@ let dbPlayerInfo = {
             _id: {$in: platformId}
         }).lean().then(
             platform => {
-                isProviderGroup = Boolean(platform.useProviderGroup);
+                // isProviderGroup = Boolean(platform.useProviderGroup);
+                isProviderGroup = true;
 
                 return dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
