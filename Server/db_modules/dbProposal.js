@@ -220,6 +220,7 @@ var proposal = {
 
         let bindedRecs = [];
         let playerCount = 0;
+        let message = "";
 
         if (proposalData && proposalData.data.updateData.phoneNumber) {
             playerCount = await dbconfig.collection_players.find({
@@ -242,25 +243,18 @@ var proposal = {
                     _id: proposalData.platformId
                 }
             );
+            console.log('playerCount')
         }
 
         let platform = await dbconfig.collection_platform.findById(platformId);
 
         if (platform.allowSamePhoneNumberToRegister === true) {
             if (playerCount + bindedRecs.length > platform.samePhoneNumberRegisterCount) {
-                return Promise.reject({
-                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                    name: "ValidationError",
-                    message: "Phone number already registered on platform"
-                })
+                message = `已被注册过了这个号码`;
             }
         } else {
             if (playerCount + bindedRecs.length > 0) {
-                return Promise.reject({
-                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                    name: "ValidationError",
-                    message: "Phone number already registered on platform"
-                })
+                message = `已被注册过了这个号码`;
             }
         }
 
@@ -268,6 +262,8 @@ var proposal = {
             data => {
                 if (smsLogInfo && data && data.proposalId)
                     dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
+                data.message = message;
 
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
