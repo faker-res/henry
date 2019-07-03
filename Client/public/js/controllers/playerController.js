@@ -14917,7 +14917,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPlayersData();
                 }
                 if (data.data.message) {
-                    socketService.showConfirmMessage(data.data.message, 10000);
+                    socketService.showErrorMessage(data.data.message);
                 }
 
                 if (data.data && data.data.stepInfo) {
