@@ -508,7 +508,7 @@ var PartnerServiceImplement = function () {
     };
 
     this.getDownLinePlayerTimeSequence.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId && data.period && data.sortMode);
+        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId && data.period);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId, conn.partnerObjId, data.period, data.sortMode, data.requestPage, data.count], isValidData);
     };
 

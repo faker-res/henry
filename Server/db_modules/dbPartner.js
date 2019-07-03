@@ -9995,7 +9995,7 @@ let dbPartner = {
         }, []);
 
         // Sort return list
-        retList.sort((a, b) => sortRetList(a, b, sortMode));
+        // retList.sort((a, b) => sortRetList(a, b, sortMode));
 
         let totalListCount = retList.length;
 
