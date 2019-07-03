@@ -5251,16 +5251,16 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CREDIT'),
-                        data: 'totalCredit',
+                        data: 'validCredit',
                         sType: 'Credit',
                         orderable: true,
                         bSortable: true,
                         render: function (data, type, row) {
                             // todo :: #13
-                            if (type == 'sort') return row.totalCredit;
+                            if (type == 'sort') return row.validCredit;
                             data = data || 0;
                             var link = $('<div>', {
-                                'data-order': row.totalCredit,
+                                'data-order': row.validCredit,
                             })
                             link.append($('<i class="fa fa-usd"></i>'));
                             if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
@@ -5274,13 +5274,13 @@ define(['js/app'], function (myApp) {
                                         'data-trigger': 'focus',
                                         'data-placement': 'bottom',
                                         'data-container': 'body'
-                                    }).text($noRoundTwoDecimalPlaces(row.totalCredit))
+                                    }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                 )
                             } else {
                                 link.append(
                                     $('<text>', {
                                         'data-row': JSON.stringify(row)
-                                    }).text($noRoundTwoDecimalPlaces(row.totalCredit))
+                                    }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                 )
                             }
                             link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
@@ -5859,7 +5859,6 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerLocalCredit = row.validCredit;
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
                                     vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
