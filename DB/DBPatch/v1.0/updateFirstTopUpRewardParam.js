@@ -1007,6 +1007,21 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Required phone number"
                 },
+                checkSameIP: {
+                    index: 19.2,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 19.3,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 19.4,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward"
+                },
             }
         },
         param: {

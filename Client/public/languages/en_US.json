@@ -86,6 +86,7 @@
   "TRUST_LEVEL" : "Trust",
   "GAME_CREDIT" : "Game Credit",
   "LOCAL_CREDIT": "Local Credit",
+  "ANY_LOBBY": "Any Lobby",
   "CREDIT":"Credit",
   "PLAYER_LEVEL": "Player Level",
   "TEST_PLAYER": "Test Player",

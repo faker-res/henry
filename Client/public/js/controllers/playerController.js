@@ -5100,12 +5100,15 @@ define(['js/app'], function (myApp) {
                         if (rowData.lastAccessTime) {
                             rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                         }
-                        if(rowData.platform){
+                        if (rowData.platform){
                             let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() == rowData.platform.toString());
                             if(matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name){
                                 rowData.platform$ = matchedPlatformData[0].name;
                             }
                         }
+                        rowData.totalCredit = rowData.validCredit + rowData.lockedCredit;
+                        rowData.totalCredit.toFixed(2);
+
                         if (table) {
                             table.row.add(rowData);
                         }

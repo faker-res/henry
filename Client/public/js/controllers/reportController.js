@@ -1445,13 +1445,14 @@ define(['js/app'], function (myApp) {
                 data => {
                     $scope.$evalAsync(() => {
                         let parentId;
+                        let selectedPlatform = vm.platformList.filter(platform => platform._id.toString() === platformObjId)[0];
                         vm.queryDepartments = [];
                         vm.queryRoles = [];
 
                         vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
 
                         data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
+                            if (e.departmentName == selectedPlatform.name) {
                                 vm.queryDepartments.push(e);
                                 parentId = e._id;
                             }
@@ -1481,6 +1482,9 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getPlayerLevelByPlatformId(platformObjId);
                     vm.getPlatformProvider(platformObjId);
+                    vm.getAllPromoteWay(platformObjId).then(() => {
+                        endLoadMultipleSelect('.spicker');
+                    });
                     vm.getDepartmentDetailsByPlatformObjId(platformObjId);
                     break;
 
@@ -1526,7 +1530,7 @@ define(['js/app'], function (myApp) {
                 vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
                 vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, platformObjId).catch(err => Promise.resolve([]));
 
-                let selectedPlatform = vm.platformList.filter(item => item && item._id && platformObjId && (item._id.toString() === platformObjId.toString()));
+                let selectedPlatform = vm.platformList.filter(item => item && item._id && platformObjId && (item._id.toString() === platformObjId.toString()))[0];
 
                 // Get Departments Detail
                 socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId}, function success(data) {

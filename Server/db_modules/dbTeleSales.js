@@ -1118,7 +1118,7 @@ let dbTeleSales = {
         );
     },
 
-    getTsWorkloadReport: (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
+    getTsWorkloadReport: async (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
         let definitionOfAnsweredPhone = [];
         //filter away empty values
         adminObjIds = adminObjIds.filter(function (adminObjId) {
@@ -1128,92 +1128,120 @@ let dbTeleSales = {
             return phoneListObjId != null && phoneListObjId != '';
         });
 
-        return dbconfig.collection_platform.findOne({_id : platformObjId}).then(platform => {
-            if(platform && platform.definitionOfAnsweredPhone) {
-                definitionOfAnsweredPhone = platform.definitionOfAnsweredPhone;
-            }
-            let distributedPhoneQuery = {
-                platform: platformObjId,
-                startTime: {$gte: startTime, $lte: endTime}
-            };
-            let phoneFeedbackQuery = {
-                platform: platformObjId,
-                createTime: {$gte: startTime, $lte: endTime}
-            };
-            if(phoneListObjIds.length > 0) {
-                distributedPhoneQuery.tsPhoneList = {$in: phoneListObjIds};
-                phoneFeedbackQuery.tsPhoneList = {$in: phoneListObjIds};
-            }
-            if(adminObjIds.length > 0) {
-                distributedPhoneQuery.assignee = {$in: adminObjIds};
-                phoneFeedbackQuery.adminId = {$in: adminObjIds};
-            }
+        let platform = await dbconfig.collection_platform.findOne({_id : platformObjId}).lean();
+        if(platform && platform.definitionOfAnsweredPhone) {
+            definitionOfAnsweredPhone = platform.definitionOfAnsweredPhone;
+        }
+        let distributedPhoneQuery = {
+            platform: platformObjId,
+            startTime: {$gte: startTime, $lte: endTime}
+        };
+        let phoneFeedbackQuery = {
+            platform: platformObjId,
+            createTime: {$gte: startTime, $lte: endTime}
+        };
+        let playerQuery = {
+            platform: platformObjId,
+            registrationTime: {$gte: startTime, $lte: endTime},
+            tsPhoneList: {$ne: null},
+            csOfficer: {$ne: null},
+        };
+        if(phoneListObjIds.length > 0) {
+            distributedPhoneQuery.tsPhoneList = {$in: phoneListObjIds};
+            phoneFeedbackQuery.tsPhoneList = {$in: phoneListObjIds};
+            playerQuery.tsPhoneList = {$in: phoneListObjIds};
+        }
+        if(adminObjIds.length > 0) {
+            distributedPhoneQuery.assignee = {$in: adminObjIds};
+            phoneFeedbackQuery.adminId = {$in: adminObjIds};
+            playerQuery.csOfficer = {$in: adminObjIds};
+        }
 
-            let distributedPhoneProm = dbconfig.collection_tsDistributedPhone.find(distributedPhoneQuery).populate({
-                path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
-            }).populate({
-                path: "assignee", model: dbconfig.collection_admin
-            }).lean();
-            let phoneFeedbackProm = dbconfig.collection_tsPhoneFeedback.find(phoneFeedbackQuery).populate({
-                path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
-            }).populate({
-                path: "adminId", model: dbconfig.collection_admin
-            }).lean();
+        let distributedPhoneProm = dbconfig.collection_tsDistributedPhone.find(distributedPhoneQuery).populate({
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+        }).populate({
+            path: "assignee", model: dbconfig.collection_admin
+        }).lean();
+        let phoneFeedbackProm = dbconfig.collection_tsPhoneFeedback.find(phoneFeedbackQuery).populate({
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+        }).populate({
+            path: "adminId", model: dbconfig.collection_admin
+        }).lean();
+        let playerProm = dbconfig.collection_players.find(playerQuery, {tsPhoneList: 1, csOfficer: 1}).populate({
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+        }).populate({
+            path: "csOfficer", model: dbconfig.collection_admin, select: 'adminName'
+        }).lean();
 
-            return Promise.all([distributedPhoneProm, phoneFeedbackProm]).then(data => {
-                let distributedData = data[0];
-                let phoneFeedbackData = data[1];
-                let workloadData = {};
 
-                if (distributedData && distributedData.length > 0) {
-                    distributedData.forEach(item => {
-                        if(item.assignee._id && !workloadData[item.assignee._id]) {
-                            workloadData[item.assignee._id] = {};
-                        }
-                        if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
-                            workloadData[item.assignee._id][item.tsPhoneList._id] = {
-                                adminId: item.assignee._id,
-                                adminName: item.assignee.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
-                    });
+        let [distributedData, phoneFeedbackData, playerData] = await Promise.all([distributedPhoneProm, phoneFeedbackProm, playerProm]);
+        let workloadData = {};
+
+        if (distributedData && distributedData.length > 0) {
+            distributedData.forEach(item => {
+                if(item.assignee._id && !workloadData[item.assignee._id]) {
+                    workloadData[item.assignee._id] = {};
                 }
-                if (phoneFeedbackData && phoneFeedbackData.length > 0) {
-                    phoneFeedbackData.forEach(item => {
-                        if(item.adminId._id && !workloadData[item.adminId._id]) {
-                            workloadData[item.adminId._id] = {};
-                        }
-                        if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id] = {
-                                adminId: item.adminId._id,
-                                adminName: item.adminId.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
-                        if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id].success++;
-                        }
-                        if(item.registered) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id].registered++;
-                        }
-                    });
+                if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
+                    workloadData[item.assignee._id][item.tsPhoneList._id] = {
+                        adminId: item.assignee._id,
+                        adminName: item.assignee.adminName,
+                        phoneListObjId: item.tsPhoneList._id,
+                        phoneListName: item.tsPhoneList.name,
+                        distributed:0,
+                        fulfilled:0,
+                        success:0,
+                        registered:0
+                    };
                 }
-                return workloadData;
-            })
-        });
+                workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
+            });
+        }
+        if (phoneFeedbackData && phoneFeedbackData.length > 0) {
+            phoneFeedbackData.forEach(item => {
+                if(item.adminId._id && !workloadData[item.adminId._id]) {
+                    workloadData[item.adminId._id] = {};
+                }
+                if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
+                    workloadData[item.adminId._id][item.tsPhoneList._id] = {
+                        adminId: item.adminId._id,
+                        adminName: item.adminId.adminName,
+                        phoneListObjId: item.tsPhoneList._id,
+                        phoneListName: item.tsPhoneList.name,
+                        distributed:0,
+                        fulfilled:0,
+                        success:0,
+                        registered:0
+                    };
+                }
+                workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
+                if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                    workloadData[item.adminId._id][item.tsPhoneList._id].success++;
+                }
+            });
+        }
+
+        if (playerData && playerData.length > 0) {
+            playerData.forEach(item => {
+                if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
+                    workloadData[item.csOfficer._id] = {};
+                }
+                if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
+                    workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
+                        csOfficer: item.csOfficer._id,
+                        adminName: item.csOfficer.adminName,
+                        phoneListObjId: item.tsPhoneList._id,
+                        phoneListName: item.tsPhoneList.name,
+                        distributed: 0,
+                        fulfilled: 0,
+                        success: 0,
+                        registered: 0
+                    };
+                }
+                workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
+            });
+        }
+        return workloadData;
     },
 
     manualExportDecomposedPhones: (sourcePlatform, sourceTopicName, exportCount, targetPlatform, phoneTradeObjIdArr, adminInfo) => {
