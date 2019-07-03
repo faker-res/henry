@@ -11348,13 +11348,15 @@ define(['js/app'], function (myApp) {
                     let existProviderCommissionSetting = [];
                     let cloneGameProviderGroup = $.extend(true, [], vm.gameProviderGroup);
                     vm.customPartnerCommission = [];
-                    cloneGameProviderGroup.unshift(
-                        {
-                            _id: null,
-                            name: "default",
-                            providers: null
-                        }
-                    );
+                    if (!isMultiLevel) {
+                        cloneGameProviderGroup.unshift(
+                            {
+                                _id: null,
+                                name: "default",
+                                providers: null
+                            }
+                        );
+                    }
 
                     if (data && data.data && data.data.length) {
                         cloneGameProviderGroup.filter(gameProviderGroup => {
@@ -11392,7 +11394,7 @@ define(['js/app'], function (myApp) {
                                     } else {
                                         vm.partnerCommission.gameProviderGroup.push(obj);
                                     }
-                                    if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                    if (vm.partnerCommission.gameProviderGroup.length > 0 && (!(vm.selectedSinglePartner && vm.selectedSinglePartner.parent) && vm.isMultiLevelCommission)) {
                                         vm.partnerCommission.gameProviderGroup.forEach(data => {
                                             if (data._id == tempGameProviderGroupId) {
                                                 data.srcConfig = null;
@@ -11421,7 +11423,7 @@ define(['js/app'], function (myApp) {
                             cloneGameProviderGroup.forEach(data => {
                                 let tempGameProviderGroupId = data._id;
                                 vm.partnerCommission.gameProviderGroup.push(data);
-                                if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                if (vm.partnerCommission.gameProviderGroup.length > 0 && (!(vm.selectedSinglePartner && vm.selectedSinglePartner.parent) && vm.isMultiLevelCommission)) {
                                     vm.partnerCommission.gameProviderGroup.forEach(data => {
                                         if (data._id == tempGameProviderGroupId) {
                                             data.srcConfig = null;
@@ -11471,18 +11473,20 @@ define(['js/app'], function (myApp) {
                                     //clone a copy of original customized config for cancel setting purpose
                                     grp.srcCustomConfig = grp.showConfig ? JSON.parse(JSON.stringify(grp.showConfig)) : {};
                                 } else {
-                                    let emptyRow = {
-                                        playerConsumptionAmountFrom: "",
-                                        playerConsumptionAmountTo: "",
-                                        activePlayerValueFrom: "",
-                                        activePlayerValueTo: "",
-                                        commissionRate: "",
-                                        isEditing: false,
-                                        isCreateNew: true
-                                    };
+                                    if ((!(vm.selectedSinglePartner && vm.selectedSinglePartner.parent) && vm.isMultiLevelCommission)) {
+                                        let emptyRow = {
+                                            playerConsumptionAmountFrom: "",
+                                            playerConsumptionAmountTo: "",
+                                            activePlayerValueFrom: "",
+                                            activePlayerValueTo: "",
+                                            commissionRate: "",
+                                            isEditing: false,
+                                            isCreateNew: true
+                                        };
 
-                                    grp.showConfig.commissionSetting.push($.extend(true, {}, emptyRow));
-                                    grp.srcConfig.commissionSetting.push($.extend(true, {}, emptyRow))
+                                        grp.showConfig.commissionSetting.push($.extend(true, {}, emptyRow));
+                                        grp.srcConfig.commissionSetting.push($.extend(true, {}, emptyRow))
+                                    }
                                 }
                             }
                         });
@@ -11851,14 +11855,14 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            if (vm.isMultiLevelCommission && !(vm.selectedSinglePartner && vm.selectedSinglePartner.parent)) {
-                for (let i = 0; i < newConfig.commissionSetting.length; i++) {
-                    if (!newConfig.commissionSetting[i].commissionRate || newConfig.commissionSetting[i].commissionRate < 1) {
-                        socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
-                        return;
-                    }
+            // if (vm.isMultiLevelCommission && !(vm.selectedSinglePartner && vm.selectedSinglePartner.parent)) {
+            for (let i = 0; i < newConfig.commissionSetting.length; i++) {
+                if (!newConfig.commissionSetting[i].hasOwnProperty("commissionRate") || newConfig.commissionSetting[i].commissionRate < 0) {
+                    socketService.showErrorMessage($translate("Commission rate cannot lower than 0%"));
+                    return;
                 }
             }
+            // }
 
             if (isRevert && !vm.isMultiLevelCommission) {
                 let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
@@ -11946,7 +11950,7 @@ define(['js/app'], function (myApp) {
             if (setting && setting.length > 0) {
                 setting.forEach(providerGroup => {
                     let tempConfig = providerGroup.showConfig;
-                    if (tempConfig.commissionSetting && tempConfig.commissionSetting.length > 0) {
+                    if (tempConfig && tempConfig.commissionSetting && tempConfig.commissionSetting.length > 0) {
                         for (let i = 0; i < tempConfig.commissionSetting.length; i++) {
                             if ((tempConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
                                 (tempConfig.commissionSetting[i].activePlayerValueFrom == '' || tempConfig.commissionSetting[i].activePlayerValueFrom == null) &&
@@ -11954,7 +11958,7 @@ define(['js/app'], function (myApp) {
 
                                 tempConfig.commissionSetting.splice(i, 1);
                             }
-                            if (vm.isMultiLevelCommission && tempConfig.commissionSetting[i] && (!tempConfig.commissionSetting[i].commissionRate || tempConfig.commissionSetting[i].commissionRate < 1)) {
+                            if (tempConfig.commissionSetting[i] && (!tempConfig.commissionSetting[i].hasOwnProperty("commissionRate") || tempConfig.commissionSetting[i].commissionRate < 0)) {
                                 isValidCommissionRate = false;
                             }
                         }
@@ -11973,8 +11977,8 @@ define(['js/app'], function (myApp) {
                         e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                     });
                 })
-                if (vm.isMultiLevelCommission && !isValidCommissionRate) {
-                    socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
+                if (!isValidCommissionRate) {
+                    socketService.showErrorMessage($translate("Commission rate cannot lower than 0%"));
                     vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                     vm.getPlatformPartnersData();
                 } else {
@@ -17434,7 +17438,7 @@ define(['js/app'], function (myApp) {
                         tempShowConfig.commissionSetting.splice(i, 1);
                     }
 
-                    if (vm.isMultiLevelCommission && tempShowConfig.commissionSetting[i] && (!tempShowConfig.commissionSetting[i].commissionRate || tempShowConfig.commissionSetting[i].commissionRate < 0.01)) {
+                    if (tempShowConfig.commissionSetting[i] && (!tempShowConfig.commissionSetting[i].hasOwnProperty("commissionRate") || tempShowConfig.commissionSetting[i].commissionRate < 0)) {
                         isValidCommissionRate = false;
                     }
                 }
@@ -17447,7 +17451,7 @@ define(['js/app'], function (myApp) {
 
                 if (vm.isMultiLevelCommission) {
                     if (!isValidCommissionRate) {
-                        socketService.showErrorMessage($translate("Commission rate cannot lower than 1%"));
+                        socketService.showErrorMessage($translate("Commission rate cannot lower than 0%"));
                         return;
                     }
 
@@ -17464,6 +17468,10 @@ define(['js/app'], function (myApp) {
                         })
                     });
                 } else {
+                    if (!isValidCommissionRate) {
+                        socketService.showErrorMessage($translate("Commission rate cannot lower than 0%"));
+                        return;
+                    }
                     // if (gameProviderGroup._id && gameProviderGroup.providers) {
                     tempShowConfig.provider = gameProviderGroup._id;
                     sendData = {

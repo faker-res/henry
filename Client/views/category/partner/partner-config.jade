@@ -10,7 +10,7 @@
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "validActive"}', ng-click='vm.configTabClicked("validActive")')
                         span {{"VALID_ACTIVE" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission")')
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission"); vm.commissionSettingTab = "DAILY_CONSUMPTION"')
                         span {{"Partner Commission" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerBasic')" )
                         span {{"Partner Basic" | translate}}

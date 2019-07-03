@@ -11,10 +11,10 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                     .panel.panel-primary
                         .panel-heading.common-left-panel-heading
                             ul.nav.nav-tabs.common-nav-tabs
-                                li.active
+                                li(ng-class='{active: vm.commissionSettingTab == "DAILY_CONSUMPTION" || !vm.commissionSettingTab}')
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_CONSUMPTION', null, vm.isMultiLevelCommission);")
                                         text.span {{"DAILY_CONSUMPTION" | translate}}
-                                li
+                                li(ng-class='{active: vm.commissionSettingTab == "WEEKLY_BONUS_AMOUNT"}')
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT', null, vm.isMultiLevelCommission);")
                                         text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
                                 //li
