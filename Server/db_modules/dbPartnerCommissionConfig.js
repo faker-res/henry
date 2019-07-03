@@ -713,11 +713,11 @@ const dbPartnerCommissionConfig = {
         let partnerCommConfig = [];
         let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: chosenPartnerObj.platform} , {_id: 1, name: 1, providerGroupId: 1}).lean();
         providerGroups = providerGroups || [];
-        providerGroups.push({
-            _id: null,
-            name: "default",
-            providerGroupId: null
-        })
+        // providerGroups.push({
+        //     _id: null,
+        //     name: "default",
+        //     providerGroupId: null
+        // })
 
         if (chosenPartnerObj.commissionType) {
             // commission const different with API
