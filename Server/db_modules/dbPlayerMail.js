@@ -895,6 +895,10 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
+
+                    if (playerName){
+                        saveObj.playerName = playerName;
+                    }
                     // Log the verification SMS before send
                     dbconfig.collection_smsVerificationLog.remove({tel: telNum, platformId: platformId}).then(
                         () => {
@@ -1164,6 +1168,14 @@ const dbPlayerMail = {
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
                         name: "ValidationError",
                         message: "There is no valid SMS Code. Please get another one."
+                    });
+                }
+
+                if (playerName && verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                        name: "ValidationError",
+                        message: "The player name to be registered is different from the one in SMS log. Please get a new one."
                     });
                 }
 

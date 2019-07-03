@@ -737,7 +737,7 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
+                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
@@ -5825,6 +5825,8 @@ let dbPlayerInfo = {
                                         playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
+
+                                    playerData[ind].totalCredit = playerData[ind].validCredit + playerData[ind].lockedCredit;
 
                                     if (isProviderGroup) {
                                         newInfo = getRewardGroupData(playerData[ind]);

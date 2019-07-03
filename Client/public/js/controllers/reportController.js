@@ -1506,8 +1506,56 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getDepartmentDetailsByPlatformObjId(platformObjId);
                     break;
+                case "FEEDBACK_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupRemarksMultiInput()
+                    });
+                    vm.getPlayerLevelByPlatformId(platformObjId);
+                    vm.getPlatformProvider(platformObjId);
+                    vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
+
+                    break;
             }
         };
+
+        vm.getFeedbackDetailsAndDepartmentDerails = function (platformObjId) {
+            $scope.$evalAsync(async () => {
+                vm.allFeedbackResults = {};
+                vm.allFeedbackTopics = {};
+
+                vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, platformObjId).catch(err => Promise.resolve([]));
+
+                let selectedPlatform = vm.platformList.filter(item => item && item._id && platformObjId && (item._id.toString() === platformObjId.toString()));
+
+                // Get Departments Detail
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId}, function success(data) {
+                    console.log('getDepartmentTreeById', data);
+                    let parentId;
+                    vm.queryDepartments = [];
+                    vm.queryRoles = [];
+                    vm.queryAdmins = [];
+
+                    data.data.map(e => {
+                        if (e.departmentName == selectedPlatform.name) {
+                            vm.queryDepartments.push(e);
+                            parentId = e._id;
+                        }
+                    });
+
+                    data.data.map(e => {
+                        if (String(parentId) == String(e.parent)) {
+                            vm.queryDepartments.push(e);
+                        }
+                    });
+
+                    $scope.$digest();
+                    if (typeof(callback) == 'function') {
+                        callback(data.data);
+                    }
+                });
+            });
+        }
 
         vm.getProposalTypeByPlatformId = function (id) {
             var deferred = Q.defer();
@@ -1743,7 +1791,9 @@ define(['js/app'], function (myApp) {
                 depositMethod: vm.queryTopup.depositMethod,
                 bankTypeId: vm.queryTopup.bankTypeId,
                 merchantNo: vm.queryTopup.merchantNo,
-                platformList: vm.queryTopup.platformList ? vm.queryTopup.platformList : vm.platformList.map(item => item._id),
+                platformList:
+                    vm.queryTopup.platformList && vm.queryTopup.platformList.length ?
+                        vm.queryTopup.platformList : vm.platformList.map(item => item._id),
                 status: staArr,
                 startTime: vm.queryTopup.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryTopup.endTime.data('datetimepicker').getLocalDate(),
@@ -3762,7 +3812,7 @@ define(['js/app'], function (myApp) {
             utilService.getDataTablePageSize("#feedbackReportTablePage", vm.feedbackQuery, 5000);
 
             let sendquery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.feedbackQuery.platformId || vm.curPlatformId,
                 query: query,
                 index: 0,
                 limit: 5000,
@@ -10803,38 +10853,38 @@ define(['js/app'], function (myApp) {
                         let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         let todayEndTime = utilService.getTodayEndTime();
 
-                        vm.allFeedbackResults = {};
-                        vm.allFeedbackTopics = {};
-
-                        vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
-                        vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
-
-                        // Get Departments Detail
-                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                            console.log('getDepartmentTreeById', data);
-                            let parentId;
-                            vm.queryDepartments = [];
-                            vm.queryRoles = [];
-                            vm.queryAdmins = [];
-
-                            data.data.map(e => {
-                                if (e.departmentName == vm.selectedPlatform.name) {
-                                    vm.queryDepartments.push(e);
-                                    parentId = e._id;
-                                }
-                            });
-
-                            data.data.map(e => {
-                                if (String(parentId) == String(e.parent)) {
-                                    vm.queryDepartments.push(e);
-                                }
-                            });
-
-                            $scope.$digest();
-                            if (typeof(callback) == 'function') {
-                                callback(data.data);
-                            }
-                        });
+                        // vm.allFeedbackResults = {};
+                        // vm.allFeedbackTopics = {};
+                        //
+                        // vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        // vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
+                        //
+                        // // Get Departments Detail
+                        // socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        //     console.log('getDepartmentTreeById', data);
+                        //     let parentId;
+                        //     vm.queryDepartments = [];
+                        //     vm.queryRoles = [];
+                        //     vm.queryAdmins = [];
+                        //
+                        //     data.data.map(e => {
+                        //         if (e.departmentName == vm.selectedPlatform.name) {
+                        //             vm.queryDepartments.push(e);
+                        //             parentId = e._id;
+                        //         }
+                        //     });
+                        //
+                        //     data.data.map(e => {
+                        //         if (String(parentId) == String(e.parent)) {
+                        //             vm.queryDepartments.push(e);
+                        //         }
+                        //     });
+                        //
+                        //     $scope.$digest();
+                        //     if (typeof(callback) == 'function') {
+                        //         callback(data.data);
+                        //     }
+                        // });
 
                         vm.feedbackQuery = {
                             userType: 'Real Player (all)',

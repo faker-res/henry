@@ -1206,6 +1206,13 @@ var dbUtility = {
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 
+    encodeQQ: function (str) {
+        str = str || '';
+        var newStr = str.replace(str, "****");
+        return newStr + "@qq.com";
+        // return str.substring(0, 3) + "***" + str.slice(-2);
+    },
+
     encodeRealName: function (str) {
         str = str || '';
         let encodedStr = str[0] || '';
