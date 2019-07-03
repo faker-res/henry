@@ -429,7 +429,7 @@ let dbPlayerPartner = {
                 }
             }
         ).then(
-            data => {
+            async data => {
                 if (!data) {
                     return Q.reject({
                         name: "DataError",
@@ -437,6 +437,14 @@ let dbPlayerPartner = {
                         message: "Unable to find user"
                     });
                 }
+
+                let bindedRecs = [];
+                if (playerData) {
+                    let bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
+                    console.log('bindedRecs', bindedRecs);
+                }
+
+
                 let phoneAlreadyExist = data[0];
                 if (phoneAlreadyExist && (phoneAlreadyExist[0] || phoneAlreadyExist[1])) {
 
@@ -451,6 +459,33 @@ let dbPlayerPartner = {
                             name: "ValidationError",
                             message: "Phone number already registered on platform"
                         });
+                    }
+                }
+
+                if (phoneAlreadyExist || bindedRecs.length) {
+                    // Filter out binded to self
+                    bindedRecs = bindedRecs.filter(rec => String(rec.playerObjId) !== String(playerData._id));
+                    console.log('filtered bindedRecs', bindedRecs);
+
+                    let dupCount = Boolean(phoneAlreadyExist) ? 1 : 0;
+                    dupCount = dupCount + bindedRecs.length;
+
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (dupCount > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                name: "ValidationError",
+                                message: "Phone number already registered on platform"
+                            })
+                        }
+                    } else {
+                        if (dupCount > 0) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                name: "ValidationError",
+                                message: "Phone number already registered on platform"
+                            })
+                        }
                     }
                 }
 
@@ -472,57 +507,6 @@ let dbPlayerPartner = {
                 }
 
                 return dbPlayerMail.verifySMSValidationCode(verificationPhone, platform, smsCode);
-
-                // platform.smsVerificationExpireTime = platform.smsVerificationExpireTime || 5;
-                // let smsExpiredDate = new Date();
-                // smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - platform.smsVerificationExpireTime);
-                //
-                // let smsVerificationLogQuery = {
-                //     platformObjId: platformObjId,
-                //     tel: curPhoneNumber,
-                //     createTime: {$gte: smsExpiredDate}
-                // };
-                //
-                // if (!newPhoneNumber) {
-                //     if (data[1] && data[1][0] && data[1][0].tel) {
-                //         newPhoneNumber = data[1][0].tel;
-                //         smsVerificationLogQuery.tel = data[1][0].tel; // WARNING, IT HAD CHANGED SMSVLOG.TEL
-                //         newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(data[1][0].tel));
-                //     }
-                //     else {
-                //         return Q.reject({
-                //             status: constServerCode.INVALID_PHONE_NUMBER,
-                //             name: "ValidationError",
-                //             message: "Phone number already registered on platform"
-                //         });
-                //     }
-                // }
-                // // 4. Check if smsCode is matched
-                // return dbConfig.collection_smsVerificationLog.findOne(smsVerificationLogQuery).sort({createTime: -1}).then(
-                //     verificationSMS => {
-                //         verificationSmsDetail = verificationSMS;
-                //         // Check verification SMS code
-                //         if (verificationSMS && verificationSMS.code && verificationSMS.code == smsCode) {
-                //             verificationSMS = verificationSMS || {};
-                //             return dbConfig.collection_smsVerificationLog.remove(
-                //                 {_id: verificationSMS._id}
-                //             ).then(
-                //                 () => {
-                //                     smsLogDetail = {tel: verificationSMS.tel, message: verificationSMS.code};
-                //                     dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-                //                     return Q.resolve(true);
-                //                 }
-                //             )
-                //         }
-                //         else {
-                //             return Q.reject({
-                //                 status: constServerCode.VALIDATION_CODE_INVALID,
-                //                 name: "ValidationError",
-                //                 message: "Invalid SMS Validation Code"
-                //             });
-                //         }
-                //     }
-                // );
             }
         ).then(
             result => {
@@ -658,12 +642,13 @@ let dbPlayerPartner = {
         function checkPhoneNumberBindedBefore (inputData, platformObj) {
             return dbConfig.collection_phoneNumberBindingRecord.find({
                 platformObjId: platformObj._id,
+                playerObjId: inputData.playerObjId,
                 phoneNumber: {$in: [
                         rsaCrypto.encrypt(inputData.phoneNumber),
                         rsaCrypto.oldEncrypt(inputData.phoneNumber),
                         rsaCrypto.legacyEncrypt(inputData.phoneNumber)
                     ]}
-            }).count().then(
+            }).then(
                 cnt => {
                     console.log('checkPhoneNumberBindedBefore cnt', cnt);
                     return cnt;
