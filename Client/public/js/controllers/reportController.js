@@ -1530,7 +1530,7 @@ define(['js/app'], function (myApp) {
                 vm.allFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
                 vm.allFeedbackTopics = await commonService.getPlayerFeedbackTopic($scope, platformObjId).catch(err => Promise.resolve([]));
 
-                let selectedPlatform = vm.platformList.filter(item => item && item._id && platformObjId && (item._id.toString() === platformObjId.toString()));
+                let selectedPlatform = vm.platformList.filter(item => item && item._id && platformObjId && (item._id.toString() === platformObjId.toString()))[0];
 
                 // Get Departments Detail
                 socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId}, function success(data) {
