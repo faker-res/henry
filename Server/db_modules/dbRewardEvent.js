@@ -2211,7 +2211,7 @@ var dbRewardEvent = {
                                 if (eventData.condition && eventData.condition.checkSameDeviceId) {
                                     returnData.condition.device.status = matchMobileDevice ? 2 : 1;
                                 }
-                                console.log("checking -----  returnData.condition",  returnData.condition)
+                               
                             } else {
                                 returnData.condition.deposit.status = 2;
                                 correctTopUpType = false;
