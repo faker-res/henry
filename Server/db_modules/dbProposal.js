@@ -3664,7 +3664,7 @@ var proposal = {
 
                         queryData["$and"].push({$or: orQuery});
                     } else {
-                        queryData["data.platformObjId"] = platformListQuery;
+                        queryData["data.platformId"] = platformListQuery;
                     }
 
                     console.log('queryData', queryData);
@@ -3818,6 +3818,8 @@ var proposal = {
                         orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
 
                         reqData["$and"].push({$or: orQuery});
+                    } else {
+                        queryData["data.platformId"] = platformListQuery;
                     }
 
                     console.log('proposal report query data', reqData);
