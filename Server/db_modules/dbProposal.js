@@ -761,6 +761,7 @@ var proposal = {
                                     .populate({path: "operator", model: dbconfig.collection_admin})
                             );
                         }
+
                         return Q.all(allProm).then(
                             function (processSteps) {
                                 proposalData.process.steps = [];
@@ -771,6 +772,7 @@ var proposal = {
                             }
                         )
                     } else {
+
                         return proposalData;
                     }
                 }
@@ -780,6 +782,7 @@ var proposal = {
                         if (player && player.playerId) {
                             proposalData.data.playerId = player.playerId;
                         }
+
                         return proposalData;
                     })
                 } else {
@@ -794,8 +797,13 @@ var proposal = {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
+
+
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
+                    if (proposalData && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                        proposalData.data.updateData.qq = dbutility.encodeQQ(proposalData.data.updateData.qq);
                     }
                     if (proposalData && proposalData.data && proposalData.data.phoneNumber) {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
@@ -1756,6 +1764,9 @@ var proposal = {
                                     if (item.data && item.data.phoneNumber) {
                                         item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                     }
+                                    // if(item.data.updateData && item.data.updateData.qq){
+                                    //     item.data.updateData.qq = dbutility.encodeQQ(item.data.updateData.qq);
+                                    // }
 
                                     return item;
                                 });
