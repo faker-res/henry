@@ -3663,7 +3663,11 @@ var proposal = {
                         orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
 
                         queryData["$and"].push({$or: orQuery});
+                    } else {
+                        queryData["data.platformObjId"] = platformListQuery;
                     }
+
+                    console.log('queryData', queryData);
 
                     let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
                     let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
@@ -3722,6 +3726,10 @@ var proposal = {
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
                         totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                        if (summary && summary[0] && summary[0].players) {
+                            delete summary[0].players;
+                        }
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3861,6 +3869,10 @@ var proposal = {
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
                     totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                    if (summary && summary[0] && summary[0].players) {
+                        delete summary[0].players;
+                    }
 
                     return resultArray;
                 },
