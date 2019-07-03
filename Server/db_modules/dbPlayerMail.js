@@ -884,7 +884,6 @@ const dbPlayerMail = {
                         channel: channel,
                         platformObjId: platformObjId,
                         platformId: platformId,
-                        playerName: playerName,
                         code: code,
                         delay: 0
                     };
@@ -896,6 +895,10 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
+
+                    if (playerName){
+                        saveObj.playerName = playerName;
+                    }
                     // Log the verification SMS before send
                     dbconfig.collection_smsVerificationLog.remove({tel: telNum, platformId: platformId}).then(
                         () => {
@@ -1167,7 +1170,7 @@ const dbPlayerMail = {
                         message: "There is no valid SMS Code. Please get another one."
                     });
                 }
-                
+
                 if (verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
