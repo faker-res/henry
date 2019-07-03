@@ -7,11 +7,9 @@
         label {{"COMMISSION_TYPE"|translate}}
         select.form-control(ng-model='vm.partnerSettlementQuery.commissionType')
             option(value='') {{'any' | translate}}
-            option(value='1') {{'DAILY_BONUS_AMOUNT' | translate}}
             option(value='2') {{'WEEKLY_BONUS_AMOUNT' | translate}}
-            option(value='3') {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
-            option(value='4') {{'MONTHLY_BONUS_AMOUNT' | translate}}
-            option(value='5') {{'WEEKLY_CONSUMPTION' | translate}}
+            option(value='7') {{'DAILY_CONSUMPTION' | translate}}
+
     .search-filters-item
         label {{"PARTNER_NAME"|translate}}
         input.form-control.span.input-sm(type="text", ng-model="vm.partnerSettlementQuery.partnerName")

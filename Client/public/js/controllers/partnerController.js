@@ -18585,7 +18585,7 @@ define(['js/app'], function (myApp) {
             }
             vm.currentChildDetail = $.extend({}, data);
 
-            let isReport = vm.currentTab === "Report";
+            let isReport = vm.showPageName === "REAL_TIME_COMMISSION_REPORT";
             let objId = "";
 
             if (isReport) {
