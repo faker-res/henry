@@ -440,7 +440,7 @@ let dbPlayerPartner = {
 
                 let bindedRecs = [];
                 if (playerData) {
-                    let bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
+                    bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
                     console.log('bindedRecs', bindedRecs);
                 }
 
