@@ -25527,6 +25527,8 @@ let dbPlayerInfo = {
     },
 
     isPhoneNumberExist: async (phoneNumber, platformObjId) => {
+         console.log('isPhoneNumberExist', phoneNumber, platformObjId);
+
          let retArr = [];
          let phoneNumberQ = {
              $in: [
@@ -25537,7 +25539,7 @@ let dbPlayerInfo = {
          };
 
          let playerCheck = await dbconfig.collection_players.find({
-            platform: platformObjId,
+             platform: platformObjId,
              phoneNumber: phoneNumberQ
          }, {name: 1}).lean();
 
