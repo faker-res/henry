@@ -25439,6 +25439,40 @@ let dbPlayerInfo = {
             }
         );
     },
+
+    isPhoneNumberExist: async (phoneNumber, platformObjId) => {
+         let retArr = [];
+         let phoneNumberQ = {
+             $in: [
+                 rsaCrypto.encrypt(phoneNumber),
+                 rsaCrypto.oldEncrypt(phoneNumber),
+                 rsaCrypto.legacyEncrypt(phoneNumber)
+             ]
+         };
+
+         let playerCheck = await dbconfig.collection_players.find({
+            platform: platformObjId,
+             phoneNumber: phoneNumberQ
+         }, {name: 1}).lean();
+
+        let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
+            platformObjId: platformObjId,
+            phoneNumber: phoneNumberQ
+        }, {playerObjId: 1}).populate({path: 'playerObjId', model: dbconfig.collection_players, select: 'name'}).lean();
+
+        console.log('playerCheck', playerCheck);
+        console.log('recCheck', recCheck);
+
+        if (playerCheck && playerCheck.length) {
+            playerCheck.forEach(p => retArr.push(p.name));
+        }
+
+        if (recCheck && recCheck.length) {
+            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+        }
+
+        return retArr;
+    }
 };
 
 function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
