@@ -6509,7 +6509,7 @@ let dbPlayerInfo = {
                                 }
                             }
                         ).then(
-                            player => {
+                            async player => {
                                 if (player && player.length) {
                                     let thisPlayer = player[0];
 
@@ -6518,6 +6518,18 @@ let dbPlayerInfo = {
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified, checkLastDeviceId)
                                 } else {
+
+                                    // Check phone number binding record
+                                    let platformObj = await dbconfig.collection_platform.findOne({platformId: loginData.platformId}, {_id: 1}).lean();
+                                    let checkCount = await dbPlayerInfo.isPhoneNumberExist(loginData.phoneNumber, platformObj._id);
+
+                                    if (checkCount && checkCount.length) {
+                                        return Promise.reject({
+                                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                            message: "This phone number is already used. Please insert other phone number."
+                                        });
+                                    }
+
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
                                     }
