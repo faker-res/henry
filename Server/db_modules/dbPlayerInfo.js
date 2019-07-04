@@ -461,6 +461,15 @@ let dbPlayerInfo = {
                             guestPlayer.ua = inputData.ua ? inputData.ua : (guestPlayer.userAgent || "");
                             guestPlayer.mobileDetect = inputData.md ? inputData.md : (guestPlayer.mobileDetect || "");
 
+                            if (inputData && inputData.guestDeviceId){
+                                guestPlayer.guestDeviceId = inputData.guestDeviceId;
+                            }
+                            if (inputData && inputData.lastLoginIp){
+                                guestPlayer.lastLoginIp = inputData.lastLoginIp;
+                            }
+                            if (inputData && inputData.deviceId){
+                                guestPlayer.deviceId = inputData.deviceId;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
@@ -486,6 +495,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.guestDeviceId){
+                                        guestPlayerData.deviceId = inputData.guestDeviceId;
+                                    }
 
                                     if (inputData.phoneNumber) {
                                         guestPlayerData.phoneNumber = inputData.phoneNumber
@@ -7243,6 +7256,22 @@ let dbPlayerInfo = {
                     playerObj = data[0];
 
                     playerObj.platformId = loginData.platformId;
+                    if (loginData && loginData.lastLoginIp){
+                        playerObj.lastLoginIp = loginData.lastLoginIp
+                    }
+
+                    if (loginData && loginData.deviceId){
+                        playerObj.deviceId = loginData.deviceId
+                    }
+
+                    if (loginData && loginData.guestDeviceId){
+                        playerObj.guestDeviceId = loginData.guestDeviceId
+                    }
+
+                    if (loginData && loginData.clientDomain){
+                        playerObj.clientDomain = loginData.clientDomain;
+                    }
+
                     return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
                     // if (playerObj.permission.forbidPlayerFromLogin) {
                     //     return Promise.reject({
