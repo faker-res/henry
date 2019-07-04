@@ -2166,7 +2166,7 @@ var dbRewardEvent = {
                             }
 
                             // checking the ip, phone, IMEI
-                            console.log("checking rewardSpecificData[1]", [rewardSpecificData && rewardSpecificData.length && rewardSpecificData[1] ? rewardSpecificData[1] : "undefined"])
+                            console.log("checking rewardSpecificData[1]", rewardSpecificData && rewardSpecificData.length && rewardSpecificData[1] ? rewardSpecificData[1] : "undefined")
                             // Check withdrawal after top up condition
                             if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
                                 returnData.condition.deposit.status = 2;
