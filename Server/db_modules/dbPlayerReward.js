@@ -6723,14 +6723,17 @@ let dbPlayerReward = {
                 "createTime": freeTrialQuery.createTime,
                 "data.eventId": eventData._id,
                 "status": constProposalStatus.APPROVED,
-                // "data.playerObjId": playerData._id,
                 $or: [
                     {'data.playerObjId': playerData._id},
                     {'data.lastLoginIp': playerData.lastLoginIp},
-                    {'data.phoneNumber': playerData.phoneNumber},
-                    {'data.deviceId': playerData.deviceId},
+                    {'data.phoneNumber': playerData.phoneNumber}
                 ]
             };
+
+            if (playerData.deviceId || playerData.guestDeviceId) {
+                checkMatchQuery.$or.push({'data.deviceId': playerData.deviceId || playerData.guestDeviceId});
+            }
+
             if (playerData && playerData._id) {
                 console.log('checkMatchQuery===', playerData._id, checkMatchQuery);
                 console.log('checkMatchQuery.$or===', playerData._id, checkMatchQuery.$or);
@@ -6740,18 +6743,7 @@ let dbPlayerReward = {
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(
                 {
-                    $match: {
-                        "createTime": freeTrialQuery.createTime,
-                        "data.eventId": eventData._id,
-                        "status": constProposalStatus.APPROVED,
-                        // "data.playerObjId": playerData._id,
-                        $or: [
-                            {'data.playerObjId': playerData._id},
-                            {'data.lastLoginIp': playerData.lastLoginIp},
-                            {'data.phoneNumber': playerData.phoneNumber},
-                            {'data.deviceId': playerData.deviceId},
-                        ]
-                    }
+                    $match: checkMatchQuery
                 },
                 {
                     $project: {
