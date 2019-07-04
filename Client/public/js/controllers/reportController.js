@@ -2679,6 +2679,26 @@ define(['js/app'], function (myApp) {
         //////////////////// draw player table - end /////////////////
 
         // Win Rate Report
+        vm.changeWinRatePlatform = function () {
+            let query = {};
+
+            if(vm.winRateQuery && vm.winRateQuery.platformList && vm.winRateQuery.platformList.length > 0){
+                query.platformObjIdList = vm.winRateQuery.platformList;
+            } else {
+                query.platformObjIdList = vm.platformList.map(item => item._id);
+            }
+
+            vm.providerListByPlatform = [];
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if (providerList && providerList.data) {
+                        vm.allProviders = providerList.data;
+                    }
+                });
+            });
+        };
+
         vm.getWinRateReportData = function () {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
@@ -10860,6 +10880,7 @@ define(['js/app'], function (myApp) {
                     vm.winRateLayer2 = false;
                     vm.winRateLayer3 = false;
                     vm.winRateLayer4 = false;
+                    vm.changeWinRatePlatform();
                     utilService.actionAfterLoaded("#winRateTable", function () {
                         vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                     });

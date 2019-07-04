@@ -2037,7 +2037,7 @@
             #winrateReportQuery.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.spicker(ng-model='vm.winRateQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.spicker.form-control(ng-model='vm.winRateQuery.platformList', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform()", ng-options='v._id as v.name$ for v in vm.platformList')
                 .search-filters-item
                     label {{"Provider"|translate}}
                     select.form-control(ng-model='vm.winRateQuery.providerId', required)
