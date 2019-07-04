@@ -216,6 +216,22 @@ var proposal = {
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
+        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
+            data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
+                if (data && data.process) {
+                    return getStepInfo(Object.assign({}, data));
+                } else {
+                    return data;
+                }
+            },
+            error => {
+                return Promise.reject(error);
+            }
+        );
+
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -234,22 +250,6 @@ var proposal = {
                     }
                 )
         }
-
-        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
-            data => {
-                if (smsLogInfo && data && data.proposalId)
-                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
-
-                if (data && data.process) {
-                    return getStepInfo(Object.assign({}, data));
-                } else {
-                    return data;
-                }
-            },
-            error => {
-                return Q.reject(error);
-            }
-        );
     },
 
     createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){

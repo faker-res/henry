@@ -461,6 +461,18 @@ let dbPlayerInfo = {
                             guestPlayer.ua = inputData.ua ? inputData.ua : (guestPlayer.userAgent || "");
                             guestPlayer.mobileDetect = inputData.md ? inputData.md : (guestPlayer.mobileDetect || "");
 
+                            if (inputData && inputData.guestDeviceId){
+                                guestPlayer.guestDeviceId = inputData.guestDeviceId;
+                            }
+                            if (inputData && inputData.lastLoginIp){
+                                guestPlayer.lastLoginIp = inputData.lastLoginIp;
+                            }
+                            if (inputData && inputData.deviceId){
+                                guestPlayer.deviceId = inputData.deviceId;
+                            }
+                            else if (inputData && inputData.guestDeviceId){
+                                guestPlayer.deviceId = inputData.guestDeviceId;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
@@ -486,6 +498,10 @@ let dbPlayerInfo = {
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId
                                     };
+
+                                    if (inputData.guestDeviceId){
+                                        guestPlayerData.deviceId = inputData.guestDeviceId;
+                                    }
 
                                     if (inputData.phoneNumber) {
                                         guestPlayerData.phoneNumber = inputData.phoneNumber
@@ -1852,6 +1868,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
+                    console.log('check RT', isAutoCreate, playerdata.isTestPlayer, !playerdata.userAgent, playerdata.guestDeviceId, playerdata.phoneNumber)
                     if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
@@ -6508,7 +6525,7 @@ let dbPlayerInfo = {
                                 }
                             }
                         ).then(
-                            player => {
+                            async player => {
                                 if (player && player.length) {
                                     let thisPlayer = player[0];
 
@@ -6517,6 +6534,31 @@ let dbPlayerInfo = {
                                     }
                                     return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified, checkLastDeviceId)
                                 } else {
+
+                                    // Check phone number binding record
+                                    let platformObj = await dbconfig.collection_platform.findOne({platformId: loginData.platformId}, {_id: 1}).lean();
+                                    let checkCount = await dbPlayerInfo.isPhoneNumberExist(loginData.phoneNumber, platformObj._id);
+
+                                    if (checkCount && checkCount.length) {
+                                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                                            if (checkCount.length > platformObj.samePhoneNumberRegisterCount) {
+                                                return Promise.reject({
+                                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                    name: "ValidationError",
+                                                    message: "This phone number is already used. Please insert other phone number.",
+                                                    isRegisterError: true
+                                                })
+                                            }
+                                        } else {
+                                            return Promise.reject({
+                                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                name: "ValidationError",
+                                                message: "This phone number is already used. Please insert other phone number.",
+                                                isRegisterError: true
+                                            })
+                                        }
+                                    }
+
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
                                     }
@@ -6530,13 +6572,20 @@ let dbPlayerInfo = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                        phoneNumber: loginData.phoneNumber
+                                        phoneNumber: loginData.phoneNumber,
                                     };
+
+                                    console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
+                                    if (loginData && loginData.lastLoginIp){
+                                        newPlayerData.lastLoginIp = loginData.lastLoginIp;
+                                    }
 
                                     let checkDeviceIdProm = Promise.resolve();
 
+                                    console.log("checking loginData.lastLoginIp", loginData.deviceId || "Undefined")
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+                                        newPlayerData.deviceId = loginData.deviceId;
 
                                         let query = {
                                             platform: platformObjId,
@@ -6584,6 +6633,7 @@ let dbPlayerInfo = {
                                                         if (!playerDeviceNotExist) {
                                                             return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
                                                         } else {
+                                                            console.log("checking newPlayerData", newPlayerData)
                                                             return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
                                                         }
                                                     }
@@ -7235,6 +7285,22 @@ let dbPlayerInfo = {
                     playerObj = data[0];
 
                     playerObj.platformId = loginData.platformId;
+                    if (loginData && loginData.lastLoginIp){
+                        playerObj.lastLoginIp = loginData.lastLoginIp
+                    }
+
+                    if (loginData && loginData.deviceId){
+                        playerObj.deviceId = loginData.deviceId
+                    }
+
+                    if (loginData && loginData.guestDeviceId){
+                        playerObj.guestDeviceId = loginData.guestDeviceId
+                    }
+
+                    if (loginData && loginData.clientDomain){
+                        playerObj.clientDomain = loginData.clientDomain;
+                    }
+
                     return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
                     // if (playerObj.permission.forbidPlayerFromLogin) {
                     //     return Promise.reject({
@@ -25389,8 +25455,28 @@ let dbPlayerInfo = {
                 return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
             }
         ).then(
-            () => {
+            async () => {
                 encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
+
+                if (checkCount && checkCount.length) {
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "This phone number is already used. Please insert other phone number.",
+                                isRegisterError: true
+                            })
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number.",
+                            isRegisterError: true
+                        })
+                    }
+                }
 
                 let query = {
                     phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
@@ -25439,6 +25525,42 @@ let dbPlayerInfo = {
             }
         );
     },
+
+    isPhoneNumberExist: async (phoneNumber, platformObjId) => {
+         console.log('isPhoneNumberExist', phoneNumber, platformObjId);
+
+         let retArr = [];
+         let phoneNumberQ = {
+             $in: [
+                 rsaCrypto.encrypt(phoneNumber),
+                 rsaCrypto.oldEncrypt(phoneNumber),
+                 rsaCrypto.legacyEncrypt(phoneNumber)
+             ]
+         };
+
+         let playerCheck = await dbconfig.collection_players.find({
+             platform: platformObjId,
+             phoneNumber: phoneNumberQ
+         }, {name: 1}).lean();
+
+        let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
+            platformObjId: platformObjId,
+            phoneNumber: phoneNumberQ
+        }, {playerObjId: 1}).populate({path: 'playerObjId', model: dbconfig.collection_players, select: 'name'}).lean();
+
+        console.log('playerCheck', playerCheck);
+        console.log('recCheck', recCheck);
+
+        if (playerCheck && playerCheck.length) {
+            playerCheck.forEach(p => retArr.push(p.name));
+        }
+
+        if (recCheck && recCheck.length) {
+            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+        }
+
+        return retArr;
+    }
 };
 
 function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
