@@ -470,6 +470,9 @@ let dbPlayerInfo = {
                             if (inputData && inputData.deviceId){
                                 guestPlayer.deviceId = inputData.deviceId;
                             }
+                            else if (inputData && inputData.guestDeviceId){
+                                guestPlayer.deviceId = inputData.guestDeviceId;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
