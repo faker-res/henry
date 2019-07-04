@@ -5107,7 +5107,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                         rowData.totalCredit = rowData.validCredit + rowData.lockedCredit;
-                        rowData.totalCredit.toFixed(2);
+                        rowData.totalCredit = Math.floor(rowData.totalCredit); // remove decimal places, no rounding
 
                         if (table) {
                             table.row.add(rowData);
@@ -14916,9 +14916,15 @@ define(['js/app'], function (myApp) {
                 } else if (vm.modifyCritical.which == 'player') {
                     vm.getPlatformPlayersData();
                 }
+                if (data.data.message) {
+                    socketService.showErrorMessage(data.data.message);
+                }
+
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                 }
+
+
             }, function (err) {
                 console.log('err', err);
             });

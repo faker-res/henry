@@ -440,7 +440,7 @@ let dbPlayerPartner = {
 
                 let bindedRecs = [];
                 if (playerData) {
-                    let bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
+                    bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
                     console.log('bindedRecs', bindedRecs);
                 }
 
@@ -642,7 +642,6 @@ let dbPlayerPartner = {
         function checkPhoneNumberBindedBefore (inputData, platformObj) {
             return dbConfig.collection_phoneNumberBindingRecord.find({
                 platformObjId: platformObj._id,
-                playerObjId: inputData.playerObjId,
                 phoneNumber: {$in: [
                         rsaCrypto.encrypt(inputData.phoneNumber),
                         rsaCrypto.oldEncrypt(inputData.phoneNumber),
