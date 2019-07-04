@@ -97,6 +97,13 @@ const dbPartnerCommissionConfig = {
         )
     },
 
+    getParentMultiLvlCommRate: async (partnerObjId) => {
+        let parentChain = await getPartnerParentChain(partnerObjId);
+
+        let mainParent = parentChain[parentChain.length - 1];
+        return dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainParent._id);
+    },
+
     assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {
         if (!(proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.commissionType
             && proposalData.data.platformId && (removedChildPartnerArr.length || newChildPartnerArr.length))) {

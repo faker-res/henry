@@ -3278,22 +3278,33 @@ let dbPartner = {
         );
     },
 
-    getPartnerPlayerBonusReport: function (platform, partnerName, startTime, endTime, index, limit) {
-        return dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platform}).lean().then(
-            data => {
-                if (data && data.partnerId && String(data.platform) == String(platform)) {
-                    return dbPartner.getPartnerPlayerPaymentReport(data.partnerId, startTime, endTime, index, limit)
-                        .then(data => {
-                            data.summary = data.summary || {};
-                            data.stats = data.stats || {totalCount: 0};
-                            data.players = data.players || [];
-                            return data;
-                        })
-                } else {
-                    return {name: "DataError", message: "Cannot find partner", players: []};
-                }
+    getPartnerPlayerBonusReport: async function (platform, partnerName, startTime, endTime, index, limit) {
+        let partner = await dbconfig.collection_partner.findOne({partnerName: partnerName, platform: platform}).lean();
+        if (!(partner && partner.partnerId && String(partner.platform) == String(platform))) {
+            return {name: "DataError", message: "Cannot find partner", players: []};
+        }
+        let data = await dbPartner.getPartnerPlayerPaymentReport(partner.partnerId, startTime, endTime, index, limit);
+
+        data.summary = data.summary || {};
+        data.stats = data.stats || {totalCount: 0};
+        data.players = data.players || [];
+
+        if (partner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT) {
+            let commRate = await dbPartnerCommissionConfig.getParentMultiLvlCommRate(partner._id);
+
+            let depositRate = commRate.rateAfterRebateTotalDeposit;
+            let withdrawalRate = commRate.rateAfterRebateTotalWithdrawal;
+
+            for (let i = 0; i < data.players.length; i++) {
+                let player = data.players[i];
+                player.bonusFee = math.chain(Number(player.bonusAmount) || 0).multiply(Number(withdrawalRate) || 0).divide(100).round(2).done();
+                player.topUpFee = math.chain(Number(player.topUpAmount) || 0).multiply(Number(depositRate) || 0).divide(100).round(2).done();
+                player.totalBonusFee = math.chain(Number(player.totalBonusAmount) || 0).multiply(Number(withdrawalRate) || 0).divide(100).round(2).done();
+                player.totalTopUpFee = math.chain(Number(player.totalTopUpAmount) || 0).multiply(Number(depositRate) || 0).divide(100).round(2).done();
             }
-        )
+        }
+
+        return data;
     },
 
     getPartnerPlayerPaymentReport: function (partnerId, startTime, endTime, startIndex, requestCount, sort) {

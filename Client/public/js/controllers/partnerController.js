@@ -18182,8 +18182,12 @@ define(['js/app'], function (myApp) {
                     item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                     item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
                     item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+                    item.totalTopUpFee$ = parseFloat(item.totalTopUpFee || 0).toFixed(2);
+                    item.totalBonusFee$ = parseFloat(item.totalBonusFee || 0).toFixed(2);
                     item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                    item.topUpFee$ = parseFloat(item.topUpFee || 0).toFixed(2);
+                    item.bonusFee$ = parseFloat(item.bonusFee || 0).toFixed(2);
                     return item;
                 }), vm.partnerPlayerBonusQuery.totalCount, data.data.summary, newSearch, isExport);
 
@@ -18215,10 +18219,14 @@ define(['js/app'], function (myApp) {
                     {data: "totalBonusTimes", sClass: "sumInt alignRight"},
                     {data: "totalTopUpAmount$", sClass: "sumFloat alignRight"},
                     {data: "totalBonusAmount$", sClass: "sumFloat alignRight"},
+                    {data: "totalTopUpFee$", sClass: "sumFloat alignRight"},
+                    {data: "totalBonusFee$", sClass: "sumFloat alignRight"},
                     {data: "topUpTimes", sClass: "sumInt alignRight"},
                     {data: "bonusTimes", sClass: "sumInt alignRight"},
                     {data: "topUpAmount$", sClass: "sumFloat alignRight"},
                     {data: "bonusAmount$", sClass: "sumFloat alignRight"},
+                    {data: "topUpFee$", sClass: "sumFloat alignRight"},
+                    {data: "bonusFee$", sClass: "sumFloat alignRight"},
                 ],
                 "bAutoWidth": true,
                 "paging": false,
