@@ -482,6 +482,7 @@ const dbPlayerMail = {
                             )
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                            playerQuery['permission.forbidPlayerFromLogin'] = {$ne: true};
                         } else {
                             playerQuery.playerId = inputData.playerId;
                         }
