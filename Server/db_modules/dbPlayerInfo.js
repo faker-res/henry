@@ -6540,11 +6540,23 @@ let dbPlayerInfo = {
                                     let checkCount = await dbPlayerInfo.isPhoneNumberExist(loginData.phoneNumber, platformObj._id);
 
                                     if (checkCount && checkCount.length) {
-                                        return Promise.reject({
-                                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                            message: "This phone number is already used. Please insert other phone number.",
-                                            isRegisterError: true
-                                        });
+                                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                                            if (checkCount.length > platformObj.samePhoneNumberRegisterCount) {
+                                                return Promise.reject({
+                                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                    name: "ValidationError",
+                                                    message: "This phone number is already used. Please insert other phone number.",
+                                                    isRegisterError: true
+                                                })
+                                            }
+                                        } else {
+                                            return Promise.reject({
+                                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                name: "ValidationError",
+                                                message: "This phone number is already used. Please insert other phone number.",
+                                                isRegisterError: true
+                                            })
+                                        }
                                     }
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
@@ -25443,8 +25455,28 @@ let dbPlayerInfo = {
                 return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
             }
         ).then(
-            () => {
+            async () => {
                 encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
+
+                if (checkCount && checkCount.length) {
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "This phone number is already used. Please insert other phone number.",
+                                isRegisterError: true
+                            })
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number.",
+                            isRegisterError: true
+                        })
+                    }
+                }
 
                 let query = {
                     phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
@@ -25495,6 +25527,8 @@ let dbPlayerInfo = {
     },
 
     isPhoneNumberExist: async (phoneNumber, platformObjId) => {
+         console.log('isPhoneNumberExist', phoneNumber, platformObjId);
+
          let retArr = [];
          let phoneNumberQ = {
              $in: [
@@ -25505,7 +25539,7 @@ let dbPlayerInfo = {
          };
 
          let playerCheck = await dbconfig.collection_players.find({
-            platform: platformObjId,
+             platform: platformObjId,
              phoneNumber: phoneNumberQ
          }, {name: 1}).lean();
 
