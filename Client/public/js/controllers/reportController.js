@@ -4362,33 +4362,43 @@ define(['js/app'], function (myApp) {
                     // if (!item.sourceUrl) {
                     //     item.registrationAgent$ = "Backstage";
                     // }
-                    if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
-                        item.registrationAgent$ = "Backstage";
-                    }
-                    else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
+                    if (item && item.guestDeviceId) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
                         }
                         else {
                             item.registrationAgent$ = "APP Player";
                         }
-                    }
-                    else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
-                        if (item.partner) {
-                            item.registrationAgent$ = "HTML5 Agent";
+                    } else {
+                        if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
+                            item.registrationAgent$ = "Backstage";
+                        }
+                        else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "APP Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "APP Player";
+                            }
+                        }
+                        else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "HTML5 Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "HTML5 Player";
+                            }
                         }
                         else {
-                            item.registrationAgent$ = "HTML5 Player";
+                            if (item.partner) {
+                                item.registrationAgent$ = "Web Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "Web Player";
+                            }
                         }
                     }
-                    else {
-                        if (item.partner) {
-                            item.registrationAgent$ = "Web Agent";
-                        }
-                        else {
-                            item.registrationAgent$ = "Web Player";
-                        }
-                    }
+
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
                     if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
