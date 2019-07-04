@@ -13942,6 +13942,10 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    if (proposalData && proposalData.type && proposalData.type.name == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                        dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
+                    }
+
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
