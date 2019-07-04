@@ -442,6 +442,26 @@ let dbPlayerPartner = {
                 if (playerData) {
                     bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
                     console.log('bindedRecs', bindedRecs);
+                    let checkCount = await dbPlayerInfo.isPhoneNumberExist(newPhoneNumber, platformObjId);
+                    console.log('checkCount', checkCount);
+
+                    if (checkCount && checkCount.length) {
+                        if (platform.allowSamePhoneNumberToRegister === true) {
+                            if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                                return Promise.reject({
+                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                    name: "ValidationError",
+                                    message: "Phone number already registered on platform"
+                                })
+                            }
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                name: "ValidationError",
+                                message: "Phone number already registered on platform"
+                            })
+                        }
+                    }
                 }
 
 
@@ -459,33 +479,6 @@ let dbPlayerPartner = {
                             name: "ValidationError",
                             message: "Phone number already registered on platform"
                         });
-                    }
-                }
-
-                if ((phoneAlreadyExist && phoneAlreadyExist[0]) || bindedRecs.length) {
-                    // Filter out binded to self
-                    bindedRecs = bindedRecs.filter(rec => String(rec.playerObjId) !== String(playerData._id));
-                    console.log('filtered bindedRecs', bindedRecs);
-
-                    let dupCount = phoneAlreadyExist && phoneAlreadyExist[0] ? 1 : 0;
-                    dupCount = dupCount + bindedRecs.length;
-
-                    if (platform.allowSamePhoneNumberToRegister === true) {
-                        if (dupCount > platform.samePhoneNumberRegisterCount) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                name: "ValidationError",
-                                message: "Phone number already registered on platform"
-                            })
-                        }
-                    } else {
-                        if (dupCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                name: "ValidationError",
-                                message: "Phone number already registered on platform"
-                            })
-                        }
                     }
                 }
 

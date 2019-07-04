@@ -470,6 +470,9 @@ let dbPlayerInfo = {
                             if (inputData && inputData.deviceId){
                                 guestPlayer.deviceId = inputData.deviceId;
                             }
+                            else if (inputData && inputData.guestDeviceId){
+                                guestPlayer.deviceId = inputData.guestDeviceId;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
@@ -6537,10 +6540,23 @@ let dbPlayerInfo = {
                                     let checkCount = await dbPlayerInfo.isPhoneNumberExist(loginData.phoneNumber, platformObj._id);
 
                                     if (checkCount && checkCount.length) {
-                                        return Promise.reject({
-                                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                            message: "This phone number is already used. Please insert other phone number."
-                                        });
+                                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                                            if (checkCount.length > platformObj.samePhoneNumberRegisterCount) {
+                                                return Promise.reject({
+                                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                    name: "ValidationError",
+                                                    message: "This phone number is already used. Please insert other phone number.",
+                                                    isRegisterError: true
+                                                })
+                                            }
+                                        } else {
+                                            return Promise.reject({
+                                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                name: "ValidationError",
+                                                message: "This phone number is already used. Please insert other phone number.",
+                                                isRegisterError: true
+                                            })
+                                        }
                                     }
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
@@ -25439,8 +25455,28 @@ let dbPlayerInfo = {
                 return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
             }
         ).then(
-            () => {
+            async () => {
                 encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
+
+                if (checkCount && checkCount.length) {
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "This phone number is already used. Please insert other phone number.",
+                                isRegisterError: true
+                            })
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number.",
+                            isRegisterError: true
+                        })
+                    }
+                }
 
                 let query = {
                     phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
