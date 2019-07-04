@@ -6530,13 +6530,20 @@ let dbPlayerInfo = {
                                         platformId: loginData.platformId,
                                         name: platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase()),
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
-                                        phoneNumber: loginData.phoneNumber
+                                        phoneNumber: loginData.phoneNumber,
                                     };
+
+                                    console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
+                                    if (loginData && loginData.lastLoginIp){
+                                        newPlayerData.lastLoginIp = loginData.lastLoginIp;
+                                    }
 
                                     let checkDeviceIdProm = Promise.resolve();
 
+                                    console.log("checking loginData.lastLoginIp", loginData.deviceId || "Undefined")
                                     if (loginData.deviceId) {
                                         newPlayerData.guestDeviceId = loginData.deviceId;
+                                        newPlayerData.deviceId = loginData.deviceId;
 
                                         let query = {
                                             platform: platformObjId,
@@ -6584,6 +6591,7 @@ let dbPlayerInfo = {
                                                         if (!playerDeviceNotExist) {
                                                             return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
                                                         } else {
+                                                            console.log("checking newPlayerData", newPlayerData)
                                                             return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
                                                         }
                                                     }
