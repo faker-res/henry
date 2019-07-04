@@ -450,7 +450,7 @@ let dbPlayerPartner = {
                         return Q.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
                             name: "ValidationError",
-                            message: "Phone number already registered on platform"
+                            message: "This phone number is already used. Please insert other phone number."
                         });
                     }
                 }
@@ -473,14 +473,14 @@ let dbPlayerPartner = {
                                         return Promise.reject({
                                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                                             name: "ValidationError",
-                                            message: "Phone number already registered on platform"
+                                            message: "This phone number is already used. Please insert other phone number."
                                         })
                                     }
                                 } else {
                                     return Promise.reject({
                                         status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                                         name: "ValidationError",
-                                        message: "Phone number already registered on platform"
+                                        message: "This phone number is already used. Please insert other phone number."
                                     })
                                 }
                             }
@@ -490,7 +490,7 @@ let dbPlayerPartner = {
                         return Promise.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
                             name: "ValidationError",
-                            message: "Phone number already registered on platform"
+                            message: "This phone number is already used. Please insert other phone number."
                         });
                     }
                 }
