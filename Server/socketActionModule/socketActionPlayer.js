@@ -1434,6 +1434,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlayerInfo.getBankZoneData, [data], actionName, isValidData);
+        },
+
+        isPhoneNumberExist: function isPhoneNumberExist(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.isPhoneNumberExist, [data.phoneNumber, data.platformObjId], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

@@ -40,7 +40,8 @@
                 form(name='form_edit_critical_phone', novalidate)
                     div.form-group.col-md-7
                         label.control-label {{"NEW_TELEPHONE" | translate}}
-                        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="modifyCritical.newPhoneNumber", required)
+                        input.form-control(type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="modifyCritical.newPhoneNumber", ng-change='checkIsPhoneNumberExist()' required)
+                        span.help-block.colorRed(ng-if='duplicatedPhoneErr.str') {{duplicatedPhoneErr.str}}
             div(ng-show='modifyCritical.changeType=="qq"')
                 div.form-group.col-md-7
                     label.control-label {{"CURRENT_QQ" | translate}}
