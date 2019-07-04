@@ -2046,6 +2046,8 @@ var dbRewardEvent = {
 
                         // if today has applied/received reward -> skip the following checking
                         // if returnData.condition.deposit.status != 1 meaning it is already failed to fulfill the top up requirment, so no need to go thru the checking
+
+                        console.log("checking returnData.condition.deposit.status", returnData.condition.deposit.status)
                         if (retRewardData && retRewardData.hasOwnProperty('selectedIndex') && !todayHasApplied && returnData.condition.deposit.status == 1) {
                             // check if first time apply: if matchPlayerId == true -> has already applied
                             if (matchPlayerId){
@@ -2053,6 +2055,7 @@ var dbRewardEvent = {
                                 returnData.condition.deposit.list[retRewardData.selectedIndex].status = 1;
                             }
                             else {
+                                console.log("checking 1 returnData.condition.deposit.status",  returnData.condition.deposit.status)
                                 returnData.condition.deposit.list[retRewardData.selectedIndex].status = returnData.condition.deposit.status;
                                 // check if there is consumption nor withdrawal after top up
                                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp && (rewardSpecificData[1] || rewardSpecificData[2])) {
@@ -2062,6 +2065,10 @@ var dbRewardEvent = {
                                 if (matchPlayerId) {
                                     returnData.condition.deposit.list[retRewardData.selectedIndex].status = 2; // has applied the reward
                                 }
+
+                                console.log("checking matchIPAddress", matchIPAddress)
+                                console.log("checking matchPhoneNum", matchPhoneNum)
+                                console.log("checking matchMobileDevice", matchMobileDevice)
 
                                 if (matchIPAddress || matchPhoneNum || matchMobileDevice) {
                                     returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;

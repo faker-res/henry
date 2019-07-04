@@ -143,6 +143,9 @@ const dbProposalUtility = {
 
     // check reward apply restriction on ip, phone and IMEI
     checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent, retentionApplicationDate) => {
+
+        console.log("checking reward problem - player", player)
+        console.log("checking reward problem - rewardEvent", rewardEvent._id)
         let intervalTimeForLoginMode3 = null;
         let matchQuery = {
             "data.eventId": rewardEvent._id,
