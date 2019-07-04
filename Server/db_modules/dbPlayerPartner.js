@@ -299,6 +299,7 @@ let dbPlayerPartner = {
      * @param targetType - 0: Player, 1: Partner, 2: Player Partner
      */
     updatePhoneNumberWithSMS: function (userAgent, platformId, userId, newPhoneNumber, smsCode, targetType) {
+        console.log('updatePhoneNumberWithSMS', newPhoneNumber);
         let platformObjId = null;
         let curPhoneNumber = null;
         let newEncrpytedPhoneNumber = null;
