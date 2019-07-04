@@ -2150,7 +2150,7 @@
             #limitedOfferQuery.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.spicker(ng-model='vm.limitedOfferQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.spicker.form-control(ng-model='vm.limitedOfferQuery.platformList', bsp, multiple, data-actions-box='true' ng-change="vm.changeLimitedOfferReportPlatform();", ng-options='v._id as v.name$ for v in vm.platformList')
                 .search-filters-item
                     label {{'PLAYERNAME' | translate}}
                     input.form-control(type='text', ng-model='vm.limitedOfferQuery.playerName')
@@ -2162,7 +2162,7 @@
                     select.form-control(ng-model='vm.limitedOfferQuery.status', ng-options="a | translate for a in vm.claimStatus",  multiple, bsp)
                 .search-filters-item
                     label {{'Level Requirement' | translate}}
-                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a.name for a in vm.playerLvlData",  multiple, bsp)
+                    select.form-control(ng-model='vm.limitedOfferQuery.level', ng-options="a.name group by a.platformName for a in vm.playerLvlData",  multiple, bsp)
                 .search-filters-item
                     label {{'DEVICE' | translate}}
                     select.form-control(ng-model='vm.limitedOfferQuery.inputDevice', ng-options="+(i) as v | translate for (i,v) in vm.playerInputDevice",  multiple, bsp)

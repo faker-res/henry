@@ -1348,6 +1348,11 @@ define(['js/app'], function (myApp) {
                     console.log(data)
                     if (data.data) {
                         $.each(data.data, function (i, v) {
+                            let index = vm.platformList.map(x => x && x._id).indexOf(v && v.platform);
+                            if (index > -1) {
+                                v.platformName = vm.platformList[index].name;
+                            }
+
                             vm.playerLvlData[v._id] = v;
                         })
                     }
@@ -3314,6 +3319,11 @@ define(['js/app'], function (myApp) {
                 $('#providerConsumptionReportTable').resize();
             }
         }
+
+        vm.changeLimitedOfferReportPlatform = function () {
+            let platformQuery = vm.limitedOfferQuery.platformList && vm.limitedOfferQuery.platformList.length > 0 ? {$in: vm.limitedOfferQuery.platformList} : vm.platformList.map(item => item._id);
+            vm.getPlayerLevelByPlatformId(platformQuery);
+        };
 
         vm.getLimitedOfferReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
@@ -11008,6 +11018,7 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferDetail = {};
                 vm.limitedOfferQuery.limit = 10;
                 vm.reportSearchTime = 0;
+                vm.changeLimitedOfferReportPlatform();
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
