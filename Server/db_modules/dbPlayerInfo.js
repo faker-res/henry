@@ -6540,11 +6540,23 @@ let dbPlayerInfo = {
                                     let checkCount = await dbPlayerInfo.isPhoneNumberExist(loginData.phoneNumber, platformObj._id);
 
                                     if (checkCount && checkCount.length) {
-                                        return Promise.reject({
-                                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                            message: "This phone number is already used. Please insert other phone number.",
-                                            isRegisterError: true
-                                        });
+                                        if (platformObj.allowSamePhoneNumberToRegister === true) {
+                                            if (checkCount.length > platformObj.samePhoneNumberRegisterCount) {
+                                                return Promise.reject({
+                                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                    name: "ValidationError",
+                                                    message: "This phone number is already used. Please insert other phone number.",
+                                                    isRegisterError: true
+                                                })
+                                            }
+                                        } else {
+                                            return Promise.reject({
+                                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                                name: "ValidationError",
+                                                message: "This phone number is already used. Please insert other phone number.",
+                                                isRegisterError: true
+                                            })
+                                        }
                                     }
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
@@ -25449,11 +25461,21 @@ let dbPlayerInfo = {
                 let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
 
                 if (checkCount && checkCount.length) {
-                    return Promise.reject({
-                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                        message: "This phone number is already used. Please insert other phone number.",
-                        isRegisterError: true
-                    });
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "This phone number is already used. Please insert other phone number.",
+                                isRegisterError: true
+                            })
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number.",
+                            isRegisterError: true
+                        })
+                    }
                 }
 
                 let query = {
