@@ -1573,6 +1573,10 @@
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
             #feedbackReportQuery.col-md-12.well
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.feedbackQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.feedbackQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{"USER TYPE"|translate}}
                     select.form-control(ng-model='vm.feedbackQuery.userType')
                         option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}

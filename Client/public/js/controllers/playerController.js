@@ -5100,12 +5100,15 @@ define(['js/app'], function (myApp) {
                         if (rowData.lastAccessTime) {
                             rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                         }
-                        if(rowData.platform){
+                        if (rowData.platform){
                             let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() == rowData.platform.toString());
                             if(matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name){
                                 rowData.platform$ = matchedPlatformData[0].name;
                             }
                         }
+                        rowData.totalCredit = rowData.validCredit + rowData.lockedCredit;
+                        rowData.totalCredit = Math.floor(rowData.totalCredit); // remove decimal places, no rounding
+
                         if (table) {
                             table.row.add(rowData);
                         }
@@ -14913,9 +14916,15 @@ define(['js/app'], function (myApp) {
                 } else if (vm.modifyCritical.which == 'player') {
                     vm.getPlatformPlayersData();
                 }
+                if (data.data.message) {
+                    socketService.showErrorMessage(data.data.message);
+                }
+
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                 }
+
+
             }, function (err) {
                 console.log('err', err);
             });

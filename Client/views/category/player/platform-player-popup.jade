@@ -1286,7 +1286,7 @@
                             .form-group(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'Provider group' | translate}}
                                 select.form-control(ng-model='vm.playerAddRewardTask.providerGroup')
-                                    option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    option(value='') {{'ANY_LOBBY' | translate}}
                                     option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                             .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'REWARD_NAME' | translate}}

@@ -737,7 +737,7 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
+                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
@@ -2214,6 +2214,11 @@ let dbPlayerInfo = {
                     if (!adminId) {
                         ipSave = dbconfig.collection_playerRegisterIP({ipAddress:playerData.lastLoginIp, platformObjId:playerData.platform}).save();
                     }
+
+                    if (playerData.phoneNumber) {
+                        createPhoneNumberBindingRecord(playerData);
+                    }
+
                     return Promise.all(proms, ipSave);
                 }
                 else {
@@ -2249,6 +2254,14 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         );
+
+        function createPhoneNumberBindingRecord (playerData) {
+            return dbconfig.collection_phoneNumberBindingRecord({
+                platformObjId: playerData.platform,
+                playerObjId: playerData._id,
+                phoneNumber: playerData.phoneNumber
+            }).save();
+        }
     },
 
     /**
@@ -5747,7 +5760,8 @@ let dbPlayerInfo = {
             _id: {$in: platformId}
         }).lean().then(
             platform => {
-                isProviderGroup = Boolean(platform.useProviderGroup);
+                // isProviderGroup = Boolean(platform.useProviderGroup);
+                isProviderGroup = true;
 
                 return dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
@@ -5824,8 +5838,6 @@ let dbPlayerInfo = {
                                         playerData[ind].point$ = playerData[ind].rewardPointsObjId.points;
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
-
-                                    playerData[ind].totalCredit = playerData[ind].validCredit + playerData[ind].lockedCredit;
 
                                     if (isProviderGroup) {
                                         newInfo = getRewardGroupData(playerData[ind]);
@@ -9825,10 +9837,10 @@ let dbPlayerInfo = {
         );
     },
 
-    isPhoneNumberValidToRegister: function (query) {
+    isPhoneNumberValidToRegister: function (query, bindedCount = 0) {
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
-                if (playerData) {
+                if (playerData || bindedCount > 0) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};
@@ -9837,10 +9849,10 @@ let dbPlayerInfo = {
         );
     },
 
-    isExceedPhoneNumberValidToRegister: function (query, count) {
+    isExceedPhoneNumberValidToRegister: function (query, count, bindedCount = 0) {
         return dbconfig.collection_players.find(query).count().then(
             playerDataCount => {
-                if (playerDataCount >= count) {
+                if (playerDataCount + bindedCount >= count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};
@@ -25886,7 +25898,11 @@ function getNextDateByPeriodAndDate(period, startDate) {
     return date;
 }
 
-function checkPhoneNumberWhiteList(inputData, platformObj) {
+async function checkPhoneNumberWhiteList(inputData, platformObj) {
+    console.log('checkPhoneNumberWhiteList');
+    let bindedCount = await checkPhoneNumberBindedBefore(inputData, platformObj);
+    console.log('bindedCount', bindedCount);
+
     // phone number white listing
     if (platformObj.whiteListingPhoneNumbers
         && platformObj.whiteListingPhoneNumbers.length > 0
@@ -25900,18 +25916,34 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
                 phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
-            }, platformObj.samePhoneNumberRegisterCount);
+            }, platformObj.samePhoneNumberRegisterCount, bindedCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
                 phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
-            });
+            }, bindedCount);
         }
     }
     else {
         return {isPhoneNumberValid: true};
+    }
+
+    function checkPhoneNumberBindedBefore (inputData, platformObj) {
+        return dbconfig.collection_phoneNumberBindingRecord.find({
+            platformObjId: platformObj._id,
+            phoneNumber: {$in: [
+                rsaCrypto.encrypt(inputData.phoneNumber),
+                rsaCrypto.oldEncrypt(inputData.phoneNumber),
+                rsaCrypto.legacyEncrypt(inputData.phoneNumber)
+            ]}
+        }).count().then(
+            cnt => {
+                console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                return cnt;
+            }
+        );
     }
 
 }

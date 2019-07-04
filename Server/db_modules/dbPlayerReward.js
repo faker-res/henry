@@ -5947,6 +5947,35 @@ let dbPlayerReward = {
                 await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
                 // Check if there is withdraw after top up
                 await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // check reward apply restriction on ip, phone and IMEI
+                let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
+                console.log("checking checkHasReceivedProm", checkHasReceivedProm)
+                if (checkHasReceivedProm){
+                    if (checkHasReceivedProm.sameIPAddressHasReceived) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: localization.localization.translate("This IP address has applied for max reward times in event period")
+                        });
+                    }
+
+                    if (checkHasReceivedProm.samePhoneNumHasReceived) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: localization.localization.translate("This phone number has applied for max reward times in event period")
+                        });
+                    }
+
+                    if (checkHasReceivedProm.sameDeviceIdHasReceived) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: localization.localization.translate("This mobile device has applied for max reward times in event period")
+                        });
+                    }
+                }
+
                 // Calculate the daily applied reward amount
                 rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
             } else {
@@ -8494,7 +8523,7 @@ let dbPlayerReward = {
                             proposalData.data.topUpRecordId = selectedTopUp._id;
                         }
 
-                        if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                        if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP || eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
                             if (playerData.deviceId) {

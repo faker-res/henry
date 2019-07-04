@@ -203,10 +203,7 @@ var dbPlayerConsumptionWeekSummary = {
                             if (
                                 playerData
                                 && playerData.permission
-                                && (
-                                    playerData.permission.banReward
-                                    || playerData.permission.forbidPlayerConsumptionReturn
-                                )
+                                && playerData.permission.forbidPlayerConsumptionReturn
                             ) {
                                 return;
                             }

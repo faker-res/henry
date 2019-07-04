@@ -215,7 +215,67 @@ var proposal = {
         );
     },
 
-    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
+    createProposalWithTypeNameWithProcessInfo: async function (platformId, typeName, proposalData, smsLogInfo) {
+        console.log('createProposalWithTypeNameWithProcessInfo', platformId, typeName, proposalData, smsLogInfo);
+
+        let bindedRecs = [];
+        let playerCount = 0;
+        let message = "";
+
+        if (proposalData && proposalData.data.updateData.phoneNumber) {
+            playerCount = await dbconfig.collection_players.find({
+                platform: proposalData.platformId,
+                phoneNumber: {
+                    $in: [
+                        rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber),
+                        rsaCrypto.oldEncrypt(proposalData.data.updateData.phoneNumber),
+                        rsaCrypto.legacyEncrypt(proposalData.data.updateData.phoneNumber)
+                    ]
+                },
+                'permission.forbidPlayerFromLogin': {$ne: true}
+            }).count();
+            bindedRecs = await checkPhoneNumberBindedBefore(
+                {
+                    phoneNumber: proposalData.data.updateData.phoneNumber,
+                    playerObjId: proposalData.data.playerObjId
+                },
+                {
+                    _id: proposalData.platformId
+                }
+            );
+            console.log('playerCount')
+        }
+
+        let platform = await dbconfig.collection_platform.findById(platformId);
+
+        if (platform.allowSamePhoneNumberToRegister === true) {
+            if (playerCount + bindedRecs.length > platform.samePhoneNumberRegisterCount) {
+                message = `已被注册过了这个号码`;
+            }
+        } else {
+            if (playerCount + bindedRecs.length > 0) {
+                message = `已被注册过了这个号码`;
+            }
+        }
+
+        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
+            data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
+                data.message = message;
+
+                if (data && data.process) {
+                    return getStepInfo(Object.assign({}, data));
+                } else {
+                    return data;
+                }
+            },
+            error => {
+                return Q.reject(error);
+            }
+        );
+
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -235,21 +295,21 @@ var proposal = {
                 )
         }
 
-        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
-            data => {
-                if (smsLogInfo && data && data.proposalId)
-                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
-
-                if (data && data.process) {
-                    return getStepInfo(Object.assign({}, data));
-                } else {
-                    return data;
+        function checkPhoneNumberBindedBefore (inputData, platformObj) {
+            return dbconfig.collection_phoneNumberBindingRecord.find({
+                platformObjId: platformObj._id,
+                phoneNumber: {$in: [
+                        rsaCrypto.encrypt(inputData.phoneNumber),
+                        rsaCrypto.oldEncrypt(inputData.phoneNumber),
+                        rsaCrypto.legacyEncrypt(inputData.phoneNumber)
+                    ]}
+            }).then(
+                cnt => {
+                    console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                    return cnt;
                 }
-            },
-            error => {
-                return Q.reject(error);
-            }
-        );
+            );
+        }
     },
 
     createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
@@ -761,6 +821,7 @@ var proposal = {
                                     .populate({path: "operator", model: dbconfig.collection_admin})
                             );
                         }
+
                         return Q.all(allProm).then(
                             function (processSteps) {
                                 proposalData.process.steps = [];
@@ -771,6 +832,7 @@ var proposal = {
                             }
                         )
                     } else {
+
                         return proposalData;
                     }
                 }
@@ -780,6 +842,7 @@ var proposal = {
                         if (player && player.playerId) {
                             proposalData.data.playerId = player.playerId;
                         }
+
                         return proposalData;
                     })
                 } else {
@@ -794,8 +857,13 @@ var proposal = {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
+
+
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
+                    if (proposalData && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                        proposalData.data.updateData.qq = dbutility.encodeQQ(proposalData.data.updateData.qq);
                     }
                     if (proposalData && proposalData.data && proposalData.data.phoneNumber) {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
@@ -1756,6 +1824,9 @@ var proposal = {
                                     if (item.data && item.data.phoneNumber) {
                                         item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                     }
+                                    // if(item.data.updateData && item.data.updateData.qq){
+                                    //     item.data.updateData.qq = dbutility.encodeQQ(item.data.updateData.qq);
+                                    // }
 
                                     return item;
                                 });
@@ -3663,7 +3734,11 @@ var proposal = {
                         orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
 
                         queryData["$and"].push({$or: orQuery});
+                    } else {
+                        queryData["data.platformId"] = platformListQuery;
                     }
+
+                    console.log('queryData', queryData);
 
                     let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
                     let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
@@ -3722,6 +3797,10 @@ var proposal = {
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
                         totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                        if (summary && summary[0] && summary[0].players) {
+                            delete summary[0].players;
+                        }
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3810,6 +3889,8 @@ var proposal = {
                         orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
 
                         reqData["$and"].push({$or: orQuery});
+                    } else {
+                        queryData["data.platformId"] = platformListQuery;
                     }
 
                     console.log('proposal report query data', reqData);
@@ -3861,6 +3942,10 @@ var proposal = {
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
                     totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+
+                    if (summary && summary[0] && summary[0].players) {
+                        delete summary[0].players;
+                    }
 
                     return resultArray;
                 },
@@ -8357,7 +8442,7 @@ var proposal = {
     },
 
     calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8366,7 +8451,8 @@ var proposal = {
                             $gte: startDate,
                             $lt: endDate
                         },
-                        playerId: {$in: playerObjIds}
+                        playerId: {$in: playerObjIds},
+                        isDuplicate: {$ne: true}
                     };
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate(
