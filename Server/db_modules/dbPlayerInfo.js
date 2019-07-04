@@ -6539,7 +6539,8 @@ let dbPlayerInfo = {
                                     if (checkCount && checkCount.length) {
                                         return Promise.reject({
                                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                            message: "This phone number is already used. Please insert other phone number."
+                                            message: "This phone number is already used. Please insert other phone number.",
+                                            isRegisterError: true
                                         });
                                     }
 
