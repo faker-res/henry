@@ -10127,8 +10127,6 @@ let dbPartner = {
                     );
                     promArr.push(downlinePartnerPlayerValidProm);
                 }
-                if (partner.partnerName == 'jjdragon')
-                console.log('partner aaaaaaaaaaaaaaaaaaaaaaa', partner)
 
                 let partnerTempObj = {
                     partnerAccount: partner.partnerName,
