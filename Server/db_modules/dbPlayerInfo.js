@@ -1852,6 +1852,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data.isPlayerPasswordValid) {
+                    console.log('check RT', isAutoCreate, playerdata.isTestPlayer, !playerdata.userAgent, playerdata.guestDeviceId, playerdata.phoneNumber)
                     if (isAutoCreate || playerdata.isTestPlayer || !playerdata.userAgent || (playerdata.guestDeviceId && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
