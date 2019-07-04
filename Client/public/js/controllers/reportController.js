@@ -26,7 +26,9 @@ define(['js/app'], function (myApp) {
             H5_PLAYER: 3,
             H5_AGENT: 4,
             APP_PLAYER: 5,
-            APP_AGENT: 6
+            APP_AGENT: 6,
+            APP_NATIVE_PLAYER: 7,
+            APP_NATIVE_PARTNER: 8
         };
         vm.inputDeviceMapped = {
             0: "BACKSTAGE",
@@ -35,7 +37,9 @@ define(['js/app'], function (myApp) {
             3: "H5_PLAYER",
             4: "H5_AGENT",
             5: "APP_PLAYER",
-            6: "APP_AGENT"
+            6: "APP_AGENT",
+            7: "APP_NATIVE_PLAYER",
+            8: "APP_NATIVE_PARTNER"
         };
 
         vm.proposalStatusList = { // removed APPROVED and REJECTED
