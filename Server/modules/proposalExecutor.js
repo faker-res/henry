@@ -2347,12 +2347,7 @@ var proposalExecutor = {
                                 else {
                                     return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
                                 }
-                            }).then(
-                                data => {
-                                    dbconfig.collection_partner.update({_id: partner._id},  {$inc: {totalWithdrawalAmt: proposalData.data.amount}}).catch(errorUtils.reportError);
-                                    return data;
-                                }
-                            )
+                            })
 
                         // else {
                         //     return pmsAPI.bonus_applyBonus(message).then(
