@@ -8359,7 +8359,9 @@ define(['js/app'], function (myApp) {
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
                             return vm.isAdminNameValidity;
-                        }
+                        },
+                        checkIsPhoneNumberExist: vm.checkIsPhoneNumberExist,
+                        duplicatedPhoneErr: vm.duplicatedPhoneErr
                     }
                 };
 
@@ -14778,6 +14780,7 @@ define(['js/app'], function (myApp) {
                 $scope.emailConfirmation = null;
                 $scope.qqConfirmation = null;
                 $scope.weChatConfirmation = null;
+                vm.duplicatedPhoneErr = {};
                 if (!vm.modifyCritical) {
                     vm.modifyCritical = {
                         which: 'player',
@@ -14916,9 +14919,6 @@ define(['js/app'], function (myApp) {
                 } else if (vm.modifyCritical.which == 'player') {
                     vm.getPlatformPlayersData();
                 }
-                if (data.data.message) {
-                    socketService.showErrorMessage(data.data.message);
-                }
 
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -14938,6 +14938,20 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(()=>{
                     console.log("verifyPlayerPhoneNumber:", data);
                     vm.correctVerifyPhoneNumber.str = data.data;
+                })
+            });
+        };
+
+        vm.checkIsPhoneNumberExist = function () {
+            socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
+                phoneNumber: vm.modifyCritical.newPhoneNumber,
+                platformObjId: vm.selectedSinglePlayer.platform
+            }, function (data) {
+                $scope.$evalAsync(()=>{
+                    if (data.data.length) {
+                        console.log("checkIsPhoneNumberExist:", data);
+                        vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
+                    }
                 })
             });
         };
