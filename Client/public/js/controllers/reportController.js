@@ -26,7 +26,9 @@ define(['js/app'], function (myApp) {
             H5_PLAYER: 3,
             H5_AGENT: 4,
             APP_PLAYER: 5,
-            APP_AGENT: 6
+            APP_AGENT: 6,
+            APP_NATIVE_PLAYER: 7,
+            APP_NATIVE_PARTNER: 8
         };
         vm.inputDeviceMapped = {
             0: "BACKSTAGE",
@@ -35,7 +37,9 @@ define(['js/app'], function (myApp) {
             3: "H5_PLAYER",
             4: "H5_AGENT",
             5: "APP_PLAYER",
-            6: "APP_AGENT"
+            6: "APP_AGENT",
+            7: "APP_NATIVE_PLAYER",
+            8: "APP_NATIVE_PARTNER"
         };
 
         vm.proposalStatusList = { // removed APPROVED and REJECTED
@@ -1344,6 +1348,11 @@ define(['js/app'], function (myApp) {
                     console.log(data)
                     if (data.data) {
                         $.each(data.data, function (i, v) {
+                            let index = vm.platformList.map(x => x && x._id).indexOf(v && v.platform);
+                            if (index > -1) {
+                                v.platformName = vm.platformList[index].name;
+                            }
+
                             vm.playerLvlData[v._id] = v;
                         })
                     }
@@ -2675,6 +2684,26 @@ define(['js/app'], function (myApp) {
         //////////////////// draw player table - end /////////////////
 
         // Win Rate Report
+        vm.changeWinRatePlatform = function () {
+            let query = {};
+
+            if(vm.winRateQuery && vm.winRateQuery.platformList && vm.winRateQuery.platformList.length > 0){
+                query.platformObjIdList = vm.winRateQuery.platformList;
+            } else {
+                query.platformObjIdList = vm.platformList.map(item => item._id);
+            }
+
+            vm.providerListByPlatform = [];
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if (providerList && providerList.data) {
+                        vm.allProviders = providerList.data;
+                    }
+                });
+            });
+        };
+
         vm.getWinRateReportData = function () {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
@@ -3290,6 +3319,11 @@ define(['js/app'], function (myApp) {
                 $('#providerConsumptionReportTable').resize();
             }
         }
+
+        vm.changeLimitedOfferReportPlatform = function () {
+            let platformQuery = vm.limitedOfferQuery.platformList && vm.limitedOfferQuery.platformList.length > 0 ? {$in: vm.limitedOfferQuery.platformList} : vm.platformList.map(item => item._id);
+            vm.getPlayerLevelByPlatformId(platformQuery);
+        };
 
         vm.getLimitedOfferReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
@@ -4212,6 +4246,63 @@ define(['js/app'], function (myApp) {
 
 
         /////// player domain report
+        vm.changePlayerDomainPlatform = function () {
+            // Get Promote CS and way lists
+            vm.pdAllPromoteWay = {};
+            let query = {
+                platformId: vm.playerDomain.platformList && vm.playerDomain.platformList.length > 0 ? {$in: vm.playerDomain.platformList} : {$in: vm.platformList.map(item => item._id)},
+            };
+
+            socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                data => {
+                    $scope.$evalAsync(() => {
+                        vm.pdAllPromoteWay = data.data;
+                        endLoadMultipleSelect('.spicker');
+                    });
+                },
+                function (err) {
+                    console.log(err);
+                });
+
+            // Get Departments Detail
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.playerDomain.platformList && vm.playerDomain.platformList.length > 0 ? {$in: vm.playerDomain.platformList} : {$in: vm.platformList.map(item => item._id)}},
+                data => {
+                    $scope.$evalAsync(() => {
+                        let parentId;
+                        vm.pdQueryDepartments = [];
+                        vm.pdQueryRoles = [];
+                        vm.pdQueryAdmins = [];
+
+                        vm.pdQueryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                        data.data.map(e => {
+                            let index = vm.platformList.map(x => x && x.name).indexOf(e && e.departmentName);
+
+                            if (index > -1) {
+                                vm.pdQueryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.pdQueryDepartments.push(e);
+                            }
+                        });
+
+                        endLoadMultipleSelect('.spicker');
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+                }, error => {
+                    vm.pdQueryDepartments = [];
+                    vm.pdQueryRoles = [];
+                    vm.pdQueryAdmins = [];
+                }
+            );
+        };
+
         vm.searchPlayerDomainReport = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#playerDomainReportTableSpin').show();
@@ -4305,33 +4396,43 @@ define(['js/app'], function (myApp) {
                     // if (!item.sourceUrl) {
                     //     item.registrationAgent$ = "Backstage";
                     // }
-                    if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
-                        item.registrationAgent$ = "Backstage";
-                    }
-                    else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
+                    if (item && item.guestDeviceId) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
                         }
                         else {
                             item.registrationAgent$ = "APP Player";
                         }
-                    }
-                    else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
-                        if (item.partner) {
-                            item.registrationAgent$ = "HTML5 Agent";
+                    } else {
+                        if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
+                            item.registrationAgent$ = "Backstage";
+                        }
+                        else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "APP Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "APP Player";
+                            }
+                        }
+                        else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
+                            if (item.partner) {
+                                item.registrationAgent$ = "HTML5 Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "HTML5 Player";
+                            }
                         }
                         else {
-                            item.registrationAgent$ = "HTML5 Player";
+                            if (item.partner) {
+                                item.registrationAgent$ = "Web Agent";
+                            }
+                            else {
+                                item.registrationAgent$ = "Web Player";
+                            }
                         }
                     }
-                    else {
-                        if (item.partner) {
-                            item.registrationAgent$ = "Web Agent";
-                        }
-                        else {
-                            item.registrationAgent$ = "Web Player";
-                        }
-                    }
+
                     item.registrationAgent$ = $translate(item.registrationAgent$);
 
                     if (!item.phoneProvince | item.phoneProvince === 'null' || item.phoneProvince === 'undefined') {
@@ -10468,54 +10569,8 @@ define(['js/app'], function (myApp) {
                     vm.reportSearchTime = 0;
 
                     utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
-                        // Get Promote CS and way lists
-                        vm.pdAllPromoteWay = {};
-                        let query = {
-                            platformId: vm.selectedPlatform._id
-                        };
 
-                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
-                            data => {
-                                $scope.$evalAsync(() => {
-                                    vm.pdAllPromoteWay = data.data;
-                                    endLoadMultipleSelect('.spicker');
-                                });
-                            },
-                            function (err) {
-                                console.log(err);
-                            });
-
-                        // Get Departments Detail
-                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
-                            data => {
-                                $scope.$evalAsync(() => {
-                                    let parentId;
-                                    vm.pdQueryDepartments = [];
-                                    vm.pdQueryRoles = [];
-                                    vm.pdQueryAdmins = [];
-
-                                    vm.pdQueryDepartments.push({_id: '', departmentName: 'N/A'});
-
-                                    data.data.map(e => {
-                                        if (e.departmentName == vm.selectedPlatform.name) {
-                                            vm.pdQueryDepartments.push(e);
-                                            parentId = e._id;
-                                        }
-                                    });
-
-                                    data.data.map(e => {
-                                        if (String(parentId) == String(e.parent)) {
-                                            vm.pdQueryDepartments.push(e);
-                                        }
-                                    });
-
-                                    endLoadMultipleSelect('.spicker');
-                                    if (typeof(callback) == 'function') {
-                                        callback(data.data);
-                                    }
-                                });
-                            }
-                        );
+                        vm.changePlayerDomainPlatform();
 
                         vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                         vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
@@ -10835,6 +10890,7 @@ define(['js/app'], function (myApp) {
                     vm.winRateLayer2 = false;
                     vm.winRateLayer3 = false;
                     vm.winRateLayer4 = false;
+                    vm.changeWinRatePlatform();
                     utilService.actionAfterLoaded("#winRateTable", function () {
                         vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                     });
@@ -10962,6 +11018,7 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferDetail = {};
                 vm.limitedOfferQuery.limit = 10;
                 vm.reportSearchTime = 0;
+                vm.changeLimitedOfferReportPlatform();
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {

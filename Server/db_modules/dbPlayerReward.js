@@ -5949,7 +5949,7 @@ let dbPlayerReward = {
                 await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
                 // check reward apply restriction on ip, phone and IMEI
                 let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
-                console.log("checking checkHasReceivedProm", checkHasReceivedProm)
+                console.log("checking checkHasReceivedProm", [checkHasReceivedProm, playerData.name])
                 if (checkHasReceivedProm){
                     if (checkHasReceivedProm.sameIPAddressHasReceived) {
                         return Promise.reject({
@@ -6741,23 +6741,19 @@ let dbPlayerReward = {
             }
 
             // check reward apply limit in period
-            let countInRewardInterval = dbConfig.collection_proposal.aggregate(
+            let countInRewardInterval = dbConfig.collection_proposal.find(
+                checkMatchQuery,
                 {
-                    $match: checkMatchQuery
-                },
-                {
-                    $project: {
-                        createTime: 1,
-                        status: 1,
-                        'data.playerObjId': 1,
-                        'data.eventId': 1,
-                        'data.lastLoginIp': 1,
-                        'data.phoneNumber': 1,
-                        'data.deviceId': 1,
-                        _id: 0
-                    }
+                    createTime: 1,
+                    status: 1,
+                    'data.playerObjId': 1,
+                    'data.eventId': 1,
+                    'data.lastLoginIp': 1,
+                    'data.phoneNumber': 1,
+                    'data.deviceId': 1,
+                    _id: 0
                 }
-            ).read("secondaryPreferred").then(
+            ).lean().then(
                 countReward => { // display approved proposal data during this event period
                     console.log('proposal aggregate - 1', countReward.length);
                     let resultArr = [];
