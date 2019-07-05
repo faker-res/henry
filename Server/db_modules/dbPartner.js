@@ -9945,9 +9945,6 @@ let dbPartner = {
                             id, null, new Date(slot.startTime), new Date(slot.endTime), null, null, null, activePlayerRequirement
                         ).then(
                             memberDetail => {
-                                if (memberDetail.isNew) {
-                                    console.log('is new member detail @', new Date(slot.startTime), new Date(slot.endTime), JSON.stringify(memberDetail, null, 2))
-                                }
                                 retList.push({
                                     date: slot.startTime,
                                     isNew: memberDetail.isNew,
