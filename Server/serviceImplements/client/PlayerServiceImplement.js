@@ -492,18 +492,18 @@ let PlayerServiceImplement = function () {
                 conn.noOfAttempt = 0;
                 conn.viewInfo = playerData.viewInfo;
                 conn.platformId = data.platformId;
-                conn.onclose = function (event) {
-                    dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
-                        error => {
-                            if (error.message === "Can't find db data") {
-                                // This is quite normal during testing, because we remove the test player account before the connection closes.
-                                // Do nothing
-                            } else {
-                                console.error("dbPlayerInfo.playerLogout failed:", error);
-                            }
-                        }
-                    );
-                };
+                // conn.onclose = function (event) {
+                //     dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
+                //         error => {
+                //             if (error.message === "Can't find db data") {
+                //                 // This is quite normal during testing, because we remove the test player account before the connection closes.
+                //                 // Do nothing
+                //             } else {
+                //                 console.error("dbPlayerInfo.playerLogout failed:", error);
+                //             }
+                //         }
+                //     );
+                // };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
