@@ -6,6 +6,7 @@ var simplifiedChinese = {
     "Authentication Fails": "验证失败, 请先登录",
     "Verification code invalid": "无效验证码",
     "User not found OR Invalid Password": "用户没有发现或无效密码",
+    "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
     "Captcha code invalid": "图形验证码无效",
     "Phone number already exists": "此手机号已被注册，请联系客服人员",
     "The player name to be registered is different from the one in SMS log. Please get a new one.": "新开户名字与SMS记录里的名字不符，请重新获取验证码，谢谢。",
