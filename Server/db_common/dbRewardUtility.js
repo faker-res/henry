@@ -847,6 +847,20 @@ const dbRewardUtility = {
         }
     },
 
+    checkTopupRewardApplySpecialDayLimit: async (eventData, specialCount) => {
+        if (eventData.param.dailyMaxTotalApplyCount
+            && specialCount
+            && specialCount.applied
+            && eventData.param.dailyMaxTotalApplyCount <= specialCount.applied
+        ) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Please improve your hand speed"
+            });
+        }
+    },
+
     checkRewardApplyPlayerHasPhoneNumberAndBankCard: (eventData, playerData) => {
         if (eventData.condition && eventData.condition.requiredPhoneNumber && eventData.condition.requiredBankCard && !Boolean(playerData.phoneNumber) && !Boolean(playerData.bankAccount)){
             return Promise.reject({
