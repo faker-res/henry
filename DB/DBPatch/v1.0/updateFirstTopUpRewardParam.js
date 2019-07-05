@@ -1027,6 +1027,8 @@ db.rewardParam.update({
                 isSteppingReward: {type: "checkbox", des: "Reward step needed"},
                 countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                dailyMaxTotalApplyCount: {type: "number", des: "Daily Max Total Apply Count"},
+                dailyMaxTotalTimeStart: {type: "text", des: "Daily Max Total Reset Time"},
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardPercentage: {type: "percentage", des: "Reward percentage"},
@@ -1038,6 +1040,7 @@ db.rewardParam.update({
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
+                    appliedCount: {type: "number", des: "Applied Count", disabled: true}
                 }
             }
         }
