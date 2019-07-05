@@ -5947,6 +5947,9 @@ let dbPlayerReward = {
                 await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
                 // Check if there is withdraw after top up
                 await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Check special day limit apply count
+                let specialCount = await dbPlayerReward.getTopUpRewardDayLimit(playerData.platform.platformId, eventData.code);
+                await dbRewardUtil.checkTopupRewardApplySpecialDayLimit(eventData, specialCount);
                 // check reward apply restriction on ip, phone and IMEI
                 let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
                 console.log("checking checkHasReceivedProm", [checkHasReceivedProm, playerData.name])
