@@ -9647,7 +9647,7 @@ let dbPlayerInfo = {
     },
 
     checkVisibleIfTopUpCount: function(playerObjId, operator, count1, count2){
-        return dbconfig.collection_playerTopUpRecord.find({playerId: playerObjId}).count().then(
+        return dbconfig.collection_playerTopUpRecord.find({playerId: playerObjId, amount: {$ne: 0}}).count().then(
             playerTopUpRecordCount => {
                 let isVisible = false;
                 if (typeof playerTopUpRecordCount != "undefined" && typeof count1 != "undefined"){
