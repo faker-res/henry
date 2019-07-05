@@ -9809,26 +9809,29 @@ let dbPlayerReward = {
             });
         }
 
+        let propsApplied = 0;
         let maxApplyCount = reward.param.dailyMaxTotalApplyCount || 0;
 
-        // format time string
-        let timeHM = reward.param.dailyMaxTotalTimeStart.split(':');
-        let resetTime = new Date().setHours(Number(timeHM[0]), Number(timeHM[1]), 0, 0);
-        let startTime, endTime;
+        if (reward.param.dailyMaxTotalTimeStart) {
+            // format time string
+            let timeHM = reward.param.dailyMaxTotalTimeStart.split(':');
+            let resetTime = new Date().setHours(Number(timeHM[0]), Number(timeHM[1]), 0, 0);
+            let startTime, endTime;
 
-        if (new Date() < resetTime) {
-            startTime = dbUtility.getOneDayAgoSGTime(resetTime);
-            endTime = resetTime;
-        } else {
-            startTime = resetTime;
-            endTime = dbUtility.getNextOneDaySGTime(resetTime);
+            if (new Date() < resetTime) {
+                startTime = dbUtility.getOneDayAgoSGTime(resetTime);
+                endTime = resetTime;
+            } else {
+                startTime = resetTime;
+                endTime = dbUtility.getNextOneDaySGTime(resetTime);
+            }
+
+            propsApplied = await dbConfig.collection_proposal.find({
+                'data.eventId': reward._id,
+                status: constProposalStatus.APPROVED,
+                createTime: {$gte: startTime, $lt: endTime}
+            }).count();
         }
-
-        let propsApplied = await dbConfig.collection_proposal.find({
-            'data.eventId': reward._id,
-            status: constProposalStatus.APPROVED,
-            createTime: {$gte: startTime, $lt: endTime}
-        }).count();
 
         return {
             applied: propsApplied,
