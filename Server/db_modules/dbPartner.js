@@ -12010,7 +12010,14 @@ function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTim
             let rewardDetail = data[3];
             let name = (data[4] && data[4].name) || "";
             let realName = (data[4] && data[4].realName) || "";
-            let isNew = data[4] && data[4].registrationTime ? new Date(data[4].registrationTime) > new Date(startTime) : false;
+
+            let isNew = Boolean(
+                data[4]
+                && data[4].registrationTime
+                && new Date(data[4].registrationTime) > new Date(startTime)
+                && new Date(data[4].registrationTime) < new Date(endTime)
+            );
+            // let isNew = data[4] && data[4].registrationTime ? new Date(data[4].registrationTime) > new Date(startTime) : false;
 
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
 
