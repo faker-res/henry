@@ -9942,11 +9942,11 @@ let dbPartner = {
                     });
                     members.forEach(id => mProms.push(
                         getAllPlayerCommissionRawDetails(
-                            id, null, slot.startTime, slot.endTime, null, null, null, activePlayerRequirement
+                            id, null, new Date(slot.startTime), new Date(slot.endTime), null, null, null, activePlayerRequirement
                         ).then(
                             memberDetail => {
                                 if (memberDetail.isNew) {
-                                    console.log('is new member detail', JSON.stringify(memberDetail, null, 2))
+                                    console.log('is new member detail @', new Date(slot.startTime), new Date(slot.endTime), JSON.stringify(memberDetail, null, 2))
                                 }
                                 retList.push({
                                     date: slot.startTime,
@@ -9967,7 +9967,6 @@ let dbPartner = {
         }
 
         // Process return list
-        console.log('retList', retList)
         retList = retList.reduce((a, b) => {
             if (a.length) {
                 let index = a.findIndex(idx => new Date(idx.date).getTime() === new Date(b.date).getTime());
