@@ -301,6 +301,14 @@ var dbUtility = {
         };
     },
 
+    getOneDayAgoSGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(-1, 'days').toDate() : null;
+    },
+
+    getNextOneDaySGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(1, 'days').toDate() : null;
+    },
+
     getSGTimeOf: function (time) {
         return time ? moment(time).tz('Asia/Singapore').toDate() : null;
     },
