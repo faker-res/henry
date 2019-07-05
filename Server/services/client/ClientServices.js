@@ -331,6 +331,7 @@
                 "getSlotInfo",
                 "getRandBonusInfo",
                 "getRewardRanking",
+                "getTopUpRewardDayLimit"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

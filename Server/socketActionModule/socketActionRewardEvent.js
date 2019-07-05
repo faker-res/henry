@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var constSettlementPeriod = require('./../const/constSettlementPeriod');
+let dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function socketActionRewardEvent(socketIO, socket) {
 
@@ -162,6 +163,12 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardEvent.getRewardEvents, [data.platform], actionName, isValidData);
+        },
+
+        getTopUpRewardDayLimit: function getTopUpRewardDayLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.rewardCode);
+            socketUtil.emitter(self.socket, dbPlayerReward.getTopUpRewardDayLimit, [data.platformId, data.rewardCode], actionName, isValidData);
         },
     };
     socketActionRewardEvent.actions = this.actions;

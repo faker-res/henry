@@ -5743,5 +5743,8 @@
   "Player(s) are not of selected platform": "账号所属平台错误",
   "Platform Selection": "选择导入产品",
   "Some player(s) are not of selected platform": "部分玩家所属平台错误",
-  "App Data Version": "APP版本号"
+  "App Data Version": "APP版本号",
+  "Daily Max Total Apply Count":  "日领取上限次数",
+  "Daily Max Total Reset Time":  "上限次数刷新时间 (格式 20:00)",
+  "Applied Count": "已领取数量"
 }

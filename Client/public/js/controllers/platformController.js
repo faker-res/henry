@@ -21595,14 +21595,29 @@ define(['js/app'], function (myApp) {
                     vm.platformRewardTypeChanged();
                 });
 
-                utilService.actionAfterLoaded("#rewardMainTasks", function () {
-                    vm.disableAllRewardInput(true);
-                });
+
                 if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
                     vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
-                //$scope.safeApply();
+
+                utilService.actionAfterLoaded("#rewardMainTasks", async function () {
+                    vm.disableAllRewardInput(true);
+
+                    if (vm.rewardParams && vm.rewardParams.dailyMaxTotalApplyCount && vm.rewardParams.dailyMaxTotalTimeStart) {
+
+                        let sendData = {
+                            platformId: vm.showReward.platform.platformId,
+                            rewardCode: vm.showReward.code
+                        };
+
+                        let applied = await $scope.$socketPromise('getTopUpRewardDayLimit', sendData);
+                        let appliedCount = applied && applied.data && applied.data.applied || 0;
+
+                        vm.rewardMainParamTable[0].value[0].appliedCount = appliedCount;
+                    }
+                });
+
 
             };
 
@@ -23360,6 +23375,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
                     $("#rewardMainTasks [data-cond-name='defineRewardBonusCount']").prop("disabled", true);
+                }
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerTopUpReturnGroup') {
+                    $("#rewardMainTasks [data-cond-name='appliedCount']").prop("disabled", true);
                 }
             }
 
