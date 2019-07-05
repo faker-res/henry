@@ -5949,7 +5949,7 @@ let dbPlayerReward = {
                 await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
                 // check reward apply restriction on ip, phone and IMEI
                 let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
-                console.log("checking checkHasReceivedProm", checkHasReceivedProm)
+                console.log("checking checkHasReceivedProm", [checkHasReceivedProm, playerData.name])
                 if (checkHasReceivedProm){
                     if (checkHasReceivedProm.sameIPAddressHasReceived) {
                         return Promise.reject({

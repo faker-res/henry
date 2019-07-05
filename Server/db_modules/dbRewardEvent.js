@@ -2046,6 +2046,8 @@ var dbRewardEvent = {
 
                         // if today has applied/received reward -> skip the following checking
                         // if returnData.condition.deposit.status != 1 meaning it is already failed to fulfill the top up requirment, so no need to go thru the checking
+
+                        console.log("checking returnData.condition.deposit.status", returnData.condition.deposit.status)
                         if (retRewardData && retRewardData.hasOwnProperty('selectedIndex') && !todayHasApplied && returnData.condition.deposit.status == 1) {
                             // check if first time apply: if matchPlayerId == true -> has already applied
                             if (matchPlayerId){
@@ -2053,6 +2055,7 @@ var dbRewardEvent = {
                                 returnData.condition.deposit.list[retRewardData.selectedIndex].status = 1;
                             }
                             else {
+                                console.log("checking 1 returnData.condition.deposit.status",  returnData.condition.deposit.status)
                                 returnData.condition.deposit.list[retRewardData.selectedIndex].status = returnData.condition.deposit.status;
                                 // check if there is consumption nor withdrawal after top up
                                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp && (rewardSpecificData[1] || rewardSpecificData[2])) {
@@ -2062,6 +2065,10 @@ var dbRewardEvent = {
                                 if (matchPlayerId) {
                                     returnData.condition.deposit.list[retRewardData.selectedIndex].status = 2; // has applied the reward
                                 }
+
+                                console.log("checking matchIPAddress", matchIPAddress)
+                                console.log("checking matchPhoneNum", matchPhoneNum)
+                                console.log("checking matchMobileDevice", matchMobileDevice)
 
                                 if (matchIPAddress || matchPhoneNum || matchMobileDevice) {
                                     returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
@@ -2159,7 +2166,7 @@ var dbRewardEvent = {
                             }
 
                             // checking the ip, phone, IMEI
-                            console.log("checking rewardSpecificData[1]", rewardSpecificData[1])
+                            console.log("checking rewardSpecificData[1]", rewardSpecificData && rewardSpecificData.length && rewardSpecificData[1] ? rewardSpecificData[1] : "undefined")
                             // Check withdrawal after top up condition
                             if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
                                 returnData.condition.deposit.status = 2;
@@ -2189,29 +2196,28 @@ var dbRewardEvent = {
                                     correctTopUpType = false;
                                 }
 
-                                if (rewardSpecificData[1]) {
+                                if (rewardSpecificData && rewardSpecificData.length && rewardSpecificData[1]) {
                                     matchPlayerId = rewardSpecificData[1].samePlayerHasReceived || false;
                                     matchIPAddress = eventData.condition && eventData.condition.checkSameIP ? (rewardSpecificData[1].sameIPAddressHasReceived || false) : false;
                                     matchPhoneNum = eventData.condition && eventData.condition.checkSamePhoneNumber ? (rewardSpecificData[1].samePhoneNumHasReceived || false) : false;
                                     matchMobileDevice = eventData.condition && eventData.condition.checkSameDeviceId ? (rewardSpecificData[1].sameDeviceIdHasReceived || false) : false;
-                                }
 
-                                if (matchIPAddress || matchPhoneNum || matchMobileDevice) {
-                                    returnData.condition.deposit.status = 0;
-                                }
+                                    if (matchIPAddress || matchPhoneNum || matchMobileDevice) {
+                                        returnData.condition.deposit.status = 0;
+                                    }
 
-                                if (eventData.condition && eventData.condition.checkSameIP) {
-                                    returnData.condition.ip.status = matchIPAddress ? 2 : 1;
-                                }
+                                    if (eventData.condition && eventData.condition.checkSameIP) {
+                                        returnData.condition.ip.status = matchIPAddress ? 2 : 1;
+                                    }
 
-                                if (eventData.condition && eventData.condition.checkSamePhoneNumber) {
-                                    returnData.condition.telephone.status = matchPhoneNum ? 2 : 1;
-                                }
+                                    if (eventData.condition && eventData.condition.checkSamePhoneNumber) {
+                                        returnData.condition.telephone.status = matchPhoneNum ? 2 : 1;
+                                    }
 
-                                if (eventData.condition && eventData.condition.checkSameDeviceId) {
-                                    returnData.condition.device.status = matchMobileDevice ? 2 : 1;
+                                    if (eventData.condition && eventData.condition.checkSameDeviceId) {
+                                        returnData.condition.device.status = matchMobileDevice ? 2 : 1;
+                                    }
                                 }
-                               
                             } else {
                                 returnData.condition.deposit.status = 2;
                                 correctTopUpType = false;
