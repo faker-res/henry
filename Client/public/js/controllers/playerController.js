@@ -13876,7 +13876,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<a>', {
                                     'ng-click': 'vm.getRewardTaskGroupProposal();'
-                                }).text(data ? data : $translate('Valid Progress')));
+                                }).text(data ? data : $translate('ANY_LOBBY')));
                                 // link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                             }
                             return link.prop('outerHTML')

@@ -4275,20 +4275,36 @@ define(['js/app'], function (myApp) {
 
                         vm.pdQueryDepartments.push({_id: '', departmentName: 'N/A'});
 
+                        let selectedPlatform = [];
+                        if (vm.playerDomain.platformList && vm.playerDomain.platformList.length > 0) {
+                            vm.playerDomain.platformList.forEach(item => {
+                                let index = vm.platformList.map(x => x && x._id).indexOf(item);
+
+                                if (index > -1) {
+                                    selectedPlatform.push(vm.platformList[index]);
+                                }
+                            })
+                        } else {
+                            selectedPlatform = vm.platformList
+                        }
+
                         data.data.map(e => {
-                            let index = vm.platformList.map(x => x && x.name).indexOf(e && e.departmentName);
+
+                            let index = selectedPlatform.map(x => x && x.name).indexOf(e && e.departmentName);
 
                             if (index > -1) {
                                 vm.pdQueryDepartments.push(e);
                                 parentId = e._id;
+
+                                data.data.map(e => {
+                                    if (String(parentId) == String(e.parent)) {
+                                        vm.pdQueryDepartments.push(e);
+                                    }
+                                });
                             }
                         });
 
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.pdQueryDepartments.push(e);
-                            }
-                        });
+
 
                         endLoadMultipleSelect('.spicker');
                         if (typeof(callback) == 'function') {
@@ -4328,7 +4344,7 @@ define(['js/app'], function (myApp) {
 
             var sendquery = {
                 //platform: vm.curPlatformId,
-                platformList: vm.playerDomain.platformList ? vm.playerDomain.platformList : vm.platformList.map(item => item._id),
+                platformList: vm.playerDomain.platformList && vm.playerDomain.platformList.length > 0 ? vm.playerDomain.platformList : vm.platformList.map(item => item._id),
                 query: {
                     playerType: vm.playerDomain.playerType,
                     name: vm.playerDomain.name,

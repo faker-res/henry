@@ -37393,7 +37393,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     vm.forbidCredibilityAddList = [];
                     vm.forbidCredibilityRemoveList = [];
-                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    vm.prepareCredibilityConfig(vm.batchSettingSelectedPlatform);
                     $('.selectRemark').attr('checked', false);
                     $('.creditUpdateStatus').html('');
                     vm.playerCredibilityRemarksUpdated = false;
