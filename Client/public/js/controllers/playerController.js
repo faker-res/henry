@@ -156,7 +156,9 @@ define(['js/app'], function (myApp) {
             H5_PLAYER: 3,
             H5_AGENT: 4,
             APP_PLAYER: 5,
-            APP_AGENT: 6
+            APP_AGENT: 6,
+            APP_NATIVE_PLAYER: 7,
+            APP_NATIVE_PARTNER: 8
         };
 
         vm.allPlayerCreditTransferStatus = {
@@ -5877,15 +5879,26 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerLocalCredit = row.validCredit;
+                            vm.selectedPlayerValidCredit = row.validCredit;
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                    vm.showAnyLobby = false;
                                     vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
-                                        if (group.providerGroup.name == "LOCAL_CREDIT") {
+                                        if (group.providerGroup.name === "ANY_LOBBY") {
+                                            vm.showAnyLobby = true;
                                             group.validCredit = row.validCredit;
-                                            group.curConsumption = group.curConsumption;
+                                            vm.anyLobbyCurConsumption = group.curConsumption;
+                                            vm.anyLobbyTargetConsumption = group.targetConsumption;
+                                            vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
                                         }
                                         return group;
+                                    });
+                                    vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
+                                    vm.showLocalCredit = true;
+                                    vm.curRewardTask.forEach(group => {
+                                        if (group.providerGroup.name === "ANY_LOBBY") {
+                                            vm.showLocalCredit = false;
+                                        }
                                     });
                                     $scope.safeApply();
                                     showPopover(that, '#rewardTaskGroupPopover', data);
@@ -9723,8 +9736,8 @@ define(['js/app'], function (myApp) {
                     res.data.map(r => {
                         if (r.providerGroup == null) {
                             r.providerGroup = {
-                                name: "LOCAL_CREDIT"
-                            }
+                                name: "ANY_LOBBY"
+                            };
                         }
                         return r;
                     });

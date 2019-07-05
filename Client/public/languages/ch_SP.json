@@ -3763,6 +3763,8 @@
   "H5_AGENT": "H5代理",
   "APP_PLAYER": "APP玩家",
   "APP_AGENT": "APP代理",
+  "APP_NATIVE_PLAYER": "APP玩家",
+  "APP_NATIVE_PARTNER": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
   "INVOLVED_ACC": "涉及帐号",
   "REGISTERED_PHONE_NUMBER": "开户电话",
