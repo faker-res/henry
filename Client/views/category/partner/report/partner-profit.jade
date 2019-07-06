@@ -2,13 +2,6 @@
     .search-filters-item
         label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
         select#productName.form-control(ng-model='vm.partnerProfitQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
-    //.search-filters-item
-        label {{"COMMISSION_TYPE"|translate}}
-        select.form-control(ng-model='vm.partnerProfitQuery.commissionType')
-            option(value='') {{'any' | translate}}
-            option(value='2') {{'WEEKLY_BONUS_AMOUNT' | translate}}
-            option(value='7') {{'DAILY_CONSUMPTION' | translate}}
-
     .search-filters-item
         label {{"PARTNER_NAME"|translate}}
         input.form-control.span.input-sm(type="text", ng-model="vm.partnerProfitQuery.partnerName")

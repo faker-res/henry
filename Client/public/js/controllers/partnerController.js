@@ -17749,13 +17749,10 @@ define(['js/app'], function (myApp) {
                 case "PARTNER_PROFIT_REPORT":
                     vm.partnerProfitQuery = {};
                     vm.partnerProfitQuery.totalCount = 0;
-                    // vm.partnerSettlementQuery.commissionType = '';
-                    // vm.partnerSettlementQuery.partnerName = '';
                     vm.reportSearchTime = 0;
 
 
                     utilService.actionAfterLoaded("#partnerProfitTablePage", function () {
-                        // vm.commonInitTime(vm.partnerProfitQuery, '#partnerProfitQuery');
                         vm.partnerProfitQuery.registerStartTime = utilService.createDatePicker('#partnerProfitQuery .registerStartTime');
                         vm.partnerProfitQuery.registerEndTime = utilService.createDatePicker('#partnerProfitQuery .registerEndTime');
                         vm.partnerProfitQuery.registerStartTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
