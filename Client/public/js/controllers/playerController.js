@@ -14955,18 +14955,27 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.checkIsPhoneNumberExist = function () {
-            socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
-                phoneNumber: vm.modifyCritical.newPhoneNumber,
-                platformObjId: vm.selectedSinglePlayer.platform
-            }, function (data) {
-                $scope.$evalAsync(()=>{
-                    if (data.data.length) {
-                        console.log("checkIsPhoneNumberExist:", data);
-                        vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
-                    }
-                })
-            });
+        vm.checkIsPhoneNumberExist = function (isCreate) {
+            if (isCreate) {
+                vm.duplicatedPhoneErr = {};
+            }
+
+            let phoneNumber = (vm.modifyCritical && vm.modifyCritical.newPhoneNumber) || vm.newPlayer.phoneNumber;
+            let platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.newPlayer.platform;
+
+            if (phoneNumber && platform) {
+                socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
+                    phoneNumber: phoneNumber,
+                    platformObjId: platform
+                }, function (data) {
+                    $scope.$evalAsync(()=>{
+                        if (data.data.length) {
+                            console.log("checkIsPhoneNumberExist:", data);
+                            vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
+                        }
+                    })
+                });
+            }
         };
 
         vm.verifyPlayerBankAccount = function (testBankAccount) {
