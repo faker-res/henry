@@ -467,7 +467,7 @@ let dbPlayerPartner = {
                             let checkCount = await dbPlayerInfo.isPhoneNumberExist(newPhoneNumber, platformObjId);
                             console.log('checkCount', checkCount);
 
-                            if (checkCount && checkCount.length && checkCount.indexof(playerData.name) === -1) {
+                            if (checkCount && checkCount.length && checkCount.indexOf(playerData.name) === -1) {
                                 if (platform.allowSamePhoneNumberToRegister === true) {
                                     if (checkCount.length > platform.samePhoneNumberRegisterCount) {
                                         return Promise.reject({
