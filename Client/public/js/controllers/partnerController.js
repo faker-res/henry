@@ -17743,7 +17743,34 @@ define(['js/app'], function (myApp) {
                         vm.partnerSettlementQuery.endTime.on('show', styleDateTimePickerEnd);
                         vm.partnerSettlementQuery.endTime.on('changeDate', styleDateTimePickerEnd);
                     });
-                    $scope.safeApply();
+                    $scope.$evalAsync();
+                    break;
+
+                case "PARTNER_PROFIT_REPORT":
+                    vm.partnerProfitQuery = {};
+                    vm.partnerProfitQuery.totalCount = 0;
+                    // vm.partnerSettlementQuery.commissionType = '';
+                    // vm.partnerSettlementQuery.partnerName = '';
+                    vm.reportSearchTime = 0;
+
+
+                    utilService.actionAfterLoaded("#partnerProfitTablePage", function () {
+                        // vm.commonInitTime(vm.partnerProfitQuery, '#partnerProfitQuery');
+                        vm.partnerProfitQuery.registerStartTime = utilService.createDatePicker('#partnerProfitQuery .registerStartTime');
+                        vm.partnerProfitQuery.registerEndTime = utilService.createDatePicker('#partnerProfitQuery .registerEndTime');
+                        vm.partnerProfitQuery.registerStartTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                        vm.partnerProfitQuery.registerEndTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                        vm.partnerProfitQuery.startTime = utilService.createDatePicker('#partnerProfitQuery .startTime');
+                        vm.partnerProfitQuery.endTime = utilService.createDatePicker('#partnerProfitQuery .endTime');
+                        vm.partnerProfitQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                        vm.partnerProfitQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                        vm.partnerProfitQuery.pageObj = utilService.createPageForPagingTable("#partnerProfitTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "partnerProfitQuery", vm.searchPartnerProfitReport)
+                        });
+                    });
+                    $scope.$evalAsync();
+                    break;
             }
         }
 
@@ -18024,6 +18051,127 @@ define(['js/app'], function (myApp) {
             vm.calculatePartnerDLTotalDetail(rowData.downLinesRawCommissionDetail,'consumptionDetail')
         }
 
+        vm.searchPartnerProfitReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            let loadingSpinner = $('#partnerProfitTableSpin');
+            let platformIdList;
+            if (vm.partnerProfitQuery && vm.partnerProfitQuery.platformList && vm.partnerProfitQuery.platformList.length) {
+                platformIdList = vm.partnerProfitQuery.platformList;
+            } else {
+                platformIdList = vm.allPlatformData.map(a => a._id);
+            }
+
+            // utilService.getDataTablePageSize("#partnerProfitTablePage", vm.partnerProfitQuery, 30);
+            let sendData = {
+                platformObjIdList: platformIdList,
+                registerStartTime: new Date(vm.partnerProfitQuery.registerStartTime.data('datetimepicker').getLocalDate()),
+                registerEndTime: new Date(vm.partnerProfitQuery.registerEndTime.data('datetimepicker').getLocalDate()),
+                startTime: new Date(vm.partnerProfitQuery.startTime.data('datetimepicker').getLocalDate()),
+                endTime: new Date(vm.partnerProfitQuery.endTime.data('datetimepicker').getLocalDate()),
+                limit: isExport ? 5000 : (vm.partnerProfitQuery.limit || 10),
+                index: isExport ? 0 : (newSearch ? 0 : (vm.partnerProfitQuery.index || 0)),
+                sortCol: vm.partnerProfitQuery.sortCol || {}
+            };
+
+            if (vm.partnerProfitQuery && vm.partnerProfitQuery.partnerName) {
+                sendData.partnerName = vm.partnerProfitQuery.partnerName;
+            }
+
+            loadingSpinner.show();
+            console.log('searchPartnerProfitReport sendData',sendData);
+            $scope.$socketPromise('getPartnerProfitReport', sendData, true).then(data => {
+                findReportSearchTime();
+                console.log('searchPartnerProfitReport retData',data);
+                $scope.$evalAsync(() => {
+                    vm.partnerProfitQuery.totalCount = data.data.count || 0;
+
+                    let searchResult = data.data.data;
+                    searchResult.map(item => {
+                        item.commissionType$ = item.hasOwnProperty("commissionType")? $translate($scope.constPartnerCommissionSettlementType[item.commissionType]): "";
+                        item.partnerParent$ = item.parent ? item.parent.partnerName : $translate("MAIN_PARTNER");
+                        item.totalPartnerWithdraw = $noRoundTwoDecimalPlaces(item.totalPartnerWithdraw);
+                        item.totalPlatformFee = $noRoundTwoDecimalPlaces(item.totalPlatformFee);
+                        item.totalPlayerBonusAmt = $noRoundTwoDecimalPlaces(item.totalPlayerBonusAmt);
+                        item.totalPlayerConsumption = $noRoundTwoDecimalPlaces(item.totalPlayerConsumption);
+                        item.totalPlayerReward = $noRoundTwoDecimalPlaces(item.totalPlayerReward);
+                        item.totalPlayerTopup = $noRoundTwoDecimalPlaces(item.totalPlayerTopup);
+                        item.totalPlayerWithdrawal = $noRoundTwoDecimalPlaces(item.totalPlayerWithdrawal);
+                        item.totalPlayerTopupFee = $noRoundTwoDecimalPlaces(item.totalPlayerTopupFee);
+                        item.totalWithdrawFee = $noRoundTwoDecimalPlaces(item.totalWithdrawFee);
+
+                    });
+                    loadingSpinner.hide();
+
+                    vm.drawPartnerProfitTable(searchResult, vm.partnerProfitQuery.totalCount, newSearch, isExport);
+                })
+            });
+        };
+
+        vm.drawPartnerProfitTable = function (tableData, size, newSearch, isExport) {
+            let tableOptions = {
+                data: tableData,
+                "order": vm.partnerProfitQuery.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'partnerName', 'aTargets': [0]},
+                    // {'sortCol': 'parent', 'aTargets': [1]},
+                    // {'sortCol': 'totalDownlines', 'aTargets': [2]},
+                    {'sortCol': 'commissionType', 'aTargets': [3]},
+                    {targets: '_all', defaultContent: 0, bSortable: true}
+                ],
+                columns: [
+                    {
+                        title: $translate("PARTNER_NAME"),
+                        data: "partnerName",
+                        render: function (data, type, row) {
+                            let textClass = '';
+                            if (row.isTarget) {
+                                textClass = "text-danger";
+                            }
+
+                            let $link = $('<span>').text(data).addClass(textClass)
+                            return $link.prop('outerHTML');
+                        },
+                    },
+                    {title: $translate('REFERRAL'), data: "partnerParent$", bSortable: false},
+                    {title: $translate('TOTAL_DOWNLINES'), data: "totalDownlines", sClass: "sumInt alignRight", bSortable: false},
+                    {title: $translate('MODE'), data: "commissionType$"},
+                    {title: $translate('DEPOSIT_TOPUP'), data: "totalPlayerTopup", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('DEPOSIT_BONUS'), data: "totalPlayerWithdrawal", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('REWARD'), data: "totalPlayerReward", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('CONSUMPTION'), data: "totalPlayerConsumption", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('bonusAmount1'), data: "totalPlayerBonusAmt", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('Platform Fee'), data: "totalPlatformFee", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('TopUp Fee'), data: "totalPlayerTopupFee", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('Withdrawal Fee'), data: "totalWithdrawFee", sClass: "sumFloat alignRight", bSortable: false},
+                    {title: $translate('PARTNER_BONUS'), data: "totalPartnerWithdraw", sClass: "sumFloat alignRight", bSortable: false},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                vm.partnerProfitTable = utilService.createDatatableWithFooter('#partnerProfitExcelTable', tableOptions, {}, true);
+
+                $('#partnerProfitExcelTable_wrapper').hide();
+                vm.exportToExcel('partnerProfitExcelTable', 'PARTNER_PROFIT_REPORT');
+            }else{
+                vm.partnerProfitTable = utilService.createDatatableWithFooter('#partnerProfitTable', tableOptions, {}, true);
+                vm.partnerProfitQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#partnerProfitTable').off('order.dt');
+                $('#partnerProfitTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerProfitQuery', vm.searchPartnerProfitReport);
+                });
+                setTimeout(function () {
+                    $('#partnerProfitTable_wrapper').resize();
+                }, 500);
+            }
+        };
+
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
             vm.reportSearchTimeStart = new Date().getTime();
 
@@ -18272,6 +18420,9 @@ define(['js/app'], function (myApp) {
                     htmlContent += "<tr></tr>";
                     htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
+            } else {
+                tab = document.getElementById(tableId);
+                htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
             }
 
             var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';

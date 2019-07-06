@@ -7203,6 +7203,387 @@ let dbPartner = {
         })
     },
 
+    getPartnerProfitReport: async (platformObjIdList, partnerName, registerStartTime, registerEndTime, startTime, endTime, sortCol, index, limit) => {
+        if (!(platformObjIdList && platformObjIdList.length)) {
+            return Promise.reject({name: "DataError", message: "Invalid data"});
+        }
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {};
+
+        let isDownline = false;
+        let partnerObj;
+        let partnerQuery = {};
+        let dataCount = 0;
+        platformObjIdList = platformObjIdList.map(platformId => ObjectId(platformId));
+        partnerQuery.platform = {$in: platformObjIdList};
+        if (partnerName) {
+            partnerQuery.partnerName = partnerName;
+            let targetPartner = await dbconfig.collection_partner.findOne(partnerQuery, {platform: 1, commissionType: 1, partnerName: 1, parent: 1})
+                .populate({path: "parent", model: dbconfig.collection_partner, select: "partnerName"}).lean();
+            if (targetPartner) {
+                targetPartner.isTarget = true;
+                partnerObj = await dbPartner.getAllDownlinePartnerWithoutLevel(targetPartner._id, targetPartner.platform, null, {platform: 1, commissionType: 1, partnerName: 1, parent: 1});
+                partnerObj = [targetPartner].concat(partnerObj);
+                dataCount = partnerObj.length;
+
+                let sortKey = Object.keys(sortCol)[0];
+                partnerObj.sort(function(a,b){
+                    if(a[sortKey] < b[sortKey]) {
+                        return -sortCol[sortKey];
+                    } else if(a[sortKey] > b[sortKey]) {
+                        return sortCol[sortKey];
+                    } else {
+                        return 0;
+                    }
+                });
+                partnerObj = partnerObj.splice(index, limit);
+
+
+            } else {
+                partnerObj = [];
+            }
+        } else {
+            partnerQuery.registrationTime = {
+                "$gte": new Date(registerStartTime),
+                "$lt": new Date(registerEndTime)
+            }
+
+            partnerObj = await dbconfig.collection_partner.find(partnerQuery, {platform: 1, commissionType: 1, partnerName: 1, parent: 1})
+                .sort(sortCol).skip(index).limit(limit)
+                .populate({path: "parent", model: dbconfig.collection_partner, select: "partnerName"})
+                .lean();
+            dataCount = await dbconfig.collection_partner.find(partnerQuery).count();
+        }
+
+        if (partnerObj && partnerObj.length) {
+            let commRateConfigs = await dbconfig.collection_partnerCommissionRateConfig.find({platform: {$in: platformObjIdList}/*, $or: [{partner: null}, {partner: {$in: partnerObj.map(partner=> partner._id)}}]*/}).lean();
+            let commRatePlatform = {};
+            let commRatePartner = {};
+            if (commRateConfigs && commRateConfigs.length) {
+                commRateConfigs.map(
+                    configRate => {
+                        if (configRate) {
+                            if (configRate.partner) {
+                                commRatePartner[configRate.partner] = configRate;
+                            } else {
+                                commRatePlatform[configRate.platform] = configRate;
+                            }
+                        }
+                    }
+                )
+            }
+
+            let downlinePlayers = await dbconfig.collection_players.find({partner: {$in: partnerObj.map(partner=> partner._id)}}, {_id: 1, partner: 1, platform: 1}).lean();
+            let partnerDataObj = {};
+            let partnerWithdrawArr = [];
+            let partnerWithdrawTypesObj = {};
+            let partnerWithdrawProposalTypes = await dbconfig.collection_proposalType.find({
+                platformId: {$in: platformObjIdList},
+                name: constProposalType.PARTNER_BONUS
+            }, {_id: 1, platformId: 1}).lean();
+
+            if (!(partnerWithdrawProposalTypes && partnerWithdrawProposalTypes.length)) {
+                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+            }
+
+            partnerWithdrawProposalTypes.map(
+                proposalType => {
+                    if (proposalType && proposalType.platformId) {
+                        partnerWithdrawTypesObj[proposalType.platformId] = proposalType._id;
+                    }
+                }
+            );
+
+            partnerObj.map(
+                partner => {
+                    partner.totalPartnerWithdraw = 0;
+
+                    partnerDataObj[partner._id] = {
+                        totalDownlines: 0,
+                        totalPlayerTopup: 0,
+                        totalPlayerWithdrawal: 0,
+                        totalPlayerReward: 0,
+                        totalPlayerConsumption: 0,
+                        totalPlayerBonusAmt: 0,
+                        totalPlatformFee: 0,
+                        totalPlayerTopupFee: 0,
+                        totalWithdrawFee: 0,
+                        bonusRecord: {}
+                    }
+
+                    if (!partnerWithdrawTypesObj[partner.platform]) {
+                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                    }
+                    let partnerWithdrawalProm = dbconfig.collection_proposal.aggregate([
+                        {
+                            $match: {
+                                type: ObjectId(partnerWithdrawTypesObj[partner.platform]),
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                'data.partnerObjId': {$in: [ObjectId(partner._id), String(partner._id)]},
+                                createTime : {
+                                    "$gte": new Date(startTime),
+                                    "$lt": new Date(endTime)
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                amount: {$sum: "$data.amount"}
+                            }
+                        }
+                    ]).read("secondaryPreferred").then(result => {
+                        if (result && result[0] && result[0] && result[0].amount) {
+                            partner.totalPartnerWithdraw = result[0].amount;
+                        }
+                    });
+
+                    partnerWithdrawArr.push(partnerWithdrawalProm);
+                }
+            );
+            await Promise.all(partnerWithdrawArr);
+
+            if (downlinePlayers && downlinePlayers.length) {
+                isDownline = true;
+                let playerPromArr = [];
+                let withdrawTypesObj = {};
+                let withdrawProposalTypes = await dbconfig.collection_proposalType.find({
+                    platformId: {$in: platformObjIdList},
+                    name: constProposalType.PLAYER_BONUS
+                }, {_id: 1, platformId: 1}).lean();
+
+                if (!(withdrawProposalTypes && withdrawProposalTypes.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+
+                withdrawProposalTypes.map(
+                    proposalType => {
+                        if (proposalType && proposalType.platformId) {
+                            withdrawTypesObj[proposalType.platformId] = proposalType._id;
+                        }
+                    }
+                );
+
+                downlinePlayers.map(
+                    player => {
+                        partnerDataObj[player.partner].totalDownlines += 1;
+
+                        let topupProm = dbconfig.collection_playerTopUpRecord.aggregate([
+                            {
+                                $match: {
+                                    playerId: player._id,
+                                    createTime : {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: null,
+                                    amount: {$sum: "$amount"}
+                                }
+                            }
+                        ]).read("secondaryPreferred").then(result => {
+                            if (result && result[0] && result[0] && result[0].amount) {
+                                partnerDataObj[player.partner].totalPlayerTopup += result[0].amount;
+                            }
+                        });
+
+
+                        if (!withdrawTypesObj[player.platform]) {
+                            return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                        }
+                        let withdrawalProm = dbconfig.collection_proposal.aggregate([
+                            {
+                                $match: {
+                                    type: ObjectId(withdrawTypesObj[player.platform]),
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                                    createTime : {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: null,
+                                    amount: {$sum: "$data.amount"}
+                                }
+                            }
+                        ]).read("secondaryPreferred").then(result => {
+                            if (result && result[0] && result[0] && result[0].amount) {
+                                partnerDataObj[player.partner].totalPlayerWithdrawal += result[0].amount;
+                            }
+                        });
+
+                        let rewardProm = dbconfig.collection_proposal.aggregate([
+                            {
+                                $match: {
+                                    mainType: "Reward",
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
+                                    createTime : {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: null,
+                                    amount: {$sum: "$data.rewardAmount"}
+                                }
+                            }
+                        ]).read("secondaryPreferred").then(result => {
+                            if (result && result[0] && result[0] && result[0].amount) {
+                                partnerDataObj[player.partner].totalPlayerReward += result[0].amount;
+                            }
+                        });
+
+                        let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                            {
+                                $match: {
+                                    playerId: player._id,
+                                    createTime : {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "$providerId",
+                                    amount: {$sum: "$validAmount"},
+                                    bonusAmount: {$sum: "$bonusAmount"}
+                                }
+                            }
+                        ]).read("secondaryPreferred").then(result => {
+                            if (result && result.length) {
+                                result.map(
+                                    res => {
+                                        if (res.amount) {
+                                            partnerDataObj[player.partner].totalPlayerConsumption += res.amount;
+                                        }
+
+                                        if (res.bonusAmount) {
+                                            partnerDataObj[player.partner].totalPlayerBonusAmt += res.bonusAmount;
+                                        }
+                                        if (!partnerDataObj[player.partner].bonusRecord[res._id]) {
+                                            partnerDataObj[player.partner].bonusRecord[res._id] = res.bonusAmount;
+                                        } else {
+                                            partnerDataObj[player.partner].bonusRecord[res._id] += res.bonusAmount;
+                                        }
+                                    }
+                                )
+                            }
+                        });
+
+                        playerPromArr.push(Promise.all([topupProm, withdrawalProm, rewardProm, consumptionProm]));
+                    }
+                )
+                await Promise.all(playerPromArr);
+            }
+
+            let gameProviderGroupObj = {};
+            if (isDownline) { // no downline does not need to compare
+                let gameProviderGroup = await dbconfig.collection_gameProviderGroup.find({platform: {$in: platformObjIdList}}, {
+                    providers: 1,
+                    platform: 1
+                }).lean();
+                if (gameProviderGroup && gameProviderGroup.length) {
+                    gameProviderGroup.map(
+                        group => {
+                            if (group && group.platform) {
+                                if (!gameProviderGroupObj[group.platform]) {
+                                    gameProviderGroupObj[group.platform] = []
+                                }
+                                gameProviderGroupObj[group.platform].push(group);
+                            }
+                        }
+                    )
+                }
+            }
+
+            partnerObj.map(
+                partner => {
+                    if (partner && partner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && partnerDataObj[partner._id]) {
+                        let chosenCommRate;
+                        if (commRatePartner[partner._id]) {
+                            chosenCommRate = commRatePartner[partner._id];
+                        } else if (commRatePlatform[partner.platform]) {
+                            chosenCommRate = commRatePlatform[partner.platform];
+                        }
+                        if (chosenCommRate) {
+                            if (isDownline && partnerDataObj[partner._id].bonusRecord && Object.keys(partnerDataObj[partner._id].bonusRecord).length) {
+                                if (gameProviderGroupObj[partner.platform] && gameProviderGroupObj[partner.platform].length && chosenCommRate.rateAfterRebateGameProviderGroup && chosenCommRate.rateAfterRebateGameProviderGroup.length) {
+                                    let rateAfterRebateGameProviderGroup = chosenCommRate.rateAfterRebateGameProviderGroup
+                                    let bonusRecordObj = partnerDataObj[partner._id].bonusRecord;
+                                    let platformProviderGroup = gameProviderGroupObj[partner.platform];
+                                    for (let key in bonusRecordObj) {
+                                        if (bonusRecordObj[key] >= 0) {
+                                            continue;
+                                        }
+                                        let isChosenGroupFee = false;
+                                        let feeRate = 0;
+                                        let selectedProviderGroup;
+                                        for (let i = 0; i < platformProviderGroup.length; i++) {
+                                            if (platformProviderGroup[i].providers && platformProviderGroup[i].providers.length) {
+                                                for (let j = 0; j < platformProviderGroup[i].providers.length; j++) {
+                                                    if (String(platformProviderGroup[i].providers[j]) == String(key)) {
+                                                        selectedProviderGroup = platformProviderGroup[i]._id;
+                                                        for (let k = 0; k < rateAfterRebateGameProviderGroup.length; k++) {
+                                                            if (String(rateAfterRebateGameProviderGroup[k].gameProviderGroupId) == String(selectedProviderGroup)) {
+                                                                if (!isNaN(rateAfterRebateGameProviderGroup[k].rate) && rateAfterRebateGameProviderGroup[k].rate != null && String(rateAfterRebateGameProviderGroup[k].rate).trim() != "") { //rate is string
+                                                                    feeRate = rateAfterRebateGameProviderGroup[k].rate && (rateAfterRebateGameProviderGroup[k].rate / 100) || 0;
+                                                                    isChosenGroupFee = true;
+                                                                }
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            if (selectedProviderGroup) {
+                                                break;
+                                            }
+                                        }
+                                        if (!isChosenGroupFee && chosenCommRate.rateAfterRebatePlatform) {
+                                            feeRate = (chosenCommRate.rateAfterRebatePlatform / 100) || 0;
+                                        }
+                                        partnerDataObj[partner._id].totalPlatformFee += Math.abs(bonusRecordObj[key]) * feeRate;
+                                    }
+                                } else if (partnerDataObj[partner._id].totalPlayerBonusAmt && partnerDataObj[partner._id].totalPlayerBonusAmt < 0) {
+                                    let feeRate = chosenCommRate.rateAfterRebatePlatform && (chosenCommRate.rateAfterRebatePlatform / 100) || 0;
+                                    partnerDataObj[partner._id].totalPlatformFee = Math.abs(partnerDataObj[partner._id].totalPlayerBonusAmt) * feeRate;
+                                }
+                            }
+
+                            // }
+
+                            if (partnerDataObj[partner._id].totalPlayerTopup) {
+                                let feeRate = chosenCommRate.rateAfterRebateTotalDeposit && (chosenCommRate.rateAfterRebateTotalDeposit / 100) || 0;
+                                partnerDataObj[partner._id].totalPlayerTopupFee = partnerDataObj[partner._id].totalPlayerTopup * feeRate;
+                            }
+
+                            if (partnerDataObj[partner._id].totalPlayerWithdrawal) {
+                                let feeRate = chosenCommRate.rateAfterRebateTotalWithdrawal && (chosenCommRate.rateAfterRebateTotalWithdrawal / 100) || 0;
+                                partnerDataObj[partner._id].totalWithdrawFee = partnerDataObj[partner._id].totalPlayerWithdrawal * feeRate;
+                            }
+                        }
+                    }
+                    partner = Object.assign(partner, partnerDataObj[partner._id]);
+                }
+            )
+        }
+
+        return {count: dataCount, data: partnerObj};
+
+    },
+
     getCommissionRate: (platformId, partnerId, commissionType) => {
         let platformObj;
         let partnerObj;
@@ -10230,6 +10611,35 @@ let dbPartner = {
                     )
                     chainArr = chainArr.concat(partnersData);
                     return dbPartner.getAllPartnerDownlinePartner(partnersData.map(partner => partner._id), platformObjId, chainArr, partnerLevel);
+                }
+                return chainArr
+            }
+        );
+    },
+
+    getAllDownlinePartnerWithoutLevel: (partnerObjId, platformObjId, chainArr, projectionObj) => {
+        chainArr = chainArr || [];
+        projectionObj = projectionObj || {};
+        let query = {
+            platform: platformObjId
+        };
+        if (partnerObjId instanceof Array) {
+            if (!partnerObjId.length) {
+                return chainArr;
+            }
+            query.parent = {$in: partnerObjId};
+        } else {
+            query.parent = partnerObjId;
+        }
+        if (chainArr.includes(String(partnerObjId))) {
+            // prevent potential infinite loop
+            return chainArr;
+        }
+        return dbconfig.collection_partner.find(query, projectionObj).populate({path: "parent", model: dbconfig.collection_partner, select: "partnerName"}).lean().then(
+            partnersData => {
+                if (partnersData && partnersData.length) {
+                    chainArr = chainArr.concat(partnersData);
+                    return dbPartner.getAllPartnerDownlinePartner(partnersData.map(partner => partner._id), platformObjId, chainArr, projectionObj);
                 }
                 return chainArr
             }
