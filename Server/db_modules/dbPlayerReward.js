@@ -6121,7 +6121,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
             if (eventData.condition.rewardAppearPeriod && eventData.condition.rewardAppearPeriod[0] && eventData.condition.rewardAppearPeriod[0].startTime) {
                 let isValid = false;
-                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
+                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day() + 1;
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
                 eventData.condition.rewardAppearPeriod.forEach(appearPeriod => {
                     if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
