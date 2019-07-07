@@ -245,6 +245,11 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId && data.code && data.sortType);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getRewardRanking, [data.platformId, data.playerId, data.code, data.sortType, data.startTime, data.endTime, data.usePaging, data.requestPage, data.count], isValidData, false, false, true);
     };
+
+    this.getTopUpRewardDayLimit.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.rewardCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getTopUpRewardDayLimit, [data.platformId, data.rewardCode], isValidData, false ,false, true);
+    };
 };
 
 

@@ -863,6 +863,8 @@ define(['js/app'], function (myApp) {
 
             vm.bankCards = preValue1[0];
 
+            vm.getAllCredibilityRemarks();
+
             // Initiate player table
             // vm.getPlatformPlayersData(true, true);
             vm.drawPlayerTable([]);
@@ -875,7 +877,6 @@ define(['js/app'], function (myApp) {
             vm.showWeeklySettlement = (nowDate != weeklyDate) && (vm.selectedPlatform.data.weeklySettlementDay == new Date().getDay());
             vm.platformSettlement = {};
             vm.getCredibilityRemarks();
-            vm.getAllCredibilityRemarks();
             vm.partnerAdvanceSearchQuery = {
                 creditsOperator: ">=",
                 dailyActivePlayerOperator: ">=",
@@ -5193,16 +5194,16 @@ define(['js/app'], function (myApp) {
                             let output = initOutput;
                             let remarkMatches = false;
                             data.map(function (remarkId) {
-                                for (let i = 0; i < vm.allCredibilityRemarks.length; i++) {
-                                    if (vm.allCredibilityRemarks[i]._id === remarkId) {
-                                        if (output && output !== initOutput) {
-                                            output += "<br>";
-                                        }
-                                        output += vm.allCredibilityRemarks[i].name;
-                                        remarkMatches = true;
-                                    }
+                                let index = vm.allCredibilityRemarks.map(x => x._id).indexOf(remarkId);
 
-                                    if (vm.allCredibilityRemarks[i]._id === remarkId && vm.allCredibilityRemarks[i].name === '黑名单IP' && vm.allCredibilityRemarks[i].isFixed === true) {
+                                if (index > -1) {
+                                    if (output && output !== initOutput) {
+                                        output += "<br>";
+                                    }
+                                    output += vm.allCredibilityRemarks[index].name;
+                                    remarkMatches = true;
+
+                                    if (vm.allCredibilityRemarks[index]._id === remarkId && vm.allCredibilityRemarks[index].name === '黑名单IP' && vm.allCredibilityRemarks[index].isFixed === true) {
                                         output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
                                         output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
                                         output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
@@ -14955,18 +14956,27 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.checkIsPhoneNumberExist = function () {
-            socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
-                phoneNumber: vm.modifyCritical.newPhoneNumber,
-                platformObjId: vm.selectedSinglePlayer.platform
-            }, function (data) {
-                $scope.$evalAsync(()=>{
-                    if (data.data.length) {
-                        console.log("checkIsPhoneNumberExist:", data);
-                        vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
-                    }
-                })
-            });
+        vm.checkIsPhoneNumberExist = function (isCreate) {
+            if (isCreate) {
+                vm.duplicatedPhoneErr = {};
+            }
+
+            let phoneNumber = (vm.modifyCritical && vm.modifyCritical.newPhoneNumber) || vm.newPlayer.phoneNumber;
+            let platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.newPlayer.platform;
+
+            if (phoneNumber && platform) {
+                socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
+                    phoneNumber: phoneNumber,
+                    platformObjId: platform
+                }, function (data) {
+                    $scope.$evalAsync(()=>{
+                        if (data.data.length) {
+                            console.log("checkIsPhoneNumberExist:", data);
+                            vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
+                        }
+                    })
+                });
+            }
         };
 
         vm.verifyPlayerBankAccount = function (testBankAccount) {

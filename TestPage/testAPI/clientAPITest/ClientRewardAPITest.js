@@ -298,6 +298,12 @@
         this.rewardService.getRewardRanking.once(callback);
     };
 
+    proto.getTopUpRewardDayLimit = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getTopUpRewardDayLimit.request(data);
+        this.rewardService.getTopUpRewardDayLimit.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
