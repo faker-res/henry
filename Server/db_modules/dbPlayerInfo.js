@@ -5912,6 +5912,9 @@ let dbPlayerInfo = {
                                     let prom1 = Promise.all([totalTransferIn, totalTransferOut, newInfo]);
                                     players.push(prom1);
 
+                                    getTotalTransferIn(playerData[ind]);
+                                    getTotalTransferOut(playerData[ind]);
+
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
                                     let fullPhoneNumber = playerData[ind].fullPhoneNumber;
