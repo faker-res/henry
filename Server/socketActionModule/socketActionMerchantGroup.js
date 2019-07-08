@@ -127,6 +127,12 @@ function socketActionMerchantGroup(socketIO, socket) {
           socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantNBankCard, [data.platformId], actionName, isValidData);
         },
 
+        getMerchantNBankCardByPlatforms: function getMerchantNBankCardByPlatforms(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getMerchantNBankCardByPlatforms, [data], actionName, isValidData);
+        },
+
         /**
          * Add multiple players to bank card group
          * @param {json} data

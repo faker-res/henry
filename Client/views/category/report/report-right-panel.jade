@@ -13,7 +13,7 @@
                     button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
                 .search-filters-item
                     label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.merchantNoList.spicker(ng-model='vm.queryTopup.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.form-control.merchantNoList.spicker(ng-model='vm.queryTopup.platformList', bsp, multiple, data-actions-box='true' ng-change="vm.getTopupReportMerchantFilterDetails()", ng-options='v._id as v.name$ for v in vm.platformList')
                 .search-filters-item
                     label {{'PLAYER_NAME' | translate}}
                     input.form-control(type='text', ng-model='vm.queryTopup.playerName')
