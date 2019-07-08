@@ -5728,46 +5728,6 @@ let dbPlayerInfo = {
             )
         }
 
-        function getTotalTransferIn(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: 'transferIn',
-                status: constPlayerCreditTransferStatus.FAIL
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferIn = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferIn += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferIn = totalTransferIn;
-                    return thisPlayer;
-                }
-            )
-        }
-
-        function getTotalTransferOut(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: 'transferOut',
-                status: constPlayerCreditTransferStatus.SUCCESS
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferOut = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferOut += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferOut = totalTransferOut;
-                    return thisPlayer;
-                }
-            )
-        }
-
         if (data.bankAccount) {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
@@ -5903,9 +5863,6 @@ let dbPlayerInfo = {
                                     }
 
                                     players.push(Q.resolve(newInfo));
-
-                                    getTotalTransferIn(playerData[ind]);
-                                    getTotalTransferOut(playerData[ind]);
 
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
