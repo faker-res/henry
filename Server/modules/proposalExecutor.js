@@ -6322,48 +6322,56 @@ function updatePartnerCommRateConfig (proposalData) {
 }
 
 function resetAllCustomizedCommissionRate (proposalData) {
-    let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    if(!proposalData.data || !proposalData.data.partnerObjId) {
+        return;
+    }
+    return dbconfig.collection_partnerCommissionConfig.remove({
         partner: proposalData.data.partnerObjId,
         platform: proposalData.data.platformObjId,
         commissionType: proposalData.data.commissionType
-    }).lean();
-
-    let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-        partner: { "$exists" : false },
-        platform: proposalData.data.platformObjId,
-        commissionType: proposalData.data.commissionType
-    }).lean();
-
-    return Promise.all([customConfigProm, defaultConfigProm]).then(
-        data => {
-            let customConfig = data[0];
-            let defaultConfig = data[1];
-
-            if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
-                defaultConfig.forEach(dConfig => {
-                    if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
-                        customConfig.forEach(cConfig => {
-                            if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
-                                if (String(dConfig.provider) === String(cConfig.provider)) {
-                                    //custom config will be removed
-                                    dbconfig.collection_partnerCommissionConfig.remove({
-                                        partner: proposalData.data.partnerObjId,
-                                        platform: proposalData.data.platformObjId,
-                                        commissionType: proposalData.data.commissionType,
-                                        provider: cConfig.provider,
-                                    }).exec();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-            return data;
-        },
-        error => {
-            return error;
-        }
-    );
+    });
+    // let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    //     partner: proposalData.data.partnerObjId,
+    //     platform: proposalData.data.platformObjId,
+    //     commissionType: proposalData.data.commissionType
+    // }).lean();
+    //
+    // let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    //     partner: { "$exists" : false },
+    //     platform: proposalData.data.platformObjId,
+    //     commissionType: proposalData.data.commissionType
+    // }).lean();
+    //
+    // return Promise.all([customConfigProm, defaultConfigProm]).then(
+    //     data => {
+    //         let customConfig = data[0];
+    //         let defaultConfig = data[1];
+    //
+    //         if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
+    //             defaultConfig.forEach(dConfig => {
+    //                 if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
+    //                     customConfig.forEach(cConfig => {
+    //                         if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
+    //                             if (String(dConfig.provider) === String(cConfig.provider)) {
+    //                                 //custom config will be removed
+    //                                 dbconfig.collection_partnerCommissionConfig.remove({
+    //                                     partner: proposalData.data.partnerObjId,
+    //                                     platform: proposalData.data.platformObjId,
+    //                                     commissionType: proposalData.data.commissionType,
+    //                                     provider: cConfig.provider,
+    //                                 }).exec();
+    //                             }
+    //                         }
+    //                     });
+    //                 }
+    //             });
+    //         }
+    //         return data;
+    //     },
+    //     error => {
+    //         return error;
+    //     }
+    // );
 }
 
 function updateAllCustomizeCommissionRate (proposalData) {

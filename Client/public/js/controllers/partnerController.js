@@ -11324,15 +11324,21 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                let partnerFieldQuery = null;
+                if (vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
+                    partnerFieldQuery = {$in: [vm.selectedSinglePartner._id, null]}
+                }
+
                 sendData = {
                     query: {
                         platform: vm.selectedPlatform.id,
                         commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
+                        partner: partnerFieldQuery,
                         provider: {
                             $in: gameProviderGroupId
                         }
                     }
-                }
+                };
                 if (isMultiLevel && vm.selectedSinglePartner && vm.selectedSinglePartner._id) {
                     socketAction = "getPartnerCommConfig";
                     sendData = {
@@ -11346,6 +11352,7 @@ define(['js/app'], function (myApp) {
 
 
             socketService.$socket($scope.AppSocket, socketAction, sendData, function (data) {
+                console.log(socketAction, sendData, data);
                 $scope.$evalAsync(() => {
                     let existProviderCommissionSetting = [];
                     let cloneGameProviderGroup = $.extend(true, [], vm.gameProviderGroup);

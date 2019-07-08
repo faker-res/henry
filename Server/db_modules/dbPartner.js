@@ -3661,7 +3661,7 @@ let dbPartner = {
     },
 
     getPartnerCommissionConfigWithGameProviderGroup: function (query) {
-        return dbconfig.collection_partnerCommissionConfig.find(query);
+        return dbconfig.collection_partnerCommissionConfig.find(query).lean();
     },
 
     createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data, clearCustomize) {

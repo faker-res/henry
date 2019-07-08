@@ -1822,18 +1822,20 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
             partner: null
         }).lean();
 
-        if (platformConfig) {
-            let dupConfig = JSON.parse(JSON.stringify(platformConfig));
-            delete dupConfig._id;
-            delete dupConfig.__v;
-            dupConfig.partner = partnerObjId;
-            providerConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
-                platform: platformObjId,
-                commissionType: commissionType,
-                provider: providerGroupObjId,
-                partner: partnerObjId
-            }, dupConfig, {upsert: true, new: true}).lean()
-        }
+        providerConfig = platformConfig;
+
+        // if (platformConfig) {
+        //     let dupConfig = JSON.parse(JSON.stringify(platformConfig));
+        //     delete dupConfig._id;
+        //     delete dupConfig.__v;
+        //     dupConfig.partner = partnerObjId;
+        //     providerConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+        //         platform: platformObjId,
+        //         commissionType: commissionType,
+        //         provider: providerGroupObjId,
+        //         partner: partnerObjId
+        //     }, dupConfig, {upsert: true, new: true}).lean()
+        // }
     }
 
     if (providerConfig && providerConfig.commissionSetting && providerConfig.commissionSetting.length) {
@@ -1855,18 +1857,19 @@ async function getDirectCommissionRateTable (platformObjId, commissionType, part
             partner: null
         }).lean();
 
-        if (platformDefConfig) {
-            let dupConfig = JSON.parse(JSON.stringify(platformDefConfig));
-            delete dupConfig._id;
-            delete dupConfig.__v;
-            dupConfig.partner = partnerObjId;
-            defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
-                platform: platformObjId,
-                commissionType: commissionType,
-                provider: null,
-                partner: partnerObjId
-            }, dupConfig, {upsert: true, new: true}).lean()
-        }
+        defaultConfig = platformDefConfig;
+        // if (platformDefConfig) {
+        //     let dupConfig = JSON.parse(JSON.stringify(platformDefConfig));
+        //     delete dupConfig._id;
+        //     delete dupConfig.__v;
+        //     dupConfig.partner = partnerObjId;
+        //     defaultConfig = await dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+        //         platform: platformObjId,
+        //         commissionType: commissionType,
+        //         provider: null,
+        //         partner: partnerObjId
+        //     }, dupConfig, {upsert: true, new: true}).lean()
+        // }
     }
 
     if (defaultConfig && defaultConfig.commissionSetting && defaultConfig.commissionSetting.length) {
