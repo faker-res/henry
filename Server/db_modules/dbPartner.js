@@ -10647,7 +10647,7 @@ let dbPartner = {
             partnersData => {
                 if (partnersData && partnersData.length) {
                     chainArr = chainArr.concat(partnersData);
-                    return dbPartner.getAllPartnerDownlinePartner(partnersData.map(partner => partner._id), platformObjId, chainArr, projectionObj);
+                    return dbPartner.getAllDownlinePartnerWithoutLevel(partnersData.map(partner => partner._id), platformObjId, chainArr, projectionObj);
                 }
                 return chainArr
             }
