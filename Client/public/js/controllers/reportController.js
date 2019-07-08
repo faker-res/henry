@@ -600,15 +600,15 @@ define(['js/app'], function (myApp) {
                     switch (item) {
                         case "1":
                         case "2":
-                            tempAgent.push("1");
+                            tempAgent.push("1"); //pms device 1 stand for web
                             break;
                         case "3":
                         case "4":
-                            tempAgent.push("2");
+                            tempAgent.push("2"); //pms device 2 stand for h5
                             break;
                         case "5":
                         case "6":
-                            tempAgent.push("4");
+                            tempAgent.push("4"); //pms device 4 stand for app
                             break;
                     }
                 });
