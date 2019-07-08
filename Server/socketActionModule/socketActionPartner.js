@@ -589,8 +589,14 @@ function socketActionPartner(socketIO, socket) {
 
         getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);
+            let isValidData = Boolean(data.platformObjId && (data.partnerName || data.commissionType) && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.platformObjId, data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
+        },
+
+        getPartnerProfitReport: function getPartnerProfitReport (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.platformObjIdList && data.platformObjIdList.length && data.registerStartTime && data.registerEndTime && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerProfitReport, [data.platformObjIdList, data.partnerName, data.registerStartTime, data.registerEndTime, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
         },
 
         getChildrenDetails: function getChildrenDetails (data) {
