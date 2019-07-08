@@ -3763,6 +3763,8 @@
   "H5_AGENT": "H5代理",
   "APP_PLAYER": "APP玩家",
   "APP_AGENT": "APP代理",
+  "APP_NATIVE_PLAYER": "APP玩家",
+  "APP_NATIVE_PARTNER": "APP代理",
   "PROPOSAL_SUB_TYPE": "提案子类型",
   "INVOLVED_ACC": "涉及帐号",
   "REGISTERED_PHONE_NUMBER": "开户电话",
@@ -5755,6 +5757,7 @@
   "Page Detail(PC)": "PC详情页面",
   "Page Detail(H5)": "H5详情页面",
   "Page Detail(APP)": "APP详情页面",
+  "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
   "Add Carousel": "添加轮播",
   "Other Reward Report": "其他优惠报表",
   "OtherRewardReport": "其他优惠报表",
@@ -5762,5 +5765,8 @@
   "Player(s) are not of selected platform": "账号所属平台错误",
   "Platform Selection": "选择导入产品",
   "Some player(s) are not of selected platform": "部分玩家所属平台错误",
-  "App Data Version": "APP版本号"
+  "App Data Version": "APP版本号",
+  "Daily Max Total Apply Count":  "日领取上限次数",
+  "Daily Max Total Reset Time":  "上限次数刷新时间 (格式 20:00)",
+  "Applied Count": "已领取数量"
 }

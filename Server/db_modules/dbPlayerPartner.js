@@ -438,13 +438,6 @@ let dbPlayerPartner = {
                     });
                 }
 
-                let bindedRecs = [];
-                if (playerData) {
-                    bindedRecs = await checkPhoneNumberBindedBefore({phoneNumber: newPhoneNumber, playerObjId: playerData._id}, {_id: platformObjId});
-                    console.log('bindedRecs', bindedRecs);
-                }
-
-
                 let phoneAlreadyExist = data[0];
                 if (phoneAlreadyExist && (phoneAlreadyExist[0] || phoneAlreadyExist[1])) {
 
@@ -457,35 +450,8 @@ let dbPlayerPartner = {
                         return Q.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
                             name: "ValidationError",
-                            message: "Phone number already registered on platform"
+                            message: "This phone number is already used. Please insert other phone number."
                         });
-                    }
-                }
-
-                if ((phoneAlreadyExist && phoneAlreadyExist[0]) || bindedRecs.length) {
-                    // Filter out binded to self
-                    bindedRecs = bindedRecs.filter(rec => String(rec.playerObjId) !== String(playerData._id));
-                    console.log('filtered bindedRecs', bindedRecs);
-
-                    let dupCount = phoneAlreadyExist && phoneAlreadyExist[0] ? 1 : 0;
-                    dupCount = dupCount + bindedRecs.length;
-
-                    if (platform.allowSamePhoneNumberToRegister === true) {
-                        if (dupCount > platform.samePhoneNumberRegisterCount) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                name: "ValidationError",
-                                message: "Phone number already registered on platform"
-                            })
-                        }
-                    } else {
-                        if (dupCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                name: "ValidationError",
-                                message: "Phone number already registered on platform"
-                            })
-                        }
                     }
                 }
 
@@ -496,12 +462,35 @@ let dbPlayerPartner = {
                         newPhoneNumber = data[1][0].tel;
                         verificationPhone = data[1][0].tel;
                         newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(data[1][0].tel));
+
+                        if (playerData) {
+                            let checkCount = await dbPlayerInfo.isPhoneNumberExist(newPhoneNumber, platformObjId);
+                            console.log('checkCount', checkCount);
+
+                            if (checkCount && checkCount.length && checkCount.indexOf(playerData.name) === -1) {
+                                if (platform.allowSamePhoneNumberToRegister === true) {
+                                    if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                                        return Promise.reject({
+                                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                            name: "ValidationError",
+                                            message: "This phone number is already used. Please insert other phone number."
+                                        })
+                                    }
+                                } else {
+                                    return Promise.reject({
+                                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                        name: "ValidationError",
+                                        message: "This phone number is already used. Please insert other phone number."
+                                    })
+                                }
+                            }
+                        }
                     }
                     else {
                         return Promise.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
                             name: "ValidationError",
-                            message: "Phone number already registered on platform"
+                            message: "This phone number is already used. Please insert other phone number."
                         });
                     }
                 }

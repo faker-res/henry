@@ -5947,9 +5947,12 @@ let dbPlayerReward = {
                 await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
                 // Check if there is withdraw after top up
                 await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
+                // Check special day limit apply count
+                let specialCount = await dbPlayerReward.getTopUpRewardDayLimit(playerData.platform.platformId, eventData.code);
+                await dbRewardUtil.checkTopupRewardApplySpecialDayLimit(eventData, specialCount);
                 // check reward apply restriction on ip, phone and IMEI
                 let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
-                console.log("checking checkHasReceivedProm", checkHasReceivedProm)
+                console.log("checking checkHasReceivedProm", [checkHasReceivedProm, playerData.name])
                 if (checkHasReceivedProm){
                     if (checkHasReceivedProm.sameIPAddressHasReceived) {
                         return Promise.reject({
@@ -6723,14 +6726,17 @@ let dbPlayerReward = {
                 "createTime": freeTrialQuery.createTime,
                 "data.eventId": eventData._id,
                 "status": constProposalStatus.APPROVED,
-                // "data.playerObjId": playerData._id,
                 $or: [
                     {'data.playerObjId': playerData._id},
                     {'data.lastLoginIp': playerData.lastLoginIp},
-                    {'data.phoneNumber': playerData.phoneNumber},
-                    {'data.deviceId': playerData.deviceId},
+                    {'data.phoneNumber': playerData.phoneNumber}
                 ]
             };
+
+            if (playerData.deviceId || playerData.guestDeviceId) {
+                checkMatchQuery.$or.push({'data.deviceId': playerData.deviceId || playerData.guestDeviceId});
+            }
+
             if (playerData && playerData._id) {
                 console.log('checkMatchQuery===', playerData._id, checkMatchQuery);
                 console.log('checkMatchQuery.$or===', playerData._id, checkMatchQuery.$or);
@@ -6738,34 +6744,19 @@ let dbPlayerReward = {
             }
 
             // check reward apply limit in period
-            let countInRewardInterval = dbConfig.collection_proposal.aggregate(
+            let countInRewardInterval = dbConfig.collection_proposal.find(
+                checkMatchQuery,
                 {
-                    $match: {
-                        "createTime": freeTrialQuery.createTime,
-                        "data.eventId": eventData._id,
-                        "status": constProposalStatus.APPROVED,
-                        // "data.playerObjId": playerData._id,
-                        $or: [
-                            {'data.playerObjId': playerData._id},
-                            {'data.lastLoginIp': playerData.lastLoginIp},
-                            {'data.phoneNumber': playerData.phoneNumber},
-                            {'data.deviceId': playerData.deviceId},
-                        ]
-                    }
-                },
-                {
-                    $project: {
-                        createTime: 1,
-                        status: 1,
-                        'data.playerObjId': 1,
-                        'data.eventId': 1,
-                        'data.lastLoginIp': 1,
-                        'data.phoneNumber': 1,
-                        'data.deviceId': 1,
-                        _id: 0
-                    }
+                    createTime: 1,
+                    status: 1,
+                    'data.playerObjId': 1,
+                    'data.eventId': 1,
+                    'data.lastLoginIp': 1,
+                    'data.phoneNumber': 1,
+                    'data.deviceId': 1,
+                    _id: 0
                 }
-            ).read("secondaryPreferred").then(
+            ).lean().then(
                 countReward => { // display approved proposal data during this event period
                     console.log('proposal aggregate - 1', countReward.length);
                     let resultArr = [];
@@ -9792,6 +9783,60 @@ let dbPlayerReward = {
                 return {stats: statsObj, rewardRanking: rewardRecord, playerRanking: rankingRecord};
             }
         )
+    },
+
+    getTopUpRewardDayLimit: async (platformId, rewardCode) => {
+        let platform = await dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+
+        if (!platform) {
+            return Promise.reject({
+                status: constServerCode.INVALID_DATA,
+                name: "DataError",
+                message: "Invalid data"
+            });
+        }
+
+        let reward = await dbConfig.collection_rewardEvent.findOne({
+            platform: platform._id,
+            code: rewardCode
+        }, {_id: 1, param: 1}).lean();
+
+        if (!reward) {
+            return Promise.reject({
+                status: constServerCode.INVALID_DATA,
+                name: "DataError",
+                message: "Invalid data"
+            });
+        }
+
+        let propsApplied = 0;
+        let maxApplyCount = reward.param.dailyMaxTotalApplyCount || 0;
+
+        if (reward.param.dailyMaxTotalTimeStart) {
+            // format time string
+            let timeHM = reward.param.dailyMaxTotalTimeStart.split(':');
+            let resetTime = new Date().setHours(Number(timeHM[0]), Number(timeHM[1]), 0, 0);
+            let startTime, endTime;
+
+            if (new Date() < resetTime) {
+                startTime = dbUtility.getOneDayAgoSGTime(resetTime);
+                endTime = resetTime;
+            } else {
+                startTime = resetTime;
+                endTime = dbUtility.getNextOneDaySGTime(resetTime);
+            }
+
+            propsApplied = await dbConfig.collection_proposal.find({
+                'data.eventId': reward._id,
+                status: constProposalStatus.APPROVED,
+                createTime: {$gte: startTime, $lt: endTime}
+            }).count();
+        }
+
+        return {
+            applied: propsApplied,
+            balance: maxApplyCount - propsApplied
+        }
     },
 
     getPlayerBaccaratRewardDetail: (platformId, playerId, eventCode, isApply, applyTargetTime) => {

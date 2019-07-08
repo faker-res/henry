@@ -400,6 +400,7 @@ var simplifiedChinese = {
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
     "Player level is not enough": "玩家等级不足",
+    "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
     "SMS validation code invalidated. Please get another one.": "短信验证码已失效，请重新获取",
     "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取",
     "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服",

@@ -420,6 +420,7 @@ var simplifiedChinese = {
     "PlayerPromoCodeReward": "优惠代码",
     "PlayerConsumptionReturnSuccess": "玩家洗码（成功）",
     "ManualTopupSuccess": "手工存款（成功）",
+    "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
     "OnlineTopupSuccess": "在线充值（成功）",
     "AlipayTopupSuccess": "个人支付宝（成功）",
     "WechatTopupSuccess": "个人微信（成功）",

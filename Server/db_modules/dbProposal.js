@@ -215,55 +215,11 @@ var proposal = {
         );
     },
 
-    createProposalWithTypeNameWithProcessInfo: async function (platformId, typeName, proposalData, smsLogInfo) {
-        console.log('createProposalWithTypeNameWithProcessInfo', platformId, typeName, proposalData, smsLogInfo);
-
-        let bindedRecs = [];
-        let playerCount = 0;
-        let message = "";
-
-        if (proposalData && proposalData.data.updateData.phoneNumber) {
-            playerCount = await dbconfig.collection_players.find({
-                platform: proposalData.platformId,
-                phoneNumber: {
-                    $in: [
-                        rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber),
-                        rsaCrypto.oldEncrypt(proposalData.data.updateData.phoneNumber),
-                        rsaCrypto.legacyEncrypt(proposalData.data.updateData.phoneNumber)
-                    ]
-                },
-                'permission.forbidPlayerFromLogin': {$ne: true}
-            }).count();
-            bindedRecs = await checkPhoneNumberBindedBefore(
-                {
-                    phoneNumber: proposalData.data.updateData.phoneNumber,
-                    playerObjId: proposalData.data.playerObjId
-                },
-                {
-                    _id: proposalData.platformId
-                }
-            );
-            console.log('playerCount')
-        }
-
-        let platform = await dbconfig.collection_platform.findById(platformId);
-
-        if (platform.allowSamePhoneNumberToRegister === true) {
-            if (playerCount + bindedRecs.length > platform.samePhoneNumberRegisterCount) {
-                message = `已被注册过了这个号码`;
-            }
-        } else {
-            if (playerCount + bindedRecs.length > 0) {
-                message = `已被注册过了这个号码`;
-            }
-        }
-
+    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
         return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
             data => {
                 if (smsLogInfo && data && data.proposalId)
                     dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
-
-                data.message = message;
 
                 if (data && data.process) {
                     return getStepInfo(Object.assign({}, data));
@@ -272,7 +228,7 @@ var proposal = {
                 }
             },
             error => {
-                return Q.reject(error);
+                return Promise.reject(error);
             }
         );
 
@@ -293,22 +249,6 @@ var proposal = {
                         return result;
                     }
                 )
-        }
-
-        function checkPhoneNumberBindedBefore (inputData, platformObj) {
-            return dbconfig.collection_phoneNumberBindingRecord.find({
-                platformObjId: platformObj._id,
-                phoneNumber: {$in: [
-                        rsaCrypto.encrypt(inputData.phoneNumber),
-                        rsaCrypto.oldEncrypt(inputData.phoneNumber),
-                        rsaCrypto.legacyEncrypt(inputData.phoneNumber)
-                    ]}
-            }).then(
-                cnt => {
-                    console.log('checkPhoneNumberBindedBefore cnt', cnt);
-                    return cnt;
-                }
-            );
         }
     },
 

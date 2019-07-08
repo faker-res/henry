@@ -156,7 +156,9 @@ define(['js/app'], function (myApp) {
             H5_PLAYER: 3,
             H5_AGENT: 4,
             APP_PLAYER: 5,
-            APP_AGENT: 6
+            APP_AGENT: 6,
+            APP_NATIVE_PLAYER: 7,
+            APP_NATIVE_PARTNER: 8
         };
 
         vm.allPlayerCreditTransferStatus = {
@@ -5877,15 +5879,26 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerLocalCredit = row.validCredit;
+                            vm.selectedPlayerValidCredit = row.validCredit;
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
+                                    vm.showAnyLobby = false;
                                     vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
-                                        if (group.providerGroup.name == "LOCAL_CREDIT") {
+                                        if (group.providerGroup.name === "ANY_LOBBY") {
+                                            vm.showAnyLobby = true;
                                             group.validCredit = row.validCredit;
-                                            group.curConsumption = group.curConsumption;
+                                            vm.anyLobbyCurConsumption = group.curConsumption;
+                                            vm.anyLobbyTargetConsumption = group.targetConsumption;
+                                            vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
                                         }
                                         return group;
+                                    });
+                                    vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
+                                    vm.showLocalCredit = true;
+                                    vm.curRewardTask.forEach(group => {
+                                        if (group.providerGroup.name === "ANY_LOBBY") {
+                                            vm.showLocalCredit = false;
+                                        }
                                     });
                                     $scope.safeApply();
                                     showPopover(that, '#rewardTaskGroupPopover', data);
@@ -8359,7 +8372,9 @@ define(['js/app'], function (myApp) {
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
                             return vm.isAdminNameValidity;
-                        }
+                        },
+                        checkIsPhoneNumberExist: vm.checkIsPhoneNumberExist,
+                        duplicatedPhoneErr: vm.duplicatedPhoneErr
                     }
                 };
 
@@ -9721,8 +9736,8 @@ define(['js/app'], function (myApp) {
                     res.data.map(r => {
                         if (r.providerGroup == null) {
                             r.providerGroup = {
-                                name: "LOCAL_CREDIT"
-                            }
+                                name: "ANY_LOBBY"
+                            };
                         }
                         return r;
                     });
@@ -13861,7 +13876,7 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<a>', {
                                     'ng-click': 'vm.getRewardTaskGroupProposal();'
-                                }).text(data ? data : $translate('Valid Progress')));
+                                }).text(data ? data : $translate('ANY_LOBBY')));
                                 // link.append($('<div>', {}).text(data ? data : $translate('Valid Progress')));
                             }
                             return link.prop('outerHTML')
@@ -14778,6 +14793,7 @@ define(['js/app'], function (myApp) {
                 $scope.emailConfirmation = null;
                 $scope.qqConfirmation = null;
                 $scope.weChatConfirmation = null;
+                vm.duplicatedPhoneErr = {};
                 if (!vm.modifyCritical) {
                     vm.modifyCritical = {
                         which: 'player',
@@ -14916,9 +14932,6 @@ define(['js/app'], function (myApp) {
                 } else if (vm.modifyCritical.which == 'player') {
                     vm.getPlatformPlayersData();
                 }
-                if (data.data.message) {
-                    socketService.showErrorMessage(data.data.message);
-                }
 
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -14940,6 +14953,29 @@ define(['js/app'], function (myApp) {
                     vm.correctVerifyPhoneNumber.str = data.data;
                 })
             });
+        };
+
+        vm.checkIsPhoneNumberExist = function (isCreate) {
+            if (isCreate) {
+                vm.duplicatedPhoneErr = {};
+            }
+
+            let phoneNumber = (vm.modifyCritical && vm.modifyCritical.newPhoneNumber) || vm.newPlayer.phoneNumber;
+            let platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.newPlayer.platform;
+
+            if (phoneNumber && platform) {
+                socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
+                    phoneNumber: phoneNumber,
+                    platformObjId: platform
+                }, function (data) {
+                    $scope.$evalAsync(()=>{
+                        if (data.data.length) {
+                            console.log("checkIsPhoneNumberExist:", data);
+                            vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
+                        }
+                    })
+                });
+            }
         };
 
         vm.verifyPlayerBankAccount = function (testBankAccount) {
