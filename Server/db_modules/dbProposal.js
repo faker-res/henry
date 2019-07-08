@@ -48,6 +48,7 @@ const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var proposal = {
 
@@ -3509,6 +3510,7 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj, isExport) {
+        console.log('getProposalsByAdvancedQuery', reqData);
         sortObj = sortObj || {};
         let proposalTypeList = [];
         let approveProposalTypeList = [];
@@ -3516,6 +3518,8 @@ var proposal = {
         let resultArray = null;
         let totalSize = 0;
         let totalPlayer = 0;
+        let totalAmount = 0;
+        let playerSet = new Set();
         let summary = {};
         let isApprove = false;
         let isSuccess = false;
@@ -3659,7 +3663,7 @@ var proposal = {
                     )
                 }
             ).then(
-                function (proposalTypeIdList) { // all proposal type ids of this platform
+                async proposalTypeIdList => { // all proposal type ids of this platform
                     delete queryData.platformList;
 
                     let orQuery = [];
@@ -3687,39 +3691,56 @@ var proposal = {
                     }).populate({
                         path: "type", model: dbconfig.collection_proposalType
                     }).lean().then(populateProposalsWithPlatformData);
-                    let c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
-                        promoCodeProposalType => {
-                            let playerPromoCodeRewardObjId;
-                            if (promoCodeProposalType && promoCodeProposalType.length) {
-                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
-                            }
 
-                            groupObj.totalTopUpAmount = {
-                                $sum: {
-                                    $cond: [
-                                        {$or: [
-                                                {$eq: ["$data.topUpAmount", NaN]},
-                                                {$setIsSubset: [
-                                                        ["$type"],
-                                                        playerPromoCodeRewardObjId
-                                                    ]}
-                                            ]},
-                                        0,
-                                        "$data.topUpAmount"
-                                    ]
-                                }
-                            };
+                    let playerPromoCodeRewardObjId = await dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(el => el.map(p => p._id));
 
-                            return dbconfig.collection_proposal.aggregate([
-                                {
-                                    $match: queryData
-                                },
-                                {
-                                    $group: groupObj
-                                }
-                            ]).read("secondaryPreferred");
+                    groupObj.totalTopUpAmount = {
+                        $sum: {
+                            $cond: [
+                                {$or: [
+                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        {$setIsSubset: [
+                                                ["$type"],
+                                                playerPromoCodeRewardObjId
+                                            ]}
+                                    ]},
+                                0,
+                                "$data.topUpAmount"
+                            ]
                         }
-                    );
+                    };
+
+                    let stream = dbconfig.collection_proposal.find(queryData, {_id: 1, proposalId: 1, data: 1}).cursor({batchSize: 500});
+
+                    let balancer = new SettlementBalancer();
+                    let c = balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 50,
+                                    makeRequest: function (proposalArr, request) {
+                                        console.log('make request');
+                                        request("player", "calculateProposalsTotalAmount", {
+                                            proposalArr: proposalArr
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        console.log('record', record);
+                                        if (record.data) {
+                                            if (record.data.totalAmount) {
+                                                totalAmount += record.data.totalAmount;
+                                            }
+
+                                            if (record.data.playerSet) {
+                                                record.data.playerSet.forEach(p => playerSet.add(p));
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        );
+                    })
 
                     return Promise.all([a, b, c]);
                 },
@@ -3735,12 +3756,7 @@ var proposal = {
                     if (data && data[1]) {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
-                        summary = data[2];
-                        totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
-
-                        if (summary && summary[0] && summary[0].players) {
-                            delete summary[0].players;
-                        }
+                        totalPlayer = playerSet.size;
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3881,7 +3897,7 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
-                    totalPlayer = summary && summary[0] && summary[0].players && summary[0].players.length || 0;
+                    totalPlayer = playerSet.size;
 
                     if (summary && summary[0] && summary[0].players) {
                         delete summary[0].players;
@@ -3906,18 +3922,6 @@ var proposal = {
                 if (data && data.length > 0) {
                     removeRemarksContainPhoneAndAddress(data);
 
-                    let total = 0;
-
-                    if (summary[0]) {
-                        total += summary[0].totalAmount;
-                        total += summary[0].totalRewardAmount;
-                        total += summary[0].totalTopUpAmount;
-                        total += summary[0].totalUpdateAmount;
-                        total += summary[0].totalNegativeProfitAmount;
-                        total += summary[0].totalCommissionAmount;
-                    }
-                    total = dbutility.decimalAdjust("floor", total, -2);
-
                     if (isExport) {
                         return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
                     } else {
@@ -3925,7 +3929,7 @@ var proposal = {
                             size: totalSize,
                             totalPlayer: totalPlayer,
                             data: resultArray,
-                            summary: {amount: total}, //parseFloat(total).toFixed(2)
+                            summary: {amount: totalAmount},
                         };
                     }
                 }
