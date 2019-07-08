@@ -3726,7 +3726,6 @@ var proposal = {
                                         });
                                     },
                                     processResponse: function (record) {
-                                        console.log('record', record);
                                         if (record.data) {
                                             if (record.data.totalAmount) {
                                                 totalAmount += record.data.totalAmount;
