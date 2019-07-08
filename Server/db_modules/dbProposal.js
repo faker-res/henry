@@ -3710,7 +3710,7 @@ var proposal = {
                         }
                     };
 
-                    let stream = dbconfig.collection_proposal.find(queryData, {_id: 1, proposalId: 1, data: 1}).cursor({batchSize: 500});
+                    let stream = dbconfig.collection_proposal.find(queryData, {_id: 1, proposalId: 1, data: 1}).cursor({batchSize: 1000});
 
                     let balancer = new SettlementBalancer();
                     let c = balancer.initConns().then(function () {
@@ -3718,7 +3718,7 @@ var proposal = {
                             balancer.processStream(
                                 {
                                     stream: stream,
-                                    batchSize: 50,
+                                    batchSize: 500,
                                     makeRequest: function (proposalArr, request) {
                                         console.log('make request');
                                         request("player", "calculateProposalsTotalAmount", {
