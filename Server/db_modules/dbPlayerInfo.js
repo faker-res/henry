@@ -18606,6 +18606,8 @@ let dbPlayerInfo = {
                         }
                     })
                 }
+
+                console.log('playerSummary.platformFeeEstimate', playerSummary.platformFeeEstimate);
             }
 
             return playerSummary;
