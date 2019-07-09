@@ -18533,7 +18533,7 @@ let dbPlayerInfo = {
 
                     // Calculate total profit
                     returnedObj.total.profit =
-                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
                 return returnedObj;

@@ -4923,47 +4923,47 @@ define(['js/app'], function (myApp) {
 
             if(isExport){
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                }, false, true);
 
                 $('#playerReportExcelTable_wrapper').hide();
                 vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
             }else{
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                }, false, true);
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
                 vm.playerQuery.pageObj.init({maxCount: size}, newSearch);
