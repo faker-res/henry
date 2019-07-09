@@ -18448,7 +18448,6 @@ let dbPlayerInfo = {
                     query.start = preSummaryStartTime;
                     query.end = preSummaryEndTime;
 
-                    console.log('async start');
                     let preSummaryPlayerReportData = await dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
 
                     if (preSummaryPlayerReportData && preSummaryPlayerReportData.data && preSummaryPlayerReportData.data.length > 0) {
@@ -18585,6 +18584,9 @@ let dbPlayerInfo = {
                 } else {
                     playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
                 }
+
+                // Set platform fee to 0 if player bonus amount is positive
+                playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
             }
 
             return playerSummary;
@@ -21261,7 +21263,9 @@ let dbPlayerInfo = {
                                     if (result.platformFeeEstimate[gameProviderName] < 0) {
                                         result.platformFeeEstimate[gameProviderName] = 0;
                                     }
-                                    result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
+                                    if (result.consumptionBonusAmount <= 0) {
+                                        result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
+                                    }
                                 }
                             })
                         }
