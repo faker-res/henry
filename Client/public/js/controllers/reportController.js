@@ -10427,8 +10427,6 @@ define(['js/app'], function (myApp) {
                     vm.reportSearchTime = 0;
                     $('#topupTable').remove();
 
-                    vm.getTopupReportMerchantFilterDetails();
-
                     vm.initAccs();
                     endLoadMultipleSelect('.merchantNoList');
 
