@@ -18646,11 +18646,11 @@ let dbPlayerInfo = {
                 playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
 
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
+                    playerSummary.platformFeeEstimate =  playerSummary.platformFeeEstimate || {};
                     feeDetail.platformFee.forEach(provider => {
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                             let gameProviderName = String(provider.gameProvider.name);
 
-                            playerSummary.platformFeeEstimate =  playerSummary.platformFeeEstimate || {};
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
 
                             if (playerSummary.platformFeeEstimate[gameProviderName] < 0) {
