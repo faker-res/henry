@@ -3679,7 +3679,7 @@ var proposal = {
 
                         queryData["$and"].push({$or: orQuery});
                     } else {
-                        queryData["data.platformId"] = platformListQuery;
+                        queryData.type = proposalTypeList;
                     }
 
                     console.log('queryData', queryData);
