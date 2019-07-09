@@ -18588,10 +18588,10 @@ let dbPlayerInfo = {
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
 
-                console.log('feeDetail', feeDetail, playerSummary.providerDetail);
-
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
+
+                    console.log('feeDetail', feeDetail, playerSummary.providerDetail);
 
                     feeDetail.platformFee.forEach(provider => {
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
