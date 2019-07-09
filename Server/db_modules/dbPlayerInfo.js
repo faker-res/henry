@@ -5733,7 +5733,9 @@ let dbPlayerInfo = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
-                type: 'transferIn',
+                type: {
+                    $in: ["TransferIn", "transferIn"]
+                },
                 status: constPlayerCreditTransferStatus.SUCCESS
             }).lean().read("secondaryPreferred").then(
                 logs => {
@@ -5753,7 +5755,9 @@ let dbPlayerInfo = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
-                type: 'transferOut',
+                type: {
+                    $in: ["TransferOut", "transferOut"]
+                },
                 status: constPlayerCreditTransferStatus.SUCCESS
             }).lean().read("secondaryPreferred").then(
                 logs => {
