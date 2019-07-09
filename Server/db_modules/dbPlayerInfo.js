@@ -18758,7 +18758,7 @@ let dbPlayerInfo = {
                     if (playerSummaryData && playerSummaryData.length > 0) {
                         let feeDetail = await dbconfig.collection_platformFeeEstimate.findOne({platform: platform}).populate({
                             path: 'platformFee.gameProvider',
-                            model: dbconfig.collection_gameProvider
+                            model: dbconfig.collection_gameProvider,
                             select: '_id name'
                         }).lean();
 
