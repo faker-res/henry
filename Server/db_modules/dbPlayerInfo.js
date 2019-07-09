@@ -18959,7 +18959,6 @@ let dbPlayerInfo = {
                             onlineTopUpFeeDetail: 1,
                             phoneCity: 1,
                             phoneProvince: 1,
-                            platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
                             valueScore: 1,
@@ -18991,7 +18990,6 @@ let dbPlayerInfo = {
                                         playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
                                         playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
                                         playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
-                                        playerReportSummaryData[indexNo].platformFeeEstimate = player.platformFeeEstimate || {};
                                         playerReportSummaryData[indexNo].playerLevel = player.playerLevel || "";
                                         playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
                                         playerReportSummaryData[indexNo]._id = player._id || "";
