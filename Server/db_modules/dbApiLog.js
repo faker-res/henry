@@ -32,14 +32,16 @@ let dbApiLog = {
             "createFirstTopUpRewardProposal",
             "applyProviderReward",
             "applyRewardEvent",
-            "submitDXCode"
+            "submitDXCode",
+            "createGuestPlayer",
+            "playerLoginOrRegisterWithSMS",
         ];
 
         if (wsFunc.name == 'submitDXCode' && playerData && playerData._id && playerData.platform) {
             playerObjId = playerData._id;
             platform = playerData.platform;
         } else {
-            if (['login', 'create'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
+            if (['login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
                 playerObjId = actionResult._id;
                 platform = actionResult.platform;
             } else {
@@ -64,6 +66,10 @@ let dbApiLog = {
             if(forwardedIp[0].trim() != "undefined"){
                 ipAddress = forwardedIp[0].trim();
             }
+        }
+
+        if (actionName == 'createGuestPlayer' || actionName == 'playerLoginOrRegisterWithSMS'){
+            actionName = "login";
         }
 
         let logData = {
