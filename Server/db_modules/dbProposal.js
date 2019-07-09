@@ -3519,6 +3519,7 @@ var proposal = {
         let totalSize = 0;
         let totalPlayer = 0;
         let totalAmount = 0;
+        let totalPropCount = 0;
         let playerSet = new Set();
         let summary = {};
         let isApprove = false;
@@ -3684,8 +3685,7 @@ var proposal = {
 
                     console.log('queryData', queryData);
 
-                    let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
-                    let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
+                    let a = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
                     }).populate({
@@ -3710,10 +3710,14 @@ var proposal = {
                         }
                     };
 
-                    let stream = dbconfig.collection_proposal.find(queryData, {_id: 1, proposalId: 1, data: 1}).cursor({batchSize: 1000});
+                    let projField = {
+                        _id: 1, "data.playerObjId": 1, "data.amount": 1, "data.rewardAmount": 1, "data.updateAmount": 1,
+                        "data.negativeProfitAmount": 1, "data.commissionAmount": 1
+                    };
+                    let stream = dbconfig.collection_proposal.find(queryData, projField).cursor({batchSize: 1000});
 
                     let balancer = new SettlementBalancer();
-                    let c = balancer.initConns().then(function () {
+                    let b = balancer.initConns().then(function () {
                         return Q(
                             balancer.processStream(
                                 {
@@ -3731,6 +3735,10 @@ var proposal = {
                                                 totalAmount += record.data.totalAmount;
                                             }
 
+                                            if (record.data.totalProps) {
+                                                totalPropCount += record.data.totalProps;
+                                            }
+
                                             if (record.data.playerSet) {
                                                 record.data.playerSet.forEach(p => playerSet.add(p));
                                             }
@@ -3741,7 +3749,7 @@ var proposal = {
                         );
                     })
 
-                    return Promise.all([a, b, c]);
+                    return Promise.all([a, b]);
                 },
                 function (error) {
                     return Promise.reject({
@@ -3752,9 +3760,9 @@ var proposal = {
                 }
             ).then(
                 function (data) {
-                    if (data && data[1]) {
-                        totalSize = data[0];
-                        resultArray = Object.assign([], data[1]);
+                    if (data && data[0]) {
+                        totalSize = totalPropCount;
+                        resultArray = Object.assign([], data[0]);
                         totalPlayer = playerSet.size;
 
                         if(resultArray && resultArray.length > 0 && isSuccess){

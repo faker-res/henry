@@ -129,6 +129,7 @@ const dbProposalUtility = {
 
         let retObj = {
             totalAmount: totalAmount,
+            totalProps: proposalArr.length,
             playerSet: [...playerSet]
         };
 
