@@ -621,6 +621,7 @@ let dbPlayerInfo = {
         let platformObj = null;
         let platformId = null;
         let platformData = null;
+        let playerData = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -1032,16 +1033,34 @@ let dbPlayerInfo = {
                             pdata.platformId = platformId;
                             pdata.partnerId = inputData.partnerId;
                             pdata.partnerName = inputData.partnerName;
-                            return pdata;
+                            playerData = pdata;
                         }
                     )
             ).then(
+                () => {
+                    // if this player is from ebet4.0 , create a ebet user at cpms too.
+                    if (platformData.isEbet4) {
+                        return cpmsAPI.player_addPlayer({});
+                    }
+                    return
+                }
+            ).then(
+                (cpmsPlayer) => {
+                    if (platformData.isEbet4 && !cpmsPlayer) {
+                        return dbconfig.collection_players.remove({
+                            _id: playerData._id,
+                            platform: platformData._id
+                        }).exec();
+                    }
+                    return
+                }
+            ).then(
                 data => {
-                    if (data) {
-                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
+                    if (playerData) {
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false);
                     }
                     else {
-                        return data;
+                        return playerData;
                     }
                 }
             );
