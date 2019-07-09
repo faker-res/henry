@@ -3680,7 +3680,7 @@ var proposal = {
 
                         queryData["$and"].push({$or: orQuery});
                     } else {
-                        queryData.type = proposalTypeList;
+                        queryData.type = {$in: proposalTypeList.concat(approveProposalTypeList)};
                     }
 
                     console.log('queryData', queryData);
@@ -3820,7 +3820,7 @@ var proposal = {
 
                 return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
             }).then(
-                (selectedProposalTypeList) => {
+                async selectedProposalTypeList => {
                     delete reqData.platformList;
                     let approvedTypeList = []; // proposalType list which Approved status = 已审核
                     let successTypeList = []; // proposalType list which Approved status = 成功
@@ -3843,7 +3843,7 @@ var proposal = {
                     if(isApprove){
                         //if filter status is 已审核，find from proposalType list which Approved status = 已审核
                         reqData.type = {$in: approvedTypeList};
-                    }else if(isSuccess){
+                    } else if (isSuccess){
                         //if filter status is 成功，find from proposalType list which Approved status = 成功
                         delete reqData.status;
                         delete reqData.type;
@@ -3852,72 +3852,81 @@ var proposal = {
                         orQuery.push({type: {$in: approvedTypeList}, status: constProposalStatus.SUCCESS});
 
                         reqData["$and"].push({$or: orQuery});
-                    } else {
-                        queryData["data.platformId"] = platformListQuery;
                     }
 
                     console.log('proposal report query data', reqData);
 
-                    a = dbconfig.collection_proposal.find(reqData).lean().count();
-                    b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                    a = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
                         .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
                         .then(populateProposalsWithPlatformData);
-                    c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
-                        promoCodeProposalType => {
-                            let playerPromoCodeRewardObjId;
-                            if(promoCodeProposalType && promoCodeProposalType.length){
-                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
-                            }
 
-                            groupObj.totalTopUpAmount = {
-                                $sum: {
-                                    $cond: [
-                                        {$or: [
-                                                {$eq: ["$data.topUpAmount", NaN]},
-                                                {$setIsSubset: [
-                                                        ["$type"],
-                                                        playerPromoCodeRewardObjId
-                                                    ]}
-                                            ]},
-                                        0,
-                                        "$data.topUpAmount"
-                                    ]
-                                }
-                            };
+                    let playerPromoCodeRewardObjId = await dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(el => el.map(p => p._id));
 
-                            return dbconfig.collection_proposal.aggregate([
-                                {
-                                    $match: reqData
-                                },
-                                {
-                                    $group: groupObj
-                                }
-                            ]).read("secondaryPreferred");
+                    groupObj.totalTopUpAmount = {
+                        $sum: {
+                            $cond: [
+                                {$or: [
+                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        {$setIsSubset: [
+                                                ["$type"],
+                                                playerPromoCodeRewardObjId
+                                            ]}
+                                    ]},
+                                0,
+                                "$data.topUpAmount"
+                            ]
                         }
-                    );
+                    };
+
+                    let projField = {
+                        _id: 1, "data.playerObjId": 1, "data.amount": 1, "data.rewardAmount": 1, "data.updateAmount": 1,
+                        "data.negativeProfitAmount": 1, "data.commissionAmount": 1
+                    };
+                    let stream = dbconfig.collection_proposal.find(queryData, projField).cursor({batchSize: 1000});
+
+                    let balancer = new SettlementBalancer();
+                    b = balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 500,
+                                    makeRequest: function (proposalArr, request) {
+                                        console.log('make request');
+                                        request("player", "calculateProposalsTotalAmount", {
+                                            proposalArr: proposalArr
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        if (record.data) {
+                                            if (record.data.totalAmount) {
+                                                totalAmount += record.data.totalAmount;
+                                            }
+
+                                            if (record.data.totalProps) {
+                                                totalPropCount += record.data.totalProps;
+                                            }
+
+                                            if (record.data.playerSet) {
+                                                record.data.playerSet.forEach(p => playerSet.add(p));
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        );
+                    });
 
                     return Promise.all([a, b, c])
                 }
             ).then(
                 data => {
-                    totalSize = data[0];
-                    resultArray = Object.assign([], data[1]);
-                    summary = data[2];
+                    totalSize = totalPropCount;
+                    resultArray = Object.assign([], data[0]);
                     totalPlayer = playerSet.size;
 
-                    if (summary && summary[0] && summary[0].players) {
-                        delete summary[0].players;
-                    }
-
                     return resultArray;
-                },
-                err => {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Error in getting proposals type in the selected platform.",
-                        error: err,
-                    })
                 }
             );
         }
@@ -8997,7 +9006,7 @@ function insertRepeatCount(proposals, platformList, query, isFromMain) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
                 let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
                 let bankCardNoRegExpA;
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
                 if(bankCardNoPrefix.indexOf('*') == -1){
 
                     console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
