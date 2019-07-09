@@ -18649,11 +18649,12 @@ let dbPlayerInfo = {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
 
                     feeDetail.platformFee.forEach(provider => {
-                        console.log('feeDetail', provider.gameProvider);
+                        console.log('feeDetail', provider.feeRate);
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                             let gameProviderName = String(provider.gameProvider.name);
 
                             console.log('gameProviderName', gameProviderName);
+                            console.log('playerSummary.providerDetail', playerSummary.providerDetail);
 
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
 
@@ -18758,6 +18759,7 @@ let dbPlayerInfo = {
                         let feeDetail = await dbconfig.collection_platformFeeEstimate.findOne({platform: platform}).populate({
                             path: 'platformFee.gameProvider',
                             model: dbconfig.collection_gameProvider
+                            select: '_id name'
                         }).lean();
 
                         playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail));
