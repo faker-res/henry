@@ -18591,11 +18591,12 @@ let dbPlayerInfo = {
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
 
-                    console.log('feeDetail', feeDetail, playerSummary.providerDetail);
-
                     feeDetail.platformFee.forEach(provider => {
+                        console.log('feeDetail', provider.gameProvider);
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                             let gameProviderName = String(provider.gameProvider.name);
+
+                            console.log('gameProviderName', gameProviderName);
 
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
 
