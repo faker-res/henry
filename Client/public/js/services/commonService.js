@@ -568,15 +568,25 @@ define([], () => {
                     if (Number(commSett[e]) !== Number(custObj[e])) {
                         custObj.isCustomizedField = custObj.isCustomizedField || [];
                         custObj.isCustomizedField.push(e);
+                        let cusTomFieldKey = e + "Custom";
+                        if (!custObj[cusTomFieldKey]) {
+                            custObj[e] = commSett[e];
+                        }
                     }
                 });
 
                 if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length > 0) {
                     commSett.rateAfterRebateGameProviderGroup = commSett.rateAfterRebateGameProviderGroup.map(e => {
-                        custObj.rateAfterRebateGameProviderGroup.forEach(f => {
+                        custObj.rateAfterRebateGameProviderGroup.map(f => {
                             if (String(e.gameProviderGroupId) === String(f.gameProviderGroupId) && Number(e.rate) !== Number(f.rate)) {
-                                f.isCustomized = true;
-                                e = Object.assign({}, e, f);
+                                // f.isCustomized = true;
+                                // e = Object.assign({}, e, f);
+                                if (!f.isCustom) {
+                                    f.rate = e.rate;
+                                } else {
+                                    f.isCustomized = true;
+                                    e = Object.assign({}, e, f);
+                                }
                             }
                         });
 

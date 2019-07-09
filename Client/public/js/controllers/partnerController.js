@@ -12144,6 +12144,7 @@ define(['js/app'], function (myApp) {
                             oriSett.forEach(h => {
                                 if (String(h.gameProviderGroupId) === String(e.gameProviderGroupId)) {
                                     e.rate = h.rate;
+                                    e.isCustom = false;
                                     delete e.isRevert;
                                     delete e.isCustomized;
                                 }
@@ -12153,12 +12154,16 @@ define(['js/app'], function (myApp) {
                         return e;
                     })
                 } else {
+                    let cusTomFieldKey = field + "Custom";
                     config[field] = vm.srcCommissionRateConfig[field];
+                    config[cusTomFieldKey] = false;
                 }
             }
 
             normalRates.forEach(e => {
                 if (config[e] != vm.srcCommissionRateConfig[e]) {
+                    let field = e + "Custom";
+                    config[field] = true;
                     isDelete = false;
                 }
             });
@@ -12170,6 +12175,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (src && e.rate != src.rate) {
+                    e.isCustom = true;
                     isDelete = false;
                 }
             });
@@ -12182,7 +12188,7 @@ define(['js/app'], function (myApp) {
                 newConfig: config,
                 isRevert: isRevert,
                 isPlatformRate: true,
-                isDelete: isDelete,
+                isDelete: isRevert? isDelete: false,
                 isMultiLevel: vm.isMultiLevelCommission,
                 commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
             };
