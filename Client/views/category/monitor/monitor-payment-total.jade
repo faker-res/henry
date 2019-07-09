@@ -3,7 +3,7 @@ div
     #paymentMonitorTotalQuery.col-md-12.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-            select.form-control.merchantNoList(ng-model='vm.paymentMonitorTotalQuery.platformList', ng-options='v._id as v.name for v in vm.platformByAdminId | orderBy:"platformId$"', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList.spicker(ng-model='vm.paymentMonitorTotalQuery.platformList', bsp, multiple, data-actions-box='true', ng-options='v._id as v.name for v in vm.platformByAdminId | orderBy:"platformId$"')
         .search-filters-item
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.paymentMonitorTotalQuery.playerName')
@@ -12,26 +12,26 @@ div
             input.form-control(type='text', ng-model='vm.paymentMonitorTotalQuery.proposalID')
         .search-filters-item
             label {{'topupType' | translate}}
-            select.form-control(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.mainTopupType', required)
+            select.form-control(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.mainTopupType', required)
                 option(value='') {{'any' | translate}}
                 option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{ i | translate}}
         .search-filters-item
             label {{'DEVICE' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.userAgent', required, multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.userAgent', required, multiple, static-bsp, data-actions-box='true')
                 option(value='1') WEB
                 option(value='2') APP
                 option(value='3') H5
 
         .search-filters-item
             label {{'Online Topup Type' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.topupType', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.topupType', multiple, static-bsp, data-actions-box='true')
                 option(ng-repeat='(i,v) in merchantTopupTypeJson', value='{{i}}') {{ v | translate}}({{v}})
         .search-filters-item
             label {{'3rd Party Platform' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.merchantGroup',ng-options='mer.list as mer.name for mer in vm.merchantGroupCloneList', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'DEPOSIT_METHOD' | translate}}
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.depositMethod', multiple, static-bsp, data-actions-box='true')
                 option(value='1') 网银转账(OnlineTransfer)
                 option(value='2') 自动取款机(ATM)
                 option(value='3') 银行柜台(Counter)
@@ -41,7 +41,7 @@ div
 
         .search-filters-item
             label 收款银行类别
-            select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorTotalQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
+            select.form-control.merchantNoList(ng-change='vm.filterMerchant(true)',ng-model='vm.paymentMonitorTotalQuery.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'Business Acc/ Bank Acc' | translate}}
             //select.form-control.merchantNoList( ng-model='vm.paymentMonitorTotalQuery.merchantNo')
