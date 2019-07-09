@@ -553,7 +553,7 @@ define(['js/app'], function (myApp) {
             if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
                 vm.queryTopup.merchantNoData.forEach(merchantNo=>{
                     vm.merchantCloneList.forEach(item=>{
-                        if(item.merchantNo == merchantNo.merchantNo){
+                        if((item.merchantNo == merchantNo.merchantNo) && (item.name == merchantNo.name)){
                             // if that is a alipay category flag, tick all same "line".
                             if(item.category){
                                 vm.merchantCloneList.map(merchant=>{
