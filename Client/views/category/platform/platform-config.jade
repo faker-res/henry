@@ -1225,6 +1225,11 @@
                                 td {{'Check Is Phone Number Bound To A Player Before Apply Bonus' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
+
+                        tr
+                            td {{'Ebet4.0 User (Create CPMS User When User is Create)' | translate}}
+                            td
+                                input(type='checkbox', ng-model='vm.platformBasic.isEbet4', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'App Data Version' | translate}}
                                 td
