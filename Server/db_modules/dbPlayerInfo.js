@@ -5733,7 +5733,9 @@ let dbPlayerInfo = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
-                type: 'transferIn',
+                type: {
+                    $in: ["TransferIn", "transferIn"]
+                },
                 status: constPlayerCreditTransferStatus.SUCCESS
             }).lean().read("secondaryPreferred").then(
                 logs => {
@@ -5753,7 +5755,9 @@ let dbPlayerInfo = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
-                type: 'transferOut',
+                type: {
+                    $in: ["TransferOut", "transferOut"]
+                },
                 status: constPlayerCreditTransferStatus.SUCCESS
             }).lean().read("secondaryPreferred").then(
                 logs => {
@@ -18590,7 +18594,7 @@ let dbPlayerInfo = {
 
                     // Calculate total profit
                     returnedObj.total.profit =
-                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
                 return returnedObj;
@@ -18605,7 +18609,7 @@ let dbPlayerInfo = {
             }
         }
 
-        function processPlayerSummaryData (playerSummary) {
+        function processPlayerSummaryData (playerSummary, feeDetail) {
             if (playerSummary) {
                 playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
 
@@ -18644,6 +18648,22 @@ let dbPlayerInfo = {
 
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
+
+                if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
+                    playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
+
+                    feeDetail.platformFee.forEach(provider => {
+                        if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                            let gameProviderName = String(provider.gameProvider.name);
+
+                            playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+
+                            if (playerSummary.platformFeeEstimate[gameProviderName] < 0) {
+                                playerSummary.platformFeeEstimate[gameProviderName] = 0;
+                            }
+                        }
+                    })
+                }
             }
 
             return playerSummary;
@@ -18732,9 +18752,15 @@ let dbPlayerInfo = {
                     ).read("secondaryPreferred");
                 }
             ).then(
-                playerSummaryData => {
+                async playerSummaryData => {
                     if (playerSummaryData && playerSummaryData.length > 0) {
-                        playerSummaryData = playerSummaryData.map(processPlayerSummaryData);
+                        let feeDetail = await dbconfig.collection_platformFeeEstimate.findOne({platform: platform}).populate({
+                            path: 'platformFee.gameProvider',
+                            model: dbconfig.collection_gameProvider,
+                            select: '_id name'
+                        }).lean();
+
+                        playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail));
 
                         // filter the summary result first
                         // Consumption Times Query Operator
@@ -18931,7 +18957,6 @@ let dbPlayerInfo = {
                             onlineTopUpFeeDetail: 1,
                             phoneCity: 1,
                             phoneProvince: 1,
-                            platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
                             valueScore: 1,
@@ -18963,7 +18988,6 @@ let dbPlayerInfo = {
                                         playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
                                         playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
                                         playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
-                                        playerReportSummaryData[indexNo].platformFeeEstimate = player.platformFeeEstimate || {};
                                         playerReportSummaryData[indexNo].playerLevel = player.playerLevel || "";
                                         playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
                                         playerReportSummaryData[indexNo]._id = player._id || "";

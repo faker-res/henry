@@ -605,7 +605,7 @@ define([], function () {
             let difference = Math.ceil(difference_ms / ONE_DAY);
             return difference;
         };
-        this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly) {
+        this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly, showTotalOnly) {
             function getFloat(i) {
                 let a = parseFloat(i);
                 return $.isNumeric(a) ? a : 0;
@@ -621,6 +621,10 @@ define([], function () {
                 let line1 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(a);
                 let line2 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(b);
                 let sumLines = showPageOnly ? line1 : line1.append(line2);
+
+                // Override showPageOnly
+                sumLines = showTotalOnly ? line2 : sumLines;
+
                 if(hasExtraLines) {
                     extraLinesArr.forEach(data=>{
                         sumLines = sumLines.append($('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(data));
