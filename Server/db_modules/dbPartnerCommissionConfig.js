@@ -75,9 +75,11 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: async (partnerObjId, platformObjId) => { // for direct, require main partner's partnerobjid
-        let platformConfig = await dbconfig.collection_partnerCommissionRateConfig.findOne({partner: null, platform: platformObjId}).lean();
-        let partnerConfig = await dbconfig.collection_partnerCommissionRateConfig.findOne({partner: partnerObjId}).lean();
+    getPartnerCommRate: async (partnerObjId, platformObjId, isMulti) => { // for direct, require main partner's partnerobjid
+        let rateConfigSchema = isMulti ? dbconfig.collection_partnerMainCommRateConfig : dbconfig.collection_partnerCommissionRateConfig;
+
+        let platformConfig = await rateConfigSchema.findOne({partner: null, platform: platformObjId}).lean();
+        let partnerConfig = await rateConfigSchema.findOne({partner: partnerObjId}).lean();
 
         if (!platformConfig) {
             return Promise.reject({message: "Please complete platform commission rate config"});
@@ -134,66 +136,66 @@ const dbPartnerCommissionConfig = {
         // )
     },
 
-    getPartnerMultiLvlCommRate: async (partnerObjId, platformObjId) => { // for multi, require main partner's partnerobjid
-        let platformConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: null, platform: platformObjId}).lean();
-        let partnerConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean();
-
-
-        if (!platformConfig) {
-            return Promise.reject({message: "Please complete platform commission rate config"});
-        }
-        if (!partnerConfig) {
-            return platformConfig;
-        }
-
-        let output = {
-            platform: partnerConfig.platform,
-            partner: partnerConfig.partner,
-            rateAfterRebatePromo: partnerConfig.rateAfterRebatePromoCustom ? partnerConfig.rateAfterRebatePromo : platformConfig.rateAfterRebatePromo,
-            rateAfterRebatePlatform: partnerConfig.rateAfterRebatePlatformCustom ? partnerConfig.rateAfterRebatePlatform : platformConfig.rateAfterRebatePlatform,
-            rateAfterRebateTotalDeposit: partnerConfig.rateAfterRebateTotalDepositCustom ? partnerConfig.rateAfterRebateTotalDeposit : platformConfig.rateAfterRebateTotalDeposit,
-            rateAfterRebateTotalWithdrawal: partnerConfig.rateAfterRebateTotalWithdrawalCustom ? partnerConfig.rateAfterRebateTotalWithdrawal : platformConfig.rateAfterRebateTotalWithdrawal,
-        };
-
-        platformConfig.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup || [];
-        partnerConfig.rateAfterRebateGameProviderGroup = partnerConfig.rateAfterRebateGameProviderGroup || [];
-
-        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
-            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
-            for (let j = 0; j < partnerConfig.rateAfterRebateGameProviderGroup.length; j++) {
-                let partnerRate  = partnerConfig.rateAfterRebateGameProviderGroup[j];
-                if (String(platformRate.gameProviderGroupId) !== String(partnerRate.gameProviderGroupId)) {
-                    continue;
-                }
-
-                if (partnerRate.isCustom) {
-                    platformRate.rate = partnerRate.rate;
-                    platformRate.isCustom = true;
-                }
-
-                break;
-            }
-        }
-        output.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup;
-
-        return output;
-
-
-        // return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
-        //     config => {
-        //         if (config) {
-        //             return config;
-        //         }
-        //         // return createDefaultPartnerCommRate (partnerObjId, true);
-        //     }
-        // )
-    },
+    // getPartnerMultiLvlCommRate: async (partnerObjId, platformObjId) => { // for multi, require main partner's partnerobjid
+    //     let platformConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: null, platform: platformObjId}).lean();
+    //     let partnerConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean();
+    //
+    //
+    //     if (!platformConfig) {
+    //         return Promise.reject({message: "Please complete platform commission rate config"});
+    //     }
+    //     if (!partnerConfig) {
+    //         return platformConfig;
+    //     }
+    //
+    //     let output = {
+    //         platform: partnerConfig.platform,
+    //         partner: partnerConfig.partner,
+    //         rateAfterRebatePromo: partnerConfig.rateAfterRebatePromoCustom ? partnerConfig.rateAfterRebatePromo : platformConfig.rateAfterRebatePromo,
+    //         rateAfterRebatePlatform: partnerConfig.rateAfterRebatePlatformCustom ? partnerConfig.rateAfterRebatePlatform : platformConfig.rateAfterRebatePlatform,
+    //         rateAfterRebateTotalDeposit: partnerConfig.rateAfterRebateTotalDepositCustom ? partnerConfig.rateAfterRebateTotalDeposit : platformConfig.rateAfterRebateTotalDeposit,
+    //         rateAfterRebateTotalWithdrawal: partnerConfig.rateAfterRebateTotalWithdrawalCustom ? partnerConfig.rateAfterRebateTotalWithdrawal : platformConfig.rateAfterRebateTotalWithdrawal,
+    //     };
+    //
+    //     platformConfig.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup || [];
+    //     partnerConfig.rateAfterRebateGameProviderGroup = partnerConfig.rateAfterRebateGameProviderGroup || [];
+    //
+    //     for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
+    //         let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
+    //         for (let j = 0; j < partnerConfig.rateAfterRebateGameProviderGroup.length; j++) {
+    //             let partnerRate  = partnerConfig.rateAfterRebateGameProviderGroup[j];
+    //             if (String(platformRate.gameProviderGroupId) !== String(partnerRate.gameProviderGroupId)) {
+    //                 continue;
+    //             }
+    //
+    //             if (partnerRate.isCustom) {
+    //                 platformRate.rate = partnerRate.rate;
+    //                 platformRate.isCustom = true;
+    //             }
+    //
+    //             break;
+    //         }
+    //     }
+    //     output.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup;
+    //
+    //     return output;
+    //
+    //
+    //     // return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
+    //     //     config => {
+    //     //         if (config) {
+    //     //             return config;
+    //     //         }
+    //     //         // return createDefaultPartnerCommRate (partnerObjId, true);
+    //     //     }
+    //     // )
+    // },
 
     getParentMultiLvlCommRate: async (partnerObjId) => {
         let parentChain = await getPartnerParentChain(partnerObjId);
 
         let mainParent = parentChain[parentChain.length - 1];
-        return dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainParent._id, mainParent.platform);
+        return dbPartnerCommissionConfig.getPartnerCommRate(mainParent._id, mainParent.platform, true);
     },
 
     assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {
