@@ -6659,7 +6659,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (!newproposalQuery.platformList || !newproposalQuery.platformList.length) {
-                if (!vm.platformList || !vm.platformList.length) {
+                if (!vm.platformList || !vm.platformList.length || newproposalQuery.platformList.length === vm.platformList.length) {
                     return;
                 }
                 newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
@@ -6680,7 +6680,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 // platformId: vm.curPlatformId,
-                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : [],
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
