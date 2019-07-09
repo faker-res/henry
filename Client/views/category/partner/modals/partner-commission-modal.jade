@@ -232,12 +232,27 @@
                                 td {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].crewProfit || 0 | noRoundTwoDecimalToFix}} {{'/'}} {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].totalValidConsumption || 0 | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.currentChildDetail.activeCount || 0}} {{'/'}} {{'RATIO'| translate}} {{': '}}
-                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].parentRate*100 || 0 | noRoundTwoDecimalPlaces}} {{'%)'}}
+                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].parentRate*100 || 0 | noRoundTwoDecimalPlaces}} {{'% )'}}
                                 td {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].amount || 0 | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
-                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].platformFeeRate*100 || 0| noRoundTwoDecimalPlaces}} {{'%)'}}
+                                    text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].platformFeeRate*100 || 0| noRoundTwoDecimalPlaces}} {{'% )'}}
                                 td
                                     text.span {{vm.currentChildDetail.commissionSum[vm.partnerCommVar.group.groupName].platformFee || 0 | noRoundTwoDecimalToFix}}
                                     text.span {{'/'}}
                                     text.span {{vm.currentChildDetail.totalPlatformFee || 0 | noRoundTwoDecimalToFix}}
+                            tr
+                                td(colspan="3")
+                            tr
+                                td.text-bold(colspan="2") {{"TOTAL_REWARD_FEE" | translate}}
+                                    text.span {{' ('}} {{"Total" | translate}} {{': '}} {{vm.currentChildDetail.totalReward | noRoundTwoDecimalToFix}} / {{'RATIO'| translate}} {{': '}} {{vm.currentChildDetail.rewardFeeRate | noRoundTwoDecimalPlaces}}% )
+                                td {{vm.currentChildDetail.totalRewardFee | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{"TOTAL_TOPUP_FEE" | translate}}
+                                    text.span {{' ('}} {{"Total" | translate}} {{': '}} {{vm.currentChildDetail.totalTopUp | noRoundTwoDecimalToFix}} / {{'RATIO'| translate}} {{': '}} {{vm.currentChildDetail.topUpFeeRate | noRoundTwoDecimalPlaces}}% )
+                                td {{vm.currentChildDetail.totalTopUpFee | noRoundTwoDecimalToFix}}
+                            tr
+                                td.text-bold(colspan="2") {{"TOTAL_WITHDRAWAL_FEE" | translate}}
+                                    text.span {{' ('}} {{"Total" | translate}} {{': '}} {{vm.currentChildDetail.totalWithdrawal | noRoundTwoDecimalToFix}} / {{'RATIO'| translate}} {{': '}} {{vm.currentChildDetail.withdrawalFeeRate | noRoundTwoDecimalPlaces}}% )
+                                td {{vm.currentChildDetail.totalWithdrawalFee | noRoundTwoDecimalToFix}}
+
