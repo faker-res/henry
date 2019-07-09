@@ -18605,7 +18605,7 @@ let dbPlayerInfo = {
             }
         }
 
-        function processPlayerSummaryData (playerSummary) {
+        function processPlayerSummaryData (playerSummary, feeDetail) {
             if (playerSummary) {
                 playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
 
@@ -18644,6 +18644,18 @@ let dbPlayerInfo = {
 
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
+
+                if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
+                    feeDetail.platformFee.forEach(provider => {
+                        if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                            let gameProviderName = String(provider.gameProvider.name);
+                            playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                            if (playerSummary.platformFeeEstimate[gameProviderName] < 0) {
+                                playerSummary.platformFeeEstimate[gameProviderName] = 0;
+                            }
+                        }
+                    })
+                }
             }
 
             return playerSummary;
@@ -18732,9 +18744,14 @@ let dbPlayerInfo = {
                     ).read("secondaryPreferred");
                 }
             ).then(
-                playerSummaryData => {
+                async playerSummaryData => {
                     if (playerSummaryData && playerSummaryData.length > 0) {
-                        playerSummaryData = playerSummaryData.map(processPlayerSummaryData);
+                        let feeDetail = await dbconfig.collection_platformFeeEstimate.findOne({platform: platform}).populate({
+                            path: 'platformFee.gameProvider',
+                            model: dbconfig.collection_gameProvider
+                        }).lean();
+
+                        playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail));
 
                         // filter the summary result first
                         // Consumption Times Query Operator
