@@ -370,11 +370,12 @@ const dbPartnerCommission = {
                     totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                     platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
-                    platformFeeRate: math.chain(platformFeeRateMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
+
+                detail.platformFeeRate = math.chain(platformFee).divide(totalConsumption).multiply(100).round(2).done();
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
