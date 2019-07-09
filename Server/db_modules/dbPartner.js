@@ -11661,7 +11661,7 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
         return Promise.reject(err);
     });
     let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1, valueScore:1, registrationTime: 1, lastAccessTime: 1}).lean();
-    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id);
+    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform);
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
         data => {

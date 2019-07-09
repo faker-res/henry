@@ -75,33 +75,125 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: (partnerObjId) => { // for direct, require main partner's partnerobjid
-        return dbconfig.collection_partnerCommissionRateConfig.findOne({partner: partnerObjId}).lean().then(
-            config => {
-                if (config) {
-                    return config;
+    getPartnerCommRate: async (partnerObjId, platformObjId) => { // for direct, require main partner's partnerobjid
+        let platformConfig = await dbconfig.collection_partnerCommissionRateConfig.findOne({partner: null, platform: platformObjId}).lean();
+        let partnerConfig = await dbconfig.collection_partnerCommissionRateConfig.findOne({partner: partnerObjId}).lean();
+
+        if (!platformConfig) {
+            return Promise.reject({message: "Please complete platform commission rate config"});
+        }
+        if (!partnerConfig) {
+            return platformConfig;
+        }
+
+        let output = {
+            platform: partnerConfig.platform,
+            partner: partnerConfig.partner,
+            rateAfterRebatePromo: partnerConfig.rateAfterRebatePromoCustom ? partnerConfig.rateAfterRebatePromo : platformConfig.rateAfterRebatePromo,
+            rateAfterRebatePlatform: partnerConfig.rateAfterRebatePlatformCustom ? partnerConfig.rateAfterRebatePlatform : platformConfig.rateAfterRebatePlatform,
+            rateAfterRebateTotalDeposit: partnerConfig.rateAfterRebateTotalDepositCustom ? partnerConfig.rateAfterRebateTotalDeposit : platformConfig.rateAfterRebateTotalDeposit,
+            rateAfterRebateTotalWithdrawal: partnerConfig.rateAfterRebateTotalWithdrawalCustom ? partnerConfig.rateAfterRebateTotalWithdrawal : platformConfig.rateAfterRebateTotalWithdrawal,
+        };
+
+        platformConfig.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup || [];
+        partnerConfig.rateAfterRebateGameProviderGroup = partnerConfig.rateAfterRebateGameProviderGroup || [];
+
+        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
+            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
+            for (let j = 0; j < partnerConfig.rateAfterRebateGameProviderGroup.length; j++) {
+                let partnerRate  = partnerConfig.rateAfterRebateGameProviderGroup[j];
+                if (String(platformRate.gameProviderGroupId) !== String(partnerRate.gameProviderGroupId)) {
+                    continue;
                 }
-                return createDefaultPartnerCommRate (partnerObjId);
+
+                if (partnerRate.isCustom) {
+                    platformRate.rate = partnerRate.rate;
+                    platformRate.isCustom = true;
+                }
+
+                break;
             }
-        )
+        }
+        output.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup;
+
+        return output;
+
+
+
+        // return dbconfig.collection_partnerCommissionRateConfig.findOne({partner: partnerObjId}).lean().then(
+        //     config => {
+        //         if (config) {
+        //             return config;
+        //         }
+
+                // initially ken said each partner should be retain their comm rate until customize, so this function exist
+                // now that "it should follow platform rate if not customize" like just flipping the black to white, this function
+                // isn't necessary anymore
+                // return createDefaultPartnerCommRate (partnerObjId);
+        //     }
+        // )
     },
 
-    getPartnerMultiLvlCommRate: (partnerObjId) => { // for multi, require main partner's partnerobjid
-        return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
-            config => {
-                if (config) {
-                    return config;
+    getPartnerMultiLvlCommRate: async (partnerObjId, platformObjId) => { // for multi, require main partner's partnerobjid
+        let platformConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: null, platform: platformObjId}).lean();
+        let partnerConfig = await dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean();
+
+
+        if (!platformConfig) {
+            return Promise.reject({message: "Please complete platform commission rate config"});
+        }
+        if (!partnerConfig) {
+            return platformConfig;
+        }
+
+        let output = {
+            platform: partnerConfig.platform,
+            partner: partnerConfig.partner,
+            rateAfterRebatePromo: partnerConfig.rateAfterRebatePromoCustom ? partnerConfig.rateAfterRebatePromo : platformConfig.rateAfterRebatePromo,
+            rateAfterRebatePlatform: partnerConfig.rateAfterRebatePlatformCustom ? partnerConfig.rateAfterRebatePlatform : platformConfig.rateAfterRebatePlatform,
+            rateAfterRebateTotalDeposit: partnerConfig.rateAfterRebateTotalDepositCustom ? partnerConfig.rateAfterRebateTotalDeposit : platformConfig.rateAfterRebateTotalDeposit,
+            rateAfterRebateTotalWithdrawal: partnerConfig.rateAfterRebateTotalWithdrawalCustom ? partnerConfig.rateAfterRebateTotalWithdrawal : platformConfig.rateAfterRebateTotalWithdrawal,
+        };
+
+        platformConfig.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup || [];
+        partnerConfig.rateAfterRebateGameProviderGroup = partnerConfig.rateAfterRebateGameProviderGroup || [];
+
+        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
+            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
+            for (let j = 0; j < partnerConfig.rateAfterRebateGameProviderGroup.length; j++) {
+                let partnerRate  = partnerConfig.rateAfterRebateGameProviderGroup[j];
+                if (String(platformRate.gameProviderGroupId) !== String(partnerRate.gameProviderGroupId)) {
+                    continue;
                 }
-                return createDefaultPartnerCommRate (partnerObjId, true);
+
+                if (partnerRate.isCustom) {
+                    platformRate.rate = partnerRate.rate;
+                    platformRate.isCustom = true;
+                }
+
+                break;
             }
-        )
+        }
+        output.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup;
+
+        return output;
+
+
+        // return dbconfig.collection_partnerMainCommRateConfig.findOne({partner: partnerObjId}).lean().then(
+        //     config => {
+        //         if (config) {
+        //             return config;
+        //         }
+        //         // return createDefaultPartnerCommRate (partnerObjId, true);
+        //     }
+        // )
     },
 
     getParentMultiLvlCommRate: async (partnerObjId) => {
         let parentChain = await getPartnerParentChain(partnerObjId);
 
         let mainParent = parentChain[parentChain.length - 1];
-        return dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainParent._id);
+        return dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainParent._id, mainParent.platform);
     },
 
     assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {

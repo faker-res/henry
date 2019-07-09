@@ -73,8 +73,8 @@ const dbPartnerCommission = {
         let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
 
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
-        let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id);
-        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainPartner._id);
+        let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id);
+        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerMultiLvlCommRate(mainPartner._id, platform._id);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
         let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
         let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
@@ -375,7 +375,7 @@ const dbPartnerCommission = {
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
 
-                detail.platformFeeRate = math.chain(platformFee).divide(totalConsumption).multiply(100).round(2).done();
+                detail.platformFeeRate = math.chain(detail.platformFee).divide(totalConsumption).multiply(100).round(2).done();
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
