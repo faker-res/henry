@@ -15,11 +15,11 @@ let partnerMainCommRateConfigSchema = new Schema({
     rateAfterRebateGameProviderGroup: [], // if customize provider, isCustom: true
     rateAfterRebateTotalDeposit: {type: String},
     rateAfterRebateTotalWithdrawal: {type: String},
-    // is particular field customize
-    rateAfterRebatePromoCusTom: {type: Boolean, default: false},
-    rateAfterRebatePlatformCusTom: {type: Boolean, default: false},
-    rateAfterRebateTotalDepositCusTom: {type: Boolean, default: false},
-    rateAfterRebateTotalWithdrawalCusTom: {type: Boolean, default: false},
+    // is particular field customize - for partner customize only
+    rateAfterRebatePromoCustom: {type: Boolean, default: false},
+    rateAfterRebatePlatformCustom: {type: Boolean, default: false},
+    rateAfterRebateTotalDepositCustom: {type: Boolean, default: false},
+    rateAfterRebateTotalWithdrawalCustom: {type: Boolean, default: false},
 });
 
 partnerMainCommRateConfigSchema.index({platform: 1, partner: 1});

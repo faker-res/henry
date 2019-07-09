@@ -14,7 +14,7 @@ let partnerCommissionRateConfigSchema = new Schema({
     rateAfterRebateTotalWithdrawal: {type: String},
     // parent partner commission rate
     parentCommissionRate: {type: String},
-    // is particular field customize
+    // is particular field customize - for partner customize only
     rateAfterRebatePromoCustom: {type: Boolean, default: false},
     rateAfterRebatePlatformCustom: {type: Boolean, default: false},
     rateAfterRebateTotalDepositCustom: {type: Boolean, default: false},
