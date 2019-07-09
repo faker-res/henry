@@ -638,6 +638,10 @@ var dbPlatformMerchantGroup = {
                                 }
 
                                 let result = {}
+                                if (!data[0]) {
+                                    data[0] = {};
+                                }
+
                                 if(!data[0].merchants){
                                     data[0].merchants = []
                                 }
