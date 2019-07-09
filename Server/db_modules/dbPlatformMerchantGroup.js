@@ -580,6 +580,103 @@ var dbPlatformMerchantGroup = {
             }
         )
     },
+
+    getMerchantNBankCardByPlatforms:function(data){
+        let merchantsList;
+        let bankCardList;
+        let weChatList;
+        let aliPayList;
+        let proms = [];
+
+        return dbconfig.collection_platform.find({_id: {$in: data.platformList}}, {topUpSystemType: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData.length > 0) {
+                    platformData.forEach(platform => {
+                        let bankcardListOptions = {
+                            platformId: platform.platformId,
+                            accountType: constAccountType.BANK_CARD
+                        };
+
+                        let alipayListOptions = {
+                            platformId: platform.platformId,
+                            accountType: constAccountType.ALIPAY
+                        };
+
+                        let wechatpayListOptions = {
+                            platformId: platform.platformId,
+                            accountType: constAccountType.WECHAT
+                        };
+
+                        merchantsList = RESTUtils.getPMS2Services("postMerchantList", {platformId: platform.platformId}, platform.topUpSystemType).catch(err => Promise.resolve([]));
+                        bankCardList = RESTUtils.getPMS2Services("postBankCardList", bankcardListOptions, platform.topUpSystemType).catch(err => Promise.resolve([]));
+                        aliPayList = RESTUtils.getPMS2Services("postBankCardList", alipayListOptions, platform.topUpSystemType).catch(err => Promise.resolve([]));
+                        weChatList = RESTUtils.getPMS2Services("postBankCardList", wechatpayListOptions, platform.topUpSystemType).catch(err => Promise.resolve([]));
+
+                        proms.push(Promise.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
+                            data=>{
+                                let bankcard = [];
+                                // bankcard
+                                if (data[1] && data[1].data && data[1].data.length > 0) {
+                                    data[1].data.map(card => {
+                                        card.merchantNo = card.accountNumber;
+                                        card.name = card.accountNumber + '('+ card.name + ')';
+                                        card.merchantTypeId = '9999';
+                                        card.merchantTypeName = "Bankcard";
+                                    })
+                                }
+                                if (data[2] && data[2].data && data[2].data.length > 0) {
+                                    data[2].data.map(card => {
+                                        card.merchantNo = card.accountNumber;
+                                        card.name = card.accountNumber + '(' + card.name + ')';
+                                        card.merchantTypeId = '9998';
+                                        card.merchantTypeName = "WechatCard";
+                                    })
+                                }
+                                if (data[3] && data[3].data && data[3].data.length > 0) {
+                                    data[3].data.sort((a,b)=>{ return a.line - b.line})
+                                    data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
+                                }
+
+                                let result = {}
+                                if (!data[0]) {
+                                    data[0] = {};
+                                }
+
+                                if(!data[0].merchants){
+                                    data[0].merchants = []
+                                }
+                                result.merchants = data[0].merchants.concat(data[1] && data[1].data ? data[1].data : []).concat(data[2] && data[2].data ? data[2].data : []).concat(data[3] && data[3].data ? data[3].data : []);
+                                return result
+                            }));
+                    });
+                }
+
+                return Promise.all(proms).then(data => {
+                    let tempMerchants = [];
+
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            if (item && item.merchants && item.merchants.length > 0) {
+                                item.merchants.forEach(merchant => {
+                                    if (merchant && merchant.merchantTypeName === 'AliPayAcc') {
+                                        let index = tempMerchants.findIndex(x => (x.name === merchant.name && x.lineGroup === merchant.lineGroup) || (x.name === merchant.name && x.line === merchant.line));
+                                        if (index === -1) {
+                                            tempMerchants.push(merchant);
+                                        }
+                                    } else {
+                                        tempMerchants.push(merchant);
+                                    }
+                                });
+                            }
+                        })
+                    }
+
+                    return {merchants: tempMerchants};
+                });
+            }
+        )
+    },
+
     addLineCategory: function(data){
         let result = [];
         let uniqueLine = [];
