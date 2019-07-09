@@ -18594,7 +18594,7 @@ let dbPlayerInfo = {
 
                     // Calculate total profit
                     returnedObj.total.profit =
-                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
                 return returnedObj;
@@ -18653,12 +18653,8 @@ let dbPlayerInfo = {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
 
                     feeDetail.platformFee.forEach(provider => {
-                        console.log('feeDetail', provider.feeRate);
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                             let gameProviderName = String(provider.gameProvider.name);
-
-                            console.log('gameProviderName', gameProviderName);
-                            console.log('playerSummary.providerDetail', playerSummary.providerDetail);
 
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
 
@@ -18668,8 +18664,6 @@ let dbPlayerInfo = {
                         }
                     })
                 }
-
-                console.log('playerSummary.platformFeeEstimate', playerSummary.platformFeeEstimate);
             }
 
             return playerSummary;
