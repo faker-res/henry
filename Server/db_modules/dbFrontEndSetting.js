@@ -231,6 +231,11 @@ var dbFrontEndSetting = {
 
     saveCarouselSetting: (data) => {
         if (data){
+            let isPartner = false;
+            if (data.hasOwnProperty("isPartnerForCarouselConfiguration")){
+                isPartner = data.isPartnerForCarouselConfiguration;
+                delete data.isPartnerForCarouselConfiguration;
+            }
             if (data._id){
                 let carouselObjId = data._id;
                 delete data._id;
@@ -243,25 +248,39 @@ var dbFrontEndSetting = {
                     delete data.__v;
                 }
 
+                if (isPartner){
+                    return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: ObjectId(carouselObjId)}, data).lean();
+                }
                 return dbConfig.collection_frontEndCarouselConfiguration.findOneAndUpdate({_id: ObjectId(carouselObjId)}, data).lean();
             }
             else{
-                let record = new dbConfig.collection_frontEndCarouselConfiguration(data);
+                let record;
+                if (isPartner){
+                    record = new dbConfig.collection_frontEndPartnerCarouselConfiguration(data);
+                }
+                else{
+                    record = new dbConfig.collection_frontEndCarouselConfiguration(data);
+                }
                 return record.save();
             }
         }
     },
 
-    getCarouselSetting: (platformObjId) => {
+    getCarouselSetting: (platformObjId, isPartner) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbConfig.collection_frontEndCarouselConfiguration.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            if (isPartner){
+                prom = dbConfig.collection_frontEndPartnerCarouselConfiguration.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            }
+            else{
+                prom = dbConfig.collection_frontEndCarouselConfiguration.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            }
         }
 
         return prom;
     },
 
-    updateCarouselSetting: (dataList, deletedList) => {
+    updateCarouselSetting: (dataList, deletedList, isPartner) => {
         let prom = [];
         if (dataList && dataList.length){
             dataList.forEach(
@@ -276,7 +295,12 @@ var dbFrontEndSetting = {
                             updateQuery.displayOrder = data.displayOrder;
                         }
 
-                        prom.push(getAndUpdateCarouselSetting(ObjectId(data._id), updateQuery))
+                        if (isPartner){
+                            prom.push(getAndUpdatePartnerCarouselSetting(ObjectId(data._id), updateQuery))
+                        }
+                        else{
+                            prom.push(getAndUpdateCarouselSetting(ObjectId(data._id), updateQuery))
+                        }
                     }
                 }
             )
@@ -289,7 +313,14 @@ var dbFrontEndSetting = {
                         let updateQuery = {
                             status: 2,
                         };
-                        prom.push(getAndUpdateCarouselSetting(ObjectId(data), updateQuery))
+
+                        if (isPartner){
+                            prom.push(getAndUpdatePartnerCarouselSetting(ObjectId(data), updateQuery))
+                        }
+                        else{
+                            prom.push(getAndUpdateCarouselSetting(ObjectId(data), updateQuery))
+                        }
+
                     }
                 }
             )
@@ -299,6 +330,10 @@ var dbFrontEndSetting = {
 
         function getAndUpdateCarouselSetting (carouselObjId, updateQuery) {
             return dbConfig.collection_frontEndCarouselConfiguration.findOneAndUpdate({_id: carouselObjId}, updateQuery).lean();
+        }
+
+        function getAndUpdatePartnerCarouselSetting (carouselObjId, updateQuery) {
+            return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: carouselObjId}, updateQuery).lean();
         }
     },
 };

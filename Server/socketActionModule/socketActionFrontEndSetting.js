@@ -113,14 +113,14 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId, data.isPartner], actionName, isValidData);
         },
 
         updateCarouselSetting: function updateCarouselSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.dataList);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList, data.isPartner], actionName, isValidData);
         },
     };
     socketActionFrontEndSetting.actions = this.actions;
