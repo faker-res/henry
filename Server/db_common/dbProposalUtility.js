@@ -95,6 +95,47 @@ const dbProposalUtility = {
         )
     },
 
+    calculateProposalsTotalAmount: (proposalArr) => {
+        let totalAmount = 0;
+        let playerSet = new Set();
+
+        proposalArr.forEach(p => {
+            if (p.data) {
+                if (p.data.amount) {
+                    totalAmount += Number(p.data.amount);
+                }
+
+                if (p.data.rewardAmount) {
+                    totalAmount += Number(p.data.rewardAmount);
+                }
+
+                if (p.data.updateAmount) {
+                    totalAmount += Number(p.data.updateAmount);
+                }
+
+                if (p.data.negativeProfitAmount) {
+                    totalAmount += Number(p.data.negativeProfitAmount);
+                }
+
+                if (p.data.commissionAmount) {
+                    totalAmount += Number(p.data.commissionAmount);
+                }
+
+                if (p.data.playerObjId) {
+                    playerSet.add(p.data.playerObjId);
+                }
+            }
+        });
+
+        let retObj = {
+            totalAmount: totalAmount,
+            totalProps: proposalArr.length,
+            playerSet: [...playerSet]
+        };
+
+        return Promise.resolve(retObj);
+    },
+
     createProposalProcessStep: (proposal, adminObjId, status, memo) => {
         let proposalTypeProm = dbConfig.collection_proposalType.findOne({_id: proposal.type}).populate({
             path: "process",

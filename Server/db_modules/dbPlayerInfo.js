@@ -473,7 +473,7 @@ let dbPlayerInfo = {
                             else if (inputData && inputData.guestDeviceId){
                                 guestPlayer.deviceId = inputData.guestDeviceId;
                             }
-                            dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
+                            dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
                             let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
