@@ -18650,7 +18650,7 @@ let dbPlayerInfo = {
                         if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                             let gameProviderName = String(provider.gameProvider.name);
 
-                            playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate ? {} : playerSummary.platformFeeEstimate;
+                            playerSummary.platformFeeEstimate =  playerSummary.platformFeeEstimate || {};
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
 
                             if (playerSummary.platformFeeEstimate[gameProviderName] < 0) {
