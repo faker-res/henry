@@ -7522,11 +7522,39 @@ let dbPartner = {
                 partner => {
                     if (partner && partner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && partnerDataObj[partner._id]) {
                         let chosenCommRate;
-                        if (commRatePartner[partner._id]) {
-                            chosenCommRate = commRatePartner[partner._id];
-                        } else if (commRatePlatform[partner.platform]) {
+                        if (commRatePlatform[partner.platform]) {
                             chosenCommRate = commRatePlatform[partner.platform];
+                            if (commRatePartner[partner._id]) {
+                                let custCommRate = commRatePartner[partner._id];
+                                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+
+                                normalRates.forEach(e => {
+                                    if (Number(chosenCommRate[e]) !== Number(custCommRate[e])) {
+                                        let cusTomFieldKey = e + "Custom";
+                                        if (custCommRate[cusTomFieldKey]) {
+                                            chosenCommRate[e] = custCommRate[e];
+                                        }
+                                    }
+                                });
+
+                                if (chosenCommRate.rateAfterRebateGameProviderGroup && chosenCommRate.rateAfterRebateGameProviderGroup.length > 0) {
+                                    chosenCommRate.rateAfterRebateGameProviderGroup = chosenCommRate.rateAfterRebateGameProviderGroup.map(e => {
+                                        custCommRate.rateAfterRebateGameProviderGroup.map(f => {
+                                            if (String(e.gameProviderGroupId) === String(f.gameProviderGroupId) && Number(e.rate) !== Number(f.rate)) {
+                                                if (f.isCustom) {
+                                                    e.rate = f.rate;
+                                                }
+                                            }
+                                        });
+
+                                        return e;
+                                    })
+                                }
+                            }
+                        } else if (commRatePartner[partner._id]) {
+                            chosenCommRate = commRatePartner[partner._id];
                         }
+
                         if (chosenCommRate) {
                             if (isDownline && partnerDataObj[partner._id].bonusRecord && Object.keys(partnerDataObj[partner._id].bonusRecord).length) {
                                 if (gameProviderGroupObj[partner.platform] && gameProviderGroupObj[partner.platform].length && chosenCommRate.rateAfterRebateGameProviderGroup && chosenCommRate.rateAfterRebateGameProviderGroup.length) {
