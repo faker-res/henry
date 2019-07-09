@@ -473,7 +473,7 @@ let dbPlayerInfo = {
                             else if (inputData && inputData.guestDeviceId){
                                 guestPlayer.deviceId = inputData.guestDeviceId;
                             }
-                            dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect).catch(errorUtils.reportError);
+                            dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
                             let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
@@ -5684,6 +5684,7 @@ let dbPlayerInfo = {
 
         let advancedQuery = {};
         let isProviderGroup = false;
+        let dataSize = 0;
 
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
@@ -5733,7 +5734,7 @@ let dbPlayerInfo = {
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
                 type: 'transferIn',
-                status: constPlayerCreditTransferStatus.FAIL
+                status: constPlayerCreditTransferStatus.SUCCESS
             }).lean().read("secondaryPreferred").then(
                 logs => {
                     let totalTransferIn = 0;
@@ -5885,6 +5886,8 @@ let dbPlayerInfo = {
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
                                     let newInfo;
+                                    let totalTransferIn;
+                                    let totalTransferOut;
 
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
@@ -5896,13 +5899,18 @@ let dbPlayerInfo = {
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
-                                    if (isProviderGroup) {
-                                        newInfo = getRewardGroupData(playerData[ind]);
-                                    } else {
-                                        newInfo = getRewardData(playerData[ind]);
-                                    }
+                                    // if (isProviderGroup) {
+                                    //     newInfo = getRewardGroupData(playerData[ind]);
+                                    // } else {
+                                    //     newInfo = getRewardData(playerData[ind]);
+                                    // }
 
-                                    players.push(Q.resolve(newInfo));
+                                    totalTransferIn = getTotalTransferIn(playerData[ind]);
+                                    totalTransferOut = getTotalTransferOut(playerData[ind]);
+                                    newInfo = getRewardGroupData(playerData[ind]);
+
+                                    let prom1 = Promise.all([totalTransferIn, totalTransferOut, newInfo]);
+                                    players.push(prom1);
 
                                     getTotalTransferIn(playerData[ind]);
                                     getTotalTransferOut(playerData[ind]);
@@ -5938,16 +5946,21 @@ let dbPlayerInfo = {
                                     }
                                 }
                             }
-                            return Q.all(players)
+                            return Promise.all(players)
                         }
                     );
                 var b = dbconfig.collection_players
                     .find({platform: platformId, $and: [data]}).count();
-                return Q.all([a, b]);
+                return Promise.all([a, b]);
             }
         ).then(
             data => {
-                return {data: data[0], size: data[1]}
+                let playerData;
+                if (data && data.length) {
+                    // return the first data
+                    playerData = data[0].map(a => a[0]);
+                }
+                return {data: playerData, size: dataSize}
             },
             err => {
                 console.error("getPagePlayerByAdvanceQuery:", err);

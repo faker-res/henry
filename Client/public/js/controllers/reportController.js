@@ -6659,7 +6659,7 @@ define(['js/app'], function (myApp) {
             }
 
             if (!newproposalQuery.platformList || !newproposalQuery.platformList.length) {
-                if (!vm.platformList || !vm.platformList.length || newproposalQuery.platformList.length === vm.platformList.length) {
+                if (!vm.platformList || !vm.platformList.length) {
                     return;
                 }
                 newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
