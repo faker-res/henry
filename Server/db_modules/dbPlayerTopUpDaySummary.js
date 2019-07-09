@@ -147,12 +147,10 @@ var dbPlayerTopUpDaySummary = {
         let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date(start);
+            let startDate = new Date(startTime);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date(end);
-            endDate.setDate(startTime.getDate() + (i + 1));
-            endDate = dbutility.getDayStartTime(endDate);
+            let endDate = dbutility.getNextOneDaySGTime(startDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime()))  {
                 p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
@@ -179,12 +177,10 @@ var dbPlayerTopUpDaySummary = {
         let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date(start);
+            let startDate = new Date(startTime);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date(end);
-            endDate.setDate(startTime.getDate() + (i + 1));
-            endDate = dbutility.getDayStartTime(endDate);
+            let endDate = dbutility.getNextOneDaySGTime(startDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime())) {
                 if(platformList && platformList.length > 0) {

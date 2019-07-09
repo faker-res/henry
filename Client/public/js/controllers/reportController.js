@@ -6652,7 +6652,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 // platformId: vm.curPlatformId,
-                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : vm.platformList.map(item => item._id),
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : [],
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
