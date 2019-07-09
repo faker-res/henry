@@ -3595,14 +3595,33 @@ define(['js/app'], function (myApp) {
                 });
             });
         };
-        vm.filterMerchant = function () {
+        vm.filterMerchant = function (isPaymentMonitorTotal) {
+            let tempModal = isPaymentMonitorTotal ? vm.paymentMonitorTotalQuery : vm.paymentMonitorQuery;
+            let tempAgent = [];
+
+            if (isPaymentMonitorTotal && tempModal.userAgent && tempModal.userAgent.length > 0) {
+                tempModal.userAgent.forEach(item => {
+                    switch (item) {
+                        case "1":
+                            tempAgent.push("1"); //pms device 1 stand for web
+                            break;
+                        case "3":
+                            tempAgent.push("2"); //pms device 2 stand for h5
+                            break;
+                        case "2":
+                            tempAgent.push("4"); //pms device 4 stand for app
+                            break;
+                    }
+                });
+            }
+
             vm.merchantCloneList = angular.copy(vm.merchants);
             vm.merchantGroupCloneList = vm.merchantGroups;
-            let agent = vm.paymentMonitorQuery && vm.paymentMonitorQuery.userAgent ? vm.paymentMonitorQuery.userAgent : [];
-            let thirdParty = vm.paymentMonitorQuery && vm.paymentMonitorQuery.merchantGroup ? vm.paymentMonitorQuery.merchantGroup : [];
-            let mainTopupType = vm.paymentMonitorQuery && vm.paymentMonitorQuery.mainTopupType ? vm.paymentMonitorQuery.mainTopupType : null;
-            let topupType = vm.paymentMonitorQuery && vm.paymentMonitorQuery.topupType ? vm.paymentMonitorQuery.topupType : [];
-            let bankTypeId = vm.paymentMonitorQuery && vm.paymentMonitorQuery.bankTypeId ? vm.paymentMonitorQuery.bankTypeId : null;
+            let agent = isPaymentMonitorTotal ? tempAgent : tempModal && tempModal.userAgent ? tempModal.userAgent : [];
+            let thirdParty = tempModal && tempModal.merchantGroup ? tempModal.merchantGroup : [];
+            let mainTopupType = tempModal && tempModal.mainTopupType ? tempModal.mainTopupType : null;
+            let topupType = tempModal && tempModal.topupType ? tempModal.topupType : [];
+            let bankTypeId = tempModal && tempModal.bankTypeId ? tempModal.bankTypeId : null;
             if (agent && agent.length > 0) {
                 vm.merchantCloneList = vm.merchantCloneList.filter(item => {
                     let targetDevices = String(item.targetDevices)
@@ -4034,7 +4053,6 @@ define(['js/app'], function (myApp) {
                                         if(item.merchantNo){
                                             merchantNo = item.merchantNo;
                                         }
-                                        item.merchantNo$ = item && item.data && item.data.merchantName ? item.data.merchantName : vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                                     } else {
                                         //show topup type for other types
                                         item.topupTypeStr = $translate(item.type.name);
