@@ -25130,6 +25130,7 @@ define(['js/app'], function (myApp) {
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'carouselConfiguration':
+                    case 'partnerCarouselConfiguration':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -25167,6 +25168,11 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'carouselConfiguration':
                         vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = false;
+                        break;
+                    case 'partnerCarouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25609,10 +25615,17 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Carousel Configuration
             vm.initCarouselSetting = function() {
-                vm.newFrontEndCarousel = {
-                    isPlayerVisible: true,
-                    isPlayerWithRegisteredHpNoVisible: true,
-                };
+
+                if (vm.isPartnerForCarouselConfiguration){
+                    vm.newFrontEndCarousel = {};
+
+                }
+                else{
+                    vm.newFrontEndCarousel = {
+                        isPlayerVisible: true,
+                        isPlayerWithRegisteredHpNoVisible: true,
+                    };
+                }
 
                 vm.resetCarouselUploadFile();
 
@@ -25779,6 +25792,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
+                                vm.newFrontEndCarousel.isPartnerForCarouselConfiguration = vm.isPartnerForCarouselConfiguration;
                                 socketService.$socket($scope.AppSocket, 'saveCarouselSetting', vm.newFrontEndCarousel, function (data) {
                                     console.log("saveCarouselSetting ret", data);
                                     // stop the uploading loader
@@ -25804,7 +25818,7 @@ define(['js/app'], function (myApp) {
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
                 vm.clearAllDropArea();
-                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId, isPartner: vm.isPartnerForCarouselConfiguration}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
@@ -25873,7 +25887,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 );
-                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList, isPartner: vm.isPartnerForCarouselConfiguration}).then(
                      (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);

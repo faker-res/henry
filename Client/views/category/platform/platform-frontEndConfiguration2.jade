@@ -60,6 +60,8 @@ style.
             span {{"REWARD_POINT_CLARIFICATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "carouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("carouselConfiguration")')
             span {{"CAROUSEL_CONFIGURATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerCarouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerCarouselConfiguration")')
+            span {{"PARTNER_CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popUpAdvertisement"}', ng-click='vm.frontEndSettingTabClicked("popUpAdvertisement")')
             span {{"POP_UP_ADVERTISEMENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
@@ -97,6 +99,9 @@ style.
 
                 // Tab - url Configuration
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="carouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
+                    include frontEndConfiguration-carousel
+
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerCarouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
                     include frontEndConfiguration-carousel
 
                 // Tab - pop-up advertisement
@@ -649,7 +654,8 @@ style.
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Add Carousel" | translate}}
+                h4.modal-title(ng-if="!vm.isPartnerForCarouselConfiguration") {{"Add Carousel" | translate}}
+                h4.modal-title(ng-if="vm.isPartnerForCarouselConfiguration") {{"Add Partner Carousel" | translate}}
             .modal-body
                 .panel.panel-primary
                     .panel-body.margin-all-5
@@ -760,39 +766,39 @@ style.
                                     div.inline-block(style="width: 70%;")
                                         input.form-control.inline-block(ng-model="vm.newFrontEndCarousel.gameCode", placeholder='{{"Please write down the game code" | translate}}')
 
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isPlayerVisible')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isPlayerWithRegisteredHpNoVisible')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isNewPlayerVisible')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR FIRST-TIME-LOGIN PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.transform150(type='checkbox', ng-model='vm.newFrontEndCarousel.isFirstTimeLoginPlayerVisible')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="number", min="0", ng-model="vm.newFrontEndCarousel.visibleForBalanceBelow")
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="number", min="0", ng-model="vm.newFrontEndCarousel.visibleForTopUpTimeMoreThan")
-                            .full-width-input-block
+                            .full-width-input-block(ng-if="!vm.isPartnerForCarouselConfiguration")
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.endLoadMultipleSelect()', ng-model="vm.newFrontEndCarousel.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
