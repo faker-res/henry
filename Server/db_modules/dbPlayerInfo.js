@@ -6665,7 +6665,7 @@ let dbPlayerInfo = {
                                     };
 
                                     if (loginData.phoneNumber) {
-                                        let phoneLocation = dbUtility.queryPhoneLocation(loginData.phoneNumber);
+                                        let phoneLocation = queryPhoneLocation(loginData.phoneNumber);
                                         if (phoneLocation) {
                                             newPlayerData.phoneProvince = phoneLocation.province;
                                             newPlayerData.phoneCity = phoneLocation.city;
@@ -25628,7 +25628,7 @@ let dbPlayerInfo = {
                     });
                 }
 
-                let phoneLocation = dbUtility.queryPhoneLocation(phoneNumber);
+                let phoneLocation = queryPhoneLocation(phoneNumber);
                 let updObj = {
                     phoneNumber: encryptedPhoneNumber
                 };
