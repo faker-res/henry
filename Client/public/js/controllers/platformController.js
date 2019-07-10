@@ -37304,9 +37304,9 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.filterPlatformSettingsPlatform}).then(data => {
                     console.log(data);
-                    $socket.showConfirmMessage("Replication succeed.");
+                    socketService.showConfirmMessage("Replication succeed.", 10000);
                     loadPlatformData();
                 });
             };
