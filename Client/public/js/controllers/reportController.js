@@ -554,7 +554,7 @@ define(['js/app'], function (myApp) {
             if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
                 vm.queryTopup.merchantNoData.forEach(merchantNo=>{
                     vm.merchantCloneList.forEach(item=>{
-                        if(item.merchantNo == merchantNo.merchantNo){
+                        if((item.merchantNo == merchantNo.merchantNo) && (item.name == merchantNo.name)){
                             // if that is a alipay category flag, tick all same "line".
                             if(item.category){
                                 vm.merchantCloneList.map(merchant=>{
@@ -579,18 +579,42 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.queryTopup.merchantNo = [];
+            vm.queryTopup.merchantName = [];
             vm.queryTopup.merchantNoData.forEach(item=>{
                 if ( vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item) == -1 && !item.category && !item.includesAllCards ){
                     vm.queryTopup.merchantNo.push(item.merchantNo);
+                }
+
+                if (!item.category && !item.includesAllCards && !item.accountType && item.name) {
+                    vm.queryTopup.merchantName.push(item.name);
                 }
             })
         }
         vm.filterMerchant = function (isPaymentMonitorReport) {
             let tempModal = isPaymentMonitorReport ? vm.paymentMonitorQuery : vm.queryTopup;
+            let tempAgent = [];
 
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
             vm.merchantGroupCloneList = vm.merchantGroupObj;
-            let agent = tempModal.userAgent;
+            if (!isPaymentMonitorReport && tempModal.userAgent && tempModal.userAgent.length > 0) {
+                tempModal.userAgent.forEach(item => {
+                    switch (item) {
+                        case "1":
+                        case "2":
+                            tempAgent.push("1"); //pms device 1 stand for web
+                            break;
+                        case "3":
+                        case "4":
+                            tempAgent.push("2"); //pms device 2 stand for h5
+                            break;
+                        case "5":
+                        case "6":
+                            tempAgent.push("4"); //pms device 4 stand for app
+                            break;
+                    }
+                });
+            }
+            let agent = isPaymentMonitorReport ? tempModal.userAgent : tempAgent;
             let thirdParty = tempModal.merchantGroup;
             let mainTopupType = tempModal.mainTopupType;
             let topupType = tempModal.topupType;
@@ -1767,6 +1791,7 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.mainTopupType = '';
             vm.queryTopup.topupType = '';
             vm.queryTopup.merchantNo = [];
+            vm.queryTopup.merchantName = [];
             vm.queryTopup.dingdanID = '';
             vm.queryTopup.type = 'all';
             vm.queryTopup.playerName = '';
@@ -1823,6 +1848,10 @@ define(['js/app'], function (myApp) {
 
             if (vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length) {
                 sendObj.merchantNo = vm.queryTopup.merchantNo;
+            }
+
+            if (vm.queryTopup && vm.queryTopup.merchantName && vm.queryTopup.merchantName.length > 0) {
+                sendObj.merchantName = vm.queryTopup.merchantName;
             }
 
             console.log('searchTopupRecord sendObj', sendObj);
@@ -4924,47 +4953,47 @@ define(['js/app'], function (myApp) {
 
             if(isExport){
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                }, false, true);
 
                 $('#playerReportExcelTable_wrapper').hide();
                 vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
             }else{
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
                     21: total.totalPlatformFeeEstimate.toFixed(2),
                     22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                }, false, true);
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
                 vm.playerQuery.pageObj.init({maxCount: size}, newSearch);
@@ -10301,6 +10330,69 @@ define(['js/app'], function (myApp) {
                 sound.play();
             }
         }
+
+        vm.getTopupReportMerchantFilterDetails = function() {
+            vm.merchantNoNameObj = {};
+            vm.merchantGroupObj = [];
+            let merGroupName = {};
+
+            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    let merGroupList = {};
+
+
+                    if (data && data.data && data.data.merchantTypes) {
+                        data.data.merchantTypes.forEach(mer => {
+                            merGroupName[mer.merchantTypeId] = mer.name;
+                        });
+
+                        vm.merchantTypes = data.data.merchantTypes;
+                        vm.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                    }
+                })
+            });
+
+            let platformQuery = vm.queryTopup.platformList && vm.queryTopup.platformList.length > 0 ? vm.queryTopup.platformList : vm.platformList.map(item => item._id);
+            socketService.$socket($scope.AppSocket, 'getMerchantNBankCardByPlatforms', {platformList: platformQuery}, function (data) {
+                $scope.$evalAsync(() => {
+                    if (data.data && data.data.merchants) {
+                        let merGroupList = {};
+
+                        vm.merchantLists = data.data.merchants;
+                        vm.merchantNoList = data.data.merchants.filter(mer => {
+                            $scope.merchantNoNameObj[mer.merchantNo] = mer.name;
+                            return mer.status !== 'DISABLED';
+                        });
+
+                        vm.merchantNoList.forEach(item => {
+                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                        });
+
+                        Object.keys(vm.merchantNoList).forEach(item => {
+                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                            if (String(merchantTypeId) === "9999") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                            } else if (String(merchantTypeId) === "9998") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                            } else if (String(merchantTypeId) === "9997") {
+                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                            } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
+                                let merchantInfo = vm.merchantTypes && vm.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId)) || [];
+                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                            } else {
+                                vm.merchantNoList[item].merchantTypeName = '';
+                            }
+                        });
+                        vm.merchantCloneList = JSON.parse(JSON.stringify(vm.merchantNoList));
+                        vm.merchantNoList = vm.getAliPayGroup(vm.merchantNoList);
+                        vm.merchantCloneList = vm.getAliPayGroup(vm.merchantCloneList);
+                        vm.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                        vm.merchantGroupCloneList = vm.merchantGroupObj;
+                    }
+                });
+            });
+        };
 
         function drawReportQuery (choice, isReset) {
             vm.merchantNoNameObj = {};
