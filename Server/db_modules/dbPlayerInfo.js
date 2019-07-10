@@ -5684,7 +5684,6 @@ let dbPlayerInfo = {
 
         let advancedQuery = {};
         let isProviderGroup = false;
-        let dataSize = 0;
 
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
@@ -5734,7 +5733,7 @@ let dbPlayerInfo = {
                 platformObjId: thisPlayer.platform,
                 playerObjId: thisPlayer._id,
                 type: 'transferIn',
-                status: constPlayerCreditTransferStatus.SUCCESS
+                status: constPlayerCreditTransferStatus.FAIL
             }).lean().read("secondaryPreferred").then(
                 logs => {
                     let totalTransferIn = 0;
@@ -5886,8 +5885,6 @@ let dbPlayerInfo = {
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
                                     let newInfo;
-                                    let totalTransferIn;
-                                    let totalTransferOut;
 
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
@@ -5899,18 +5896,13 @@ let dbPlayerInfo = {
                                         playerData[ind].rewardPointsObjId = playerData[ind].rewardPointsObjId._id;
                                     }
 
-                                    // if (isProviderGroup) {
-                                    //     newInfo = getRewardGroupData(playerData[ind]);
-                                    // } else {
-                                    //     newInfo = getRewardData(playerData[ind]);
-                                    // }
+                                    if (isProviderGroup) {
+                                        newInfo = getRewardGroupData(playerData[ind]);
+                                    } else {
+                                        newInfo = getRewardData(playerData[ind]);
+                                    }
 
-                                    totalTransferIn = getTotalTransferIn(playerData[ind]);
-                                    totalTransferOut = getTotalTransferOut(playerData[ind]);
-                                    newInfo = getRewardGroupData(playerData[ind]);
-
-                                    let prom1 = Promise.all([totalTransferIn, totalTransferOut, newInfo]);
-                                    players.push(prom1);
+                                    players.push(Q.resolve(newInfo));
 
                                     getTotalTransferIn(playerData[ind]);
                                     getTotalTransferOut(playerData[ind]);
@@ -5946,21 +5938,16 @@ let dbPlayerInfo = {
                                     }
                                 }
                             }
-                            return Promise.all(players)
+                            return Q.all(players)
                         }
                     );
                 var b = dbconfig.collection_players
                     .find({platform: platformId, $and: [data]}).count();
-                return Promise.all([a, b]);
+                return Q.all([a, b]);
             }
         ).then(
             data => {
-                let playerData;
-                if (data && data.length) {
-                    // return the first data
-                    playerData = data[0].map(a => a[0]);
-                }
-                return {data: playerData, size: dataSize}
+                return {data: data[0], size: data[1]}
             },
             err => {
                 console.error("getPagePlayerByAdvanceQuery:", err);
