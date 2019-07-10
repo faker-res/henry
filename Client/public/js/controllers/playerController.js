@@ -840,7 +840,7 @@ define(['js/app'], function (myApp) {
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsGroupByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllRewardPointsEvent($scope).catch(err => Promise.resolve([])),
                 commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -5794,6 +5794,7 @@ define(['js/app'], function (myApp) {
                                 link.append($('<a>', {
                                     'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
+                                    'ng-click': 'vm.getRewardPointsEventByPlatform(' + JSON.stringify(row.platform) + ');',
                                     'data-toggle': 'popover',
                                     'data-placement': 'left',
                                     'data-trigger': 'focus',
@@ -7278,6 +7279,17 @@ define(['js/app'], function (myApp) {
                     });
                 }
             );
+        };
+
+        vm.getRewardPointsEventByPlatform = function (platformObjId) {
+            vm.rewardPointsEventByPlatform = [];
+            if (vm.rewardPointsAllEvent && platformObjId){
+                vm.rewardPointsEventByPlatform = vm.rewardPointsAllEvent.filter(p => {
+                    if (p && p.platformObjId) {
+                        return p.platformObjId.toString() == platformObjId.toString()
+                    }
+                })
+            }
         };
 
         vm.getPromoCodeByPlatform = function (platformObjId) {
