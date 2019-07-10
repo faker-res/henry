@@ -40,6 +40,7 @@
     "nodemailer": "^5.1.1",
     "nodemailer-direct-transport": "^3.3.2",
     "nodemailer-html-to-text": "^3.0.0",
+    "phone-query": "^1.0.1",
     "pnglib": "0.0.1",
     "q": "^1.4.1",
     "qrcode": "^1.2.0",
