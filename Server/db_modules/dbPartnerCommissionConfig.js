@@ -1067,7 +1067,7 @@ const dbPartnerCommissionConfig = {
 
                 if (Number(editorRequirementRate.commissionRate) === 0) continue;
 
-                if (originalRequirementRate.changeTo > math.subtract(editorRequirementRate.commissionRate, 0.01)) {
+                if (originalRequirementRate.changeTo > math.chain(editorRequirementRate.commissionRate).subtract(0.01).round(4).done()) {
                     // between parent and child must have 1% different minimum
                     console.log('between parent and child must have 1% different minimum', originalRequirementRate.changeTo, '>', editorRequirementRate.commissionRate , '- 0.01');
                     return Promise.reject({
