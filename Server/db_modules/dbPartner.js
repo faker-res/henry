@@ -10811,7 +10811,7 @@ let dbPartner = {
                                 });
                             }
                         } else {
-                            if (math.subtract(Number(parentRequirementRate.commissionRate), 0.01)  < Number(childRequirementRate.commissionRate)) {
+                            if (math.chain(Number(parentRequirementRate.commissionRate)).subtract(0.01).round(4).done()  < Number(childRequirementRate.commissionRate)) {
                                 // commission rate changed
                                 console.log('between parent and child must have 1% different minimum2', childRequirementRate.commissionRate, '>', parentRequirementRate.commissionRate , '- 0.01');
                                 console.log('between parent and child must have 1% different minimum2', Number(childRequirementRate.commissionRate), '>', math.subtract(Number(parentRequirementRate.commissionRate), 0.01));
