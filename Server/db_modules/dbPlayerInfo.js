@@ -5956,7 +5956,6 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 let playerData;
-                dataSize = data[1];
                 if (data && data.length) {
                     // return the first data
                     playerData = data[0].map(a => a[0]);
