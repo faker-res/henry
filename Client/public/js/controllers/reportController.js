@@ -3860,6 +3860,8 @@ define(['js/app'], function (myApp) {
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
+            query.startT = vm.feedbackQuery.startT.data('datetimepicker').getLocalDate();
+            query.endT = vm.feedbackQuery.endT.data('datetimepicker').getLocalDate();
             query.credibilityRemarks = vm.feedbackQuery.credibility;
             query.valueScoreOperator = vm.feedbackQuery.valueOperator;
             query.playerScoreValue = vm.feedbackQuery.valueFormal;
@@ -3873,7 +3875,6 @@ define(['js/app'], function (myApp) {
             query.topUpAmountOperator = vm.feedbackQuery.topUpAmountOperator;
             query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
             query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
-
             vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
 
             utilService.getDataTablePageSize("#feedbackReportTablePage", vm.feedbackQuery, 5000);
@@ -6794,7 +6795,7 @@ define(['js/app'], function (myApp) {
                         data: "inputDevice",
                         render: function (data, type, row) {
                             for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
-                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] === data) {
                                     return $translate(Object.keys(vm.inputDevice)[i]);
                                 }
                             }
@@ -11069,6 +11070,11 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                        vm.feedbackQuery.startT = utilService.createDatePicker('#feedbackReportQuery .startT');
+                        vm.feedbackQuery.startT.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.feedbackQuery.endT = utilService.createDatePicker('#feedbackReportQuery .endT');
+                        vm.feedbackQuery.endT.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         // vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
                         vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {maxPageSize:5000}, $translate, function (curP, pageSize) {
