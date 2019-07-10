@@ -1756,7 +1756,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -2125,31 +2125,60 @@ let dbPlayerInfo = {
                         ipAddress: playerData.lastLoginIp,
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }).sort({createTime: -1}).limit(1).lean().then(
-                        ipDomainLog => {
+                        async ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
-                                ipDomain = ipDomainLog[0].domain;
-                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
-
                                 console.log("checking ipDomainLog", ipDomainLog[0])
                                 console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
-                                // force using csOfficerUrl admin and way
-                                return dbconfig.collection_csOfficerUrl.findOne({
+                                ipDomain = ipDomainLog[0].domain;
+                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
+                                if (ipDomainLog[0].partnerId){
+                                    partnerId = ipDomainLog[0].partnerId;
+                                }
+
+                                let csOfficerUrlData = await dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
                                     platform: playerdata.platform
                                 }, 'admin way').lean();
-                            }
-                        }
-                    ).then(
-                        urlData => {
-                            console.log("checking url from ipDomainLog", [playerData.name, urlData])
-                            if (urlData && urlData.admin && urlData.way) {
-                                csOfficer = urlData.admin;
-                                promoteWay = urlData.way;
-                            }
 
-                            return data;
+                                if (csOfficerUrlData && csOfficerUrlData.admin && csOfficerUrlData.way){
+                                    console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
+                                    csOfficer = csOfficerUrlData.admin;
+                                    promoteWay = csOfficerUrlData.way;
+
+                                    console.log("checking partnerId", [playerData.name, partnerId])
+                                    console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
+                                    if (partnerId && playerdata && !playerdata.partner){
+                                        let partnerData = await dbconfig.collection_partner.findOne({
+                                            partnerId: partnerId,
+                                            platform: playerdata.platform
+                                        }, {_id: 1}).lean();
+
+                                        console.log("checking partnerData", partnerData)
+                                        if (partnerData){
+                                            partner = partnerData._id;
+                                        }
+                                    }
+                                }
+                                // // force using csOfficerUrl admin and way
+                                // prom.push(dbconfig.collection_csOfficerUrl.findOne({
+                                //     domain: ipDomain,
+                                //     platform: playerdata.platform
+                                // }, 'admin way').lean())
+                            }
+                            return data
                         }
                     )
+                    //     .then(
+                    //     urlData => {
+                    //         console.log("checking url from ipDomainLog", [playerData.name, urlData])
+                    //         if (urlData && urlData.admin && urlData.way) {
+                    //             csOfficer = urlData.admin;
+                    //             promoteWay = urlData.way;
+                    //         }
+                    //
+                    //         return data;
+                    //     }
+                    // )
                 }
 
                 return data;
@@ -2204,12 +2233,17 @@ let dbPlayerInfo = {
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
+                    if (partner){
+                        playerUpdateData.partner = partner;
+                    }
+
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
                         console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
+                    console.log("checking playerUpdateData", playerUpdateData)
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
