@@ -31138,6 +31138,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerIPRegisterLimit = platformData.playerIPRegisterLimit;
                         vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
+                        vm.platformBasic.isEbet4 = platformData.isEbet4;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -33223,6 +33224,7 @@ define(['js/app'], function (myApp) {
                         providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
+                        isEbet4: srcData.isEbet4,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
@@ -37304,9 +37306,9 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.filterPlatformSettingsPlatform}).then(data => {
                     console.log(data);
-                    $socket.showConfirmMessage("Replication succeed.");
+                    socketService.showConfirmMessage("Replication succeed.", 10000);
                     loadPlatformData();
                 });
             };
