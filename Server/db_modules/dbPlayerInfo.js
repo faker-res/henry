@@ -6664,6 +6664,15 @@ let dbPlayerInfo = {
                                         phoneNumber: loginData.phoneNumber,
                                     };
 
+                                    if (loginData.phoneNumber) {
+                                        let phoneLocation = dbUtility.queryPhoneLocation(loginData.phoneNumber);
+                                        if (phoneLocation) {
+                                            newPlayerData.phoneProvince = phoneLocation.province;
+                                            newPlayerData.phoneCity = phoneLocation.city;
+                                            newPlayerData.phoneType = phoneLocation.op;
+                                        }
+                                    }
+
                                     console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
                                     if (loginData && loginData.lastLoginIp){
                                         newPlayerData.lastLoginIp = loginData.lastLoginIp;
@@ -25627,6 +25636,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
+                    updObj.phoneType = phoneLocation.op;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(
