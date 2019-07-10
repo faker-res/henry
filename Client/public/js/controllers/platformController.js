@@ -3746,7 +3746,7 @@ define(['js/app'], function (myApp) {
             vm.gametoGameGroup = function (type) {
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     }
                 }
@@ -3784,12 +3784,13 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
 
                     function success(data) {
-                        vm.curGame = null;
-                        console.log(data);
-                        vm.selectGameGroupGames = [];
-                        vm.selectGameGroupGamesName = [];
-                        vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                        $scope.safeApply();
+                        $scope.$evalAsync( () => {
+                            vm.curGame = null;
+                            console.log(data);
+                            vm.selectGameGroupGames = [];
+                            vm.selectGameGroupGamesName = [];
+                            vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
+                        })
                     }
                 });
             }
