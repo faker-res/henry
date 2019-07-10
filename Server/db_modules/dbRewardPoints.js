@@ -158,7 +158,7 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
-                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData));
+                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData, playerData));
 
                 if (!relevantEvents || relevantEvents.length < 1) {
                     // return Promise.reject({
