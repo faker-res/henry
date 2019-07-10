@@ -10814,6 +10814,7 @@ let dbPartner = {
                             if (math.subtract(Number(parentRequirementRate.commissionRate), 0.01)  < Number(childRequirementRate.commissionRate)) {
                                 // commission rate changed
                                 console.log('between parent and child must have 1% different minimum2', childRequirementRate.commissionRate, '>', parentRequirementRate.commissionRate , '- 0.01');
+                                console.log('between parent and child must have 1% different minimum2', Number(childRequirementRate.commissionRate), '>', math.subtract(Number(parentRequirementRate.commissionRate), 0.01));
                                 return Promise.reject({
                                     status: constServerCode.PARTNER_RATE_INAPPROPRIATE,
                                     message: "You must at least take 1% commission from your lower level partner to earn money."
