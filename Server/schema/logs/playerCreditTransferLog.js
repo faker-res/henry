@@ -46,7 +46,6 @@ playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1, status: 1,
 playerCreditTransferLogSchema.index({playerObjId: 1, transferId: 1, bUsed: 1});
 playerCreditTransferLogSchema.index({playerObjId: 1, platformObjId: 1, status: 1, createTime: 1});
 playerCreditTransferLogSchema.index({playerName: 1, platformObjId: 1, status: 1, createTime: 1});
-playerCreditTransferLogSchema.index({playerObjId: 1, platformObjId: 1, status: 1, type: 1});
 
 
 module.exports = playerCreditTransferLogSchema;
