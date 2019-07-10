@@ -715,6 +715,12 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getAllOnlineTopupAnalysis, [data.platformList, startTime, endTime, data.analysisCategory, data.operator, data.timesValue, data.timesValueTwo], actionName, isValidData);
         },
 
+        syncWithdrawalProposalToPMS: function syncWithdrawalProposalToPMS(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.remark);
+            socketUtil.emitter(self.socket, dbProposal.syncWithdrawalProposalToPMS, [data.proposalId, data.remark], actionName, isValidData);
+        },
+
     };
     socketActionProposal.actions = this.actions;
 }
