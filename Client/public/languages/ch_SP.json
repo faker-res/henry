@@ -5749,5 +5749,7 @@
   "App Data Version": "APP版本号",
   "Daily Max Total Apply Count":  "日领取上限次数",
   "Daily Max Total Reset Time":  "上限次数刷新时间 (格式 20:00)",
-  "Applied Count": "已领取数量"
+  "Applied Count": "已领取数量",
+  "Sync": "同步",
+  "Sync Withdrawal": "同步提款提案"
 }
