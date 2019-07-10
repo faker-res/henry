@@ -27,7 +27,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var constPlayerSMSSetting = require("../const/constPlayerSMSSetting");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 
 const rsaCrypto = require("../modules/rsaCrypto");
 const RESTUtils = require("../modules/RESTUtils");

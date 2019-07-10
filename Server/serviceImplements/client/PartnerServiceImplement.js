@@ -11,7 +11,7 @@ var jwt = require('jsonwebtoken');
 var uaParser = require('ua-parser-js');
 var localization = require('../../modules/localization').localization;
 const constSMSPurpose = require('../../const/constSMSPurpose');
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');

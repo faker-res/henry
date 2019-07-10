@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -25585,7 +25585,22 @@ let dbPlayerInfo = {
                     });
                 }
 
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
+                let phoneLocation = dbUtility.queryPhoneLocation(phoneNumber);
+                let updObj = {
+                    phoneNumber: encryptedPhoneNumber
+                };
+
+                if (phoneLocation) {
+                    updObj.phoneProvince = phoneLocation.province;
+                    updObj.phoneCity = phoneLocation.city;
+                }
+
+                return dbUtility.findOneAndUpdateForShard(
+                    dbconfig.collection_players,
+                    {_id: player._id},
+                    updObj,
+                    constShardKeys.collection_players
+                );
             }
         ).then(
             () => {
