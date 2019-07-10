@@ -5729,50 +5729,6 @@ let dbPlayerInfo = {
             )
         }
 
-        function getTotalTransferIn(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: {
-                    $in: ["TransferIn", "transferIn"]
-                },
-                status: constPlayerCreditTransferStatus.SUCCESS
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferIn = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferIn += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferIn = totalTransferIn;
-                    return thisPlayer;
-                }
-            )
-        }
-
-        function getTotalTransferOut(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: {
-                    $in: ["TransferOut", "transferOut"]
-                },
-                status: constPlayerCreditTransferStatus.SUCCESS
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferOut = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferOut += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferOut = totalTransferOut;
-                    return thisPlayer;
-                }
-            )
-        }
-
         if (data.bankAccount) {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
@@ -5890,8 +5846,6 @@ let dbPlayerInfo = {
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
                                     let newInfo;
-                                    let totalTransferIn;
-                                    let totalTransferOut;
 
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
@@ -5909,15 +5863,11 @@ let dbPlayerInfo = {
                                     //     newInfo = getRewardData(playerData[ind]);
                                     // }
 
-                                    totalTransferIn = getTotalTransferIn(playerData[ind]);
-                                    totalTransferOut = getTotalTransferOut(playerData[ind]);
                                     newInfo = getRewardGroupData(playerData[ind]);
 
-                                    let prom1 = Promise.all([totalTransferIn, totalTransferOut, newInfo]);
+                                    let creditDetail = dbPlayerInfo.getCreditDetail(playerData[ind]._id);
+                                    let prom1 = Promise.all([newInfo, creditDetail]);
                                     players.push(prom1);
-
-                                    getTotalTransferIn(playerData[ind]);
-                                    getTotalTransferOut(playerData[ind]);
 
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
@@ -5961,8 +5911,12 @@ let dbPlayerInfo = {
             data => {
                 let playerData;
                 dataSize = data[1];
-                if (data && data.length) {
-                    // return the first data
+                if (data && data[0] && data[0].length) {
+                    data[0].forEach(player => {
+                        if (player && player.length) {
+                            player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
+                        }
+                    })
                     playerData = data[0].map(a => a[0]);
                 }
                 return {data: playerData, size: dataSize}
