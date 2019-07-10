@@ -1,20 +1,15 @@
-/**
- * Created by hninpwinttin on 23/11/15.
- */
 var mongoose = require('mongoose');
 var constProposalPriority = require('../const/constProposalPriority');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
-var constProposalStatus = require('../const/constProposalStatus');
 var counterManager = require("../modules/counterManager.js");
-const dbutility = require('../modules/dbutility');
 var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
     //proposal unique id
     proposalId: {type: String},
     //proposal main type
-    mainType: {type: String, index: true},
+    mainType: {type: String},
     //proposal type
     type: {type: Schema.Types.ObjectId, ref: 'proposalType'},
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
@@ -112,6 +107,7 @@ proposalSchema.index({"data.bankTypeId": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
 proposalSchema.index({"data.topUpSystemName": 1});
+proposalSchema.index({"data.merchantName": 1});
 // proposalSchema.index({"data.retentionApplicationDate": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId

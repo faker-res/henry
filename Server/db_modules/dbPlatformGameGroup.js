@@ -252,6 +252,10 @@ var dbPlatformGameGroup = {
                             if(game.smallShow && !game.smallShow.includes("http")){
                                 game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
                             }
+
+                            if(game.webp && !game.webp.includes("http")){
+                                game.webp = playerRouteSetting ? playerRouteSetting + game.webp : (game.sourceURL ? game.sourceURL + game.webp : game.webp);
+                            }
                         }
                     }
                 }

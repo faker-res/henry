@@ -2201,7 +2201,7 @@ var proposalExecutor = {
                            bankName: player.bankName || "",
                            loginName: player.name || "",
                            applyTime: cTimeString,
-                           clientType: pmsClientType(proposalData.inputDevice),
+                           clientType: dbUtil.pmsClientType(proposalData.inputDevice),
                            entryType: proposalData.entryType
                         };
 
@@ -2314,7 +2314,7 @@ var proposalExecutor = {
                             bankName: partner.bankName || "",
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString,
-                            clientType: pmsClientType(proposalData.inputDevice),
+                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
                             entryType: proposalData.entryType
                         };
 
@@ -6450,36 +6450,6 @@ function getPlayerCreditInProviders (playerData, platformData) {
             }
         }
     )
-}
-
-function pmsClientType (inputDevice) {
-    let clientType;
-
-    switch (inputDevice) {
-        case constPlayerRegistrationInterface.BACKSTAGE:
-            clientType = constPMSClientType.BACKSTAGE;
-            break;
-        case constPlayerRegistrationInterface.WEB_AGENT:
-        case constPlayerRegistrationInterface.WEB_PLAYER:
-            clientType = constPMSClientType.WEB;
-            break;
-        case constPlayerRegistrationInterface.H5_AGENT:
-        case constPlayerRegistrationInterface.H5_PLAYER:
-            clientType = constPMSClientType.H5;
-            break;
-        case constPlayerRegistrationInterface.APP_AGENT:
-        case constPlayerRegistrationInterface.APP_PLAYER:
-            clientType = constPMSClientType.APP;
-            break;
-        case constPlayerRegistrationInterface.APP_NATIVE_PARTNER:
-        case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
-            clientType = constPMSClientType.NATIVE_APP;
-            break;
-        default:
-            clientType = constPMSClientType.BACKSTAGE;
-    }
-
-    return clientType;
 }
 
 var proto = proposalExecutorFunc.prototype;

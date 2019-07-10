@@ -1756,7 +1756,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -2125,31 +2125,60 @@ let dbPlayerInfo = {
                         ipAddress: playerData.lastLoginIp,
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }).sort({createTime: -1}).limit(1).lean().then(
-                        ipDomainLog => {
+                        async ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
-                                ipDomain = ipDomainLog[0].domain;
-                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
-
                                 console.log("checking ipDomainLog", ipDomainLog[0])
                                 console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
-                                // force using csOfficerUrl admin and way
-                                return dbconfig.collection_csOfficerUrl.findOne({
+                                ipDomain = ipDomainLog[0].domain;
+                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
+                                if (ipDomainLog[0].partnerId){
+                                    partnerId = ipDomainLog[0].partnerId;
+                                }
+
+                                let csOfficerUrlData = await dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
                                     platform: playerdata.platform
                                 }, 'admin way').lean();
-                            }
-                        }
-                    ).then(
-                        urlData => {
-                            console.log("checking url from ipDomainLog", [playerData.name, urlData])
-                            if (urlData && urlData.admin && urlData.way) {
-                                csOfficer = urlData.admin;
-                                promoteWay = urlData.way;
-                            }
 
-                            return data;
+                                if (csOfficerUrlData && csOfficerUrlData.admin && csOfficerUrlData.way){
+                                    console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
+                                    csOfficer = csOfficerUrlData.admin;
+                                    promoteWay = csOfficerUrlData.way;
+
+                                    console.log("checking partnerId", [playerData.name, partnerId])
+                                    console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
+                                    if (partnerId && playerdata && !playerdata.partner){
+                                        let partnerData = await dbconfig.collection_partner.findOne({
+                                            partnerId: partnerId,
+                                            platform: playerdata.platform
+                                        }, {_id: 1}).lean();
+
+                                        console.log("checking partnerData", partnerData)
+                                        if (partnerData){
+                                            partner = partnerData._id;
+                                        }
+                                    }
+                                }
+                                // // force using csOfficerUrl admin and way
+                                // prom.push(dbconfig.collection_csOfficerUrl.findOne({
+                                //     domain: ipDomain,
+                                //     platform: playerdata.platform
+                                // }, 'admin way').lean())
+                            }
+                            return data
                         }
                     )
+                    //     .then(
+                    //     urlData => {
+                    //         console.log("checking url from ipDomainLog", [playerData.name, urlData])
+                    //         if (urlData && urlData.admin && urlData.way) {
+                    //             csOfficer = urlData.admin;
+                    //             promoteWay = urlData.way;
+                    //         }
+                    //
+                    //         return data;
+                    //     }
+                    // )
                 }
 
                 return data;
@@ -2204,12 +2233,17 @@ let dbPlayerInfo = {
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
+                    if (partner){
+                        playerUpdateData.partner = partner;
+                    }
+
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
                         console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
+                    console.log("checking playerUpdateData", playerUpdateData)
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
@@ -10811,7 +10845,7 @@ let dbPlayerInfo = {
                                             );
                                         } else {
                                             if (checkLevelDown && !(playerObj.permission && playerObj.permission.banReward) && !playerObj.forbidLevelMaintainReward && playerObj.playerLevel.value > 0 && playerObj.playerLevel.reward
-                                                && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
+                                                && playerObj.playerLevel.reward.bonusCreditLevelDown) { // for player level maintain reward
                                                 if (platformPeriod) { // level down period same (both top up and consumption)
                                                     let rewardPeriodTime;
                                                     let checkLevelDownPeriod; // period for checking consumption and top up
@@ -18548,7 +18582,7 @@ let dbPlayerInfo = {
 
                     // Calculate total profit
                     returnedObj.total.profit =
-                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.consumptionAmount) * 100;
+                        (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
                 return returnedObj;
@@ -18602,8 +18636,6 @@ let dbPlayerInfo = {
 
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
-
-                console.log('feeDetail', feeDetail, playerSummary.providerDetail);
 
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
@@ -18712,7 +18744,8 @@ let dbPlayerInfo = {
                     if (playerSummaryData && playerSummaryData.length > 0) {
                         let feeDetail = await dbconfig.collection_platformFeeEstimate.findOne({platform: platform}).populate({
                             path: 'platformFee.gameProvider',
-                            model: dbconfig.collection_gameProvider
+                            model: dbconfig.collection_gameProvider,
+                            select: '_id name'
                         }).lean();
 
                         playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail));
@@ -18912,7 +18945,6 @@ let dbPlayerInfo = {
                             onlineTopUpFeeDetail: 1,
                             phoneCity: 1,
                             phoneProvince: 1,
-                            platformFeeEstimate: 1,
                             playerLevel: 1,
                             registrationTime: 1,
                             valueScore: 1,
@@ -18944,7 +18976,6 @@ let dbPlayerInfo = {
                                         playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
                                         playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
                                         playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
-                                        playerReportSummaryData[indexNo].platformFeeEstimate = player.platformFeeEstimate || {};
                                         playerReportSummaryData[indexNo].playerLevel = player.playerLevel || "";
                                         playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
                                         playerReportSummaryData[indexNo]._id = player._id || "";

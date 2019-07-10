@@ -2083,6 +2083,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if (forSync) {
                     gameCreditProm = Promise.resolve({credit: amount});
                 } else {
+                    console.log('MT --checking getPlayerGameCredit', userName, platformId, providerShortId);
                     gameCreditProm = dbPlayerCreditTransfer.getPlayerGameCredit(
                         {
                             username: userName,
@@ -2155,7 +2156,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                             });
                         }
                     }
-
+                    console.log('MT --rewardGroupObj-2', rewardGroupObj);
                     if (rewardGroupObj) {
                         let totalInputCredit = rewardGroupObj._inputRewardAmt + rewardGroupObj._inputFreeAmt;
 

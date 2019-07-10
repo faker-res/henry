@@ -1,6 +1,7 @@
 div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
     div(style="display: inline;")
-        label {{'CAROUSEL_CONFIGURATION' | translate}}
+        label(ng-if="!vm.isPartnerForCarouselConfiguration") {{'CAROUSEL_CONFIGURATION' | translate}}
+        label(ng-if="vm.isPartnerForCarouselConfiguration") {{'PARTNER_CAROUSEL_CONFIGURATION' | translate}}
         br
         label.text-danger {{'CAROUSEL_CONFIGURATION_NOTE' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.initCarouselSetting()")

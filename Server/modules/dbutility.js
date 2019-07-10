@@ -3,6 +3,7 @@ var dbUtilityFunc = function () {
 module.exports = new dbUtilityFunc();
 
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const constPMSClientType = require("../const/constPMSClientType");
 const uaParser = require('ua-parser-js');
 const rsaCrypto = require('../modules/rsaCrypto');
 var Q = require("q");
@@ -1832,6 +1833,36 @@ var dbUtility = {
                 return result;
             }
         );
+    },
+
+    pmsClientType: (inputDevice) => {
+        let clientType;
+
+        switch (inputDevice) {
+            case constPlayerRegistrationInterface.BACKSTAGE:
+                clientType = constPMSClientType.BACKSTAGE;
+                break;
+            case constPlayerRegistrationInterface.WEB_AGENT:
+            case constPlayerRegistrationInterface.WEB_PLAYER:
+                clientType = constPMSClientType.WEB;
+                break;
+            case constPlayerRegistrationInterface.H5_AGENT:
+            case constPlayerRegistrationInterface.H5_PLAYER:
+                clientType = constPMSClientType.H5;
+                break;
+            case constPlayerRegistrationInterface.APP_AGENT:
+            case constPlayerRegistrationInterface.APP_PLAYER:
+                clientType = constPMSClientType.APP;
+                break;
+            case constPlayerRegistrationInterface.APP_NATIVE_PARTNER:
+            case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+                clientType = constPMSClientType.NATIVE_APP;
+                break;
+            default:
+                clientType = constPMSClientType.BACKSTAGE;
+        }
+
+        return clientType;
     }
 };
 
