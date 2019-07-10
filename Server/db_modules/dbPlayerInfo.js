@@ -5977,12 +5977,20 @@ let dbPlayerInfo = {
             data => {
                 let playerData;
                 dataSize = data[1];
+                console.log('dataSize===', dataSize);
+                console.log('data.length===', data.length);
+                console.log('data[0]===', data[0]);
+                console.log('data[0].length===', data[0].length);
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
+                            if (player[1] && player[1].finalAmount) {
+                                console.log('player[1].finalAmount===', player[1].finalAmount);
+                                console.log('TYPE4===', typeof player[1].finalAmount);
+                            }
                             player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
                         }
-                    })
+                    });
                     playerData = data[0].map(a => a[0]);
                 }
                 return {data: playerData, size: dataSize}
@@ -22736,6 +22744,12 @@ let dbPlayerInfo = {
                         })
                     }
                 }
+                console.log('totalLockedCredit===', totalLockedCredit);
+                console.log('TYPE1===', typeof totalLockedCredit);
+                console.log('totalGameCreditAmount===', totalGameCreditAmount);
+                console.log('TYPE2===', typeof totalGameCreditAmount);
+                console.log('returnData.credit===', returnData.credit);
+                console.log('TYPE3===', typeof returnData.credit);
 
                 // return total amount
                 returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);

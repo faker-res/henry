@@ -5109,7 +5109,8 @@ define(['js/app'], function (myApp) {
                                 rowData.platform$ = matchedPlatformData[0].name;
                             }
                         }
-
+                        console.log('rowData.totalCredit===', rowData.totalCredit);
+                        console.log('TYPE===', typeof rowData.totalCredit);
                         rowData.totalCredit = Math.floor(rowData.totalCredit); // remove decimal places, no rounding
 
                         if (table) {
