@@ -75,7 +75,7 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: async (partnerObjId, platformObjId, isMulti) => { // for direct, require main partner's partnerobjid
+    getPartnerCommRate: async (partnerObjId, platformObjId, isMulti) => {
         let rateConfigSchema = isMulti ? dbconfig.collection_partnerMainCommRateConfig : dbconfig.collection_partnerCommissionRateConfig;
 
         let platformConfig = await rateConfigSchema.findOne({partner: null, platform: platformObjId}).lean();
