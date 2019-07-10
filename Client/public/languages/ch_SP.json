@@ -5690,6 +5690,7 @@
   "Landscape": "橫向",
   "Portrait": "纵向",
   "default": "预设",
+  "Ebet4.0 User (Create CPMS User When User is Create)": "Ebet 4.0 用户 (创建会员时会同时创建 Ebet 游戏会员)",
   "RECALCULATE": "重新收录",
   "BULK_SETTING_CONFIG": "批量配置调整",
   "You need to this reward first before create festival item": "你需要先储存此优惠才能开始添加节日",
