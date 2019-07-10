@@ -621,6 +621,7 @@ let dbPlayerInfo = {
         let platformObj = null;
         let platformId = null;
         let platformData = null;
+        let playerData = null;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -1032,16 +1033,47 @@ let dbPlayerInfo = {
                             pdata.platformId = platformId;
                             pdata.partnerId = inputData.partnerId;
                             pdata.partnerName = inputData.partnerName;
-                            return pdata;
+                            playerData = pdata;
                         }
                     )
             ).then(
-                data => {
-                    if (data) {
-                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
+                () => {
+                    // if this player is from ebet4.0 , create a ebet user at cpms too.
+                    if (platformData.isEbet4) {
+                        return cpmsAPI.player_addPlayer({
+                            "username": playerData.name,
+                            "platformId": playerData.platformId,
+                            "providerId": "56" //56 - ebet
+                        });
                     }
-                    else {
-                        return data;
+                    return
+                }
+            ).then(
+                (cpmsPlayer) => {
+                    if (platformData.isEbet4 && !cpmsPlayer) {
+                        // if the create user by cpms failed, then we will delete fpms user as well
+                        return dbconfig.collection_players.findOneAndRemove({
+                            _id: playerData._id,
+                            platform: platformData._id
+                        }).lean();
+                    }
+                    return
+                }
+            ).then(
+                data => {
+                    if (!data) {
+                        // findOneAndRemove return false
+                        // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
+                        // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
+                        console.log('MT --checking createPlayerRewardPointsRecord', playerData.platform, playerData._id)
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false);
+                    }
+                    if (data && platformData.isEbet4) {
+                        // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Ebet Account created Failed")});
+                    } else {
+                        // if not related with ebet4.0
+                        return playerData;
                     }
                 }
             );
@@ -1756,7 +1788,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -2125,31 +2157,60 @@ let dbPlayerInfo = {
                         ipAddress: playerData.lastLoginIp,
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }).sort({createTime: -1}).limit(1).lean().then(
-                        ipDomainLog => {
+                        async ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
-                                ipDomain = ipDomainLog[0].domain;
-                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
-
                                 console.log("checking ipDomainLog", ipDomainLog[0])
                                 console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
-                                // force using csOfficerUrl admin and way
-                                return dbconfig.collection_csOfficerUrl.findOne({
+                                ipDomain = ipDomainLog[0].domain;
+                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
+                                if (ipDomainLog[0].partnerId){
+                                    partnerId = ipDomainLog[0].partnerId;
+                                }
+
+                                let csOfficerUrlData = await dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
                                     platform: playerdata.platform
                                 }, 'admin way').lean();
-                            }
-                        }
-                    ).then(
-                        urlData => {
-                            console.log("checking url from ipDomainLog", [playerData.name, urlData])
-                            if (urlData && urlData.admin && urlData.way) {
-                                csOfficer = urlData.admin;
-                                promoteWay = urlData.way;
-                            }
 
-                            return data;
+                                if (csOfficerUrlData && csOfficerUrlData.admin && csOfficerUrlData.way){
+                                    console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
+                                    csOfficer = csOfficerUrlData.admin;
+                                    promoteWay = csOfficerUrlData.way;
+
+                                    console.log("checking partnerId", [playerData.name, partnerId])
+                                    console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
+                                    if (partnerId && playerdata && !playerdata.partner){
+                                        let partnerData = await dbconfig.collection_partner.findOne({
+                                            partnerId: partnerId,
+                                            platform: playerdata.platform
+                                        }, {_id: 1}).lean();
+
+                                        console.log("checking partnerData", partnerData)
+                                        if (partnerData){
+                                            partner = partnerData._id;
+                                        }
+                                    }
+                                }
+                                // // force using csOfficerUrl admin and way
+                                // prom.push(dbconfig.collection_csOfficerUrl.findOne({
+                                //     domain: ipDomain,
+                                //     platform: playerdata.platform
+                                // }, 'admin way').lean())
+                            }
+                            return data
                         }
                     )
+                    //     .then(
+                    //     urlData => {
+                    //         console.log("checking url from ipDomainLog", [playerData.name, urlData])
+                    //         if (urlData && urlData.admin && urlData.way) {
+                    //             csOfficer = urlData.admin;
+                    //             promoteWay = urlData.way;
+                    //         }
+                    //
+                    //         return data;
+                    //     }
+                    // )
                 }
 
                 return data;
@@ -2204,12 +2265,17 @@ let dbPlayerInfo = {
                         playerUpdateData.promoteWay = promoteWay;
                     }
 
+                    if (partner){
+                        playerUpdateData.partner = partner;
+                    }
+
                     // add ip domain to sourceUrl
                     if (ipDomainSourceUrl) {
                         console.log("checking 2nd ipDomainSourceUrl", ipDomainSourceUrl)
                         playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
+                    console.log("checking playerUpdateData", playerUpdateData)
                     proms.push(
                         dbconfig.collection_players.findOneAndUpdate(
                             {_id: playerData._id, platform: playerData.platform},
@@ -5729,50 +5795,6 @@ let dbPlayerInfo = {
             )
         }
 
-        function getTotalTransferIn(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: {
-                    $in: ["TransferIn", "transferIn"]
-                },
-                status: constPlayerCreditTransferStatus.SUCCESS
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferIn = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferIn += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferIn = totalTransferIn;
-                    return thisPlayer;
-                }
-            )
-        }
-
-        function getTotalTransferOut(thisPlayer) {
-            return dbconfig.collection_playerCreditTransferLog.find({
-                platformObjId: thisPlayer.platform,
-                playerObjId: thisPlayer._id,
-                type: {
-                    $in: ["TransferOut", "transferOut"]
-                },
-                status: constPlayerCreditTransferStatus.SUCCESS
-            }).lean().read("secondaryPreferred").then(
-                logs => {
-                    let totalTransferOut = 0;
-                    if (logs && logs.length) {
-                        logs.forEach(log => {
-                            totalTransferOut += log.amount;
-                        })
-                    }
-                    thisPlayer.totalTransferOut = totalTransferOut;
-                    return thisPlayer;
-                }
-            )
-        }
-
         if (data.bankAccount) {
             advancedQuery.bankAccount = new RegExp('.*' + data.bankAccount + '.*', 'i');
         }
@@ -5890,8 +5912,6 @@ let dbPlayerInfo = {
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
                                     let newInfo;
-                                    let totalTransferIn;
-                                    let totalTransferOut;
 
                                     if (playerData[ind].referral) {
                                         playerData[ind].referralName$ = playerData[ind].referral.name;
@@ -5909,15 +5929,11 @@ let dbPlayerInfo = {
                                     //     newInfo = getRewardData(playerData[ind]);
                                     // }
 
-                                    totalTransferIn = getTotalTransferIn(playerData[ind]);
-                                    totalTransferOut = getTotalTransferOut(playerData[ind]);
                                     newInfo = getRewardGroupData(playerData[ind]);
 
-                                    let prom1 = Promise.all([totalTransferIn, totalTransferOut, newInfo]);
+                                    let creditDetail = dbPlayerInfo.getCreditDetail(playerData[ind]._id);
+                                    let prom1 = Promise.all([newInfo, creditDetail]);
                                     players.push(prom1);
-
-                                    getTotalTransferIn(playerData[ind]);
-                                    getTotalTransferOut(playerData[ind]);
 
                                     let playerId = playerData[ind]._id;
                                     let platformId = playerData[ind].platform;
@@ -5961,8 +5977,20 @@ let dbPlayerInfo = {
             data => {
                 let playerData;
                 dataSize = data[1];
-                if (data && data.length) {
-                    // return the first data
+                console.log('dataSize===', dataSize);
+                console.log('data.length===', data.length);
+                console.log('data[0]===', data[0]);
+                console.log('data[0].length===', data[0].length);
+                if (data && data[0] && data[0].length) {
+                    data[0].forEach(player => {
+                        if (player && player.length) {
+                            if (player[1] && player[1].finalAmount) {
+                                console.log('player[1].finalAmount===', player[1].finalAmount);
+                                console.log('TYPE4===', typeof player[1].finalAmount);
+                            }
+                            player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
+                        }
+                    });
                     playerData = data[0].map(a => a[0]);
                 }
                 return {data: playerData, size: dataSize}
@@ -10857,7 +10885,7 @@ let dbPlayerInfo = {
                                             );
                                         } else {
                                             if (checkLevelDown && !(playerObj.permission && playerObj.permission.banReward) && !playerObj.forbidLevelMaintainReward && playerObj.playerLevel.value > 0 && playerObj.playerLevel.reward
-                                                && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
+                                                && playerObj.playerLevel.reward.bonusCreditLevelDown) { // for player level maintain reward
                                                 if (platformPeriod) { // level down period same (both top up and consumption)
                                                     let rewardPeriodTime;
                                                     let checkLevelDownPeriod; // period for checking consumption and top up
@@ -22716,6 +22744,12 @@ let dbPlayerInfo = {
                         })
                     }
                 }
+                console.log('totalLockedCredit===', totalLockedCredit);
+                console.log('TYPE1===', typeof totalLockedCredit);
+                console.log('totalGameCreditAmount===', totalGameCreditAmount);
+                console.log('TYPE2===', typeof totalGameCreditAmount);
+                console.log('returnData.credit===', returnData.credit);
+                console.log('TYPE3===', typeof returnData.credit);
 
                 // return total amount
                 returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);

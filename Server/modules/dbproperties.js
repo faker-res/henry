@@ -108,6 +108,7 @@ let frontEndRewardPointClarificationSchema = require('./../schema/frontEndReward
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
+let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -279,6 +280,7 @@ let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointC
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
+let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -778,6 +780,7 @@ var dbProperties = {
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
+    collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,

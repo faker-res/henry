@@ -548,6 +548,8 @@ var platformSchema = new Schema({
     pmsServiceCharge: {type: Number},
     // service charge rate setting
     fpmsServiceCharge: {type: Number},
+    // if is ebet4.0 user, will generate a ebet4.0 user from cpms
+    isEbet4: {type: Boolean, default: false},
     // native app version number
     appDataVer: {type: String}
 });

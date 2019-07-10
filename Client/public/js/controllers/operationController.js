@@ -3224,6 +3224,24 @@ define(['js/app'], function (myApp) {
             vm.forcePairingReferenceNumber = '';
         };
 
+        vm.initSyncWithdrawalProposal = function() {
+            vm.syncWithdrawalProposalRemark = "";
+        };
+
+        vm.syncWithdrawalProposal = function() {
+            let sendData = {
+                proposalId: vm.selectedProposal.proposalId,
+                remark: vm.syncWithdrawalProposalRemark
+            };
+            socketService.$socket($scope.AppSocket, 'syncWithdrawalProposalToPMS', sendData, function (data) {
+                vm.syncWithdrawalProposalRemark = "";
+                $('#modalOperationProposal').modal('hide');
+                $(".modal-backdrop").hide();
+                vm.loadProposalQueryData();
+            });
+
+        };
+
         vm.refreshSPicker = () => {
             // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
             $timeout(function () {
