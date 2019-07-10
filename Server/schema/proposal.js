@@ -1,20 +1,15 @@
-/**
- * Created by hninpwinttin on 23/11/15.
- */
 var mongoose = require('mongoose');
 var constProposalPriority = require('../const/constProposalPriority');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
-var constProposalStatus = require('../const/constProposalStatus');
 var counterManager = require("../modules/counterManager.js");
-const dbutility = require('../modules/dbutility');
 var Schema = mongoose.Schema;
 
 var proposalSchema = new Schema({
     //proposal unique id
     proposalId: {type: String},
     //proposal main type
-    mainType: {type: String, index: true},
+    mainType: {type: String},
     //proposal type
     type: {type: Schema.Types.ObjectId, ref: 'proposalType'},
     //creator {type(system, player or admin), name, id(shortID for player, longId for admin)
