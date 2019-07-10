@@ -1040,26 +1040,39 @@ let dbPlayerInfo = {
                 () => {
                     // if this player is from ebet4.0 , create a ebet user at cpms too.
                     if (platformData.isEbet4) {
-                        return cpmsAPI.player_addPlayer({});
+                        return cpmsAPI.player_addPlayer({
+                            "username": playerData.name,
+                            "platformId": playerData.platformId,
+                            "providerId": "56" //56 - ebet
+                        });
                     }
                     return
                 }
             ).then(
                 (cpmsPlayer) => {
                     if (platformData.isEbet4 && !cpmsPlayer) {
-                        return dbconfig.collection_players.remove({
+                        // if the create user by cpms failed, then we will delete fpms user as well
+                        return dbconfig.collection_players.findOneAndRemove({
                             _id: playerData._id,
                             platform: platformData._id
-                        }).exec();
+                        }).lean();
                     }
                     return
                 }
             ).then(
                 data => {
-                    if (playerData) {
+                    if (!data) {
+                        // findOneAndRemove return false
+                        // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
+                        // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
+                        console.log('MT --checking createPlayerRewardPointsRecord', playerData.platform, playerData._id)
                         return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false);
                     }
-                    else {
+                    if (data && platformData.isEbet4) {
+                        // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Ebet Account created Failed")});
+                    } else {
+                        // if not related with ebet4.0
                         return playerData;
                     }
                 }
