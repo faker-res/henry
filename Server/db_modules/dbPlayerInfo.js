@@ -10796,7 +10796,7 @@ let dbPlayerInfo = {
                                             );
                                         } else {
                                             if (checkLevelDown && !(playerObj.permission && playerObj.permission.banReward) && !playerObj.forbidLevelMaintainReward && playerObj.playerLevel.value > 0 && playerObj.playerLevel.reward
-                                                && playerObj.playerLevel.reward.bonusCreditLevelDown && !(playerObj.permission && playerObj.permission.banReward)) { // for player level maintain reward
+                                                && playerObj.playerLevel.reward.bonusCreditLevelDown) { // for player level maintain reward
                                                 if (platformPeriod) { // level down period same (both top up and consumption)
                                                     let rewardPeriodTime;
                                                     let checkLevelDownPeriod; // period for checking consumption and top up
