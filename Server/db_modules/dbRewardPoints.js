@@ -582,6 +582,13 @@ let dbRewardPoints = {
                     });
                 }
 
+                if(data[2] && data[2].forbidRewardPointsEvent && data[2].forbidRewardPointsEvent.length && pointEvent && pointEvent._id && data[2].forbidRewardPointsEvent.map(p => {return p.toString()}).includes(pointEvent._id.toString())){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event is forbidden."
+                    });
+                }
+
                 if (!rewardPoints._id) {
                     return Promise.reject({
                         name: "DataError",
