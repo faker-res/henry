@@ -6786,15 +6786,18 @@ define(['js/app'], function (myApp) {
                                         },
                                         updateData: {}
                                     }
-                                    if (!changeObj.allowPromoCode) {
-                                        sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
-                                    } else {
-                                        sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
+                                    if (changeObj.hasOwnProperty('allowPromoCode') ) {
+                                        if (!changeObj.allowPromoCode) {
+                                            sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
+                                        } else {
+                                            sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
+                                        }
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                        });
                                     }
-                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
-                                    });
                                     vm.getPlatformPlayersData();
                                 }, null, true);
+
                                 $(thisPopover).popover('hide');
                             })
 
