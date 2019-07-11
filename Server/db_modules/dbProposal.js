@@ -3550,7 +3550,6 @@ var proposal = {
         let totalAmount = 0;
         let totalPropCount = 0;
         let playerSet = new Set();
-        let summary = {};
         let isApprove = false;
         let isSuccess = false;
         let prom = Promise.resolve([]);
@@ -3700,14 +3699,12 @@ var proposal = {
 
                     if(isApprove){
                         queryData.type = {$in: approveProposalTypeList};
-                    }else if(isSuccess){
+                    } else if (isSuccess){
                         delete queryData.status;
-                        queryData["$and"] = [];
 
                         orQuery.push({type: {$in: proposalTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
                         orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
-
-                        queryData["$and"].push({$or: orQuery});
+                        queryData["$or"] = orQuery;
                     } else {
                         queryData.type = {$in: proposalTypeList.concat(approveProposalTypeList)};
                     }
