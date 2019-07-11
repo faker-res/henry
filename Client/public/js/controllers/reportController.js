@@ -3860,8 +3860,8 @@ define(['js/app'], function (myApp) {
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
-            query.startT = vm.feedbackQuery.startT.data('datetimepicker').getLocalDate();
-            query.endT = vm.feedbackQuery.endT.data('datetimepicker').getLocalDate();
+            query.searchTime = vm.feedbackQuery.searchTime.data('datetimepicker').getLocalDate();
+            query.searchEndTime = vm.feedbackQuery.searchEndTime.data('datetimepicker').getLocalDate();
             query.credibilityRemarks = vm.feedbackQuery.credibility;
             query.valueScoreOperator = vm.feedbackQuery.valueOperator;
             query.playerScoreValue = vm.feedbackQuery.valueFormal;
@@ -11071,11 +11071,11 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
 
-                        vm.feedbackQuery.startT = utilService.createDatePicker('#feedbackReportQuery .startT');
-                        vm.feedbackQuery.startT.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.feedbackQuery.endT = utilService.createDatePicker('#feedbackReportQuery .endT');
-                        vm.feedbackQuery.endT.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        // vm.feedbackQuery.limit = 5000;
+                        vm.feedbackQuery.searchTime = utilService.createDatePicker('#feedbackReportQuery .searchTime');
+                        vm.feedbackQuery.searchTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.feedbackQuery.searchEndTime = utilService.createDatePicker('#feedbackReportQuery .searchEndTime');
+                        vm.feedbackQuery.searchEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
                         vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)

@@ -341,11 +341,16 @@ var dbPlayerFeedback = {
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let result = [];
-
+        console.log('Feedback Query', query);
         let matchObjFeedback = {
             platform: platform,
             createTime: {$gte: startDate, $lt: endDate}
         };
+        // if(startT && endT){
+        //     matchObjFeedback.createTime = {$gte: startT, $lt: endT};
+        // }else{
+        //     matchObjFeedback.createTime = {$gte: startDate, $lt: endDate};
+        // }
         if(query.result) {
             matchObjFeedback.result = query.result;
         }
@@ -372,12 +377,14 @@ var dbPlayerFeedback = {
             delete query.playerType;
         }
 
+        // query.status = 0;
+
         if (query.admins && query.admins.length) {
             query.admins = query.admins.map(e => ObjectId(e));
             console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
         }
-
+        console.log('Match obj', matchObjFeedback);
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
@@ -387,26 +394,36 @@ var dbPlayerFeedback = {
             }
         ]).cursor({batchSize: 500}).allowDiskUse(true).exec();
 
+        console.log('Match Stream', stream);
         let balancer = new SettlementBalancer();
+        console.log('Settlement Balancer', balancer);
         return balancer.initConns().then(function () {
+            console.log('come into settlement');
             return Q(
                 balancer.processStream(
                     {
                         stream: stream,
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
+
+                            let searchTime = new Date(query.searchTime);
+                            let searchEndTime = new Date(query.searchEndTime);
                             console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: moment(query.start).add(query.days, "day"),
+                                // endTime: endT,
                                 query: query,
                                 playerObjIds: feedbackIdObjs.map(function (feedbackIdObj) {
                                     return feedbackIdObj._id;
                                 }),
-                                option: {
-                                    isFeedback: true
-                                }
+                                option: {isFeedback: true},
+                                isPromoteWay: null,
+                                cusT: null,
+                                cusET: null,
+                                startT: searchTime,
+                                endT: searchEndTime
                             });
                         },
                         processResponse: function (record) {
