@@ -371,7 +371,7 @@ const dbPartnerCommission = {
                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                     // platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     platformFee: math.chain(platformFeeMulti).round(2).done(),
-                    platformFeeRate: math.round(platformFeeRateMulti).round(4).done(),
+                    platformFeeRate: math.chain(platformFeeRateMulti).round(4).done(),
                     rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
