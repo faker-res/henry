@@ -20713,10 +20713,10 @@ let dbPlayerInfo = {
                                             select: '_id adminName',
                                             model: dbconfig.collection_admin
                                         }).lean();
-                                    let qStartTime = new Date(startT);
-                                    // let qStartTime = new Date(playerFeedBackData.createTime);
-                                    // let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
-                                    let qEndTime = new Date(endT);
+                                    // let qStartTime = new Date(startT);
+                                    let qStartTime = new Date(playerFeedBackData.createTime);
+                                    let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
+                                    // let qEndTime = new Date(endT);
 
 
                                     let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
