@@ -7028,8 +7028,8 @@ define(['js/app'], function (myApp) {
             if (vm.newPartner.ownDomain.indexOf(',') != -1){
                 vm.newPartner.ownDomain = vm.newPartner.ownDomain.split(',');
             }
-            else if (vm.newPartner.ownDomain.indexOf('/n') != -1){
-                vm.newPartner.ownDomain = vm.newPartner.ownDomain.split('/n');
+            else if (vm.newPartner.ownDomain.indexOf('\n') != -1){
+                vm.newPartner.ownDomain = vm.newPartner.ownDomain.split('\n');
             }
 
             console.log(vm.newPartner);
@@ -7856,8 +7856,8 @@ define(['js/app'], function (myApp) {
                     if (updateData.ownDomain.indexOf(',') != -1){
                         updateData.ownDomain = updateData.ownDomain.split(',');
                     }
-                    else if (updateData.ownDomain.indexOf('/n') != -1){
-                        updateData.ownDomain = updateData.ownDomain.split('/n');
+                    else if (updateData.ownDomain.indexOf('\n') != -1){
+                        updateData.ownDomain = updateData.ownDomain.split('\n');
                     }
 
                     // updateData.ownDomain = updateData.ownDomain.split('\n');
