@@ -6114,7 +6114,7 @@ define(['js/app'], function (myApp) {
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
             $scope.safeApply();
-            $scope.makePhoneCall(vm.selectedSinglePlayer.platformId);
+            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
         };
 
         // generate telePlayer Sending Message function table ====================End==================
