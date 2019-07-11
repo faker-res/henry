@@ -148,6 +148,7 @@ define(['js/app'], function (myApp) {
                         item.product = item.platformId + '.' + item.platformName;
                         item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
                         item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
+                        item.wechatVersion = item.wechatVersion ? item.wechatVersion : ''
 
                         return item;
                     }) : [], data.data.size, {}, isNewSearch
@@ -191,6 +192,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
+                    {title: $translate('Wechat Version'), data: "wechatVersion"},
                     {
                         title: $translate('Connection Time'), data: "duration",
                         render: function (data, type, row) {
