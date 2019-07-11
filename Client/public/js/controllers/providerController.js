@@ -546,7 +546,7 @@ define(['js/app'], function (myApp) {
                 let platformId;
                 if (vm.platformList.length > 0) {
                     platformId = vm.platformList.filter(item => { return item._id == vm.selectedPlatformID;})
-                    platformId = platformId && platformId[0] && platformId[0].platformId ? platformId[0].platformId : null;
+                    platformId = ( platformId && platformId[0] && platformId[0].platformId ) ? platformId[0].platformId : null;
                 }
                 let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                 let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
