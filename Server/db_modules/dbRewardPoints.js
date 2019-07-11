@@ -39,6 +39,9 @@ let dbRewardPoints = {
                 else if (playerData && String(playerData.rewardPointsObjId) != String(rewardPointsData._id)) {
                     dbRewardPoints.updatePlayerRewardPointObjectId(playerObjId, playerData.platform, rewardPointsData._id).catch(errorUtils.reportError);
                 }
+                else if (playerData && playerData.playerLevel && !rewardPointsData.playerLevel) {
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, (playerData.playerLevel._id || playerData.playerLevel));
+                }
 
                 return rewardPointsData;
             }
@@ -579,6 +582,13 @@ let dbRewardPoints = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Reward point event is not started."
+                    });
+                }
+
+                if(data[2] && data[2].forbidRewardPointsEvent && data[2].forbidRewardPointsEvent.length && pointEvent && pointEvent._id && data[2].forbidRewardPointsEvent.map(p => {return p.toString()}).includes(pointEvent._id.toString())){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event is forbidden."
                     });
                 }
 
