@@ -33,7 +33,7 @@ var dbWCGroupControl = {
             }
         })
     },
-    sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes) => {
+    sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes, wechatVersion) => {
         let deviceSettingRecord;
         let adminObjId;
         if (adminId) {
@@ -74,7 +74,8 @@ var dbWCGroupControl = {
                                 },
                                 csOfficer: adminObjId,
                                 status: status,
-                                lastActiveTime: new Date()
+                                lastActiveTime: new Date(),
+                                wechatVersion: wechatVersion
                             },
                             {new: true}
                         ).lean();
@@ -88,7 +89,8 @@ var dbWCGroupControl = {
                                 },
                                 csOfficer: adminObjId,
                                 status: status,
-                                lastUpdateTime: new Date()
+                                lastUpdateTime: new Date(),
+                                wechatVersion: wechatVersion
                             },
                             {new: true}
                         ).lean();
@@ -104,7 +106,8 @@ var dbWCGroupControl = {
                             status: status,
                             platformObjId: deviceSettingRecord.platformObjId,
                             connectionAbnormalClickTimes: connectionAbnormalClickTimes,
-                            lastActiveTime: new Date()
+                            lastActiveTime: new Date(),
+                            wechatVersion: wechatVersion
                         };
 
                         let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
