@@ -345,7 +345,7 @@ const dbPartnerCommission = {
             nettCommission += rawDirectCommission;
 
             // individual commission for each parent each provider
-            let previousParentRate = 0;
+            let previousParentRate = multiLevelCommissionRate.commissionRate;
             multiLevelCommissionRate.parentRatios = multiLevelCommissionRate.parentRatios || [];
             let ratioSum = 0;
             if (multiLevelCommissionRate.parentRatios.length) {
