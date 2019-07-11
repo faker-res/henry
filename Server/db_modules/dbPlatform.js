@@ -6128,6 +6128,9 @@ var dbPlatform = {
                         case 'carousel':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
+                        case 'partnerCarousel':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
@@ -6253,6 +6256,15 @@ var dbPlatform = {
                     query.isVisible = true;
                 }
                 prom = dbconfig.collection_frontEndCarouselConfiguration.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "partnerCarousel"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPartnerCarouselConfiguration.find(query).populate({
                     path: "rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
                 }).sort({displayOrder: 1}).lean()

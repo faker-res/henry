@@ -840,7 +840,7 @@ define(['js/app'], function (myApp) {
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsGroupByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllRewardPointsEvent($scope).catch(err => Promise.resolve([])),
                 commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -5109,8 +5109,13 @@ define(['js/app'], function (myApp) {
                                 rowData.platform$ = matchedPlatformData[0].name;
                             }
                         }
-                        rowData.totalCredit = rowData.validCredit + rowData.lockedCredit + rowData.totalTransferIn - rowData.totalTransferOut;
-                        rowData.totalCredit = Math.floor(rowData.totalCredit); // remove decimal places, no rounding
+                        console.log('rowData.totalCredit===', rowData.totalCredit);
+                        console.log('TYPE===', typeof rowData.totalCredit);
+
+                        // remove decimal places, no rounding
+                        rowData.validCredit = Math.floor(rowData.validCredit);
+                        rowData.lockedCredit = Math.floor(rowData.lockedCredit);
+                        rowData.totalCredit = Math.floor(rowData.totalCredit);
 
                         if (table) {
                             table.row.add(rowData);
@@ -5181,7 +5186,7 @@ define(['js/app'], function (myApp) {
                         // this object is use for column show
                         // credibility remark advsearch column's object will appear later in the code
                         title: $translate("CREDIBILITY_REMARK"),
-                        data: "credibilityRemarks",
+                        data: "credibilityRemarks$",
                         advSearch: false,
                         orderable: false,
                         sClass: "remarkCol",
@@ -5193,42 +5198,77 @@ define(['js/app'], function (myApp) {
                             let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks' ng-click='vm.getSelectedRowPlayerCredibility(" + JSON.stringify(row) + ");'>";
                             let output = initOutput;
                             let remarkMatches = false;
-                            data.map(function (remarkId) {
-                                let index = vm.allCredibilityRemarks.map(x => x._id).indexOf(remarkId);
 
-                                if (index > -1) {
-                                    if (output && output !== initOutput) {
-                                        output += "<br>";
-                                    }
-                                    output += vm.allCredibilityRemarks[index].name;
-                                    remarkMatches = true;
-
-                                    if (vm.allCredibilityRemarks[index]._id === remarkId && vm.allCredibilityRemarks[index].name === '黑名单IP' && vm.allCredibilityRemarks[index].isFixed === true) {
-                                        output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
-                                        output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
-                                        output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
-                                        output += "<th style='width:30%'>" + $translate('IP') + "</th>";
-                                        output += "<th style='width:30%'>" + $translate('REMARK') + "</th>";
-                                        output += "<th style='width:10%'>" + $translate('Operator_Name') + "</th>";
-                                        output += "</tr></thead>";
-                                        output += "<tbody>";
-                                        if (row && row.blacklistIp && row.blacklistIp.length > 0) {
-                                            let i = 1;
-                                            row.blacklistIp.forEach(IP => {
-                                                output += "<tr>";
-                                                output += "<td>" + i + "</td>";
-                                                output += "<td>" + IP.ip + "</td>";
-                                                output += "<td>" + IP.remark + "</td>";
-                                                output += "<td>" + IP.adminName + "</td>";
-                                                output += "</tr>";
-                                                i++;
-                                            });
-                                        }
-                                        output += "</tbody>";
-                                        output += "</table></span></span>";
-                                    }
+                            data.map(remarkName => {
+                                if (output && output !== initOutput) {
+                                    output += "<br>";
                                 }
-                            });
+
+                                output += remarkName;
+                                remarkMatches = true;
+
+                                if (remarkName && remarkName === '黑名单IP') {
+                                    output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
+                                    output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
+                                    output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
+                                    output += "<th style='width:30%'>" + $translate('IP') + "</th>";
+                                    output += "<th style='width:30%'>" + $translate('REMARK') + "</th>";
+                                    output += "<th style='width:10%'>" + $translate('Operator_Name') + "</th>";
+                                    output += "</tr></thead>";
+                                    output += "<tbody>";
+                                    if (row && row.blacklistIp && row.blacklistIp.length > 0) {
+                                        let i = 1;
+                                        row.blacklistIp.forEach(IP => {
+                                            output += "<tr>";
+                                            output += "<td>" + i + "</td>";
+                                            output += "<td>" + IP.ip + "</td>";
+                                            output += "<td>" + IP.remark + "</td>";
+                                            output += "<td>" + IP.adminName + "</td>";
+                                            output += "</tr>";
+                                            i++;
+                                        });
+                                    }
+                                    output += "</tbody>";
+                                    output += "</table></span></span>";
+                                }
+                            })
+
+                            // data.map(function (remarkId) {
+                            //     let index = vm.allCredibilityRemarks.map(x => x._id).indexOf(remarkId);
+                            //
+                            //     if (index > -1) {
+                            //         if (output && output !== initOutput) {
+                            //             output += "<br>";
+                            //         }
+                            //         output += vm.allCredibilityRemarks[index].name;
+                            //         remarkMatches = true;
+                            //
+                            //         if (vm.allCredibilityRemarks[index]._id === remarkId && vm.allCredibilityRemarks[index].name === '黑名单IP' && vm.allCredibilityRemarks[index].isFixed === true) {
+                            //             output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
+                            //             output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
+                            //             output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
+                            //             output += "<th style='width:30%'>" + $translate('IP') + "</th>";
+                            //             output += "<th style='width:30%'>" + $translate('REMARK') + "</th>";
+                            //             output += "<th style='width:10%'>" + $translate('Operator_Name') + "</th>";
+                            //             output += "</tr></thead>";
+                            //             output += "<tbody>";
+                            //             if (row && row.blacklistIp && row.blacklistIp.length > 0) {
+                            //                 let i = 1;
+                            //                 row.blacklistIp.forEach(IP => {
+                            //                     output += "<tr>";
+                            //                     output += "<td>" + i + "</td>";
+                            //                     output += "<td>" + IP.ip + "</td>";
+                            //                     output += "<td>" + IP.remark + "</td>";
+                            //                     output += "<td>" + IP.adminName + "</td>";
+                            //                     output += "</tr>";
+                            //                     i++;
+                            //                 });
+                            //             }
+                            //             output += "</tbody>";
+                            //             output += "</table></span></span>";
+                            //         }
+                            //     }
+                            // });
                             output += "</a>";
 
                             if (remarkMatches) {
@@ -5793,6 +5833,7 @@ define(['js/app'], function (myApp) {
                                 link.append($('<a>', {
                                     'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
+                                    'ng-click': 'vm.getRewardPointsEventByPlatform(' + JSON.stringify(row.platform) + ');',
                                     'data-toggle': 'popover',
                                     'data-placement': 'left',
                                     'data-trigger': 'focus',
@@ -5891,6 +5932,9 @@ define(['js/app'], function (myApp) {
                                             vm.anyLobbyCurConsumption = group.curConsumption;
                                             vm.anyLobbyTargetConsumption = group.targetConsumption;
                                             vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
+                                        }
+                                        if (group.rewardAmt) {
+                                            group.rewardAmt = Math.floor(group.rewardAmt);
                                         }
                                         return group;
                                     });
@@ -7277,6 +7321,17 @@ define(['js/app'], function (myApp) {
                     });
                 }
             );
+        };
+
+        vm.getRewardPointsEventByPlatform = function (platformObjId) {
+            vm.rewardPointsEventByPlatform = [];
+            if (vm.rewardPointsAllEvent && platformObjId){
+                vm.rewardPointsEventByPlatform = vm.rewardPointsAllEvent.filter(p => {
+                    if (p && p.platformObjId) {
+                        return p.platformObjId.toString() == platformObjId.toString()
+                    }
+                })
+            }
         };
 
         vm.getPromoCodeByPlatform = function (platformObjId) {
