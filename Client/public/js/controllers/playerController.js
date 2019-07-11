@@ -5111,7 +5111,11 @@ define(['js/app'], function (myApp) {
                         }
                         console.log('rowData.totalCredit===', rowData.totalCredit);
                         console.log('TYPE===', typeof rowData.totalCredit);
-                        rowData.totalCredit = Math.floor(rowData.totalCredit); // remove decimal places, no rounding
+
+                        // remove decimal places, no rounding
+                        rowData.validCredit = Math.floor(rowData.validCredit);
+                        rowData.lockedCredit = Math.floor(rowData.lockedCredit);
+                        rowData.totalCredit = Math.floor(rowData.totalCredit);
 
                         if (table) {
                             table.row.add(rowData);
@@ -5928,6 +5932,9 @@ define(['js/app'], function (myApp) {
                                             vm.anyLobbyCurConsumption = group.curConsumption;
                                             vm.anyLobbyTargetConsumption = group.targetConsumption;
                                             vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
+                                        }
+                                        if (group.rewardAmt) {
+                                            group.rewardAmt = Math.floor(group.rewardAmt);
                                         }
                                         return group;
                                     });
