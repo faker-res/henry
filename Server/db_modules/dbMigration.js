@@ -1,6 +1,6 @@
 var Q = require("q");
 var geoip = require('geoip-lite');
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 var encrypt = require('./../modules/encrypt');
 var dbconfig = require("../modules/dbproperties");
 var dbDepartment = require("../db_modules/dbDepartment");

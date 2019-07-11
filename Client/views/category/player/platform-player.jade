@@ -437,20 +437,20 @@ include modalGameCreditLog
         tr
             td.alignLeft
                 label {{"LOGIN_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                 label {{"TOPUP_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                 .textareaDetail.margin-top-bottom-small
                 label {{"GAME_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")

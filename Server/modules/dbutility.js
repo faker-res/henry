@@ -14,6 +14,7 @@ var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
 var datx = require('ipip-datx');
 var path = require('path');
 var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
+const queryPhoneLocationFromPackage = require('phone-query');
 
 var dbUtility = {
 
@@ -1863,6 +1864,19 @@ var dbUtility = {
         }
 
         return clientType;
+    },
+
+    queryPhoneLocation: (phoneNumber) => {
+        let retObj = {};
+        let queryRes = queryPhoneLocationFromPackage(phoneNumber);
+
+        if (queryRes) {
+            retObj.phoneProvince = queryRes.province;
+            retObj.phoneCity = queryRes.city;
+            retObj.phoneType = queryRes.op;
+        }
+
+        return retObj;
     }
 };
 

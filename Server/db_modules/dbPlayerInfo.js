@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -6663,6 +6663,15 @@ let dbPlayerInfo = {
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
                                         phoneNumber: loginData.phoneNumber,
                                     };
+
+                                    if (loginData.phoneNumber) {
+                                        let phoneLocation = queryPhoneLocation(loginData.phoneNumber);
+                                        if (phoneLocation) {
+                                            newPlayerData.phoneProvince = phoneLocation.province;
+                                            newPlayerData.phoneCity = phoneLocation.city;
+                                            newPlayerData.phoneType = phoneLocation.op;
+                                        }
+                                    }
 
                                     console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
                                     if (loginData && loginData.lastLoginIp){
@@ -25619,7 +25628,23 @@ let dbPlayerInfo = {
                     });
                 }
 
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: player._id}, {phoneNumber: encryptedPhoneNumber}, constShardKeys.collection_players);
+                let phoneLocation = queryPhoneLocation(phoneNumber);
+                let updObj = {
+                    phoneNumber: encryptedPhoneNumber
+                };
+
+                if (phoneLocation) {
+                    updObj.phoneProvince = phoneLocation.province;
+                    updObj.phoneCity = phoneLocation.city;
+                    updObj.phoneType = phoneLocation.op;
+                }
+
+                return dbUtility.findOneAndUpdateForShard(
+                    dbconfig.collection_players,
+                    {_id: player._id},
+                    updObj,
+                    constShardKeys.collection_players
+                );
             }
         ).then(
             () => {
