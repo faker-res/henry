@@ -40215,12 +40215,17 @@ define(['js/app'], function (myApp) {
 
             vm.updateImageUrl = function(uploaderName, platformId){
                 let imageFile = document.getElementById(uploaderName);
+                let platformNo;
+                if (vm.allPlatformData.length > 0) {
+                    platformNo = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platformNo = ( platformNo && platformNo[0] && platformNo[0].platformId ) ? platformNo[0].platformId : null;
+                }
                 if(imageFile.files.length > 0){
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
                     let sendQuery = {
                         query: {
-                            platformId: platformId,
+                            platformId: platformNo,
                             gameId: vm.curGame.gameId || null,
                             gameName: fileName || null
                         },

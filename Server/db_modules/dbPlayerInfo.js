@@ -5971,12 +5971,15 @@ let dbPlayerInfo = {
                     );
                 var b = dbconfig.collection_players
                     .find({platform: platformId, $and: [data]}).count();
-                return Promise.all([a, b]);
+
+                let credibilityRemarksProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: platformId}}).lean();
+                return Promise.all([a, b, credibilityRemarksProm]);
             }
         ).then(
             data => {
                 let playerData;
                 dataSize = data[1];
+                let credibilityRemarksList = data && data[2] ? data[2] : [];
                 console.log('dataSize===', dataSize);
                 console.log('data.length===', data.length);
                 console.log('data[0]===', data[0]);
@@ -5989,6 +5992,24 @@ let dbPlayerInfo = {
                                 console.log('TYPE4===', typeof player[1].finalAmount);
                             }
                             player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
+
+                            if (player[0] && player[0].credibilityRemarks && player[0].credibilityRemarks.length > 0 && credibilityRemarksList && credibilityRemarksList.length > 0) {
+                                let tempCredibilityRemarks = [];
+
+                                player[0].credibilityRemarks.forEach(item => {
+                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item.toString());
+
+                                    if (index > -1) {
+                                        tempCredibilityRemarks.push(credibilityRemarksList[index].name);
+                                    }
+                                });
+
+                                if (tempCredibilityRemarks.length > 0) {
+                                    player[0].credibilityRemarks$ = tempCredibilityRemarks;
+                                } else {
+                                    player[0].credibilityRemarks$ = [];
+                                }
+                            }
                         }
                     });
                     playerData = data[0].map(a => a[0]);
@@ -6663,6 +6684,15 @@ let dbPlayerInfo = {
                                         password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
                                         phoneNumber: loginData.phoneNumber,
                                     };
+
+                                    if (loginData.phoneNumber) {
+                                        let phoneLocation = queryPhoneLocation(loginData.phoneNumber);
+                                        if (phoneLocation) {
+                                            newPlayerData.phoneProvince = phoneLocation.province;
+                                            newPlayerData.phoneCity = phoneLocation.city;
+                                            newPlayerData.phoneType = phoneLocation.op;
+                                        }
+                                    }
 
                                     console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
                                     if (loginData && loginData.lastLoginIp){
@@ -25619,7 +25649,7 @@ let dbPlayerInfo = {
                     });
                 }
 
-                let phoneLocation = dbUtility.queryPhoneLocation(phoneNumber);
+                let phoneLocation = queryPhoneLocation(phoneNumber);
                 let updObj = {
                     phoneNumber: encryptedPhoneNumber
                 };
@@ -25627,6 +25657,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
+                    updObj.phoneType = phoneLocation.op;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(

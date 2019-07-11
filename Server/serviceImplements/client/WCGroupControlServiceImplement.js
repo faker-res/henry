@@ -7,7 +7,7 @@ var WCGroupControlServiceImplement = function () {
 
     this.sendWCGroupControlSessionToFPMS.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(data.deviceId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.adminId, data.status, data.connectionAbnormalClickTimes], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.adminId, data.status, data.connectionAbnormalClickTimes, data.wechatVersion], isValidData, false, false, true);
     };
 
     this.sendWechatConversationToFPMS.onRequest = function(wsFunc, conn, data) {

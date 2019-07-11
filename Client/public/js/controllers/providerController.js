@@ -543,8 +543,11 @@ define(['js/app'], function (myApp) {
         vm.updateImageUrl = function(uploaderName){
             let imageFile = document.getElementById(uploaderName);
             if(imageFile.files.length > 0){
-                let platformId = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.platformId
-                    ? vm.selectedPlatform.data.platformId : null;
+                let platformId;
+                if (vm.platformList.length > 0) {
+                    platformId = vm.platformList.filter(item => { return item._id == vm.selectedPlatformID;})
+                    platformId = ( platformId && platformId[0] && platformId[0].platformId ) ? platformId[0].platformId : null;
+                }
                 let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                 let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
                 let sendQuery = {

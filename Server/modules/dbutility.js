@@ -1873,7 +1873,7 @@ var dbUtility = {
         if (queryRes) {
             retObj.phoneProvince = queryRes.province;
             retObj.phoneCity = queryRes.city;
-            retObj.phoneType = queryRes.type;
+            retObj.phoneType = queryRes.op;
         }
 
         return retObj;
