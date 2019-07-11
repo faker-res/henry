@@ -5997,7 +5997,7 @@ let dbPlayerInfo = {
                                 let tempCredibilityRemarks = [];
 
                                 player[0].credibilityRemarks.forEach(item => {
-                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item.toString());
+                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item && item.toString());
 
                                     if (index > -1) {
                                         tempCredibilityRemarks.push(credibilityRemarksList[index].name);
