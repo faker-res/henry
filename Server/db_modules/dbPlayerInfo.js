@@ -18003,6 +18003,26 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
+    updateBatchPlayerLevel: (adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+        let proms = [];
+
+        playerNames.forEach(playerName => {
+            let trimPlayerName = playerName.trim();
+            let updateData = {playerLevel: playerLevelObjId};
+            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
+                .then(data => {
+                    if (data) {
+                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                            name: trimPlayerName,
+                            platform: platformObjId
+                        }, updateData, constShardKeys.collection_players);
+                    }
+                });
+            proms.push(prom);
+        });
+        return Promise.all(proms);
+    },
+
     updatePlayerPlayedProvider: (playerId, providerId) => {
         let player;
         return dbconfig.collection_players.findOne({_id: playerId}).lean().then(
