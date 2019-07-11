@@ -307,6 +307,7 @@ var roleChecker = {
                 largeWithdrawalSetting: [],
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
+                partnerPosterAds: [],
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],

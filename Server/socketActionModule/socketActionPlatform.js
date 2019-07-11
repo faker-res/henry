@@ -682,6 +682,36 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getNextOrderNo, [data.platformId, data.inputDevice], actionName, isValidData);
         },
 
+        getPartnerPosterAdsList: function getPartnerPosterAdsList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.targetDevice);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice], actionName, isValidData);
+        },
+
+        addNewPartnerPosterAdsRecord: function addNewPartnerPosterAdsRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("orderNo") && data.title && data.posterImage && data.targetDevice);
+            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice], actionName, isValidData);
+        },
+
+        deletePartnerPosterAdsRecord: function deletePartnerPosterAdsRecord(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.posterAdsObjId);
+            socketUtil.emitter(self.socket, dbPlatform.deletePartnerPosterAdsRecord, [data.platformObjId, data.posterAdsObjId], actionName, isValidData);
+        },
+
+        updatePartnerPosterAds: function updatePartnerPosterAds(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataArr && data.dataArr.length);
+            socketUtil.emitter(self.socket, dbPlatform.updatePartnerPosterAds, [data.dataArr], actionName, isValidData);
+        },
+
+        updatePartnerPosterAdsStatus: function updatePartnerPosterAdsStatus(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data._id && data.hasOwnProperty("status"));
+            socketUtil.emitter(self.socket, dbPlatform.updatePartnerPosterAdsStatus, [data.platformObjId, data._id, data.status], actionName, isValidData);
+        },
+
         //Partner Advertisement
         getPartnerAdvertisementList: function getPartnerAdvertisementList(data) {
             let actionName = arguments.callee.name;
@@ -715,7 +745,7 @@ function socketActionPlatform(socketIO, socket) {
 
         checkPartnerDuplicateOrderNoWithId: function checkPartnerDuplicateOrderNoWithId(data){
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data._id && data.hasOwnProperty("orderNo") && dadta.inputDevice);
+            let isValidData = Boolean(data && data.platformId && data._id && data.hasOwnProperty("orderNo") && data.inputDevice);
             socketUtil.emitter(self.socket, dbPlatform.checkPartnerDuplicateOrderNoWithId, [data.platformId, data.orderNo, data.inputDevice, data._id], actionName, isValidData);
         },
 

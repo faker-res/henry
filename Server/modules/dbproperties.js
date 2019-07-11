@@ -259,6 +259,9 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
+let partnerPosterAdsConfigSchema = require('../schema/partnerPosterAdsConfig');
+let partnerPosterAdsConfigModel = db_admin.model('partnerPosterAdsConfig', partnerPosterAdsConfigSchema, 'partnerPosterAdsConfig');
+
 let advertisementPageXBETModel = db_admin.model('advertisementPageXBET', advertisementPageXBETSchema, 'advertisementPageXBET');
 
 let playerMultipleBankDetailInfoModel = db_admin.model('playerMultipleBankDetailInfo', playerMultipleBankDetailInfoSchema, 'playerMultipleBankDetailInfo');
@@ -758,6 +761,7 @@ var dbProperties = {
 
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
+    collection_partnerPosterAdsConfig: partnerPosterAdsConfigModel,
 
     collection_advertisementPageXBET: advertisementPageXBETModel,
 
