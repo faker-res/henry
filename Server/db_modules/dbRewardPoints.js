@@ -39,6 +39,9 @@ let dbRewardPoints = {
                 else if (playerData && String(playerData.rewardPointsObjId) != String(rewardPointsData._id)) {
                     dbRewardPoints.updatePlayerRewardPointObjectId(playerObjId, playerData.platform, rewardPointsData._id).catch(errorUtils.reportError);
                 }
+                else if (playerData && playerData.playerLevel && !rewardPointsData.playerLevel) {
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, (playerData.playerLevel._id || playerData.playerLevel));
+                }
 
                 return rewardPointsData;
             }
