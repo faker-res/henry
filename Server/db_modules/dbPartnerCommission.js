@@ -158,9 +158,9 @@ const dbPartnerCommission = {
                 grossCommission: 0,
                 platformFee: 0,
                 totalParentRate: 0,
-                totalTopUpFee: 0,
-                totalWithdrawalFee: 0,
-                totalRewardFee: 0,
+                totalTopUpFee: totalMTopUpFee,
+                totalWithdrawalFee: totalMWithdrawalFee,
+                totalRewardFee: totalMRewardFee,
                 totalPlatformFee: 0,
                 totalReward: totalReward,
                 totalTopUp: totalTopUp,
@@ -369,20 +369,22 @@ const dbPartnerCommission = {
                     noRate: Boolean(multiLevelCommissionRate.noRate),
                     totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
-                    platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    // platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
+                    platformFee: math.chain(platformFeeMulti).round(2).done(),
+                    platformFeeRate: math.round(platformFeeRateMulti).round(4).done(),
                     rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
 
-                detail.platformFeeRate = math.chain(detail.platformFee).divide(totalConsumption).multiply(100).round(2).done();
+                // detail.platformFeeRate = math.chain(detail.platformFee).divide(totalConsumption).multiply(100).round(2).done();
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
                 parentCommissionDetail[objId].totalPlatformFee += detail.platformFee || 0;
-                parentCommissionDetail[objId].totalRewardFee += detail.rewardFee || 0;
-                parentCommissionDetail[objId].totalTopUpFee += detail.topUpFee || 0;
-                parentCommissionDetail[objId].totalWithdrawalFee += detail.withdrawalFee || 0;
+                // parentCommissionDetail[objId].totalRewardFee += detail.rewardFee || 0;
+                // parentCommissionDetail[objId].totalTopUpFee += detail.topUpFee || 0;
+                // parentCommissionDetail[objId].totalWithdrawalFee += detail.withdrawalFee || 0;
                 parentCommissionDetail[objId].platformFee += detail.platformFee || 0;
                 parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
                 totalAllParentRate += Number(detail.parentRate) || 0;
