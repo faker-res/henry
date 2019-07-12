@@ -20728,7 +20728,6 @@ let dbPlayerInfo = {
                         }
                         else {
 
-                            console.log('The Last If');
                             return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime), option, true);
                         }
                     },
@@ -20808,9 +20807,7 @@ let dbPlayerInfo = {
             if (query.hasOwnProperty('partner')) {
                 playerQuery.partner = query.partner;
             }
-            // if (query.hasOwnProperty('status')) {
-            //     playerQuery.status = query.status;
-            // }
+            
             if(query.hasOwnProperty('searchTime')){
                 startTime = query.searchTime;
             }
