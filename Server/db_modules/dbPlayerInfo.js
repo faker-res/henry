@@ -507,9 +507,12 @@ let dbPlayerInfo = {
                                     }
 
                                     if (inputData.phoneNumber) {
-                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber;
                                     }
 
+                                    if (inputData.partnerId) {
+                                        guestPlayerData.partnerId = inputData.partnerId;
+                                    }
                                 }
                             ).then(
                                 () => {
@@ -538,6 +541,10 @@ let dbPlayerInfo = {
                                     // newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
                                     newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
                                     newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                                    if (inputData.clientDomain) {
+                                        newPlayerData.clientDomain = inputData.clientDomain;
+                                    }
                                     if (inputData && inputData.osType) {
                                         newPlayerData.osType = inputData.osType;
                                     }
@@ -20912,7 +20919,7 @@ let dbPlayerInfo = {
             if (query.hasOwnProperty('partner')) {
                 playerQuery.partner = query.partner;
             }
-            
+
             if(query.hasOwnProperty('searchTime')){
                 startTime = query.searchTime;
             }
