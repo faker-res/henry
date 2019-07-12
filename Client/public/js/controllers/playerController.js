@@ -15539,7 +15539,7 @@ define(['js/app'], function (myApp) {
                         }
                         item.domain$ = filteredDomain;
                     }
-                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.os) {
+                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.hasOwnProperty('os')) {
                         item.os = item.osType;
                     }
 
