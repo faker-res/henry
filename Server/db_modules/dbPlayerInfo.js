@@ -504,9 +504,12 @@ let dbPlayerInfo = {
                                     }
 
                                     if (inputData.phoneNumber) {
-                                        guestPlayerData.phoneNumber = inputData.phoneNumber
+                                        guestPlayerData.phoneNumber = inputData.phoneNumber;
                                     }
 
+                                    if (inputData.partnerId) {
+                                        guestPlayerData.partnerId = inputData.partnerId;
+                                    }
                                 }
                             ).then(
                                 () => {
@@ -533,6 +536,9 @@ let dbPlayerInfo = {
                                     newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
                                     newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
 
+                                    if (inputData.clientDomain) {
+                                        newPlayerData.clientDomain = inputData.clientDomain;
+                                    }
                                     //after created new player, need to create login record and apply login reward
                                     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
 
