@@ -473,6 +473,9 @@ let dbPlayerInfo = {
                             else if (inputData && inputData.guestDeviceId){
                                 guestPlayer.deviceId = inputData.guestDeviceId;
                             }
+                            if (inputData && inputData.osType) {
+                                guestPlayer.osType = inputData.osType;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
@@ -516,6 +519,9 @@ let dbPlayerInfo = {
                                     console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
                                     guestPlayerData = determineRegistrationInterface(guestPlayerData);
                                     console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
+                                    if (inputData && inputData.osType) {
+                                        guestPlayerData.osType = inputData.osType;
+                                    }
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
@@ -532,7 +538,9 @@ let dbPlayerInfo = {
                                     // newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
                                     newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
                                     newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
-
+                                    if (inputData && inputData.osType) {
+                                        newPlayerData.osType = inputData.osType;
+                                    }
                                     //after created new player, need to create login record and apply login reward
                                     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
 
@@ -5935,8 +5943,7 @@ let dbPlayerInfo = {
 
                                     newInfo = getRewardGroupData(playerData[ind]);
 
-                                    let creditDetail = dbPlayerInfo.getCreditDetail(playerData[ind]._id);
-                                    let prom1 = Promise.all([newInfo, creditDetail]);
+                                    let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
 
                                     let playerId = playerData[ind]._id;
@@ -5991,12 +5998,6 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
-                            if (player[1] && player[1].finalAmount) {
-                                console.log('player[1].finalAmount===', player[1].finalAmount);
-                                console.log('TYPE4===', typeof player[1].finalAmount);
-                            }
-                            player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
-
                             if (player[0] && player[0].credibilityRemarks && player[0].credibilityRemarks.length > 0 && credibilityRemarksList && credibilityRemarksList.length > 0) {
                                 let tempCredibilityRemarks = [];
 
@@ -6016,7 +6017,7 @@ let dbPlayerInfo = {
                             }
                         }
                     });
-                    playerData = data[0].map(a => a[0]);
+                    playerData = data[0];
                 }
                 return {data: playerData, size: dataSize}
             },
@@ -6331,6 +6332,10 @@ let dbPlayerInfo = {
 
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                }
+
+                if (playerData && playerData.osType) {
+                    recordData.osType = playerData.osType;
                 }
                 Object.assign(recordData, geoInfo);
 
@@ -6757,6 +6762,9 @@ let dbPlayerInfo = {
                                                             return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
                                                         } else {
                                                             console.log("checking newPlayerData", newPlayerData)
+                                                            if (loginData && loginData.osType) {
+                                                                newPlayerData.osType = loginData.osType;
+                                                            }
                                                             return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
                                                         }
                                                     }
@@ -7422,6 +7430,10 @@ let dbPlayerInfo = {
 
                     if (loginData && loginData.clientDomain){
                         playerObj.clientDomain = loginData.clientDomain;
+                    }
+
+                    if (loginData && loginData.osType) {
+                        playerObj.osType = loginData.osType;
                     }
 
                     return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
@@ -18691,7 +18703,7 @@ let dbPlayerInfo = {
             }
         }
 
-        function processPlayerSummaryData (playerSummary, feeDetail) {
+        function processPlayerSummaryData (playerSummary, feeDetail, filterProviderId) {
             if (playerSummary) {
                 playerSummary.topUpAmount = playerSummary.manualTopUpAmount + playerSummary.onlineTopUpAmount + playerSummary.aliPayTopUpAmount + playerSummary.weChatTopUpAmount;
 
@@ -18728,14 +18740,16 @@ let dbPlayerInfo = {
                     playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
                 }
 
-                // Set platform fee to 0 if player bonus amount is positive
-                playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
-
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
 
                     feeDetail.platformFee.forEach(provider => {
-                        if (provider.gameProvider && provider.gameProvider._id && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                        if (
+                            provider.gameProvider
+                            && provider.gameProvider._id
+                            && playerSummary.providerDetail.hasOwnProperty(String(provider.gameProvider._id))
+                            && (!filterProviderId || String(provider.gameProvider._id) === String(filterProviderId))
+                        ) {
                             let gameProviderName = String(provider.gameProvider.name);
 
                             playerSummary.platformFeeEstimate[gameProviderName] = (playerSummary.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
@@ -18744,6 +18758,15 @@ let dbPlayerInfo = {
                                 playerSummary.platformFeeEstimate[gameProviderName] = 0;
                             }
                         }
+                    })
+                }
+
+                // Set platform fee to 0 if player bonus amount is positive
+                playerSummary.totalPlatformFeeEstimate = 0;
+
+                if (playerSummary.platformFeeEstimate) {
+                    Object.keys(playerSummary.platformFeeEstimate).forEach(e => {
+                        playerSummary.totalPlatformFeeEstimate += playerSummary.platformFeeEstimate[e];
                     })
                 }
             }
@@ -18842,7 +18865,7 @@ let dbPlayerInfo = {
                             select: '_id name'
                         }).lean();
 
-                        playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail));
+                        playerSummaryData = playerSummaryData.map(summ => processPlayerSummaryData(summ, feeDetail, query.providerId));
 
                         // filter the summary result first
                         // Consumption Times Query Operator
