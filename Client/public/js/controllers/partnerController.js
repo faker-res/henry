@@ -87,6 +87,16 @@ define(['js/app'], function (myApp) {
             APP_NATIVE_PARTNER: 8
         };
 
+        vm.partnerPosterAdsTargetDevice = {
+            WEB: "0",
+            H5: "1"
+        }
+
+        vm.partnerPosterAdsStatus = {
+            CLOSE: 0,
+            OPEN: 1
+        };
+
         vm.allPartnersStatusString = {
             NORMAL: 1,
             FORBID: 2
@@ -16151,6 +16161,216 @@ define(['js/app'], function (myApp) {
             $('#c-' + id).html($translate("ModifyIt"));
         };
 
+        vm.resetPartnerAddPosterAdsTable = function () {
+            vm.addNewPartnerPosterAds = false;
+            vm.partnerPosterAdsGroup = {showInRealServer: true};
+            vm.partnerPosterAdsTitle = [];
+            $scope.$evalAsync();
+        };
+
+        vm.getPartnerPosterAdsNextOrderNo = function () {
+            if (vm.displayPartnerPosterAdsList && vm.displayPartnerPosterAdsList.length) {
+                let biggestOrderNo = 1;
+                vm.displayPartnerPosterAdsList.map(adsData => {
+                    if (adsData.orderNo && adsData.orderNo >= biggestOrderNo) {
+                        biggestOrderNo = adsData.orderNo + 1;
+                    }
+                })
+                vm.partnerPosterAdsGroup.orderNo = biggestOrderNo;
+            } else {
+                vm.partnerPosterAdsGroup.orderNo = 0;
+            }
+        }
+
+        vm.getPartnerPosterAdsList = function () {
+            let sendData = {
+                platformObjId: vm.platformInSetting._id,
+                targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPartnerPosterAdsList', sendData, function (data) {
+                console.log("partner poster ads list", data);
+                if (data && data.data) {
+                    data.data.map(d => {
+                        if (d) {
+                            if (d.posterImage) {
+                                if (d.posterImage.url && d.posterImage.url.length > 35) {
+                                    d.posterImage.urlDisplay = d.posterImage.url.substring(0, 30) + "...";
+                                } else {
+                                    d.posterImage.urlDisplay = d.posterImage.url || null;
+                                }
+
+                                if (d.posterImage.hyperLink && d.posterImage.hyperLink.length > 35) {
+                                    d.posterImage.hyperLinkDisplay = d.posterImage.hyperLink.substring(0, 30) + "...";
+                                } else {
+                                    d.posterImage.hyperLinkDisplay = d.posterImage.hyperLink || null;
+                                }
+                            }
+
+                        }
+                    })
+
+                    vm.displayPartnerPosterAdsList = data.data;
+
+                    $scope.$evalAsync();
+                }
+            });
+        };
+
+        function checkPartnerPosterSize (imageUrl, orderNo) {
+            return new Promise((res, rej) => {
+                let isLoaded = false;
+                let posterImage = new Image();
+                posterImage.onload = function() {
+                    isLoaded = true;
+                    if (posterImage.width != 750 && posterImage.height != 1334) {
+                        let errorMsg = $translate("Image size must be 750*1334");
+                        if (orderNo || orderNo === 0) {
+                            errorMsg += (" " + orderNo);
+                        }
+                        return socketService.showErrorMessage(errorMsg);
+                    }
+                    res()
+                }
+
+                posterImage.src = imageUrl;
+                //must do it in the order above to check if the image loaded, else it will not work
+
+                setTimeout(() => {
+                    if (!isLoaded) {
+                        let errorMsg = $translate("Failed to load image");
+                        if (orderNo || orderNo === 0) {
+                            errorMsg += (" " + orderNo);
+                        }
+                        socketService.showErrorMessage(errorMsg);
+                        rej()
+                    }
+                },5000)
+            });
+        }
+
+        vm.addNewPartnerPosterAdsRecord = async function () {
+            let isDuplicateOrderNo = false;
+            if (vm.displayPartnerPosterAdsList && vm.displayPartnerPosterAdsList.length) {
+                let isFoundSameOrderNo = vm.displayPartnerPosterAdsList.find(ads => ads.orderNo == vm.partnerPosterAdsGroup.orderNo);
+                if (isFoundSameOrderNo) {
+                    isDuplicateOrderNo = true;
+                }
+            }
+            if (!isDuplicateOrderNo && vm.partnerPosterAdsGroup) {
+                if (vm.partnerPosterAdsGroup.posterUrl) {
+                    await checkPartnerPosterSize(vm.partnerPosterAdsGroup.posterUrl)
+                }
+
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    orderNo: vm.partnerPosterAdsGroup.orderNo ? vm.partnerPosterAdsGroup.orderNo : 0,
+                    title: vm.partnerPosterAdsTitle ? vm.partnerPosterAdsTitle : [],
+                    posterImage: {
+                        url: vm.partnerPosterAdsGroup.posterUrl ? vm.partnerPosterAdsGroup.posterUrl : "",
+                        hyperLink: vm.partnerPosterAdsGroup.posterHyperLink ? vm.partnerPosterAdsGroup.posterHyperLink : ""
+                    },
+                    targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
+                }
+
+                socketService.$socket($scope.AppSocket, 'addNewPartnerPosterAdsRecord', sendData, function (data) {
+                    if (data) {
+                        vm.resetPartnerAddPosterAdsTable();
+                        vm.getPartnerPosterAdsList();
+                    }
+                });
+
+            }
+        }
+
+        vm.deletePartnerPosterAdsRecord = function (posterAdsObjId, index) {
+            if (posterAdsObjId) {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    posterAdsObjId: posterAdsObjId,
+                };
+
+                GeneralModal.confirm({
+                    title: $translate('DELETE_ADVERTISEMENT'),
+                    text: $translate('Confirm to delete advertisement ?')
+                }).then(function () {
+                    socketService.$socket($scope.AppSocket, 'deletePartnerPosterAdsRecord', sendData, function (data) {
+                        if (data) {
+                            if (typeof index !== "undefined") {
+                                vm.displayPartnerPosterAdsList.splice(index, 1);
+                            }
+                            $scope.$evalAsync();
+                        }
+                    });
+                });
+            }
+        }
+
+        vm.updatePartnerPosterAds = async function () {
+            if (vm.displayPartnerPosterAdsList && vm.displayPartnerPosterAdsList.length) {
+                let checkImagePromArr = []
+                let isDuplicateOrderNo = false;
+                // check duplicate orderNo
+                for (let i = 0; i < vm.displayPartnerPosterAdsList.length; i++) {
+                    if (vm.displayPartnerPosterAdsList[i].posterImage && vm.displayPartnerPosterAdsList[i].posterImage.url) {
+                        checkImagePromArr.push(checkPartnerPosterSize(vm.displayPartnerPosterAdsList[i].posterImage.url, vm.displayPartnerPosterAdsList[i].orderNo));
+                    }
+                    let sameOrderNoPoster = vm.displayPartnerPosterAdsList.filter(ads => ads.orderNo == vm.displayPartnerPosterAdsList[i].orderNo)
+                    if (sameOrderNoPoster && sameOrderNoPoster.length && sameOrderNoPoster.length > 1) {
+                        isDuplicateOrderNo = true;
+                        break;
+                    }
+                }
+
+                let isPassImgCheck = true;
+                await Promise.all(checkImagePromArr).then(
+                    success => {
+                        console.log("poster image checking done");
+                    },
+                    err => {
+                        isPassImgCheck = false;
+                        console.log("poster image fail to load");
+                    }
+                );
+
+                if (!isDuplicateOrderNo && isPassImgCheck) {
+                    socketService.$socket($scope.AppSocket, 'updatePartnerPosterAds', {dataArr: vm.displayPartnerPosterAdsList}, function (data) {
+                        vm.disablePosterAdsInput = true;
+                        vm.getPartnerPosterAdsList();
+                    })
+                }
+            }
+        }
+
+        vm.updatePartnerPosterAdsStatus = function (posterAdsObjId, status) {
+            if (posterAdsObjId) {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    _id: posterAdsObjId,
+                    status: status
+                };
+
+                let statusChangeConfirmText = "";
+
+                if (status == vm.partnerPosterAdsStatus["CLOSE"]) {
+                    statusChangeConfirmText = "Confirm to turn advertisement on ?";
+                } else {
+                    statusChangeConfirmText = "Confirm to turn advertisement off ?";
+                }
+
+                GeneralModal.confirm({
+                    title: $translate('DELETE_ADVERTISEMENT'),
+                    text: $translate(statusChangeConfirmText)
+                }).then(function () {
+                    socketService.$socket($scope.AppSocket, 'updatePartnerPosterAdsStatus', sendData, function (data) {
+                        if (data) {
+                            vm.getPartnerPosterAdsList();
+                        }
+                    });
+                });
+            }
+        }
+
         ///
         //Partner Advertisement
         vm.addNewPartnerAdvertisementRecord = function () {
@@ -17046,6 +17266,12 @@ define(['js/app'], function (myApp) {
                     vm.partnerAdvertisementList();
                     vm.showPlatform = $.extend({}, vm.platformInSetting);
                     vm.showPlatform = vm.retrievePlatformData(vm.showPlatform);
+                    break;
+                case 'partnerPosterAds':
+                    vm.disablePosterAdsInput = true;
+                    vm.partnerPosterAdsWebDevice = true;
+                    vm.resetPartnerAddPosterAdsTable();
+                    vm.getPartnerPosterAdsList();
                     break;
 
             }
