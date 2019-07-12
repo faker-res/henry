@@ -466,6 +466,28 @@
             .col-md-12(style='max-height:300px')
                 table#playerIpHistoryTable.datatable-sm.common-table.display(style="width:100%")
 
+#modalBulkPlayerLevel.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Update Player Level" | translate}}
+            .modal-body
+                form.well
+                    .form-group-col-md-6
+                        label.control-label {{'Player Level' | translate}}
+                        select.form-control(ng-model='vm.batchPermitPlayerLevel')
+                            option(value='all') {{'ALL' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    .form-group-col-md-6
+                        label.control-label {{'Remark' | translate}}
+                        textarea.form-control(ng-model='vm.batchPermitPlayerLevelRemark')
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.batchPermitPlayerLevel || !vm.batchPermitPlayerLevelRemark' ng-click='vm.updateBatchPermitPlayerLevel()') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                label.inlineBlk.margin-right-5(ng-if='vm.batchPermitPlayerLevelResMsg') {{vm.batchPermitPlayerLevelResMsg}}
+                i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='vm.batchPermitPlayerLevelSubmit')
+
 
 #modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

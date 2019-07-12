@@ -37349,6 +37349,7 @@ define(['js/app'], function (myApp) {
                         vm.initBatchParams();
                         vm.drawBatchPermitTable();
                         vm.rewardTabClicked(null, platform._id);
+                        vm.getAllPlayerLevelsLocal();
                     }, 0);
                 }
             };
@@ -37374,6 +37375,9 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
+                vm.batchPermitPlayerLevel = null;
+                vm.batchPermitPlayerLevelRemark = null;
+                vm.batchPermitPlayerLevelResMsg="";
             };
 
             vm.resetBatchEditUI = function(){
@@ -37422,6 +37426,32 @@ define(['js/app'], function (myApp) {
                     })
                 });
                 vm.drawBatchPermitTable();
+            };
+            vm.updateBatchPermitPlayerLevel = function () {
+                let platformObjId = vm.batchSettingSelectedPlatform;
+                let playerNames = vm.splitBatchPermit();
+                let sendQuery = {
+                    admin: authService.adminName,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
+                    playerNames: playerNames,
+                    remarks: vm.batchPermitPlayerLevelRemark,
+                    playerLevelObjId: vm.batchPermitPlayerLevel
+                };
+
+                vm.batchPermitPlayerLevelSubmit = true;
+                console.log("updateBatchPlayerLevel", sendQuery);
+                socketService.$socket($scope.AppSocket, "updateBatchPlayerLevel", sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = $translate("SUCCESS");
+                    })
+                }, function (error) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = error.error.message;
+                    })
+                });
+                // vm.drawBatchPermitTable();
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
@@ -37486,6 +37516,15 @@ define(['js/app'], function (myApp) {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let result = '<textarea rows="8" ng-model="vm.multiUsersList" style="width:100%">'
+                                return result;
+                            }
+                        },
+                        {
+                            title: $translate('Player Level'), data: "name", advSearch: true, "sClass": "remarkCol text-center",
+                            render: function (data, type, row) {
+                                let result = "<a data-toggle=\"modal\" data-target='#modalBulkPlayerLevel' " +
+                                    "ng-click='vm.getAllPlayerLevelsLocal();vm.batchPermitPlayerLevel = null;vm.batchPermitPlayerLevelRemark = null;vm.batchPermitPlayerLevelResMsg=\"\"'> " +
+                                    "<i style='font-size:20px;' class=\"fa fa-diamond\" aria-hidden=\"true\"></i> </a>";
                                 return result;
                             }
                         },

@@ -1166,6 +1166,11 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerNames, data.remarks, data.comment], actionName, isValidData);
         },
+        updateBatchPlayerLevel: function updateBatchPlayerLevel(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.playerNames.length && data.playerLevelObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerLevel, [data.admin, data.platformObjId, data.playerNames, data.playerLevelObjId, data.remarks], actionName, isValidData);
+        },
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId);
