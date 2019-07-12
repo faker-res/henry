@@ -10166,7 +10166,6 @@ let dbPartner = {
         let totalPage = 1;
         let sortCol = {createTime: -1};
         let totalTransferAmount = 0;
-        let showQuery;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -10228,7 +10227,7 @@ let dbPartner = {
                         'data.platformObjId': platformObj._id,
                         createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                     };
-                    showQuery = query;
+
                     let countProm = dbconfig.collection_proposal.find(query).count();
                     let proposalProm = dbconfig.collection_proposal.find(query,
                         {
@@ -10307,7 +10306,7 @@ let dbPartner = {
                     }
                 }
 
-                return {stats: statsObj, list: proposalList, proposalData: proposalObj, query: showQuery};
+                return {stats: statsObj, list: proposalList};
             }
         )
     },
