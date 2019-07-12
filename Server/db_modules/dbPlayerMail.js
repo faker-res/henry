@@ -777,6 +777,7 @@ const dbPlayerMail = {
 
                         if (indexNo != -1) {
                             isSpam = true;
+                            console.log("checking failure: new phone number is blacklisted", telNum)
                             return Q.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("This phone number is already used. Please insert other phone number.")
@@ -852,6 +853,7 @@ const dbPlayerMail = {
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
 
+                        console.log("checking failure: new phone number exists", [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString()), telNum])
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."
