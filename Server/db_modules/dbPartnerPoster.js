@@ -88,13 +88,13 @@ let dbPartnerPoster = {
         let textCanvas = dbPartnerPoster.getTextCanvas(`专属链接：${url}`);
         let textBuffer = textCanvas.toBuffer();
 
-        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 275);
+        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 250);
         let qrBuffer = qrCanvas.toBuffer();
         let qrB64 = qrCanvas.toDataURL();
 
         let completePosterBuffer = await sharp(posterBuffer)
             .composite([
-                {input: qrBuffer, top: 923, left: 236},
+                {input: qrBuffer, top: 941, left: 254},
                 {input: textBuffer, top: 1209, left: 58}
             ])
             .png()
