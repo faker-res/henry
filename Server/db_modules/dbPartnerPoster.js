@@ -12,7 +12,7 @@ const math = require("mathjs");
 const dbconfig = require("./../modules/dbproperties");
 
 let dbPartnerPoster = {
-    getTextCanvas (text, width = 634, height = 100, font = '25px Sans', style = "white") {
+    getTextCanvas (text, width = 634, height = 100, font = '25px "Microsoft YaHei"', style = "white") {
         let textCanvas = canvas.createCanvas(width, height);
         let ctx = textCanvas.getContext("2d");
         ctx.textAlign = "center";
