@@ -2148,12 +2148,16 @@ let dbPlayerInfo = {
                 // Add source url from ip
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
+                    let searchStartTime = dbUtility.getNDaysAgoFromSpecificStartTime(new Date(todayTime.endTime), 30);
 
+                    console.log("checking searchStartTime",searchStartTime)
+                    console.log("checking todayTime.endTime",todayTime.endTime)
                     console.log("checking player's lastLoginIP", playerData.lastLoginIp, playerData.name)
                     console.log("checking player's sourceUrl", playerData.sourceUrl || null, playerData.name)
+
                     return dbconfig.collection_ipDomainLog.find({
                         platform: playerdata.platform,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                        createTime: {$gte: searchStartTime, $lt: todayTime.endTime},
                         ipAddress: playerData.lastLoginIp,
                         $and: [{domain: {$exists: true}}, {domain: {$ne: playerData.domain}}]
                     }).sort({createTime: -1}).limit(1).lean().then(
