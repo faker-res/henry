@@ -18724,9 +18724,6 @@ let dbPlayerInfo = {
                     playerSummary.providerDetail = playerSummary.providerDetail && playerSummary.providerDetail[0] ? playerSummary.providerDetail[0] : {};
                 }
 
-                // Set platform fee to 0 if player bonus amount is positive
-                playerSummary.totalPlatformFeeEstimate = playerSummary.consumptionBonusAmount >= 0 ? 0 : playerSummary.totalPlatformFeeEstimate;
-
                 if (playerSummary.providerDetail && Object.keys(playerSummary.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
                     playerSummary.platformFeeEstimate = playerSummary.platformFeeEstimate || {};
 
@@ -18740,6 +18737,15 @@ let dbPlayerInfo = {
                                 playerSummary.platformFeeEstimate[gameProviderName] = 0;
                             }
                         }
+                    })
+                }
+
+                // Set platform fee to 0 if player bonus amount is positive
+                playerSummary.totalPlatformFeeEstimate = 0;
+
+                if (playerSummary.platformFeeEstimate) {
+                    Object.keys(playerSummary.platformFeeEstimate).forEach(e => {
+                        playerSummary.totalPlatformFeeEstimate += playerSummary.platformFeeEstimate[e];
                     })
                 }
             }
