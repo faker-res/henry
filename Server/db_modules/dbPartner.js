@@ -10141,6 +10141,7 @@ let dbPartner = {
         let providerGroups = [];
         let paymentProposalTypes = [];
         let rewardProposalTypes = [];
+        let allPlayerList = [];
         let allActivePlayerList = [];
         let newPlayerList = [];
         let allValidPlayerList = [];
@@ -10246,7 +10247,6 @@ let dbPartner = {
             }
         ).then(
             partnerAndDownlinePlayerData => {
-
                 return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
 
             }
@@ -10254,16 +10254,42 @@ let dbPartner = {
             allPlayerData => {
                 if (allPlayerData && allPlayerData.length > 0) {
                     allPlayerData.forEach(data => {
+                        let index = allPlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
+                        if (index > -1) {
+                            allPlayerList[index].crewProfit += data.consumptionDetail.bonusAmount,
+                            allPlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
+                            allPlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
+                            allPlayerList[index].validBet += data.consumptionDetail.validAmount,
+                            allPlayerList[index].promoAmount += data.rewardDetail.total,
+                            allPlayerList[index].platformFee += data.totalPlatformFee,
+                            allPlayerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee
+                        } else {
+                            let tempData = {
+                                crewAccount: data.name,
+                                crewRegisterTime: data.registrationTime,
+                                crewLastLoginTime: data.lastAccessTime,
+                                crewProfit: data.consumptionDetail.bonusAmount,
+                                depositAmount: data.topUpDetail.topUpAmount,
+                                withdrawAmount: data.withdrawalDetail.withdrawalAmount,
+                                validBet: data.consumptionDetail.validAmount,
+                                promoAmount: data.rewardDetail.total,
+                                platformFee: data.totalPlatformFee,
+                                totalDepositWithdrawFee: data.totalDepositWithdrawFee
+                            };
+
+                            allPlayerList.push(tempData);
+                        }
+
                         if (data && data.active && (data.active.toString() === 'true')) {
                             let index = allActivePlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
                             if (index > -1) {
                                 allActivePlayerList[index].crewProfit += data.consumptionDetail.bonusAmount,
-                                    allActivePlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
-                                    allActivePlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
-                                    allActivePlayerList[index].validBet += data.consumptionDetail.validAmount,
-                                    allActivePlayerList[index].promoAmount += data.rewardDetail.total,
-                                    allActivePlayerList[index].totalPlatformFee += data.totalPlatformFee,
-                                    allActivePlayerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee
+                                allActivePlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
+                                allActivePlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
+                                allActivePlayerList[index].validBet += data.consumptionDetail.validAmount,
+                                allActivePlayerList[index].promoAmount += data.rewardDetail.total,
+                                allActivePlayerList[index].platformFee += data.totalPlatformFee,
+                                allActivePlayerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee
                             } else {
                                 let tempData = {
                                     crewAccount: data.name,
@@ -10274,7 +10300,7 @@ let dbPartner = {
                                     withdrawAmount: data.withdrawalDetail.withdrawalAmount,
                                     validBet: data.consumptionDetail.validAmount,
                                     promoAmount: data.rewardDetail.total,
-                                    totalPlatformFee: data.totalPlatformFee,
+                                    platformFee: data.totalPlatformFee,
                                     totalDepositWithdrawFee: data.totalDepositWithdrawFee
                                 };
 
@@ -10282,69 +10308,38 @@ let dbPartner = {
                             }
                         }
 
-                        if (intervalTime && intervalTime.startTime && intervalTime.endTime) {
-                            newPlayerList = allActivePlayerList.filter(player =>
-                                new Date(player.crewRegisterTime).getTime() >= intervalTime.startTime.getTime() &&
-                                new Date(player.crewRegisterTime).getTime() < intervalTime.endTime.getTime());
-                        }
-
-
-                        switch (playerType) {
-                            case 1:
-                            case 3:
-                                if (data && data.valid && (data.valid.toString() === 'true')) {
-                                    let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
-                                    if (index === -1) {
-                                        allValidPlayerList.push(data.name);
-                                    }
-                                }
-                                break;
-                            case 2:
-                                if (data && data.valid && (data.valid.toString() === 'true') &&
-                                    new Date(data.registrationTime).getTime() >= intervalTime.startTime.getTime() &&
-                                    new Date(data.registrationTime).getTime() < intervalTime.endTime.getTime()) {
-                                    let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
-                                    if (index === -1) {
-                                        allValidPlayerList.push(data.name);
-                                    }
-                                }
-                                break;
+                        if (data && data.valid && (data.valid.toString() === 'true')) {
+                            let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
+                            if (index === -1) {
+                                allValidPlayerList.push(data.name);
+                            }
                         }
                     });
+
+                    if (intervalTime && intervalTime.startTime && intervalTime.endTime) {
+                        let tempList = playerType == 3 ? allActivePlayerList : allPlayerList;
+                        newPlayerList = tempList.filter(player =>
+                            new Date(player.crewRegisterTime).getTime() >= intervalTime.startTime.getTime() &&
+                            new Date(player.crewRegisterTime).getTime() < intervalTime.endTime.getTime());
+                    }
                 }
-
-                totalCount = allActivePlayerList.length ? allActivePlayerList.length : 0;
-                totalPage = Math.ceil(totalCount / limit);
-
-                statsObj.totalCount = totalCount;
-                statsObj.totalPage = totalPage;
-                statsObj.currentPage = currentPage;
-                statsObj.totalNewPlayerCount = newPlayerList.length || 0;
-                statsObj.totalValidCrewPlayer = allValidPlayerList.length || 0;
-
 
                 let result = [];
                 switch (playerType) {
                     case 1:
-                    case 3:
-                        statsObj.totalDepositAmount = allActivePlayerList.reduce((a,b) => a + b.depositAmount, 0);
-                        statsObj.totalWithdrawAmount = allActivePlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
-                        statsObj.totalPromoAmount = allActivePlayerList.reduce((a,b) => a + b.promoAmount, 0);
-                        statsObj.totalCrewProfit = allActivePlayerList.reduce((a,b) => a + b.crewProfit, 0);
-                        statsObj.totalPlatformFee = allActivePlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
-                        statsObj.totalDepositWithdrawFee = allActivePlayerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+                        getStats(totalCount, totalPage, currentPage, limit, playerType, allPlayerList, newPlayerList, allActivePlayerList, allValidPlayerList, statsObj)
 
-                        result = allActivePlayerList.length > 0 ? allActivePlayerList.slice(index, index + limit) : [];
+                        result = allPlayerList.length > 0 ? allPlayerList.slice(index, index + limit) : [];
                         break;
                     case 2:
-                        statsObj.totalDepositAmount = newPlayerList.reduce((a,b) => a + b.depositAmount, 0);
-                        statsObj.totalWithdrawAmount = newPlayerList.reduce((a,b) => a + b.withdrawAmount, 0);
-                        statsObj.totalPromoAmount = newPlayerList.reduce((a,b) => a + b.promoAmount, 0);
-                        statsObj.totalCrewProfit = newPlayerList.reduce((a,b) => a + b.crewProfit, 0);
-                        statsObj.totalPlatformFee = newPlayerList.reduce((a,b) => a + b.totalPlatformFee, 0);
-                        statsObj.totalDepositWithdrawFee = newPlayerList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+                        getStats(totalCount, totalPage, currentPage, limit, playerType, allPlayerList, newPlayerList, allActivePlayerList, allValidPlayerList, statsObj)
 
                         result = newPlayerList.length > 0 ? newPlayerList.slice(index, index + limit) : [];
+                        break;
+                    case 3:
+                        getStats(totalCount, totalPage, currentPage, limit, playerType, allPlayerList, newPlayerList, allActivePlayerList, allValidPlayerList, statsObj)
+
+                        result = allActivePlayerList.length > 0 ? allActivePlayerList.slice(index, index + limit) : [];
                         break;
                 }
 
@@ -10353,6 +10348,41 @@ let dbPartner = {
                 return {stats: statsObj, list: result};
             }
         )
+
+        function getStats(totalCount, totalPage, currentPage, limit, playerType, allPlayerList, newPlayerList, allActivePlayerList, allValidPlayerList, statsObj) {
+            let tempList = [];
+
+            switch (playerType) {
+                case 1:
+                    tempList = allPlayerList;
+                    break;
+                case 2:
+                    tempList = newPlayerList;
+                    break;
+                case 3:
+                    tempList = allActivePlayerList;
+                    break;
+                default:
+                    tempList = allPlayerList;
+                    break;
+            }
+
+            totalCount = tempList.length ? tempList.length : 0;
+            totalPage = Math.ceil(totalCount / limit);
+
+            statsObj.totalCount = totalCount;
+            statsObj.totalPage = totalPage;
+            statsObj.currentPage = currentPage;
+            statsObj.totalNewPlayerCount = newPlayerList.length || 0;
+            statsObj.totalValidCrewPlayer = allValidPlayerList.length || 0;
+            statsObj.totalDepositAmount = tempList.reduce((a,b) => a + b.depositAmount, 0);
+            statsObj.totalWithdrawAmount = tempList.reduce((a,b) => a + b.withdrawAmount, 0);
+            statsObj.totalPromoAmount = tempList.reduce((a,b) => a + b.promoAmount, 0);
+            statsObj.totalCrewProfit = tempList.reduce((a,b) => a + b.crewProfit, 0);
+            statsObj.totalPlatformFee = tempList.reduce((a,b) => a + b.platformFee, 0);
+            statsObj.totalDepositWithdrawFee = tempList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+
+        }
 
         function getTimeSlotsForPeriod (period) {
             if (period === 1) {
