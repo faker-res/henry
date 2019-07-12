@@ -4969,8 +4969,8 @@ define(['js/app'], function (myApp) {
                     18: total.consumptionBonusAmount,
                     19: total.profit,
                     20: total.consumptionAmount,
-                    21: total.totalPlatformFeeEstimate.toFixed(2),
-                    22: total.totalOnlineTopUpFee.toFixed(2)
+                    22: total.totalPlatformFeeEstimate.toFixed(2),
+                    23: total.totalOnlineTopUpFee.toFixed(2)
                 }, false, true);
 
                 $('#playerReportExcelTable_wrapper').hide();
@@ -4992,8 +4992,8 @@ define(['js/app'], function (myApp) {
                     18: total.consumptionBonusAmount,
                     19: total.profit,
                     20: total.consumptionAmount,
-                    21: total.totalPlatformFeeEstimate.toFixed(2),
-                    22: total.totalOnlineTopUpFee.toFixed(2)
+                    22: total.totalPlatformFeeEstimate.toFixed(2),
+                    23: total.totalOnlineTopUpFee.toFixed(2)
                 }, false, true);
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
