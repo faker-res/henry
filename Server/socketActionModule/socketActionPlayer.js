@@ -24,7 +24,7 @@ var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 var dbUtil = require('./../modules/dbutility');
 var smsAPI = require('../externalAPI/smsAPI');
 var cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -1165,6 +1165,11 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerNames, data.remarks, data.comment], actionName, isValidData);
+        },
+        updateBatchPlayerLevel: function updateBatchPlayerLevel(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.playerNames.length && data.playerLevelObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerLevel, [data.admin, data.platformObjId, data.playerNames, data.playerLevelObjId, data.remarks], actionName, isValidData);
         },
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
             var actionName = arguments.callee.name;

@@ -693,6 +693,12 @@ var dbLogger = {
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
                 }else if(logAction == 'comparePhoneNum'){
                     adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
+                } else if (logAction == 'updateBatchPlayerLevel' && adminActionRecordData.data[2] && adminActionRecordData.data[2].length) {
+                    let remark = adminActionRecordData.data[4] || '';
+                    let playerNames = adminActionRecordData.data[2].join();
+
+                    adminActionRecordData.error = remark + ' ' + playerNames;
+                    adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
                 } else if (logAction == 'updateBatchPlayerCredibilityRemark' && adminActionRecordData.data[2] && data && data.length) {
                     let credibilityRemark = '';
                     let credibilityRemarkArr = [];

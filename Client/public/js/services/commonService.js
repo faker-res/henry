@@ -164,6 +164,10 @@ define([], () => {
             return $scope.$socketPromise('getRewardPointsEvent', {platformObjId: platformObjId}).then(data => data.data)
         };
 
+        self.getAllRewardPointsEvent = ($scope) => {
+            return $scope.$socketPromise('getAllRewardPointsEvent').then(data => data.data)
+        };
+
         self.getPlayerFeedbackTopic = ($scope, platformObjId) => {
             return $scope.$socketPromise('getPlayerFeedbackTopic', {platform: platformObjId}).then(data => data.data)
         };

@@ -254,6 +254,7 @@ define(['js/app'], function (myApp) {
         'updateBatchPlayerForbidPaymentType',
         'updateBatchPlayerForbidRewardPointsEvent',
         'updateBatchPlayerCredibilityRemark',
+        'updateBatchPlayerLevel',
         'playerCreditClearOut',
         'addPlatformBankCardGroup',
         'updatePlatformBankCardGroup',
@@ -11506,7 +11507,11 @@ define(['js/app'], function (myApp) {
                     {group: "rewardPoint", text: "deleteRewardPointsEventById", action: "deleteRewardPointsEventById"},
                     {group: "rewardPoint", text: "createRewardPointsEvent", action: "createRewardPointsEvent"},
 
-                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent", "updateBatchPlayerCredibilityRemark"]},
+                    {group: "Batch Setting", text: "updateBatchPlayer", action: [
+                        "updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents",
+                        "updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent",
+                        "updateBatchPlayerCredibilityRemark", "updateBatchPlayerLevel"
+                    ]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
                     {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
