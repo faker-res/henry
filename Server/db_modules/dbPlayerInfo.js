@@ -476,6 +476,9 @@ let dbPlayerInfo = {
                             if (inputData && inputData.osType) {
                                 guestPlayer.osType = inputData.osType;
                             }
+                            if (inputData.clientDomain) {
+                                guestPlayer.clientDomain = inputData.clientDomain;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
