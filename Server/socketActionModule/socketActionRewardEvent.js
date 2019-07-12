@@ -116,8 +116,8 @@ function socketActionRewardEvent(socketIO, socket) {
             var platformId;
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
             var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
-            if (data && data.platformId && ObjectId(data.platformId)) {
-                platformId = ObjectId(data.platformId);
+            if (data && data.platformId && data.platformId._id) {
+                platformId = ObjectId(data.platformId._id);
             }
             var isValidData = Boolean(data && data.type && data.period && platformId && data.eventName);
             if (isValidData) {

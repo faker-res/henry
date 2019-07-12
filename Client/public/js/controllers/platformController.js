@@ -3746,7 +3746,7 @@ define(['js/app'], function (myApp) {
             vm.gametoGameGroup = function (type) {
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     }
                 }
@@ -3784,12 +3784,13 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
 
                     function success(data) {
-                        vm.curGame = null;
-                        console.log(data);
-                        vm.selectGameGroupGames = [];
-                        vm.selectGameGroupGamesName = [];
-                        vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                        $scope.safeApply();
+                        $scope.$evalAsync( () => {
+                            vm.curGame = null;
+                            console.log(data);
+                            vm.selectGameGroupGames = [];
+                            vm.selectGameGroupGamesName = [];
+                            vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
+                        })
                     }
                 });
             }
@@ -25130,6 +25131,7 @@ define(['js/app'], function (myApp) {
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'carouselConfiguration':
+                    case 'partnerCarouselConfiguration':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -25167,6 +25169,11 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'carouselConfiguration':
                         vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = false;
+                        break;
+                    case 'partnerCarouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25609,10 +25616,17 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Carousel Configuration
             vm.initCarouselSetting = function() {
-                vm.newFrontEndCarousel = {
-                    isPlayerVisible: true,
-                    isPlayerWithRegisteredHpNoVisible: true,
-                };
+
+                if (vm.isPartnerForCarouselConfiguration){
+                    vm.newFrontEndCarousel = {};
+
+                }
+                else{
+                    vm.newFrontEndCarousel = {
+                        isPlayerVisible: true,
+                        isPlayerWithRegisteredHpNoVisible: true,
+                    };
+                }
 
                 vm.resetCarouselUploadFile();
 
@@ -25779,6 +25793,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
+                                vm.newFrontEndCarousel.isPartnerForCarouselConfiguration = vm.isPartnerForCarouselConfiguration;
                                 socketService.$socket($scope.AppSocket, 'saveCarouselSetting', vm.newFrontEndCarousel, function (data) {
                                     console.log("saveCarouselSetting ret", data);
                                     // stop the uploading loader
@@ -25804,7 +25819,7 @@ define(['js/app'], function (myApp) {
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
                 vm.clearAllDropArea();
-                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId, isPartner: vm.isPartnerForCarouselConfiguration}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
@@ -25873,7 +25888,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 );
-                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList, isPartner: vm.isPartnerForCarouselConfiguration}).then(
                      (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
@@ -37291,9 +37306,9 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.filterPlatformSettingsPlatform}).then(data => {
                     console.log(data);
-                    $socket.showConfirmMessage("Replication succeed.");
+                    socketService.showConfirmMessage("Replication succeed.", 10000);
                     loadPlatformData();
                 });
             };
@@ -37334,6 +37349,7 @@ define(['js/app'], function (myApp) {
                         vm.initBatchParams();
                         vm.drawBatchPermitTable();
                         vm.rewardTabClicked(null, platform._id);
+                        vm.getAllPlayerLevelsLocal();
                     }, 0);
                 }
             };
@@ -37359,6 +37375,9 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
+                vm.batchPermitPlayerLevel = null;
+                vm.batchPermitPlayerLevelRemark = null;
+                vm.batchPermitPlayerLevelResMsg="";
             };
 
             vm.resetBatchEditUI = function(){
@@ -37407,6 +37426,32 @@ define(['js/app'], function (myApp) {
                     })
                 });
                 vm.drawBatchPermitTable();
+            };
+            vm.updateBatchPermitPlayerLevel = function () {
+                let platformObjId = vm.batchSettingSelectedPlatform;
+                let playerNames = vm.splitBatchPermit();
+                let sendQuery = {
+                    admin: authService.adminName,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
+                    playerNames: playerNames,
+                    remarks: vm.batchPermitPlayerLevelRemark,
+                    playerLevelObjId: vm.batchPermitPlayerLevel
+                };
+
+                vm.batchPermitPlayerLevelSubmit = true;
+                console.log("updateBatchPlayerLevel", sendQuery);
+                socketService.$socket($scope.AppSocket, "updateBatchPlayerLevel", sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = $translate("SUCCESS");
+                    })
+                }, function (error) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = error.error.message;
+                    })
+                });
+                // vm.drawBatchPermitTable();
             };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
@@ -37471,6 +37516,15 @@ define(['js/app'], function (myApp) {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let result = '<textarea rows="8" ng-model="vm.multiUsersList" style="width:100%">'
+                                return result;
+                            }
+                        },
+                        {
+                            title: $translate('Player Level'), data: "name", advSearch: true, "sClass": "remarkCol text-center",
+                            render: function (data, type, row) {
+                                let result = "<a data-toggle=\"modal\" data-target='#modalBulkPlayerLevel' " +
+                                    "ng-click='vm.getAllPlayerLevelsLocal();vm.batchPermitPlayerLevel = null;vm.batchPermitPlayerLevelRemark = null;vm.batchPermitPlayerLevelResMsg=\"\"'> " +
+                                    "<i style='font-size:20px;' class=\"fa fa-diamond\" aria-hidden=\"true\"></i> </a>";
                                 return result;
                             }
                         },

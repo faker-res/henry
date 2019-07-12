@@ -15,7 +15,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constSMSPurpose = require('../const/constSMSPurpose');
-const queryPhoneLocation = require('query-mobile-phone-area');
+const queryPhoneLocation = require('phone-query');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
@@ -777,6 +777,7 @@ const dbPlayerMail = {
 
                         if (indexNo != -1) {
                             isSpam = true;
+                            console.log("checking failure: new phone number is blacklisted", telNum)
                             return Q.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("This phone number is already used. Please insert other phone number.")
@@ -852,6 +853,7 @@ const dbPlayerMail = {
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
 
+                        console.log("checking failure: new phone number exists", [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString()), telNum])
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."

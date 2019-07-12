@@ -11,6 +11,10 @@ let dbRewardPointsEvent = {
         }).lean();
     },
 
+    getAllRewardPointsEvent: () => {
+        return dbConfig.collection_rewardPointsEvent.find({}).lean();
+    },
+
     getRewardPointsEventById: (rewardPointsEventId) => {
         return dbConfig.collection_rewardPointsEvent.findOne({
             _id: rewardPointsEventId

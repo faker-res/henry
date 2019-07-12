@@ -39,6 +39,9 @@ let dbRewardPoints = {
                 else if (playerData && String(playerData.rewardPointsObjId) != String(rewardPointsData._id)) {
                     dbRewardPoints.updatePlayerRewardPointObjectId(playerObjId, playerData.platform, rewardPointsData._id).catch(errorUtils.reportError);
                 }
+                else if (playerData && playerData.playerLevel && !rewardPointsData.playerLevel) {
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, (playerData.playerLevel._id || playerData.playerLevel));
+                }
 
                 return rewardPointsData;
             }
@@ -158,7 +161,7 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
-                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData));
+                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData, playerData));
 
                 if (!relevantEvents || relevantEvents.length < 1) {
                     // return Promise.reject({
@@ -579,6 +582,13 @@ let dbRewardPoints = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Reward point event is not started."
+                    });
+                }
+
+                if(data[2] && data[2].forbidRewardPointsEvent && data[2].forbidRewardPointsEvent.length && pointEvent && pointEvent._id && data[2].forbidRewardPointsEvent.map(p => {return p.toString()}).includes(pointEvent._id.toString())){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Reward point event is forbidden."
                     });
                 }
 
@@ -2028,7 +2038,7 @@ module.exports = dbRewardPoints;
 // else, it will act as private function of this model
 
 
-function isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData) {
+function isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData, playerData) {
     // if 'OR' flag added in, this part of the code need some adjustment
     let eventTargetDestination = [];
 
@@ -2056,6 +2066,11 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice, playerLeve
 
     if (event && event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
         eventTargetDestination = event.target.targetDestination;
+    }
+
+    // check if player is forbidden from applying reward points
+    if (playerData && playerData.forbidRewardPointsEvent && playerData.forbidRewardPointsEvent.length && event && event._id && playerData.forbidRewardPointsEvent.map(p => {return p.toString()}).includes(event._id.toString())) {
+        return false
     }
 
     return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 || eventTargetDestination.includes('') : eventTargetDestination.length === 0 || eventTargetDestination.includes('');

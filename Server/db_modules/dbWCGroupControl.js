@@ -33,7 +33,7 @@ var dbWCGroupControl = {
             }
         })
     },
-    sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes) => {
+    sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes, wechatVersion) => {
         let deviceSettingRecord;
         let adminObjId;
         if (adminId) {
@@ -74,7 +74,8 @@ var dbWCGroupControl = {
                                 },
                                 csOfficer: adminObjId,
                                 status: status,
-                                lastActiveTime: new Date()
+                                lastActiveTime: new Date(),
+                                wechatVersion: wechatVersion
                             },
                             {new: true}
                         ).lean();
@@ -88,7 +89,8 @@ var dbWCGroupControl = {
                                 },
                                 csOfficer: adminObjId,
                                 status: status,
-                                lastUpdateTime: new Date()
+                                lastUpdateTime: new Date(),
+                                wechatVersion: wechatVersion
                             },
                             {new: true}
                         ).lean();
@@ -104,7 +106,8 @@ var dbWCGroupControl = {
                             status: status,
                             platformObjId: deviceSettingRecord.platformObjId,
                             connectionAbnormalClickTimes: connectionAbnormalClickTimes,
-                            lastActiveTime: new Date()
+                            lastActiveTime: new Date(),
+                            wechatVersion: wechatVersion
                         };
 
                         let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
@@ -513,7 +516,8 @@ var dbWCGroupControl = {
                             connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
                             status: {$last: '$status'},
                             createTime: {$last: '$createTime'},
-                            lastUpdateTime: {$last: '$lastUpdateTime'}
+                            lastUpdateTime: {$last: '$lastUpdateTime'},
+                            wechatVersion: {$last: '$wechatVersion'}
                         }
                     },
                     {
@@ -524,7 +528,8 @@ var dbWCGroupControl = {
                             connectionAbnormalClickTimes: 1,
                             createTime: 1,
                             lastUpdateTime: 1,
-                            duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
+                            duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] },
+                            wechatVersion: 1
                         }
                     },
                     {   $sort: sortCol },
@@ -541,7 +546,8 @@ var dbWCGroupControl = {
                             connectionAbnormalClickTimes: 1,
                             createTime: 1,
                             lastUpdateTime: 1,
-                            duration: 1
+                            duration: 1,
+                            wechatVersion: 1
                         }
                     }
                 ]).read("secondaryPreferred");

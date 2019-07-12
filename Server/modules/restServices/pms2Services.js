@@ -276,6 +276,10 @@ function postBatchSubTopupTypePermission (reqData, paymentSystemKey) {
     return postRequest(reqData, 'batch/playerTopupTypePermission', 'POST', paymentSystemKey);
 }
 
+function postPMSWithdrawalProposal (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashOutListByProposal', 'POST', paymentSystemKey);
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -312,5 +316,6 @@ module.exports = {
     postCashinList: postCashinList,
     postCashoutList: postCashoutList,
     patchSubTopupTypePermission: patchSubTopupTypePermission,
-    postBatchSubTopupTypePermission: postBatchSubTopupTypePermission
+    postBatchSubTopupTypePermission: postBatchSubTopupTypePermission,
+    postPMSWithdrawalProposal: postPMSWithdrawalProposal
 };

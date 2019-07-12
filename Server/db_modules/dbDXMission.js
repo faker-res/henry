@@ -10,7 +10,7 @@ var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
 const rsaCrypto = require("../modules/rsaCrypto");
 const localization = require("./../modules/localization").localization;
-const queryPhoneLocation = require('query-mobile-phone-area');
+const queryPhoneLocation = require('phone-query');
 
 
 const constSystemParam = require('../const/constSystemParam');

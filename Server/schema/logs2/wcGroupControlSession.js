@@ -26,7 +26,9 @@ let wcGroupControlSessionSchema = new Schema({
     // Last Active time, the last time this was updated as 'ONLINE'.
     lastActiveTime: {type: Date, index: true},
     // Last Update time
-    lastUpdateTime: {type: Date, index: true}
+    lastUpdateTime: {type: Date, index: true},
+    // version of wechat
+    wechatVersion: {type: String}
 });
 
 module.exports = wcGroupControlSessionSchema;

@@ -254,6 +254,7 @@ define(['js/app'], function (myApp) {
         'updateBatchPlayerForbidPaymentType',
         'updateBatchPlayerForbidRewardPointsEvent',
         'updateBatchPlayerCredibilityRemark',
+        'updateBatchPlayerLevel',
         'playerCreditClearOut',
         'addPlatformBankCardGroup',
         'updatePlatformBankCardGroup',
@@ -553,7 +554,7 @@ define(['js/app'], function (myApp) {
             if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
                 vm.queryTopup.merchantNoData.forEach(merchantNo=>{
                     vm.merchantCloneList.forEach(item=>{
-                        if(item.merchantNo == merchantNo.merchantNo){
+                        if((item.merchantNo == merchantNo.merchantNo) && (item.name == merchantNo.name)){
                             // if that is a alipay category flag, tick all same "line".
                             if(item.category){
                                 vm.merchantCloneList.map(merchant=>{
@@ -3860,6 +3861,8 @@ define(['js/app'], function (myApp) {
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
+            query.searchTime = vm.feedbackQuery.searchTime.data('datetimepicker').getLocalDate();
+            query.searchEndTime = vm.feedbackQuery.searchEndTime.data('datetimepicker').getLocalDate();
             query.credibilityRemarks = vm.feedbackQuery.credibility;
             query.valueScoreOperator = vm.feedbackQuery.valueOperator;
             query.playerScoreValue = vm.feedbackQuery.valueFormal;
@@ -3873,7 +3876,6 @@ define(['js/app'], function (myApp) {
             query.topUpAmountOperator = vm.feedbackQuery.topUpAmountOperator;
             query.topUpAmountValue = vm.feedbackQuery.topUpAmountFormal;
             query.topUpAmountValueTwo = vm.feedbackQuery.topUpAmountLatter;
-
             vm.feedbackQuery.sortCol = vm.feedbackQuery.sortCol || {createTime$: -1};
 
             utilService.getDataTablePageSize("#feedbackReportTablePage", vm.feedbackQuery, 5000);
@@ -4952,47 +4954,47 @@ define(['js/app'], function (myApp) {
 
             if(isExport){
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
-                    21: total.totalPlatformFeeEstimate.toFixed(2),
-                    22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
+                    22: total.totalPlatformFeeEstimate.toFixed(2),
+                    23: total.totalOnlineTopUpFee.toFixed(2)
+                }, false, true);
 
                 $('#playerReportExcelTable_wrapper').hide();
                 vm.exportToExcel('playerReportExcelTable', 'PLAYER_REPORT')
             }else{
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportTable', tableOptions, {
-                    5: total.manualTopUpAmount,
-                    6: total.weChatTopUpAmount,
-                    7: total.aliPayTopUpAmount,
-                    8: total.onlineTopUpAmount,
-                    9: total.topUpTimes,
-                    10: total.topUpAmount,
-                    11: total.bonusTimes,
-                    12: total.bonusAmount,
-                    13: total.rewardAmount,
-                    14: total.consumptionReturnAmount,
-                    15: total.consumptionTimes,
-                    16: total.validConsumptionAmount,
-                    17: total.consumptionBonusAmount,
-                    18: total.profit,
-                    19: total.consumptionAmount,
-                    21: total.totalPlatformFeeEstimate.toFixed(2),
-                    22: total.totalOnlineTopUpFee.toFixed(2)
-                }, true);
+                    6: total.manualTopUpAmount,
+                    7: total.weChatTopUpAmount,
+                    8: total.aliPayTopUpAmount,
+                    9: total.onlineTopUpAmount,
+                    10: total.topUpTimes,
+                    11: total.topUpAmount,
+                    12: total.bonusTimes,
+                    13: total.bonusAmount,
+                    14: total.rewardAmount,
+                    15: total.consumptionReturnAmount,
+                    16: total.consumptionTimes,
+                    17: total.validConsumptionAmount,
+                    18: total.consumptionBonusAmount,
+                    19: total.profit,
+                    20: total.consumptionAmount,
+                    22: total.totalPlatformFeeEstimate.toFixed(2),
+                    23: total.totalOnlineTopUpFee.toFixed(2)
+                }, false, true);
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
                 vm.playerQuery.pageObj.init({maxCount: size}, newSearch);
@@ -6794,7 +6796,7 @@ define(['js/app'], function (myApp) {
                         data: "inputDevice",
                         render: function (data, type, row) {
                             for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
-                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data) {
+                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] === data) {
                                     return $translate(Object.keys(vm.inputDevice)[i]);
                                 }
                             }
@@ -10427,8 +10429,6 @@ define(['js/app'], function (myApp) {
                     vm.reportSearchTime = 0;
                     $('#topupTable').remove();
 
-                    vm.getTopupReportMerchantFilterDetails();
-
                     vm.initAccs();
                     endLoadMultipleSelect('.merchantNoList');
 
@@ -11071,7 +11071,12 @@ define(['js/app'], function (myApp) {
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        // vm.feedbackQuery.limit = 5000;
+
+                        vm.feedbackQuery.searchTime = utilService.createDatePicker('#feedbackReportQuery .searchTime');
+                        vm.feedbackQuery.searchTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.feedbackQuery.searchEndTime = utilService.createDatePicker('#feedbackReportQuery .searchEndTime');
+                        vm.feedbackQuery.searchEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
                         vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {maxPageSize:5000}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
@@ -11506,7 +11511,11 @@ define(['js/app'], function (myApp) {
                     {group: "rewardPoint", text: "deleteRewardPointsEventById", action: "deleteRewardPointsEventById"},
                     {group: "rewardPoint", text: "createRewardPointsEvent", action: "createRewardPointsEvent"},
 
-                    {group: "Batch Setting", text: "updateBatchPlayer", action: ["updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents","updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent", "updateBatchPlayerCredibilityRemark"]},
+                    {group: "Batch Setting", text: "updateBatchPlayer", action: [
+                        "updateBatchPlayerPermission", "updateBatchPlayerForbidRewardEvents",
+                        "updateBatchPlayerForbidPaymentType","updateBatchPlayerForbidRewardPointsEvent",
+                        "updateBatchPlayerCredibilityRemark", "updateBatchPlayerLevel"
+                    ]},
                     {group: "Batch Setting", text: "playerCreditClearOut", action: "playerCreditClearOut"},
 
                     {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},

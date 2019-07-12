@@ -681,7 +681,7 @@ var dbRewardEvent = {
                                                 }
                                             }
                                             else {
-                                                if (checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
+                                                if (rewardEvent.type.name != constRewardType.PLAYER_RANDOM_REWARD_GROUP && checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                     checkRewardData.status = 2;
                                                 }
                                             }
@@ -1255,7 +1255,7 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
             if (eventData.condition.rewardAppearPeriod && eventData.condition.rewardAppearPeriod[0] && eventData.condition.rewardAppearPeriod[0].startTime) {
                 let isValid = false;
-                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
+                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day() + 1;
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
                 eventData.condition.rewardAppearPeriod.forEach(appearPeriod => {
                     if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
@@ -1305,7 +1305,7 @@ var dbRewardEvent = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: selectedRewardParam[0].requiredTopUpAmount};
+            topupMatchQuery.amount = {$gte: eventData.condition.requiredTopUpAmount};
             topupMatchQuery.$or = [{'bDirty': false}];
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
@@ -2528,24 +2528,27 @@ var dbRewardEvent = {
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
 
-
-                        if (selectedRewardParam.requiredTopUpAmount) {
+                        console.log("checking topUpRecords", topUpRecords)
+                        console.log("checking topUpAmount", topUpAmount)
+                        if (eventData && eventData.condition && eventData.condition.requiredTopUpAmount) {
                             if (!returnData.condition.deposit.status) {
                                 returnData.condition.deposit.status = 1;
                             }
-                            returnData.condition.deposit.allAmount = selectedRewardParam.requiredTopUpAmount;
-                            if (topUpAmount < selectedRewardParam.requiredTopUpAmount) {
+                            returnData.condition.deposit.allAmount = eventData.condition.requiredTopUpAmount;
+                            if (topUpAmount < eventData.condition.requiredTopUpAmount) {
                                 returnData.condition.deposit.status = 2;
                             }
                         }
 
-                        if (selectedRewardParam.requiredConsumptionAmount) {
+                        console.log("checking consumptionAmount", consumptionAmount)
+                        console.log("checking applyRewardAmount", applyRewardAmount)
+                        if (eventData && eventData.condition && eventData.condition.requiredConsumptionAmount) {
                             if (!returnData.condition.bet.status) {
                                 returnData.condition.bet.status = 1;
                             }
-                            returnData.condition.bet.needBet = selectedRewardParam.requiredConsumptionAmount;
+                            returnData.condition.bet.needBet = eventData.condition.requiredConsumptionAmount;
                             returnData.condition.bet.alreadyBet = consumptionAmount - applyRewardAmount;
-                            if ((consumptionAmount - applyRewardAmount) < selectedRewardParam.requiredConsumptionAmount) {
+                            if ((consumptionAmount - applyRewardAmount) < eventData.condition.requiredConsumptionAmount) {
                                 returnData.condition.bet.status = 2;
                             }
                         }
@@ -2555,19 +2558,20 @@ var dbRewardEvent = {
                             returnData.condition.reward.status = 2;
                         }
 
-                        if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
+                        console.log("checking applyRewardTimes", applyRewardTimes)
+                        if (eventData.condition && eventData.condition.hasOwnProperty('numberParticipation') && applyRewardTimes < eventData.condition.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
-                            if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
+                            if (topUpAmount >= (eventData.condition.requiredTopUpAmount? eventData.condition.requiredTopUpAmount: 0)) {
                                 meetTopUpCondition = true;
                             }
 
-                            if (selectedRewardParam.requiredConsumptionAmount) {
-                                meetConsumptionCondition = consumptionAmount - applyRewardAmount >= selectedRewardParam.requiredConsumptionAmount;
+                            if (eventData.condition.requiredConsumptionAmount) {
+                                meetConsumptionCondition = consumptionAmount - applyRewardAmount >= eventData.condition.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
                             }
 
-                            if (selectedRewardParam.operatorOption) { // true = and, false = or
+                            if (eventData.condition && eventData.condition.operatorOption) { // true = and, false = or
                                 if (!meetTopUpCondition) {
                                     returnData.status = 2;
                                 }
@@ -2581,18 +2585,18 @@ var dbRewardEvent = {
                             }
 
                             //calculate player reward amount
-                            let totalProbability = 0;
-                            let combination = [];
+                            // let totalProbability = 0;
+                            // let combination = [];
 
-                            selectedRewardParam.rewardPercentageAmount.forEach(
-                                percentageAmount => {
-                                    totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
-                                    combination.push({
-                                        totalProbability: totalProbability,
-                                        rewardAmount: percentageAmount.amount
-                                    });
-                                }
-                            );
+                            // selectedRewardParam.rewardPercentageAmount.forEach(
+                            //     percentageAmount => {
+                            //         totalProbability += percentageAmount.percentage ? percentageAmount.percentage : 0;
+                            //         combination.push({
+                            //             totalProbability: totalProbability,
+                            //             rewardAmount: percentageAmount.amount
+                            //         });
+                            //     }
+                            // );
 
                             // let pNumber = Math.random() * totalProbability;
                             // combination.some(
@@ -2605,8 +2609,8 @@ var dbRewardEvent = {
                             // );
                             // spendingAmount = rewardAmount * selectedRewardParam.spendingTimesOnReward;
                             // returnData.result.rewardAmount = rewardAmount;
-                            returnData.result.betAmount = selectedRewardParam.requiredConsumptionAmount;
-                            returnData.result.betTimes = selectedRewardParam.spendingTimesOnReward;
+                            // returnData.result.betAmount = eventData.condition.requiredConsumptionAmount;
+                            // returnData.result.betTimes = eventData.condition.spendingTimesOnReward;
                         }
                         else {
                             return Q.reject({
