@@ -420,6 +420,13 @@
         this.partnerService.readMail.once(callback);
     };
 
+    proto.getPartnerPoster = function(callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPartnerPoster.request(data);
+        this.partnerService.getPartnerPoster.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

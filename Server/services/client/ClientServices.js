@@ -482,7 +482,8 @@
                 "getMailList",
                 "deleteAllMail",
                 "deleteMail",
-                "readMail"
+                "readMail",
+                "getPartnerPoster",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

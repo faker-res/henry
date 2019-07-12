@@ -14,6 +14,7 @@ var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPer
 var constPartnerStatus = require('./../const/constPartnerStatus');
 var dbApiLog = require('./../db_modules/dbApiLog');
 var dbPlayerMail = require('../db_modules/dbPlayerMail');
+const dbPartnerPoster = require('../db_modules/dbPartnerPoster');
 
 
 var mongoose = require('mongoose');
@@ -645,6 +646,12 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.partnerName);
             socketUtil.emitter(self.socket, dbPartner.checkChildPartnerNameValidity, [data.platform, data.partnerName, data.partnerObjId], actionName, isValidData);
+        },
+
+        testqrposter: function testqrposter (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.posterUrl && data.data);
+            socketUtil.emitter(self.socket, dbPartnerPoster.bindQrDataToPoster, [data.posterUrl, data.data, data.partnerObjId], actionName, isValidData);
         },
 
         /**

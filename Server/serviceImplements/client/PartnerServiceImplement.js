@@ -18,6 +18,7 @@ let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
 let dbPlatform = require('./../../db_modules/dbPlatform');
 let dbPartnerCommissionConfig = require('./../../db_modules/dbPartnerCommissionConfig');
 let dbPartnerCommission = require('./../../db_modules/dbPartnerCommission');
+let dbPartnerPoster = require('./../../db_modules/dbPartnerPoster');
 
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
@@ -565,6 +566,11 @@ var PartnerServiceImplement = function () {
     this.setPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.partnerId && data.commissionRate);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.setDLPartnerCommissionRateAPI, [conn.partnerId, data.partnerId, data.commissionRate], isValidData);
+    };
+
+    this.getPartnerPoster.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production], isValidData);
     };
 
     this.getPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {

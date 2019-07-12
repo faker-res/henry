@@ -25,6 +25,7 @@ let partnerPosterAdsConfigSchema = new Schema({
 });
 
 partnerPosterAdsConfigSchema.index({platform: 1, orderNo: 1, targetDevice: 1}, {unique: true});
+partnerPosterAdsConfigSchema.index({platform: 1, status: 1, orderNo: 1, targetDevice: 1, showInRealServer: 1});
 
 module.exports = partnerPosterAdsConfigSchema;
 
