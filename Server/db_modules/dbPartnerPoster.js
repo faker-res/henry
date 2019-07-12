@@ -33,6 +33,7 @@ let dbPartnerPoster = {
 
             qr.toCanvas(qrCanvas, data, {
                 errorCorrectionLevel: errorCorrectionLevel,
+                margin: 1,
                 width: size
             }, function (err) {
                 responded = true;
