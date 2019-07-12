@@ -3547,6 +3547,7 @@
   "CREDIBILITY": "信用",
   "UPDATE_PLAYER_CREDIBILITY_REMARK": "设置玩家信用评价",
   "UpdatePlayerCredibility": "设置玩家信用评价",
+  "Update Player Level": "设置玩家等级",
   "PLAYER_VALUE": "价值",
   "EU8 account must start with \"e\"": "在EU8平台上必须以'e'字母作为前缀",
   "PlayerPacketRainReward": "红包雨",
@@ -4441,6 +4442,7 @@
   "updateBatchPlayerForbidProviders": "批量设置会员禁用提供商",
   "updateBatchPlayerForbidRewardPointsEvent": "批量设置会员禁用积分",
   "updateBatchPlayerForbidPaymentType": "批量设置会员禁用充值类型",
+  "updateBatchPlayerLevel": "批量设置玩家等级",
   "updateBatchPlayerCredibilityRemark": "批量设置会员信用评价",
   "playerCreditClearOut": "批量清空余额",
   "DXMission": "电销任务",
@@ -5752,5 +5754,6 @@
   "Daily Max Total Reset Time":  "上限次数刷新时间 (格式 20:00)",
   "Applied Count": "已领取数量",
   "Sync": "同步",
-  "Sync Withdrawal": "同步提款提案"
+  "Sync Withdrawal": "同步提款提案",
+  "Wechat Version": "微信版本"
 }

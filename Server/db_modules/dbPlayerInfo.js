@@ -5997,7 +5997,7 @@ let dbPlayerInfo = {
                                 let tempCredibilityRemarks = [];
 
                                 player[0].credibilityRemarks.forEach(item => {
-                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item.toString());
+                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item && item.toString());
 
                                     if (index > -1) {
                                         tempCredibilityRemarks.push(credibilityRemarksList[index].name);
@@ -18062,6 +18062,26 @@ let dbPlayerInfo = {
                 })
             proms.push(prom);
         })
+        return Promise.all(proms);
+    },
+
+    updateBatchPlayerLevel: (adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+        let proms = [];
+
+        playerNames.forEach(playerName => {
+            let trimPlayerName = playerName.trim();
+            let updateData = {playerLevel: playerLevelObjId};
+            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
+                .then(data => {
+                    if (data) {
+                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                            name: trimPlayerName,
+                            platform: platformObjId
+                        }, updateData, constShardKeys.collection_players);
+                    }
+                });
+            proms.push(prom);
+        });
         return Promise.all(proms);
     },
 
