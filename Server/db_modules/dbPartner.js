@@ -11507,7 +11507,28 @@ let dbPartner = {
                 return dbUtil.splitTimeFrameToDaily(thisMonthTime.startTime, thisMonthTime.endTime);
             }
         }
-    }
+    },
+
+    getPartnerCountByCommissionType: (platformObjId, commissionType) => {
+        let partnerCountProm = dbconfig.collection_partner.find({
+            platform: platformObjId,
+            commissionType: commissionType
+        }).count();
+        let validPartnerCountProm = dbconfig.collection_partner.find({
+            platform: platformObjId,
+            commissionType: commissionType,
+            "permission.disableCommSettlement": {$in: [null, false]}
+        }).count();
+
+        return Promise.all([partnerCountProm, validPartnerCountProm]).then(
+            ([partnerCount, validPartnerCount]) => {
+                return {
+                    totalPartner: partnerCount || 0,
+                    totalValidPartner: validPartnerCount || 0,
+                }
+            }
+        )
+    },
 };
 
 

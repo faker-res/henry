@@ -8,6 +8,12 @@
                     | ( {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.startTime) }} -
                     | {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.endTime) }} )
             .modal-body
+                .col-md-4
+                    label {{"TOTAL_PARTNER" | translate}} {{":"}} {{vm.partnerCommCal.totalPartner}}
+                .col-md-4
+                    label {{"TOTAL_PREVIEW" | translate}} {{":"}} {{vm.partnerCommCal.totalValidPartner}}
+                .col-md-4
+                    label {{"PREVIEW_PROGRESS" | translate}} {{":"}} {{vm.partnerCommCal.totalCommPreview || 0}} / {{vm.partnerCommCal.totalValidPartner}}
                 div(ng-if="vm.partnerCommissionLog && vm.partnerCommissionLog.length > 0")
                     table.simple-table
                         thead
