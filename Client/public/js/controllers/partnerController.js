@@ -1174,7 +1174,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         });
-                        vm.partnerCommCal.totalCommPreview = vm.partnerCommissionLog.length || 0;
+                        vm.partnerCommCal.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
                         vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
