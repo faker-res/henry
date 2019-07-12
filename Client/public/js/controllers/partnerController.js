@@ -7025,6 +7025,13 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
             }
 
+            if (vm.newPartner.ownDomain.indexOf(',') != -1){
+                vm.newPartner.ownDomain = vm.newPartner.ownDomain.split(',');
+            }
+            else if (vm.newPartner.ownDomain.indexOf('\n') != -1){
+                vm.newPartner.ownDomain = vm.newPartner.ownDomain.split('\n');
+            }
+
             console.log(vm.newPartner);
 
             socketService.$socket($scope.AppSocket, str, vm.newPartner, function (data) {
@@ -7846,7 +7853,14 @@ define(['js/app'], function (myApp) {
                     updateData.remark += $translate(vm.commissionType[updateData.commissionType]);
                 }
                 if (updateData.ownDomain) {
-                    updateData.ownDomain = updateData.ownDomain.split('\n');
+                    if (updateData.ownDomain.indexOf(',') != -1){
+                        updateData.ownDomain = updateData.ownDomain.split(',');
+                    }
+                    else if (updateData.ownDomain.indexOf('\n') != -1){
+                        updateData.ownDomain = updateData.ownDomain.split('\n');
+                    }
+
+                    // updateData.ownDomain = updateData.ownDomain.split('\n');
 
                     if (updateData.remark) {
                         updateData.remark += ", ";
@@ -8348,7 +8362,16 @@ define(['js/app'], function (myApp) {
             vm.partnerValidity.ownDomainInvalidURL = false;
             vm.partnerValidity.ownDomainDuplicate = false;
             if (!value) return;
-            var urlArr = value.split('\n');
+            let urlArr;
+            let splitter = '\n';
+            if (value.indexOf(',') != -1){
+                splitter = ',';
+                urlArr = value.split(',');
+            }
+            else if (value.indexOf('\n') != -1){
+                urlArr = value.split('\n');
+            }
+
             for (var i in urlArr) {
                 var parser = document.createElement('a');
                 parser.href = urlArr[i];
@@ -8360,7 +8383,7 @@ define(['js/app'], function (myApp) {
             }
             //form.ownDomain.$setValidity('invalidOwnDomainURL', !vm.partnerValidity.ownDomainInvalidURL);
             var time = new Date().getTime();
-            var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
+            var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split(splitter));
             socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
                 partner: vm.selectedSinglePartner._id,
                 value: newDomains,

@@ -8911,12 +8911,18 @@ var proposal = {
                     }
                     console.log('check status before syncWithdrawalProposalToPMS:', proposalData.status);
                     console.log('syncWithdrawalProposalToPMS req:', message);
-                    RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType);
+                    return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                        bonusData => {
+                            if (bonusData) {
+                                let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
+                                return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
+                                    return Promise.resolve(true);
+                                });
+                            }
+                        }
+                    );
 
-                    let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
-                    return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
-                        return Promise.resolve(true);
-                    });
+
                 }
             }
         );

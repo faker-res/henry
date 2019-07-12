@@ -29,7 +29,9 @@ var actionLogSchema = new Schema({
     //input device that trigger this action log
     inputDevice: Number,
     // Save Game ID if player is entering game
-    gameObjId: {type: Schema.ObjectId, index: true}
+    gameObjId: {type: Schema.ObjectId, index: true},
+    //os for native app
+    osType: {type: String, index: true}
 });
 
 module.exports = actionLogSchema;

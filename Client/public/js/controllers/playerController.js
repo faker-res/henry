@@ -5109,13 +5109,10 @@ define(['js/app'], function (myApp) {
                                 rowData.platform$ = matchedPlatformData[0].name;
                             }
                         }
-                        console.log('rowData.totalCredit===', rowData.totalCredit);
-                        console.log('TYPE===', typeof rowData.totalCredit);
 
                         // remove decimal places, no rounding
                         rowData.validCredit = Math.floor(rowData.validCredit);
                         rowData.lockedCredit = Math.floor(rowData.lockedCredit);
-                        rowData.totalCredit = Math.floor(rowData.totalCredit);
 
                         if (table) {
                             table.row.add(rowData);
@@ -5312,16 +5309,16 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('CREDIT'),
-                        data: 'totalCredit',
+                        data: 'validCredit',
                         sType: 'Credit',
                         orderable: true,
                         bSortable: true,
                         render: function (data, type, row) {
                             // todo :: #13
-                            if (type == 'sort') return row.totalCredit;
+                            if (type == 'sort') return row.validCredit;
                             data = data || 0;
                             var link = $('<div>', {
-                                'data-order': row.totalCredit,
+                                'data-order': row.validCredit,
                             })
                             link.append($('<i class="fa fa-usd"></i>'));
                             if (row.rewardGroupInfo && row.rewardGroupInfo.length > 0) {
@@ -5335,13 +5332,13 @@ define(['js/app'], function (myApp) {
                                         'data-trigger': 'focus',
                                         'data-placement': 'bottom',
                                         'data-container': 'body'
-                                    }).text($noRoundTwoDecimalPlaces(row.totalCredit))
+                                    }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                 )
                             } else {
                                 link.append(
                                     $('<text>', {
                                         'data-row': JSON.stringify(row)
-                                    }).text($noRoundTwoDecimalPlaces(row.totalCredit))
+                                    }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                 )
                             }
                             link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
@@ -6777,24 +6774,28 @@ define(['js/app'], function (myApp) {
                                         status: status
                                     }
                                 }, function (data) {
-                                    let sendData = {
-                                        query: {
-                                            platformObjId: vm.permissionPlayer.platform,
-                                            name: "Main Permission Disabled (default)", //hard code name
-                                            isBlockByMainPermission: true,
-                                            color: "lightgrey"
-                                        },
-                                        updateData: {}
+                                    if (changeObj.hasOwnProperty('allowPromoCode') ) {
+                                        let sendData = {
+                                            query: {
+                                                platformObjId: vm.permissionPlayer.platform,
+                                                name: "Main Permission Disabled (default)", //hard code name
+                                                isBlockByMainPermission: true,
+                                                color: "lightgrey"
+                                            },
+                                            updateData: {}
+                                        }
+
+                                        if (!changeObj.allowPromoCode) {
+                                            sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
+                                        } else {
+                                            sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
+                                        }
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                        });
                                     }
-                                    if (!changeObj.allowPromoCode) {
-                                        sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
-                                    } else {
-                                        sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
-                                    }
-                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
-                                    });
                                     vm.getPlatformPlayersData();
                                 }, null, true);
+
                                 $(thisPopover).popover('hide');
                             })
 
@@ -7748,6 +7749,9 @@ define(['js/app'], function (myApp) {
                     item.country$ = item.country || $translate("Unknown");
                     item.city$ = item.city || $translate("Unknown");
                     item.clientDomain$ = item.clientDomain || $translate("Unknown");
+                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.userAgent && item.userAgent.hasOwnProperty('os')) {
+                        item.userAgent.os = item.osType;
+                    }
                     return item;
                 });
                 var option = $.extend({}, vm.generalDataTableOptions, {
@@ -10177,6 +10181,7 @@ define(['js/app'], function (myApp) {
             // vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
             vm.creditModal = $('#modalPlayerAccountingDetail').modal();
             vm.playerCredit = {};
+            vm.playerTotalGameCredit = 0;
             vm.creditTransfer = {};
             vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
@@ -10187,7 +10192,6 @@ define(['js/app'], function (myApp) {
             if (vm.selectedPlatform.data.useProviderGroup) {
                 vm.creditTransfer.showValidCredit = row.validCredit;
                 vm.creditTransfer.showRewardAmount = row.lockedCredit;
-                vm.creditTransfer.showTotalCredit = row.totalCredit;
             } else {
                 vm.getRewardTask(row._id, function (data) {
                     // Add up amounts from all available reward tasks
@@ -10199,13 +10203,19 @@ define(['js/app'], function (myApp) {
                     }
                     vm.creditTransfer.showRewardAmount = showRewardAmount;
                     vm.creditTransfer.showValidCredit = row.validCredit;
-                    vm.creditTransfer.showTotalCredit = row.totalCredit;
                 });
             }
 
             for (var i in vm.platformProviderList) {
                 vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
             }
+
+            for (let x in vm.playerCredit) {
+                if (vm.playerCredit[x].gameCredit !== "unknown" && !vm.playerCredit[x].reason) {
+                    vm.playerTotalGameCredit += parseFloat(vm.playerCredit[x].gameCredit);
+                }
+            }
+            vm.creditTransfer.showTotalCredit = row.validCredit + row.lockedCredit + vm.playerTotalGameCredit;
             vm.showPlayerAccountingDetailTab(null);
         }
         vm.transferCreditFromProviderClicked = function (providerId) {
@@ -15591,6 +15601,10 @@ define(['js/app'], function (myApp) {
                         }
                         item.domain$ = filteredDomain;
                     }
+                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.hasOwnProperty('os')) {
+                        item.os = item.osType;
+                    }
+
                     return item;
                 }) : [];
                 let total = data.data ? data.data.total : 0;

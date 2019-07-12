@@ -94,6 +94,10 @@ let dbApiLog = {
             logData.domain = reqData.clientDomain;
         }
 
+        if (reqData && reqData.osType) {
+            logData.osType = reqData.osType;
+        }
+
         if(ipAddress && ipAddress != "undefined"){
             var ipData = dbUtility.getIpLocationByIPIPDotNet(ipAddress);
 

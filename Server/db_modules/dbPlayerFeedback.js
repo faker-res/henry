@@ -341,7 +341,6 @@ var dbPlayerFeedback = {
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
         let result = [];
-
         let matchObjFeedback = {
             platform: platform,
             createTime: {$gte: startDate, $lt: endDate}
@@ -372,12 +371,12 @@ var dbPlayerFeedback = {
             delete query.playerType;
         }
 
+
         if (query.admins && query.admins.length) {
             query.admins = query.admins.map(e => ObjectId(e));
             console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
         }
-
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
                 $match: matchObjFeedback
@@ -395,18 +394,25 @@ var dbPlayerFeedback = {
                         stream: stream,
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
+
+                            let searchTime = new Date(query.searchTime);
+                            let searchEndTime = new Date(query.searchEndTime);
                             console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
                                 endTime: moment(query.start).add(query.days, "day"),
+                                // endTime: endT,
                                 query: query,
                                 playerObjIds: feedbackIdObjs.map(function (feedbackIdObj) {
                                     return feedbackIdObj._id;
                                 }),
-                                option: {
-                                    isFeedback: true
-                                }
+                                option: {isFeedback: true},
+                                isPromoteWay: null,
+                                cusT: null,
+                                cusET: null,
+                                startT: searchTime,
+                                endT: searchEndTime
                             });
                         },
                         processResponse: function (record) {
