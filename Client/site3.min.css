@@ -4458,6 +4458,12 @@ hr {
     margin: auto;
 }
 
+#rewardMainTasks .btn-group.bootstrap-select {
+    height: auto;
+}
+#rewardMainTasks .btn-group.bootstrap-select > button {
+    white-space: normal;
+}
 
 .navbar-right {
     padding-right: 10px !important;
