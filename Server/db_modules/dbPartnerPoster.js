@@ -8,28 +8,22 @@ const rp = require("request-promise");
 const qr = require("qrcode");
 const canvas = require("canvas");
 const sharp = require("sharp");
+const math = require("mathjs");
 const dbconfig = require("./../modules/dbproperties");
 
 let dbPartnerPoster = {
-    async bindQrDataToPoster(posterUrl, data, x=236, y=923) {
-        let posterBuffer = await rp.get({
-            url: posterUrl,
-            encoding: null
-        });
+    getTextCanvas (text, width = 634, height = 100, font = '25px Sans', style = "white") {
+        let textCanvas = canvas.createCanvas(width, height);
+        let ctx = textCanvas.getContext("2d");
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = font;
+        ctx.fillStyle = style;
+        let midWidth = math.chain(width).divide(2).abs().done();
+        let midHeight = math.chain(height).divide(2).abs().done();
+        ctx.fillText(text, midWidth, midHeight);
 
-        let qrCanvas = await dbPartnerPoster.getQrInCanvas(data, 275);
-        let qrBuffer = qrCanvas.toBuffer();
-        let qrB64 = qrCanvas.toDataURL();
-
-        let completePosterBuffer = await sharp(posterBuffer)
-            .composite([{input: qrBuffer, top: y, left: x}])
-            .png()
-            .toBuffer();
-
-        return {
-            qrcode: qrB64,
-            poster: 'data:image/png;base64,' + completePosterBuffer.toString('base64')
-        };
+        return textCanvas;
     },
 
     getQrInCanvas(data, size, errorCorrectionLevel = 'M') {
@@ -85,7 +79,30 @@ let dbPartnerPoster = {
 
         posterUsed = posterUsed[0];
 
-        return await dbPartnerPoster.bindQrDataToPoster(posterUsed.posterImage.url, url);
+        let posterBuffer = await rp.get({
+            url: posterUsed.posterImage.url,
+            encoding: null
+        });
+
+        let textCanvas = dbPartnerPoster.getTextCanvas(`专属链接：${url}`);
+        let textBuffer = textCanvas.toBuffer();
+
+        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 275);
+        let qrBuffer = qrCanvas.toBuffer();
+        let qrB64 = qrCanvas.toDataURL();
+
+        let completePosterBuffer = await sharp(posterBuffer)
+            .composite([
+                {input: qrBuffer, top: 923, left: 236},
+                {input: textBuffer, top: 1209, left: 58}
+            ])
+            .png()
+            .toBuffer();
+
+        return {
+            qrcode: qrB64,
+            poster: 'data:image/png;base64,' + completePosterBuffer.toString('base64')
+        };
     }
 };
 
