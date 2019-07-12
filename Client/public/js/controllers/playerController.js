@@ -6777,24 +6777,28 @@ define(['js/app'], function (myApp) {
                                         status: status
                                     }
                                 }, function (data) {
-                                    let sendData = {
-                                        query: {
-                                            platformObjId: vm.permissionPlayer.platform,
-                                            name: "Main Permission Disabled (default)", //hard code name
-                                            isBlockByMainPermission: true,
-                                            color: "lightgrey"
-                                        },
-                                        updateData: {}
+                                    if (changeObj.hasOwnProperty('allowPromoCode') ) {
+                                        let sendData = {
+                                            query: {
+                                                platformObjId: vm.permissionPlayer.platform,
+                                                name: "Main Permission Disabled (default)", //hard code name
+                                                isBlockByMainPermission: true,
+                                                color: "lightgrey"
+                                            },
+                                            updateData: {}
+                                        }
+
+                                        if (!changeObj.allowPromoCode) {
+                                            sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
+                                        } else {
+                                            sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
+                                        }
+                                        socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                        });
                                     }
-                                    if (!changeObj.allowPromoCode) {
-                                        sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
-                                    } else {
-                                        sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
-                                    }
-                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
-                                    });
                                     vm.getPlatformPlayersData();
                                 }, null, true);
+
                                 $(thisPopover).popover('hide');
                             })
 
