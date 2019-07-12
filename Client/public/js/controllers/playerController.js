@@ -10207,12 +10207,16 @@ define(['js/app'], function (myApp) {
                 vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
             }
 
-            for (let x in vm.playerCredit) {
-                if (vm.playerCredit[x].gameCredit !== "unknown" && !vm.playerCredit[x].reason) {
-                    vm.playerTotalGameCredit += parseFloat(vm.playerCredit[x].gameCredit);
+            setTimeout(function () {
+                for (let x in vm.playerCredit) {
+                    if (vm.playerCredit[x].gameCredit !== "unknown" && !vm.playerCredit[x].reason && !isNaN(vm.playerCredit[x].gameCredit)) {
+                        vm.playerTotalGameCredit += parseFloat(vm.playerCredit[x].gameCredit);
+                    }
                 }
-            }
-            vm.creditTransfer.showTotalCredit = row.validCredit + row.lockedCredit + vm.playerTotalGameCredit;
+                console.log('vm.playerTotalGameCredit', vm.playerTotalGameCredit);
+                vm.creditTransfer.showTotalCredit = row.validCredit + row.lockedCredit + vm.playerTotalGameCredit;
+                vm.creditTransfer.showTotalCredit = Math.floor(vm.creditTransfer.showTotalCredit);
+            }, 500);
             vm.showPlayerAccountingDetailTab(null);
         }
         vm.transferCreditFromProviderClicked = function (providerId) {
