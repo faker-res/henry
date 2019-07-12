@@ -88,7 +88,7 @@ let dbPartnerPoster = {
         let textCanvas = dbPartnerPoster.getTextCanvas(`专属链接：${url}`);
         let textBuffer = textCanvas.toBuffer();
 
-        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 250);
+        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 240);
         let qrBuffer = qrCanvas.toBuffer();
         let qrB64 = qrCanvas.toDataURL();
 
