@@ -7752,6 +7752,9 @@ define(['js/app'], function (myApp) {
                     item.country$ = item.country || $translate("Unknown");
                     item.city$ = item.city || $translate("Unknown");
                     item.clientDomain$ = item.clientDomain || $translate("Unknown");
+                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.userAgent && item.userAgent.hasOwnProperty('os')) {
+                        item.userAgent.os = item.osType;
+                    }
                     return item;
                 });
                 var option = $.extend({}, vm.generalDataTableOptions, {
@@ -15595,6 +15598,10 @@ define(['js/app'], function (myApp) {
                         }
                         item.domain$ = filteredDomain;
                     }
+                    if (item.hasOwnProperty('osType') && item.osType !== '' && item.hasOwnProperty('os')) {
+                        item.os = item.osType;
+                    }
+
                     return item;
                 }) : [];
                 let total = data.data ? data.data.total : 0;
