@@ -473,6 +473,9 @@ let dbPlayerInfo = {
                             else if (inputData && inputData.guestDeviceId){
                                 guestPlayer.deviceId = inputData.guestDeviceId;
                             }
+                            if (inputData && inputData.osType) {
+                                guestPlayer.osType = inputData.osType;
+                            }
                             dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
                             return guestPlayer;
                         } else {
@@ -516,6 +519,9 @@ let dbPlayerInfo = {
                                     console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
                                     guestPlayerData = determineRegistrationInterface(guestPlayerData);
                                     console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
+                                    if (inputData && inputData.osType) {
+                                        guestPlayerData.osType = inputData.osType;
+                                    }
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
@@ -532,7 +538,9 @@ let dbPlayerInfo = {
                                     // newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
                                     newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
                                     newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
-
+                                    if (inputData && inputData.osType) {
+                                        newPlayerData.osType = inputData.osType;
+                                    }
                                     //after created new player, need to create login record and apply login reward
                                     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
 
@@ -6325,6 +6333,10 @@ let dbPlayerInfo = {
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                 }
+
+                if (playerData && playerData.osType) {
+                    recordData.osType = playerData.osType;
+                }
                 Object.assign(recordData, geoInfo);
 
                 let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -6750,6 +6762,9 @@ let dbPlayerInfo = {
                                                             return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
                                                         } else {
                                                             console.log("checking newPlayerData", newPlayerData)
+                                                            if (loginData && loginData.osType) {
+                                                                newPlayerData.osType = loginData.osType;
+                                                            }
                                                             return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
                                                         }
                                                     }
@@ -7415,6 +7430,10 @@ let dbPlayerInfo = {
 
                     if (loginData && loginData.clientDomain){
                         playerObj.clientDomain = loginData.clientDomain;
+                    }
+
+                    if (loginData && loginData.osType) {
+                        playerObj.osType = loginData.osType;
                     }
 
                     return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
