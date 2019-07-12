@@ -10223,8 +10223,8 @@ let dbPartner = {
 
                     let query = {
                         type: proposalTypeData._id,
-                        'data.partnerObjId': {$in: [partnerObj._id, String(partnerObj._id)],
-                        'data.platformObjId': {$in: [platformObj._id, String(platformObj._id)],
+                        'data.partnerObjId': {$in: [partnerObj._id, String(partnerObj._id)]},
+                        'data.platformObjId': {$in: [platformObj._id, String(platformObj._id)]},
                         createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                     };
 
