@@ -18232,7 +18232,7 @@ let dbPlayerInfo = {
 
                 // Limit records search to provider
                 if (query && query.providerId) {
-                    relevantPlayerQuery.providerId = ObjectId(query.providerId);
+                    relevantPlayerQuery.provider = ObjectId(query.providerId);
                 }
 
                 return dbconfig.collection_playerConsumptionHourSummary.distinct('player', relevantPlayerQuery).then(
