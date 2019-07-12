@@ -20703,7 +20703,6 @@ let dbPlayerInfo = {
                                 })
                             );
                         } else if (option.isFeedback) {
-                            console.log('Is Feedback');
                             return Promise.all(
                                 playerObjIds.map(async id => {
                                     let playerFeedBackData = await dbconfig.collection_playerFeedback.findById(id,
@@ -20713,10 +20712,8 @@ let dbPlayerInfo = {
                                             select: '_id adminName',
                                             model: dbconfig.collection_admin
                                         }).lean();
-                                    // let qStartTime = new Date(startT);
                                     let qStartTime = new Date(playerFeedBackData.createTime);
                                     let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
-                                    // let qEndTime = new Date(endT);
 
 
                                     let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
@@ -20781,8 +20778,6 @@ let dbPlayerInfo = {
             let aliPayTopUpTypeId = "";
             let consumptionReturnTypeId = "";
 
-            console.log('search start time', startTime);
-            console.log('search end time', endTime);
             let playerQuery = {_id: {$in: playerObjId}};
             if (query.playerLevel) {
                 playerQuery.playerLevel = query.playerLevel;
@@ -20899,8 +20894,6 @@ let dbPlayerInfo = {
             if (!playerData) {
                 return "";
             }
-            console.log('search start time', startTime);
-            console.log('search end time', endTime);
             let playerObjIds = playerData.map(e => e._id);
             let consumptionPromMatchObj = {
                 playerId: {$in: playerObjIds},
