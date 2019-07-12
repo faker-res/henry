@@ -4461,7 +4461,7 @@ hr {
 #rewardMainTasks .btn-group.bootstrap-select {
     height: auto;
 }
-#rewardMainTasks .btn-group.bootstrap-select > button {
+#rewardMainTasks .btn-group.bootstrap-select > button > span.filter-option {
     white-space: normal;
 }
 
