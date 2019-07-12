@@ -2773,6 +2773,70 @@ var dbPlatform = {
         );
     },
 
+    getPartnerPosterAdsList: function (platformObjId, targetDevice) {
+        return dbconfig.collection_partnerPosterAdsConfig.find(
+            {
+                platform: platformObjId,
+                targetDevice: targetDevice
+            }
+        ).sort({orderNo: 1}).lean();
+    },
+
+    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice) {
+        let saveObj = {
+            platform: platformObjId,
+            orderNo: orderNo,
+            targetDevice: targetDevice,
+            title: title,
+            posterImage: posterImage,
+            showInRealServer: showInRealServer
+        }
+
+        return dbconfig.collection_partnerPosterAdsConfig(saveObj).save();
+    },
+
+    deletePartnerPosterAdsRecord: function (platformObjId, posterAdsObjId) {
+        return dbconfig.collection_partnerPosterAdsConfig.remove({_id: posterAdsObjId, platform: platformObjId});
+    },
+
+    updatePartnerPosterAds: function (dataArr) {
+        let promArr = [];
+        dataArr.map(
+            posterAds => {
+                if (!(posterAds._id && posterAds.platform && posterAds.hasOwnProperty("orderNo") && posterAds.targetDevice && posterAds.title && posterAds.posterImage)) {
+                    return;
+                }
+
+                let query = {
+                    _id: posterAds._id,
+                    platform: posterAds.platform
+                }
+
+                let updateData = {
+                    orderNo: posterAds.orderNo,
+                    title: posterAds.title,
+                    posterImage: posterAds.posterImage,
+                    showInRealServer: posterAds.showInRealServer? true: false
+                }
+
+                let updateProm = dbconfig.collection_partnerPosterAdsConfig.update(query, updateData);
+                promArr.push(updateProm);
+            }
+        )
+
+        return Promise.all(promArr);
+    },
+
+    updatePartnerPosterAdsStatus: function (platformObjId, posterAdsObjId, status) {
+        let query = {
+            platform: platformObjId,
+            _id: posterAdsObjId,
+            status: status ? status : 0
+        }
+        let updateStatus = status ? 0 : 1;
+        return dbconfig.collection_partnerPosterAdsConfig.update(query, {status: updateStatus});
+    },
+
     //Partner Advertisement
     getPartnerAdvertisementList: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
