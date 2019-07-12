@@ -5931,8 +5931,7 @@ let dbPlayerInfo = {
 
                                     newInfo = getRewardGroupData(playerData[ind]);
 
-                                    let creditDetail = dbPlayerInfo.getCreditDetail(playerData[ind]._id);
-                                    let prom1 = Promise.all([newInfo, creditDetail]);
+                                    let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
 
                                     let playerId = playerData[ind]._id;
@@ -5987,12 +5986,6 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
-                            if (player[1] && player[1].finalAmount) {
-                                console.log('player[1].finalAmount===', player[1].finalAmount);
-                                console.log('TYPE4===', typeof player[1].finalAmount);
-                            }
-                            player[0].totalCredit = player[1] && player[1].finalAmount ? player[1].finalAmount : 0;
-
                             if (player[0] && player[0].credibilityRemarks && player[0].credibilityRemarks.length > 0 && credibilityRemarksList && credibilityRemarksList.length > 0) {
                                 let tempCredibilityRemarks = [];
 
@@ -6012,7 +6005,7 @@ let dbPlayerInfo = {
                             }
                         }
                     });
-                    playerData = data[0].map(a => a[0]);
+                    playerData = data[0];
                 }
                 return {data: playerData, size: dataSize}
             },
