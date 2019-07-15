@@ -672,7 +672,13 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getPartnerPermissionLog, [ObjectId(data.platform), ObjectId(data.partnerObjId), data.createTime], actionName, isValidData);
-        }
+        },
+
+        getPartnerCountByCommissionType: function getPartnerCountByCommissionType(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.commissionType);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerCountByCommissionType, [data.platformObjId, data.commissionType], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
