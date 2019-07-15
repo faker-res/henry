@@ -478,6 +478,10 @@ var proposal = {
                         }
                     );
 
+                    if (queryObj['data.playerObjId']) {
+                        queryObj['data.playerObjId'] = ObjectId(queryObj['data.playerObjId']);
+                    }
+
                     // Player modify payment info
                     if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;

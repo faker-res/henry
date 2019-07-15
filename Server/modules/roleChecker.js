@@ -607,6 +607,7 @@ var roleChecker = {
                 PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
                 PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
+                DX_TRACKING_REPORT: ['getDXTrackingReport'],
                 DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
