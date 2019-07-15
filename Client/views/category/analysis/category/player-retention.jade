@@ -39,6 +39,14 @@
                             td
                                 a.fa.fa-plus-square(ng-click='vm.retentionAddDay()')
             div
+                label {{'REGISTRATION_DEVICE' | translate}}
+                select.form-control(ng-model='vm.queryPara.playerRetention.device', ng-change = 'vm.retentionFilterOnChange()')
+                    option(value='all') {{"ALL_DEVICE"|translate}}
+                    option(value='app') APP
+                    option(value='web') WEB
+                    option(value='h5') H5
+                    option(value='backstage') {{"BACKSTAGE"|translate}}
+            div
                 label {{'USER_TYPE' | translate}}
                 select.form-control(ng-model='vm.queryPara.playerRetention.userType', ng-change = 'vm.retentionFilterOnChange()')
                     option(value='all') {{"REAL_PLAYER_ALL"|translate}}

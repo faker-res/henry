@@ -129,7 +129,7 @@ function socketActionPartner(socketIO, socket) {
             }
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.domainList], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.domainList, null, data.devices], actionName, isValidData);
         },
         /**
          * getPlayerLoginRecord
