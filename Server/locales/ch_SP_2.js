@@ -531,6 +531,7 @@ var simplifiedChinese = {
     "There is no relevant commission to update": "没有需要修改的佣金比例。",
     "Minimum commission rate must be 1%": "最低佣金1%",
     "Partner can only update child commission once a week.": "每个下级代理佣金比例每周最多只能编辑一次。",
+    "No relevant poster found. Please contact CS": "没有相关海报，请联系客服。",
 
     //todo::add missing messages here
 

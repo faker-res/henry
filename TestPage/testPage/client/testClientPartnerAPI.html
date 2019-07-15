@@ -1749,6 +1749,36 @@
     </div>
 </div>
 
+<h3> Get Partner Poster (代理获取推广二维码和推广海报)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>url
+            <input name="url" type="text">
+        </label>
+    </div>
+    <div>
+        <label>device
+            <input name="device" type="number">
+        </label>
+    </div>
+    <div>
+        <label>is production
+            <input name="production" type="number">
+        </label>
+    </div>
+
+    <p></p>
+    <div>
+        <button id="getPartnerPoster" data-api-name="getPartnerPoster">Get</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {
