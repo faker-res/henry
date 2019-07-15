@@ -6714,10 +6714,12 @@ let dbPlayerInfo = {
                                     }
 
                                     console.log("checking loginData.lastLoginIp", loginData.lastLoginIp || "Undefined")
-                                    if (loginData && loginData.lastLoginIp){
+                                    if (loginData && loginData.lastLoginIp) {
                                         newPlayerData.lastLoginIp = loginData.lastLoginIp;
                                     }
-
+                                    if (loginData && loginData.partnerId) {
+                                        newPlayerData.partnerId = loginData.partnerId;
+                                    }
                                     let checkDeviceIdProm = Promise.resolve();
 
                                     console.log("checking loginData.lastLoginIp", loginData.deviceId || "Undefined")
