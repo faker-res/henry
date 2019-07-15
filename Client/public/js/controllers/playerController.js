@@ -10182,6 +10182,7 @@ define(['js/app'], function (myApp) {
             vm.creditModal = $('#modalPlayerAccountingDetail').modal();
             vm.playerCredit = {};
             vm.playerTotalGameCredit = 0;
+            vm.playerTotalCredit = row.validCredit + row.lockedCredit;
             vm.creditTransfer = {};
             vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
@@ -10210,12 +10211,6 @@ define(['js/app'], function (myApp) {
                 vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
             }
 
-            for (let x in vm.playerCredit) {
-                if (vm.playerCredit[x].gameCredit !== "unknown" && !vm.playerCredit[x].reason) {
-                    vm.playerTotalGameCredit += parseFloat(vm.playerCredit[x].gameCredit);
-                }
-            }
-            vm.creditTransfer.showTotalCredit = row.validCredit + row.lockedCredit + vm.playerTotalGameCredit;
             vm.showPlayerAccountingDetailTab(null);
         }
         vm.transferCreditFromProviderClicked = function (providerId) {
@@ -10368,6 +10363,10 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         var provId = data.data.providerId;
                         targetObj[provId] = data.data || 0;
+
+                        if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
+                            vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                        }
                     })
                 }
             });
