@@ -364,7 +364,9 @@ var playerSchema = new Schema({
         updatePhoneNumber: {type: Number, default: 0},
         editBankCard: {type: Number, default: 0},
         editName: {type: Number, default: 0}
-    }
+    },
+    //os for native app
+    osType: {type: String, index: true}
 });
 
 //record is unique by name and platform

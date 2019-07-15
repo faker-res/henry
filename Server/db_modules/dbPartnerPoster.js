@@ -9,10 +9,12 @@ const qr = require("qrcode");
 const canvas = require("canvas");
 const sharp = require("sharp");
 const math = require("mathjs");
+const resolve = require("path").resolve;
 const dbconfig = require("./../modules/dbproperties");
+canvas.registerFont(resolve(__dirname, "../assets/font/SourceHanSerifSC-Regular.otf"), {family: "Han Serif SC"});
 
 let dbPartnerPoster = {
-    getTextCanvas (text, width = 634, height = 100, font = '25px "Microsoft YaHei"', style = "white") {
+    getTextCanvas (text, width = 634, height = 100, font = '25px "Han Serif SC"', style = "white") {
         let textCanvas = canvas.createCanvas(width, height);
         let ctx = textCanvas.getContext("2d");
         ctx.textAlign = "center";
