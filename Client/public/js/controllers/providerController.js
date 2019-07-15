@@ -211,7 +211,7 @@ define(['js/app'], function (myApp) {
         }
         vm.updatePlatformGameStatus = function(status){
             var query = {
-                platform: vm.selectedPlatform.data._id,
+                platform: vm.selectedPlatformID,
                 game:vm.showGame,
                 status:status
             }
@@ -221,7 +221,7 @@ define(['js/app'], function (myApp) {
         }
         vm.updatePlatformGameDisplay = function(gameDisplay){
             var query = {
-                platform: vm.selectedPlatform.data._id,
+                platform: vm.selectedPlatformID,
                 game:vm.showGame,
                 gameDisplay:gameDisplay
             }
@@ -231,7 +231,7 @@ define(['js/app'], function (myApp) {
         }
         vm.updatePlatformGameOrientation = function(orientation){
             var query = {
-                platform: vm.selectedPlatform.data._id,
+                platform: vm.selectedPlatformID,
                 game: vm.showGame,
                 orientation: orientation
             }
@@ -371,7 +371,7 @@ define(['js/app'], function (myApp) {
                     dailySettlementHour: vm.showProvider.dailySettlementHour,
                     dailySettlementMinute: vm.showProvider.dailySettlementMinute,
                 },
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatformID
             }
             console.log("updateProvider", obj);
             socketService.$socket($scope.AppSocket, 'updateGameProvider', obj, function (data) {
