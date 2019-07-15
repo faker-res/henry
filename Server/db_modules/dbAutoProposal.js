@@ -493,11 +493,10 @@ function checkRewardTaskGroup(proposal, platformObj, withdrawalBank) {
                     canApprove = false;
                 }
 
-                if ((platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                if (playerTotalTopupAmount > 0 && platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
                     && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
-                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount)
-                    || !Number.isFinite(playerTotalBets / playerTotalTopupAmount)
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
                     checkMsgChinese += ' 失败：首提投注额/存款过低;';
