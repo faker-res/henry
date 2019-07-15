@@ -579,11 +579,12 @@ define(['js/app'], function (myApp) {
             var send = {
                 query: {_id: vm.curStatusGame._id},
                 updateData: {status: vm.curStatusGame.targetStatus},
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatformID
             };
             socketService.$socket($scope.AppSocket, 'updateGame', send, function (data) {
-                vm.getProviderGames(vm.SelectedProvider._id);
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                    vm.getProviderGames(vm.SelectedProvider._id);
+                })
             }, function (data) {
                 console.log("create not", data);
             });

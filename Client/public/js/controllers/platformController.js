@@ -39289,7 +39289,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGames[index] && vm.includedGames[index]._id ? vm.includedGames[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGamePlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
@@ -39312,7 +39312,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGamesGroup[index] && vm.includedGamesGroup[index]._id ? vm.includedGamesGroup[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGameGroupPlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
