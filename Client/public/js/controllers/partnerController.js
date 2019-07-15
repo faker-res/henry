@@ -7104,7 +7104,7 @@ define(['js/app'], function (myApp) {
 
         vm.createNewPartner = function () {
             var str = 'createPartner';
-            vm.newPartner.platform = vm.selectedPlatform.id;
+            vm.newPartner.platform = vm.newPartner.platform;
             vm.newPartner.DOB = vm.partnerDOB.data('datetimepicker').getLocalDate();
             vm.newPartner.DOB = vm.newPartner.DOB.toISOString();
             vm.newPartner.gender = (vm.newPartner.gender && vm.newPartner.gender == "true") ? true : false;
