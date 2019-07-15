@@ -5718,7 +5718,7 @@ define(['js/app'], function (myApp) {
                     item.consumptionTimes = isNaN(item.consumptionCount) ? 0 : item.consumptionCount;
 
                     item.credibility$ = "";
-                    if(item.playerInfo.credibilityRemarks && item.playerInfo.credibilityRemarks.length){
+                    if(item.playerInfo && item.playerInfo.credibilityRemarks && item.playerInfo.credibilityRemarks.length){
                         item.playerInfo.credibilityRemarks.forEach(credibility => {
                             item.credibility$ += credibility.name + "<br>";
                         });
@@ -5728,7 +5728,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.playerLevel$ = "";
-                    if (item.playerInfo.playerLevel.name) {
+                    if (item.playerInfo && item.playerInfo.playerLevel && item.playerInfo.playerLevel.name) {
                         item.playerLevel$ = item.playerInfo.playerLevel.name;
                     }
                     else {
@@ -5743,14 +5743,12 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.adminName = "";
-                    if (item.playerInfo.csOfficer && item.playerInfo.csOfficer.adminName) {
+                    if (item.playerInfo && item.playerInfo.csOfficer && item.playerInfo.csOfficer.adminName) {
                         item.adminName = item.playerInfo.csOfficer.adminName;
                     }else{
                         item.adminName = "";
 
                     }
-
-
 
                     return item;
                 }), data.data.size, newSearch, isExport);
