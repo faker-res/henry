@@ -1474,6 +1474,34 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.setupMultiInputDXTracking = function () {
+            let dxTrackingGroupSelect = $('select#selectDXTracking');
+            if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
+                return;
+            }
+            dxTrackingGroupSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+        };
+
+        vm.setupMultiInputDXTrackingProvider = function () {
+            let dxTrackingProvider = $('select#selectDXTrackingProvider');
+            if (dxTrackingProvider.css('display').toLowerCase() === "none") {
+                return;
+            }
+            dxTrackingProvider.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+        };
+
         vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
             socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
                 data => {
@@ -5636,6 +5664,218 @@ define(['js/app'], function (myApp) {
             });
         };
         ///////////////// END player deposit tracking report /////////////////////////////
+
+
+
+        ///////////////// Begin Telemarketing Tracking Report ////////////////////////////
+        vm.searchDXTrackingReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#dxTrackingReportTableSpin').show();
+
+            let sendQuery = {
+                platformId: vm.curPlatformId,
+                query: {
+                    name: vm.dxTrackingQuery.name,
+
+                    credibilityRemarks: vm.dxTrackingQuery.credibilityRemarks,
+                    start: vm.dxTrackingQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.dxTrackingQuery.end.data('datetimepicker').getLocalDate(),
+                    queryStart: vm.dxTrackingQuery.queryStart.data('datetimepicker').getLocalDate(),
+                    queryEnd: vm.dxTrackingQuery.queryEnd.data('datetimepicker').getLocalDate(),
+                    topUpTimesOperator: vm.dxTrackingQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.dxTrackingQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.dxTrackingQuery.topUpTimesValueTwo,
+                    bonusTimesOperator: vm.dxTrackingQuery.bonusTimesOperator,
+                    bonusTimesValue: vm.dxTrackingQuery.bonusTimesValue,
+                    bonusTimesValueTwo: vm.dxTrackingQuery.bonusTimesValueTwo,
+                    topUpAmountOperator: vm.dxTrackingQuery.topUpAmountOperator,
+                    topUpAmountValue: vm.dxTrackingQuery.topUpAmountValue,
+                    topUpAmountValueTwo: vm.dxTrackingQuery.topUpAmountValueTwo,
+                    providerId: vm.dxTrackingQuery.providerId,
+                }
+            };
+
+            console.log('sendQuery', sendQuery);
+
+
+            socketService.$socket($scope.AppSocket, 'getDXTrackingReport', sendQuery, function (data) {
+                findReportSearchTime();
+                console.log('getDXTrackingReport', data);
+                $('#dxTrackingReportTableSpin').hide();
+
+                vm.drawDXTrackingReport(data.data.data.map(item => {
+                    item.name = item.playerInfo.name;
+                    item.valueScore = item.playerInfo.valueScore;
+                    item.topUpAmount$ = isNaN(item.topUpAmount) ? 0 : parseFloat(item.topUpAmount).toFixed(2);
+                    item.bonusAmount$ = isNaN(item.bonusAmount) ? 0 : parseFloat(item.bonusAmount).toFixed(2);
+                    item.validConsumptionAmount$ = isNaN(item.consumptionAmount) ? 0 : parseFloat(item.consumptionAmount).toFixed(2);
+                    item.topUpTimes = isNaN(item.topUpCount) ? 0 : item.topUpCount;
+                    item.consumptionTimes = isNaN(item.consumptionCount) ? 0 : item.consumptionCount;
+
+                    item.credibility$ = "";
+                    if(item.playerInfo.credibilityRemarks && item.playerInfo.credibilityRemarks.length){
+                        item.playerInfo.credibilityRemarks.forEach(credibility => {
+                            item.credibility$ += credibility.name + "<br>";
+                        });
+                    }else{
+                        item.credibility$ = "";
+
+                    }
+
+                    item.playerLevel$ = "";
+                    if (item.playerInfo.playerLevel.name) {
+                        item.playerLevel$ = item.playerInfo.playerLevel.name;
+                    }
+                    else {
+                        item.playerLevel$ = "";
+                    }
+
+                    item.provider$ = "";
+                    if (item.providerInfo && item.providerInfo.providerId && item.providerInfo.providerId.name) {
+                        item.provider$ = item.providerInfo.providerId.name;
+                    }else{
+                        item.provider$ = "";
+                    }
+
+                    item.adminName = "";
+                    if (item.playerInfo.csOfficer && item.playerInfo.csOfficer.adminName) {
+                        item.adminName = item.playerInfo.csOfficer.adminName;
+                    }else{
+                        item.adminName = "";
+
+                    }
+
+
+
+                    return item;
+                }), data.data.size, newSearch, isExport);
+            });
+        };
+
+            vm.drawDXTrackingReport = function (data, size, newSearch, isExport) {
+                var tableOptions = {
+                    data: data,
+                    "order": vm.dxTrackingQuery.aaSorting || [[2, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'name', 'aTargets': [0], bSortable: true},
+                        {'sortCol': 'credibility$', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'playerLevel$', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'date', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'topUpAmount$', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'bonusAmount$', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'provider$', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'consumptionTimes', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'validConsumptionAmount$', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'adminName', 'aTargets': [11], bSortable: true},
+
+                    ],
+                    columns: [
+                        {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                        {title: $translate('CREDIBILITY'), data: "credibility$"},
+                        {title: $translate('playerLevelName'), data: "playerLevel$"},
+                        {title: $translate('PlayerValue'), data: "valueScore"},
+                        {title: $translate('date'), data: "date"},
+                        {title: $translate('TopupAmount'), data: "topUpAmount$", sClass: "sumFloat"},
+                        {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: "sumInt"},
+                        {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: "sumFloat"},
+                        {
+                            title: $translate('GAME_LOBBY'), data: "provider$", sClass: "expandPlayerReport sumText",
+                            render: function (data) {
+                                return "<a>" + data + "</a>";
+                            }
+                        },
+                        {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
+                        {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
+                        {title: $translate('REGISTRATION_ADMIN'), data: "adminName"},
+
+                    ],
+                    "sScrollY": "80vh",
+                    "bScrollCollapse": true,
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                if (playerTbl) {
+                    playerTbl.clear();
+                }
+
+                if(isExport){
+                    var playerTbl = utilService.createDatatableWithFooter('#dxNewTrackingReportExcelTable', tableOptions, {}, true);
+
+                    $('#dxNewTrackingReportExcelTable_wrapper').hide();
+                    vm.exportToExcel('dxNewTrackingReportExcelTable', 'DX_TRACKING_REPORT')
+                }else{
+                    var playerTbl = utilService.createDatatableWithFooter('#dxTrackingReportTable', tableOptions, {}, true);
+                    utilService.setDataTablePageInput('dxTrackingReportTable', playerTbl, $translate);
+
+                    $('#dxTrackingReportTable').resize();
+                    $('#dxTrackingReportTable tbody').off('click', 'td.expandPlayerReport');
+                    $('#dxTrackingReportTable tbody').on('click', 'td.expandPlayerReport', function () {
+                        var tr = $(this).closest('tr');
+                        var row = playerTbl.row(tr);
+
+                        if (row.child.isShown()) {
+                            // This row is already open - close it
+                            row.child.hide();
+                            tr.removeClass('shown');
+                        }
+                        else {
+                            // Open this row
+                            var data = row.data();
+                            console.log('content', data);
+                            var id = 'playertable' + data._id;
+                            row.child(vm.createInnerTable(id)).show();
+                            vm[id] = {};
+                            // utilService.actionAfterLoaded("#" + id + 'Page', function () {
+                            //     vm[id].pageObj = utilService.createPageForPagingTable("#" + id + 'Page', {}, $translate, function (curP, pageSize) {
+                            //         vm.searchGameReportInProvider(data, id, false, (curP - 1) * pageSize, pageSize);
+                            //     });
+                            //
+                            // })
+                            vm.allGame = [];
+                            var gameId = [];
+                            if (data.gameDetail) {
+                                for (let n = 0; n < data.gameDetail.length; n++) {
+                                    gameId[n] = data.gameDetail[n].gameId;
+                                }
+
+                                vm.getGameByIds(gameId).then(
+                                    function () {
+                                        for (let i = 0; i < data.gameDetail.length; i++) {
+                                            data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                            for (let j = 0; j < vm.allGame.length; j++) {
+                                                if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                                    data.gameDetail[i].name = vm.allGame[j].name;
+                                                }
+                                            }
+                                        }
+                                        vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.dxTrackingQuery);
+                                    }
+                                )
+                            }
+
+                            tr.addClass('shown');
+                        }
+                    });
+                    $('#dxTrackingReportTable').off('order.dt');
+                    $('#dxTrackingReportTable').on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXTrackingReport);
+                    });
+                }
+
+
+            }
+
+
+
+        ///////////////// End Telemarketing Tracking Report /////////////////////////////
+
+
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
@@ -10594,6 +10834,37 @@ define(['js/app'], function (myApp) {
                     vm.reportSearchTime = 0;
                     vm.dynamicPlatform();
                     break;
+
+                case "DX_TRACKING_REPORT":
+                    vm.reportSearchTime = 0;
+                    vm.dxTrackingQuery = {
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
+
+
+                    utilService.actionAfterLoaded('#dxTrackingReportTable', function () {
+                        let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                        let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        let todayEndTime = utilService.getTodayEndTime();
+                        vm.setupMultiInputDXTracking();
+                        vm.setupMultiInputDXTrackingProvider();
+                        vm.dxTrackingQuery.totalCount = 0;
+                        vm.dxTrackingQuery.start = utilService.createDatePicker('#dxTrackingReportQuery .startTime');
+                        vm.dxTrackingQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxTrackingQuery.end = utilService.createDatePicker('#dxTrackingReportQuery .endTime');
+                        vm.dxTrackingQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        vm.dxTrackingQuery.queryStart = utilService.createDatePicker('#dxTrackingReportQuery .queryStartTime');
+                        vm.dxTrackingQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxTrackingQuery.queryEnd = utilService.createDatePicker('#dxTrackingReportQuery .queryEndTime');
+                        vm.dxTrackingQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                    });
+                    break;
+
+
+
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;
                     utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {

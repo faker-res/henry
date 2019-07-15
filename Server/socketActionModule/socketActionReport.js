@@ -436,6 +436,15 @@ function socketActionReport(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingReport, [platformObjId, data.query, data.index, data.limit, data.sortCol, loginStartDate, loginEndDate], actionName, isValidData);
         },
 
+
+        getDXTrackingReport: function getDXTrackingReport(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.platformId && ((!data.query.queryStart && !data.query.queryEnd) || (data.query.queryStart && data.query.queryEnd )));
+            let platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getDXTrackingReport, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
         getDXNewPlayerReport: function getDXNewPlayerReport(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.platformId && ((!data.query.queryStart && !data.query.queryEnd) || (data.query.queryStart && data.query.queryEnd && !data.query.days)));
