@@ -70,7 +70,8 @@
                 "tsPhoneCheckIsExistsAllPlatform",
                 "generateCurrentPartnersCommissionDetail",
                 "settlePartnersComm",
-                "topupRecordInsertRepeatCount"
+                "topupRecordInsertRepeatCount",
+                "calculateProposalsTotalAmount"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

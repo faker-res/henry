@@ -72,7 +72,9 @@ define(['js/app'], function (myApp) {
             H5_PLAYER: 3,
             H5_AGENT: 4,
             APP_PLAYER: 5,
-            APP_AGENT: 6
+            APP_AGENT: 6,
+            APP_NATIVE_PLAYER: 7,
+            APP_NATIVE_PARTNER: 8
         };
 
         vm.newProposalNum = 0;
@@ -753,6 +755,9 @@ define(['js/app'], function (myApp) {
 
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
+            // if(obj && obj.data.updateData.qq){
+            //     obj.data.updateData.qq = utilService.encodeQQ(obj.data.updateData.qq);
+            // }
             var result = val || val === false ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
@@ -1128,6 +1133,7 @@ define(['js/app'], function (myApp) {
                 if(item && item.data && item.data.bankCardNo && !item.data.bankCardNo.startsWith("******") && item.type && item.type.name && item.type.name === "ManualPlayerTopUp"){
                     return item.data.bankCardNo = "******" + item.data.bankCardNo.slice(-6);
                 }
+
             });
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
@@ -3216,6 +3222,24 @@ define(['js/app'], function (myApp) {
         vm.forcePairingWithReferenceNumber = function() {
             commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
+        };
+
+        vm.initSyncWithdrawalProposal = function() {
+            vm.syncWithdrawalProposalRemark = "";
+        };
+
+        vm.syncWithdrawalProposal = function() {
+            let sendData = {
+                proposalId: vm.selectedProposal.proposalId,
+                remark: vm.syncWithdrawalProposalRemark
+            };
+            socketService.$socket($scope.AppSocket, 'syncWithdrawalProposalToPMS', sendData, function (data) {
+                vm.syncWithdrawalProposalRemark = "";
+                $('#modalOperationProposal').modal('hide');
+                $(".modal-backdrop").hide();
+                vm.loadProposalQueryData();
+            });
+
         };
 
         vm.refreshSPicker = () => {

@@ -907,7 +907,8 @@ var dbPlayerTopUpRecord = {
 
             if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                 queryObj['$or'] = [
-                    {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
+                    {'data.merchantName': {$in: query.merchantName}},
+                    //{'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
                     {'data.bankCardNo': {$in: convertStringNumber(query.merchantNo)}},
                     {'data.accountNo': {$in: convertStringNumber(query.merchantNo)}},
                     {'data.alipayAccount': {$in: convertStringNumber(query.merchantNo)}},
@@ -5294,7 +5295,7 @@ function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo, payment
 }
 
 function updateProposalRemark (proposalData, remark) {
-    if(proposalData && proposalData._id){
+    if(proposalData && proposalData._id && remark){
         return dbconfig.collection_proposal.findByIdAndUpdate(proposalData._id, {'data.remark': remark})
     }
     else{

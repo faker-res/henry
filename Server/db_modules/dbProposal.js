@@ -48,6 +48,8 @@ const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
 let rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
+const RESTUtils = require("../modules/RESTUtils");
+const SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 var proposal = {
 
@@ -216,6 +218,22 @@ var proposal = {
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
+        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
+            data => {
+                if (smsLogInfo && data && data.proposalId)
+                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+
+                if (data && data.process) {
+                    return getStepInfo(Object.assign({}, data));
+                } else {
+                    return data;
+                }
+            },
+            error => {
+                return Promise.reject(error);
+            }
+        );
+
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
@@ -234,22 +252,6 @@ var proposal = {
                     }
                 )
         }
-
-        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
-            data => {
-                if (smsLogInfo && data && data.proposalId)
-                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
-
-                if (data && data.process) {
-                    return getStepInfo(Object.assign({}, data));
-                } else {
-                    return data;
-                }
-            },
-            error => {
-                return Q.reject(error);
-            }
-        );
     },
 
     createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
@@ -761,6 +763,7 @@ var proposal = {
                                     .populate({path: "operator", model: dbconfig.collection_admin})
                             );
                         }
+
                         return Q.all(allProm).then(
                             function (processSteps) {
                                 proposalData.process.steps = [];
@@ -771,6 +774,7 @@ var proposal = {
                             }
                         )
                     } else {
+
                         return proposalData;
                     }
                 }
@@ -780,6 +784,7 @@ var proposal = {
                         if (player && player.playerId) {
                             proposalData.data.playerId = player.playerId;
                         }
+
                         return proposalData;
                     })
                 } else {
@@ -794,8 +799,13 @@ var proposal = {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
+
+
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
+                    }
+                    if (proposalData && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.qq) {
+                        proposalData.data.updateData.qq = dbutility.encodeQQ(proposalData.data.updateData.qq);
                     }
                     if (proposalData && proposalData.data && proposalData.data.phoneNumber) {
                         proposalData.data.phoneNumber = dbutility.encodePhoneNum(proposalData.data.phoneNumber);
@@ -817,7 +827,31 @@ var proposal = {
                         return null;
                     }
                 }
-            )
+            ).then(data => {
+                if (data) {
+                    let withdrawalProposalIds = [];
+
+                    if (data && data.type && data.type.name && (data.type.name === constProposalType.PLAYER_BONUS || data.type.name === constProposalType.PARTNER_BONUS)
+                        && data.status === 'Approved' && data.data.bonusSystemName === 'PMS2') {
+                        withdrawalProposalIds.push(data.proposalId);
+                    }
+
+                    return getPMSWithdrawalProposal(withdrawalProposalIds).then(pmsWithdrawalProposal => {
+                        if (!pmsWithdrawalProposal || pmsWithdrawalProposal.length == 0) {
+                            data.data.enableSyncWithdraw = Boolean(true);
+                        }
+
+                        return data;
+                    }).catch(
+                        err => {
+                            return data;
+                        }
+                    );
+                } else {
+                    return data;
+                }
+
+            });
     },
 
     getProposalByPlayerIdAndType: function (query) {
@@ -1067,7 +1101,6 @@ var proposal = {
                         }
 
                         // Some extra data
-                        addDetailToProp(updObj.data, 'remark', callbackData.remark);
                         addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                         addDetailToProp(updObj.data, 'merchantName', callbackData.merchantName);
                         addDetailToProp(updObj.data, 'merchantUseName', callbackData.merchantTypeName);
@@ -1094,6 +1127,10 @@ var proposal = {
                         addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
                         addDetailToProp(updObj.data, 'name', callbackData.name);
                         addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+
+                        if (callbackData.remark) {
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                        }
 
                         // Add playername if cancelled
                         if (status === constProposalStatus.CANCEL && (proposalObj.data && !proposalObj.data.cancelBy)) {
@@ -1753,6 +1790,9 @@ var proposal = {
                                     if (item.data && item.data.phoneNumber) {
                                         item.data.phoneNumber = dbutility.encodePhoneNum(item.data.phoneNumber);
                                     }
+                                    // if(item.data.updateData && item.data.updateData.qq){
+                                    //     item.data.updateData.qq = dbutility.encodeQQ(item.data.updateData.qq);
+                                    // }
 
                                     return item;
                                 });
@@ -2375,6 +2415,8 @@ var proposal = {
                                         })
 
                                         return pdata;
+                                    }).then(data => {
+                                        return populateProposalData(data);
                                     })
                             :
                             dbconfig.collection_proposal.aggregate(
@@ -2428,7 +2470,9 @@ var proposal = {
 
                                             return data;
                                         }
-                                    );
+                                    ).then(data => {
+                                        return populateProposalData(data);
+                                    });
                                 });
                         var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
@@ -3495,6 +3539,7 @@ var proposal = {
      *
      */
     getProposalsByAdvancedQuery: function (reqData, index, count, sortObj, isExport) {
+        console.log('getProposalsByAdvancedQuery', reqData);
         sortObj = sortObj || {};
         let proposalTypeList = [];
         let approveProposalTypeList = [];
@@ -3502,13 +3547,64 @@ var proposal = {
         let resultArray = null;
         let totalSize = 0;
         let totalPlayer = 0;
-        let summary = {};
+        let totalAmount = 0;
+        let totalPropCount = 0;
+        let playerSet = new Set();
         let isApprove = false;
         let isSuccess = false;
         let prom = Promise.resolve([]);
         let platformListQuery = [];
         let promoCodeProposalQuery = {
             name: ["PlayerLimitedOfferReward","PlayerPromoCodeReward"]
+        };
+        let groupObj = {
+            _id: null,
+            players: {$addToSet: "$data.playerName"},
+            totalAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.amount", NaN]},
+                        0,
+                        "$data.amount"
+                    ]
+                }
+            },
+            totalRewardAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.rewardAmount", NaN]},
+                        0,
+                        "$data.rewardAmount"
+                    ]
+                }
+            },
+            totalUpdateAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.updateAmount", NaN]},
+                        0,
+                        "$data.updateAmount"
+                    ]
+                }
+            },
+            totalNegativeProfitAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.negativeProfitAmount", NaN]},
+                        0,
+                        "$data.negativeProfitAmount"
+                    ]
+                }
+            },
+            totalCommissionAmount: {
+                $sum: {
+                    $cond: [
+                        {$eq: ["$data.commissionAmount", NaN]},
+                        0,
+                        "$data.commissionAmount"
+                    ]
+                }
+            },
         };
 
         if (reqData.inputDevice) {
@@ -3596,83 +3692,90 @@ var proposal = {
                     )
                 }
             ).then(
-                function (proposalTypeIdList) { // all proposal type ids of this platform
+                async proposalTypeIdList => { // all proposal type ids of this platform
                     delete queryData.platformList;
 
                     let orQuery = [];
 
                     if(isApprove){
                         queryData.type = {$in: approveProposalTypeList};
-                    }else if(isSuccess){
+                    } else if (isSuccess){
                         delete queryData.status;
-                        queryData["$and"] = [];
-                        orQuery.push({type: proposalTypeList, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
-                        orQuery.push({type: approveProposalTypeList, status: constProposalStatus.SUCCESS});
 
-                        queryData["$and"].push({$or: orQuery});
-                    }else{
-                        let allTypeList = proposalTypeList.concat(approveProposalTypeList);
-                        queryData.type = {$in: allTypeList};
+                        orQuery.push({type: {$in: proposalTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
+                        orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
+                        queryData["$or"] = orQuery;
+                    } else {
+                        queryData.type = {$in: proposalTypeList.concat(approveProposalTypeList)};
                     }
 
-                    let a = dbconfig.collection_proposal.find(queryData).read("secondaryPreferred").count();
-                    let b = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
+                    console.log('queryData', queryData);
+
+                    let a = dbconfig.collection_proposal.find(queryData).sort(sortObj).skip(index).limit(count).populate({
                         path: "process",
                         model: dbconfig.collection_proposalProcess
                     }).populate({
                         path: "type", model: dbconfig.collection_proposalType
                     }).lean().then(populateProposalsWithPlatformData);
-                    let c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
-                        promoCodeProposalType => {
-                            let playerPromoCodeRewardObjId;
-                            if (promoCodeProposalType && promoCodeProposalType.length) {
-                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
-                            }
 
-                            return dbconfig.collection_proposal.aggregate([
+                    let playerPromoCodeRewardObjId = await dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(el => el.map(p => p._id));
+
+                    groupObj.totalTopUpAmount = {
+                        $sum: {
+                            $cond: [
+                                {$or: [
+                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        {$setIsSubset: [
+                                                ["$type"],
+                                                playerPromoCodeRewardObjId
+                                            ]}
+                                    ]},
+                                0,
+                                "$data.topUpAmount"
+                            ]
+                        }
+                    };
+
+                    let projField = {
+                        _id: 1, "data.playerObjId": 1, "data.amount": 1, "data.rewardAmount": 1, "data.updateAmount": 1,
+                        "data.negativeProfitAmount": 1, "data.commissionAmount": 1
+                    };
+                    let stream = dbconfig.collection_proposal.find(queryData, projField).cursor({batchSize: 1000});
+
+                    let balancer = new SettlementBalancer();
+                    let b = balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
                                 {
-                                    $match: queryData
-                                },
-                                {
-                                    $group: {
-                                        _id: null,
-                                        totalAmount: {$sum: "$data.amount"},
-                                        totalRewardAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.rewardAmount", NaN]},
-                                                    0,
-                                                    "$data.rewardAmount"
-                                                ]
+                                    stream: stream,
+                                    batchSize: 500,
+                                    makeRequest: function (proposalArr, request) {
+                                        console.log('make request');
+                                        request("player", "calculateProposalsTotalAmount", {
+                                            proposalArr: proposalArr
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        if (record.data) {
+                                            if (record.data.totalAmount) {
+                                                totalAmount += record.data.totalAmount;
                                             }
-                                        },
-                                        // totalRewardAmount: {$sum: "$data.rewardAmount"},
-                                        totalTopUpAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$or: [
-                                                            {$eq: ["$data.topUpAmount", NaN]},
-                                                            {$setIsSubset: [
-                                                                ["$type"],
-                                                                playerPromoCodeRewardObjId
-                                                            ]}
-                                                        ]},
-                                                    0,
-                                                    "$data.topUpAmount"
-                                                ]
+
+                                            if (record.data.totalProps) {
+                                                totalPropCount += record.data.totalProps;
                                             }
-                                        },
-                                        totalUpdateAmount: {$sum: "$data.updateAmount"},
-                                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+
+                                            if (record.data.playerSet) {
+                                                record.data.playerSet.forEach(p => playerSet.add(p));
+                                            }
+                                        }
                                     }
                                 }
-                            ]).read("secondaryPreferred");
-                        }
-                    );
+                            )
+                        );
+                    })
 
-                    let d = dbconfig.collection_proposal.distinct('data.playerName', queryData);
-                    return Promise.all([a, b, c, d]);
+                    return Promise.all([a, b]);
                 },
                 function (error) {
                     return Promise.reject({
@@ -3683,11 +3786,10 @@ var proposal = {
                 }
             ).then(
                 function (data) {
-                    if (data && data[1]) {
-                        totalSize = data[0];
-                        totalPlayer = data[3] && data[3].length || 0;
-                        resultArray = Object.assign([], data[1]);
-                        summary = data[2];
+                    if (data && data[0]) {
+                        totalSize = totalPropCount;
+                        resultArray = Object.assign([], data[0]);
+                        totalPlayer = playerSet.size;
 
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
@@ -3713,11 +3815,12 @@ var proposal = {
                 reqData.type = {$in: arr}
             }
 
-            let a, b, c, d;
+            let a, b, c;
 
             let searchQuery = {
                 name: {$in:["BulkExportPlayerData", "PlayerBonus","PartnerBonus"]}
             };
+
             if(reqData.platformList && reqData.platformList.length > 0) {
                 searchQuery.platformId = platformListQuery;
             }
@@ -3736,12 +3839,14 @@ var proposal = {
                 let query = {
                     name: reqData.type
                 };
-                if(reqData.platformList && reqData.platformList.length > 0) {
+
+                if (reqData.platformList && reqData.platformList.length > 0) {
                     query.platformId = platformListQuery;
                 }
+
                 return dbconfig.collection_proposalType.find(query, {_id: 1}).lean();
             }).then(
-                (selectedProposalTypeList) => {
+                async selectedProposalTypeList => {
                     delete reqData.platformList;
                     let approvedTypeList = []; // proposalType list which Approved status = 已审核
                     let successTypeList = []; // proposalType list which Approved status = 成功
@@ -3764,7 +3869,7 @@ var proposal = {
                     if(isApprove){
                         //if filter status is 已审核，find from proposalType list which Approved status = 已审核
                         reqData.type = {$in: approvedTypeList};
-                    }else if(isSuccess){
+                    } else if (isSuccess){
                         //if filter status is 成功，find from proposalType list which Approved status = 成功
                         delete reqData.status;
                         delete reqData.type;
@@ -3775,113 +3880,111 @@ var proposal = {
                         reqData["$and"].push({$or: orQuery});
                     }
 
-                    a = dbconfig.collection_proposal.find(reqData).lean().count();
-                    b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
+                    console.log('proposal report query data', reqData);
+
+                    a = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
                         .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean()
                         .then(populateProposalsWithPlatformData);
-                    c = dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(
-                        promoCodeProposalType => {
-                            let playerPromoCodeRewardObjId;
-                            if(promoCodeProposalType && promoCodeProposalType.length){
-                                playerPromoCodeRewardObjId = promoCodeProposalType.map(p => p._id);
-                            }
 
-                            return dbconfig.collection_proposal.aggregate([
+                    let playerPromoCodeRewardObjId = await dbconfig.collection_proposalType.find(promoCodeProposalQuery, {_id: 1}).lean().then(el => el.map(p => p._id));
+
+                    groupObj.totalTopUpAmount = {
+                        $sum: {
+                            $cond: [
+                                {$or: [
+                                        {$eq: ["$data.topUpAmount", NaN]},
+                                        {$setIsSubset: [
+                                                ["$type"],
+                                                playerPromoCodeRewardObjId
+                                            ]}
+                                    ]},
+                                0,
+                                "$data.topUpAmount"
+                            ]
+                        }
+                    };
+
+                    let projField = {
+                        _id: 1, "data.playerObjId": 1, "data.amount": 1, "data.rewardAmount": 1, "data.updateAmount": 1,
+                        "data.negativeProfitAmount": 1, "data.commissionAmount": 1
+                    };
+                    let stream = dbconfig.collection_proposal.find(queryData, projField).cursor({batchSize: 1000});
+
+                    let balancer = new SettlementBalancer();
+                    b = balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
                                 {
-                                    $match: reqData
-                                },
-                                {
-                                    $group: {
-                                        _id: null,
-                                        totalAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.amount", NaN]},
-                                                    0,
-                                                    "$data.amount"
-                                                ]
+                                    stream: stream,
+                                    batchSize: 500,
+                                    makeRequest: function (proposalArr, request) {
+                                        console.log('make request');
+                                        request("player", "calculateProposalsTotalAmount", {
+                                            proposalArr: proposalArr
+                                        });
+                                    },
+                                    processResponse: function (record) {
+                                        if (record.data) {
+                                            if (record.data.totalAmount) {
+                                                totalAmount += record.data.totalAmount;
                                             }
-                                        },
-                                        totalRewardAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.rewardAmount", NaN]},
-                                                    0,
-                                                    "$data.rewardAmount"
-                                                ]
+
+                                            if (record.data.totalProps) {
+                                                totalPropCount += record.data.totalProps;
                                             }
-                                        },
-                                        totalTopUpAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$or: [
-                                                        {$eq: ["$data.topUpAmount", NaN]},
-                                                        {$setIsSubset: [
-                                                            ["$type"],
-                                                            playerPromoCodeRewardObjId
-                                                        ]}
-                                                    ]},
-                                                    0,
-                                                    "$data.topUpAmount"
-                                                ]
+
+                                            if (record.data.playerSet) {
+                                                record.data.playerSet.forEach(p => playerSet.add(p));
                                             }
-                                        },
-                                        totalUpdateAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.updateAmount", NaN]},
-                                                    0,
-                                                    "$data.updateAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalNegativeProfitAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.negativeProfitAmount", NaN]},
-                                                    0,
-                                                    "$data.negativeProfitAmount"
-                                                ]
-                                            }
-                                        },
-                                        totalCommissionAmount: {
-                                            $sum: {
-                                                $cond: [
-                                                    {$eq: ["$data.commissionAmount", NaN]},
-                                                    0,
-                                                    "$data.commissionAmount"
-                                                ]
-                                            }
-                                        },
+                                        }
                                     }
                                 }
-                            ]).read("secondaryPreferred");
-                        }
-                    );
+                            )
+                        );
+                    });
 
-                    d = dbconfig.collection_proposal.distinct('data.playerName', reqData);
-
-                    return Promise.all([a, b, c, d])
+                    return Promise.all([a, b, c])
                 }
             ).then(
                 data => {
-                    totalSize = data[0];
-                    resultArray = Object.assign([], data[1]);
-                    summary = data[2];
-                    totalPlayer = data[3] && data[3].length || 0;
+                    totalSize = totalPropCount;
+                    resultArray = Object.assign([], data[0]);
+                    totalPlayer = playerSet.size;
 
                     return resultArray;
-                },
-                err => {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Error in getting proposals type in the selected platform.",
-                        error: err,
-                    })
                 }
             );
         }
+
+        return prom.then(
+            function (data) {
+                data = resultArray;
+
+                if (data && data.length > 0) {
+                    removeRemarksContainPhoneAndAddress(data);
+
+                    if (isExport) {
+                        return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
+                    } else {
+                        return {
+                            size: totalSize,
+                            totalPlayer: totalPlayer,
+                            data: resultArray,
+                            summary: {amount: totalAmount},
+                        };
+                    }
+                }
+
+            },
+            function (error) {
+                return Promise.reject({
+                    name: "DBError",
+                    message: "Error in getting proposals in the selected platform.",
+                    error: error
+                })
+            }
+        );
 
         // specially made for proposal Player Minus Reward Points only - requested by Yuki
         // remove proposal remark that contains player phone number and address
@@ -3914,75 +4017,6 @@ var proposal = {
                 })
             }
         }
-
-        return prom.then(
-            function (data) {
-                data = resultArray;
-                let allProm = [];
-                if (data && data.length > 0) {
-                    removeRemarksContainPhoneAndAddress(data);
-                    for (var i in data) {
-                        if (data[i].data.playerId || data[i].data.playerId) {
-                            try {
-                                if (ObjectId(data[i].data.playerId)) {
-                                }
-                                allProm.push(dbconfig.collection_players.findOne({_id: data[i].data.playerId}).lean());
-                            }
-                            catch (err) {
-                                allProm.push(dbconfig.collection_players.findOne({playerId: data[i].data.playerId}).lean());
-                            }
-                        } else {
-                            allProm.push({playerId: 'NA'});
-                        }
-                    }
-                }
-                return Promise.all(allProm);
-            },
-            function (error) {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in getting proposals in the selected platform.",
-                    error: error
-                })
-            }
-        ).then(
-            function (playerData) {
-                for (let i in playerData) {
-                    if (playerData[i] && playerData[i].playerId) {
-                        resultArray[i].data.playerShortId = playerData[i].playerId
-                    }
-                }
-                let total = 0;
-
-                if (summary[0]) {
-                    total += summary[0].totalAmount;
-                    total += summary[0].totalRewardAmount;
-                    total += summary[0].totalTopUpAmount;
-                    total += summary[0].totalUpdateAmount;
-                    total += summary[0].totalNegativeProfitAmount;
-                    total += summary[0].totalCommissionAmount;
-                }
-                total = dbutility.decimalAdjust("floor", total, -2);
-
-                if (isExport) {
-                    return dbReportUtil.generateExcelFile("ProposalReport", resultArray);
-                } else {
-                    return {
-                        size: totalSize,
-                        totalPlayer: totalPlayer,
-                        data: resultArray,
-                        summary: {amount: total}, //parseFloat(total).toFixed(2)
-                    };
-                }
-            },
-            function (error) {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in getting player ID information.",
-                    error: error
-                })
-            }
-        );
     },
 
     getFinancialReportByDay: function (reqData) {
@@ -8394,7 +8428,7 @@ var proposal = {
     },
 
     calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).then(
+        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8403,7 +8437,8 @@ var proposal = {
                             $gte: startDate,
                             $lt: endDate
                         },
-                        playerId: {$in: playerObjIds}
+                        playerId: {$in: playerObjIds},
+                        isDuplicate: {$ne: true}
                     };
 
                     return dbconfig.collection_playerConsumptionRecord.aggregate(
@@ -8829,6 +8864,68 @@ var proposal = {
                 );
             }
         )
+    },
+
+    syncWithdrawalProposalToPMS: (proposalId, remark) => {
+        if(!proposalId || !remark){
+            return;
+        }
+
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId})
+            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
+            .populate({path: "data.partnerObjId", model: dbconfig.collection_partner})
+            .populate({path: "data.platformId", model: dbconfig.collection_platform}).then(
+            proposalData => {
+                if (proposalData) {
+                    let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                    let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                    let message = {
+                        proposalId: proposalData.proposalId,
+                        platformId: proposalData.data.platformId.platformId,
+                        amount: proposalData.data.amount,
+                        applyTime: cTimeString,
+                        clientType: dbutility.pmsClientType(proposalData.inputDevice),
+                        entryType: proposalData.entryType
+                    };
+
+                    if (proposalData.data && proposalData.data.playerObjId && Object.keys(proposalData.data.playerObjId).length > 0) {
+                        message.bankTypeId = proposalData.data.playerObjId.bankName || "";
+                        message.accountName = proposalData.data.playerObjId.bankAccountName || "";
+                        message.accountCity = proposalData.data.playerObjId.bankAccountCity || "";
+                        message.accountProvince = proposalData.data.playerObjId.bankAccountProvince || "";
+                        message.accountNo = proposalData.data.playerObjId.bankAccount ? proposalData.data.playerObjId.bankAccount.replace(/\s/g, '') : "";
+                        message.bankAddress = proposalData.data.playerObjId.bankAddress || "";
+                        message.bankName = proposalData.data.playerObjId.bankName || "";
+                        message.loginName = proposalData.data.playerObjId.name || "";
+                    }
+
+                    if (proposalData.data && proposalData.data.partnerObjId && Object.keys(proposalData.data.partnerObjId).length > 0) {
+                        message.bankTypeId = proposalData.data.partnerObjId.bankName || "";
+                        message.accountName = proposalData.data.partnerObjId.bankAccountName || "";
+                        message.accountCity = proposalData.data.partnerObjId.bankAccountCity || "";
+                        message.accountProvince = proposalData.data.partnerObjId.bankAccountProvince || "";
+                        message.accountNo = proposalData.data.partnerObjId.bankAccount ? proposalData.data.partnerObjId.bankAccount.replace(/\s/g, '') : "";
+                        message.bankAddress = proposalData.data.partnerObjId.bankAddress || "";
+                        message.bankName = proposalData.data.partnerObjId.bankName || "";
+                        message.loginName = proposalData.data.partnerObjId.partnerName || "";
+                    }
+                    console.log('check status before syncWithdrawalProposalToPMS:', proposalData.status);
+                    console.log('syncWithdrawalProposalToPMS req:', message);
+                    return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                        bonusData => {
+                            if (bonusData) {
+                                let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
+                                return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
+                                    return Promise.resolve(true);
+                                });
+                            }
+                        }
+                    );
+
+
+                }
+            }
+        );
     }
 };
 
@@ -8997,7 +9094,7 @@ function insertRepeatCount(proposals, platformList, query, isFromMain) {
                 console.log("LH Check payment monitor total 1----------------------", proposal.data.bankCardNo);
                 let bankCardNoPrefix = proposal.data.bankCardNo.substring(0, 6);
                 let bankCardNoRegExpA;
-                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));;
+                let bankCardNoRegExpB = new RegExp(".*" + proposal.data.bankCardNo.slice(-4));
                 if(bankCardNoPrefix.indexOf('*') == -1){
 
                     console.log("LH Check payment monitor total 2----------------------", bankCardNoRegExpA);
@@ -11349,6 +11446,55 @@ function getAllTopUpAnalysisByTypeAndPlatformData(matchObj, projectQ, platformRe
                 });
             }
         );
+}
+
+function getPMSWithdrawalProposal (proposalIds) {
+    let reqData = {
+        proposalIds: proposalIds
+    }
+
+    return RESTUtils.getPMS2Services('postPMSWithdrawalProposal', reqData).then(
+        data => {
+            return data && data.data ? data.data : [];
+        }, err => {
+            return [];
+        }
+    )
+}
+
+function populateProposalData (data) {
+    let withdrawalProposalIds = [];
+
+    if (data && data.length > 0) {
+        data.forEach(item => {
+            if (item && item.type && item.type.name && (item.type.name === constProposalType.PLAYER_BONUS || item.type.name === constProposalType.PARTNER_BONUS)
+                && item.status === 'Approved' && item.data.bonusSystemName === 'PMS2') {
+                withdrawalProposalIds.push(item.proposalId);
+            }
+        });
+    }
+
+    return getPMSWithdrawalProposal(withdrawalProposalIds).then(pmsWithdrawalProposal => {
+        if (pmsWithdrawalProposal && pmsWithdrawalProposal.length > 0) {
+            data.map(item => {
+                if (item && item.type && item.type.name && (item.type.name === constProposalType.PLAYER_BONUS || item.type.name === constProposalType.PARTNER_BONUS)
+                    && item.status === 'Approved' && item.data.bonusSystemName === 'PMS2') {
+                    let index = pmsWithdrawalProposal.map(pmsData => pmsData && pmsData.proposalId).indexOf(item.proposalId);
+
+                    if (index === -1) {
+                        item.data.enableSyncWithdraw = Boolean(true);
+                    }
+                }
+                return item;
+            });
+        }
+
+        return data;
+    }).catch(
+        err => {
+            return data;
+        }
+    );
 }
 
 var proto = proposalFunc.prototype;

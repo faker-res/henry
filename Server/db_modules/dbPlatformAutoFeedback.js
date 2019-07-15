@@ -269,7 +269,7 @@ let dbPlatformAutoFeedback = {
                 return Promise.all([departmentProm]).then(() => {
                     let registerStartTime = feedback.registerStartTime;
                     let registerEndTime = feedback.registerEndTime;
-                    let playerQuery = {platform: platformObjId, forbidPromoCode: false};
+                    let playerQuery = {platform: platformObjId};
 
                     let addMultipleOr = function (orArr) {
                         if(!orArr || !orArr.length) {
@@ -281,6 +281,9 @@ let dbPlatformAutoFeedback = {
                             playerQuery.$and = [{$or: orArr}];
                         }
                     };
+
+                    let basicCondition = [{"permission.allowPromoCode": true}, {"permission.allowPromoCode": {$exists: false}}];
+                    addMultipleOr(basicCondition);
 
                     if (feedback.playerType && feedback.playerType != null) {
                         switch (feedback.playerType) {
@@ -630,6 +633,9 @@ let dbPlatformAutoFeedback = {
                                                         }).then(template => {
                                                             console.log("autoFeedback template",template);
                                                             if(template) {
+                                                                if (player && player.forbidPromoCodeList && player.forbidPromoCodeList.length && player.forbidPromoCodeList.map( p => {return p.toString()}).includes(template._id.toString())){
+                                                                    return null;
+                                                                }
                                                                 newPromoCodeEntry = JSON.parse(JSON.stringify(template));
                                                                 delete newPromoCodeEntry._id;
                                                                 delete newPromoCodeEntry.createTime;

@@ -128,7 +128,9 @@ define(['js/app'], function (myApp) {
                 H5_PLAYER: 3,
                 H5_AGENT: 4,
                 APP_PLAYER: 5,
-                APP_AGENT: 6
+                APP_AGENT: 6,
+                APP_NATIVE_PLAYER: 7,
+                APP_NATIVE_PARTNER: 8
             };
 
             vm.inspectionWechatReport = {};
@@ -163,7 +165,7 @@ define(['js/app'], function (myApp) {
                     console.log('all platform data', data.data);
                     vm.showPlatformSpin = false;
                     vm.buildPlatformList(data.data);
-
+                    vm.allPlatformData = data.data;
                     //select platform from cookies data
                     var storedPlatform = $cookies.get("platform");
                     if (storedPlatform) {
@@ -339,27 +341,42 @@ define(['js/app'], function (myApp) {
                 }
             }
             //search and select platform node
-            vm.searchAndSelectPlatform = function (text, option) {
+            vm.searchAndSelectPlatform = function (text, option, isInspec) {
                 var findNodes = $('#platformTree').treeview('search', [text, {
                     ignoreCase: false,
                     exactMatch: true
                 }]);
                 if (findNodes && findNodes.length > 0) {
-                    vm.selectPlatformNode(findNodes[0], option);
-                    $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                    vm.selectPlatformNode(findNodes[0], option, isInspec);
+                    if(isInspec === false || !isInspec){
+                        $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
+                    }
                 }
             };
 
-            //set selected platform node
-            vm.selectPlatformNode = function (node, option) {
+            vm.getAllDxMission = function (platformId, option) {
+
+
+                vm.selectedPlatfromInspec = vm.allPlatformData.filter(item=> { return item._id === platformId })
+                vm.selectedPlatfromInspec = (vm.selectedPlatfromInspec && vm.selectedPlatfromInspec[0]) ? vm.selectedPlatfromInspec[0]: null;
+                var name = vm.selectedPlatfromInspec.name;
+                vm.searchAndSelectPlatform(name, option, true);
+            };
+
+//set selected platform node
+            vm.selectPlatformNode = function (node, option, isInspec) {
+                // vm.selectedPlatfromInspec = node;
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
-                $cookies.put("platform", node.text);
-                if (option && !option.loadAll) {
-                    $scope.safeApply();
-                    return;
+                if(isInspec === false || !isInspec){
+                    $cookies.put("platform", node.text);
+                    if (option && !option.loadAll) {
+                        $scope.safeApply();
+                        return;
+                    }
                 }
+
             };
 
             //create platform node for platform list

@@ -44,7 +44,9 @@ var playerLoginRecordSchema = new Schema({
     //any additional data
     data: JSON,
     //device id
-    deviceId: {type: String}
+    deviceId: {type: String},
+    //os for native app
+    osType: {type: String, index: true}
 });
 
 //record is unique by name and platform

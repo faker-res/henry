@@ -847,6 +847,20 @@ const dbRewardUtility = {
         }
     },
 
+    checkTopupRewardApplySpecialDayLimit: async (eventData, specialCount) => {
+        if (eventData.param.dailyMaxTotalApplyCount
+            && specialCount
+            && specialCount.applied
+            && eventData.param.dailyMaxTotalApplyCount <= specialCount.applied
+        ) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Please improve your hand speed"
+            });
+        }
+    },
+
     checkRewardApplyPlayerHasPhoneNumberAndBankCard: (eventData, playerData) => {
         if (eventData.condition && eventData.condition.requiredPhoneNumber && eventData.condition.requiredBankCard && !Boolean(playerData.phoneNumber) && !Boolean(playerData.bankAccount)){
             return Promise.reject({
@@ -885,6 +899,20 @@ const dbRewardUtility = {
         }
     },
 
+    checkPlayerBirthday: (playerData, eventData, rewardData, selectedRewardParam) => {
+        // check if player apply festival_reward and is he set the birthday
+        if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+            selectedRewardParam = selectedRewardParam.filter( item => {
+                return item.id == rewardData.festivalItemId;
+            })
+            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
+            // if that's a birthday event and this player didnt set his birthday in profile
+            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
+                return Promise.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
+            }
+        }
+        return true;
+    },
     // endregion
 
     // region Reward permission

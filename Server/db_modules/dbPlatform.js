@@ -407,6 +407,40 @@ var dbPlatform = {
             );
     },
 
+    getAllProviderListByPlatform: function (data) {
+        let query = {};
+        let providerList = [];
+        if(data && data.platformObjIdList && data.platformObjIdList.length){
+            query._id = {$in: data.platformObjIdList}
+        }
+
+        return dbconfig.collection_platform.find(query)
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platformDetails => {
+                    if(platformDetails && platformDetails.length){
+                        platformDetails.forEach(
+                            platform => {
+                                if(platform && platform.gameProviders && platform.gameProviders.length){
+                                    platform.gameProviders.forEach(
+                                        gameProvider => {
+                                            let temp = Object.assign({}, gameProvider);
+
+                                            temp.platformName = platform.name;
+                                            temp.platformObjId = platform._id;
+
+                                            providerList.push(temp);
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    return providerList;
+                }
+            );
+    },
+
     /**
      * Search the platform information API
      * @param {String} platformData - query data
@@ -5433,6 +5467,10 @@ var dbPlatform = {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
+        if (domain){
+            domain = dbUtility.filterDomainName(domain);
+        }
+
         console.log("checking sourceUrl", sourceUrl)
         return dbconfig.collection_platform.findOne({
             platformId: platformId
@@ -6090,6 +6128,9 @@ var dbPlatform = {
                         case 'carousel':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
+                        case 'partnerCarousel':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
@@ -6215,6 +6256,15 @@ var dbPlatform = {
                     query.isVisible = true;
                 }
                 prom = dbconfig.collection_frontEndCarouselConfiguration.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "partnerCarousel"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPartnerCarouselConfiguration.find(query).populate({
                     path: "rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
                 }).sort({displayOrder: 1}).lean()

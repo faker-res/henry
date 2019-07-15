@@ -3,6 +3,7 @@ var dbUtilityFunc = function () {
 module.exports = new dbUtilityFunc();
 
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const constPMSClientType = require("../const/constPMSClientType");
 const uaParser = require('ua-parser-js');
 const rsaCrypto = require('../modules/rsaCrypto');
 var Q = require("q");
@@ -13,6 +14,7 @@ var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
 var datx = require('ipip-datx');
 var path = require('path');
 var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
+const queryPhoneLocationFromPackage = require('phone-query');
 
 var dbUtility = {
 
@@ -299,6 +301,14 @@ var dbUtility = {
             startTime: startTime,
             endTime: endTime
         };
+    },
+
+    getOneDayAgoSGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(-1, 'days').toDate() : null;
+    },
+
+    getNextOneDaySGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(1, 'days').toDate() : null;
     },
 
     getSGTimeOf: function (time) {
@@ -1206,6 +1216,13 @@ var dbUtility = {
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 
+    encodeQQ: function (str) {
+        str = str || '';
+        var newStr = str.replace(str, "****");
+        return newStr + "@qq.com";
+        // return str.substring(0, 3) + "***" + str.slice(-2);
+    },
+
     encodeRealName: function (str) {
         str = str || '';
         let encodedStr = str[0] || '';
@@ -1817,6 +1834,49 @@ var dbUtility = {
                 return result;
             }
         );
+    },
+
+    pmsClientType: (inputDevice) => {
+        let clientType;
+
+        switch (inputDevice) {
+            case constPlayerRegistrationInterface.BACKSTAGE:
+                clientType = constPMSClientType.BACKSTAGE;
+                break;
+            case constPlayerRegistrationInterface.WEB_AGENT:
+            case constPlayerRegistrationInterface.WEB_PLAYER:
+                clientType = constPMSClientType.WEB;
+                break;
+            case constPlayerRegistrationInterface.H5_AGENT:
+            case constPlayerRegistrationInterface.H5_PLAYER:
+                clientType = constPMSClientType.H5;
+                break;
+            case constPlayerRegistrationInterface.APP_AGENT:
+            case constPlayerRegistrationInterface.APP_PLAYER:
+                clientType = constPMSClientType.APP;
+                break;
+            case constPlayerRegistrationInterface.APP_NATIVE_PARTNER:
+            case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+                clientType = constPMSClientType.NATIVE_APP;
+                break;
+            default:
+                clientType = constPMSClientType.BACKSTAGE;
+        }
+
+        return clientType;
+    },
+
+    queryPhoneLocation: (phoneNumber) => {
+        let retObj = {};
+        let queryRes = queryPhoneLocationFromPackage(phoneNumber);
+
+        if (queryRes) {
+            retObj.phoneProvince = queryRes.province;
+            retObj.phoneCity = queryRes.city;
+            retObj.phoneType = queryRes.op;
+        }
+
+        return retObj;
     }
 };
 

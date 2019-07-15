@@ -626,7 +626,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}} )
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"TOTAL_CREDIT"|translate}} : {{vm.playerTotalCredit || 0 | noRoundTwoDecimalPlaces}})  ({{"ANY_LOBBY"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}}) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}})
             .modal-body
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
@@ -659,7 +659,7 @@
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
                                 tbody
-                                    tr(ng-repeat='(i,v) in vm.platformProviderList')
+                                    tr(ng-repeat='(i,v) in vm.sortedPlatformProviderList')
                                         td {{v.name}}
                                         td {{v.providerId}}
                                         td
@@ -1286,7 +1286,7 @@
                             .form-group(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'Provider group' | translate}}
                                 select.form-control(ng-model='vm.playerAddRewardTask.providerGroup')
-                                    option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    option(value='') {{'ANY_LOBBY' | translate}}
                                     option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                             .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'REWARD_NAME' | translate}}
@@ -1494,7 +1494,7 @@
                                 table.table.table-bordered(style='background-color:white;overflow-y:scroll')
                                     tr
                                         td
-                                            div(style='display:inline-block;') {{"LOCAL_CREDIT" | translate }} :
+                                            div(style='display:inline-block;') {{"ANY_LOBBY" | translate }} :
                                             div(style='display:inline-block;padding-left:3px;') {{vm.currentFreeAmount}}
                                             // {{vm.freeAmount}}
                                         td(ng-repeat='(i,v) in vm.playerCreditDetails', ng-if="v.nickName!=''")

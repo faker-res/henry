@@ -517,6 +517,7 @@ var dbGameProviderPlayerDaySummary = {
                 function (data) {
                     console.log(data);
                     if (data && data.length > 0) {
+                        result.platform = data[0]._id;
                         result.amount = data[0].total_amount;
                         result.consumption = data[0].total_consumption;
                         result.validAmount = data[0].validAmount;
@@ -674,6 +675,7 @@ var dbGameProviderPlayerDaySummary = {
             .then(
                 function (data) {
                     if (data && data.length > 0) {
+                        result.platform = data[0]._id;
                         result.amount = data[0].total_amount;
                         result.consumption = data[0].total_consumption;
                         result.validAmount = data[0].validAmount;
@@ -902,7 +904,7 @@ var dbGameProviderPlayerDaySummary = {
                             var proms = [];
                             for (var i = 0; i < data.length; i++) {
                                 //  if (i + 1 <= limit) {
-                                var prom_player = dbconfig.collection_players.findOne({"_id": ObjectId(data[i]._id.playerId)}, {_id:1, playerId:1, name:1}).read("secondaryPreferred").lean();
+                                var prom_player = dbconfig.collection_players.findOne({"_id": ObjectId(data[i]._id.playerId)}, {_id:1, playerId:1, name:1, platform:1}).read("secondaryPreferred").lean();
                                 proms.push(prom_player);
                                 //   }
                             }
@@ -926,10 +928,12 @@ var dbGameProviderPlayerDaySummary = {
                         // Mapping player _id and playerId
                         var players = {};
                         var playerNames = {};
+                        var platforms = {};
                         for (var j = 0; j < playerData.length; j++) {
                             if (playerData[j] && !players[playerData[j]._id]) {
                                 players[playerData[j]._id] = playerData[j].playerId;
                                 playerNames[playerData[j]._id] = playerData[j].name;
+                                platforms[playerData[j]._id] = playerData[j].platform;
                             }
                         }
 
@@ -944,6 +948,7 @@ var dbGameProviderPlayerDaySummary = {
                             sumValidAmount += summaryData[i].validAmount;
                             sumTimesConsumed += summaryData[i].timesConsumed;
                             var playerGame = {
+                                platform: platforms[summaryData[i]._id.playerId],
                                 _id: {
                                     playerId: players[summaryData[i]._id.playerId],
                                     playerName: playerNames[summaryData[i]._id.playerId],

@@ -108,6 +108,7 @@ let frontEndRewardPointClarificationSchema = require('./../schema/frontEndReward
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
+let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -279,6 +280,7 @@ let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointC
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
+let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -550,6 +552,9 @@ let playerTopUpGroupUpdateLogModel = dbLogs.model('playerTopUpGroupUpdateLog', p
 let playerForbidRewardLogSchema = require('./../schema/logs/playerForbidRewardLog');
 let playerForbidRewardLogModel = dbLogs.model('playerForbidRewardLog', playerForbidRewardLogSchema, 'playerForbidRewardLog');
 
+let playerForbidPromoCodeLogSchema = require('./../schema/logs2/playerForbidPromoCodeLog');
+let playerForbidPromoCodeLogModel = dbLogs2.model('playerForbidPromoCodeLog', playerForbidPromoCodeLogSchema, 'playerForbidPromoCodeLog');
+
 let playerForbidRewardPointsEventLogSchema = require('./../schema/logs/playerForbidRewardPointsEventLog');
 let playerForbidRewardPointsEventLogModel = dbLogs.model('playerForbidRewardPointsEventLog', playerForbidRewardPointsEventLogSchema, 'playerForbidRewardPointsEventLog');
 
@@ -576,6 +581,9 @@ let queryCreditTimeoutModel = dbLogs2.model('queryCreditTimeout', queryCreditTim
 
 let bankAccountBindingRecordSchema = require('./../schema/logs2/bankAccountBindingRecord');
 let bankAccountBindingRecordModel = dbLogs2.model('bankAccountBindingRecord', bankAccountBindingRecordSchema, 'bankAccountBindingRecord');
+
+let phoneNumberBindingRecordSchema = require('./../schema/logs2/phoneNumberBindingRecord');
+let phoneNumberBindingRecordModel = dbLogs2.model('phoneNumberBindingRecord', phoneNumberBindingRecordSchema, 'phoneNumberBindingRecord');
 
 let platformPartnerCommConfigSchema = require('../schema/platformPartnerCommConfig');
 let platformPartnerCommConfigModel = db_admin.model('platformPartnerCommConfig', platformPartnerCommConfigSchema, 'platformPartnerCommConfig');
@@ -772,6 +780,7 @@ var dbProperties = {
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
+    collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
@@ -831,6 +840,7 @@ var dbProperties = {
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
     collection_playerForbidRewardPointsEventLog: playerForbidRewardPointsEventLogModel,
     collection_playerForbidRewardLog: playerForbidRewardLogModel,
+    collection_playerForbidPromoCodeLog: playerForbidPromoCodeLogModel,
     collection_playerForbidGameLog: playerForbidGameLogModel,
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
     collection_playerOnlineTime: playerOnlineTimeModel,
@@ -872,6 +882,7 @@ var dbProperties = {
     collection_queryCreditTimeout: queryCreditTimeoutModel,
     collection_playerRandomReward: playerRandomRewardSchemaModel,
     collection_bankAccountBindingRecord: bankAccountBindingRecordModel,
+    collection_phoneNumberBindingRecord: phoneNumberBindingRecordModel,
 
     collection_platformPartnerCommConfig: platformPartnerCommConfigModel,
     collection_partnerMainCommConfig: partnerMainCommConfigModel,

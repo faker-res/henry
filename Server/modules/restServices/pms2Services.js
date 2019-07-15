@@ -268,6 +268,18 @@ function postCashoutList (reqData, paymentSystemKey) {
     return postRequest(reqData, 'getCashoutList', 'POST', paymentSystemKey)
 }
 
+function patchSubTopupTypePermission (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'playerTopupTypePermission', 'PATCH', paymentSystemKey);
+}
+
+function postBatchSubTopupTypePermission (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'batch/playerTopupTypePermission', 'POST', paymentSystemKey);
+}
+
+function postPMSWithdrawalProposal (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'getCashOutListByProposal', 'POST', paymentSystemKey);
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -302,5 +314,8 @@ module.exports = {
     postDepositTypeByUsername: postDepositTypeByUsername,
     postOnlineCashinList: postOnlineCashinList,
     postCashinList: postCashinList,
-    postCashoutList: postCashoutList
+    postCashoutList: postCashoutList,
+    patchSubTopupTypePermission: patchSubTopupTypePermission,
+    postBatchSubTopupTypePermission: postBatchSubTopupTypePermission,
+    postPMSWithdrawalProposal: postPMSWithdrawalProposal
 };

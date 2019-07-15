@@ -169,12 +169,12 @@
                                         td(rowspan='{{level.levelUpConfig.length + 1}}')
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-show='vm.configTableEdit', ng-model='level.reward.providerGroup')
-                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(value='free') {{"ANY_LOBBY"|translate}}
                                                     option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
-                                                text(ng-show='!vm.configTableEdit') {{vm.gameProviderGroupNames[level.reward.providerGroup] || ("LOCAL_CREDIT" | translate)}}
+                                                text(ng-show='!vm.configTableEdit') {{vm.gameProviderGroupNames[level.reward.providerGroup] || ("ANY_LOBBY" | translate)}}
 
                                             div(ng-if='!vm.selectedPlatform.data.useProviderGroup')
-                                                text {{"LOCAL_CREDIT" | translate}}
+                                                text {{"ANY_LOBBY" | translate}}
                                             //input(ng-show='vm.configTableEdit', type='checkbox', ng-model='level.reward.isRewardTask')
                                             //i.fa.fa-square-o(ng-show='!vm.configTableEdit && !level.reward.isRewardTask')
                                             //i.fa.fa-check-square-o(ng-show='!vm.configTableEdit && level.reward.isRewardTask')
@@ -227,9 +227,9 @@
                                         td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-show='vm.configTableEdit', ng-model='level.reward.providerGroupLevelDown')
-                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(value='free') {{"ANY_LOBBY"|translate}}
                                                     option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
-                                                text(ng-show='!vm.configTableEdit') {{vm.gameProviderGroupNames[level.reward.providerGroupLevelDown] || ("LOCAL_CREDIT" | translate)}}
+                                                text(ng-show='!vm.configTableEdit') {{vm.gameProviderGroupNames[level.reward.providerGroupLevelDown] || ("ANY_LOBBY" | translate)}}
                                         td(rowspan='{{level.levelDownConfig.length + 1}}', ng-class='{hidden: i === 0}')
                                             input(ng-show='vm.configTableEdit', type='number', style='width:100px', ng-model='level.reward.requiredUnlockTimesLevelDown', ng-change='vm.playerLevelDownChangeIsRewardTask(level)')
                                             text(ng-show='!vm.configTableEdit') {{level.reward.requiredUnlockTimesLevelDown | number}}
@@ -291,11 +291,11 @@
                                             //input(type='checkbox', ng-model='vm.newPlayerLvl.reward.isRewardTask', required)
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-model='vm.newPlayerLvl.reward.providerGroup')
-                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(value='free') {{"ANY_LOBBY"|translate}}
                                                     option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
 
                                             div(ng-if='!vm.selectedPlatform.data.useProviderGroup')
-                                                text {{"LOCAL_CREDIT" | translate}}
+                                                text {{"ANY_LOBBY" | translate}}
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
                                             input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes' ng-change='vm.playerLevelChangeIsRewardTask(vm.newPlayerLvl)')
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
@@ -334,7 +334,7 @@
                                         td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}')
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-model='vm.newPlayerLvl.reward.providerGroupLevelDown')
-                                                    option(value='free') {{"LOCAL_CREDIT"|translate}}
+                                                    option(value='free') {{"ANY_LOBBY"|translate}}
                                                     option(ng-repeat="(groupId, groupName) in vm.gameProviderGroupNames", value='{{groupId}}') {{groupName}}
                                         td(rowspan='{{vm.newPlayerLvl.levelDownConfig.length + 1}}',)
                                             input(type='number', style='width:100px', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimesLevelDown', ng-change='vm.playerLevelDownChangeIsRewardTask(vm.newPlayerLvl)')
@@ -1225,6 +1225,11 @@
                                 td {{'Check Is Phone Number Bound To A Player Before Apply Bonus' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
+
+                        tr
+                            td {{'Ebet4.0 User (Create CPMS User When User is Create)' | translate}}
+                            td
+                                input(type='checkbox', ng-model='vm.platformBasic.isEbet4', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'App Data Version' | translate}}
                                 td
@@ -2813,26 +2818,32 @@
                                 td {{'DEFAULT_FEEDBACK_RESULT' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                             tr
                                 td {{'DEFAULT_FEEDBACK_TOPIC' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                             tr
                                 td {{'DEFAULT_PLAYER_FEEDBACK_RESULT' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                             tr
                                 td {{'DEFAULT_PLAYER_FEEDBACK_TOPIC' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultPlayerFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                             tr
                                 td {{'DEFAULT_TELESALES_FEEDBACK_RESULT' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackResult" ng-options="a.key as a.value for (i,a) in vm.allPlayerFeedbackResults" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                             tr
                                 td {{'DEFAULT_TELESALES_FEEDBACK_TOPIC' | translate}}
                                 td
                                     select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
+                                        option(value="") {{''}}
                     .margin-small.pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'defaultFeedbackConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}

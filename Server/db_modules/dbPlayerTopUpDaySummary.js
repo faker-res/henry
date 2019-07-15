@@ -147,12 +147,10 @@ var dbPlayerTopUpDaySummary = {
         let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date(start);
+            let startDate = new Date(startTime);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date(end);
-            endDate.setDate(startTime.getDate() + (i + 1));
-            endDate = dbutility.getDayStartTime(endDate);
+            let endDate = dbutility.getNextOneDaySGTime(startDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime()))  {
                 p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
@@ -163,8 +161,8 @@ var dbPlayerTopUpDaySummary = {
 
     },
 
-    reCalculateWinRateReportSummary: function(platformId, start, end){
-        if(!platformId || !start || ! end){
+    reCalculateWinRateReportSummary: function(platformList, start, end){
+        if(!start || ! end){
             return;
         }
 
@@ -179,15 +177,17 @@ var dbPlayerTopUpDaySummary = {
         let yesterdayTime = dbutility.getYesterdaySGTime();
 
         for(let i = 0; i <= diffInDays; i ++){
-            let startDate = new Date(start);
+            let startDate = new Date(startTime);
             startDate.setDate(startTime.getDate() + i);
             startDate = dbutility.getDayStartTime(startDate);
-            let endDate = new Date(end);
-            endDate.setDate(startTime.getDate() + (i + 1));
-            endDate = dbutility.getDayStartTime(endDate);
+            let endDate = dbutility.getNextOneDaySGTime(startDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime())) {
-                p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, platformId));
+                if(platformList && platformList.length > 0) {
+                    platformList.forEach(item => {
+                        p = p.then(() => dbPlayerTopUpDaySummary.calculateWinRateReportDaySummaryForTimeFrame(startDate, endDate, ObjectId(item)));
+                    })
+                }
             }
         }
 
@@ -314,9 +314,10 @@ var dbPlayerTopUpDaySummary = {
                 if(data && data.length > 0){
                     console.log("LH check player report 16------", data.length);
                     return data;
-                }else{
-                    return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
                 }
+                // else{
+                //     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
+                // }
             },
             function (error){
                 return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});

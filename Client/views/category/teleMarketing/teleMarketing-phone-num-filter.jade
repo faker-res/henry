@@ -213,7 +213,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
                                 i.fa.fa-refresh
                                 text {{"RESET_GRID" | translate}}
-                            button.btn.btn-primary.common-button(type='button', ng-click='vm.phoneNumXLSResult=true; vm.uploadPhoneFileXLS()')
+                            //button.btn.btn-primary.common-button(type='button', ng-click='vm.phoneNumXLSResult=true; vm.uploadPhoneFileXLS(null, null, null, null, vm.selectedPlatform.id)')
+                            button.btn.btn-primary.common-button(data-toggle="modal", data-target="#modalSelectPlatformFilterXls")
                                 i.fa.fa-download
                                 text {{"FILTER_THEN_EXPORT_XLS" | translate}}
 
@@ -298,6 +299,31 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
                 button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission, null, vm.importPlatformForDX)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+#modalSelectPlatformFilterXls.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FILTER_THEN_EXPORT_XLS" | translate}}
+
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Platform Selection" | translate}}
+                                    select.form-control(ng-model="vm.selectedPlatformFilterXLS" ng-options='v._id as v.name$ for v in vm.allPlatformData')
+
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal', type='button', ng-click='vm.phoneNumXLSResult=true; vm.uploadPhoneFileXLS(null, null, null, null, vm.selectedPlatformFilterXLS)')
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')

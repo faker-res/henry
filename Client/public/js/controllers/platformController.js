@@ -265,7 +265,9 @@ define(['js/app'], function (myApp) {
                 H5_PLAYER: 3,
                 H5_AGENT: 4,
                 APP_PLAYER: 5,
-                APP_AGENT: 6
+                APP_AGENT: 6,
+                APP_NATIVE_PLAYER: 7,
+                APP_NATIVE_PARTNER: 8
             };
 
             vm.allPlayerCreditTransferStatus = {
@@ -1322,6 +1324,7 @@ define(['js/app'], function (myApp) {
                             vm.rewardPointsTabClicked();
                             vm.initAuctionSystem();
                             vm.loadPromoCodeTemplate();
+                            vm.getAllPromoCode();
                             vm.onGoingLoadPlatformData = false;
 
                             if (!vm.platformPageName) {
@@ -3426,17 +3429,39 @@ define(['js/app'], function (myApp) {
 
                 if (vm.sendMultiMessage.messageType === "sms") {
                     vm.sendMultiMessage.tableObj.rows('.selected').data().each(function (data) {
-                        $scope.AppSocket.emit('sendSMSToPlayer', {
-                            playerId: data.playerId,
+                        let query = {
                             platformId: vm.selectedPlatform.data.platformId,
                             channel: vm.sendMultiMessage.channel,
                             message: vm.sendMultiMessage.messageContent
-                        });
+                        };
+                        if (vm.filterPlayerPromoCodeForbidden){
+                            if (data && data.permission && data.permission.hasOwnProperty('allowPromoCode') && data.permission.allowPromoCode === false){
+                                query.playerId = [];
+                            }
+                            else{
+                                query.playerId = data.playerId;
+                            }
+                        }
+                        else {
+                            query.playerId = data.playerId;
+                        }
+                        $scope.AppSocket.emit('sendSMSToPlayer',query);
                     });
                 } else if (vm.sendMultiMessage.messageType === "mail") {
                     let playerIds = vm.sendMultiMessage.tableObj.rows('.selected').data().reduce((tempPlayersId, selectedPlayers) => {
-                        if (selectedPlayers._id) {
-                            tempPlayersId.push(selectedPlayers._id);
+                        if (selectedPlayers && selectedPlayers._id) {
+                            if (vm.filterPlayerPromoCodeForbidden){
+                                if (selectedPlayers.permission && selectedPlayers.permission.hasOwnProperty('allowPromoCode') && selectedPlayers.permission.allowPromoCode === false){
+                                   // do nothing
+                                }
+                                else{
+                                    tempPlayersId.push(selectedPlayers._id);
+                                }
+                            }
+                            else{
+                                tempPlayersId.push(selectedPlayers._id);
+                            }
+
                         }
                         return tempPlayersId;
                     }, []);
@@ -3446,7 +3471,8 @@ define(['js/app'], function (myApp) {
                         adminName: authService.adminName,
                         platformId: vm.selectedPlatform.id,
                         title: vm.sendMultiMessage.messageTitle,
-                        content: vm.sendMultiMessage.messageContent
+                        content: vm.sendMultiMessage.messageContent,
+                        filterPlayerPromoCodeForbidden: vm.filterPlayerPromoCodeForbidden || false,
                     };
 
                     if (vm.isSentToAll) {
@@ -3720,7 +3746,7 @@ define(['js/app'], function (myApp) {
             vm.gametoGameGroup = function (type) {
                 var sendData = {
                     query: {
-                        platform: vm.selectedPlatform.id,
+                        platform: vm.filterGameGroupPlatform,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     }
                 }
@@ -3758,12 +3784,13 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
 
                     function success(data) {
-                        vm.curGame = null;
-                        console.log(data);
-                        vm.selectGameGroupGames = [];
-                        vm.selectGameGroupGamesName = [];
-                        vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                        $scope.safeApply();
+                        $scope.$evalAsync( () => {
+                            vm.curGame = null;
+                            console.log(data);
+                            vm.selectGameGroupGames = [];
+                            vm.selectGameGroupGamesName = [];
+                            vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
+                        })
                     }
                 });
             }
@@ -7816,7 +7843,7 @@ define(['js/app'], function (myApp) {
                                 $scope.$evalAsync(()=>{
                                     var data = JSON.parse(this.dataset.row);
                                     vm.forbidRewardEventPopover = data;
-                                    vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
+                                    // vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                                     vm.forbidLevelUpReward = vm.forbidRewardEventPopover.forbidLevelUpReward || false;
                                     vm.forbidLevelMaintainReward = vm.forbidRewardEventPopover.forbidLevelMaintainReward || false;
                                     vm.forbidRewardEvents = [];
@@ -7868,7 +7895,7 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         _id: rowData._id,
                                         forbidRewardEvents: forbidRewardEvents,
-                                        forbidPromoCode: vm.forbidPromoCode,
+                                        // forbidPromoCode: vm.forbidPromoCode,
                                         forbidLevelUpReward: vm.forbidLevelUpReward,
                                         forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                         adminName: authService.adminName
@@ -15373,36 +15400,45 @@ define(['js/app'], function (myApp) {
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
-                    if (sendData.forbidPromoCode != undefined) { // undefined means unchanged
-                        let sendDataPromoCode = {
-                            query: {
-                                platformObjId: sendData.platformObjId,
-                                isBlockByMainPermission: false
-                            },
-                            updateData: {}
-                        }
-                        if (sendData.forbidPromoCode) {
-                            sendDataPromoCode.query.name = "次权限禁用组（预设）"; //hard code name;
-                            sendDataPromoCode.query.isBlockPromoCodeUser = true;
-                            sendDataPromoCode.query.isDefaultGroup = true;
-                            sendDataPromoCode.checkQuery = {
-                                platformObjId: sendData.platformObjId,
-                                playerNames: {"$in": sendData.playerNames},
-                                isBlockPromoCodeUser: {"$ne": true}
-                            }
-                            sendDataPromoCode.updateData["$addToSet"] = {playerNames: {"$each": sendData.playerNames}};
-                        } else {
-                            sendDataPromoCode.query.playerNames = {"$in": sendData.playerNames};
-                            sendDataPromoCode.updateData["$pull"] = {playerNames: {"$in": sendData.playerNames}};
-                        }
-
-                        socketService.$socket($scope.AppSocket, 'updateBatchPromoCodeGroupMainPermission', sendDataPromoCode, function () {
-                        });
-                    }
+                    // if (sendData.forbidPromoCode != undefined) { // undefined means unchanged
+                    //     let sendDataPromoCode = {
+                    //         query: {
+                    //             platformObjId: sendData.platformObjId,
+                    //             isBlockByMainPermission: false
+                    //         },
+                    //         updateData: {}
+                    //     }
+                    //     if (sendData.forbidPromoCode) {
+                    //         sendDataPromoCode.query.name = "次权限禁用组（预设）"; //hard code name;
+                    //         sendDataPromoCode.query.isBlockPromoCodeUser = true;
+                    //         sendDataPromoCode.query.isDefaultGroup = true;
+                    //         sendDataPromoCode.checkQuery = {
+                    //             platformObjId: sendData.platformObjId,
+                    //             playerNames: {"$in": sendData.playerNames},
+                    //             isBlockPromoCodeUser: {"$ne": true}
+                    //         }
+                    //         sendDataPromoCode.updateData["$addToSet"] = {playerNames: {"$each": sendData.playerNames}};
+                    //     } else {
+                    //         sendDataPromoCode.query.playerNames = {"$in": sendData.playerNames};
+                    //         sendDataPromoCode.updateData["$pull"] = {playerNames: {"$in": sendData.playerNames}};
+                    //     }
+                    //
+                    //     socketService.$socket($scope.AppSocket, 'updateBatchPromoCodeGroupMainPermission', sendDataPromoCode, function () {
+                    //     });
+                    // }
                     vm.getPlatformPlayersData();
                     vm.updateBatchForbidRewardLog(data);
                 });
             };
+
+            vm.updateBatchPlayerForbidPromoCode = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidPromoCode', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    vm.updateBatchForbidPromoCodeLog(data);
+                });
+            };
+
             vm.getPlayerStatusChangeLog = function (rowData) {
                 var deferred = Q.defer();
                 console.log(rowData);
@@ -18513,6 +18549,40 @@ define(['js/app'], function (myApp) {
                 vm.assignRandomRewards.push({playerName:'', rewardName:''});
             }
 
+            vm.isPlayerForbidPromoCode = function (playerName, randomRewardId, rewardCollection) {
+                if (playerName && randomRewardId && rewardCollection && vm.filterRewardPlatform) {
+                    let isPromoCodeAllowed = true;
+                    return new Promise((resolve, reject) => {
+                        $scope.$socketPromise('getPlayerPermissionByName', {
+                            playerName: playerName,
+                            platformObjId: vm.filterRewardPlatform,
+                        }).then(
+                            player => {
+                                isPromoCodeAllowed = player && player.data && player.data.permission && player.data.permission.hasOwnProperty('allowPromoCode') ? player.data.permission.allowPromoCode ? true : false : true;
+                                resolve(isPromoCodeAllowed);
+                            }
+                        )
+                    }).then(
+                        promoCodeAllowed => {
+                            if (typeof promoCodeAllowed  == 'boolean'){
+
+                                $scope.$evalAsync ( () => {
+                                    let selectedReward = rewardCollection.filter (p => p.id == randomRewardId);
+                                    selectedReward = selectedReward && selectedReward.length ? selectedReward[0] : null;
+                                    if (!promoCodeAllowed && selectedReward && selectedReward.rewardType && (selectedReward.rewardType ==2 || selectedReward.rewardType == 3 || selectedReward.rewardType == 4)){
+                                        vm.isPlayerAllowedPromoCode = false;
+                                        return socketService.showErrorMessage( playerName + ' ' + $translate("has forbidden from applying promo code"));
+                                    }
+                                    else{
+                                        vm.isPlayerAllowedPromoCode = true;
+                                    }
+                                })
+                            }
+                        }
+                    )
+                }
+            };
+
             vm.assignRandomRewardToUser = function (id) {
                 return new Promise((resolve, reject) => {
                     vm.assignRandomRewards;
@@ -21526,14 +21596,29 @@ define(['js/app'], function (myApp) {
                     vm.platformRewardTypeChanged();
                 });
 
-                utilService.actionAfterLoaded("#rewardMainTasks", function () {
-                    vm.disableAllRewardInput(true);
-                });
+
                 if (vm.showReward && vm.showReward.display && !vm.showReward.display.length) {
                     vm.showReward.display.push({displayId:"", displayTitle:"", displayTextContent: "", btnOrImageList: []});
                 }
                 console.log('vm.rewardParams', vm.rewardParams);
-                //$scope.safeApply();
+
+                utilService.actionAfterLoaded("#rewardMainTasks", async function () {
+                    vm.disableAllRewardInput(true);
+
+                    if (vm.rewardParams && vm.rewardParams.dailyMaxTotalApplyCount && vm.rewardParams.dailyMaxTotalTimeStart) {
+
+                        let sendData = {
+                            platformId: vm.showReward.platform.platformId,
+                            rewardCode: vm.showReward.code
+                        };
+
+                        let applied = await $scope.$socketPromise('getTopUpRewardDayLimit', sendData);
+                        let appliedCount = applied && applied.data && applied.data.applied || 0;
+
+                        vm.rewardMainParamTable[0].value[0].appliedCount = appliedCount;
+                    }
+                });
+
 
             };
 
@@ -21548,6 +21633,10 @@ define(['js/app'], function (myApp) {
                             if (v && v.params && v.params.condition && v.params.condition.generalCond
                                 && v.params.condition.generalCond.imageUrl && v.params.condition.generalCond.imageUrl.value) {
                                 v.params.condition.generalCond.imageUrl.value = [""];
+                            }
+
+                            if (v && v.name && v.name == "PlayerRandomRewardGroup") {
+                                vm.isPlayerAllowedPromoCode = true;
                             }
 
                             if (v && v.name && v.name == "PlayerConsumptionReturn") {
@@ -23287,6 +23376,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
                     $("#rewardMainTasks [data-cond-name='defineRewardBonusCount']").prop("disabled", true);
+                }
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerTopUpReturnGroup') {
+                    $("#rewardMainTasks [data-cond-name='appliedCount']").prop("disabled", true);
                 }
             }
 
@@ -25039,6 +25131,7 @@ define(['js/app'], function (myApp) {
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'carouselConfiguration':
+                    case 'partnerCarouselConfiguration':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
@@ -25076,6 +25169,11 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'carouselConfiguration':
                         vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = false;
+                        break;
+                    case 'partnerCarouselConfiguration':
+                        vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25518,10 +25616,17 @@ define(['js/app'], function (myApp) {
 
             //#region Frontend Configuration - Carousel Configuration
             vm.initCarouselSetting = function() {
-                vm.newFrontEndCarousel = {
-                    isPlayerVisible: true,
-                    isPlayerWithRegisteredHpNoVisible: true,
-                };
+
+                if (vm.isPartnerForCarouselConfiguration){
+                    vm.newFrontEndCarousel = {};
+
+                }
+                else{
+                    vm.newFrontEndCarousel = {
+                        isPlayerVisible: true,
+                        isPlayerWithRegisteredHpNoVisible: true,
+                    };
+                }
 
                 vm.resetCarouselUploadFile();
 
@@ -25688,6 +25793,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
+                                vm.newFrontEndCarousel.isPartnerForCarouselConfiguration = vm.isPartnerForCarouselConfiguration;
                                 socketService.$socket($scope.AppSocket, 'saveCarouselSetting', vm.newFrontEndCarousel, function (data) {
                                     console.log("saveCarouselSetting ret", data);
                                     // stop the uploading loader
@@ -25713,7 +25819,7 @@ define(['js/app'], function (myApp) {
 
             vm.getFrontEndCarouselSetting = function (platformObjId) {
                 vm.clearAllDropArea();
-                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId, isPartner: vm.isPartnerForCarouselConfiguration}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
@@ -25782,7 +25888,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 );
-                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList}).then(
+                return $scope.$socketPromise('updateCarouselSetting', {dataList: updateFrontEndCarouselData, deletedList: vm.frontEndDeletedList, isPartner: vm.isPartnerForCarouselConfiguration}).then(
                      (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
@@ -27115,8 +27221,32 @@ define(['js/app'], function (myApp) {
             }
 
             vm.checkPromoCodeDisabled = function (promoCode) {
-                return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission;
-            }
+                return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission || promoCode.isInForbidList;
+            };
+
+            vm.checkIsForbidPromoCode = async function (promoCodeObj, playerNames, promoCodeType) {
+                let playerNameList = playerNames ? playerNames.split("\n") : playerNames;
+                if (playerNameList && playerNameList.length > 0 && playerNames.indexOf("\n") < 0 && vm.filterCreatePromoCodePlatform && promoCodeType && promoCodeType._id) {
+                    let sendQuery = {
+                        name:  playerNameList[0],
+                        platform: vm.filterCreatePromoCodePlatform,
+                        promoCodeType: promoCodeType._id
+                    };
+
+                    let ret = await $scope.$socketPromise('checkPlayerForbidPromoCodeList', sendQuery).then(data => data).catch(
+                        err => {
+                            return Promise.reject(err)
+                        }
+                    );
+
+                    promoCodeObj.isInForbidList = false;
+                    if (ret && ret.data){
+                        promoCodeObj.isInForbidList = true;
+                    }
+                    $scope.$evalAsync();
+                    return promoCodeObj;
+                }
+            };
 
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
@@ -27147,6 +27277,10 @@ define(['js/app'], function (myApp) {
 
                     if (rowNumber) {
                         cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
+                    }
+
+                    if (el.isInForbidList){
+                        bgColor = "lightGray";
                     }
 
                     if (isBlockPermission) {
@@ -27187,8 +27321,9 @@ define(['js/app'], function (myApp) {
                         collection[index].expirationTime.data('datetimepicker').setDate(date);
                     }
                     vm.checkPlayerName(collection[index], tableId, index);
+                    $scope.$evalAsync();
                     return collection;
-                }, 10);
+                }, 500);
             };
             vm.cancelPromoCode = function (col, index) {
               $scope.$evalAsync(()=>{
@@ -27229,9 +27364,13 @@ define(['js/app'], function (myApp) {
                             delete newData.$$hashKey;
 
                             p = p.then(function () {
-                                return vm.promoCodeNewRow(col, type, newData, true);
+                                return vm.checkIsForbidPromoCode(data, el, data.promoCodeType).then(
+                                    retData => {
+                                        newData.isInForbidList = retData.isInForbidList;
+                                        return vm.promoCodeNewRow(col, type, newData, true);
+                                    }
+                                )
                             });
-
                         });
 
                         // return p.then(vm.endLoadWeekDay);
@@ -27243,7 +27382,7 @@ define(['js/app'], function (myApp) {
                             status: 1
                         };
 
-                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission) {
+                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission && !data.isInForbidList) {
                             if (!data.amount) {
                                 if (type == 3) {
                                     return socketService.showErrorMessage($translate("Promo Reward % is required"));
@@ -30999,6 +31138,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerIPRegisterLimit = platformData.playerIPRegisterLimit;
                         vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
+                        vm.platformBasic.isEbet4 = platformData.isEbet4;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -33084,6 +33224,7 @@ define(['js/app'], function (myApp) {
                         providerConsecutiveTimeoutSearchTimeFrame: srcData.providerConsecutiveTimeoutSearchTimeFrame,
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
+                        isEbet4: srcData.isEbet4,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
@@ -36522,6 +36663,42 @@ define(['js/app'], function (myApp) {
                 })
             }
 
+            vm.updateForbidPromoCodeLog = function (playerId, forbidPromoCode, playerObj) {
+                let queryData = {
+                    playerId: playerId,
+                    remark: vm.forbidPromoCodeRemark,
+                    adminId: authService.adminId,
+                    forbidPromoCodeNames: forbidPromoCode
+                };
+                socketService.$socket($scope.AppSocket, 'createForbidPromoCodeLog', queryData, function (created) {
+                    vm.forbidPromoCodeRemark = '';
+                    console.log('Forbid promo code log created', created);
+                });
+            };
+
+            vm.updateBatchForbidPromoCodeLog = function (data) {
+                let proms = [];
+                let tempPromoCodeList = [];
+                if (vm.promoCodeByPlatform && vm.promoCodeByPlatform.length){
+                    vm.promoCodeByPlatform.forEach(
+                        promoCode => {
+                            if (promoCode && promoCode.data){
+                                tempPromoCodeList =tempPromoCodeList.concat(promoCode.data)
+                            }
+                        }
+                    )
+                }
+                data.data.forEach(player => {
+                    let prom = vm.updateForbidPromoCodeLog(player._id, vm.findForbidCheckedName(player.forbidPromoCodeList, tempPromoCodeList), player);
+                    proms.push(prom);
+                });
+
+                return Promise.all(proms).then(data => {
+                    vm.batchPermitModifySucc = true;
+                    return data;
+                })
+            }
+
             $("button.forbidRewardEventConfirm").on('click', function () {
                 vm.getForbidReward();
             });
@@ -37129,9 +37306,9 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
-                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.selectedPlatform.id}).then(data => {
+                $scope.$socketPromise("replicatePlatformSetting", {replicateFrom: vm.platformToReplicate, replicateTo: vm.filterPlatformSettingsPlatform}).then(data => {
                     console.log(data);
-                    $socket.showConfirmMessage("Replication succeed.");
+                    socketService.showConfirmMessage("Replication succeed.", 10000);
                     loadPlatformData();
                 });
             };
@@ -37172,6 +37349,7 @@ define(['js/app'], function (myApp) {
                         vm.initBatchParams();
                         vm.drawBatchPermitTable();
                         vm.rewardTabClicked(null, platform._id);
+                        vm.getAllPlayerLevelsLocal();
                     }, 0);
                 }
             };
@@ -37184,6 +37362,8 @@ define(['js/app'], function (myApp) {
 
                 vm.forbidRewardEventAddList = [];
                 vm.forbidRewardEventRemoveList = [];
+                vm.forbidPromoCodeAddList = [];
+                vm.forbidPromoCodeRemoveList = [];
                 vm.forbidPromoCode = undefined;
 
                 vm.forbidGameAddList = [];
@@ -37195,6 +37375,9 @@ define(['js/app'], function (myApp) {
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
                 vm.playerCredibilityRemarksUpdated = false;
+                vm.batchPermitPlayerLevel = null;
+                vm.batchPermitPlayerLevelRemark = null;
+                vm.batchPermitPlayerLevelResMsg="";
             };
 
             vm.resetBatchEditUI = function(){
@@ -37203,8 +37386,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.localRemarkUpdate = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : null;
+                let platformObjId = vm.batchSettingSelectedPlatform;
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                     if (!ans) {
@@ -37245,12 +37427,38 @@ define(['js/app'], function (myApp) {
                 });
                 vm.drawBatchPermitTable();
             };
+            vm.updateBatchPermitPlayerLevel = function () {
+                let platformObjId = vm.batchSettingSelectedPlatform;
+                let playerNames = vm.splitBatchPermit();
+                let sendQuery = {
+                    admin: authService.adminName,
+                    platformObjId: platformObjId || vm.selectedPlatform.id,
+                    playerNames: playerNames,
+                    remarks: vm.batchPermitPlayerLevelRemark,
+                    playerLevelObjId: vm.batchPermitPlayerLevel
+                };
+
+                vm.batchPermitPlayerLevelSubmit = true;
+                console.log("updateBatchPlayerLevel", sendQuery);
+                socketService.$socket($scope.AppSocket, "updateBatchPlayerLevel", sendQuery, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = $translate("SUCCESS");
+                    })
+                }, function (error) {
+                    $scope.$evalAsync(() => {
+                        vm.batchPermitPlayerLevelSubmit = false;
+                        vm.batchPermitPlayerLevelResMsg = error.error.message;
+                    })
+                });
+                // vm.drawBatchPermitTable();
+            };
             vm.resetCredibilityOption = function () {
                 // reset credibitlity checkbox
                 $scope.$evalAsync(() => {
                     vm.forbidCredibilityAddList = [];
                     vm.forbidCredibilityRemoveList = [];
-                    vm.prepareCredibilityConfig(vm.selectedPlatform.id);
+                    vm.prepareCredibilityConfig(vm.batchSettingSelectedPlatform);
                     $('.selectRemark').attr('checked', false);
                     $('.creditUpdateStatus').html('');
                     vm.playerCredibilityRemarksUpdated = false;
@@ -37308,6 +37516,15 @@ define(['js/app'], function (myApp) {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let result = '<textarea rows="8" ng-model="vm.multiUsersList" style="width:100%">'
+                                return result;
+                            }
+                        },
+                        {
+                            title: $translate('Player Level'), data: "name", advSearch: true, "sClass": "remarkCol text-center",
+                            render: function (data, type, row) {
+                                let result = "<a data-toggle=\"modal\" data-target='#modalBulkPlayerLevel' " +
+                                    "ng-click='vm.getAllPlayerLevelsLocal();vm.batchPermitPlayerLevel = null;vm.batchPermitPlayerLevelRemark = null;vm.batchPermitPlayerLevelResMsg=\"\"'> " +
+                                    "<i style='font-size:20px;' class=\"fa fa-diamond\" aria-hidden=\"true\"></i> </a>";
                                 return result;
                             }
                         },
@@ -37444,6 +37661,13 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allowPromoCode === false ? "promoCodeRed.png" : "promoCodeBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
                                     height: "14px",
                                     width: "14px",
@@ -37495,6 +37719,21 @@ define(['js/app'], function (myApp) {
                                     'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + forbidFixedRewardsCount) > 0 ? '<sup>' + (row.forbidRewardEvents.length + forbidFixedRewardsCount) + '</sup>' : ''),
                                 }));
 
+                                link.append($('<a>', {
+                                    'class': 'forbidPromoCodePopover margin-right-5' + (row.forbidPromoCodeList && row.forbidPromoCodeList.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'ng-click': 'vm.getPromoCodeByPlatform(' + JSON.stringify(vm.batchSettingSelectedPlatform) + ');',
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'data-container': "body",
+                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidPromoCodeList && row.forbidPromoCodeList.length > 0 ? "promoCodeRed.png" : "promoCodeBlue.png") + '"></img>'
+                                        + (row.forbidPromoCodeList && row.forbidPromoCodeList.length > 0 ? '<sup>' + row.forbidPromoCodeList.length + '</sup>' : ''),
+                                    'style': "z-index: auto; width:23px; display: inline-block;",
+                                }));
 
                                 link.append($('<a>', {
                                     'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
@@ -37721,7 +37960,7 @@ define(['js/app'], function (myApp) {
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
-                                        if (changeObj.banReward != undefined) {
+                                        if (changeObj.allowPromoCode  != undefined) {
                                             let sendData = {
                                                 query: {
                                                     platformObjId: platformObjId || vm.selectedPlatform.id,
@@ -37731,7 +37970,7 @@ define(['js/app'], function (myApp) {
                                                 },
                                                 updateData: {}
                                             }
-                                            if (changeObj.banReward) {
+                                            if (!changeObj.allowPromoCode ) {
                                                 sendData.updateData["$addToSet"] = {playerNames: {"$each": playerNames}};
                                             } else {
                                                 sendData.updateData["$pull"] = {playerNames: {"$in": playerNames}};
@@ -37767,6 +38006,93 @@ define(['js/app'], function (myApp) {
                                     $(thisPopover).popover('hide');
                                 })
 
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidPromoCodePopover',
+                            content: function () {
+                                var data = uData;
+                                vm.forbidPromoCodePopover = data;
+                                vm.forbidPromoCode = [];
+                                vm.forbidPromoCodeDisable = true;
+                                vm.selectedAllPromoCode = false;
+                                let totalLength  = 0;
+                                vm.promoCodeByPlatform.forEach(
+                                    p => {
+                                        if (p && p.data){
+                                            totalLength += p.data.length;
+                                        }
+                                    }
+                                )
+                                if (vm.promoCodeByPlatform && vm.forbidPromoCodePopover && vm.forbidPromoCodePopover.forbidPromoCode && (totalLength === vm.forbidPromoCodePopover.forbidPromoCode.length)) {
+                                    vm.selectedAllPromoCode = true;
+                                }
+                                $scope.safeApply();
+                                return $compile($('#forbidPromoCodePopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                let rowData = vm.resetBatchEditUI();
+                                $scope.safeApply();
+
+                                $("input.playerPromoCodeForbid").on('click', function () {
+                                    let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
+                                    let forbidPromoCode = [];
+                                    $.each(forbidPromoCodeList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidPromoCode.push($(v).attr('data-provider'));
+                                        }
+                                    });
+
+                                    vm.forbidPromoCodeDisable = vm.isForbidChanged(forbidPromoCode, vm.forbidPromoCodePopover.forbidPromoCodeList);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidPromoCodeCancel").on('click', function () {
+                                    $(".forbidPromoCodePopover").popover('hide');
+                                });
+
+                                $("button.showForbidPromoCode").on('click', function () {
+                                    $(".forbidPromoCodePopover").popover('hide');
+                                });
+
+                                $("button.forbidBatchPromoCodeConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidPromoCodeList = $(thisPopover).find('.playerPromoCodeForbid');
+                                    let forbidPromoCode = [];
+                                    $.each(forbidPromoCodeList, function (i, v) {
+                                        if ($(v).prop('checked') && $(v).attr('data-provider')) {
+                                            forbidPromoCode.push($(v).attr('data-provider'));
+                                        }
+                                    });
+
+                                    let playerNames = vm.splitBatchPermit();
+                                    let sendData = {
+                                        platformObjId: platformObjId || vm.selectedPlatform.id,
+                                        playerNames: playerNames,
+                                        forbidPromoCode: {
+                                            'addList': vm.forbidPromoCodeAddList,
+                                            'removeList': vm.forbidPromoCodeRemoveList
+                                        },
+                                        // forbidPromoCode: vm.forbidPromoCode,
+                                        // forbidLevelUpReward: vm.forbidLevelUpReward,
+                                        // forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
+                                        // isForbidPromoCode: vm.isForbidPromoCode,
+                                        // isForbidLevelUpReward: vm.isForbidLevelUpReward,
+                                        // isForbidLevelMaintainReward: vm.isForbidLevelMaintainReward,
+                                        adminName: authService.adminName
+                                    };
+
+                                    vm.batchPermitModifySucc = false;
+                                    $(".forbidPromoCodePopover").popover('hide');
+                                    vm.updateBatchPlayerForbidPromoCode(sendData);
+                                    vm.drawBatchPermitTable();
+
+                                });
                             }
                         });
 
@@ -38108,6 +38434,46 @@ define(['js/app'], function (myApp) {
                 }
                 return playerNames;
             }
+
+            vm.getAllPromoCode = function () {
+                // 1st dependencies variable
+                return Promise.all([
+                    commonService.getAllPromoCode($scope).catch(err => Promise.resolve([]))
+                ]).then(
+                    result => {
+                        $scope.$evalAsync(() => {
+                            if(result && result.length){
+                                vm.allPromoCode = result[0];
+                            }else{
+                                vm.allPromoCode = [];
+                            }
+                        });
+                    }
+                );
+            };
+
+            vm.getPromoCodeByPlatform = function (platformObjId) {
+                vm.promoCodeByPlatform = [];
+                let tempData = [];
+                if (vm.allPromoCode && platformObjId){
+                    vm.allPromoCode.forEach(
+                        promoCodeList => {
+                            if (promoCodeList && promoCodeList.data){
+                                tempData = promoCodeList.data.filter(p => {
+                                    if (p && p.platformObjId) {
+                                        return p.platformObjId.toString() == platformObjId.toString()
+                                    }
+                                })
+                            }
+                            vm.promoCodeByPlatform.push({
+                                category: promoCodeList.category,
+                                data: tempData
+                            })
+                        }
+                    )
+                }
+            }
+
             vm.forbidModification = function (id, val, addList, removeList) {
                 if (val === true) {
                     if (vm[addList].indexOf(id) == -1) {
@@ -39888,12 +40254,17 @@ define(['js/app'], function (myApp) {
 
             vm.updateImageUrl = function(uploaderName, platformId){
                 let imageFile = document.getElementById(uploaderName);
+                let platformNo;
+                if (vm.allPlatformData.length > 0) {
+                    platformNo = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platformNo = ( platformNo && platformNo[0] && platformNo[0].platformId ) ? platformNo[0].platformId : null;
+                }
                 if(imageFile.files.length > 0){
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
                     let sendQuery = {
                         query: {
-                            platformId: platformId,
+                            platformId: platformNo,
                             gameId: vm.curGame.gameId || null,
                             gameName: fileName || null
                         },

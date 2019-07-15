@@ -154,8 +154,8 @@ function socketActionReport(socketIO, socket) {
             let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 10;
             query.index = query.index || 0;
-            let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformId, query.listAll], actionName, isValidData);
+            let isValidData = Boolean(query);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformList, query.listAll], actionName, isValidData);
         },
 
         winRateReportFromSummary: function winRateReportFromSummary(query) {
@@ -165,8 +165,8 @@ function socketActionReport(socketIO, socket) {
             let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 10;
             query.index = query.index || 0;
-            let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReportFromSummary, [startTime, endTime, query.providerId, query.platformId, query.listAll], actionName, isValidData);
+            let isValidData = Boolean(query);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReportFromSummary, [startTime, endTime, query.providerId, query.platformList, query.listAll], actionName, isValidData);
         },
 
         getWinRateByGameType: function getWinRateByGameType(query) {
@@ -405,10 +405,9 @@ function socketActionReport(socketIO, socket) {
 
         reCalculateWinRateReportSummary: function reCalculateWinRateReportSummary(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId);
-            var platformId = ObjectId(data.platformId);
+            var isValidData = Boolean(data);
 
-            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculateWinRateReportSummary, [platformId, data.start, data.end], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculateWinRateReportSummary, [data.platformList, data.start, data.end], actionName, isValidData);
         },
 
         getPlayerDepositAnalysisReport: function getPlayerDepositAnalysisReport(data) {

@@ -95,6 +95,47 @@ const dbProposalUtility = {
         )
     },
 
+    calculateProposalsTotalAmount: (proposalArr) => {
+        let totalAmount = 0;
+        let playerSet = new Set();
+
+        proposalArr.forEach(p => {
+            if (p.data) {
+                if (p.data.amount) {
+                    totalAmount += Number(p.data.amount);
+                }
+
+                if (p.data.rewardAmount) {
+                    totalAmount += Number(p.data.rewardAmount);
+                }
+
+                if (p.data.updateAmount) {
+                    totalAmount += Number(p.data.updateAmount);
+                }
+
+                if (p.data.negativeProfitAmount) {
+                    totalAmount += Number(p.data.negativeProfitAmount);
+                }
+
+                if (p.data.commissionAmount) {
+                    totalAmount += Number(p.data.commissionAmount);
+                }
+
+                if (p.data.playerObjId) {
+                    playerSet.add(p.data.playerObjId);
+                }
+            }
+        });
+
+        let retObj = {
+            totalAmount: totalAmount,
+            totalProps: proposalArr.length,
+            playerSet: [...playerSet]
+        };
+
+        return Promise.resolve(retObj);
+    },
+
     createProposalProcessStep: (proposal, adminObjId, status, memo) => {
         let proposalTypeProm = dbConfig.collection_proposalType.findOne({_id: proposal.type}).populate({
             path: "process",
@@ -144,15 +185,22 @@ const dbProposalUtility = {
     // check reward apply restriction on ip, phone and IMEI
     checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent, retentionApplicationDate) => {
         let intervalTimeForLoginMode3 = null;
+
+        let orArray = [{'data.playerObjId': player._id}];
+        if (player.lastLoginIp) {
+            orArray.push({'data.lastLoginIp': player.lastLoginIp})
+        }
+        if (player.phoneNumber) {
+            orArray.push({'data.phoneNumber': player.phoneNumber})
+        }
+        if (player.deviceId) {
+            orArray.push({'data.deviceId': player.deviceId})
+        }
+
         let matchQuery = {
             "data.eventId": rewardEvent._id,
             "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
-            $or: [
-                {'data.playerObjId': player._id},
-                {'data.lastLoginIp': player.lastLoginIp},
-                {'data.phoneNumber': player.phoneNumber},
-                {'data.deviceId': player.deviceId},
-            ]
+            $or: orArray
         };
 
         //get the interval time for loginMode 3
@@ -177,24 +225,21 @@ const dbProposalUtility = {
 
         console.log('checking matchQuery', matchQuery)
 
-        return dbConfig.collection_proposal.aggregate(
+        return dbConfig.collection_proposal.find(
+            matchQuery,
             {
-                $match: matchQuery
-            },
-            {
-                $project: {
-                    createTime: 1,
-                    status: 1,
-                    'data.playerObjId': 1,
-                    'data.eventId': 1,
-                    'data.lastLoginIp': 1,
-                    'data.phoneNumber': 1,
-                    'data.deviceId': 1,
-                    _id: 0
-                }
+                createTime: 1,
+                status: 1,
+                'data.playerObjId': 1,
+                'data.eventId': 1,
+                'data.lastLoginIp': 1,
+                'data.phoneNumber': 1,
+                'data.deviceId': 1,
+                _id: 0
             }
-        ).read("secondaryPreferred").then(
+        ).lean().read("secondaryPreferred").then(
             countReward => {
+                console.log('countReward', countReward)
 
                 let samePlayerHasReceived = false;
                 let sameIPAddressHasReceived = false;

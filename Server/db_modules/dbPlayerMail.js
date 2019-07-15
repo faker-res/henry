@@ -15,7 +15,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constSMSPurpose = require('../const/constSMSPurpose');
-const queryPhoneLocation = require('query-mobile-phone-area');
+const queryPhoneLocation = require('phone-query');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
@@ -109,8 +109,15 @@ const dbPlayerMail = {
         });
     },
 
-    sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
-        let stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+    sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content, filterPlayerPromoCodeForbidden) {
+        let stream;
+        if (filterPlayerPromoCodeForbidden){
+            stream = dbconfig.collection_players.find({platform: ObjectId(platformId), $or: [{"permission.allowPromoCode": true},{"permission.allowPromoCode": {$exists: false}}]}).cursor({batchSize: 10000});
+        }
+        else{
+            stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
+        }
+
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
             return balancer.processStream(
@@ -475,6 +482,7 @@ const dbPlayerMail = {
                             )
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                            playerQuery['permission.forbidPlayerFromLogin'] = {$ne: true};
                         } else {
                             playerQuery.playerId = inputData.playerId;
                         }
@@ -769,6 +777,7 @@ const dbPlayerMail = {
 
                         if (indexNo != -1) {
                             isSpam = true;
+                            console.log("checking failure: new phone number is blacklisted", telNum)
                             return Q.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("This phone number is already used. Please insert other phone number.")
@@ -844,6 +853,7 @@ const dbPlayerMail = {
                     if (!phoneValidation || !phoneValidation.isPhoneNumberValid) {
                         isSpam = true;
 
+                        console.log("checking failure: new phone number exists", [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString()), telNum])
                         return Promise.reject({
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
                             message: "This phone number is already used. Please insert other phone number."
@@ -888,6 +898,13 @@ const dbPlayerMail = {
                         message: template.content,
                         delay: 0
                     };
+
+                    if (playerName){
+                        saveObj.playerName = playerName;
+                    }
+
+                    console.log("checking playerName", playerName || "NULL")
+                    console.log("checking saveObj", saveObj)
                     // Log the verification SMS before send
                     dbconfig.collection_smsVerificationLog.remove({tel: telNum, platformId: platformId}).then(
                         () => {
@@ -1157,6 +1174,14 @@ const dbPlayerMail = {
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
                         name: "ValidationError",
                         message: "There is no valid SMS Code. Please get another one."
+                    });
+                }
+
+                if (playerName && verificationSMS && verificationSMS[0] && verificationSMS[0].playerName && playerName != verificationSMS[0].playerName){
+                    return Promise.reject({
+                        status: constServerCode.VALIDATION_CODE_EXPIRED,
+                        name: "ValidationError",
+                        message: localization.localization.translate("The player name to be registered is different from the one in SMS log. Please get a new one.")
                     });
                 }
 

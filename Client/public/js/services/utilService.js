@@ -26,6 +26,13 @@ define([], function () {
             return str.substring(0, 3) + "******" + str.slice(-4);
         }
 
+        this.encodeQQ = function (str) {
+            str = str || '';
+            var newStr = str.replace(str, "****");
+            return newStr + "@qq.com";
+            // return str.substring(0, 3) + "***" + str.slice(-2);
+        }
+
         this.setNDaysAgo = function (inputDate, n) {
             if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
                 return;
@@ -77,12 +84,19 @@ define([], function () {
                   if (data.registrationInterface == 0){
                       data.registrationInterface$ = "BACKSTAGE"
                   }
-                  else if (data.registrationInterface == 1){
+                  else if (data.registrationInterface == 1 || data.registrationInterface == 2){
                       data.registrationInterface$ = "WEB"
                   }
-                  else if (data.registrationInterface == 3){
+                  else if (data.registrationInterface == 3 || data.registrationInterface == 4){
                       data.registrationInterface$ = "H5"
                   }
+                  else if (data.registrationInterface == 5 || data.registrationInterface == 6){
+                      data.registrationInterface$ = "APP"
+                  }
+              }
+              else{
+                  // to handle old data that without registrationInterface; categorized under WEB
+                  data.registrationInterface$ = "WEB"
               }
           }
 
@@ -591,7 +605,7 @@ define([], function () {
             let difference = Math.ceil(difference_ms / ONE_DAY);
             return difference;
         };
-        this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly) {
+        this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly, showTotalOnly) {
             function getFloat(i) {
                 let a = parseFloat(i);
                 return $.isNumeric(a) ? a : 0;
@@ -607,6 +621,10 @@ define([], function () {
                 let line1 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(a);
                 let line2 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(b);
                 let sumLines = showPageOnly ? line1 : line1.append(line2);
+
+                // Override showPageOnly
+                sumLines = showTotalOnly ? line2 : sumLines;
+
                 if(hasExtraLines) {
                     extraLinesArr.forEach(data=>{
                         sumLines = sumLines.append($('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(data));

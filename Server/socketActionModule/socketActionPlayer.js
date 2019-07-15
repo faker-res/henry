@@ -24,7 +24,7 @@ var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-var queryPhoneLocation = require('query-mobile-phone-area');
+var queryPhoneLocation = require('phone-query');
 var dbUtil = require('./../modules/dbutility');
 var smsAPI = require('../externalAPI/smsAPI');
 var cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -272,10 +272,22 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents, data.forbidPromoCode, data.forbidLevelUpReward, data.forbidLevelMaintainReward], actionName, isValidData);
         },
 
+        updatePlayerForbidPromoCode: function updatePlayerForbidPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.forbidPromoCodeList);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidPromoCode, [data._id, data.forbidPromoCodeList], actionName, isValidData);
+        },
+
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidRewardEvents);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents, data], actionName, isValidData);
+        },
+
+        updateBatchPlayerForbidPromoCode: function updateBatchPlayerForbidPromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidPromoCode);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidPromoCode, [data.platformObjId, data.playerNames, data.forbidPromoCode, data], actionName, isValidData);
         },
 
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
@@ -874,6 +886,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data, data.platform], actionName, isValidData);
         },
 
+        getPlayerPermissionByName: function getPlayerPermissionByName (data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.playerName);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPermissionByName, [data.playerName, data.platformObjId], actionName, isValidData);
+        },
+
         getPushNotification: function getPushNotification(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId);
@@ -1148,6 +1166,11 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerNames, data.remarks, data.comment], actionName, isValidData);
         },
+        updateBatchPlayerLevel: function updateBatchPlayerLevel(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.playerNames.length && data.playerLevelObjId && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerLevel, [data.admin, data.platformObjId, data.playerNames, data.playerLevelObjId, data.remarks], actionName, isValidData);
+        },
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId);
@@ -1168,12 +1191,26 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.createForbidRewardLog, [data.playerId, data.adminId, data.forbidRewardNames, data.remark], actionName, isValidData);
         },
 
+        createForbidPromoCodeLog: function createForbidPromoCodeLog(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.adminId && data.forbidPromoCodeNames);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createForbidPromoCodeLog, [data.playerId, data.adminId, data.forbidPromoCodeNames, data.remark], actionName, isValidData);
+        },
+
         getForbidRewardLog: function getForbidRewardLog(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
             let index = data.index || 0;
             let limit = data.limit || 10;
             socketUtil.emitter(self.socket, dbPlayerInfo.getForbidRewardLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
+        },
+
+        getForbidPromoCodeLog: function getForbidPromoCodeLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getForbidPromoCodeLog, [data.playerId, data.startTime, data.endTime, index, limit], actionName, isValidData);
         },
 
         getForbidRewardPointsEventLog: function getForbidRewardPointsEventLog(data) {
@@ -1402,6 +1439,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlayerInfo.getBankZoneData, [data], actionName, isValidData);
+        },
+
+        isPhoneNumberExist: function isPhoneNumberExist(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.isPhoneNumberExist, [data.phoneNumber, data.platformObjId], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

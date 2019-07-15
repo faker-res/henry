@@ -1,27 +1,5 @@
 var db = db.getSiblingDB("admindb");
 
-var type5 = "FirstTopUp";
-
-db.rewardParam.update({"name": type5}, {
-    $set: {
-        params: {
-            periodType: {type: "Number", des: "Reward period"}, //0: First time, 1: week, 2: month
-            targetEnable: {type: "Boolean", des: "If target is enabled"},
-            providers: {type: "DBString", action: "getAllGameProviders", field: "name", des: "Game Provider"},
-            reward: {
-                type: "Table",
-                data: {
-                    rewardPercentage: {type: "Percentage", des: "Reward percentage"},
-                    spendingTimes: {type: "Number", des: "Consumption amount times"},
-                    maxRewardAmount: {type: "Number", des: "Maximum reward amount"},
-                    minTopUpAmount: {type: "Number", des: "Minimal top up amount"},
-                },
-                des: "Reward parameter for each level"
-            },
-        }
-    }
-});
-
 var type6 = "PlatformTransactionReward";
 
 db.rewardParam.update({"name": type6}, {
@@ -1007,6 +985,21 @@ db.rewardParam.update({
                     type: "checkbox",
                     des: "Required phone number"
                 },
+                checkSameIP: {
+                    index: 19.2,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 19.3,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 19.4,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward"
+                },
             }
         },
         param: {
@@ -1014,6 +1007,8 @@ db.rewardParam.update({
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 isSteppingReward: {type: "checkbox", des: "Reward step needed"},
                 countInRewardInterval: {type: "number", des: "Reward limit in interval"},
+                dailyMaxTotalApplyCount: {type: "number", des: "Daily Max Total Apply Count"},
+                dailyMaxTotalTimeStart: {type: "text", des: "Daily Max Total Reset Time"},
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardAmount: {type: "number", des: "Reward amount"},
@@ -1024,6 +1019,7 @@ db.rewardParam.update({
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
+                    appliedCount: {type: "number", des: "Applied Count", disabled: true}
                 }
             },
             tblOptDynamic: {
@@ -1031,6 +1027,8 @@ db.rewardParam.update({
                 isSteppingReward: {type: "checkbox", des: "Reward step needed"},
                 countInRewardInterval: {type: "number", des: "Reward limit in interval"},
                 dailyMaxRewardAmount: {type: "number", des: "Daily Reward Limit"},
+                dailyMaxTotalApplyCount: {type: "number", des: "Daily Max Total Apply Count"},
+                dailyMaxTotalTimeStart: {type: "text", des: "Daily Max Total Reset Time"},
                 rewardParam: {
                     minTopUpAmount: {type: "number", des: "Minimum top up amount"},
                     rewardPercentage: {type: "percentage", des: "Reward percentage"},
@@ -1042,6 +1040,7 @@ db.rewardParam.update({
                         des: "Forbid withdraw if there is balance after unlock"
                     },
                     remark: {type: "text", des: "Remark"},
+                    appliedCount: {type: "number", des: "Applied Count", disabled: true}
                 }
             }
         }
@@ -1499,6 +1498,12 @@ db.rewardParam.update({
                     des: "Random Reward Mode",
                     detail: "Possibility - based on possibility; Top Up Condition - based on player total top up / top up count from yesterday",
                     options: "randomRewardMode",
+                },
+                isNotEntitledWhenForbidPromoCode: {
+                    index: 50,
+                    type: "checkbox",
+                    des: "Is not entitled when promo code is forbidden",
+                    value: true
                 }
 
             }

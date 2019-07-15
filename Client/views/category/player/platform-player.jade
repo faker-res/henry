@@ -361,15 +361,40 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
+#forbidPromoCodePopover.hide(style="width: 600px", ng-non-bindable)
+    table.simple-table
+        tr
+            td(style='text-align:left')
+                label {{"FORBID_PROMOCODE" | translate}}
+                div(ng-repeat='(i,v) in vm.promoCodeByPlatform')
+                    label {{v.category | translate}}
+                    div(ng-repeat=" promoCode in v.data")
+                        label {{promoCode.name}}
+                            input.playerPromoCodeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{promoCode._id}}', ng-change='vm.forbidModification(promoCode._id, isTrue, "forbidPromoCodeAddList", "forbidPromoCodeRemoveList")', ng-model="isTrue", ng-checked='vm.forbidPromoCodePopover.forbidPromoCodeList.indexOf(promoCode._id)>-1 || vm.selectedAllForbidPromoCode')
+                            span(id="{{'c-'+promoCode._id}}")
+                    //.textareaDetail.margin-top-bottom-small
+                    //    input.playePromoCodeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardEventAddList", "forbidRewardEventRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
+                    //    span(id="{{'c-'+v._id}}")
+                div
+                    label.text-danger {{'Select All' | translate}}
+                        input.playerPromoCodeForbid.pull-left.margin-right-5(type='checkbox', ng-model='isTrue', ng-click='vm.selectedAllForbidPromoCode = !vm.selectedAllForbidPromoCode;', ng-checked='vm.selectedAllForbidPromoCode')
+                .textareaDetail.margin-top-bottom-small
+                    textarea.forbidPromoCodeRemark(ng-model='vm.forbidPromoCodeRemark', placeholder='{{"Please add remark." | translate}}')
+                button.common-button.margin-right-5.btn.btn-success.forbidPromoCodeConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidPromoCode') && vm.platformPageName!='batchPermit'", ng-disabled='vm.forbidPromoCodeDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchPromoCodeConfirm(ng-show="checkViewPermission('Player', 'Disable','ForbidPromoCode') && vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
+
+                button.common-button.margin-right-5.btn.btn-warning.forbidPromoCodeCancel(data-dismiss='popover') {{'CANCEL' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidPromoCode(data-toggle="modal", data-target="#modalForbidPromoCodeLog", ng-click="vm.getForbidPromoCode();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
+
 #forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
         tr
             td.alignLeft
 
                 label {{"FORBID_REWARD" | translate}}
-                div
-                    label {{"优惠代码" | translate}}
-                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
+                //div
+                //    label {{"优惠代码" | translate}}
+                //        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidPromoCode', ng-checked='vm.forbidPromoCode || vm.selectedAllForbidRewardEvent')
                 div
                     label {{"PlayerLevelUp" | translate}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', ng-model='vm.forbidLevelUpReward', ng-checked='vm.forbidLevelUpReward || vm.selectedAllForbidRewardEvent')
@@ -412,20 +437,20 @@ include modalGameCreditLog
         tr
             td.alignLeft
                 label {{"LOGIN_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                 label {{"TOPUP_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")
                 .textareaDetail.margin-top-bottom-small
                 .textareaDetail.margin-top-bottom-small
                 label {{"GAME_REWARD_POINTS" | translate}}
-                div(ng-repeat="(i,v) in vm.rewardPointsAllEvent | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
+                div(ng-repeat="(i,v) in vm.rewardPointsEventByPlatform | filter: {category: constRewardPointsTaskCategory.GAME_REWARD_POINTS}")
                     label {{v.rewardTitle}}
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}',ng-change='vm.forbidModification(v._id, isTrue, "forbidRewardPointsAddList", "forbidRewardPointsRemoveList")', ng-model="isTrue", ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                         span(id="{{'c-'+v._id}}")
@@ -514,12 +539,21 @@ include modalGameCreditLog
                 thead
                     tr
                         th {{'Provider group' | translate}}
-                        th {{'LOCAL_BALANCE' | translate}}
+                        th {{'CREDIT' | translate}}
                         th {{'Unlock Progress(Consumption)' | translate}}
-                tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
-                    tr
+                tbody
+                    tr(ng-if='vm.showLocalCredit')
+                        td {{'LOCAL_CREDIT' | translate}}
+                        td {{vm.selectedPlayerValidCredit}}
+                        td --
+                    tr(ng-if='vm.showAnyLobby')
+                        td {{'ANY_LOBBY' | translate}}
+                        td {{vm.selectedPlayerValidCredit}}
+                        td {{vm.anyLobbyCurConsumption | noRoundTwoDecimalPlaces }} / {{ (vm.anyLobbyTargetConsumption + vm.anyLobbyForbidXIMAAmt) | noRoundTwoDecimalPlaces }}
+                    //tr(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
+                    tr(ng-repeat="group in vm.rewardTaskGroupPopoverData")
                         td {{group.providerGroup.name | translate}}
-                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt | noRoundTwoDecimalPlaces}}
+                        td {{group.rewardAmt | noRoundTwoDecimalPlaces}}
                         td {{group.curConsumption | noRoundTwoDecimalPlaces }} / {{ (group.targetConsumption + group.forbidXIMAAmt) | noRoundTwoDecimalPlaces }}
 
 #playerFeedbackPopover.hide(style="width: 600px")
@@ -807,6 +841,28 @@ include modalGameCreditLog
                 label {{"Total" | translate}} {{vm.forbidTopUpLog.totalCount}} {{"records" | translate}}
                 table#forbidTopUpTbl.common-table(style='min-width:100%')
                 #forbidTopUpTblPage.height30
+
+#modalForbidPromoCodeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Player' | translate}} : {{vm.forbidPromoCodePopover.name}}
+            .modal-body
+                #forbidPromoCodeSearch.adminLogQueryDiv
+                    .inlineBlk
+                        label {{'START_DATE' | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{'END_DATE' | translate}}
+                        .endTime
+                    .inlineBlk
+                        button.btn.btn-primary(ng-click='vm.getForbidPromoCodeLog(true)') {{'SEARCH' | translate}}
+                    .inlineBlk(ng-show='vm.forbidPromoCodeLog.isSearching')
+                        i.fa.fa-spin.fa-spinner
+                label {{"Total" | translate}} {{vm.forbidPromoCodeLog.totalCount}} {{"records" | translate}}
+                table#forbidPromoCodeTbl.common-table(style='min-width:100%')
+                #forbidPromoCodeTblPage.height30
 
 #modalPlayerRewardHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

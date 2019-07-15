@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbUtil = require('./../modules/dbutility');
 var constSettlementPeriod = require('./../const/constSettlementPeriod');
+let dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 function socketActionRewardEvent(socketIO, socket) {
 
@@ -43,6 +44,12 @@ function socketActionRewardEvent(socketIO, socket) {
          * Get all reward events for platform
          * @param {json} data - data has to contain platform
          */
+        getAllPromoCode: function getAllPromoCode() {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbRewardEvent.getAllPromoCode, [], actionName, isValidData);
+        },
+
         getRewardEventsForPlatform: function getRewardEventsForPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
@@ -109,8 +116,8 @@ function socketActionRewardEvent(socketIO, socket) {
             var platformId;
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
             var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
-            if (data && data.platformId && ObjectId(data.platformId)) {
-                platformId = ObjectId(data.platformId);
+            if (data && data.platformId && data.platformId._id) {
+                platformId = ObjectId(data.platformId._id);
             }
             var isValidData = Boolean(data && data.type && data.period && platformId && data.eventName);
             if (isValidData) {
@@ -156,6 +163,12 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardEvent.getRewardEvents, [data.platform], actionName, isValidData);
+        },
+
+        getTopUpRewardDayLimit: function getTopUpRewardDayLimit(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.rewardCode);
+            socketUtil.emitter(self.socket, dbPlayerReward.getTopUpRewardDayLimit, [data.platformId, data.rewardCode], actionName, isValidData);
         },
     };
     socketActionRewardEvent.actions = this.actions;
