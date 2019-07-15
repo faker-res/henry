@@ -370,7 +370,12 @@ var dbPlayerFeedback = {
         if("playerType" in query) {
             delete query.playerType;
         }
-
+        let searchStartTime;
+        let searchEndTime;
+        if(query.searchTime && query.searchEndTime){
+            searchStartTime = new Date(query.searchTime);
+            searchEndTime = new Date(query.searchEndTime);
+        }
 
         if (query.admins && query.admins.length) {
             query.admins = query.admins.map(e => ObjectId(e));
@@ -395,24 +400,19 @@ var dbPlayerFeedback = {
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
 
-                            let searchTime = new Date(query.searchTime);
-                            let searchEndTime = new Date(query.searchEndTime);
                             console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
-                                endTime: moment(query.start).add(query.days, "day"),
-                                // endTime: endT,
+                                endTime: query.days? moment(query.start).add(query.days, "day"): new Date(),
                                 query: query,
                                 playerObjIds: feedbackIdObjs.map(function (feedbackIdObj) {
                                     return feedbackIdObj._id;
                                 }),
                                 option: {isFeedback: true},
                                 isPromoteWay: null,
-                                cusT: null,
-                                cusET: null,
-                                startT: searchTime,
-                                endT: searchEndTime
+                                searchTime: searchStartTime,
+                                endSearchTime: searchEndTime
                             });
                         },
                         processResponse: function (record) {

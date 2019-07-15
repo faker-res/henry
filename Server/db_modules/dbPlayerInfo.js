@@ -21192,7 +21192,10 @@ let dbPlayerInfo = {
                                         }).lean();
                                     let qStartTime = new Date(playerFeedBackData.createTime);
                                     let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
-
+                                    if (customStartTime && customEndTime) {
+                                        qStartTime = customStartTime;
+                                        qEndTime = customEndTime;
+                                    }
 
                                     let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
                                     if (retData && retData[0]) {
@@ -21286,11 +21289,11 @@ let dbPlayerInfo = {
                 playerQuery.partner = query.partner;
             }
 
-            if(query.hasOwnProperty('searchTime')){
-                startTime = query.searchTime;
-            }
-            if(query.hasOwnProperty('searchEndTime')){
-                endTime = query.searchEndTime;
+            if(query.hasOwnProperty('searchTime') || query.hasOwnProperty('searchEndTime')){
+                if(!query.days){
+                    startTime = query.searchTime;
+                    endTime = query.searchEndTime;
+                }
             }
 
             // Player Score Query Operator

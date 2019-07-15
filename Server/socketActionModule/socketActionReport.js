@@ -455,7 +455,7 @@ function socketActionReport(socketIO, socket) {
 
         getFeedbackReport: function getFeedbackReport(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.platformId && data.query.days);
+            let isValidData = Boolean(data && data.query && data.platformId);
             let platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackReportAdvance, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);

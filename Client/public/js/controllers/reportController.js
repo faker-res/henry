@@ -3872,9 +3872,9 @@ define(['js/app'], function (myApp) {
             if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
                 query.playerType = vm.feedbackQuery.userType;
             }
-            if(vm.feedbackQuery.days && vm.feedbackQuery.days!=null) {
-                query.days = vm.feedbackQuery.days;
-            }
+            // if(vm.feedbackQuery.days && vm.feedbackQuery.days!=null) {
+            //     query.days = vm.feedbackQuery.days;
+            // }
             if(vm.feedbackQuery.result && vm.feedbackQuery.result.length > 0) {
                 query.result = {$in: vm.feedbackQuery.result};
             }
@@ -3891,6 +3891,7 @@ define(['js/app'], function (myApp) {
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
             query.searchTime = vm.feedbackQuery.searchTime.data('datetimepicker').getLocalDate();
             query.searchEndTime = vm.feedbackQuery.searchEndTime.data('datetimepicker').getLocalDate();
+            query.days = vm.feedbackQuery.days;
             query.credibilityRemarks = vm.feedbackQuery.credibility;
             query.valueScoreOperator = vm.feedbackQuery.valueOperator;
             query.playerScoreValue = vm.feedbackQuery.valueFormal;
@@ -11331,7 +11332,7 @@ define(['js/app'], function (myApp) {
                             userType: 'Real Player (all)',
                             result: [],
                             topic: [],
-                            days: 1,
+                            // days: 1,
                             valueScoreOperator: ">=",
                             topUpTimesOperator: ">=",
                             bonusTimesOperator: ">=",
