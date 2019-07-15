@@ -6031,6 +6031,13 @@ define(['js/app'], function (myApp) {
                 partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                 partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
                 partner.totalSettledCommission = partner.totalSettledCommission ? parseFloat(partner.totalSettledCommission).toFixed(2) : 0;
+
+                if (partner.platform){
+                    let matchedPlatformData = vm.allPlatformData.find(a => a._id.toString() == partner.platform.toString());
+                    if(matchedPlatformData && matchedPlatformData.name){
+                        partner.platform$ = matchedPlatformData.name;
+                    }
+                }
             });
 
             vm.partners = await getReferralsList(data);
@@ -6042,7 +6049,12 @@ define(['js/app'], function (myApp) {
             var tableOptions = {
                 data: data.data,
                 aaSorting: [],
-                columns: [{
+                columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: 'platform$'
+                    },
+                    {
                         title: $translate('PARTNER_NAME'),
                         data: "partnerName",
                         advSearch: true,
