@@ -588,6 +588,10 @@ define(['js/app'], function (myApp) {
                 if (!item.category && !item.includesAllCards && !item.accountType && item.name) {
                     vm.queryTopup.merchantName.push(item.name);
                 }
+
+                if (item && item.accountType && (item.accountType === 'BANK') && item.merchantNo) {
+                    vm.queryTopup.merchantNo.push(item.merchantNo.slice(-6));
+                }
             })
         }
         vm.filterMerchant = function (isPaymentMonitorReport) {
