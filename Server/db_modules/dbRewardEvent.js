@@ -3674,6 +3674,13 @@ var dbRewardEvent = {
 
                 streamProm.then(
                     stream => {
+                        // update settlementRecord
+                        let updateSettlementRecordQuery = {
+                            platform: ObjectId(platformObjId),
+                            reward: ObjectId(event._id)
+                        };
+                        dbconfig.collection_rewardSettlementRecord.findOneAndUpdate(updateSettlementRecordQuery , {lastExecutedTime: new Date()}, {upsert: true}).catch(errorUtils.reportError);
+
                         let balancer = new SettlementBalancer();
                         return balancer.initConns().then(function () {
                             return Q(
@@ -3702,6 +3709,7 @@ var dbRewardEvent = {
 
     bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate) {
         let proms = [];
+        // console.log("checking playerIdArray", playerIdArray)
         for (let i = 0; i < playerIdArray.length; i++) {
             let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}, null, null, true).catch(err => {
                 console.error("rejectedId:", playerIdArray[i], "eventCode", eventCode, " error:", err)

@@ -6672,6 +6672,9 @@ let dbPlayerReward = {
 
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP) {
+            // check if the application number exceeds the limit
+            await dbRewardUtil.checkApplicationNumberExceedsLimit(eventData, intervalTime, playerData);
+
             let consumptionQuery = {
                 platformId: playerData.platform._id,
                 playerId: playerData._id,

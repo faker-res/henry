@@ -887,6 +887,33 @@ const dbRewardUtility = {
         }
     },
 
+    checkApplicationNumberExceedsLimit: async (eventData, intervalTime, player) => {
+        if (eventData && eventData.param && eventData.param.hasOwnProperty('countInRewardInterval')){
+            let count = await proposalCount(eventData, intervalTime)
+
+            console.log("checking proposalCount for consumption reward application", count)
+            if (count >= eventData.param.countInRewardInterval){
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "This player has applied for max reward times in event period"
+                })
+            }
+        }
+
+        function proposalCount(eventData, intervalTime) {
+            let matchQuery = {
+                "data.eventId": eventData._id,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
+                "data.playerObjId": player._id,
+                "data.applyTargetDate" : {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+            };
+
+            console.log("checking matchQuery in consumption reward application", matchQuery)
+            return dbConfig.collection_proposal.find(matchQuery).lean().count();
+        }
+    },
+
     checkRewardApplyHasAppliedForbiddenReward: async (eventData, intervalTime, playerData) => {
         let hasNotAppliedForbiddenReward = await dbRewardUtility.checkForbidReward(eventData, intervalTime, playerData);
 

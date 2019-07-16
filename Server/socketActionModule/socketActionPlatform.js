@@ -144,6 +144,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getAdminPlatformName, [data.admin], actionName, isValidData);
         },
 
+        getRewardSettlementRecord: function getRewardSettlementRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.rewardObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getRewardSettlementRecord, [data.platformObjId, data.rewardObjId], actionName, isValidData);
+        },
+
         getPlatformFeeEstimateSetting: function getPlatformFeeEstimateSetting(data) {
         var actionName = arguments.callee.name;
         var isValidData = Boolean(data && data.platform);
