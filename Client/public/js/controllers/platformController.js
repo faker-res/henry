@@ -2271,6 +2271,21 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
 
+                if (event && event._id && vm.filterPlatformSettingsPlatform) {
+                    $scope.$socketPromise("getRewardSettlementRecord", {
+                        platformObjId: vm.filterPlatformSettingsPlatform,
+                        rewardObjId: event._id
+                    }).then(
+                        res => {
+                            $scope.$evalAsync(() => {
+                                if (res && res.data && res.data.lastExecutedTime) {
+                                    vm.lastExecutedTime = vm.dateReformat(res.data.lastExecutedTime);
+                                }
+                            })
+                        }
+                    );
+                }
+
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
             };
@@ -3642,8 +3657,14 @@ define(['js/app'], function (myApp) {
                 vm.selectGameGroupGames = [];
                 vm.selectGameGroupGamesName = [];
                 vm.highlightGame = [];
-                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                    vm.selectedPlatform.data.playerRouteSetting : "";
+                let platformId = vm.filterGameGroupPlatform;
+                let platform, playerRouteSetting;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                    playerRouteSetting = (platform && platform.playerRouteSetting ) ? platform.playerRouteSetting : '';
+                }
+
                 //get included games list
                 var query = {
                     platform: vm.filterGameGroupPlatform,
@@ -3661,9 +3682,9 @@ define(['js/app'], function (myApp) {
                             var newObj = v.game;
                             // if there is no index, assign to the last index according to the total length
                             newObj.index = (v && v.index) ? v.index : data2.data.games.length + 1;
-                            if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
-                                newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                            if(newObj.changedName && newObj.changedName.hasOwnProperty(platformId)){
+                                newObj.name$ = newObj.changedName[platformId] || newObj.name;
+                                newObj.isDefaultName = newObj.changedName[platformId] && newObj.changedName[platformId] != ''
                                     ? false : true;
                             }else{
                                 newObj.name$ = newObj.name;
@@ -3680,8 +3701,8 @@ define(['js/app'], function (myApp) {
                                 newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
-                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                                 if(platformCustomImage && !platformCustomImage.includes("http")){
                                     platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
@@ -3722,8 +3743,8 @@ define(['js/app'], function (myApp) {
                                 newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
-                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                                 if(platformCustomImage && !platformCustomImage.includes("http")){
                                     platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
@@ -4067,7 +4088,7 @@ define(['js/app'], function (myApp) {
                 vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
-            vm.getPlatformGameData = function (platformObjId) {
+            vm.getPlatformGameData = function (platformObjId, gamePage) {
                 //init gametab start===============================
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
@@ -4077,8 +4098,9 @@ define(['js/app'], function (myApp) {
                 //     return
                 // }
                 //console.log("getGames", gameIds);
+                let platformId = platformObjId || vm.selectedPlatform.id || null
                 let sendData = {
-                    _id: platformObjId || vm.selectedPlatform.id || null
+                    _id: platformId
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
@@ -4088,10 +4110,13 @@ define(['js/app'], function (myApp) {
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
                     vm.platformProviderList.forEach(item => {
-                        if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
-                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[platformId]) {
+                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[platformId];
                         }
                     });
+                    if (gamePage) {
+                        vm.platformProviderGameList = data.data.gameProviders;
+                    }
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
@@ -4245,14 +4270,21 @@ define(['js/app'], function (myApp) {
                 vm.highlightGame = {};
                 vm.masterGameStatus = {};
                 vm.newGamePic = '';
+                let platformId = vm.filterGamePlatform;
                 //get included games list
                 var query = {
-                    platform: vm.selectedPlatform.id,
+                    platform: platformId,
                     provider: data._id
                 }
                 vm.includedGames = '';
-                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                    vm.selectedPlatform.data.playerRouteSetting : "";
+
+                let platform, playerRouteSetting;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                    playerRouteSetting = (platform && platform.playerRouteSetting ) ? platform.playerRouteSetting : '';
+                }
+
                 vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
@@ -4271,9 +4303,9 @@ define(['js/app'], function (myApp) {
                         //     newObj.maintenanceMinute = v.maintenanceMinute || 'null';
                         // }
                         newObj.platformVisible = v.visible;
-                        if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
-                            newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                        if(newObj.changedName && newObj.changedName.hasOwnProperty(platformId)){
+                            newObj.name$ = newObj.changedName[platformId] || newObj.name;
+                            newObj.isDefaultName = newObj.changedName[platformId] && newObj.changedName[platformId] != ''
                                                     ? false : true;
                         }else{
                             newObj.name$ = newObj.name;
@@ -4292,8 +4324,8 @@ define(['js/app'], function (myApp) {
                             newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                         }
 
-                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                        if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                            let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                             if(platformCustomImage && !platformCustomImage.includes("http")){
                                 platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                             }
@@ -4321,8 +4353,8 @@ define(['js/app'], function (myApp) {
                             v.smallShow = playerRouteSetting ? playerRouteSetting + v.smallShow : (v.sourceURL ? v.sourceURL + v.smallShow : v.smallShow);
                         }
 
-                        if(v.images && v.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            let platformCustomImage = v.images[vm.selectedPlatform.data.platformId] || v.smallShow;
+                        if(v.images && v.images.hasOwnProperty(platformId)){
+                            let platformCustomImage = v.images[platformId] || v.smallShow;
                             if(platformCustomImage && !platformCustomImage.includes("http")){
                                 platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (v.sourceURL ? v.sourceURL  + platformCustomImage : platformCustomImage);
                             }
@@ -4516,7 +4548,7 @@ define(['js/app'], function (myApp) {
                     sendString = 'detachGamesFromPlatform'
                 }
                 var sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGamePlatform,
                     games: vm.selectedGamesInGameGroup.map(item => {
                         return {
                             game: item._id,
@@ -4549,8 +4581,14 @@ define(['js/app'], function (myApp) {
                 if (!gameProviderData || !vm.showPlatform) return;
                 var providerId = gameProviderData._id || null;
                 var obj;
+                let platform;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == vm.filterGamePlatform;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                }
+
                 if (providerId && vm.showPlatform.gameProviderInfo) {
-                    obj = vm.showPlatform.gameProviderInfo[providerId];
+                    obj = platform.gameProviderInfo[providerId];
                 }
                 return (obj && obj.isEnable == false) ? 'ENABLE' : 'DISABLE';
             }
@@ -35504,7 +35542,7 @@ define(['js/app'], function (myApp) {
                 vm.credibilityRemarks = [];
                 vm.filterCredibilityRemarks = [];
                 vm.gameStatus = {};
-                vm.gameSmallShow = {};
+                vm.gameSmallShow = vm.gameSmallShow || {};
                 vm.ctiData = {};
                 vm.gameGroupClickable = {
                     inGameLoaded: true,
@@ -39266,7 +39304,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGames[index] && vm.includedGames[index]._id ? vm.includedGames[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGamePlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
@@ -39289,7 +39327,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGamesGroup[index] && vm.includedGamesGroup[index]._id ? vm.includedGamesGroup[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGameGroupPlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {

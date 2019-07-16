@@ -7025,10 +7025,10 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
             }
 
-            if (vm.newPartner.ownDomain.indexOf(',') != -1){
+            if (vm.newPartner.ownDomain && vm.newPartner.ownDomain.indexOf(',') != -1){
                 vm.newPartner.ownDomain = vm.newPartner.ownDomain.split(',');
             }
-            else if (vm.newPartner.ownDomain.indexOf('\n') != -1){
+            else if (vm.newPartner.ownDomain && vm.newPartner.ownDomain.indexOf('\n') != -1){
                 vm.newPartner.ownDomain = vm.newPartner.ownDomain.split('\n');
             }
 

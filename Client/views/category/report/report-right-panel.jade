@@ -1222,7 +1222,7 @@
 
 
 
-    div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
+        div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}}
@@ -1661,10 +1661,10 @@
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='Test Player') {{'TEST_PLAYER' | translate}}
                 .search-filters-item
-                    label.control-label {{'Start date' | translate}}
+                    label.control-label {{'FEEDBACK_START_DATE' | translate}}
                     .searchTime
                 .search-filters-item
-                    label.control-label {{'End date' | translate}}
+                    label.control-label {{'FEEDBACK_END_DATE' | translate}}
                     .searchEndTime
                 .search-filters-item
                     label {{"FEEDBACK_TIME_START" | translate}}

@@ -5769,6 +5769,7 @@ let dbPlayerInfo = {
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || {registrationTime: -1};
+        let credibilityRemarksList = [];
 
         let advancedQuery = {};
         let isProviderGroup = false;
@@ -5919,6 +5920,11 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                return dbconfig.collection_playerCredibilityRemark.find({platform: {$in: platformId}}).lean();
+            }
+        ).then(
+            (credibilityRemarksData) => {
+                credibilityRemarksList = credibilityRemarksData ? credibilityRemarksData : [];
                 var a = dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
                     .sort(sortObj).skip(index).limit(limit)
@@ -5950,6 +5956,24 @@ let dbPlayerInfo = {
                                     // } else {
                                     //     newInfo = getRewardData(playerData[ind]);
                                     // }
+
+                                    if (playerData[ind].credibilityRemarks && playerData[ind].credibilityRemarks.length > 0 && credibilityRemarksList && credibilityRemarksList.length > 0) {
+                                        let tempCredibilityRemarks = [];
+
+                                        playerData[ind].credibilityRemarks.forEach(item => {
+                                            let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item && item.toString());
+
+                                            if (index > -1) {
+                                                tempCredibilityRemarks.push(credibilityRemarksList[index].name);
+                                            }
+                                        });
+
+                                        if (tempCredibilityRemarks.length > 0) {
+                                            playerData[ind].credibilityRemarks$ = tempCredibilityRemarks;
+                                        } else {
+                                            playerData[ind].credibilityRemarks$ = [];
+                                        }
+                                    }
 
                                     newInfo = getRewardGroupData(playerData[ind]);
 
@@ -5993,8 +6017,7 @@ let dbPlayerInfo = {
                 var b = dbconfig.collection_players
                     .find({platform: platformId, $and: [data]}).count();
 
-                let credibilityRemarksProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: platformId}}).lean();
-                return Promise.all([a, b, credibilityRemarksProm]);
+                return Promise.all([a, b]);
             }
         ).then(
             data => {
@@ -6008,23 +6031,6 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
-                            if (player[0] && player[0].credibilityRemarks && player[0].credibilityRemarks.length > 0 && credibilityRemarksList && credibilityRemarksList.length > 0) {
-                                let tempCredibilityRemarks = [];
-
-                                player[0].credibilityRemarks.forEach(item => {
-                                    let index = credibilityRemarksList.map(x => x && x._id && x._id.toString()).indexOf(item && item.toString());
-
-                                    if (index > -1) {
-                                        tempCredibilityRemarks.push(credibilityRemarksList[index].name);
-                                    }
-                                });
-
-                                if (tempCredibilityRemarks.length > 0) {
-                                    player[0].credibilityRemarks$ = tempCredibilityRemarks;
-                                } else {
-                                    player[0].credibilityRemarks$ = [];
-                                }
-                            }
                         }
                     });
                     playerData = data[0];
