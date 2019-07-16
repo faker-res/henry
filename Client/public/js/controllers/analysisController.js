@@ -489,6 +489,7 @@ define(['js/app'], function (myApp) {
                             for (var i = 1; i < 31; i++) {
                                 vm.dayListLength.push(i);
                             }
+                            vm.queryPara.playerRetention.device = "all";
                             vm.queryPara.playerRetention.userType = "all";
                             vm.checkDomainList();
                             vm.playerRetentionInit(function () {
@@ -5027,7 +5028,8 @@ define(['js/app'], function (myApp) {
                 days: vm.queryPara.playerRetention.days,
                 startTime: vm.queryPara.playerRetention.startTime,
                 endTime: vm.queryPara.playerRetention.endTime,
-                playerType: vm.queryPara.playerRetention.playerType
+                playerType: vm.queryPara.playerRetention.playerType,
+                device:vm.queryPara.playerRetention.device
             }
 
             if (vm.chosenDomain && vm.chosenDomain.length > 0 && vm.chosenDomain.length != vm.domainList.length){
@@ -5052,6 +5054,21 @@ define(['js/app'], function (myApp) {
                 case 'test':
                     sendData.isRealPlayer = false;
                     sendData.isTestPlayer = true;
+                    break;
+            }
+
+            switch (vm.queryPara.playerRetention.device){
+                case 'app':
+                    sendData.devices = [5,6,7,8];
+                    break;
+                case 'web':
+                    sendData.devices = [1,2];
+                    break;
+                case 'h5':
+                    sendData.devices = [3,4];
+                    break;
+                case 'backstage':
+                    sendData.devices = [0];
                     break;
             }
 

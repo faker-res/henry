@@ -5758,5 +5758,7 @@
   "Applied Count": "已领取数量",
   "Sync": "同步",
   "Sync Withdrawal": "同步提款提案",
-  "Wechat Version": "微信版本"
+  "Wechat Version": "微信版本",
+  "ALL_DEVICE" : "全部",
+  "REGISTRATION_DEVICE" : "开户装置"
 }
