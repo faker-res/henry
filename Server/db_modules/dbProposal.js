@@ -8428,7 +8428,9 @@ var proposal = {
     },
 
     calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_players.find({credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
+        return dbconfig.collection_playerCredibilityRemark.find({_id: credibilityRemarkObjId}).lean().then(playerCredibilityRemark => {
+            return dbconfig.collection_players.find({platform: playerCredibilityRemark.platform, credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean();
+        }).then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
