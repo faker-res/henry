@@ -1,6 +1,10 @@
 form(name="form_new_partner", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
+            label *{{'PRODUCT_NAME'| translate}}
+            select.form-control(ng-model='vm.newPartner.platform', ng-options='v._id as v.name$ for v in vm.allPlatformData', data-actions-box='true', required)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
             label.control-label *{{"PARTNER_NAME" | translate}}
             input.form-control(type="text", placeholder="{{'PARTNER_NAME' | translate}}", ng-model="vm.newPartner.partnerName", required)
         .form-group.col-md-6
