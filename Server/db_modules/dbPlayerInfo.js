@@ -516,6 +516,18 @@ let dbPlayerInfo = {
                                     if (inputData.partnerId) {
                                         guestPlayerData.partnerId = inputData.partnerId;
                                     }
+
+                                    if (inputData.phoneProvince) {
+                                        guestPlayerData.phoneProvince = inputData.phoneProvince;
+                                    }
+
+                                    if (inputData.phoneCity) {
+                                        guestPlayerData.phoneCity = inputData.phoneCity;
+                                    }
+
+                                    if (inputData.phoneType) {
+                                        guestPlayerData.phoneType = inputData.phoneType;
+                                    }
                                 }
                             ).then(
                                 () => {
@@ -1996,7 +2008,6 @@ let dbPlayerInfo = {
                     }
 
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
