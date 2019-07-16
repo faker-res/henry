@@ -1168,8 +1168,14 @@ const dbPartnerCommissionConfig = {
 
         return output;
     },
+
+    checkIsPartnerChildren: checkIsPartnerChildren,
 };
 
+// this is not boolean function like title suggest
+// it will reject if the child partner is not really child
+// and it will return the partner obj if it is child
+// so use it as getting child partner obj with checking if it actually child
 function checkIsPartnerChildren (parentObjId, childPartnerId, childObjId, platformObjId, childrenObj) {
     let query = {
         platform: platformObjId

@@ -515,7 +515,7 @@ var PartnerServiceImplement = function () {
 
     this.getPartnerTotalInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTotalInfo, [data.platformId, conn.partnerObjId, data.detailType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTotalInfo, [data.platformId, conn.partnerObjId, data.detailType, data.partnerName, data.playerName], isValidData);
     };
 
     this.getDownLinePlayerInfo.onRequest = function (wsFunc, conn, data) {

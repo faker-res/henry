@@ -10483,7 +10483,7 @@ let dbPartner = {
         }
     },
 
-    getPartnerTotalInfo: async (platformId, partnerObjId, detailType) => {
+    getPartnerTotalInfo: async (platformId, partnerObjId, detailType, childPartnerName, downLinePlayerName) => {
         detailType = Number(detailType) || 1;
         const constDetailType = [1,2,3];
         if (!constDetailType.includes(detailType)) {
@@ -10514,9 +10514,36 @@ let dbPartner = {
 
         returnData.partnerDetail = [];
         returnData.playerDetail = [];
-        partnerProm = getAllPartnerDownlinePartnerWithPlayers(partnerObjId, platformObj._id);
+        if (childPartnerName) {
+            let childPartnerQuery = await dbconfig.collection_partner.findOne({partnerName: childPartnerName, platform: platformObj._id}).lean();
+            if (!childPartnerQuery) {
+                return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
+            }
+            let childPartner = await dbPartnerCommissionConfig.checkIsPartnerChildren(partnerObjId, childPartnerQuery.partnerId, undefined,platformObj._id);
+            if (!childPartner) {
+                return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
+            }
 
-        playerProm = getPartnerPlayerDetail(partnerObjId);
+            let childDownLine = await getPartnerPlayerDetail(childPartner._id);
+
+            childPartner.downlinePlayers = childDownLine;
+            partnerProm = Promise.resolve([childPartner]);
+            playerProm = Promise.resolve();
+        }
+        else if (downLinePlayerName) {
+            let downLinePlayer = await dbconfig.collection_players.findOne({name: downLinePlayerName, partner: partnerObjId}).lean();
+            if (!downLinePlayer) {
+                return Promise.reject({status: constServerCode.PLAYER_NAME_INVALID, message: "Down line player not found"}); // todo :: translate
+            }
+
+            partnerProm = Promise.resolve([]);
+            playerProm = Promise.resolve([downLinePlayer])
+        }
+        else {
+            partnerProm = getAllPartnerDownlinePartnerWithPlayers(partnerObjId, platformObj._id);
+
+            playerProm = getPartnerPlayerDetail(partnerObjId);
+        }
 
         [partnersObj, playersObj] = await Promise.all([partnerProm, playerProm]);
         if (partnersObj && partnersObj.length) {
@@ -10583,6 +10610,14 @@ let dbPartner = {
                     }
                 }
             );
+        }
+
+        if (childPartnerName) {
+            delete returnData.stats;
+            delete returnData.playerDetail;
+        } else if (downLinePlayerName) {
+            delete returnData.stats;
+            delete returnData.partnerDetail;
         }
 
         if (detailType == 2) {
