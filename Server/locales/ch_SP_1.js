@@ -20,6 +20,7 @@ var simplifiedChinese = {
     "Player ip doesn't match!": "玩家IP不匹配",
     "The requirement is not fulfilled, please contact CS.": "不符合优惠要求，请联系客服人员",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
+    "Player does not reach level requirement for reward": "玩家未达到优惠申请等级",
     "Player must have a registered bank card to apply this reward": "此优惠需绑定真实提款银行资料后领取，谢谢",
     "Please register phone number and bank card before applying this reward, thank you.": "领取优惠请先绑定「电话」、「银行资料」， 谢谢。",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
