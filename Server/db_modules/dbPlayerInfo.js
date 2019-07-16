@@ -517,6 +517,26 @@ let dbPlayerInfo = {
                                         guestPlayerData.partnerId = inputData.partnerId;
                                     }
                                 }
+
+                            ).then(
+                                () => {
+                                    if (inputData && inputData.partnerId) {
+                                        return dbconfig.collection_partner.findOne({
+                                            partnerId: inputData.partnerId,
+                                            platform: platform._id
+                                        }).lean().then(
+                                            data => {
+                                                if (data) {
+                                                    console.log('MT --checking partner', data.partnerId)
+                                                    guestPlayerData.partner = data._id;
+                                                    guestPlayerData.partnerId = data.partnerId;
+                                                    return inputData;
+                                                }
+                                            }
+                                        );
+                                    }
+                                    return
+                                }
                             ).then(
                                 () => {
                                     if (deviceData) {
