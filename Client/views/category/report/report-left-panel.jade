@@ -37,6 +37,11 @@
                                 text {{'PLAYER_DEPOSIT_TRACKING_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'NEWACCOUNT_REPORT')")
                                 text {{'NEWACCOUNT_REPORT' | translate}}
+
+                            li.list-group-item(class="{{vm.seleDataType.DX_TRACKING_REPORT}}" ng-click='vm.loadPage("DX_TRACKING_REPORT")', ng-if="checkViewPermission('Report', 'General', 'DX_TRACKING_REPORT')")
+                                text {{'DX_TRACKING_REPORT' | translate}}
+
+
                             li.list-group-item(class="{{vm.seleDataType.DX_NEWACCOUNT_REPORT}}" ng-click='vm.loadPage("DX_NEWACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'DX_NEWACCOUNT_REPORT')")
                                 text {{'DX_NEWACCOUNT_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYERPARTNER_REPORT}}" ng-click='vm.loadPage("PLAYERPARTNER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYERPARTNER_REPORT')")

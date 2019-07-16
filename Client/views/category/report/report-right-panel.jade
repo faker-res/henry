@@ -1145,7 +1145,84 @@
             //        table#detailDomainPlayerTable.common-table.display(style='min-width:100%')
             //        #detailDomainPlayerTablePage
 
-        div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
+        div(ng-if='vm.showPageName=="DX_TRACKING_REPORT"')
+            #dxTrackingReportQuery.col-md-12.well
+                //.search-filters-item
+                //    label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                //    select.form-control.merchantNoList.spicker(ng-model='vm.queryTopup.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label {{'Player Name' | translate}}
+                    input.form-control.span.input-sm(ng-model="vm.dxTrackingQuery.name")
+                .search-filters-item
+                    label {{"CREDIBILITY"|translate}}
+                    select.form-control#selectDXTracking(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.dxTrackingQuery.credibilityRemarks")
+                .search-filters-item
+                    label {{'REGISTRATION_TIME_START' | translate}}
+                    .startTime
+                .search-filters-item
+                    label {{'REGISTRATION_TIME_END' | translate}}
+                    .endTime
+                .search-filters-item
+                    label {{'Start date' | translate}}
+                    .queryStartTime
+                .search-filters-item
+                    label {{'End date' | translate}}
+                    .queryEndTime
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.topUpTimesOperator === "range")}')
+                    label {{"TOP_UP_TIMES"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxTrackingQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.topUpTimesValue")
+                        div.symbol(ng-if="vm.dxTrackingQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.topUpTimesValueTwo" ng-if="vm.dxTrackingQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.bonusTimesOperator === "range")}')
+                    label {{"BonusTime"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxTrackingQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.bonusTimesValue")
+                        div.symbol(ng-if="vm.dxTrackingQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.bonusTimesValueTwo" ng-if="vm.dxTrackingQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.topUpAmountOperator === "range")}')
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.dxTrackingQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.topUpAmountValue")
+                        div.symbol(ng-if="vm.dxTrackingQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.topUpAmountValueTwo" ng-if="vm.dxTrackingQuery.topUpAmountOperator === 'range'")
+                .search-filters-item
+                    label {{"Provider" | translate}}
+                    select.form-control#selectDXTrackingProvider(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.allProviders', ng-model="vm.dxTrackingQuery.providerId")
+
+                    //select.form-control(ng-model='vm.dxTrackingQuery.providerId', required)
+                    //    option(value='') {{'all' | translate}}
+                    //    option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
+
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDXTrackingReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click="vm.searchDXTrackingReport(true, true)") {{'EXPORT_EXCEL' | translate}}
+                    span#dxTrackingReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            table.common-table#dxTrackingReportTable.display(style="width:100% ;overflow-x: scroll")
+            table.common-table#dxNewTrackingReportExcelTable.display(style="width:100% ;overflow-x: scroll")
+
+
+
+
+    div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}}
@@ -1584,10 +1661,10 @@
                         option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='Test Player') {{'TEST_PLAYER' | translate}}
                 .search-filters-item
-                    label.control-label {{'Start date' | translate}}
+                    label.control-label {{'FEEDBACK_START_DATE' | translate}}
                     .searchTime
                 .search-filters-item
-                    label.control-label {{'End date' | translate}}
+                    label.control-label {{'FEEDBACK_END_DATE' | translate}}
                     .searchEndTime
                 .search-filters-item
                     label {{"FEEDBACK_TIME_START" | translate}}
