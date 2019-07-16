@@ -2271,6 +2271,21 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
 
+                if (event && event._id && vm.filterPlatformSettingsPlatform) {
+                    $scope.$socketPromise("getRewardSettlementRecord", {
+                        platformObjId: vm.filterPlatformSettingsPlatform,
+                        rewardObjId: event._id
+                    }).then(
+                        res => {
+                            $scope.$evalAsync(() => {
+                                if (res && res.data && res.data.lastExecutedTime) {
+                                    vm.lastExecutedTime = vm.dateReformat(res.data.lastExecutedTime);
+                                }
+                            })
+                        }
+                    );
+                }
+
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
             };
