@@ -68,18 +68,31 @@ const dbPartnerCommission = {
         for (let i = 1; i < partnerChain.length; i++) {
             parentChain.push(partnerChain[i]);
         }
-
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.4)
+        }
         mainPartner.commissionType = commissionType || mainPartner.commissionType;
         if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
+            console.error("Please select a commission type -", partner.partnerName)
             return Promise.reject({message: "Please select a commission type"});
+        }
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.5)
         }
 
         let commissionPeriod = getCommissionPeriod(mainPartner.commissionType);
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.6)
+        }
         if (startTime && endTime) {
             commissionPeriod = {
                 startTime: startTime,
                 endTime: endTime
             };
+        }
+
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.7)
         }
         if (partner.partnerName == "pishtest01") {
             console.log('dePa3', 1)
