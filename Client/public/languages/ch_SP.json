@@ -5768,5 +5768,13 @@
   "Sync Withdrawal": "同步提款提案",
   "Wechat Version": "微信版本",
   "ALL_DEVICE" : "全部",
-  "REGISTRATION_DEVICE" : "开户装置"
+  "REGISTRATION_DEVICE" : "开户装置",
+  "APP_PLAYER_TYPE": "会员类型",
+  "DEVICE_TYPE": "设备类型",
+  "PROMOTE_DOMAIN": "推广域名",
+  "Search by domain": "输入域名搜索",
+  "LOGIN_TIMES_AVERAGE": "登录次数平均值",
+  "LOGIN_PLAYER_COUNT_AVERAGE": "登录人数平均值",
+  "LOGIN_PLAYER_COUNT": "登录人数",
+  "AppPlayer": "APP玩家"
 }

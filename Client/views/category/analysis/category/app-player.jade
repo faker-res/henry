@@ -1,0 +1,93 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{"APP_PLAYER" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#appPlayerAnalysis .block-query","appPlayer")')
+                        text.pull-left.margin-right-5 {{vm.optionText.appPlayer | translate}}
+    #appPlayerAnalysis(style='width:100%')
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'APP_PLAYER_TYPE' | translate}}
+                select.form-control(ng-model='vm.queryPara.appPlayer.playerType' ng-change="vm.playerTypeChanged()")
+                    option(value='new_registration') {{"NEW_REGISTRATION"|translate}}
+                    option(value='login') {{"Login"|translate}}
+            div(ng-show="vm.queryPara.appPlayer.playerType")
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.appPlayer.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+
+            div(ng-show="vm.queryPara.appPlayer.playerType==='login'")
+                label {{'registrationInterface' | translate}}
+                select.form-control(ng-model='vm.queryPara.appPlayer.registrationInterfaceType')
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.playerRegistrationInterfaceType' value='{{i}}') {{ v | translate }}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label {{'DEVICE_TYPE' | translate}}
+                select.form-control(ng-model='vm.queryPara.appPlayer.deviceType')
+                    option(value='all') {{"ALL_DEVICE"|translate}}
+                    option(value='Android') {{"ANDROID"|translate}}
+                    option(value='iOS') {{"IOS"|translate}}
+
+            div
+                label {{'PROMOTE_DOMAIN' | translate}}
+                input.form-control(type="text", placeholder='{{"Search by domain" | translate}}', ng-model="vm.queryPara.appPlayer.domain")
+
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotAppPlayerLine()') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-appPlayer.lineChart.graphDiv
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformAppPlayerAnalysisSort.appPlayerSort = vm.platformAppPlayerAnalysisSort.appPlayerSort == "date" ? "-date":"date"') {{ vm.platformAppPlayerDataPeriodText | translate}}
+                                th(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "new_registration"' ng-click='vm.platformAppPlayerAnalysisSort.appPlayerSort = vm.platformAppPlayerAnalysisSort.appPlayerSort == "newRegistration" ? "-newRegistration":"newRegistration"') {{ "HEAD_COUNT" | translate}}
+                                th(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"' ng-click='vm.platformAppPlayerAnalysisSort.appPlayerSort = vm.platformAppPlayerAnalysisSort.appPlayerSort == "loginTimes" ? "-loginTimes":"loginTimes"') {{ "TIMES" | translate}}
+                                th(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"' ng-click='vm.platformAppPlayerAnalysisSort.appPlayerSort = vm.platformAppPlayerAnalysisSort.appPlayerSort == "loginPlayerCount" ? "-loginPlayerCount":"loginPlayerCount"') {{ "HEAD_COUNT" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformAppPlayerAnalysisData | orderBy: vm.platformAppPlayerAnalysisSort.appPlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "new_registration"')
+                                    span {{ v.newRegistration }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ v.loginTimes }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ v.loginPlayerCount }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "new_registration"')
+                                    span {{ vm.platformAppPlayerAverage }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ vm.platformAppPlayerAverage.loginTimesAverage }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ vm.platformAppPlayerAverage.loginPlayerAverage }}
+                        tfoot
+                            tr
+                                td
+                                    span {{ "Totalsum" | translate }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "new_registration"')
+                                    span {{ vm.platformAppPlayerTotalSum.newRegistrationTotalSum }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ vm.platformAppPlayerTotalSum.loginTimesTotalSum }}
+                                td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                    span {{ vm.platformAppPlayerTotalSum.playerCountTotalSum }}
+
+
+p(ng-init="vm.loadPageFunc('APP_PLAYER')")

@@ -695,6 +695,7 @@ var roleChecker = {
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: ['getClientSourceQuery'],
                 LoginPlayer: ['countLoginPlayerbyPlatform'],
+                AppPlayer: ['countAppPlayer'],
                 ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
                 OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
                 TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],

@@ -24,6 +24,8 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'ACTIVE_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','LoginPlayer')", ng-click='vm.loadPage("LOGIN_PLAYER")')
                     a  {{'LOGIN_PLAYER' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','AppPlayer')", ng-click='vm.loadPage("APP_PLAYER")')
+                    a  {{'APP_PLAYER' | translate}}
                 //li(ng-click='vm.loadPage("PEAK_HOUR")')
                     a  {{'PEAK_HOUR' | translate}}
                 //li(ng-click='vm.loadPage("PLAYER_SOURCE")')
@@ -90,6 +92,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-new
             div(ng-if='vm.showPageName=="LOGIN_PLAYER"')
                 include category/player-login
+            div(ng-if='vm.showPageName=="APP_PLAYER"')
+                include category/app-player
             div(ng-if='vm.showPageName=="ACTIVE_PLAYER"')
                 include category/player-active
             div(ng-if='vm.showPageName=="VALID_ACTIVE_PLAYER"')
