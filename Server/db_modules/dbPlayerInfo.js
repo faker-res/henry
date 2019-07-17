@@ -26282,128 +26282,7 @@ let dbPlayerInfo = {
                         proms.push(newRegistrationProm);
 
                     } else if(playerType && (playerType === 'login')) {
-                        let playerLoginMatchObj = Object.assign({}, matchObj);
-
-                        playerLoginMatchObj.loginTime = {$gte: dayStartTime, $lt: dayEndTime};
-
-                        let loginProm = dbconfig.collection_playerLoginRecord.aggregate(
-                            {
-                                $match: playerLoginMatchObj
-                            },
-                            {
-                                $unwind: "$userAgent",
-                            },
-                            {
-                                $group: {
-                                    _id: {_id: "$_id", userAgentOS: "$userAgent.os", userAgentDevice: "$userAgent.device", userAgentBrowser: "$userAgent.browser", player: "$player"},
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: {userAgentOS: "$_id.userAgentOS", userAgentDevice: "$_id.userAgentDevice", userAgentBrowser: "$_id.userAgentBrowser", player: "$_id.player"},
-                                    number: {$sum: 1}
-                                }
-                            }
-                        ).read("secondaryPreferred").then(
-                            playerLoginData => {
-                                if (playerLoginData && playerLoginData.length > 0) {
-                                    let playerObjIds = [];
-
-                                    for (let i = 0; i < playerLoginData.length; i++) {
-                                        let dailyPlayerLoginData = playerLoginData[i];
-
-                                        if (dailyPlayerLoginData && dailyPlayerLoginData._id && dailyPlayerLoginData._id.player) {
-                                            let index = playerObjIds.findIndex(x => x && (x.toString() === dailyPlayerLoginData._id.player));
-
-                                            if (index === -1) {
-                                                playerObjIds.push(ObjectId(dailyPlayerLoginData._id.player));
-                                            }
-                                        }
-                                    }
-
-                                    if (playerObjIds && playerObjIds.length > 0) {
-                                        let playerQuery = {
-                                            platform: platformId,
-                                            _id: {$in: playerObjIds}
-                                        };
-
-                                        if (domain && promoteWayData && promoteWayData.length > 0) {
-                                            playerQuery.promoteWay = {$in: promoteWayData};
-                                        }
-
-                                        if (registrationInterfaceType && (registrationInterfaceType !== 'all')) {
-                                            switch (registrationInterfaceType) {
-                                                case '0': //backstage
-                                                    playerQuery["$and"] = [
-                                                        {'guestDeviceId': {$exists: false}},
-                                                        {'registrationInterface': constPlayerRegistrationInterface.BACKSTAGE}
-                                                    ];
-                                                    break;
-                                                case '1': //WEB
-                                                    playerQuery["$and"] = [
-                                                        {'guestDeviceId': {$exists: false}},
-                                                        {'registrationInterface': {
-                                                                $in: [
-                                                                    constPlayerRegistrationInterface.WEB_PLAYER,
-                                                                    constPlayerRegistrationInterface.WEB_AGENT]
-                                                            }}
-                                                    ];
-                                                    break;
-                                                case '2': //H5
-                                                    playerQuery["$and"] = [
-                                                        {'guestDeviceId': {$exists: false}},
-                                                        {'registrationInterface': {
-                                                                $in: [
-                                                                    constPlayerRegistrationInterface.H5_PLAYER,
-                                                                    constPlayerRegistrationInterface.H5_AGENT]
-                                                            }}
-                                                    ];
-                                                    break;
-                                                case '3': //APP
-                                                    playerQuery["$or"] = [
-                                                            {'guestDeviceId': {$exists: true, $ne: null}},
-                                                            {'registrationInterface': {
-                                                                    $in: [
-                                                                        constPlayerRegistrationInterface.APP_PLAYER,
-                                                                        constPlayerRegistrationInterface.APP_AGENT,
-                                                                        constPlayerRegistrationInterface.APP_NATIVE_PLAYER,
-                                                                        constPlayerRegistrationInterface.APP_NATIVE_PARTNER]
-                                                            }}
-                                                        ];
-                                                    break;
-                                            }
-                                        }
-
-                                        return dbconfig.collection_players.find(playerQuery, {_id:1, playerId: 1, osType: 1, promoteWay: 1}).lean().then(playerData => {
-                                            let finalPlayerLoginData = [];
-                                            if (playerData && playerData.length > 0) {
-                                                for (let i = 0; i < playerLoginData.length; i++) {
-                                                    let temp = playerLoginData[i];
-
-                                                    if (temp && temp._id && temp._id.player) {
-                                                        let index = playerData.map(x => x && x._id && x._id.toString()).indexOf(temp._id.player.toString());
-
-                                                        if (index > -1) {
-                                                            if ((temp._id.userAgentOS === '' && temp._id.userAgentDevice === 'PC' && temp._id.userAgentBrowser === '') ||
-                                                                (temp._id.userAgentOS === '' && temp._id.userAgentDevice === '' && temp._id.userAgentBrowser === '')) {
-                                                                finalPlayerLoginData.push(temp);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                return finalPlayerLoginData;
-                                            }
-                                        })
-                                    }
-                                }
-
-                                return playerLoginData;
-                            }
-                        );
-
-                        proms.push(loginProm);
-
+                        proms.push(countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData));
                     }
 
                     dayStartTime = dayEndTime;
@@ -28547,6 +28426,130 @@ function checkForbidReward (eventData, intervalTime, playerData) {
             }
         );
     }
+}
+
+function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData) {
+    let playerLoginMatchObj = Object.assign({}, matchObj);
+
+    playerLoginMatchObj.loginTime = {$gte: dayStartTime, $lt: dayEndTime};
+
+    return dbconfig.collection_playerLoginRecord.aggregate(
+        {
+            $match: playerLoginMatchObj
+        },
+        {
+            $unwind: "$userAgent",
+        },
+        {
+            $group: {
+                _id: {_id: "$_id", userAgentOS: "$userAgent.os", userAgentDevice: "$userAgent.device", userAgentBrowser: "$userAgent.browser", player: "$player"},
+            }
+        },
+        {
+            $group: {
+                _id: {userAgentOS: "$_id.userAgentOS", userAgentDevice: "$_id.userAgentDevice", userAgentBrowser: "$_id.userAgentBrowser", player: "$_id.player"},
+                number: {$sum: 1}
+            }
+        }
+    ).read("secondaryPreferred").then(
+        playerLoginData => {
+            if (playerLoginData && playerLoginData.length > 0) {
+                let playerObjIds = [];
+
+                for (let i = 0; i < playerLoginData.length; i++) {
+                    let dailyPlayerLoginData = playerLoginData[i];
+
+                    if (dailyPlayerLoginData && dailyPlayerLoginData._id && dailyPlayerLoginData._id.player) {
+                        let index = playerObjIds.findIndex(x => x && (x.toString() === dailyPlayerLoginData._id.player));
+
+                        if (index === -1) {
+                            playerObjIds.push(ObjectId(dailyPlayerLoginData._id.player));
+                        }
+                    }
+                }
+
+                if (playerObjIds && playerObjIds.length > 0) {
+                    let playerQuery = {
+                        platform: platformId,
+                        _id: {$in: playerObjIds}
+                    };
+
+                    if (domain && promoteWayData && promoteWayData.length > 0) {
+                        playerQuery.promoteWay = {$in: promoteWayData};
+                    }
+
+                    if (registrationInterfaceType && (registrationInterfaceType !== 'all')) {
+                        switch (registrationInterfaceType) {
+                            case '0': //backstage
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': constPlayerRegistrationInterface.BACKSTAGE}
+                                ];
+                                break;
+                            case '1': //WEB
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.WEB_PLAYER,
+                                                constPlayerRegistrationInterface.WEB_AGENT]
+                                        }}
+                                ];
+                                break;
+                            case '2': //H5
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.H5_PLAYER,
+                                                constPlayerRegistrationInterface.H5_AGENT]
+                                        }}
+                                ];
+                                break;
+                            case '3': //APP
+                                playerQuery["$or"] = [
+                                    {'guestDeviceId': {$exists: true, $ne: null}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.APP_PLAYER,
+                                                constPlayerRegistrationInterface.APP_AGENT,
+                                                constPlayerRegistrationInterface.APP_NATIVE_PLAYER,
+                                                constPlayerRegistrationInterface.APP_NATIVE_PARTNER]
+                                        }}
+                                ];
+                                break;
+                        }
+                    }
+
+                    return dbconfig.collection_players.find(playerQuery, {_id:1, playerId: 1, osType: 1, promoteWay: 1}).lean().then(playerData => {
+                        let finalPlayerLoginData = [];
+                        if (playerData && playerData.length > 0) {
+                            for (let i = 0; i < playerLoginData.length; i++) {
+                                let temp = playerLoginData[i];
+
+                                if (temp && temp._id && temp._id.player) {
+                                    let index = playerData.map(x => x && x._id && x._id.toString()).indexOf(temp._id.player.toString());
+
+                                    if (index > -1) {
+                                        if ((temp._id.userAgentOS === '' && temp._id.userAgentDevice === 'PC' && temp._id.userAgentBrowser === '') ||
+                                            (temp._id.userAgentOS === '' && temp._id.userAgentDevice === '' && temp._id.userAgentBrowser === '')) {
+                                            finalPlayerLoginData.push(temp);
+                                        }
+                                    }
+                                }
+                            }
+
+                            return finalPlayerLoginData;
+                        }
+
+                        return finalPlayerLoginData;
+                    })
+                }
+            }
+
+            return playerLoginData;
+        }
+    );
 }
 
 var proto = dbPlayerInfoFunc.prototype;
