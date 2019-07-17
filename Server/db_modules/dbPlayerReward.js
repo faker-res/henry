@@ -8826,8 +8826,6 @@ let dbPlayerReward = {
             let retObj = {};
 
             if (eventData.condition.isPlayerLevelDiff) {
-                console.log('eventData.param.rewardParam', eventData.param.rewardParam);
-                console.log('playerData.playerLevel', playerData.playerLevel);
                 retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
             } else {
                 retObj = eventData.param.rewardParam[0].value;
