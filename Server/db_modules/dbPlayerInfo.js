@@ -18606,6 +18606,14 @@ let dbPlayerInfo = {
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += twoDaysData.providerDetail[providerDetailKey].bonusAmount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += twoDaysData.providerDetail[providerDetailKey].amount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount);
+                                            } else {
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                    count: twoDaysData.providerDetail[providerDetailKey].count,
+                                                    validAmount: twoDaysData.providerDetail[providerDetailKey].validAmount,
+                                                    bonusAmount: twoDaysData.providerDetail[providerDetailKey].bonusAmount,
+                                                    amount: twoDaysData.providerDetail[providerDetailKey].amount,
+                                                    bonusRatio: (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount),
+                                                };
                                             }
                                         }
 
@@ -18663,6 +18671,14 @@ let dbPlayerInfo = {
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += preSummaryData.providerDetail[providerDetailKey].bonusAmount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += preSummaryData.providerDetail[providerDetailKey].amount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount);
+                                                } else {
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                        count: preSummaryData.providerDetail[providerDetailKey].count,
+                                                        validAmount: preSummaryData.providerDetail[providerDetailKey].validAmount,
+                                                        bonusAmount: preSummaryData.providerDetail[providerDetailKey].bonusAmount,
+                                                        amount: preSummaryData.providerDetail[providerDetailKey].amount,
+                                                        bonusRatio: (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount),
+                                                    };
                                                 }
                                             }
 
