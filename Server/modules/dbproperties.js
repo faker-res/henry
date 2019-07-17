@@ -107,6 +107,7 @@ let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUp
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
+let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
 /////////////////////////Schema models/////////////////////////////////////
@@ -279,6 +280,7 @@ let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvert
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
+let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
 
@@ -781,6 +783,7 @@ var dbProperties = {
     collection_frontEndRewardPointClarification: frontEndRewardPointClarificationModel,
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
+    collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
 

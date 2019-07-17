@@ -7150,6 +7150,8 @@ API说明：
 			* pageSetting - 网站配置
 			* skin - 皮肤管理
 			* reward - 优惠配置
+			* partnerCarousel - 代理轮播配置
+			* partnerPageSetting - 代理网站配置
 
 <!--文档没有华语名称，因此暂时命名“奖励点数”-->
 # 奖励点数：
