@@ -11,6 +11,7 @@ var constProposalEntryType = require('./../const/constProposalEntryType');
 var constProposalPriority = require('./../const/constProposalPriority');
 var constProposalUserType = require('./../const/constProposalUserType');
 var constProposalStatus = require('./../const/constProposalStatus');
+var queryPhoneLocation = require('phone-query');
 var dbUtil = require('./../modules/dbutility');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
@@ -128,6 +129,13 @@ function socketActionProposal(socketIO, socket) {
                 data.data.playerObjId && data.data.playerName && data.data.curData &&
                 data.data.updateData && data.data.updateData.phoneNumber
             );
+            let phoneNumber = ( data && data.data && data.data.updateData && data.data.updateData.phoneNumber) ? data.data.updateData.phoneNumber : '';
+            let phoneLocation = queryPhoneLocation(phoneNumber);
+            if (phoneLocation) {
+                data.data.updateData.phoneProvince = phoneLocation.province;
+                data.data.updateData.phoneCity = phoneLocation.city;
+                data.data.updateData.phoneType = phoneLocation.op;
+            }
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_PHONE, data], actionName, isValidData);
         },
 
