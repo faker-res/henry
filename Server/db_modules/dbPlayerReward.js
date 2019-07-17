@@ -8832,7 +8832,15 @@ let dbPlayerReward = {
             }
 
             // If there's no reward amount or reward percentage, this reward is not applicable for this player level
-            if (retObj[0] && !retObj[0].rewardAmount && !retObj[0].rewardPercentage && !retObj[0].amountPercent && !retObj[0].rewardPercent) {
+            if (
+                retObj[0]
+                && !retObj[0].rewardAmount
+                && !retObj[0].rewardPercentage
+                && !retObj[0].amountPercent
+                && !retObj[0].rewardPercent
+                // special handling for 特别节日
+                && !retObj[3].rewardAmount
+            ) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                     name: "DataError",

@@ -1,6 +1,7 @@
 div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
     div(style="display: inline;")
-        label {{'URL_CONFIGURATION' | translate}}
+        label(ng-if="!vm.isPartnerForUrlConfiguration") {{'URL_CONFIGURATION' | translate}}
+        label(ng-if="vm.isPartnerForUrlConfiguration") {{'PARTNER_URL_CONFIGURATION' | translate}}
         br
         label.text-danger {{'URL_CONFIGURATION_NOTE' | translate}}
 
@@ -14,15 +15,15 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteName" placeholder="{{'Please insert website name'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{"APP_DOWNLOAD"|translate}}
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{"ANDROID"|translate}}
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.androidAppUrl" placeholder="{{'Please insert app（android）download url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{"IOS"|translate}}
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.iosAppUrl" placeholder="{{'Please insert app（ios）download url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
@@ -37,7 +38,7 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaDescription" placeholder="{{'Please insert meta(Description)'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label favicon
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
@@ -244,7 +245,8 @@ div.frontendConfigSeperator
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.formBorderBottomColor")
 
 .full-width-input-block()
-    button.btn.btn-success(style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
+    button.btn.btn-success(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
+    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration)') {{"SAVE_SETTING" | translate}}
     span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
 
 

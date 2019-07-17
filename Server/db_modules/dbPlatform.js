@@ -6209,6 +6209,9 @@ var dbPlatform = {
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
+                        case 'partnerPageSetting':
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            break;
                         case 'skin':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
@@ -6281,6 +6284,24 @@ var dbPlatform = {
                     delete query.isVisible
                 }
                 prom = dbconfig.collection_frontEndUrlConfiguration.find(query).populate({
+                    path: "pc.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).populate({
+                    path: "h5.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).populate({
+                    path: "app.skin",
+                    model: dbconfig.collection_frontEndSkinSetting
+                }).lean()
+            }
+            else if (code == "partnerPageSetting"){
+                if (query && query.hasOwnProperty('status')){
+                    delete query.status
+                }
+                if (query && query.hasOwnProperty('isVisible')){
+                    delete query.isVisible
+                }
+                prom = dbconfig.collection_frontEndPartnerUrlConfiguration.find(query).populate({
                     path: "pc.skin",
                     model: dbconfig.collection_frontEndSkinSetting
                 }).populate({

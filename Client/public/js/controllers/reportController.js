@@ -1493,20 +1493,6 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.setupMultiInputDXTrackingProvider = function () {
-            let dxTrackingProvider = $('select#selectDXTrackingProvider');
-            if (dxTrackingProvider.css('display').toLowerCase() === "none") {
-                return;
-            }
-            dxTrackingProvider.multipleSelect({
-                showCheckbox: true,
-                allSelected: $translate("All Selected"),
-                selectAllText: $translate("Select All"),
-                displayValues: false,
-                countSelected: $translate('# of % selected')
-            });
-        };
-
         vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
             socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
                 data => {
@@ -5682,7 +5668,6 @@ define(['js/app'], function (myApp) {
                 platformId: vm.curPlatformId,
                 query: {
                     name: vm.dxTrackingQuery.name,
-
                     credibilityRemarks: vm.dxTrackingQuery.credibilityRemarks,
                     start: vm.dxTrackingQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxTrackingQuery.end.data('datetimepicker').getLocalDate(),
@@ -5703,10 +5688,10 @@ define(['js/app'], function (myApp) {
 
             console.log('sendQuery', sendQuery);
 
-
             socketService.$socket($scope.AppSocket, 'getDXTrackingReport', sendQuery, function (data) {
                 findReportSearchTime();
                 console.log('getDXTrackingReport', data);
+                vm.dxTrackingQuery.totalCount = data.data.size;
                 $('#dxTrackingReportTableSpin').hide();
 
                 vm.drawDXTrackingReport(data.data.data.map(item => {
@@ -5773,7 +5758,6 @@ define(['js/app'], function (myApp) {
                         {'sortCol': 'consumptionTimes', 'aTargets': [9], bSortable: true},
                         {'sortCol': 'validConsumptionAmount$', 'aTargets': [10], bSortable: true},
                         {'sortCol': 'adminName', 'aTargets': [11], bSortable: true},
-
                     ],
                     columns: [
                         {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
@@ -5862,7 +5846,6 @@ define(['js/app'], function (myApp) {
                                     }
                                 )
                             }
-
                             tr.addClass('shown');
                         }
                     });
@@ -5871,8 +5854,6 @@ define(['js/app'], function (myApp) {
                         vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXTrackingReport);
                     });
                 }
-
-
             }
 
 
@@ -10853,7 +10834,6 @@ define(['js/app'], function (myApp) {
                         let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         let todayEndTime = utilService.getTodayEndTime();
                         vm.setupMultiInputDXTracking();
-                        vm.setupMultiInputDXTrackingProvider();
                         vm.dxTrackingQuery.totalCount = 0;
                         vm.dxTrackingQuery.start = utilService.createDatePicker('#dxTrackingReportQuery .startTime');
                         vm.dxTrackingQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));

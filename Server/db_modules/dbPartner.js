@@ -11230,6 +11230,7 @@ let dbPartner = {
             statsObj.totalCrewProfit = tempList.reduce((a,b) => a + b.crewProfit, 0);
             statsObj.totalPlatformFee = tempList.reduce((a,b) => a + b.platformFee, 0);
             statsObj.totalDepositWithdrawFee = tempList.reduce((a,b) => a + b.totalDepositWithdrawFee, 0);
+            statsObj.totalValidBet = tempList.reduce((a,b) => a + b.validBet, 0);
 
         }
 
@@ -11382,30 +11383,42 @@ let dbPartner = {
 
                 partnerRecord = partnerData;
 
-                if(partnerAccount){
-                    return dbconfig.collection_partner.find({parent: partnerRecord._id, platform: platformRecord._id, partnerName: partnerAccount}).lean();
-                }
-                else{
-                    return dbconfig.collection_partner.find({parent: partnerRecord._id}).lean().then(
-                        partnerData => {
-                            let proms = []
-                            if (partnerData && partnerData.length > 0) {
-                                partnerData.forEach(partner => {
-                                    proms.push(dbPartner.getPartnerLevel(platformRecord._id, partner._id).then(
-                                        partnerLevel => {
-                                            partnerLevel = partnerLevel? ++partnerLevel: 2; //start from level 2, level 1 is the main partner himself
-                                            partner.partnerLevel = partnerLevel;
-                                            return partner;
-                                        }
-                                    ));
-                                })
+                return getAllChildrenPartners(partnerRecord._id);
+            }
+        ).then(
+            allPartnerData => {
+                let partnerQuery;
+                if (allPartnerData && allPartnerData.length > 0) {
+                    let filterCurrentPartner = allPartnerData.filter(item => item && item && (item.toString() !== partnerRecord._id.toString()));
+
+                    if(filterCurrentPartner && filterCurrentPartner.length){
+                        partnerQuery = filterCurrentPartner;
+                    }
+
+                    if(partnerAccount){
+                        return dbconfig.collection_partner.find({_id: {$in: partnerQuery}, platform: platformRecord._id, partnerName: partnerAccount}).lean();
+                    }
+                    else{
+                        return dbconfig.collection_partner.find({_id: {$in: partnerQuery}}).lean().then(
+                            partnerData => {
+                                let proms = []
+                                if (partnerData && partnerData.length > 0) {
+                                    partnerData.forEach(partner => {
+                                        proms.push(dbPartner.getPartnerLevel(platformRecord._id, partner._id).then(
+                                            partnerLevel => {
+                                                partnerLevel = partnerLevel? ++partnerLevel: 2; //start from level 2, level 1 is the main partner himself
+                                                partner.partnerLevel = partnerLevel;
+                                                return partner;
+                                            }
+                                        ));
+                                    })
+                                }
+
+                                return Promise.all(proms);
                             }
-
-                            return Promise.all(proms);
-                        }
-                    );
+                        );
+                    }
                 }
-
             }
         ).then(
             downLinePartnerData => {
@@ -11453,15 +11466,14 @@ let dbPartner = {
                                                 promoAmount: data.totalReward,
                                                 depositAmount: data.totalTopUp,
                                                 withdrawAmount: data.totalWithdrawal,
-                                                crewProfit: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail[0]
-                                                && data.downLinesRawCommissionDetail[0].consumptionDetail && data.downLinesRawCommissionDetail[0].consumptionDetail.bonusAmount ?
-                                                    data.downLinesRawCommissionDetail[0].consumptionDetail.bonusAmount : 0,
-                                                validBet: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail[0]
-                                                    && data.downLinesRawCommissionDetail[0].consumptionDetail && data.downLinesRawCommissionDetail[0].consumptionDetail.validAmount ?
-                                                    data.downLinesRawCommissionDetail[0].consumptionDetail.validAmount : 0,
+                                                crewProfit: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail.length > 0 ?
+                                                    data.downLinesRawCommissionDetail.reduce((a, b) =>  a + b.consumptionDetail.bonusAmount, 0) : 0,
+                                                validBet: data.downLinesRawCommissionDetail && data.downLinesRawCommissionDetail.length > 0 ?
+                                                    data.downLinesRawCommissionDetail.reduce((a, b) =>  a + b.consumptionDetail.validAmount, 0) : 0,
                                                 platformFee: data.totalPlatformFee,
                                                 totalDepositWithdrawFee: data.totalTopUpFee + data.totalWithdrawalFee,
-                                                commission: data.parentPartnerCommissionDetail && data.parentPartnerCommissionDetail.nettCommission ? data.parentPartnerCommissionDetail.nettCommission : 0
+                                                commission: data.parentPartnerCommissionDetail && Object.keys(data.parentPartnerCommissionDetail).length > 0 ?
+                                                    Object.keys(data.parentPartnerCommissionDetail).reduce((a, b) =>  a + data.parentPartnerCommissionDetail[b].nettCommission, 0) : 0,
                                             }
                                         }
                                     }
@@ -11615,6 +11627,46 @@ let dbPartner = {
                 let thisMonthTime = dbUtil.getCurrentMonthSGTIme();
                 return dbUtil.splitTimeFrameToDaily(thisMonthTime.startTime, thisMonthTime.endTime);
             }
+        }
+
+        function getAllChildrenPartners(partnerObjId, holder, count) {
+            // mechanism to prevent infinite loop
+            count = count || 0;
+            count++;
+            if (count > 100) {
+                return;
+            }
+
+            // actual implementation
+            holder = holder || [String(partnerObjId)];
+            return dbconfig.collection_partner.find({
+                parent: partnerObjId
+            }, {
+                _id: 1
+            }).lean().then(
+                children => {
+                    let proms = [];
+                    if (children && children.length) {
+                        for (let i = 0; i < children.length; i++) {
+                            let child = children[i];
+                            if (holder.includes(String(child._id))) {
+                                continue;
+                            }
+                            holder.push(String(child._id));
+                            let prom = getAllChildrenPartners(child._id, holder, count);
+                            proms.push(prom);
+                        }
+                    }
+                    if (proms.length) {
+                        return Promise.all(proms);
+                    }
+                    return Promise.resolve();
+                }
+            ).then(
+                () => {
+                    return holder;
+                }
+            );
         }
     },
 

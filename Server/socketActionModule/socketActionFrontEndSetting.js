@@ -95,11 +95,25 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveUrlConfig, [data], actionName, isValidData);
         },
 
+        savePartnerUrlConfig: function savePartnerUrlConfig (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePartnerUrlConfig, [data], actionName, isValidData);
+        },
+
         getUrlConfig: function getUrlConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.getUrlConfig, [data.platformObjId], actionName, isValidData);
+        },
+
+        getPartnerUrlConfig: function getPartnerUrlConfig (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerUrlConfig, [data.platformObjId], actionName, isValidData);
         },
 
         saveCarouselSetting: function saveCarouselSetting (data){
