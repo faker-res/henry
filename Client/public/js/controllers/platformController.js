@@ -25176,6 +25176,7 @@ define(['js/app'], function (myApp) {
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
+                    case 'partnerUrlConfiguration':
                         vm.frontEndUrlConfig = {
                             app:{},
                             web: {},
@@ -25183,7 +25184,12 @@ define(['js/app'], function (myApp) {
                         };
                         vm.urlConfigShowMessage = '';
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, true);
+                        }
+                        else{
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        }
                         break;
                     case 'skinManagement':
                         vm.skinSettingShowMessage = '';
@@ -25217,6 +25223,7 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
+                    case 'partnerUrlConfiguration':
                         vm.frontEndUrlConfig = {
                             app:{},
                             web: {},
@@ -25225,6 +25232,10 @@ define(['js/app'], function (myApp) {
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForUrlConfiguration = false;
+                        if (choice == 'partnerUrlConfiguration'){
+                            vm.isPartnerForUrlConfiguration = true;
+                        }
                         break;
                     case 'skinManagement':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25619,19 +25630,35 @@ define(['js/app'], function (myApp) {
             //#endregion
 
             //#region Frontend Configuration - Url Configuration
-            vm.saveFrontEndUrlConfig = function () {
+            vm.saveFrontEndUrlConfig = function (isPartner) {
                 if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
                     vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
-                    return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
-                        console.log("saveUrlConfig success:", data);
-                        vm.newFrontEndSkinSetting = {};
-                        vm.urlConfigShowMessage = "SUCCESS";
-                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                        $scope.$evalAsync();
-                    }, err => {
-                        console.error('saveUrlConfig error: ', err);
-                        vm.urlConfigShowMessage = "FAIL";
-                    });
+
+                    if (isPartner){
+                        return $scope.$socketPromise('savePartnerUrlConfig', vm.frontEndUrlConfig).then(data => {
+                            console.log("savePartnerUrlConfig success:", data);
+                            vm.newFrontEndSkinSetting = {};
+                            vm.urlConfigShowMessage = "SUCCESS";
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, isPartner);
+                            $scope.$evalAsync();
+                        }, err => {
+                            console.error('savePartnerUrlConfig error: ', err);
+                            vm.urlConfigShowMessage = "FAIL";
+                        });
+                    }
+                    else{
+                        return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
+                            console.log("saveUrlConfig success:", data);
+                            vm.newFrontEndSkinSetting = {};
+                            vm.urlConfigShowMessage = "SUCCESS";
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                            $scope.$evalAsync();
+                        }, err => {
+                            console.error('saveUrlConfig error: ', err);
+                            vm.urlConfigShowMessage = "FAIL";
+                        });
+                    }
+
                 }
                 else{
                     socketService.showErrorMessage($translate("platformObjId is not available"));
@@ -25639,16 +25666,29 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getFrontEndUrlConfig = function (objId) {
-                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
-                    console.log('getUrlConfig', data.data);
-                    if (data && data.data) {
-                        vm.frontEndUrlConfig = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getUrlConfig error: ', err);
-                }, true);
+            vm.getFrontEndUrlConfig = function (objId, isPartner) {
+                if (isPartner){
+                    socketService.$socket($scope.AppSocket, 'getPartnerUrlConfig', {platformObjId: objId}, function (data) {
+                        console.log('getPartnerUrlConfig', data.data);
+                        if (data && data.data) {
+                            vm.frontEndUrlConfig = data.data;
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getPartnerUrlConfig error: ', err);
+                    }, true);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                        console.log('getUrlConfig', data.data);
+                        if (data && data.data) {
+                            vm.frontEndUrlConfig = data.data;
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getUrlConfig error: ', err);
+                    }, true);
+                }
             };
             //#endregion
 

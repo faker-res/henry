@@ -66,6 +66,8 @@ style.
             span {{"POP_UP_ADVERTISEMENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
             span {{"URL_CONFIGURATION" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerUrlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerUrlConfiguration")')
+            span {{"PARTNER_URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
             span {{"SKIN_MANAGEMENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardSetting"}', ng-click='vm.frontEndSettingTabClicked("rewardSetting")')
@@ -110,6 +112,9 @@ style.
 
                 // Tab - url Configuration
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
+                    include frontEndConfiguration-url
+
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerUrlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "partnerUrlConfiguration")')
                     include frontEndConfiguration-url
 
                 // Tab - skin management

@@ -225,8 +225,27 @@ var dbFrontEndSetting = {
         }
     },
 
+    savePartnerUrlConfig: (data) => {
+        if (data && data._id){
+            let dataObjId = data._id;
+            delete data._id;
+            return dbConfig.collection_frontEndPartnerUrlConfiguration.findOneAndUpdate(
+                {_id: dataObjId},
+                data,
+                {new: true});
+        }
+        else{
+            let record = new dbConfig.collection_frontEndPartnerUrlConfiguration(data);
+            return record.save();
+        }
+    },
+
     getUrlConfig: (platformObjId) => {
         return dbConfig.collection_frontEndUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
+    },
+
+    getPartnerUrlConfig: (platformObjId) => {
+        return dbConfig.collection_frontEndPartnerUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
     saveCarouselSetting: (data) => {
