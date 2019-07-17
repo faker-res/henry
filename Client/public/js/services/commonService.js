@@ -570,10 +570,11 @@ define([], () => {
 
                 normalRates.forEach(e => {
                     if (Number(commSett[e]) !== Number(custObj[e])) {
-                        custObj.isCustomizedField = custObj.isCustomizedField || [];
-                        custObj.isCustomizedField.push(e);
                         let cusTomFieldKey = e + "Custom";
-                        if (!custObj[cusTomFieldKey]) {
+                        if (custObj[cusTomFieldKey]) {
+                            custObj.isCustomizedField = custObj.isCustomizedField || [];
+                            custObj.isCustomizedField.push(e);
+                        } else {
                             custObj[e] = commSett[e];
                         }
                     }
