@@ -10515,12 +10515,12 @@ let dbPartner = {
         returnData.partnerDetail = [];
         returnData.playerDetail = [];
         if (childPartnerName) {
-            let childPartnerQuery = await dbconfig.collection_partner.findOne({partnerName: childPartnerName, platform: platformObj._id}).lean();
-            if (!childPartnerQuery) {
+            let childPartner = await dbconfig.collection_partner.findOne({partnerName: childPartnerName, platform: platformObj._id}).lean();
+            if (!childPartner) {
                 return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
             }
-            let childPartner = await dbPartnerCommissionConfig.checkIsPartnerChildren(partnerObjId, childPartnerQuery.partnerId, undefined,platformObj._id);
-            if (!childPartner) {
+            let childPartnerIsChildren = await dbPartnerCommissionConfig.checkIsPartnerChildren(partnerObjId, childPartner.partnerId, undefined,platformObj._id);
+            if (!childPartnerIsChildren) {
                 return Promise.reject({status: constServerCode.PARTNER_NOT_FOUND, message: "Child partner not found."});
             }
 
