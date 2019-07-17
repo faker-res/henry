@@ -9643,7 +9643,7 @@ let dbPartner = {
                                 'data.platformId': mongoose.Types.ObjectId(platformId),
                                 'data.updateChildPartnerName': childPartnerNameArr[i],
                                 'data.curChildPartnerName': {$ne: childPartnerNameArr[i]},
-                                'data.partnerObjId': partnerObjId,
+                                'data.partnerObjId': {$in: [ObjectId(partnerObjId), String(partnerObjId)]},
                                 type: proposalTypeData._id,
                                 status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                             }
@@ -10879,7 +10879,10 @@ let dbPartner = {
                 platform: parentGroupRate.platform,
                 provider: parentGroupRate.provider,
                 commissionType: parentGroupRate.commissionType,
-                commissionSetting: validCommissionSetting
+                commissionSetting: validCommissionSetting.map(setting => {
+                    delete setting.matched;
+                    return setting;
+                })
             };
 
             validGroupRate.push(rateObj)
@@ -10900,27 +10903,68 @@ let dbPartner = {
             return Promise.reject("Partner create failure");
         }
 
-        let newPartnerCommConfigProms = [];
-        for (let i = 0; i < validGroupRate.length; i++) {
-            let curGroupRate = validGroupRate[i];
-            curGroupRate.partner = newPartner._id;
-            let newPartnerCommConfigProm = dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({
-                platform: curGroupRate.platform,
-                provider: curGroupRate.provider,
-                commissionType: curGroupRate.commissionType,
-                partner: curGroupRate.partner,
-            }, curGroupRate, {new: true, upsert: true}).lean();
 
-            newPartnerCommConfigProms.push(newPartnerCommConfigProm);
-        }
 
-        let childCommConfigs = await Promise.all(newPartnerCommConfigProms);
+        // let newPartnerCommConfigProms = [];
+        // for (let i = 0; i < validGroupRate.length; i++) {
+        //     let curGroupRate = validGroupRate[i];
+        //     curGroupRate.partner = newPartner._id;
+        //     let newPartnerCommConfigProm = dbconfig.collection_partnerDownLineCommConfig.findOneAndUpdate({
+        //         platform: curGroupRate.platform,
+        //         provider: curGroupRate.provider,
+        //         commissionType: curGroupRate.commissionType,
+        //         partner: curGroupRate.partner,
+        //     }, curGroupRate, {new: true, upsert: true}).lean();
+        //
+        //     newPartnerCommConfigProms.push(newPartnerCommConfigProm);
+        // }
+
+        // let childCommConfigs = await Promise.all(newPartnerCommConfigProms);
+
+
+        await dbPartner.updateAllCustomizeCommissionRate(newPartner._id, newPartner.commissionType, null, validGroupRate, null, true, false);
 
         let output = await dbconfig.collection_partner.findOne({_id: newPartner._id}, {password: 0}).lean();
-        output.multiLevelCommissionRate = childCommConfigs;
+        // output.multiLevelCommissionRate = childCommConfigs;
+        output.multiLevelCommissionRate = validGroupRate;
+        // dbconfig.collection_partner.findOneAndUpdate({_id: parent._id, platform: parent.platform}, {$push: {children: newPartner._id}}, {new: true}).lean().catch(errorUtils.reportError);
+        let curChildPartnerName = [];
+        if (parent.children && parent.children.length) {
+            let childPartners = await dbconfig.collection_partner.find({_id: {$in: parent.children}, platform: parent.platform}, {partnerName: 1}).lean();
+            if (!(childPartners && childPartners.length && childPartners.length == parent.children.length)) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner name"});
+            }
 
-        dbconfig.collection_partner.findOneAndUpdate({_id: parent._id, platform: parent.platform}, {$push: {children: newPartner._id}}, {new: true}).lean().catch(errorUtils.reportError);
+            childPartners.map(
+                childPartner => {
+                    curChildPartnerName.push(childPartner.partnerName);
+                }
+            )
+        }
 
+        let updateChildPartnerName = JSON.parse(JSON.stringify(curChildPartnerName));
+        updateChildPartnerName.push(newPartner.partnerName);
+
+        let proposalData = {
+            creator: {
+                type: 'partner',
+                name: parent.partnerName,
+                id: parent._id
+            },
+            platformId: parent.platform,
+        };
+
+        proposalData.data = {
+            partnerId: parent.partnerId,
+            partnerName: parent.partnerName,
+            partnerObjId: parent._id,
+            commissionType: parent.commissionType,
+            curChildPartnerHeadCount: parent.children ? parent.children.length : 0,
+            updateChildPartnerHeadCount: parent.children ? parent.children.length + 1 : 1,
+            curChildPartnerName: curChildPartnerName,
+            updateChildPartnerName: updateChildPartnerName
+        }
+        dbProposal.createProposalWithTypeNameWithProcessInfo(parent.platform, constProposalType.UPDATE_CHILD_PARTNER, proposalData).catch(errorUtils.reportError);
         return output;
     },
 
