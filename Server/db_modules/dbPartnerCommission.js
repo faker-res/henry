@@ -447,7 +447,10 @@ const dbPartnerCommission = {
 
         for (let i = 0; i < partnerObjIds.length; i++) {
             let partnerObjId = partnerObjIds[i];
-            let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType);
+            let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType).catch(err => {
+                console.log('dbPartnerCommission.calculatePartnerCommission ERROR', err)
+                return Promise.reject(err);
+            });
 
             let pastData = await getPreviousThreeDetailIfExist(partnerObjId, commissionDetail.commissionType, commissionDetail.startTime);
 
@@ -816,6 +819,7 @@ const dbPartnerCommission = {
 
         // tC = totalChild
         let tCAmount = 0, tCCompanyProfit = 0, tCCompanyConsumption = 0, tCRewardFee = 0, /*tCReward = 0,*/ tCPlatformFee = 0, tcTopUpFee = 0, tcWithdrawalFee = 0, finalAmount = commissionLog.nettCommission, tCNettAmount = 0;
+        let tCRawTotal = [];
 
         for (let i = 0; i < childDetail.length; i++) {
             let child = childDetail[i];
@@ -826,6 +830,27 @@ const dbPartnerCommission = {
                     let raw = child.rawCommissions[j];
                     tCCompanyProfit += raw.crewProfit || 0;
                     tCCompanyConsumption += raw.totalValidConsumption || 0;
+                    let addedTcRawTotal = false;
+                    for (let k = 0; k < tCRawTotal.length; k++) {
+                        if (tCRawTotal[k].groupName === raw.groupName) {
+                            tCRawTotal[k].amount += Number(raw.amount || 0);
+                            tCRawTotal[k].platformFee += Number(raw.platformFee || 0);
+                            tCRawTotal[k].totalValidConsumption += Number(raw.totalValidConsumption || 0);
+                            tCRawTotal[k].crewProfit += Number(raw.crewProfit || 0);
+                            addedTcRawTotal = true;
+                            break;
+                        }
+                    }
+                    if (!addedTcRawTotal) {
+                        tCRawTotal.push({
+                            groupName: raw.groupName,
+                            amount: Number(raw.amount || 0),
+                            platformFee: Number(raw.platformFee || 0),
+                            totalValidConsumption: raw.totalValidConsumption,
+                            crewProfit: raw.crewProfit,
+                            platformFeeRate: raw.platformFeeRate
+                        });
+                    }
                 }
             }
             tCRewardFee += child.totalRewardFee || 0;
@@ -880,6 +905,7 @@ const dbPartnerCommission = {
                 tCPlatformFee,
                 tcTopUpFee,
                 tcWithdrawalFee,
+                tCRawTotal,
                 settleType: statusApply,
                 nettCommission: commissionLog.nettCommission,
                 amount: finalAmount,
