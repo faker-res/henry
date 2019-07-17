@@ -70,6 +70,9 @@ const dbPartnerCommission = {
                 endTime: endTime
             };
         }
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 1)
+        }
 
         let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
 
@@ -82,9 +85,15 @@ const dbPartnerCommission = {
         let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
         let [commConfig, commRate, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 2)
+        }
 
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
 
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 3)
+        }
         let activeDownLines = getActiveDownLineCount(playerRawDetail);
 
         let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
@@ -197,33 +206,11 @@ const dbPartnerCommission = {
                 }
 
             }
-
-            // for(let groupName in providerGroupConsumptionData){
-            //     if(this.hasOwnProperty(groupName)){
-            //         let groupConsumption = providerGroupConsumptionData[groupName];
-            //         if (!groupConsumption) continue;
-            //
-            //         if (-groupConsumption.bonusAmount > 0) {
-            //             // sum all negative bonus amount
-            //             allConsumption += -groupConsumption.bonusAmount || 0;
-            //         }
-            //     }
-            // }
-
-            // if its still 0
-            // if (allConsumption === 0) {
-            //     for(let groupName in providerGroupConsumptionData){
-            //         if(this.hasOwnProperty(groupName)){
-            //             let groupConsumption = providerGroupConsumptionData[groupName];
-            //             if (!groupConsumption) continue;
-            //
-            //             // sum all negative bonus amount
-            //             allConsumption += -groupConsumption.bonusAmount || 0;
-            //         }
-            //     }
-            // }
         }
 
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 4)
+        }
         let rawCommissions = [];
         let nettCommission = 0;
         let absoluteFeeMultiplierUsed = false;
@@ -392,6 +379,9 @@ const dbPartnerCommission = {
                 totalParentGrossCommission += detail.amount || 0;
                 parentCommissionDetail[objId].rawCommissions.push(detail);
             }
+        }
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 5)
         }
 
         let returnObj = {
