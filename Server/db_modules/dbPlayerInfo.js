@@ -6388,10 +6388,16 @@ let dbPlayerInfo = {
 
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                } else {
+                    console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
 
                 if (playerData && playerData.osType) {
                     recordData.osType = playerData.osType;
+                }
+
+                if (recordData.inputDeviceType && (recordData.inputDeviceType == '5' || recordData.inputDeviceType == '6') && !playerData.osType) {
+                    console.log('MT --checking if didnt sent osType', playerData);
                 }
                 Object.assign(recordData, geoInfo);
 
@@ -18646,6 +18652,14 @@ let dbPlayerInfo = {
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += twoDaysData.providerDetail[providerDetailKey].bonusAmount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += twoDaysData.providerDetail[providerDetailKey].amount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount);
+                                            } else {
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                    count: twoDaysData.providerDetail[providerDetailKey].count,
+                                                    validAmount: twoDaysData.providerDetail[providerDetailKey].validAmount,
+                                                    bonusAmount: twoDaysData.providerDetail[providerDetailKey].bonusAmount,
+                                                    amount: twoDaysData.providerDetail[providerDetailKey].amount,
+                                                    bonusRatio: (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount),
+                                                };
                                             }
                                         }
 
@@ -18703,6 +18717,14 @@ let dbPlayerInfo = {
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += preSummaryData.providerDetail[providerDetailKey].bonusAmount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += preSummaryData.providerDetail[providerDetailKey].amount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount);
+                                                } else {
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                        count: preSummaryData.providerDetail[providerDetailKey].count,
+                                                        validAmount: preSummaryData.providerDetail[providerDetailKey].validAmount,
+                                                        bonusAmount: preSummaryData.providerDetail[providerDetailKey].bonusAmount,
+                                                        amount: preSummaryData.providerDetail[providerDetailKey].amount,
+                                                        bonusRatio: (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount),
+                                                    };
                                                 }
                                             }
 
