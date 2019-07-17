@@ -6083,7 +6083,7 @@ define(['js/app'], function (myApp) {
                             data = data || '';
                             if ($scope.checkViewPermission('Partner', 'Partner', 'EditCommission')) {
                                 if (row && row.isCustomizeSettingExist) {
-                                    return $('<a style="z-index: auto;" data-toggle="modal" data-container="body" ' +
+                                    return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
                                             'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
                                             'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
                                         .attr('data-row', JSON.stringify(row))
@@ -11492,7 +11492,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    if (partnerObjId) {
+                    if (partnerObjId && !vm.isMultiLevelCommission) {
                         vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
                     }
 
