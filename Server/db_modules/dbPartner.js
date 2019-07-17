@@ -11003,6 +11003,7 @@ let dbPartner = {
         let totalCount = 0;
         let totalPage = 1;
         let timeSlots = [];
+        let testObj;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -11096,6 +11097,7 @@ let dbPartner = {
             }
         ).then(
             partnerAndDownlinePlayerData => {
+                testObj = JSON.parse(JSON.stringify(partnerAndDownlinePlayerData))
                 return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
 
             }
@@ -11194,7 +11196,7 @@ let dbPartner = {
 
                 result.sort((a, b) => sortList(a, b, sortType, sort));
 
-                return {stats: statsObj, list: result};
+                return {stats: statsObj, list: result, testObj: testObj};
             }
         )
 
