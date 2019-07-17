@@ -4220,23 +4220,14 @@ var dbPlatform = {
             isSkipped: false
         }
 
-        return dbconfig.collection_partnerCommSettLog.findOne(query).then(
+        return dbconfig.collection_partnerCommSettLog.findOne(query).lean().then(
             result => {
-                if (result) {
-                    return {
-                        settMode: settMode,
-                        startTime: startTime,
-                        endTime: endTime,
-                        isPreview: true
-                    }
-                } else {
-                    return {
-                        settMode: settMode,
-                        startTime: startTime,
-                        endTime: endTime,
-                        isPreview: false
-                    }
-                }
+                return {
+                    settMode: settMode,
+                    startTime: startTime,
+                    endTime: endTime,
+                    isPreview: Boolean(result)
+                };
             }
         )
     },
@@ -4251,9 +4242,9 @@ var dbPlatform = {
             endTime = previousCycle.endTime;
         }
 
-        return dbconfig.collection_partner.find({platform: platformObjId, commissionType: settMode}).count().then(
+        return dbPartner.getPartnerCountByCommissionType(platformObjId, settMode).then(
             partnerCount => {
-                if (partnerCount && partnerCount > 0) {
+                if (partnerCount && partnerCount.totalPartner) {
                     calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip, multiVer).catch(errorUtils.reportError);
 
                     return dbconfig.collection_partnerCommSettLog.update({
@@ -4263,7 +4254,9 @@ var dbPlatform = {
                         endTime: endTime
                     }, {
                         isSettled: isSkip,
-                        isSkipped: isSkip
+                        isSkipped: isSkip,
+                        totalPartnerCount: partnerCount.totalPartner,
+                        totalValidPartnerCount: partnerCount.totalValidPartner || 0,
                     }, {
                         upsert: true,
                         new: true
