@@ -528,6 +528,10 @@ let dbPlayerInfo = {
                                     if (inputData.phoneType) {
                                         guestPlayerData.phoneType = inputData.phoneType;
                                     }
+
+                                    if (inputData.domain) {
+                                        guestPlayerData.domain = inputData.domain;
+                                    }
                                 }
 
                             ).then(
@@ -6762,6 +6766,9 @@ let dbPlayerInfo = {
                                     }
                                     if (loginData && loginData.partnerId) {
                                         newPlayerData.partnerId = loginData.partnerId;
+                                    }
+                                    if (loginData && loginData.domain) {
+                                        newPlayerData.domain = loginData.domain;
                                     }
                                     let checkDeviceIdProm = Promise.resolve();
 
