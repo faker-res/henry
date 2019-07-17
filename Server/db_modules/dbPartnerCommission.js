@@ -34,7 +34,7 @@ const dbPartnerCommission = {
                 message: "Error in getting partner data",
             });
         }
-        console.log('debugPart calc', partner.partnerName)
+        console.log('debugPart2 calc', partner.partnerName)
 
         let platform = partner.platform;
 
@@ -430,7 +430,7 @@ const dbPartnerCommission = {
             remarks: "",
             isNewComm: true,
         };
-        console.log('debugPart calc end', partner.partnerName)
+        console.log('debugPart2 calc end', partner.partnerName)
 
         return returnObj;
 
@@ -447,7 +447,6 @@ const dbPartnerCommission = {
             endTime = defaultTime.endTime;
         }
 
-        console.log('debugPart count ', partnerObjIds.length)
         for (let i = 0; i < partnerObjIds.length; i++) {
             let partnerObjId = partnerObjIds[i];
             let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType).catch(err => {
@@ -655,13 +654,18 @@ const dbPartnerCommission = {
 
     settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
+
+        console.log('debugPart2 partnerObjIdArr', partnerObjIdArr.length)
         partnerObjIdArr.map(partnerObjId => {
             let prom;
             if (isSkip) {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+                prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
+                    console.error('dbPartnerCommission.generatePartnerCommissionLog error', partnerObjId, err)
+                    return errorUtils.reportError(err)
+                });
             }
             proms.push(prom);
         });
