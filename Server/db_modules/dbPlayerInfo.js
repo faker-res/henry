@@ -2244,6 +2244,15 @@ let dbPlayerInfo = {
                                         partner = partnerData._id;
                                     }
                                 }
+
+                                // if there is still no binding partner from the above checking; try to get the matching partner record from partner's ownDomain
+                                if (!partner && playerdata && !playerdata.partner && ipDomain){
+                                    let partnerRecord = await dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: ipDomain}}});
+                                    if (partnerRecord && partnerRecord._id){
+                                        console.log("checking partnerRecord", [playerData.name, partnerRecord.partnerName])
+                                        partner = partnerRecord._id;
+                                    }
+                                }
                                 // // force using csOfficerUrl admin and way
                                 // prom.push(dbconfig.collection_csOfficerUrl.findOne({
                                 //     domain: ipDomain,
