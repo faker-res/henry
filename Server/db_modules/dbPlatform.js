@@ -519,6 +519,12 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getRewardSettlementRecord: function (platformObjId, rewardObjId) {
+        if (platformObjId && rewardObjId){
+            return dbconfig.collection_rewardSettlementRecord.findOne({platform: ObjectId(platformObjId), reward: ObjectId(rewardObjId)}).lean();
+        }
+    },
+
     getAdminPlatformName: function (admin) {
         return dbconfig.collection_admin.findOne({_id: admin})
             .populate({path: "departments", model: dbconfig.collection_department, select: 'platforms'}).lean().then(

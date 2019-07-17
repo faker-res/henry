@@ -636,7 +636,7 @@ var dbPlayerLoginRecord = {
         )
     },
 
-    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, tsPhoneListObjId) {
+    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, tsPhoneListObjId, inputDeviceTypes) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -696,6 +696,11 @@ var dbPlayerLoginRecord = {
                         isRealPlayer: isRealPlayer,
                         isTestPlayer: isTestPlayer
                     };
+
+
+                    if(inputDeviceTypes) {
+                        queryObj.inputDeviceType = {$in: inputDeviceTypes};
+                    }
 
                     if (domainList){
                         if (domainList.indexOf("") != -1){

@@ -464,6 +464,8 @@ let playerOnlineTimeSchema = require('./../schema/logs2/playerOnlineTime');
 let playerOnlineTimeModel = dbLogs2.model('playerOnlineTime', playerOnlineTimeSchema, 'playerOnlineTime');
 let ipDomainLogSchema = require('./../schema/logs2/ipDomainLog');
 let ipDomainLogModel = dbLogs2.model('ipDomainLog', ipDomainLogSchema, 'ipDomainLog');
+let rewardSettlementRecordSchema = require('./../schema/logs2/rewardSettlementRecord');
+let rewardSettlementRecordModel = dbLogs2.model('rewardSettlementRecord', rewardSettlementRecordSchema, 'rewardSettlementRecord');
 let tsPhoneListSchema = require('./../schema/logs2/tsPhoneList');
 let tsPhoneListModel = dbLogs2.model('tsPhoneList', tsPhoneListSchema, 'tsPhoneList');
 let tsPhoneSchema = require('./../schema/logs2/tsPhone');
@@ -820,6 +822,7 @@ var dbProperties = {
     collection_systemLog: systemLogModel,
     collection_creditChangeLog: creditChangeLogModel,
     collection_ipDomainLog: ipDomainLogModel,
+    collection_rewardSettlementRecord: rewardSettlementRecordModel,
     collection_partnerCreditChangeLog: partnerCreditChangeLogModel,
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,

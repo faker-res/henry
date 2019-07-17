@@ -5,6 +5,7 @@ var dbPlayerRewardFunc = function () {
 module.exports = new dbPlayerRewardFunc();
 
 const Q = require("q");
+const math = require("mathjs");
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -5912,7 +5913,7 @@ let dbPlayerReward = {
         // Check if player has binded phone number & band card
         await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumberAndBankCard(eventData, playerData);
         // Set reward param for player level to use
-        let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
@@ -6672,6 +6673,9 @@ let dbPlayerReward = {
 
 
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP) {
+            // check if the application number exceeds the limit
+            await dbRewardUtil.checkApplicationNumberExceedsLimit(eventData, intervalTime, playerData);
+
             let consumptionQuery = {
                 platformId: playerData.platform._id,
                 playerId: playerData._id,
@@ -8827,6 +8831,15 @@ let dbPlayerReward = {
                 retObj = eventData.param.rewardParam[0].value;
             }
 
+            // If there's no reward amount or reward percentage, this reward is not applicable for this player level
+            if (retObj[0] && !retObj[0].rewardAmount && !retObj[0].rewardPercentage && !retObj[0].amountPercent && !retObj[0].rewardPercent) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player does not reach level requirement for reward"
+                })
+            }
+
             return retObj;
         }
 
@@ -9810,7 +9823,15 @@ let dbPlayerReward = {
         }
 
         let propsApplied = 0;
+        let displayExpandFactor = 10;
         let maxApplyCount = reward.param.dailyMaxTotalApplyCount || 0;
+        let maxFakeApplyCount = maxApplyCount * displayExpandFactor;
+        let realBalance = 0;
+        let fakeDisplayCount = realBalance * displayExpandFactor;
+        let timePassedInSec;
+        let dropInterval = 0;
+
+        let returnBalance = realBalance;
 
         if (reward.param.dailyMaxTotalTimeStart) {
             // format time string
@@ -9826,16 +9847,61 @@ let dbPlayerReward = {
                 endTime = dbUtility.getNextOneDaySGTime(resetTime);
             }
 
+            timePassedInSec = math.round((new Date() - new Date(startTime)) / 1000);
+
             propsApplied = await dbConfig.collection_proposal.find({
                 'data.eventId': reward._id,
                 status: constProposalStatus.APPROVED,
                 createTime: {$gte: startTime, $lt: endTime}
             }).count();
+
+            realBalance = maxApplyCount - propsApplied;
+            fakeDisplayCount = realBalance * displayExpandFactor;
+            returnBalance = realBalance;
+        }
+
+        if (reward.param.dailyMaxRealBaseRatio) {
+            let timeExpandFactor = realBalance / reward.param.dailyMaxRealBaseRatio;
+
+            let ratioParam = [
+                {ratio: 0.7, timeFactor: reward.param.dailyMaxTimeBaseGT70},
+                {ratio: 0.5, timeFactor: reward.param.dailyMaxTimeBaseGT50},
+                {ratio: 0.3, timeFactor: reward.param.dailyMaxTimeBaseGT30},
+                {ratio: 0, timeFactor: reward.param.dailyMaxTimeBaseRV},
+            ];
+
+            returnBalance = determineDropCount(ratioParam, 0, timeExpandFactor, maxFakeApplyCount, fakeDisplayCount, realBalance, displayExpandFactor, timePassedInSec);
+        }
+
+        if (returnBalance < realBalance) {
+            returnBalance = realBalance;
         }
 
         return {
-            applied: propsApplied,
-            balance: maxApplyCount - propsApplied
+            balance: returnBalance
+        };
+
+        function determineDropCount (ratioParam, position, timeExpandFactor, maxFakeApplyCount, fakeDisplayCount, realBalance, displayExpandFactor, timePassedInSec) {
+            let curRatioParam = ratioParam[position];
+            let dropCount = 0;
+            let curFakeCount = fakeDisplayCount;
+
+            if (curRatioParam) {
+                let tf = curRatioParam.timeFactor || 0;
+                let threshold = maxFakeApplyCount * curRatioParam.ratio;
+                let maxTimeFactor = tf * timeExpandFactor;
+                dropInterval = math.round((maxFakeApplyCount / maxTimeFactor) / timeExpandFactor, 1) ;
+                dropCount = math.round(timePassedInSec / dropInterval);
+                curFakeCount = fakeDisplayCount - dropCount;
+
+                let maxTimeSecs = (fakeDisplayCount - threshold) * dropInterval;
+
+                if (curFakeCount < threshold) {
+                    return determineDropCount(ratioParam, position + 1, timeExpandFactor, maxFakeApplyCount, threshold, realBalance, displayExpandFactor, timePassedInSec - maxTimeSecs);
+                }
+            }
+
+            return curFakeCount;
         }
     },
 

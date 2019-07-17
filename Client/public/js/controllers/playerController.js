@@ -10183,6 +10183,8 @@ define(['js/app'], function (myApp) {
             vm.playerCredit = {};
             vm.playerTotalGameCredit = 0;
             vm.playerTotalCredit = row.validCredit + row.lockedCredit;
+            vm.sameLineProvidersByPlatformId = [];
+            vm.uniqueSameLineProvidersByPlatformId = [];
             vm.creditTransfer = {};
             vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
@@ -10207,12 +10209,31 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            for (var i in vm.platformProviderList) {
+            for (let i in vm.platformProviderList) {
+                if (vm.platformProviderList[i] && vm.platformProviderList[i].sameLineProviders && vm.platformProviderList[i].sameLineProviders[vm.selectedPlatform.data.platformId]) {
+                    let targetSameLineProviders = vm.platformProviderList[i].sameLineProviders[vm.selectedPlatform.data.platformId];
+                    let sortedSameLineProviders = targetSameLineProviders.sort();
+                    vm.sameLineProvidersByPlatformId.push(sortedSameLineProviders);
+                }
+            }
+
+            let uniques = [];
+            let itemsFound = {};
+            vm.sameLineProvidersByPlatformId.forEach(arr => {
+                let stringified = JSON.stringify(arr);
+                if (!itemsFound[stringified]) {
+                    uniques.push(arr);
+                    itemsFound[stringified] = true;
+                }
+            });
+            vm.uniqueSameLineProvidersByPlatformId = uniques;
+
+            for (let i in vm.platformProviderList) {
                 vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
             }
 
             vm.showPlayerAccountingDetailTab(null);
-        }
+        };
         vm.transferCreditFromProviderClicked = function (providerId) {
             console.log('vm.playerCredit', vm.playerCredit);
             vm.creditTransfer.focusProvider = providerId;
@@ -10363,9 +10384,25 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         var provId = data.data.providerId;
                         targetObj[provId] = data.data || 0;
+                        let isAddedTotalCredit = false;
 
-                        if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
-                            vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                        vm.uniqueSameLineProvidersByPlatformId.map(arr => {
+                            if (arr.indexOf(provId.toString()) > -1 && !arr.includes('bUsed') && !isAddedTotalCredit) {
+                                if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
+                                    arr.push('bUsed');
+                                    isAddedTotalCredit = true;
+                                    vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                                }
+                            }
+                            if (arr.indexOf(provId.toString()) > -1 && arr.includes('bUsed')) {
+                                isAddedTotalCredit = true;
+                            }
+                        });
+
+                        if (!isAddedTotalCredit) {
+                            if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
+                                vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                            }
                         }
                     })
                 }

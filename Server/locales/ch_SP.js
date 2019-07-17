@@ -22,6 +22,7 @@ var simplifiedChinese = {
     "Sent to your phone, enjoy the game.": "同时也发送至您的绑定手机号，祝您游戏愉快！",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
+    "Player does not reach level requirement for reward": "玩家未达到优惠申请等级",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",
     "Authentification Failed": "身份验证失败",
     "Authentification Passed": "身份验证通过",

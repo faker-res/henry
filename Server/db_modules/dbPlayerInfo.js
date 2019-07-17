@@ -516,6 +516,38 @@ let dbPlayerInfo = {
                                     if (inputData.partnerId) {
                                         guestPlayerData.partnerId = inputData.partnerId;
                                     }
+
+                                    if (inputData.phoneProvince) {
+                                        guestPlayerData.phoneProvince = inputData.phoneProvince;
+                                    }
+
+                                    if (inputData.phoneCity) {
+                                        guestPlayerData.phoneCity = inputData.phoneCity;
+                                    }
+
+                                    if (inputData.phoneType) {
+                                        guestPlayerData.phoneType = inputData.phoneType;
+                                    }
+                                }
+
+                            ).then(
+                                () => {
+                                    if (inputData && inputData.partnerId) {
+                                        return dbconfig.collection_partner.findOne({
+                                            partnerId: inputData.partnerId,
+                                            platform: platform._id
+                                        }).lean().then(
+                                            data => {
+                                                if (data) {
+                                                    console.log('MT --checking partner', data.partnerId)
+                                                    guestPlayerData.partner = data._id;
+                                                    guestPlayerData.partnerId = data.partnerId;
+                                                    return inputData;
+                                                }
+                                            }
+                                        );
+                                    }
+                                    return
                                 }
                             ).then(
                                 () => {
@@ -1996,7 +2028,6 @@ let dbPlayerInfo = {
                     }
 
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {

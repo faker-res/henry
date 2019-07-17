@@ -1818,5 +1818,7 @@
   "carouselConfiguration": "Carousel Configuration",
   "CAROUSEL_CONFIGURATION": "Carousel Configuration",
   "CAROUSEL_CONFIGURATION_NOTE": "Note: only allow to add, delete, move, double click to edit",
-  "OtherRewardReport": "Other Reward Report"
+  "OtherRewardReport": "Other Reward Report",
+  "ALL_DEVICE" : "ALL",
+  "REGISTRATION_DEVICE" : "Registration Device"
 }

@@ -3,7 +3,7 @@
         .well.col-xs-12
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
-                select.form-control(ng-model='vm.filterGamePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformGameData(vm.filterGamePlatform)')
+                select.form-control(ng-model='vm.filterGamePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformGameData(vm.filterGamePlatform, true)')
 .text-center(ng-if='!vm.filterGamePlatform')
     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
@@ -18,7 +18,7 @@
                 div(ng-if='!vm.platformProviderList || vm.platformProviderList.length==0', style="height: 430px; overflow-y: auto;")
                     label.text-danger {{"NO_PROVIDER" | translate}}
                 ul.list-group.treeview(ng-if='vm.platformProviderList.length > 0', style="height: 430px; overflow-y: auto;")
-                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}')
+                    li.list-group-item(ng-repeat='(i,provider) in vm.platformProviderGameList', ng-click='vm.providerClicked(i,provider)', ng-class='{active: vm.SelectedProvider === provider, "processing-transfer-out": provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut}')
                         // status = 3 , means this platform is been disabled, need to display with black color
                         div(ng-if='provider.status !== 3')
                             .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
