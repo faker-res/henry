@@ -2233,19 +2233,28 @@ let dbPlayerInfo = {
                                     console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
                                     csOfficer = csOfficerUrlData.admin;
                                     promoteWay = csOfficerUrlData.way;
+                                }
 
-                                    console.log("checking partnerId", [playerData.name, partnerId])
-                                    console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
-                                    if (partnerId && playerdata && !playerdata.partner){
-                                        let partnerData = await dbconfig.collection_partner.findOne({
-                                            partnerId: partnerId,
-                                            platform: playerdata.platform
-                                        }, {_id: 1}).lean();
+                                console.log("checking partnerId", [playerData.name, partnerId])
+                                console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
+                                if (partnerId && playerdata && !playerdata.partner){
+                                    let partnerData = await dbconfig.collection_partner.findOne({
+                                        partnerId: partnerId,
+                                        platform: playerdata.platform
+                                    }, {_id: 1}).lean();
 
-                                        console.log("checking partnerData", partnerData)
-                                        if (partnerData){
-                                            partner = partnerData._id;
-                                        }
+                                    console.log("checking partnerData", partnerData)
+                                    if (partnerData){
+                                        partner = partnerData._id;
+                                    }
+                                }
+
+                                // if there is still no binding partner from the above checking; try to get the matching partner record from partner's ownDomain
+                                if (!partner && playerdata && !playerdata.partner && ipDomain){
+                                    let partnerRecord = await dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: ipDomain}}});
+                                    if (partnerRecord && partnerRecord._id){
+                                        console.log("checking partnerRecord", [playerData.name, partnerRecord.partnerName])
+                                        partner = partnerRecord._id;
                                     }
                                 }
                                 // // force using csOfficerUrl admin and way
