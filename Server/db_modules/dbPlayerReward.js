@@ -5913,7 +5913,7 @@ let dbPlayerReward = {
         // Check if player has binded phone number & band card
         await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumberAndBankCard(eventData, playerData);
         // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let selectedRewardParam = setSelectedRewardParam(eventData, playerData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
@@ -8829,15 +8829,6 @@ let dbPlayerReward = {
                 retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
             } else {
                 retObj = eventData.param.rewardParam[0].value;
-            }
-
-            // If there's no reward amount or reward percentage, this reward is not applicable for this player level
-            if (!retObj.rewardAmount && !retObj.rewardPercentage) {
-                return Promise.reject({
-                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                    name: "DataError",
-                    message: "Player does not reach level requirement for reward"
-                })
             }
 
             return retObj;
