@@ -35,6 +35,9 @@ const dbPartnerCommission = {
             });
         }
         console.log('debugPart2 calc', partner.partnerName)
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0)
+        }
 
         let platform = partner.platform;
 
@@ -44,7 +47,13 @@ const dbPartnerCommission = {
             partnerChainProm = dbPartnerCommissionConfig.getPartnerParentChain(partner._id);
         }
 
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.1)
+        }
         let [providerGroups, partnerChain] = await Promise.all([providerGroupProm, partnerChainProm]);
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.2)
+        }
         providerGroups = providerGroups || [];
         partnerChain = partnerChain || [];
         let parentChain = [];
@@ -53,7 +62,9 @@ const dbPartnerCommission = {
         let isMainPartner = Boolean(!mainPartnerObjId || String(mainPartnerObjId) === String(partnerObjId));
 
         let mainPartner = isMainPartner ? partner : partnerChain[partnerChain.length - 1];
-
+        if (partner.partnerName == "pishtest01") {
+            console.log('dePa3', 0.3)
+        }
         for (let i = 1; i < partnerChain.length; i++) {
             parentChain.push(partnerChain[i]);
         }
