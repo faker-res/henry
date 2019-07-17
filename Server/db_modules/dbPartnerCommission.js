@@ -34,6 +34,7 @@ const dbPartnerCommission = {
                 message: "Error in getting partner data",
             });
         }
+        console.log('debugPart calc', partner.partnerName)
 
         let platform = partner.platform;
 
@@ -429,6 +430,7 @@ const dbPartnerCommission = {
             remarks: "",
             isNewComm: true,
         };
+        console.log('debugPart calc end', partner.partnerName)
 
         return returnObj;
 
@@ -445,6 +447,7 @@ const dbPartnerCommission = {
             endTime = defaultTime.endTime;
         }
 
+        console.log('debugPart count ', partnerObjIds.length)
         for (let i = 0; i < partnerObjIds.length; i++) {
             let partnerObjId = partnerObjIds[i];
             let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime, commissionType).catch(err => {
