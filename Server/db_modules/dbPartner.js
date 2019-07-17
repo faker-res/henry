@@ -11157,7 +11157,7 @@ let dbPartner = {
                             }
                         }
 
-                        if (data && data.valid && (data.valid.toString() === 'true')) {
+                        if (data && data.valid && (data.valid.toString() === 'true')  && data.isRegisteredInPeriod) {
                             let index = allValidPlayerList.findIndex(x => x && x && (x === data.name));
                             if (index === -1) {
                                 allValidPlayerList.push(data.name);
@@ -11873,15 +11873,27 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
         console.error('getPlayerCommissionRewardDetail died', playerObjId, err);
         return Promise.reject(err);
     });
-    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1, valueScore:1, registrationTime: 1, lastAccessTime: 1}).lean();
+    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {
+        name:1,
+        realName:1,
+        valueScore:1,
+        registrationTime: 1,
+        lastAccessTime: 1,
+        consumptionSum: 1,
+        consumptionTimes: 1,
+        topUpSum: 1,
+        topUpTimes: 1,
+    }).lean();
     let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform);
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
         data => {
+            let isRegisteredInPeriod = false;
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
             let rewardDetail = data[3];
+            let playerObj = data[4];
             let name = (data[4] && data[4].name) || "";
             let realName = (data[4] && data[4].realName) || "";
             let valueScore = (data[4] && data[4].valueScore) || "";
@@ -11891,13 +11903,17 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             let gameProviderGroupRate = data[5] && data[5].rateAfterRebateGameProviderGroup && data[5].rateAfterRebateGameProviderGroup.length > 0 ? data[5].rateAfterRebateGameProviderGroup : [];
 
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
-            let valid = isPlayerValid(validPlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount, valueScore);
+            let valid = isPlayerValid(validPlayerRequirement, playerObj.consumptionTimes, playerObj.consumptionSum, playerObj.topUpTimes, playerObj.topUpSum, valueScore);
+
+            if (playerObj && playerObj.registrationTime && new Date(playerObj.registrationTime) >= new Date(startTime) && new Date(playerObj.registrationTime) <= new Date(endTime)) {
+                isRegisteredInPeriod = true;
+            }
 
             let totalPlatformFee = 0;
             if (Number(commissionType) !== constPartnerCommissionType.DAILY_CONSUMPTION) {
                 if (gameProviderGroupRate && gameProviderGroupRate.length > 0 && consumptionDetail && consumptionDetail.consumptionProviderDetail && Object.keys(consumptionDetail.consumptionProviderDetail).length > 0) {
                     gameProviderGroupRate.forEach(groupRate => {
-                        let totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;;
+                        let totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
                         let platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
                         platformFee = platformFee >= 0 ? platformFee : 0;
@@ -11937,7 +11953,8 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 active,
                 valid,
                 totalPlatformFee,
-                totalDepositWithdrawFee
+                totalDepositWithdrawFee,
+                isRegisteredInPeriod
             };
         }
     );
