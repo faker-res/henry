@@ -13,8 +13,6 @@
                 select.form-control(ng-model='vm.queryPara.appPlayer.playerType' ng-change="vm.playerTypeChanged()")
                     option(value='new_registration') {{"NEW_REGISTRATION"|translate}}
                     option(value='login') {{"Login"|translate}}
-                    option(value='download') {{"DOWNLOAD_AMOUNT"|translate}}
-                    option(value='install') {{"INSTALL_AMOUNT"|translate}}
             div(ng-show="vm.queryPara.appPlayer.playerType")
                 label {{'PERIOD' | translate}}
                 select.form-control(ng-model='vm.queryPara.appPlayer.periodText')

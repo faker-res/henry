@@ -5771,8 +5771,6 @@
   "REGISTRATION_DEVICE" : "开户装置",
   "APP_PLAYER_TYPE": "会员类型",
   "DEVICE_TYPE": "设备类型",
-  "DOWNLOAD_AMOUNT": "下载量",
-  "INSTALL_AMOUNT": "安装量",
   "PROMOTE_DOMAIN": "推广域名",
   "Search by domain": "输入域名搜索",
   "LOGIN_TIMES_AVERAGE": "登录次数平均值",
