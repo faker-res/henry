@@ -3,6 +3,7 @@
  */
 var encrypt = require('./../modules/encrypt');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPartnerLevel = require('./../db_modules/dbPartnerLevel');
 var dbPartnerLevelConfig = require('./../db_modules/dbPartnerLevelConfig');
 var socketUtil = require('./../modules/socketutility');

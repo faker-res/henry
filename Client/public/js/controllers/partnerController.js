@@ -1099,17 +1099,6 @@ define(['js/app'], function (myApp) {
             //         console.log('res', res);
             //     }
             // );
-            vm.partnerCommCal = {};
-            socketService.$socket($scope.AppSocket, 'getPartnerCountByCommissionType', {
-                platformObjId: vm.selectedPlatform.id,
-                commissionType: prev.settMode
-            }, function (data) {
-                if (data && data.data) {
-                    vm.partnerCommCal.totalPartner = data.data.totalPartner || 0;
-                    vm.partnerCommCal.totalValidPartner = data.data.totalValidPartner || 0;
-                    $scope.$evalAsync();
-                }
-            });
 
             $scope.$socketPromise("getPartnerCommissionLog", {
                 platformObjId: vm.selectedPlatform.id,
@@ -1174,7 +1163,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         });
-                        vm.partnerCommCal.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
+                        vm.selectedSettlePartnerCommPrev.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
                         vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
