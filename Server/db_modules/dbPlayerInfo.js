@@ -6379,10 +6379,16 @@ let dbPlayerInfo = {
 
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                } else {
+                    console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
 
                 if (playerData && playerData.osType) {
                     recordData.osType = playerData.osType;
+                }
+
+                if (recordData.inputDeviceType && (recordData.inputDeviceType == '5' || recordData.inputDeviceType == '6') && !playerData.osType) {
+                    console.log('MT --checking if didnt sent osType', playerData);
                 }
                 Object.assign(recordData, geoInfo);
 
