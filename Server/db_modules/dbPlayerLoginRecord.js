@@ -697,6 +697,10 @@ var dbPlayerLoginRecord = {
                         isTestPlayer: isTestPlayer
                     };
 
+                    if(inputDeviceTypes) {
+                        queryObj.registrationInterface = {$in: inputDeviceTypes};
+                    }
+
                     if (domainList){
                         if (domainList.indexOf("") != -1){
                             queryObj['$and'] = [
