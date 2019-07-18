@@ -5059,16 +5059,16 @@ define(['js/app'], function (myApp) {
 
             switch (vm.queryPara.playerRetention.device){
                 case 'app':
-                    sendData.devices = [5,6,7,8];
+                    sendData.devices = ["5","6","7","8"];
                     break;
                 case 'web':
-                    sendData.devices = [1,2];
+                    sendData.devices = ["1","2"];
                     break;
                 case 'h5':
-                    sendData.devices = [3,4];
+                    sendData.devices = ["3","4"];
                     break;
                 case 'backstage':
-                    sendData.devices = [0];
+                    sendData.devices = ["0"];
                     break;
             }
 
