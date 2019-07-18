@@ -9533,6 +9533,7 @@ let dbPlayerInfo = {
             let rewardEntryProm = Promise.resolve();
             let rewardListProm = Promise.resolve();
 
+            console.log("checking getRewardList - device", [device, eventObjId, playerDetail && playerDetail._id ? playerDetail._id : null]);
             if (condition && condition[device] && condition[device].visibleFromHomePage && condition[device].visibleFromHomePage.visible){
                 homePopupProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device);
             }
@@ -9679,6 +9680,7 @@ let dbPlayerInfo = {
 
         return Promise.all([phoneNumberBindingProm, newPlayerProm, firstLoginProm, playerLevelProm, creditLessThanProm, appliedFollowingRewardProm, topUpCountMoreThanProm, appliedCurrentRewardProm]).then(
             visibleResult => {
+                console.log("checking getRewardList - visibleResult ", [visibleResult, rewardEventId, playerObjId]);
                 let isVisible = true;
                 if(visibleResult && visibleResult.length){
                     visibleResult.forEach(
