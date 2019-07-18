@@ -2385,6 +2385,9 @@ var proposal = {
                                                 item.data && item.data.bankAccount) {
                                                 item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
                                             }
+                                            if (item.data && item.data.updateData && item.data.updateData.phoneNumber) {
+                                                item.data.updateData.phoneNumber = dbutility.encodePhoneNum(item.data.updateData.phoneNumber);
+                                            }
                                             if (item.data && item.data.updateData) {
                                                 switch (Object.keys(item.data.updateData)[0]) {
                                                     case "phoneNumber":
@@ -2415,6 +2418,7 @@ var proposal = {
                                                         break;
                                                 }
                                             }
+
                                             return item
                                         })
 
@@ -2453,7 +2457,6 @@ var proposal = {
                                         if (prom.data && prom.data.phoneNumber && !displayPhoneNum) {
                                             prom.data.phoneNumber = dbutility.encodePhoneNum(prom.data.phoneNumber);
                                         }
-
                                         if (prom.data && prom.data.userAgent) {
                                             prom.inputDevice = dbutility.getInputDevice(prom.data.userAgent, false);
                                         }
@@ -2468,7 +2471,6 @@ var proposal = {
                                                     item.data && item.data.bankAccount) {
                                                     item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
                                                 }
-
                                                 return item
                                             });
 
