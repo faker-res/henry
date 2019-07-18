@@ -8839,7 +8839,7 @@ let dbPlayerReward = {
                 && !retObj[0].amountPercent
                 && !retObj[0].rewardPercent
                 // special handling for 特别节日
-                && !retObj[3].rewardAmount
+                && (!retObj[3] || !retObj[3].rewardAmount)
             ) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
