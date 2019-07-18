@@ -4,6 +4,9 @@
 div(ng-show="vm.curPlatformText")
     #adminPhoneListManageTable-search-filter.col-md-12.well
         .search-filters-item
+            label {{'PRODUCT_NAME' | translate}}
+            select.form-control(ng-model='vm.queryAdminPhoneList.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getActivePhoneListNameForAdmin(vm.queryAdminPhoneList.platformObjId);vm.getPlayerFeedbackTopic(vm.queryAdminPhoneList.platformObjId)')
+        .search-filters-item
             label {{'PHONE_LIST' | translate}}
             select.spicker.form-control(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
         .search-filters-item
@@ -13,8 +16,8 @@ div(ng-show="vm.curPlatformText")
                 option(ng-repeat="(i,v) in vm.allPlayerFeedbackResults", value='{{v.value}}') {{v.value | translate}}
         .search-filters-item
             label {{"MY_LAST_FEEDBACK_TOPIC"|translate}}
-            select.spicker.form-control(ng-model='vm.queryAdminPhoneList.topic', bsp, multiple, data-actions-box='true')
-                option(ng-repeat="(i,v) in vm.playerFeedbackTopic", value='{{v.value}}') {{v.value | translate}}
+            select.spicker.form-control(ng-model='vm.queryAdminPhoneList.topic', bsp, multiple, data-actions-box='true', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                //option(ng-repeat="(i,v) in vm.playerFeedbackTopic", value='{{v.value}}') {{v.value | translate}}
         .search-filters-item
             label {{'My last feedback time (start)' | translate}}
             #adminPhoneListLastFeedbackStart
