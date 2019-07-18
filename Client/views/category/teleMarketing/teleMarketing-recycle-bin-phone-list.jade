@@ -5,8 +5,11 @@
     .col-md-12(ng-show="vm.curPlatformText")
         .col-md-12.search-filters-container#recycleBinPhoneListTable-search-filter.well
             .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.recycleBinPhoneListSearch.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getTSPhoneListNameByPlatform(vm.recycleBinPhoneListSearch.platformObjId)')
+            .search-filters-item
                 label {{'PHONE_LIST' | translate}}
-                select.spicker.form-control#recycleBinPhoneListName(ng-model='vm.recycleBinPhoneListSearch.name', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.recycleBinPhoneListName')
+                select.spicker.form-control#recycleBinPhoneListName(ng-model='vm.recycleBinPhoneListSearch.name', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.recycleBinPhoneListNameByPlatform')
             .search-filters-item
                 label {{"SEND_STATUS"|translate}}
                 select.spicker.form-control#recycleBinPhoneListStatus(ng-model='vm.recycleBinPhoneListSearch.sendStatus', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constTsPhoneListStatusStr')

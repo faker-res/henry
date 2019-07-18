@@ -13,6 +13,9 @@ ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
 #newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
     #newPlayerRecords.well
         .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.form-control(ng-model='vm.queryPara.newPlayerList.platform', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true', required)
+        .search-filters-item
             label {{'PLAYERNAME' | translate}}
             input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
         .search-filters-item
@@ -41,6 +44,9 @@ ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
 
 #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
     #attemptNumberRecords.well
+        .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.form-control(ng-model='vm.queryPara.attemptNumberRecords.platform', ng-options='v._id as v.name for v in vm.platformByAdminId', multiple, bsp, data-actions-box='true')
         .search-filters-item
             label {{'START_DATE' | translate}}
             .startTime

@@ -5904,35 +5904,51 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
-        // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
-        await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
-        // Check registration interface condition
-        await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
-        // Check whether top up record is dirty
-        await dbRewardUtil.checkRewardApplyTopupRecordIsDirty(eventData, rewardData);
-        // Check if player has binded phone number & band card
-        await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumberAndBankCard(eventData, playerData);
-        // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
-        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
         // Query setup
         let topupMatchQuery = setupTopupMatchQuery(eventData, playerData, intervalTime);
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = setupEventQuery(eventData, rewardData, playerData, intervalTime, eventQueryPeriodTime);
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
+        // Check if player has binded phone number & band card
+        await dbRewardUtil.checkRewardApplyPlayerHasPhoneNumberAndBankCard(eventData, playerData);
+        // check reward apply restriction on ip, phone and IMEI
+        await dbRewardUtil.checkRewardApplyDeviceDetails(eventData, playerData, intervalTime);
+
+        // Check day limit apply count (regardless of interval)
+        let specialCount = await dbPlayerReward.getTopUpRewardDayLimit(playerData.platform.platformId, eventData.code);
+        await dbRewardUtil.checkTopupRewardApplySpecialDayLimit(eventData, specialCount);
+        // Get event applied count (interval count)
+        let eventInPeriodData = await dbConfig.collection_proposal.find(eventQuery).lean();
+        let eventInPeriodCount = eventInPeriodData.length;
+        await dbRewardUtil.checkRewardApplyEventInPeriodCount(eventData, eventInPeriodCount);
+
         // Get top up count in interval period
         let topupInPeriodData = await dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         // Check top up count is sufficient for reward application
         await dbRewardUtil.checkRewardApplyEnoughTopupCount(eventData, topupInPeriodData.length);
-        // Get event applied count
-        let eventInPeriodData = await dbConfig.collection_proposal.find(eventQuery).lean();
-        let eventInPeriodCount = eventInPeriodData.length;
         // Check if there's any other forbidden reward applied within period
         await dbRewardUtil.checkRewardApplyHasAppliedForbiddenReward(eventData, intervalTime, playerData);
+        // Check if top up is latest record
+        await dbRewardUtil.checkRewardApplyTopUpIsLatest(eventData, rewardData, topupInPeriodData);
+        // Check if consumption after top up
+        await dbRewardUtil.checkRewardApplyHasConsumptionAfterTopUp(eventData, rewardData);
+        // Check if there is withdraw after top up
+        await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, rewardData);
+        // Check whether top up record is dirty
+        await dbRewardUtil.checkRewardApplyTopupRecordIsDirty(eventData, rewardData);
 
+        // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
+        await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
+        // Check registration interface condition
+        await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
+
+        // Set reward param for player level to use
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
+
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
 
         let dailyRewardPointData;
         let rewardAmountInPeriod = 0;
@@ -5946,39 +5962,6 @@ let dbPlayerReward = {
 
                 // Check top up is created within reward interval period
                 await dbRewardUtil.checkRewardApplyTopupWithinInterval(intervalTime, selectedTopUp.createTime);
-                // Check if there is withdraw after top up
-                await dbRewardUtil.checkRewardApplyAnyWithdrawAfterTopup(eventData, playerData, selectedTopUp.createTime);
-                // Check special day limit apply count
-                let specialCount = await dbPlayerReward.getTopUpRewardDayLimit(playerData.platform.platformId, eventData.code);
-                await dbRewardUtil.checkTopupRewardApplySpecialDayLimit(eventData, specialCount);
-                // check reward apply restriction on ip, phone and IMEI
-                let checkHasReceivedProm = await dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
-                console.log("checking checkHasReceivedProm", [checkHasReceivedProm, playerData.name])
-                if (checkHasReceivedProm){
-                    if (checkHasReceivedProm.sameIPAddressHasReceived) {
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: localization.localization.translate("This IP address has applied for max reward times in event period")
-                        });
-                    }
-
-                    if (checkHasReceivedProm.samePhoneNumHasReceived) {
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: localization.localization.translate("This phone number has applied for max reward times in event period")
-                        });
-                    }
-
-                    if (checkHasReceivedProm.sameDeviceIdHasReceived) {
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: localization.localization.translate("This mobile device has applied for max reward times in event period")
-                        });
-                    }
-                }
 
                 // Calculate the daily applied reward amount
                 rewardAmountInPeriod = await getRewardAmountInInterval(eventQuery);
@@ -6962,63 +6945,12 @@ let dbPlayerReward = {
                 console.log('forbidRewardData check', forbidRewardData);
                 let matchRequiredPhoneNumber = null;
 
-                // Check reward apply limit in period
-                if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DataError",
-                        message: localization.localization.translate("Player has applied for max reward times in event period")
-                    });
-                }
-
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            let lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
-
-                            if (eventData.condition.allowOnlyLatestTopUp && lastTopUpRecord && rewardData && rewardData.selectedTopup) {
-                                if (lastTopUpRecord._id.toString() !== rewardData.selectedTopup._id.toString()) {
-                                    return Promise.reject({
-                                        status: constServerCode.INVALID_DATA,
-                                        name: "DataError",
-                                        message: "This is not the latest top up record"
-                                    });
-                                }
-                            }
-
                             // check correct topup type
-                            let correctTopUpType = true;
-
-                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
-                                correctTopUpType = false;
-                            }
-
-                            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
-                                correctTopUpType = false;
-                            }
-
-                            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
-                                correctTopUpType = false;
-                            }
-
-                            if (eventData.condition.depositMethod && selectedTopUp.depositMethod && eventData.condition.depositMethod.length > 0 && eventData.condition.depositMethod.indexOf(selectedTopUp.depositMethod) === -1) {
-                                correctTopUpType = false;
-                            }
-
-                            // // Set reward param step to use
-                            // if (eventData.param.isMultiStepReward) {
-                            //     if (eventData.param.isSteppingReward) {
-                            //         let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
-                            //         selectedRewardParam = selectedRewardParam[eventStep];
-                            //     } else {
-                            //         let firstRewardParam = selectedRewardParam[0];
-                            //         selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(applyAmount) >= Math.trunc(e.minTopUpAmount)).sort((a, b) => b.minTopUpAmount - a.minTopUpAmount);
-                            //         selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
-                            //     }
-                            // } else {
-                            //     selectedRewardParam = selectedRewardParam[0];
-                            // }
+                            let correctTopUpType = getCorrectTopUpType(eventData, selectedTopUp);
 
                             if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
@@ -8812,16 +8744,6 @@ let dbPlayerReward = {
             }
         );
 
-
-        function sortByPossibility(a, b){
-            if(a.possibility < b.possibility){
-                return 1;
-            }else {
-                return -1
-            }
-            return 0;
-        }
-
         function setSelectedRewardParam (eventData, playerData) {
             let retObj = {};
 
@@ -9014,6 +8936,28 @@ let dbPlayerReward = {
                 )
             }
             return rewardInPeriodCount
+        }
+
+        function getCorrectTopUpType (eventData, selectedTopUp) {
+            let isCorrectType = true;
+
+            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
+                isCorrectType = false;
+            }
+
+            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
+                isCorrectType = false;
+            }
+
+            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
+                isCorrectType = false;
+            }
+
+            if (eventData.condition.depositMethod && selectedTopUp.depositMethod && eventData.condition.depositMethod.length > 0 && eventData.condition.depositMethod.indexOf(selectedTopUp.depositMethod) === -1) {
+                isCorrectType = false;
+            }
+
+            return isCorrectType;
         }
     },
 
@@ -9886,6 +9830,7 @@ let dbPlayerReward = {
         }
 
         return {
+            applied: propsApplied,
             balance: returnBalance
         };
 
