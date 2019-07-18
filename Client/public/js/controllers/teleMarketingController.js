@@ -485,6 +485,7 @@ define(['js/app'], function (myApp) {
                     vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
+                    vm.allTsPhoneListByPlatform = [];
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(1));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
                     utilService.actionAfterLoaded('#searchWorkloadReport', function () {
@@ -6237,6 +6238,23 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getAllDepartment = (platformObjId) => {
+            let sendData = {
+                platforms: [platformObjId]
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('getAllDepartment', data);
+                    var result = [];
+                    data.data.forEach(function (departmentData) {
+                        result.push(departmentData);
+                    });
+                    vm.queryDepartments = result;
+                });
+            });
+        };
+
         vm.initFilterAndImportDXSystem = function () {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
@@ -6577,7 +6595,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             let sendQuery = {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.workloadSearch.platformObjId,
                 phoneListObjIds: vm.workloadSearch.phoneLists || [],
                 adminObjIds: vm.workloadSearch.admins || [],
                 startTime: vm.workloadSearch.startTime,
