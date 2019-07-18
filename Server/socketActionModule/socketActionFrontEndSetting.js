@@ -74,6 +74,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveSkinSetting, [data], actionName, isValidData);
         },
 
+        savePartnerSkinSetting: function savePartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.device && data.name);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePartnerSkinSetting, [data], actionName, isValidData);
+        },
+
         getSkinSetting: function getSkinSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
@@ -81,11 +88,25 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.getSkinSetting, [data.platformObjId], actionName, isValidData);
         },
 
+        getPartnerSkinSetting: function getPartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerSkinSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         removeSkinSetting: function removeSkinSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.skinSettingObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.removeSkinSetting, [data.skinSettingObjId], actionName, isValidData);
+        },
+
+        removePartnerSkinSetting: function removePartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.skinSettingObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.removePartnerSkinSetting, [data.skinSettingObjId], actionName, isValidData);
         },
 
         saveUrlConfig: function saveUrlConfig (data) {

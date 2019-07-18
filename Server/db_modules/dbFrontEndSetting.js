@@ -202,12 +202,32 @@ var dbFrontEndSetting = {
         return record.save();
     },
 
+    savePartnerSkinSetting: (data) => {
+        let newSetting = {
+            platformObjId: ObjectId(data.platform),
+            device: data.device,
+            name: data.name,
+            url: data.url
+        };
+
+        let record = new dbConfig.collection_frontEndPartnerSkinSetting(newSetting);
+        return record.save();
+    },
+
     getSkinSetting: (platformObjId) => {
         return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
+    getPartnerSkinSetting: (platformObjId) => {
+        return dbConfig.collection_frontEndPartnerSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+    },
+
     removeSkinSetting: (skinSettingObjId) => {
         return dbConfig.collection_frontEndSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).exec();
+    },
+
+    removePartnerSkinSetting: (skinSettingObjId) => {
+        return dbConfig.collection_frontEndPartnerSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).exec();
     },
 
     saveUrlConfig: (data) => {

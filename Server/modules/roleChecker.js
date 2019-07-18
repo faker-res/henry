@@ -584,6 +584,7 @@ var roleChecker = {
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
                 partnerUrlConfiguration: [],
+                partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },
             "AuctionSystem": {
                 Read: [],
