@@ -11475,7 +11475,7 @@ let dbPartner = {
                                                 platformFee: data.totalPlatformFee,
                                                 totalDepositWithdrawFee: data.totalTopUpFee + data.totalWithdrawalFee,
                                                 commission: data.parentPartnerCommissionDetail && Object.keys(data.parentPartnerCommissionDetail).length > 0 ?
-                                                    Object.keys(data.parentPartnerCommissionDetail).reduce((a, b) =>  a + data.parentPartnerCommissionDetail[b].nettCommission, 0) : 0,
+                                                    Object.keys(data.parentPartnerCommissionDetail).reduce((a, b) =>  a + data.parentPartnerCommissionDetail[b].grossCommission, 0) : 0,
                                             }
                                         }
                                     }
