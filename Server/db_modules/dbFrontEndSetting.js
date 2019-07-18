@@ -227,7 +227,7 @@ var dbFrontEndSetting = {
     },
 
     removePartnerSkinSetting: (skinSettingObjId) => {
-        return dbConfig.collection_frontEndPartnerSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).exec();
+        return dbConfig.collection_frontEndPartnerSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).lean();
     },
 
     saveUrlConfig: (data) => {
