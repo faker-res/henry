@@ -76,7 +76,7 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
-                                    //button.btn.btn-primary.common-button(ng-click='vm.resetAllPartnerCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
+                                    button.btn.btn-primary.common-button(ng-click='vm.resetAllPartnerCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
                                 br
                                 div(ng-if="vm.updateCommissionRateRequirement")
                                     text {{"Current update will remove the commission customization of relevant partners." | translate}}
