@@ -1239,19 +1239,22 @@ define([], () => {
                 };
                 let isCustomized = false;
 
-                let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
-                let consumptionUsedKey = vm.selectedProposal.data.commissionType == 5 ? "totalConsumption" : "siteBonusAmount";
+                let consumptionUsed = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "CONSUMPTION" : "SITE_LOSE_WIN";
+                let consumptionUsedKey = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "totalConsumption" : "siteBonusAmount";
+                let isValidConsumptionBased = Boolean([5, 7].includes(vm.selectedProposal.data.commissionType));
 
-                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
-                proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
-                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
-                proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
-                proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
-                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
-                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
-                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
-                proposalDetail["MULTI_LAYER_PARTNER_COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN");
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name; // 产品名称
+                proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission"); // 提案类型
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId; // 提案号
+                proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime); // 创建时间
+                proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime); // 佣金周期
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName; // 代理账号
+                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId; // 代理ID
+                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status); // 提案状态
+                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]); // 佣金模式
+
+
+                // proposalDetail["[Direct Down Line] Total Commission"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN"); // 多级代理佣金总计
 
                 vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
@@ -1260,70 +1263,140 @@ define([], () => {
                         + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(-rawCommission.totalConsumption) + "/"
                         + $translate("RATIO") + ": " + $fixTwoDecimalStr(rawCommission.commissionRate * 100) + "%)";
 
-                    proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+                    let label = `${$translate("[Direct Down Line]")} ${rawCommission.groupName} ${$translate("Commission")}`;
+                    proposalDetail[label] =  str; // {提供商组} 佣金
 
                     if (rawCommission.isCustomCommissionRate) {
-                        vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                        vm.proposalDetailStyle[label] = customizedStyle;
                         isCustomized = true;
                     }
                 });
 
-                proposalDetail["REQUIRED_PROMO_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo || 0) + "%)";
+                // proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = ""; // 需扣除的平台费
+                if (!isValidConsumptionBased) {
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        totalPlatformFee += rawCommission.platformFee;
+                        let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                        let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
-                }
+                        let label = `${$translate("[Direct Down Line]")} ${$translate("TOTAL_PLATFORM_FEE")} ${rawCommission.groupName}`;
+                        if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                            proposalDetail[label] = forcedZeroStr;
+                        } else {
+                            proposalDetail[label] = str;
 
-                proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
-                vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                    totalPlatformFee += rawCommission.platformFee;
-                    let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
-                        + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
-                        + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
-                    let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
-                        + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
-
-                    if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
-                        proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
-                    } else {
-                        proposalDetail["- " + rawCommission.groupName] =  str;
-
-                        if (rawCommission.isCustomPlatformFeeRate) {
-                            vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                            isCustomized = true;
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle[label] = customizedStyle;
+                                isCustomized = true;
+                            }
                         }
+                    });
+
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN") // 需扣除的优惠
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo || 0) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
                     }
-                });
 
-                proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit || 0) + "%)";
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN") // 需扣除的总存款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit || 0) + "%)";
 
-                if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
-                }
+                    if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
+                    }
 
-                proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal || 0) + "%)";
+                    `${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN") // 需扣除的总取款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal || 0) + "%)";
 
-                if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
+                    if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
+                    }
                 }
 
                 if (isCustomized) {
                     vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
                 }
 
-                let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+                // proposalDetail["[Multi Level] Total Commission"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN"); // 多级代理佣金总计
+                // 【多级代理】
+                vm.selectedProposal.data.tCRawTotal.map(rawCommission => {
+                    let str = $fixTwoDecimalStr(rawCommission.amount) + $translate("YEN") + " "
+                        + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(isValidConsumptionBased ? rawCommission.totalValidConsumption : -rawCommission.crewProfit) /*+ "/"
+                        + $translate("RATIO") + ": " + $fixTwoDecimalStr(rawCommission.commissionRate * 100) + "%"*/ + ")";
 
-                proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount) + " "
-                    + "(" + $fixTwoDecimalStr(grossCommission) + "-" + $fixTwoDecimalStr(totalFee) + ")";
+                    let label = `${$translate("[Multi Level]")} ${rawCommission.groupName} ${$translate("Commission")}`;
+                    proposalDetail[label] =  str; // {提供商组} 佣金
+
+                    if (rawCommission.isCustomCommissionRate) {
+                        vm.proposalDetailStyle[label] = customizedStyle;
+                        isCustomized = true;
+                    }
+                });
+
+                if (!isValidConsumptionBased) {
+                    vm.selectedProposal.data.tCRawTotal.map(rawCommission => {
+                        let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(-rawCommission.crewProfit) + "/"
+                            + $translate("RATIO") + ": " + ($fixTwoDecimalStr(rawCommission.platformFeeRate*100)) + "%)";
+                        let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
+
+                        let label = `${$translate("[Multi Level]")} ${$translate("TOTAL_PLATFORM_FEE")} ${rawCommission.groupName}`;
+                        if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                            proposalDetail[label] = forcedZeroStr;
+                        } else {
+                            proposalDetail[label] = str;
+
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle[label] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        }
+                    });
+
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tCRewardFee) + $translate("YEN") // 需扣除的优惠
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCReward) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childRewardFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcTopUpFee) + $translate("YEN") // 需扣除的总存款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCTopUp) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childTopUpFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+
+                    `${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcWithdrawalFee) + $translate("YEN") // 需扣除的总取款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCWithdrawal) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childWithdrawalFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+                }
+
+
+
+                proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount); // 佣金总结
             }
             // end region
 

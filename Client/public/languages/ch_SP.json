@@ -5051,6 +5051,10 @@
   "exportTargetPlatformObjId": "平台识别码",
   "ManualExportTsPhone": "手动转出白名单电话",
   "Show Player Detail In New Tab": "接通跳出玩家详情页面",
+  "[Direct Down Line] Total Commission": "【直属下线】佣金总计",
+  "[Direct Down Line]": "【直属】",
+  "[Multi Level] Total Commission": "【多级代理】佣金总计",
+  "[Multi Level]": "【多级】",
 
   "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",

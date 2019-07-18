@@ -799,6 +799,9 @@ const dbPartnerCommission = {
         // tC = totalChild
         let tCAmount = 0, tCCompanyProfit = 0, tCCompanyConsumption = 0, tCRewardFee = 0, /*tCReward = 0,*/ tCPlatformFee = 0, tcTopUpFee = 0, tcWithdrawalFee = 0, finalAmount = commissionLog.nettCommission, tCNettAmount = 0;
         let tCRawTotal = [];
+        let tCReward = 0, tCTopUp = 0, tCWithdrawal = 0;
+
+        let rewardFeeRate = 0, topUpFeeRate = 0, withdrawalFeeRate = 0;
 
         for (let i = 0; i < childDetail.length; i++) {
             let child = childDetail[i];
@@ -837,7 +840,13 @@ const dbPartnerCommission = {
             tCPlatformFee += child.totalPlatformFee || 0;
             tcTopUpFee += child.totalTopUpFee || 0;
             tcWithdrawalFee += child.totalWithdrawalFee || 0;
+            tCReward += child.totalReward || 0;
+            tCTopUp += child.totalTopUp || 0;
+            tCWithdrawal += child.totalWithdrawal || 0;
             finalAmount += child.grossCommission || 0;
+            rewardFeeRate = rewardFeeRate || child.rewardFeeRate;
+            topUpFeeRate = topUpFeeRate || child.topUpFeeRate;
+            withdrawalFeeRate = withdrawalFeeRate || child.withdrawalFeeRate;
         }
         tCAmount = math.round(tCAmount, 2);
         tCCompanyProfit = math.round(tCCompanyProfit, 2);
@@ -880,11 +889,17 @@ const dbPartnerCommission = {
                 tCNettAmount,
                 tCCompanyProfit,
                 tCCompanyConsumption,
+                tCReward,
                 tCRewardFee,
                 tCPlatformFee,
+                tCTopUp,
                 tcTopUpFee,
+                tCWithdrawal,
                 tcWithdrawalFee,
                 tCRawTotal,
+                childRewardFeeRate: rewardFeeRate,
+                childTopUpFeeRate: topUpFeeRate,
+                childWithdrawalFeeRate: withdrawalFeeRate,
                 settleType: statusApply,
                 nettCommission: commissionLog.nettCommission,
                 amount: finalAmount,
