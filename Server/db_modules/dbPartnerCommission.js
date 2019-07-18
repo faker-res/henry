@@ -34,10 +34,6 @@ const dbPartnerCommission = {
                 message: "Error in getting partner data",
             });
         }
-        console.log('debugPart2 calc', partner.partnerName)
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0)
-        }
 
         let platform = partner.platform;
 
@@ -47,13 +43,7 @@ const dbPartnerCommission = {
             partnerChainProm = dbPartnerCommissionConfig.getPartnerParentChain(partner._id);
         }
 
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.1)
-        }
         let [providerGroups, partnerChain] = await Promise.all([providerGroupProm, partnerChainProm]);
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.2)
-        }
         providerGroups = providerGroups || [];
         partnerChain = partnerChain || [];
         let parentChain = [];
@@ -62,28 +52,16 @@ const dbPartnerCommission = {
         let isMainPartner = Boolean(!mainPartnerObjId || String(mainPartnerObjId) === String(partnerObjId));
 
         let mainPartner = isMainPartner ? partner : partnerChain[partnerChain.length - 1];
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.3)
-        }
         for (let i = 1; i < partnerChain.length; i++) {
             parentChain.push(partnerChain[i]);
-        }
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.4)
         }
         mainPartner.commissionType = commissionType || partner.commissionType || mainPartner.commissionType; // maybe remove partner.commissionType in future so that it always follow parent commission
         if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
             console.error("Please select a commission type -", partner.partnerName)
             return Promise.reject({message: "Please select a commission type"});
         }
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.5)
-        }
 
         let commissionPeriod = getCommissionPeriod(mainPartner.commissionType);
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.6)
-        }
         if (startTime && endTime) {
             commissionPeriod = {
                 startTime: startTime,
@@ -91,12 +69,6 @@ const dbPartnerCommission = {
             };
         }
 
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 0.7)
-        }
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 1)
-        }
 
         let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
 
@@ -109,15 +81,9 @@ const dbPartnerCommission = {
         let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
         let [commConfig, commRate, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 2)
-        }
 
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
 
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 3)
-        }
         let activeDownLines = getActiveDownLineCount(playerRawDetail);
 
         let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
@@ -232,9 +198,6 @@ const dbPartnerCommission = {
             }
         }
 
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 4)
-        }
         let rawCommissions = [];
         let nettCommission = 0;
         let absoluteFeeMultiplierUsed = false;
@@ -404,9 +367,6 @@ const dbPartnerCommission = {
                 parentCommissionDetail[objId].rawCommissions.push(detail);
             }
         }
-        if (partner.partnerName == "pishtest01") {
-            console.log('dePa3', 5)
-        }
 
         let returnObj = {
             partner: partner._id,
@@ -444,7 +404,6 @@ const dbPartnerCommission = {
             remarks: "",
             isNewComm: true,
         };
-        console.log('debugPart2 calc end', partner.partnerName)
 
         return returnObj;
 
@@ -669,7 +628,6 @@ const dbPartnerCommission = {
     settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
 
-        console.log('debugPart2 partnerObjIdArr', partnerObjIdArr.length)
         partnerObjIdArr.map(partnerObjId => {
             let prom;
             if (isSkip) {
