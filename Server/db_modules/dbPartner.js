@@ -11907,6 +11907,11 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             let valid = isPlayerValid(validPlayerRequirement, playerObj.consumptionTimes, playerObj.consumptionSum, playerObj.topUpTimes, playerObj.topUpSum, valueScore);
 
+            let debugObj = {
+                validPlayerRequirement,
+                playerObj
+            }
+
             if (playerObj && playerObj.registrationTime && new Date(playerObj.registrationTime) >= new Date(startTime) && new Date(playerObj.registrationTime) <= new Date(endTime)) {
                 isRegisteredInPeriod = true;
             }
@@ -11956,7 +11961,8 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 valid,
                 totalPlatformFee,
                 totalDepositWithdrawFee,
-                isRegisteredInPeriod
+                isRegisteredInPeriod,
+                debugObj
             };
         }
     );
