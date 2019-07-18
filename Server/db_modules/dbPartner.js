@@ -11003,7 +11003,6 @@ let dbPartner = {
         let totalCount = 0;
         let totalPage = 1;
         let timeSlots = [];
-        let testObj;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -11102,7 +11101,6 @@ let dbPartner = {
             }
         ).then(
             allPlayerData => {
-                testObj = JSON.parse(JSON.stringify(allPlayerData));
                 if (allPlayerData && allPlayerData.length > 0) {
                     allPlayerData.forEach(data => {
                         let index = allPlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
@@ -11196,7 +11194,7 @@ let dbPartner = {
 
                 result.sort((a, b) => sortList(a, b, sortType, sort));
 
-                return {stats: statsObj, list: result, testObj: testObj};
+                return {stats: statsObj, list: result};
             }
         )
 
@@ -11754,7 +11752,7 @@ function getValidPlayerRequirement (platformObjId) {
                 validPlayerTopUpAmount: partnerValidConfig && partnerValidConfig.validPlayerTopUpAmount || 0,
                 validPlayerConsumptionTimes: partnerValidConfig && partnerValidConfig.validPlayerConsumptionTimes || 0,
                 validPlayerConsumptionAmount: partnerValidConfig && partnerValidConfig.validPlayerConsumptionAmount || 0,
-                validPlayerValue: partnerValidConfig && partnerValidConfig.validPlayerTopUpTimes || 0,
+                validPlayerValue: partnerValidConfig && partnerValidConfig.validPlayerValue || 0,
             }
         }
     );
@@ -11855,11 +11853,6 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
             let valid = isPlayerValid(validPlayerRequirement, playerObj.consumptionTimes, playerObj.consumptionSum, playerObj.topUpTimes, playerObj.topUpSum, valueScore);
 
-            let debugObj = {
-                validPlayerRequirement,
-                playerObj
-            }
-
             if (playerObj && playerObj.registrationTime && new Date(playerObj.registrationTime) >= new Date(startTime) && new Date(playerObj.registrationTime) <= new Date(endTime)) {
                 isRegisteredInPeriod = true;
             }
@@ -11909,8 +11902,7 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 valid,
                 totalPlatformFee,
                 totalDepositWithdrawFee,
-                isRegisteredInPeriod,
-                debugObj
+                isRegisteredInPeriod
             };
         }
     );
