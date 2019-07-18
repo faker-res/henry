@@ -1445,6 +1445,14 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPlayerInfo.isPhoneNumberExist, [data.phoneNumber, data.platformObjId], actionName, isValidData);
+        },
+
+        countAppPlayer: function countAppPlayer(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.period && data.startDate && data.endDate && data.playerType && data.deviceType);
+            let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+             socketUtil.emitter(self.socket, dbPlayerInfo.countAppPlayer, [ObjectId(data.platformId), data.period, startTime, endTime, data.playerType, data.deviceType, data.domain, data.registrationInterfaceType], actionName, isValidData);
         }
     };
     socketActionPlayer.actions = this.actions;

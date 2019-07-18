@@ -583,6 +583,7 @@ var roleChecker = {
                 popUpAdvertisement: [],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
+                partnerUrlConfiguration: [],
             },
             "AuctionSystem": {
                 Read: [],
@@ -695,6 +696,7 @@ var roleChecker = {
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: ['getClientSourceQuery'],
                 LoginPlayer: ['countLoginPlayerbyPlatform'],
+                AppPlayer: ['countAppPlayer'],
                 ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
                 OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
                 TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],

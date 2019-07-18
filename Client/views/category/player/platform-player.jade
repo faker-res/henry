@@ -1105,6 +1105,9 @@ include modalGameCreditLog
                     .panel-body
                         #platformCreditTransferLogPopup.adminLogQueryDiv
                             .search-filters-item
+                                label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+                                select.form-control(ng-model='vm.queryPlatformCreditTransferPlatformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='', multiple, bsp, data-actions-box='true')
+                            .search-filters-item
                                 label {{ 'playerName' | translate }}
                                 input.form-control(ng-model='vm.queryPlatformCreditTransferPlayerName')
                             .search-filters-item
