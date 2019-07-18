@@ -3978,6 +3978,13 @@ var proposal = {
                             summary: {amount: totalAmount},
                         };
                     }
+                } else {
+                    return {
+                        size: 0,
+                        totalPlayer: 0,
+                        data: [],
+                        summary: {amount: 0},
+                    }
                 }
 
             },
