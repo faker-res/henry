@@ -9534,15 +9534,15 @@ let dbPlayerInfo = {
 
             console.log("checking getRewardList - device", [device, eventObjId, playerDetail && playerDetail._id ? playerDetail._id : null]);
             if (condition && condition[device] && condition[device].visibleFromHomePage && condition[device].visibleFromHomePage.visible){
-                homePopupProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device);
+                homePopupProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device, 'visibleFromHomePage');
             }
 
             if (condition && condition[device] && condition[device].visibleFromRewardEntry && condition[device].visibleFromRewardEntry.visible){
-                rewardEntryProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device);
+                rewardEntryProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device, 'visibleFromRewardEntry');
             }
 
             if (condition && condition[device] && condition[device].visibleFromRewardList && condition[device].visibleFromRewardList.visible){
-                rewardListProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device);
+                rewardListProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device, 'visibleFromRewardList');
             }
 
             return Promise.all([homePopupProm, rewardEntryProm, rewardListProm]).then(
@@ -9633,7 +9633,7 @@ let dbPlayerInfo = {
         }
     },
 
-    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition, device) {
+    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition, device, type) {
         let phoneNumberBindingProm;
         let newPlayerProm;
         let firstLoginProm;
@@ -9679,7 +9679,7 @@ let dbPlayerInfo = {
 
         return Promise.all([phoneNumberBindingProm, newPlayerProm, firstLoginProm, playerLevelProm, creditLessThanProm, appliedFollowingRewardProm, topUpCountMoreThanProm, appliedCurrentRewardProm]).then(
             visibleResult => {
-                console.log("checking getRewardList - visibleResult ", [visibleResult, rewardEventId, playerObjId]);
+                console.log("checking getRewardList - visibleResult ", [visibleResult, rewardEventId, playerObjId, type]);
                 let isVisible = true;
                 if(visibleResult && visibleResult.length){
                     visibleResult.forEach(
