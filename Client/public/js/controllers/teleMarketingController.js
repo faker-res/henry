@@ -6480,10 +6480,25 @@ define(['js/app'], function (myApp) {
             vm.checkFilterIsDisable = true;
         };
 
+        vm.getTSPhoneListNameByPlatform = (platformObjId) => {
+            let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED];
+            let sendQuery = {
+                platform: platformObjId,
+                status: {$in: phoneListStatus}
+            };
+            console.log('sendQuery', sendQuery);
+            socketService.$socket($scope.AppSocket, 'getTSPhoneListName', sendQuery, function (data) {
+                console.log("getTSPhoneListName ret", data);
+                $scope.$evalAsync(() => {
+                    vm.recycleBinPhoneListNameByPlatform = data.data;
+                });
+            });
+        };
+
         vm.filterRecycleBinPhoneList = (newSearch) => {
             vm.selectedTsPhoneList = false;
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.recycleBinPhoneListSearch.platformObjId,
                 startTime: vm.recycleBinPhoneListSearch.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.recycleBinPhoneListSearch.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : (vm.recycleBinPhoneListSearch.index || 0),
@@ -6515,6 +6530,15 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getTSList = function (platformId) {
+            commonService.getTSPhoneListName($scope, {platform: platformId}).then(
+                data => {
+                    vm.allTSList = data;
+                    $scope.$evalAsync();
+                }
+            )
+        };
+
         vm.showPhoneListManagement = function () {
             utilService.actionAfterLoaded(('#phoneListSearch'), function () {
                 vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
@@ -6522,7 +6546,7 @@ define(['js/app'], function (myApp) {
                 });
                 vm.filterPhoneListManagement(true);
             });
-        }
+        };
 
         vm.filterPhoneListManagement = (newSearch) => {
             vm.selectedTsPhoneList = false;
