@@ -74,11 +74,25 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveSkinSetting, [data], actionName, isValidData);
         },
 
+        savePartnerSkinSetting: function savePartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.device && data.name);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePartnerSkinSetting, [data], actionName, isValidData);
+        },
+
         getSkinSetting: function getSkinSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.getSkinSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        getPartnerSkinSetting: function getPartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerSkinSetting, [data.platformObjId], actionName, isValidData);
         },
 
         removeSkinSetting: function removeSkinSetting (data) {
@@ -88,6 +102,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.removeSkinSetting, [data.skinSettingObjId], actionName, isValidData);
         },
 
+        removePartnerSkinSetting: function removePartnerSkinSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.skinSettingObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.removePartnerSkinSetting, [data.skinSettingObjId], actionName, isValidData);
+        },
+
         saveUrlConfig: function saveUrlConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
@@ -95,11 +116,25 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveUrlConfig, [data], actionName, isValidData);
         },
 
+        savePartnerUrlConfig: function savePartnerUrlConfig (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePartnerUrlConfig, [data], actionName, isValidData);
+        },
+
         getUrlConfig: function getUrlConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.getUrlConfig, [data.platformObjId], actionName, isValidData);
+        },
+
+        getPartnerUrlConfig: function getPartnerUrlConfig (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerUrlConfig, [data.platformObjId], actionName, isValidData);
         },
 
         saveCarouselSetting: function saveCarouselSetting (data){

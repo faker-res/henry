@@ -516,6 +516,42 @@ let dbPlayerInfo = {
                                     if (inputData.partnerId) {
                                         guestPlayerData.partnerId = inputData.partnerId;
                                     }
+
+                                    if (inputData.phoneProvince) {
+                                        guestPlayerData.phoneProvince = inputData.phoneProvince;
+                                    }
+
+                                    if (inputData.phoneCity) {
+                                        guestPlayerData.phoneCity = inputData.phoneCity;
+                                    }
+
+                                    if (inputData.phoneType) {
+                                        guestPlayerData.phoneType = inputData.phoneType;
+                                    }
+
+                                    if (inputData.domain) {
+                                        guestPlayerData.domain = inputData.domain;
+                                    }
+                                }
+
+                            ).then(
+                                () => {
+                                    if (inputData && inputData.partnerId) {
+                                        return dbconfig.collection_partner.findOne({
+                                            partnerId: inputData.partnerId,
+                                            platform: platform._id
+                                        }).lean().then(
+                                            data => {
+                                                if (data) {
+                                                    console.log('MT --checking partner', data.partnerId)
+                                                    guestPlayerData.partner = data._id;
+                                                    guestPlayerData.partnerId = data.partnerId;
+                                                    return inputData;
+                                                }
+                                            }
+                                        );
+                                    }
+                                    return
                                 }
                             ).then(
                                 () => {
@@ -1996,7 +2032,6 @@ let dbPlayerInfo = {
                     }
 
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -2198,19 +2233,28 @@ let dbPlayerInfo = {
                                     console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
                                     csOfficer = csOfficerUrlData.admin;
                                     promoteWay = csOfficerUrlData.way;
+                                }
 
-                                    console.log("checking partnerId", [playerData.name, partnerId])
-                                    console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
-                                    if (partnerId && playerdata && !playerdata.partner){
-                                        let partnerData = await dbconfig.collection_partner.findOne({
-                                            partnerId: partnerId,
-                                            platform: playerdata.platform
-                                        }, {_id: 1}).lean();
+                                console.log("checking partnerId", [playerData.name, partnerId])
+                                console.log("checking playerdata.partner", [playerData.name, playerdata.partner])
+                                if (partnerId && playerdata && !playerdata.partner){
+                                    let partnerData = await dbconfig.collection_partner.findOne({
+                                        partnerId: partnerId,
+                                        platform: playerdata.platform
+                                    }, {_id: 1}).lean();
 
-                                        console.log("checking partnerData", partnerData)
-                                        if (partnerData){
-                                            partner = partnerData._id;
-                                        }
+                                    console.log("checking partnerData", partnerData)
+                                    if (partnerData){
+                                        partner = partnerData._id;
+                                    }
+                                }
+
+                                // if there is still no binding partner from the above checking; try to get the matching partner record from partner's ownDomain
+                                if (!partner && playerdata && !playerdata.partner && ipDomain){
+                                    let partnerRecord = await dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: ipDomain}}});
+                                    if (partnerRecord && partnerRecord._id){
+                                        console.log("checking partnerRecord", [playerData.name, partnerRecord.partnerName])
+                                        partner = partnerRecord._id;
                                     }
                                 }
                                 // // force using csOfficerUrl admin and way
@@ -6350,10 +6394,16 @@ let dbPlayerInfo = {
 
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                } else {
+                    console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
 
                 if (playerData && playerData.osType) {
                     recordData.osType = playerData.osType;
+                }
+
+                if (recordData.inputDeviceType && (recordData.inputDeviceType == '5' || recordData.inputDeviceType == '6') && !playerData.osType) {
+                    console.log('MT --checking if didnt sent osType', playerData);
                 }
                 Object.assign(recordData, geoInfo);
 
@@ -6727,6 +6777,9 @@ let dbPlayerInfo = {
                                     }
                                     if (loginData && loginData.partnerId) {
                                         newPlayerData.partnerId = loginData.partnerId;
+                                    }
+                                    if (loginData && loginData.domain) {
+                                        newPlayerData.domain = loginData.domain;
                                     }
                                     let checkDeviceIdProm = Promise.resolve();
 
@@ -16714,22 +16767,7 @@ let dbPlayerInfo = {
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
-
-                            //special handling for eu大爆炸, random reward group reward
-                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
-                                    && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
-                                // There is consumption after top up
-                                if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
-                                    // Bypass this checking
-                                } else {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "There is consumption after top up"
-                                    });
-                                }
-                            }
+                            rewardData.lastConsumptionData = timeCheckData[1];
 
                             // if there is a pending reward, then no other reward can be applied.
                             if (timeCheckData[2] && timeCheckData[2] > 0) {
@@ -16743,20 +16781,6 @@ let dbPlayerInfo = {
                             }
 
                             switch (rewardEvent.type.name) {
-                                //first top up
-                                case constRewardType.FIRST_TOP_UP:
-                                    if (data.topUpRecordId && !data.topUpRecordIds) {
-                                        data.topUpRecordIds = [data.topUpRecordId];
-                                    }
-                                    if (data.topUpRecordIds == null) {
-                                        return Q.reject({
-                                            status: constServerCode.INVALID_DATA,
-                                            name: "Missing top up record ids",
-                                            message: "Invalid Data"
-                                        });
-                                    }
-                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(userAgent, null, playerId, data.topUpRecordIds, code, adminInfo);
-                                    break;
                                 //provider reward
                                 case constRewardType.GAME_PROVIDER_REWARD:
                                     if (data.amount == null) {
@@ -18608,6 +18632,14 @@ let dbPlayerInfo = {
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += twoDaysData.providerDetail[providerDetailKey].bonusAmount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += twoDaysData.providerDetail[providerDetailKey].amount;
                                                 returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount);
+                                            } else {
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                    count: twoDaysData.providerDetail[providerDetailKey].count,
+                                                    validAmount: twoDaysData.providerDetail[providerDetailKey].validAmount,
+                                                    bonusAmount: twoDaysData.providerDetail[providerDetailKey].bonusAmount,
+                                                    amount: twoDaysData.providerDetail[providerDetailKey].amount,
+                                                    bonusRatio: (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount),
+                                                };
                                             }
                                         }
 
@@ -18665,6 +18697,14 @@ let dbPlayerInfo = {
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += preSummaryData.providerDetail[providerDetailKey].bonusAmount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += preSummaryData.providerDetail[providerDetailKey].amount;
                                                     returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount);
+                                                } else {
+                                                    returnedObj.data[indexNo].providerDetail[providerDetailKey] = {
+                                                        count: preSummaryData.providerDetail[providerDetailKey].count,
+                                                        validAmount: preSummaryData.providerDetail[providerDetailKey].validAmount,
+                                                        bonusAmount: preSummaryData.providerDetail[providerDetailKey].bonusAmount,
+                                                        amount: preSummaryData.providerDetail[providerDetailKey].amount,
+                                                        bonusRatio: (preSummaryData.providerDetail[providerDetailKey].bonusAmount / preSummaryData.providerDetail[providerDetailKey].validAmount),
+                                                    };
                                                 }
                                             }
 
@@ -20561,366 +20601,385 @@ let dbPlayerInfo = {
         });
     },
 
-        getDXTrackingReport: function (platform, query, index, limit, sortCol) {
-            let startDate = new Date(query.start);
-            let endDate = new Date(query.end);
+    getDXTrackingData: (playerInfo, playerIds, query) => {
+        playerIds = playerIds.map(playerId => ObjectId(playerId));
+        let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate([
+            {
+                $match: {
+                    playerId: {$in: playerIds},
+                    createTime: {
+                        $gte: new Date(query.queryStart),
+                        $lt: new Date(query.queryEnd)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    totalAmount: {$sum: "$amount"},
+                    count: {$sum: 1},
+                }
+            }
+        ]).read("secondaryPreferred");
 
-            let matchObj = {
-                platform: platform,
-                registrationTime: {$gte: startDate, $lt: endDate}
-            };
+        let bonusProm = dbconfig.collection_proposal.aggregate([
+            {
+                $match: {
+                    "data.playerObjId": {$in: playerIds},
+                    createTime: {
+                        $gte: new Date(query.queryStart),
+                        $lt: new Date(query.queryEnd)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
+                    totalAmount: {"$sum": "$data.amount"},
+                    count: {"$sum": 1}
+                }
+            }
+        ]).read("secondaryPreferred");
 
-            if(query && query.name){
+        let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: {
+                    playerId: {$in: playerIds},
+                    createTime: {
+                        $gte: new Date(query.queryStart),
+                        $lt: new Date(query.queryEnd)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    totalAmount: {$sum: "$validAmount"},
+                    count: {$sum: 1},
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let matchProviderObj = {
+            playerId: {$in: playerIds}
+        };
+
+        if (query && query.providerId) {
+            matchProviderObj.providerId = query.providerId;
+        }
+
+        let providerInfoProm = dbconfig.collection_playerConsumptionRecord.find(matchProviderObj).populate(
+            {
+                path: 'providerId',
+                model: dbconfig.collection_gameProvider,
+                select: "name nickName"
+            }
+        ).read("secondaryPreferred");
+
+        return Promise.all([topUpProm, consumptionProm, bonusProm, providerInfoProm, playerInfo])
+
+    },
+
+    getDXTrackingReport: function (platform, query, index, limit, sortCol) {
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+
+        let matchObj = {
+            platform: platform,
+        };
+
+        if(query){
+            if(query.start && query.end){
+                matchObj.registrationTime = {$gte: startDate, $lt: endDate}
+            }else if(query.name){
                 matchObj.name = query.name;
             }
+        }
 
-            if(query && query.credibilityRemarks && query.credibilityRemarks.length){
-                query.credibilityRemarks = query.credibilityRemarks.map(
-                    creditRemarkId => {
-                        creditRemarkId = ObjectId(creditRemarkId);
-                        return creditRemarkId;
-                    });
-                matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
-            }
+        if(query && query.credibilityRemarks && query.credibilityRemarks.length){
+            query.credibilityRemarks = query.credibilityRemarks.map(
+                creditRemarkId => {
+                    creditRemarkId = ObjectId(creditRemarkId);
+                    return creditRemarkId;
+                });
+            matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
+        }
 
+        let stream = dbconfig.collection_players.find(matchObj).populate(
+            [
+                {
+                    path: 'playerLevel',
+                    model: dbconfig.collection_playerLevel,
+                    select: "_id name"
+                },
+                {
+                    path: 'credibilityRemarks',
+                    model: dbconfig.collection_playerCredibilityRemark,
+                    select: "_id name"
+                },
+                {
+                    path: 'csOfficer',
+                    model: dbconfig.collection_admin
+                }
 
-            let topUpProm = [];
-            let bonusProm =[];
-            let consumptionProm =[];
-
-
-            return dbconfig.collection_players.find(matchObj).populate(
-                [
+            ]).lean().cursor({batchSize: 100});
+        let res = [];
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
                     {
-                        path: 'playerLevel',
-                        model: dbconfig.collection_playerLevel,
-                        select: "_id name"
-                    },
-                    {
-                        path: 'credibilityRemarks',
-                        model: dbconfig.collection_playerCredibilityRemark,
-                        select: "_id name"
-                    },
-                    {
-                        path: 'csOfficer',
-                        model: dbconfig.collection_admin
+                        stream: stream,
+                        batchSize: 40,
+                        makeRequest: function (playerId, request) {
+                            let playerIds = [];
+                            let playerInfo = [];
+                            playerId.forEach(item => {
+                                playerInfo.push(item);
+                                playerIds.push(item._id);
+                            });
+                            request("player", "getDXTrackingData", {
+                                playerInfo: playerInfo,
+                                playerIds: playerIds,
+                                query: query
+                            });
+                        },
+                        processResponse: function (record) {
+                            res = res.concat(record.data);
+                        }
                     }
-
-                ]).read("secondaryPreferred").lean().then(
-                playerId => {
-                    let playerIds = [];
-                    let playerInfo = [];
-                    playerId.forEach(item => {
-                        playerInfo.push(item);
-                        playerIds.push(item._id);
-                    });
-
-                    topUpProm.push(dbconfig.collection_playerTopUpRecord.aggregate([
-                        {
-                            $match: {
-                                playerId: {$in: playerIds},
-                                createTime: {
-                                    $gte: new Date(query.queryStart),
-                                    $lt: new Date(query.queryEnd)
-                                }
-                            }
-                        },
-                        {
-                            $group: {
-                                // _id: { year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" } },
-                                _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                                totalAmount: {$sum: "$amount"},
-                                count: {$sum: 1},
-                            }
-                        }
-                    ]).read("secondaryPreferred"));
-
-                    bonusProm.push(dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: {
-                                "data.playerObjId": {$in: playerIds},
-                                createTime: {
-                                    $gte: new Date(query.queryStart),
-                                    $lt: new Date(query.queryEnd)
-                                }
-                            }
-                        },
-                        {
-                            $group: {
-                                // _id: { year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" } },
-                                _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
-                                totalAmount: {"$sum": "$data.amount"},
-                                count: {"$sum": 1}
-                            }
-                        }
-                    ]).read("secondaryPreferred"));
-
-                    consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
-                        {
-                            $match: {
-                                playerId: {$in: playerIds},
-                                createTime: {
-                                    $gte: new Date(query.queryStart),
-                                    $lt: new Date(query.queryEnd)
-                                }
-                            }
-                        },
-                        {
-                            $group: {
-                                // _id: { year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" } },
-                                _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                                // _id: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" } },
-                                totalAmount: {$sum: "$validAmount"},
-                                count: {$sum: 1},
-                            }
-                        }
-                    ]).read("secondaryPreferred"));
-
-                    let matchProviderObj = {
-                        playerId: {$in: playerIds}
-                    };
-
-                    if(query && query.providerId){
-                        matchProviderObj.providerId = query.providerId;
-                    }
-
-                    let providerInfoProm = dbconfig.collection_playerConsumptionRecord.find(matchProviderObj).populate(
-                        {
-                            path: 'providerId',
-                            model: dbconfig.collection_gameProvider,
-                            select: "name nickName"
-                        }
-                    ).read("secondaryPreferred");
-
-
-                return Promise.all([Promise.all(topUpProm), Promise.all(consumptionProm), Promise.all(bonusProm), providerInfoProm]).then(data => {
-                    let topUpRecord = data[0];
-                    let consumptionRecord = data[1];
-                    let bonusRecord = data[2];
-                    let providerInfo = data[3];
-
-
-                    let topUp = [].concat(...topUpRecord);
-                    let consumption = [].concat(...consumptionRecord);
-                    let bonus = [].concat(...bonusRecord);
-
-                    // return {
-                    //     topUpRecord: topUp,
-                    //     consumptionRecord: consumption,
-                    //     bonusRecord: bonus,
-                    //     playerInfo: playerInfo,
-                    //     providerInfo: providerInfo
-                    // };
-
-
-                    let outputData = [];
-                    let retData = {};
+                )
+            );
+        }).then(
+            () => {
+                let topUpRecord = res[0];
+                let consumptionRecord = res[1];
+                let bonusRecord = res[2];
+                let providerInfo = res[3];
+                let playerInfo = res[4];
 
 
 
-                    playerInfo.map(player => {
-                        consumption.map(c => {
-                            topUp.map(t => {
-                                bonus.map(b => {
+                // let topUp = [].concat(...topUpRecord);
+                // let consumption = [].concat(...consumptionRecord);
+                // let bonus = [].concat(...bonusRecord);
 
-                                    providerInfo.map(provider => {
-                                        let providerDate = provider.createTime;
-                                        if(provider && provider.providerId && (JSON.stringify(c._id.date).slice(0,11) === JSON.stringify(providerDate).slice(0,11))){
-                                            if (c && c._id) {
-                                                if (!retData[c._id.playerId]) {
-                                                    retData[c._id.playerId] = {};
-                                                }
+                // return {
+                //     topUpRecord: topUpRecord,
+                //     consumptionRecord: consumptionRecord,
+                //     bonusRecord: bonusRecord,
+                //     providerInfo: providerInfo,
+                //     playerInfo: playerInfo
+                // };
 
-                                                if (!retData[c._id.playerId][c._id.date]) {
-                                                    retData[c._id.playerId][c._id.date] = {};
-                                                }
 
-                                                retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
-                                                retData[c._id.playerId][c._id.date].date = c._id.date;
-                                                retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
-                                                retData[c._id.playerId][c._id.date].consumptionCount = c.count;
-                                                retData[c._id.playerId][c._id.date].providerInfo = provider;
+                let outputData = [];
+                let retData = {};
 
-                                                if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
-                                                    retData[c._id.playerId][c._id.date].playerInfo = player;
-                                                }
 
+                playerInfo.map(player => {
+                    consumptionRecord.map(c => {
+                        topUpRecord.map(t => {
+                            bonusRecord.map(b => {
+
+                                providerInfo.map(provider => {
+                                    let providerDate = provider.createTime;
+                                    if (provider && provider.providerId && (JSON.stringify(c._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
+                                        if (c && c._id) {
+                                            if (!retData[c._id.playerId]) {
+                                                retData[c._id.playerId] = {};
                                             }
-                                        }
-                                    });
 
-                                    if (t && t._id ) {
-                                        if (!retData[t._id.playerId]) {
-                                            retData[t._id.playerId] = {};
-                                        }
+                                            if (!retData[c._id.playerId][c._id.date]) {
+                                                retData[c._id.playerId][c._id.date] = {};
+                                            }
 
-                                        if (!retData[t._id.playerId][t._id.date]) {
-                                            retData[t._id.playerId][t._id.date] = {};
-                                        }
-                                        retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
-                                        retData[t._id.playerId][t._id.date].date = t._id.date;
-                                        retData[t._id.playerId][t._id.date].topUpAmount =  t.totalAmount;
-                                        retData[t._id.playerId][t._id.date].topUpCount = t.count;
+                                            retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
+                                            retData[c._id.playerId][c._id.date].date = c._id.date;
+                                            retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
+                                            retData[c._id.playerId][c._id.date].consumptionCount = c.count;
+                                            retData[c._id.playerId][c._id.date].providerInfo = provider;
 
-                                        if(JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
-                                            retData[t._id.playerId][t._id.date].playerInfo = player;
-                                        }
+                                            if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
+                                                retData[c._id.playerId][c._id.date].playerInfo = player;
+                                            }
 
+                                        }
                                     }
-
-                                    if (b && b._id) {
-                                        if (!retData[b._id.playerId]) {
-                                            retData[b._id.playerId] = {};
-                                        }
-                                        if (!retData[b._id.playerId][b._id.date]) {
-                                            retData[b._id.playerId][b._id.date] = {};
-                                        }
-                                        retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
-                                        retData[b._id.playerId][b._id.date].date = b._id.date;
-                                        retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
-                                        retData[b._id.playerId][b._id.date].bonusCount = b.count;
-
-                                        if(JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
-                                            retData[b._id.playerId][b._id.date].playerInfo = player;
-                                        }
-
-                                    }
-
                                 });
+
+                                if (t && t._id) {
+                                    if (!retData[t._id.playerId]) {
+                                        retData[t._id.playerId] = {};
+                                    }
+
+                                    if (!retData[t._id.playerId][t._id.date]) {
+                                        retData[t._id.playerId][t._id.date] = {};
+                                    }
+                                    retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
+                                    retData[t._id.playerId][t._id.date].date = t._id.date;
+                                    retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
+                                    retData[t._id.playerId][t._id.date].topUpCount = t.count;
+
+                                    if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
+                                        retData[t._id.playerId][t._id.date].playerInfo = player;
+                                    }
+
+                                }
+
+                                if (b && b._id) {
+                                    if (!retData[b._id.playerId]) {
+                                        retData[b._id.playerId] = {};
+                                    }
+                                    if (!retData[b._id.playerId][b._id.date]) {
+                                        retData[b._id.playerId][b._id.date] = {};
+                                    }
+                                    retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
+                                    retData[b._id.playerId][b._id.date].date = b._id.date;
+                                    retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
+                                    retData[b._id.playerId][b._id.date].bonusCount = b.count;
+
+                                    if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
+                                        retData[b._id.playerId][b._id.date].playerInfo = player;
+                                    }
+
+                                }
+
                             });
                         });
                     });
-
-                    for (let key in retData) {
-                        for(let key2 in retData[key]){
-                            outputData.push(retData[key][key2]);
-                        }
-                    }
-
-                    for (let i = outputData.length-1; i >= 0; i--){
-                        outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
-                        outputData[i].topUpAmount = outputData && outputData[i].topUpAmount ? outputData[i].topUpAmount : 0;
-                        outputData[i].bonusCount = outputData && outputData[i].bonusCount ? outputData[i].bonusCount : 0;
-
-                        let isSplice = false;
-                        if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
-
-                            switch (query.topUpTimesOperator) {
-                                case '>=':
-                                    if(outputData[i].topUpCount <= query.topUpTimesValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '=':
-                                    if(outputData[i].topUpCount !== Number(query.topUpTimesValue)){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '<=':
-                                    if(outputData[i].topUpCount >= query.topUpTimesValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case 'range':
-                                    if (query.topUpTimesValueTwo) {
-                                        if(outputData[i].topUpCount <= query.topUpTimesValue && outputData[i].topUpCount >= query.topUpTimesValueTwo){
-                                            outputData.splice(i, 1);
-                                            isSplice = true;
-                                        }
-                                    }
-                                    break;
-                            }
-
-                        }
-                        if (isSplice) {
-                            continue;
-                        }
-
-                        if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
-                            switch (query.topUpAmountOperator) {
-                                case '>=':
-                                    if(outputData[i].topUpAmount <= query.topUpAmountValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '=':
-                                    if(outputData[i].topUpAmount !== Number(query.topUpAmountValue)){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '<=':
-                                    if(outputData[i].topUpAmount >= query.topUpAmountValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case 'range':
-                                    if (query.topUpAmountValueTwo) {
-                                        if(outputData[i].topUpAmount <= query.topUpAmountValue && outputData[i].topUpAmount >= query.topUpAmountValueTwo){
-                                            outputData.splice(i, 1);
-                                            isSplice = true;
-                                        }
-                                    }
-                                    break;
-                            }
-
-
-                        }
-                        if (isSplice) {
-                            continue;
-                        }
-
-
-                        if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
-                            switch (query.bonusTimesOperator) {
-                                case '>=':
-                                    if(outputData[i].bonusCount <= query.bonusTimesValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '=':
-                                    if(outputData[i].bonusCount !== Number(query.bonusTimesValue)){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case '<=':
-                                    if(outputData[i].bonusCount >= query.bonusTimesValue){
-                                        outputData.splice(i, 1);
-                                        isSplice = true;
-                                    }
-                                    break;
-                                case 'range':
-                                    if (query.bonusTimesValueTwo) {
-                                        if(outputData[i].bonusTimes <= query.bonusTimesValue && outputData[i].bonusTimes >= query.bonusTimesValueTwo){
-                                            outputData.splice(i, 1);
-                                            isSplice = true;
-                                        }
-                                    }
-                                    break;
-                            }
-
-                        }
-
-                    }
-
-                    outputData.sort(function (a, b) {
-                        a = a.date.split('-').join('');
-                        b = b.date.split('-').join('');
-                        return a - b;
-                    });
-
-                    return {data: outputData, size: outputData.length};
-
                 });
-            });
-        },
+
+                for (let key in retData) {
+                    for (let key2 in retData[key]) {
+                        outputData.push(retData[key][key2]);
+                    }
+                }
+
+                for (let i = outputData.length - 1; i >= 0; i--) {
+                    outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
+                    outputData[i].topUpAmount = outputData && outputData[i].topUpAmount ? outputData[i].topUpAmount : 0;
+                    outputData[i].bonusCount = outputData && outputData[i].bonusCount ? outputData[i].bonusCount : 0;
+
+                    let isSplice = false;
+                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
+
+                        switch (query.topUpTimesOperator) {
+                            case '>=':
+                                if (outputData[i].topUpCount <= query.topUpTimesValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '=':
+                                if (outputData[i].topUpCount !== Number(query.topUpTimesValue)) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '<=':
+                                if (outputData[i].topUpCount >= query.topUpTimesValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case 'range':
+                                if (query.topUpTimesValueTwo) {
+                                    if (outputData[i].topUpCount <= query.topUpTimesValue && outputData[i].topUpCount >= query.topUpTimesValueTwo) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                }
+                                break;
+                        }
+
+                    }
+                    if (isSplice) {
+                        continue;
+                    }
+
+                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
+                        switch (query.topUpAmountOperator) {
+                            case '>=':
+                                if (outputData[i].topUpAmount <= query.topUpAmountValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '=':
+                                if (outputData[i].topUpAmount !== Number(query.topUpAmountValue)) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '<=':
+                                if (outputData[i].topUpAmount >= query.topUpAmountValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case 'range':
+                                if (query.topUpAmountValueTwo) {
+                                    if (outputData[i].topUpAmount <= query.topUpAmountValue && outputData[i].topUpAmount >= query.topUpAmountValueTwo) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                }
+                                break;
+                        }
+
+
+                    }
+                    if (isSplice) {
+                        continue;
+                    }
+
+
+                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
+                        switch (query.bonusTimesOperator) {
+                            case '>=':
+                                if (outputData[i].bonusCount <= query.bonusTimesValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '=':
+                                if (outputData[i].bonusCount !== Number(query.bonusTimesValue)) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case '<=':
+                                if (outputData[i].bonusCount >= query.bonusTimesValue) {
+                                    outputData.splice(i, 1);
+                                    isSplice = true;
+                                }
+                                break;
+                            case 'range':
+                                if (query.bonusTimesValueTwo) {
+                                    if (outputData[i].bonusTimes <= query.bonusTimesValue && outputData[i].bonusTimes >= query.bonusTimesValueTwo) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                }
+                                break;
+                        }
+
+                    }
+
+                }
+
+                outputData.sort(function (a, b) {
+                    a = a.date.split('-').join('');
+                    b = b.date.split('-').join('');
+                    return a - b;
+                });
+
+                return {data: outputData, size: outputData.length};
+
+            }
+        );
+    },
 
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
@@ -26166,6 +26225,127 @@ let dbPlayerInfo = {
         }
 
         return retArr;
+    },
+
+    countAppPlayer: (platformId, period, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
+        let promoteWayProm = Promise.resolve(true);
+        let proms = [];
+
+        if (domain) {
+            promoteWayProm = dbconfig.collection_csOfficerUrl.find({platform: platformId, domain: domain}).lean().then(
+                promoteWayData => {
+                    return promoteWayData && promoteWayData.length > 0 ? promoteWayData.map(item => item && item.way) : [];
+                }
+            )
+        }
+
+        return promoteWayProm.then(
+            promoteWayData => {
+                let dayStartTime = startDate;
+                let getNextDate;
+                let dateRange = 0;
+                let periodRange = 0;
+                dateRange = (new Date(endDate) - new Date(startDate)) || 0;
+
+                switch (period) {
+                    case 'day':
+                        periodRange = 24 * 3600 * 1000;
+                        getNextDate = function (date) {
+                            var newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 1));
+                        }
+                        break;
+                    case 'week':
+                        periodRange = 24 * 3600 * 7 * 1000;
+                        getNextDate = function (date) {
+                            var newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 7));
+                        }
+                        break;
+                    case 'month':
+                    default:
+                        periodRange = 24 * 3600 * 30 * 1000;
+                        getNextDate = function (date) {
+                            var newDate = new Date(date);
+                            return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                        }
+                }
+
+                let loopTimes = dateRange / periodRange;
+                for(let i = 0; i < loopTimes; i++){
+                    let dayEndTime = getNextDate.call(this, dayStartTime);
+
+                    let matchObj = {
+                        platform: platformId
+                    };
+
+                    if (deviceType && (deviceType !== 'all')) {
+                        matchObj.osType = deviceType.trim();
+                    }
+
+                    if (playerType && (playerType === 'new_registration')) {
+                        matchObj.guestDeviceId = {$exists: true, $ne: null};
+                        matchObj.registrationTime = {$gte: dayStartTime, $lt: dayEndTime};
+
+                        if (domain && promoteWayData && promoteWayData.length > 0) {
+                            matchObj.promoteWay = {$in: promoteWayData};
+                        }
+
+                        let newRegistrationProm = dbconfig.collection_players.aggregate(
+                            [{
+                                $match: matchObj
+                            },
+                                {
+                                    $group: {
+                                        _id: null,
+                                        count: { $sum: 1 }
+                                    }
+                                },
+                                {
+                                    $project: {
+                                        _id: 1,
+                                        count: 1
+                                    }
+                                }]
+                        ).read("secondaryPreferred");
+
+                        proms.push(newRegistrationProm);
+
+                    } else if(playerType && (playerType === 'login')) {
+                        proms.push(countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData));
+                    }
+
+                    dayStartTime = dayEndTime;
+                }
+
+                return Promise.all(proms).then(
+                    data => {
+                        let tempDate = startDate;
+
+                        let res = data.map(item => {
+                            let obj = {};
+                            if (playerType && (playerType === 'new_registration')) {
+                                let countNewRegistration = item && item.length > 0 ? item.reduce( (a,b) => a + b.count, 0) : 0;
+
+                                obj = {date: tempDate, newRegistration: countNewRegistration};
+
+                            } else if (playerType && (playerType === 'login')) {
+                                let countLoginTimes = item && item.length > 0 ? item.reduce( (a,b) => a + b.number, 0) : 0;
+                                let countLoginPlayer = item ? item.length : 0;
+
+                                obj = {date: tempDate, loginTimes: countLoginTimes, loginPlayerCount: countLoginPlayer};
+                            }
+
+                            tempDate = getNextDate(tempDate);
+
+                            return obj;
+                        });
+
+                        return res;
+                    }
+                );
+            }
+        )
     }
 };
 
@@ -26778,12 +26958,6 @@ function checkRouteSetting(url, setting) {
     }
 
     return url;
-}
-
-function isRandomRewardConsumption(rewardEvent) {
-    return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
-        && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
-        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
 function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, topUpSummary, consumptionSummary, checkLevelUp) {
@@ -28276,6 +28450,130 @@ function checkForbidReward (eventData, intervalTime, playerData) {
             }
         );
     }
+}
+
+function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData) {
+    let playerLoginMatchObj = Object.assign({}, matchObj);
+
+    playerLoginMatchObj.loginTime = {$gte: dayStartTime, $lt: dayEndTime};
+
+    return dbconfig.collection_playerLoginRecord.aggregate(
+        {
+            $match: playerLoginMatchObj
+        },
+        {
+            $unwind: "$userAgent",
+        },
+        {
+            $group: {
+                _id: {_id: "$_id", userAgentOS: "$userAgent.os", userAgentDevice: "$userAgent.device", userAgentBrowser: "$userAgent.browser", player: "$player"},
+            }
+        },
+        {
+            $group: {
+                _id: {userAgentOS: "$_id.userAgentOS", userAgentDevice: "$_id.userAgentDevice", userAgentBrowser: "$_id.userAgentBrowser", player: "$_id.player"},
+                number: {$sum: 1}
+            }
+        }
+    ).read("secondaryPreferred").then(
+        playerLoginData => {
+            if (playerLoginData && playerLoginData.length > 0) {
+                let playerObjIds = [];
+
+                for (let i = 0; i < playerLoginData.length; i++) {
+                    let dailyPlayerLoginData = playerLoginData[i];
+
+                    if (dailyPlayerLoginData && dailyPlayerLoginData._id && dailyPlayerLoginData._id.player) {
+                        let index = playerObjIds.findIndex(x => x && (x.toString() === dailyPlayerLoginData._id.player));
+
+                        if (index === -1) {
+                            playerObjIds.push(ObjectId(dailyPlayerLoginData._id.player));
+                        }
+                    }
+                }
+
+                if (playerObjIds && playerObjIds.length > 0) {
+                    let playerQuery = {
+                        platform: platformId,
+                        _id: {$in: playerObjIds}
+                    };
+
+                    if (domain && promoteWayData && promoteWayData.length > 0) {
+                        playerQuery.promoteWay = {$in: promoteWayData};
+                    }
+
+                    if (registrationInterfaceType && (registrationInterfaceType !== 'all')) {
+                        switch (registrationInterfaceType) {
+                            case '0': //backstage
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': constPlayerRegistrationInterface.BACKSTAGE}
+                                ];
+                                break;
+                            case '1': //WEB
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.WEB_PLAYER,
+                                                constPlayerRegistrationInterface.WEB_AGENT]
+                                        }}
+                                ];
+                                break;
+                            case '2': //H5
+                                playerQuery["$and"] = [
+                                    {'guestDeviceId': {$exists: false}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.H5_PLAYER,
+                                                constPlayerRegistrationInterface.H5_AGENT]
+                                        }}
+                                ];
+                                break;
+                            case '3': //APP
+                                playerQuery["$or"] = [
+                                    {'guestDeviceId': {$exists: true, $ne: null}},
+                                    {'registrationInterface': {
+                                            $in: [
+                                                constPlayerRegistrationInterface.APP_PLAYER,
+                                                constPlayerRegistrationInterface.APP_AGENT,
+                                                constPlayerRegistrationInterface.APP_NATIVE_PLAYER,
+                                                constPlayerRegistrationInterface.APP_NATIVE_PARTNER]
+                                        }}
+                                ];
+                                break;
+                        }
+                    }
+
+                    return dbconfig.collection_players.find(playerQuery, {_id:1, playerId: 1, osType: 1, promoteWay: 1}).lean().then(playerData => {
+                        let finalPlayerLoginData = [];
+                        if (playerData && playerData.length > 0) {
+                            for (let i = 0; i < playerLoginData.length; i++) {
+                                let temp = playerLoginData[i];
+
+                                if (temp && temp._id && temp._id.player) {
+                                    let index = playerData.map(x => x && x._id && x._id.toString()).indexOf(temp._id.player.toString());
+
+                                    if (index > -1) {
+                                        if ((temp._id.userAgentOS === '' && temp._id.userAgentDevice === 'PC' && temp._id.userAgentBrowser === '') ||
+                                            (temp._id.userAgentOS === '' && temp._id.userAgentDevice === '' && temp._id.userAgentBrowser === '')) {
+                                            finalPlayerLoginData.push(temp);
+                                        }
+                                    }
+                                }
+                            }
+
+                            return finalPlayerLoginData;
+                        }
+
+                        return finalPlayerLoginData;
+                    })
+                }
+            }
+
+            return playerLoginData;
+        }
+    );
 }
 
 var proto = dbPlayerInfoFunc.prototype;

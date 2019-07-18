@@ -828,17 +828,21 @@ const dbRewardUtility = {
         }
     },
 
-    checkRewardApplyAnyWithdrawAfterTopup: async (eventData, playerData, topupCreateTime) => {
+    checkRewardApplyAnyWithdrawAfterTopup: async (eventData, playerData, rewardData) => {
+        if (eventData.condition.allowApplyAfterWithdrawal || !rewardData || !rewardData.selectedTopup) {
+            return;
+        }
+
         let withdrawPropQuery = {
             'data.platformId': playerData.platform._id,
             'data.playerObjId': playerData._id,
-            createTime: {$gt: topupCreateTime},
+            createTime: {$gt: rewardData.selectedTopup.createTime},
             status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
         };
         let withdrawAfterTopupProp = await dbPropUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery);
 
         // Check withdrawal after top up condition
-        if (!eventData.condition.allowApplyAfterWithdrawal && withdrawAfterTopupProp) {
+        if (withdrawAfterTopupProp) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                 name: "DataError",
@@ -887,6 +891,121 @@ const dbRewardUtility = {
         }
     },
 
+    checkRewardApplyDeviceDetails: (eventData, playerData, intervalTime) => {
+        // Ignore this check if condition not checked
+        if (eventData && eventData.condition && !eventData.condition.checkSameIP
+            && !eventData.condition.checkSamePhoneNumber && !eventData.condition.checkSameDeviceId
+        ) {
+            return;
+        }
+        // Ignore retention reward for this check for now
+        if (eventData.type && eventData.type.name && eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+            return;
+        }
+
+        let orArray = [{'data.playerObjId': playerData._id}];
+
+        if (eventData.condition.checkSameIP && playerData.lastLoginIp) {
+            orArray.push({'data.lastLoginIp': playerData.lastLoginIp})
+        }
+        if (eventData.condition.checkSamePhoneNumber && playerData.phoneNumber) {
+            orArray.push({'data.phoneNumber': playerData.phoneNumber})
+        }
+        if (eventData.condition.checkSameDeviceId && playerData.deviceId) {
+            orArray.push({'data.deviceId': playerData.deviceId})
+        }
+
+        let matchQuery = {
+            "data.eventId": eventData._id,
+            "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
+            createTime: {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
+            $or: orArray
+        };
+
+        return dbConfig.collection_proposal.find(
+            matchQuery,
+            {
+                createTime: 1,
+                status: 1,
+                'data.playerObjId': 1,
+                'data.eventId': 1,
+                'data.lastLoginIp': 1,
+                'data.phoneNumber': 1,
+                'data.deviceId': 1,
+                _id: 0
+            }
+        ).lean().then(
+            countReward => {
+                // check playerId
+                if (countReward && countReward.length) {
+                    for (let i = 0; i < countReward.length; i++) {
+                        if (eventData.condition.checkSameIP && playerData.lastLoginIp !== '' && playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This IP address has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (eventData.condition.checkSamePhoneNumber && playerData.phoneNumber === countReward[i].data.phoneNumber) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This phone number has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (eventData.condition.checkSameDeviceId && countReward[i].data.deviceId && playerData.deviceId && playerData.deviceId === countReward[i].data.deviceId) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This mobile device has applied for max reward times in event period"
+                            });
+                        }
+                    }
+                }
+            }
+        );
+    },
+
+    checkRewardApplyEventInPeriodCount: (eventData, eventInPeriodCount) => {
+        // Check reward apply limit in period
+        if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Player has applied for max reward times in event period"
+            });
+        }
+    },
+
+    checkApplicationNumberExceedsLimit: async (eventData, intervalTime, player) => {
+        if (eventData && eventData.param && eventData.param.hasOwnProperty('countInRewardInterval')){
+            let count = await proposalCount(eventData, intervalTime)
+
+            console.log("checking proposalCount for consumption reward application", [count, player && player.name ? player.name : null])
+            if (count >= eventData.param.countInRewardInterval){
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "This player has applied for max reward times in event period"
+                })
+            }
+        }
+
+        function proposalCount(eventData, intervalTime) {
+            let matchQuery = {
+                "data.eventId": eventData._id,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
+                "data.playerObjId": player._id,
+                "data.applyTargetDate" : {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+            };
+
+            // console.log("checking matchQuery in consumption reward application", matchQuery)
+            return dbConfig.collection_proposal.find(matchQuery).lean().count();
+        }
+    },
+
     checkRewardApplyHasAppliedForbiddenReward: async (eventData, intervalTime, playerData) => {
         let hasNotAppliedForbiddenReward = await dbRewardUtility.checkForbidReward(eventData, intervalTime, playerData);
 
@@ -896,6 +1015,51 @@ const dbRewardUtility = {
                 name: "DataError",
                 message: "This player has applied for other reward in event period"
             });
+        }
+    },
+
+    checkRewardApplyTopUpIsLatest: (eventData, rewardData, topupInPeriodData) => {
+        if (!eventData.condition.allowOnlyLatestTopUp || !topupInPeriodData || !topupInPeriodData.length) {
+            return;
+        }
+
+        let lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
+
+        if (eventData.condition.allowOnlyLatestTopUp && lastTopUpRecord && rewardData && rewardData.selectedTopup) {
+            if (lastTopUpRecord._id.toString() !== rewardData.selectedTopup._id.toString()) {
+                return Promise.reject({
+                    status: constServerCode.INVALID_DATA,
+                    name: "DataError",
+                    message: "This is not the latest top up record"
+                });
+            }
+        }
+    },
+
+    checkRewardApplyHasConsumptionAfterTopUp: (eventData, rewardData) => {
+        if (
+            eventData.condition.allowConsumptionAfterTopUp
+            || !rewardData || !rewardData.selectedTopup || !rewardData.lastConsumptionData
+            || isRandomRewardConsumption(eventData)
+        ) {
+            return;
+        }
+
+        if (
+            rewardData.lastConsumptionData[0]
+            && rewardData.selectedTopup.settlementTime < rewardData.lastConsumptionData[0].createTime
+        ) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "There is consumption after top up"
+            });
+        }
+
+        function isRandomRewardConsumption(rewardEvent) {
+            return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
+                && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
+                && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
         }
     },
 

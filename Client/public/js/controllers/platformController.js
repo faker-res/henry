@@ -2271,6 +2271,21 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
 
+                if (event && event._id && vm.filterPlatformSettingsPlatform) {
+                    $scope.$socketPromise("getRewardSettlementRecord", {
+                        platformObjId: vm.filterPlatformSettingsPlatform,
+                        rewardObjId: event._id
+                    }).then(
+                        res => {
+                            $scope.$evalAsync(() => {
+                                if (res && res.data && res.data.lastExecutedTime) {
+                                    vm.lastExecutedTime = vm.dateReformat(res.data.lastExecutedTime);
+                                }
+                            })
+                        }
+                    );
+                }
+
                 $('#platformRTGEventSettlementModal').modal('show');
                 $scope.safeApply();
             };
@@ -3642,8 +3657,14 @@ define(['js/app'], function (myApp) {
                 vm.selectGameGroupGames = [];
                 vm.selectGameGroupGamesName = [];
                 vm.highlightGame = [];
-                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                    vm.selectedPlatform.data.playerRouteSetting : "";
+                let platformId = vm.filterGameGroupPlatform;
+                let platform, playerRouteSetting;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                    playerRouteSetting = (platform && platform.playerRouteSetting ) ? platform.playerRouteSetting : '';
+                }
+
                 //get included games list
                 var query = {
                     platform: vm.filterGameGroupPlatform,
@@ -3661,9 +3682,9 @@ define(['js/app'], function (myApp) {
                             var newObj = v.game;
                             // if there is no index, assign to the last index according to the total length
                             newObj.index = (v && v.index) ? v.index : data2.data.games.length + 1;
-                            if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
-                                newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                            if(newObj.changedName && newObj.changedName.hasOwnProperty(platformId)){
+                                newObj.name$ = newObj.changedName[platformId] || newObj.name;
+                                newObj.isDefaultName = newObj.changedName[platformId] && newObj.changedName[platformId] != ''
                                     ? false : true;
                             }else{
                                 newObj.name$ = newObj.name;
@@ -3680,8 +3701,8 @@ define(['js/app'], function (myApp) {
                                 newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
-                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                                 if(platformCustomImage && !platformCustomImage.includes("http")){
                                     platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
@@ -3722,8 +3743,8 @@ define(['js/app'], function (myApp) {
                                 newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                             }
 
-                            if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                                let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                            if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                                let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                                 if(platformCustomImage && !platformCustomImage.includes("http")){
                                     platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                                 }
@@ -4067,7 +4088,7 @@ define(['js/app'], function (myApp) {
                 vm.batchCreditTransferOut = null;
             }
             //get all platform data from server
-            vm.getPlatformGameData = function (platformObjId) {
+            vm.getPlatformGameData = function (platformObjId, gamePage) {
                 //init gametab start===============================
                 vm.SelectedProvider = null;
                 vm.showGameCate = "include";
@@ -4077,8 +4098,9 @@ define(['js/app'], function (myApp) {
                 //     return
                 // }
                 //console.log("getGames", gameIds);
+                let platformId = platformObjId || vm.selectedPlatform.id || null
                 let sendData = {
-                    _id: platformObjId || vm.selectedPlatform.id || null
+                    _id: platformId
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                     console.log('getPlatform', data.data);
@@ -4088,10 +4110,13 @@ define(['js/app'], function (myApp) {
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
                     vm.platformProviderList.forEach(item => {
-                        if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
-                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                        if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[platformId]) {
+                            item.batchCreditTransferOut = item.batchCreditTransferOutStatus[platformId];
                         }
                     });
+                    if (gamePage) {
+                        vm.platformProviderGameList = data.data.gameProviders;
+                    }
                     vm.providerListCheck = {};
                     $.each(vm.platformProviderList, function (i, v) {
                         vm.providerListCheck[v._id] = true;
@@ -4245,14 +4270,21 @@ define(['js/app'], function (myApp) {
                 vm.highlightGame = {};
                 vm.masterGameStatus = {};
                 vm.newGamePic = '';
+                let platformId = vm.filterGamePlatform;
                 //get included games list
                 var query = {
-                    platform: vm.selectedPlatform.id,
+                    platform: platformId,
                     provider: data._id
                 }
                 vm.includedGames = '';
-                let playerRouteSetting = vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.playerRouteSetting ?
-                    vm.selectedPlatform.data.playerRouteSetting : "";
+
+                let platform, playerRouteSetting;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == platformId;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                    playerRouteSetting = (platform && platform.playerRouteSetting ) ? platform.playerRouteSetting : '';
+                }
+
                 vm.getBatchCreditTransferOutStatus(vm.SelectedProvider._id);
                 socketService.$socket($scope.AppSocket, 'getGamesByPlatformAndProvider', query, function (data2) {
                     console.log("attached", data2.data);
@@ -4271,9 +4303,9 @@ define(['js/app'], function (myApp) {
                         //     newObj.maintenanceMinute = v.maintenanceMinute || 'null';
                         // }
                         newObj.platformVisible = v.visible;
-                        if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
-                            newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
+                        if(newObj.changedName && newObj.changedName.hasOwnProperty(platformId)){
+                            newObj.name$ = newObj.changedName[platformId] || newObj.name;
+                            newObj.isDefaultName = newObj.changedName[platformId] && newObj.changedName[platformId] != ''
                                                     ? false : true;
                         }else{
                             newObj.name$ = newObj.name;
@@ -4292,8 +4324,8 @@ define(['js/app'], function (myApp) {
                             newObj.smallShow = playerRouteSetting ? playerRouteSetting + newObj.smallShow : (newObj.sourceURL ? newObj.sourceURL + newObj.smallShow : newObj.smallShow);
                         }
 
-                        if(newObj.images && newObj.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            let platformCustomImage = newObj.images[vm.selectedPlatform.data.platformId] || newObj.smallShow;
+                        if(newObj.images && newObj.images.hasOwnProperty(platformId)){
+                            let platformCustomImage = newObj.images[platformId] || newObj.smallShow;
                             if(platformCustomImage && !platformCustomImage.includes("http")){
                                 platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (newObj.sourceURL ? newObj.sourceURL  + platformCustomImage : platformCustomImage);
                             }
@@ -4321,8 +4353,8 @@ define(['js/app'], function (myApp) {
                             v.smallShow = playerRouteSetting ? playerRouteSetting + v.smallShow : (v.sourceURL ? v.sourceURL + v.smallShow : v.smallShow);
                         }
 
-                        if(v.images && v.images.hasOwnProperty(vm.selectedPlatform.data.platformId)){
-                            let platformCustomImage = v.images[vm.selectedPlatform.data.platformId] || v.smallShow;
+                        if(v.images && v.images.hasOwnProperty(platformId)){
+                            let platformCustomImage = v.images[platformId] || v.smallShow;
                             if(platformCustomImage && !platformCustomImage.includes("http")){
                                 platformCustomImage = playerRouteSetting ? playerRouteSetting + platformCustomImage : (v.sourceURL ? v.sourceURL  + platformCustomImage : platformCustomImage);
                             }
@@ -4516,7 +4548,7 @@ define(['js/app'], function (myApp) {
                     sendString = 'detachGamesFromPlatform'
                 }
                 var sendData = {
-                    platform: vm.selectedPlatform.id,
+                    platform: vm.filterGamePlatform,
                     games: vm.selectedGamesInGameGroup.map(item => {
                         return {
                             game: item._id,
@@ -4549,8 +4581,14 @@ define(['js/app'], function (myApp) {
                 if (!gameProviderData || !vm.showPlatform) return;
                 var providerId = gameProviderData._id || null;
                 var obj;
+                let platform;
+                if (vm.allPlatformData.length > 0) {
+                    platform = vm.allPlatformData.filter(item => { return item._id == vm.filterGamePlatform;})
+                    platform = ( platform && platform[0]) ? platform[0] : null;
+                }
+
                 if (providerId && vm.showPlatform.gameProviderInfo) {
-                    obj = vm.showPlatform.gameProviderInfo[providerId];
+                    obj = platform.gameProviderInfo[providerId];
                 }
                 return (obj && obj.isEnable == false) ? 'ENABLE' : 'DISABLE';
             }
@@ -25138,18 +25176,31 @@ define(['js/app'], function (myApp) {
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
+                    case 'partnerUrlConfiguration':
                         vm.frontEndUrlConfig = {
                             app:{},
                             web: {},
                             pc: {},
                         };
                         vm.urlConfigShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, true);
+                        }
+                        else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                        }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.skinSettingShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        if (vm.selectedFrontEndSettingTab == 'partnerSkinManagement'){
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
+                        }
+                        else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        }
                         break;
                     case 'rewardSetting':
                         vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
@@ -25179,6 +25230,7 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
+                    case 'partnerUrlConfiguration':
                         vm.frontEndUrlConfig = {
                             app:{},
                             web: {},
@@ -25187,12 +25239,21 @@ define(['js/app'], function (myApp) {
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.filterFrontEndSettingPlatform = null;
+                        vm.isPartnerForUrlConfiguration = false;
+                        if (choice == 'partnerUrlConfiguration'){
+                            vm.isPartnerForUrlConfiguration = true;
+                        }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
+                        vm.isPartnerForSkinManagement = false;
+                        if (choice == 'partnerSkinManagement'){
+                            vm.isPartnerForSkinManagement = true;
+                        }
                         break;
                     case 'rewardSetting':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25533,7 +25594,7 @@ define(['js/app'], function (myApp) {
             };
 
             //#region Frontend Configuration - Skin Management
-            vm.saveFrontEndSkinSetting = function () {
+            vm.saveFrontEndSkinSetting = function (isPartner) {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
                     device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
@@ -25541,59 +25602,118 @@ define(['js/app'], function (myApp) {
                     url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
                 };
 
-                return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
-                    console.log("saveSkinSetting success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.skinSettingShowMessage = "SUCCESS";
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveSkinSetting error: ', err);
-                    vm.skinSettingShowMessage = "FAIL";
-                });
+                if (isPartner){
+                    return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
+                        console.log("savePartnerSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('savePartnerSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
+                        console.log("saveSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+
             };
 
-            vm.getFrontEndSkinSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getSkinSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndSkinSetting = data.data.map(item => {
-                            item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+            vm.getFrontEndSkinSetting = function (platformObjId, isPartner) {
+                if (isPartner){
+                    socketService.$socket($scope.AppSocket, 'getPartnerSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getPartnerSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
 
-                            return item;
-                        });
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSetting error: ', err);
-                }, true);
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getPartnerSkinSetting error: ', err);
+                    }, true);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getSkinSetting error: ', err);
+                    }, true);
+                }
             };
 
-            vm.removeFrontEndSkinSetting = function (objId) {
-                return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
-                    console.log("removeSkinSetting success:", data);
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('removeSkinSetting error: ', err);
-                });
+            vm.removeFrontEndSkinSetting = function (objId, isPartner) {
+                if (isPartner){
+                    return $scope.$socketPromise('removePartnerSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removePartnerSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removePartnerSkinSetting error: ', err);
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removeSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removeSkinSetting error: ', err);
+                    });
+                }
             }
             //#endregion
 
             //#region Frontend Configuration - Url Configuration
-            vm.saveFrontEndUrlConfig = function () {
+            vm.saveFrontEndUrlConfig = function (isPartner) {
                 if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
                     vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
-                    return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
-                        console.log("saveUrlConfig success:", data);
-                        vm.newFrontEndSkinSetting = {};
-                        vm.urlConfigShowMessage = "SUCCESS";
-                        vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
-                        $scope.$evalAsync();
-                    }, err => {
-                        console.error('saveUrlConfig error: ', err);
-                        vm.urlConfigShowMessage = "FAIL";
-                    });
+
+                    if (isPartner){
+                        return $scope.$socketPromise('savePartnerUrlConfig', vm.frontEndUrlConfig).then(data => {
+                            console.log("savePartnerUrlConfig success:", data);
+                            vm.newFrontEndSkinSetting = {};
+                            vm.urlConfigShowMessage = "SUCCESS";
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, isPartner);
+                            $scope.$evalAsync();
+                        }, err => {
+                            console.error('savePartnerUrlConfig error: ', err);
+                            vm.urlConfigShowMessage = "FAIL";
+                        });
+                    }
+                    else{
+                        return $scope.$socketPromise('saveUrlConfig', vm.frontEndUrlConfig).then(data => {
+                            console.log("saveUrlConfig success:", data);
+                            vm.newFrontEndSkinSetting = {};
+                            vm.urlConfigShowMessage = "SUCCESS";
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
+                            $scope.$evalAsync();
+                        }, err => {
+                            console.error('saveUrlConfig error: ', err);
+                            vm.urlConfigShowMessage = "FAIL";
+                        });
+                    }
+
                 }
                 else{
                     socketService.showErrorMessage($translate("platformObjId is not available"));
@@ -25601,16 +25721,29 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getFrontEndUrlConfig = function (objId) {
-                socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
-                    console.log('getUrlConfig', data.data);
-                    if (data && data.data) {
-                        vm.frontEndUrlConfig = data.data;
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getUrlConfig error: ', err);
-                }, true);
+            vm.getFrontEndUrlConfig = function (objId, isPartner) {
+                if (isPartner){
+                    socketService.$socket($scope.AppSocket, 'getPartnerUrlConfig', {platformObjId: objId}, function (data) {
+                        console.log('getPartnerUrlConfig', data.data);
+                        if (data && data.data) {
+                            vm.frontEndUrlConfig = data.data;
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getPartnerUrlConfig error: ', err);
+                    }, true);
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getUrlConfig', {platformObjId: objId}, function (data) {
+                        console.log('getUrlConfig', data.data);
+                        if (data && data.data) {
+                            vm.frontEndUrlConfig = data.data;
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getUrlConfig error: ', err);
+                    }, true);
+                }
             };
             //#endregion
 
@@ -35504,7 +35637,7 @@ define(['js/app'], function (myApp) {
                 vm.credibilityRemarks = [];
                 vm.filterCredibilityRemarks = [];
                 vm.gameStatus = {};
-                vm.gameSmallShow = {};
+                vm.gameSmallShow = vm.gameSmallShow || {};
                 vm.ctiData = {};
                 vm.gameGroupClickable = {
                     inGameLoaded: true,
@@ -39266,7 +39399,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGames[index] && vm.includedGames[index]._id ? vm.includedGames[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGamePlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {
@@ -39289,7 +39422,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     gameObjId: vm.includedGamesGroup[index] && vm.includedGamesGroup[index]._id ? vm.includedGamesGroup[index]._id : null,
                     customName: vm.editingGameName || null,
-                    platformObjId: vm.selectedPlatform.id
+                    platformObjId: vm.filterGameGroupPlatform
                 };
 
                 $scope.$socketPromise("renameGame", sendQuery).then(data => {

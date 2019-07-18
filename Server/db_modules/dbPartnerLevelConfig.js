@@ -15,7 +15,7 @@ var dbPartnerLevelConfig = {
      * @param {String} query - Query string
      */
     updatePartnerLevelConfig: function (query, updateData) {
-        return dbconfig.collection_partnerLevelConfig.findOneAndUpdate(query, updateData).exec();
+        return dbconfig.collection_partnerLevelConfig.findOneAndUpdate(query, updateData, {upsert: true}).exec();
     },
 
     getActiveConfig: function (query) {

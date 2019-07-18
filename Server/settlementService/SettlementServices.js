@@ -71,7 +71,8 @@
                 "generateCurrentPartnersCommissionDetail",
                 "settlePartnersComm",
                 "topupRecordInsertRepeatCount",
-                "calculateProposalsTotalAmount"
+                "calculateProposalsTotalAmount",
+                "getDXTrackingData"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

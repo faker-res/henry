@@ -145,6 +145,7 @@ define(['js/app'], function (myApp) {
 
                             return item;
                         });
+                        commonService.sortAndAddPlatformDisplayName(vm.platformByAdminId);
                     })
                 }, function (error){
                     console.error(error);
@@ -204,6 +205,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            vm.getPlatformByAdminId();
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
             }
@@ -891,7 +893,7 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatform._id,
+                platformId: vm.queryPara.newPlayerList && vm.queryPara.newPlayerList.platform && vm.queryPara.newPlayerList.platform.length > 0 ? vm.queryPara.newPlayerList.platform : vm.platformByAdminId.map(platform => platform._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.newPlayerRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.newPlayerRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -935,7 +937,8 @@ define(['js/app'], function (myApp) {
             //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.selectedPlatform._id,
+                platformId: vm.queryPara && vm.queryPara.attemptNumberRecords && vm.queryPara.attemptNumberRecords.platform &&
+                    vm.queryPara.attemptNumberRecords.platform.length > 0 ? vm.queryPara.attemptNumberRecords.platform : vm.platformByAdminId.map(x => x._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -995,6 +998,12 @@ define(['js/app'], function (myApp) {
                         record.proposalId = (record.data && record.proposalId) ? record.proposalId : "";
                         record.ipAreaName = (record.data && record.data.ipArea) ? vm.getIpAreaName(record.data.ipArea) : '';
                         record.domain = (record.data && record.data.domain) ? record.data.domain : "";
+                        record.platform$ = "";
+                        if(record && record.data && (record.data.platform || record.data.platformId) && vm.platformByAdminId && vm.platformByAdminId.length){
+                            let platformObjId = record.data.platform ? record.data.platform : record.data.platformId;
+                            let filteredPlatform = vm.platformByAdminId.filter(a => a._id.toString() === platformObjId.toString());
+                            record.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].name ? filteredPlatform[0].name : "";
+                        }
                         return record
                     }
                 );
@@ -1007,22 +1016,23 @@ define(['js/app'], function (myApp) {
             var option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
                 aoColumnDefs: [
-                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                    {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                    {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                    {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                    {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                    {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'platform$', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'name', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'statusName', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'smsCode', bSortable: true, 'aTargets': [9]},
+                    {'sortCol': 'remarks', bSortable: true, 'aTargets': [10]},
+                    {'sortCol': 'device', bSortable: true, 'aTargets': [11]},
+                    {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [14]},
                 ],
                 columns: [
-                    // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {
                         title: $translate('proposalId'),
                         data: "proposalId",
@@ -1665,6 +1675,12 @@ define(['js/app'], function (myApp) {
                         records.proposalId = records.proposalId ? records.proposalId : "";
                         records.ipAreaName = records.data.ipArea ? vm.getIpAreaName(records.data.ipArea) : '';
                         records.domain = (records.data && records.data.domain) ? records.data.domain : "";
+                        records.platform$ = "";
+                        if(records && records.data && (records.data.platform || records.data.platformId) && vm.platformByAdminId && vm.platformByAdminId.length){
+                            let platformObjId = records.data.platform ? records.data.platform : records.data.platformId;
+                            let filteredPlatform = vm.platformByAdminId.filter(a => a._id.toString() === platformObjId.toString());
+                            records.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].name ? filteredPlatform[0].name : "";
+                        }
                         //arr.push(record);
                         // })
                         //return arr;
@@ -1702,22 +1718,23 @@ define(['js/app'], function (myApp) {
                 var option = $.extend({}, vm.generalDataTableOptions, {
                     data: tableData,
                     aoColumnDefs: [
-                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                        {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                        {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                        {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                        {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                        {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                        {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+                        {'sortCol': 'platform$', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'name', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'statusName', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [7]},
+                        {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'smsCode', bSortable: true, 'aTargets': [9]},
+                        {'sortCol': 'remarks', bSortable: true, 'aTargets': [10]},
+                        {'sortCol': 'device', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [13]},
+                        {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [14]},
                     ],
                     columns: [
-                        //{title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                        {title: $translate('PRODUCT_NAME'), data: "platform$"},
                         {
                             title: $translate('proposalId'),
                             data: "proposalId",
@@ -3357,7 +3374,7 @@ define(['js/app'], function (myApp) {
                     // vm.getPaymentMonitorTotalRecord();
                     // vm.getPaymentMonitorTotalCompletedRecord();
                     vm.merchantGroupCloneList = vm.merchantGroups;
-                    vm.getPlatformByAdminId();
+                    // vm.getPlatformByAdminId();
                 }
             );
 

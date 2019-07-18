@@ -373,6 +373,12 @@ var SettlementServiceImplement = function () {
         let args = [data.proposalArr];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPropUtil.calculateProposalsTotalAmount, args, isValidData);
     };
+
+    this.getDXTrackingData.onRequest = (wsFunc, conn, data) => {
+        let isValidData = true;
+        let args = [data.playerInfo, data.playerIds, data.query];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getDXTrackingData, args, isValidData);
+    };
 };
 
 let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);

@@ -210,6 +210,14 @@ let PlayerServiceImplement = function () {
             longitude = geo.ll ? geo.ll[1] : null;
             latitude = geo.ll ? geo.ll[0] : null;
         }
+        if (data.phoneNumber) {
+            let queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.type;
+            }
+        }
         let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
         let isValidData = Boolean(data && data.platformId && data.guestDeviceId);
@@ -1329,7 +1337,6 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
-
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;

@@ -1203,11 +1203,11 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.topUpAmountValueTwo" ng-if="vm.dxTrackingQuery.topUpAmountOperator === 'range'")
                 .search-filters-item
                     label {{"Provider" | translate}}
-                    select.form-control#selectDXTrackingProvider(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.allProviders', ng-model="vm.dxTrackingQuery.providerId")
+                    //select.form-control#selectDXTrackingProvider(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.allProviders', ng-model="vm.dxTrackingQuery.providerId")
 
-                    //select.form-control(ng-model='vm.dxTrackingQuery.providerId', required)
-                    //    option(value='') {{'all' | translate}}
-                    //    option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
+                    select.form-control(ng-model='vm.dxTrackingQuery.providerId', required)
+                        option(value='') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
 
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXTrackingReport(true)') {{'SEARCH' | translate}}
@@ -1215,14 +1215,14 @@
                     span#dxTrackingReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.dxTrackingQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#dxTrackingReportTable.display(style="width:100% ;overflow-x: scroll")
             table.common-table#dxNewTrackingReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
 
 
 
-    div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
+        div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}}

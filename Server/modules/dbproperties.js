@@ -106,7 +106,9 @@ let frontEndRewardSettingSchema = require('./../schema/frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
 let frontEndSkinSettingSchema = require('./../schema/frontEndSkinSetting');
+let frontEndPartnerSkinSettingSchema = require('./../schema/frontEndPartnerSkinSetting');
 let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfiguration');
+let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
 /////////////////////////Schema models/////////////////////////////////////
@@ -278,7 +280,9 @@ let frontEndRewardSettingModel = db_admin.model('frontEndRewardSetting', frontEn
 let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
 let frontEndSkinSettingModel = db_admin.model('frontEndSkinSetting', frontEndSkinSettingSchema, 'frontEndSkinSetting');
+let frontEndPartnerSkinSettingModel = db_admin.model('frontEndPartnerSkinSetting', frontEndPartnerSkinSettingSchema, 'frontEndPartnerSkinSetting');
 let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', frontEndUrlConfigurationSchema, 'frontEndUrlConfiguration');
+let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
 
@@ -461,6 +465,8 @@ let playerOnlineTimeSchema = require('./../schema/logs2/playerOnlineTime');
 let playerOnlineTimeModel = dbLogs2.model('playerOnlineTime', playerOnlineTimeSchema, 'playerOnlineTime');
 let ipDomainLogSchema = require('./../schema/logs2/ipDomainLog');
 let ipDomainLogModel = dbLogs2.model('ipDomainLog', ipDomainLogSchema, 'ipDomainLog');
+let rewardSettlementRecordSchema = require('./../schema/logs2/rewardSettlementRecord');
+let rewardSettlementRecordModel = dbLogs2.model('rewardSettlementRecord', rewardSettlementRecordSchema, 'rewardSettlementRecord');
 let tsPhoneListSchema = require('./../schema/logs2/tsPhoneList');
 let tsPhoneListModel = dbLogs2.model('tsPhoneList', tsPhoneListSchema, 'tsPhoneList');
 let tsPhoneSchema = require('./../schema/logs2/tsPhone');
@@ -778,7 +784,9 @@ var dbProperties = {
     collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
     collection_frontEndRewardPointClarification: frontEndRewardPointClarificationModel,
     collection_frontEndSkinSetting: frontEndSkinSettingModel,
+    collection_frontEndPartnerSkinSetting: frontEndPartnerSkinSettingModel,
     collection_frontEndUrlConfiguration: frontEndUrlConfigurationModel,
+    collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
 
@@ -816,6 +824,7 @@ var dbProperties = {
     collection_systemLog: systemLogModel,
     collection_creditChangeLog: creditChangeLogModel,
     collection_ipDomainLog: ipDomainLogModel,
+    collection_rewardSettlementRecord: rewardSettlementRecordModel,
     collection_partnerCreditChangeLog: partnerCreditChangeLogModel,
     collection_rewardLog: rewardLogModel,
     collection_playerStatusChangeLog: playerStatusChangeLogModal,

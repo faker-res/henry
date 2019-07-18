@@ -277,6 +277,13 @@ define(['js/app'], function (myApp) {
             '津巴布韦':'ZW'
         }
 
+        vm.playerRegistrationInterfaceType = {
+            1:'WEB',
+            2:'H5',
+            3:'APP',
+            0:'Backstage'
+        }
+
         vm.avgPlayerLogin = 0;
         // For debugging:
         window.VM = vm;
@@ -382,6 +389,16 @@ define(['js/app'], function (myApp) {
                         vm.queryPara.loginPlayerDevice.userType='all';
                         $scope.safeApply();
                         //vm.plotLoginPlayerLine();
+                        break;
+                    case "APP_PLAYER":
+                        vm.platformAppPlayerAnalysisSort = {};
+                        vm.initSearchParameter('appPlayer', 'day', 3);
+                        vm.queryPara.appPlayer.playerType = 'new_registration';
+                        vm.queryPara.appPlayer.deviceType = 'all';
+                        vm.platformAppPlayerAnalysisData = null;
+                        vm.platformAppPlayerAverage = null;
+                        vm.platformAppPlayerTotalSum = null;
+                        $scope.$evalAsync();
                         break;
                     case "ACTIVE_PLAYER":
                         vm.platformActivePlayerAnalysisSort = {};
@@ -7019,6 +7036,91 @@ define(['js/app'], function (myApp) {
 
         vm.allOnlineTopupTypeDataSort = (type, sortField) => {
             vm.allPlatformOnlineTopupSuccessTableSort[type] = vm.allPlatformOnlineTopupSuccessTableSort[type] === sortField ? '-'+sortField : sortField;
+        };
+        //#endregion
+
+        //#region EU APP Player
+        vm.plotAppPlayerLine = function () {
+            let startDate = vm.queryPara.appPlayer.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.appPlayer.endTime.data('datetimepicker').getLocalDate();
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.appPlayer.periodText,
+                startDate: startDate,
+                endDate: endDate,
+                playerType: vm.queryPara.appPlayer.playerType,
+                deviceType: vm.queryPara.appPlayer.deviceType,
+                domain: vm.queryPara.appPlayer.domain
+            };
+
+            if (vm.queryPara.appPlayer.playerType === 'login') {
+                sendData.registrationInterfaceType = vm.queryPara.appPlayer.registrationInterfaceType;
+            }
+
+            console.log('sendData APP Player: ', sendData);
+
+            vm.isShowLoadingSpinner('#appPlayerAnalysis', true);
+            socketService.$socket($scope.AppSocket, 'countAppPlayer', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('appPlayer data:', data);
+                    vm.platformAppPlayerDataPeriodText = vm.queryPara.appPlayer.periodText;
+                    vm.platformAppPlayerAnalysisData = data.data;
+
+                    if (vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === 'new_registration') {
+                        let calculatedAppPlayerData = vm.calculateLineDataAndAverage(vm.platformAppPlayerAnalysisData, 'newRegistration', 'NEW_REGISTRATION');
+                        let totalSum = vm.platformAppPlayerAnalysisData.length !== 0 ? Math.floor(vm.platformAppPlayerAnalysisData.reduce((a, item) => a + (Number.isFinite(item["newRegistration"]) ? item["newRegistration"] : item["newRegistration"].length), 0)) : 0;
+                        vm.platformAppPlayerAverage = calculatedAppPlayerData.average;
+                        vm.platformAppPlayerTotalSum = {
+                            newRegistrationTotalSum: totalSum
+                        };
+                        vm.plotLineByElementId("#line-appPlayer", calculatedAppPlayerData.lineData, $translate('HEAD_COUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.appPlayer.periodText.toUpperCase()));
+                    } else if (vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === 'login') {
+                        vm.platformAppPlayerAverage = {
+                            loginTimesAverage: vm.calculateAverageData(vm.platformAppPlayerAnalysisData, 'loginTimes'),
+                            loginPlayerAverage: vm.calculateAverageData(vm.platformAppPlayerAnalysisData, 'loginPlayerCount')
+                        };
+                        let loginTimesTotalSum = vm.platformAppPlayerAnalysisData.length !== 0 ?Math.floor(vm.platformAppPlayerAnalysisData.reduce((a, item) => a + (Number.isFinite(item["loginTimes"]) ? item["loginTimes"] : item["loginTimes"].length), 0)) : 0;
+                        let playerCountTotalSum = vm.platformAppPlayerAnalysisData.length !== 0 ?Math.floor(vm.platformAppPlayerAnalysisData.reduce((a, item) => a + (Number.isFinite(item["loginPlayerCount"]) ? item["loginPlayerCount"] : item["loginPlayerCount"].length), 0)) : 0;
+                        vm.platformAppPlayerTotalSum = {
+                            loginTimesTotalSum: loginTimesTotalSum,
+                            playerCountTotalSum: playerCountTotalSum
+                        };
+
+                        let loginTimes = [];
+                        let loginPlayerCount = [];
+                        let loginTimesAverage = [];
+                        let loginPlayerAverage = [];
+                        vm.platformAppPlayerAnalysisData.forEach(
+                            data => {
+                                loginTimes.push([new Date(data.date), data.loginTimes]);
+                                loginPlayerCount.push([new Date(data.date), data.loginPlayerCount]);
+                                loginTimesAverage.push([new Date(data.date), vm.platformAppPlayerAverage.loginTimesAverage]);
+                                loginPlayerAverage.push([new Date(data.date), vm.platformAppPlayerAverage.loginPlayerAverage]);
+                            }
+                        );
+                        let lineData = [
+                            {label: $translate('loginTimes'), data: loginTimes},
+                            {label: $translate('LOGIN_PLAYER_COUNT'), data: loginPlayerCount},
+                            {label: $translate('LOGIN_TIMES_AVERAGE'), data: loginTimesAverage},
+                            {label: $translate('LOGIN_PLAYER_COUNT_AVERAGE'), data: loginPlayerAverage},
+                        ];
+                        vm.plotLineByElementId("#line-appPlayer", lineData, '', $translate('PERIOD') + ' : ' + $translate(vm.queryPara.appPlayer.periodText.toUpperCase()));
+                    }
+
+                    vm.isShowLoadingSpinner('#appPlayerAnalysis', false);
+
+                });
+
+            });
+
+        };
+
+        vm.playerTypeChanged = function () {
+            vm.queryPara.appPlayer.periodText = 'day';
+            vm.platformAppPlayerAverage = null;
+            if (vm.queryPara && vm.queryPara.appPlayer && vm.queryPara.appPlayer.playerType && (vm.queryPara.appPlayer.playerType === 'login')) {
+                vm.queryPara.appPlayer.registrationInterfaceType = 'all';
+            }
         };
         //#endregion
     };

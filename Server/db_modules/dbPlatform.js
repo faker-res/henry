@@ -519,6 +519,12 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getRewardSettlementRecord: function (platformObjId, rewardObjId) {
+        if (platformObjId && rewardObjId){
+            return dbconfig.collection_rewardSettlementRecord.findOne({platform: ObjectId(platformObjId), reward: ObjectId(rewardObjId)}).lean();
+        }
+    },
+
     getAdminPlatformName: function (admin) {
         return dbconfig.collection_admin.findOne({_id: admin})
             .populate({path: "departments", model: dbconfig.collection_department, select: 'platforms'}).lean().then(
@@ -6134,7 +6140,13 @@ var dbPlatform = {
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
+                        case 'partnerPageSetting':
+                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            break;
                         case 'skin':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
+                        case 'partnerSkin':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
                         default:
@@ -6216,6 +6228,24 @@ var dbPlatform = {
                     model: dbconfig.collection_frontEndSkinSetting
                 }).lean()
             }
+            else if (code == "partnerPageSetting"){
+                if (query && query.hasOwnProperty('status')){
+                    delete query.status
+                }
+                if (query && query.hasOwnProperty('isVisible')){
+                    delete query.isVisible
+                }
+                prom = dbconfig.collection_frontEndPartnerUrlConfiguration.find(query).populate({
+                    path: "pc.skin",
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
+                }).populate({
+                    path: "h5.skin",
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
+                }).populate({
+                    path: "app.skin",
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
+                }).lean()
+            }
 
             return prom.then(
                 settingList => {
@@ -6271,6 +6301,9 @@ var dbPlatform = {
             }
             else if (code == "skin"){
                 prom = dbconfig.collection_frontEndSkinSetting.find(query).lean()
+            }
+            else if (code == "partnerSkin"){
+                prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
 
             return prom.then(
@@ -6416,7 +6449,7 @@ var dbPlatform = {
             }
             else if (setUpType == 2){
                 query.device = clientType;
-                if (code && code == "skin"){
+                if (code && (code == "skin" || code == "partnerSkin")){
                     delete query.status;
                 }
             }

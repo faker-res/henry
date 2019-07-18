@@ -3109,6 +3109,7 @@ define(['js/app'], function (myApp) {
                 panelBody = 'platformCreditTransferLogPopup';
                 tablePage = 'platformCreditTransferLogPopupTablePage';
                 vm.queryPlatformCreditTransferPlayerName = "";
+                vm.queryPlatformCreditTransferPlatformList = [];
             }
             else {
                 panelBody = 'platformCreditTransferLog';
@@ -3142,9 +3143,16 @@ define(['js/app'], function (myApp) {
         vm.getPagedPlatformCreditTransferLog = function (newSearch) {
             vm.platformCreditTransferLog.loading = true;
             let defaultPlatformCreditTransferStatus;
+            let platformQuery;
+            if (vm.platformCreditTransferLog && vm.platformCreditTransferLog.isPopup && (vm.platformCreditTransferLog.isPopup.toString() === 'true')) {
+                platformQuery = vm.queryPlatformCreditTransferPlatformList && vm.queryPlatformCreditTransferPlatformList.length > 0 ?
+                    {"$in": vm.queryPlatformCreditTransferPlatformList} : {"$in": vm.allPlatformData.map(item => item._id)};
+            } else {
+                platformQuery = vm.selectedPlatform.id;
+            }
             $scope.safeApply();
             let sendQuery = {
-                PlatformObjId: vm.selectedPlatform.id,
+                PlatformObjId: platformQuery,
                 startTime: vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.platformCreditTransferLog.index,
@@ -3185,23 +3193,33 @@ define(['js/app'], function (myApp) {
                 item.providerText = vm.getProviderText(item.providerId);
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
                 item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
+                if (item && item.platformObjId){
+                    let matchedPlatformData = vm.allPlatformData.filter(a => a && a._id && (a._id.toString() === item.platformObjId.toString()));
+                    if(matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name){
+                        item.platformName$ = matchedPlatformData[0].name;
+                    }
+                }
                 return item;
             });
-            let option = $.extend({}, vm.generalDataTableOptions, {
-                data: tableData,
-                "order": vm.platformCreditTransferLog.aaSorting || [[0, 'desc']],
-                aoColumnDefs: [
-                    {'sortCol': 'createTime', 'aTargets': [0], bSortable: true},
-                    {'sortCol': 'transferId', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'playerName', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'amount', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'providerId', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'amount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'lockedAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'type', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'status', 'aTargets': [8], bSortable: true}
-                ],
-                columns: [
+
+            let aoColumnDefsArr;
+            let columnsArr;
+            if (vm.platformCreditTransferLog && vm.platformCreditTransferLog.isPopup && (vm.platformCreditTransferLog.isPopup.toString() === 'true')) {
+                aoColumnDefsArr = [
+                    {'sortCol': 'platformName$', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'createTime', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'transferId', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'playerName', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'amount', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'providerId', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'amount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'lockedAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'type', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'status', 'aTargets': [9], bSortable: true}
+                ];
+
+                columnsArr = [
+                    {title: $translate('PRODUCT_NAME'), data: 'platformName$'},
                     {title: $translate('CREATE_TIME'), data: 'createTime$'},
                     {title: $translate("TRANSFER") + " ID", data: 'transferId'},
                     {title: $translate('playerName'), data: 'playerName'},
@@ -3236,7 +3254,63 @@ define(['js/app'], function (myApp) {
                             return span.prop('outerHTML');
                         }
                     }
-                ],
+                ];
+            } else {
+                aoColumnDefsArr = [
+                    {'sortCol': 'createTime', 'aTargets': [0], bSortable: true},
+                    {'sortCol': 'transferId', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'playerName', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'amount', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'providerId', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'amount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'lockedAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'type', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'status', 'aTargets': [8], bSortable: true}
+                ];
+
+                columnsArr = [
+                    {title: $translate('CREATE_TIME'), data: 'createTime$'},
+                    {title: $translate("TRANSFER") + " ID", data: 'transferId'},
+                    {title: $translate('playerName'), data: 'playerName'},
+                    {
+                        title: $translate("TotalChangeAmount"),
+                        data: 'amount',
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("provider"), data: 'providerText'},
+                    {
+                        title: $translate("LOCAL_CREDIT"),
+                        data: `localAmount$`,
+                        render: function (data, type, row) {
+                            return parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {title: $translate("LOCKED_CREDIT"), data: 'lockedAmount$'},
+                    {title: $translate("TYPE"), data: 'typeText'},
+                    {
+                        title: $translate("STATUS"),
+                        render: function (data, type, row) {
+                            let title = null;
+                            let status$ = $scope.constPlayerCreditTransferStatus[row.status];
+                            if(status$ === "FAIL" && row.apiRes && row.apiRes.message) {
+                                title = row.apiRes.message;
+                            }
+                            let span = $('<span>', {
+                                'title': title
+                            }).text($translate(status$));
+                            return span.prop('outerHTML');
+                        }
+                    }
+                ];
+            }
+
+            let option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                "order": vm.platformCreditTransferLog.aaSorting || [[0, 'desc']],
+                aoColumnDefs: aoColumnDefsArr,
+                columns: columnsArr,
                 paging: false,
             });
 
@@ -10183,6 +10257,8 @@ define(['js/app'], function (myApp) {
             vm.playerCredit = {};
             vm.playerTotalGameCredit = 0;
             vm.playerTotalCredit = row.validCredit + row.lockedCredit;
+            vm.sameLineProvidersByPlatformId = [];
+            vm.uniqueSameLineProvidersByPlatformId = [];
             vm.creditTransfer = {};
             vm.fixPlayerRewardAmount = {rewardInfo: row.rewardInfo};
             vm.transferAllCredit = {};
@@ -10207,12 +10283,31 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            for (var i in vm.platformProviderList) {
+            for (let i in vm.platformProviderList) {
+                if (vm.platformProviderList[i] && vm.platformProviderList[i].sameLineProviders && vm.platformProviderList[i].sameLineProviders[vm.selectedPlatform.data.platformId]) {
+                    let targetSameLineProviders = vm.platformProviderList[i].sameLineProviders[vm.selectedPlatform.data.platformId];
+                    let sortedSameLineProviders = targetSameLineProviders.sort();
+                    vm.sameLineProvidersByPlatformId.push(sortedSameLineProviders);
+                }
+            }
+
+            let uniques = [];
+            let itemsFound = {};
+            vm.sameLineProvidersByPlatformId.forEach(arr => {
+                let stringified = JSON.stringify(arr);
+                if (!itemsFound[stringified]) {
+                    uniques.push(arr);
+                    itemsFound[stringified] = true;
+                }
+            });
+            vm.uniqueSameLineProvidersByPlatformId = uniques;
+
+            for (let i in vm.platformProviderList) {
                 vm.getPlayerCreditInProvider(row.name, vm.platformProviderList[i].providerId, vm.playerCredit)
             }
 
             vm.showPlayerAccountingDetailTab(null);
-        }
+        };
         vm.transferCreditFromProviderClicked = function (providerId) {
             console.log('vm.playerCredit', vm.playerCredit);
             vm.creditTransfer.focusProvider = providerId;
@@ -10363,9 +10458,25 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         var provId = data.data.providerId;
                         targetObj[provId] = data.data || 0;
+                        let isAddedTotalCredit = false;
 
-                        if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
-                            vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                        vm.uniqueSameLineProvidersByPlatformId.map(arr => {
+                            if (arr.indexOf(provId.toString()) > -1 && !arr.includes('bUsed') && !isAddedTotalCredit) {
+                                if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
+                                    arr.push('bUsed');
+                                    isAddedTotalCredit = true;
+                                    vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                                }
+                            }
+                            if (arr.indexOf(provId.toString()) > -1 && arr.includes('bUsed')) {
+                                isAddedTotalCredit = true;
+                            }
+                        });
+
+                        if (!isAddedTotalCredit) {
+                            if (targetObj[provId] && targetObj[provId].gameCredit && targetObj[provId].gameCredit !== "unknown" && !targetObj[provId].reason && !isNaN(targetObj[provId].gameCredit)) {
+                                vm.playerTotalCredit += parseFloat(targetObj[provId].gameCredit);
+                            }
                         }
                     })
                 }

@@ -202,12 +202,32 @@ var dbFrontEndSetting = {
         return record.save();
     },
 
+    savePartnerSkinSetting: (data) => {
+        let newSetting = {
+            platformObjId: ObjectId(data.platform),
+            device: data.device,
+            name: data.name,
+            url: data.url
+        };
+
+        let record = new dbConfig.collection_frontEndPartnerSkinSetting(newSetting);
+        return record.save();
+    },
+
     getSkinSetting: (platformObjId) => {
         return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
+    getPartnerSkinSetting: (platformObjId) => {
+        return dbConfig.collection_frontEndPartnerSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+    },
+
     removeSkinSetting: (skinSettingObjId) => {
         return dbConfig.collection_frontEndSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).exec();
+    },
+
+    removePartnerSkinSetting: (skinSettingObjId) => {
+        return dbConfig.collection_frontEndPartnerSkinSetting.remove({_id: ObjectId(skinSettingObjId)}).lean();
     },
 
     saveUrlConfig: (data) => {
@@ -225,8 +245,27 @@ var dbFrontEndSetting = {
         }
     },
 
+    savePartnerUrlConfig: (data) => {
+        if (data && data._id){
+            let dataObjId = data._id;
+            delete data._id;
+            return dbConfig.collection_frontEndPartnerUrlConfiguration.findOneAndUpdate(
+                {_id: dataObjId},
+                data,
+                {new: true});
+        }
+        else{
+            let record = new dbConfig.collection_frontEndPartnerUrlConfiguration(data);
+            return record.save();
+        }
+    },
+
     getUrlConfig: (platformObjId) => {
         return dbConfig.collection_frontEndUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
+    },
+
+    getPartnerUrlConfig: (platformObjId) => {
+        return dbConfig.collection_frontEndPartnerUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
     saveCarouselSetting: (data) => {
