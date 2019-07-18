@@ -542,12 +542,24 @@ define([], () => {
                         grp.showConfig.commissionSetting.forEach(e => {
                             if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
                                 grp.srcConfig.commissionSetting.forEach(f => {
-                                    if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
-                                        && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
-                                        && e.activePlayerValueFrom === f.activePlayerValueFrom
-                                        && e.activePlayerValueTo === f.activePlayerValueTo
-                                        && Number(e.commissionRate) !== Number(f.commissionRate)
+                                    // if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
+                                    //     && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
+                                    //     && e.activePlayerValueFrom === f.activePlayerValueFrom
+                                    //     && e.activePlayerValueTo === f.activePlayerValueTo
+                                    //     && Number(e.commissionRate) !== Number(f.commissionRate)
+                                    // ) {
+                                    //     e.isCustomized = true;
+                                    // }
+                                    if (e.playerConsumptionAmountFrom !== f.playerConsumptionAmountFrom
+                                        || e.playerConsumptionAmountTo !== f.playerConsumptionAmountTo
+                                        || e.activePlayerValueFrom !== f.activePlayerValueFrom
+                                        || e.activePlayerValueTo !== f.activePlayerValueTo
                                     ) {
+                                        e.isConfigCustomized = true;
+                                        e.isCustomized = true;
+                                    }
+
+                                    if (Number(e.commissionRate) !== Number(f.commissionRate)) {
                                         e.isCustomized = true;
                                     }
                                 });
@@ -569,15 +581,15 @@ define([], () => {
                 let custObj = custSett.filter(e => String(e.partner) === String(partnerObjId))[0];
 
                 normalRates.forEach(e => {
-                    if (Number(commSett[e]) !== Number(custObj[e])) {
-                        let cusTomFieldKey = e + "Custom";
-                        if (custObj[cusTomFieldKey]) {
-                            custObj.isCustomizedField = custObj.isCustomizedField || [];
-                            custObj.isCustomizedField.push(e);
-                        } else {
-                            custObj[e] = commSett[e];
-                        }
+                    // if (Number(commSett[e]) !== Number(custObj[e])) {
+                    let cusTomFieldKey = e + "Custom";
+                    if (custObj[cusTomFieldKey]) {
+                        custObj.isCustomizedField = custObj.isCustomizedField || [];
+                        custObj.isCustomizedField.push(e);
+                    } else {
+                        custObj[e] = commSett[e];
                     }
+                    // }
                 });
 
                 if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length > 0) {

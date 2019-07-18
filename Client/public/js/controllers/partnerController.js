@@ -12184,8 +12184,11 @@ define(['js/app'], function (myApp) {
             }
 
             normalRates.forEach(e => {
+                let field = e + "Custom";
+                if (config[field]) {
+                    isDelete = false;
+                }
                 if (config[e] != vm.srcCommissionRateConfig[e]) {
-                    let field = e + "Custom";
                     config[field] = true;
                     isDelete = false;
                 }
@@ -12199,6 +12202,10 @@ define(['js/app'], function (myApp) {
 
                 if (src && e.rate != src.rate) {
                     e.isCustom = true;
+                    isDelete = false;
+                }
+
+                if (e.isCustom) {
                     isDelete = false;
                 }
             });
