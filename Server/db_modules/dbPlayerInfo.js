@@ -6416,13 +6416,6 @@ let dbPlayerInfo = {
                 let record = new dbconfig.collection_playerLoginRecord(recordData);
 
                 return record.save();
-            },
-            error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in updating player",
-                    error: error
-                });
             }
         ).then(
             record => {
