@@ -6501,8 +6501,11 @@ define(['js/app'], function (myApp) {
 
         vm.filterPhoneListManagement = (newSearch) => {
             vm.selectedTsPhoneList = false;
+            if (vm.phoneListSearch && !vm.phoneListSearch.platformObjId) {
+                return;
+            }
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.phoneListSearch.platformObjId,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
                 endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : (vm.phoneListSearch.index || 0),
@@ -6524,10 +6527,30 @@ define(['js/app'], function (myApp) {
                 if(data && data.data && data.data.data){
                     $scope.$evalAsync(() => {
                         vm.tsPhoneList = data.data.data;
+                        vm.tsPhoneList.forEach(item => {
+                            if (item.platform) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
+                        });
                         let size = data.data.size || 0;
                         vm.drawPhoneListManagementTable(newSearch, vm.tsPhoneList, size);
                     })
                 }
+            });
+        };
+
+        vm.getAllTSPhoneListByPlatform = (platformObjId) => {
+            let sendQuery = {
+                platformObjId: platformObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getAllTSPhoneList', sendQuery, function (data) {
+                console.log("getAllTSPhoneList ret", data);
+                $scope.$evalAsync(() => {
+                    vm.allTsPhoneListByPlatform = data.data;
+                });
             });
         };
 
@@ -6775,7 +6798,7 @@ define(['js/app'], function (myApp) {
         vm.updateDistributionSettings = () => {
             //add and remove ts Assignee commands will be triggered synchronously
             let commonSendData = {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.phoneListSearch.platformObjId,
                 tsPhoneListObjId: vm.currentPhoneListObjId
             };
             let socketProms = [];
@@ -6827,7 +6850,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchDistributionDetails = () => {
-            let platformObjId = vm.selectedPlatform.id;
+            let platformObjId = vm.phoneListSearch.platformObjId;
             let adminNames = vm.distributionDetailsQuery.adminNames;
             vm.selectedReclaimAssignee = '';
 
@@ -7139,6 +7162,10 @@ define(['js/app'], function (myApp) {
                 "scrollCollapse": true,
                 columns: [
                     {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "platform$"
+                    },
+                    {
                         title: $translate('NAME_LIST_TITLE'), data: "name",
                         render: function (data, type, row, index) {
                             var link = $('<a>', {
@@ -7154,7 +7181,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
                                 'class': (data && data == vm.constTsPhoneListStatus.HALF_COMPLETE? "text-danger" : "text-primary"),
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +', "'+ row.platform + '", "'+ row.platform$ + '");',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
