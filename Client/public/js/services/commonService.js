@@ -538,32 +538,33 @@ define([], () => {
                         }
                     });
 
-                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
-                        grp.showConfig.commissionSetting.forEach(e => {
-                            if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
-                                grp.srcConfig.commissionSetting.forEach(f => {
-                                    // if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
-                                    //     && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
-                                    //     && e.activePlayerValueFrom === f.activePlayerValueFrom
-                                    //     && e.activePlayerValueTo === f.activePlayerValueTo
-                                    //     && Number(e.commissionRate) !== Number(f.commissionRate)
-                                    // ) {
-                                    //     e.isCustomized = true;
-                                    // }
-                                    if (e.playerConsumptionAmountFrom !== f.playerConsumptionAmountFrom
-                                        || e.playerConsumptionAmountTo !== f.playerConsumptionAmountTo
-                                        || e.activePlayerValueFrom !== f.activePlayerValueFrom
-                                        || e.activePlayerValueTo !== f.activePlayerValueTo
-                                    ) {
-                                        e.isConfigCustomized = true;
-                                        e.isCustomized = true;
-                                    }
-
-                                    if (Number(e.commissionRate) !== Number(f.commissionRate)) {
-                                        e.isCustomized = true;
-                                    }
-                                });
+                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length == grp.showConfig.commissionSetting.length) {
+                        let originalConfig = grp.srcConfig.commissionSetting;
+                        grp.showConfig.commissionSetting.forEach((e, index) => {
+                            // if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
+                            // grp.srcConfig.commissionSetting.forEach(f => {
+                            // if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
+                            //     && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
+                            //     && e.activePlayerValueFrom === f.activePlayerValueFrom
+                            //     && e.activePlayerValueTo === f.activePlayerValueTo
+                            //     && Number(e.commissionRate) !== Number(f.commissionRate)
+                            // ) {
+                            //     e.isCustomized = true;
+                            // }
+                            if (e.playerConsumptionAmountFrom !== originalConfig[index].playerConsumptionAmountFrom
+                                || e.playerConsumptionAmountTo !== originalConfig[index].playerConsumptionAmountTo
+                                || e.activePlayerValueFrom !== originalConfig[index].activePlayerValueFrom
+                                || e.activePlayerValueTo !== originalConfig[index].activePlayerValueTo
+                            ) {
+                                e.isConfigCustomized = true;
+                                e.isCustomized = true;
                             }
+
+                            if (Number(e.commissionRate) !== Number(originalConfig[index].commissionRate)) {
+                                e.isCustomized = true;
+                            }
+                            // });
+                            // }
 
                             // Change to percentage format
                             // e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));

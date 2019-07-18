@@ -11898,7 +11898,8 @@ define(['js/app'], function (myApp) {
 
             if (isRevert && !vm.isMultiLevelCommission) {
                 let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
-                newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
+                newConfig.commissionSetting[idx] = JSON.parse(JSON.stringify(oldConfig.commissionSetting[idx]));
+                newConfig.commissionSetting[idx].commissionRate = parseFloat((newConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
                 isRevert = --customCount === 0;
             }
 
