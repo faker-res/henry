@@ -186,28 +186,35 @@ define(['js/app'], function (myApp) {
             },
         }
 
-        vm.loadAdminNames = function () {
+        vm.loadAdminNames = function (platformObjId, platformName) {
             vm.adminList = [];
             vm.platformDepartmentObjId = "";
-            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+            let sendData = {
+                platformObjId: platformObjId || vm.selectedPlatform.id
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', sendData,
                 data => {
                     vm.currentPlatformDepartment = data.data;
 
                     if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                         vm.currentPlatformDepartment.map(department => {
-                            if (department.departmentName == vm.selectedPlatform.data.name) {
+                            let selectedPlatformName = platformName || vm.selectedPlatform.data.name;
+                            if (department.departmentName === selectedPlatformName) {
                                 vm.platformDepartmentObjId = department._id;
                                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId: vm.platformDepartmentObjId}, function (data) {
-                                    vm.adminList = data.data;
-                                    vm.adminList.sort((a, b) => {
-                                        if(a.adminName > b.adminName) {
-                                            return 1;
-                                        } else if(a.adminName < b.adminName) {
-                                            return -1;
-                                        } else {
-                                            return 0;
-                                        }
-                                    })
+                                    $scope.$evalAsync(() => {
+                                        vm.adminList = data.data;
+                                        vm.adminList.sort((a, b) => {
+                                            if(a.adminName > b.adminName) {
+                                                return 1;
+                                            } else if(a.adminName < b.adminName) {
+                                                return -1;
+                                            } else {
+                                                return 0;
+                                            }
+                                        })
+                                    });
                                 });
                             }
                         });
@@ -435,8 +442,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getActivePhoneListNameForAdmin = () => {
-            return $scope.$socketPromise("getActivePhoneListNameForAdmin", {platformObjId: vm.selectedPlatform.id}).then(
+        vm.getActivePhoneListNameForAdmin = (platformObjId) => {
+            let sendData = {
+                platformObjId: platformObjId
+            };
+            console.log('sendData', sendData);
+            return $scope.$socketPromise("getActivePhoneListNameForAdmin", sendData).then(
                 data => {
                     if (data) {
                         vm.adminPhoneListName = data.data || [];
@@ -461,7 +472,7 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'REMINDER_PHONE_LIST':
-                    vm.getActivePhoneListNameForAdmin();
+                    // vm.getActivePhoneListNameForAdmin();
 
                     vm.queryAdminPhoneList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
                     utilService.actionAfterLoaded("#adminPhoneListTablePage", function () {
@@ -478,6 +489,7 @@ define(['js/app'], function (myApp) {
                     vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
+                    vm.allTsPhoneListByPlatform = [];
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(1));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
                     utilService.actionAfterLoaded('#searchWorkloadReport', function () {
@@ -564,13 +576,13 @@ define(['js/app'], function (myApp) {
             console.log('vm.queryAdminPhoneReminderList', vm.queryAdminPhoneReminderList);
 
             let sendObj = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.selectedPlatformFeedbackReminderList,
                 admin: authService.adminId,
                 index: newSearch ? 0 : (vm.queryAdminPhoneReminderList.index || 0),
                 limit: vm.queryAdminPhoneReminderList.limit || 10,
                 sortCol: vm.queryAdminPhoneReminderList.sortCol || {assignTimes: 1, endTime: 1}
 
-            }
+            };
 
             socketService.$socket($scope.AppSocket, 'getAdminPhoneReminderList', sendObj, function (data) {
                 console.log('getAdminPhoneReminderList', data);
@@ -585,7 +597,12 @@ define(['js/app'], function (myApp) {
                         let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
                         let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
                         item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
-
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         return item;
                     }), data.data.size, {}, newSearch, true);
                 $scope.$evalAsync();
@@ -598,7 +615,7 @@ define(['js/app'], function (myApp) {
             $('#adminPhoneListTableSpin').show();
             let sendQuery = {};
 
-            sendQuery.platformObjId = vm.selectedPlatform.id;
+            sendQuery.platformObjId = vm.queryAdminPhoneList.platformObjId;
             sendQuery.adminObjId = authService.adminId;
             sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
             sendQuery.searchFilter = sendQuery.searchQuery;
@@ -626,9 +643,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.generateAdminPhoneQuery = (newSearch) => {
+            if (vm.queryAdminPhoneList && !vm.queryAdminPhoneList.platformObjId) {
+                return;
+            }
             vm.queryAdminPhoneList.limit = (vm.queryAdminPhoneList.limit > 100 ? 100 : vm.queryAdminPhoneList.limit) || 10;
             return {
-                platform: vm.selectedPlatform.id,
+                platform: vm.queryAdminPhoneList.platformObjId,
                 admin: authService.adminId,
                 phoneListName: vm.queryAdminPhoneList.phoneListName,
                 resultName: vm.queryAdminPhoneList.resultName,
@@ -677,7 +697,12 @@ define(['js/app'], function (myApp) {
                         let endDate = new Date(item.endTime);
                         let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
                         item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
-
+                        if (item.platform) {
+                            let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                            if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                item.platform$ = matchedPlatformData[0].name;
+                            }
+                        }
                         return item;
                     }), data.data.size, {}, newSearch
                 );
@@ -717,6 +742,10 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             return $('<div>', {}).append($('<input type="checkbox" class="chosenPhone" data-id="'+row._id+'">', {}).text(data)).prop('outerHTML');
                         }
+                    },
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "platform$"
                     },
                     {title: $translate('NAME_LIST_TITLE'), data: "tsPhoneList.name"},
                     {
@@ -770,7 +799,7 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.initTsPhoneFeedbackHistory(' + JSON.stringify(tsPhoneObjId) + ');',
+                                'ng-click': 'vm.initTsPhoneFeedbackHistory(' + JSON.stringify(tsPhoneObjId) + ', ' + JSON.stringify(row.platform) + ');',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPhoneFeedbackHistory',
@@ -875,12 +904,12 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        vm.initTsPlayerCredibility = () => {
+        vm.initTsPlayerCredibility = (platformObjId) => {
             vm.credibilityRemarkComment = "";
             vm.credibilityRemarkUpdateMessage = "";
             vm.somePlayerRemarksRemoved = false;
             vm.playerCredibilityRemarksUpdated = false;
-            vm.prepareCredibilityConfig().then(
+            vm.prepareCredibilityConfig(platformObjId).then(
                 () => {
                     $scope.$evalAsync(() => {
                         // if (!vm.selectedSinglePlayer.credibilityRemarks) {
@@ -901,9 +930,9 @@ define(['js/app'], function (myApp) {
             );
         };
 
-        vm.prepareCredibilityConfig = () => {
+        vm.prepareCredibilityConfig = (platformObjId) => {
             vm.removedRemarkId = [];
-            return vm.getCredibilityRemarks(true).then(
+            return vm.getCredibilityRemarks(true, platformObjId).then(
                 () => {
                     $scope.$evalAsync(() => {
                         let cloneRemarks = vm.credibilityRemarks.slice(0);
@@ -979,7 +1008,7 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getReferralPlayer = function (editObj, type) {
+        vm.getReferralPlayer = function (editObj, type, platformObjId) {
             var sendData = null;
             if (type === 'change' && editObj.referralName) {
                 sendData = {name: editObj.referralName}
@@ -987,7 +1016,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = platformObjId;
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -1029,7 +1058,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.prepareCreateTsPlayer = function (tsDistributedPhoneData) {
-            vm.initTsPlayerCredibility();
+            vm.initTsPlayerCredibility(tsDistributedPhoneData.platform);
             vm.tsCreditRemark = "";
             vm.tsPhoneAddFeedback = {};
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
@@ -1077,7 +1106,7 @@ define(['js/app'], function (myApp) {
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
             vm.newPlayer.domain = window.location.hostname;
-            vm.getReferralPlayer(vm.newPlayer, "new");
+            vm.getReferralPlayer(vm.newPlayer, "new", tsDistributedPhoneData.platform);
             vm.playerCreateResult = null;
             vm.playerPswverify = null;
 
@@ -1085,34 +1114,38 @@ define(['js/app'], function (myApp) {
             vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                 vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
             });
-            vm.getAllPromoteWay();
-        }
-
-        vm.getAllPromoteWay = function () {
-            vm.allPromoteWay = {};
-            let query = {
-                platformId: vm.selectedPlatform.id
-            };
-            socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.allPromoteWay = data.data;
-                        console.log("vm.allPromoteWay", vm.allPromoteWay);
-
-                    })
-                },
-                function (err) {
-                    console.log(err);
-                });
+            vm.getAllPromoteWay(tsDistributedPhoneData.platform);
+            vm.getPlayerFeedbackTopic(tsDistributedPhoneData.platform);
         };
 
-        vm.getCredibilityRemarks = (forbidUIRenderTwice) => {
+        vm.getAllPromoteWay = function (platformObjId) {
+            vm.allPromoteWay = {};
+            let query = {
+                platformId: platformObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.allPromoteWay = data.data;
+                    console.log("vm.allPromoteWay", vm.allPromoteWay);
+
+                })
+            },
+            function (err) {
+                console.log(err);
+            });
+        };
+
+        vm.getCredibilityRemarks = (forbidUIRenderTwice, platformObjId) => {
             return new Promise((resolve, reject) => {
-                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.data._id
+                };
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         vm.credibilityRemarks = data.data;
                         vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                         vm.filterCredibilityRemarks.push({'_id': '', 'name': 'N/A'});
-                    })
+                    });
                     // if(!forbidUIRenderTwice){
                     //     vm.setupRemarksMultiInput();
                     //     vm.setupRemarksMultiInputFeedback();
@@ -1510,6 +1543,14 @@ define(['js/app'], function (myApp) {
             console.log(type, data);
             //vm.getSMSTemplate();
             var title, text;
+            if (data && data.platform) {
+                vm.allPlatformData.forEach(platform => {
+                    if (platform._id.toString() === data.platform.toString()) {
+                        data.platformId = platform.platformId;
+                    }
+                });
+                vm.getSMSTemplate(data.platform);
+            }
             if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
                 if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
                     return;
@@ -1519,11 +1560,11 @@ define(['js/app'], function (myApp) {
                     playerId: "",
                     name: data.encodedPhoneNumber$,
                     nickName: data.tsPhone.nickName || "",
-                    platformId: vm.selectedPlatform.data.platformId,
+                    platformId: data.platformId,
                     // channel: $scope.channelList[0],
                     hasPhone: data.tsPhone.phoneNumber,
-                    platform: vm.selectedPlatform.id
-                }
+                    platform: data.platform
+                };
 
                 vm.smsPlayer.channel = null;
                 if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
@@ -1556,17 +1597,17 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = data.tsPhone.phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.$evalAsync();
-                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+                $scope.makePhoneCall(data.platformId);
             }
         };
 
-        vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId) {
+        vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId, platformObjId) {
             vm.tsPhoneFeedbackDetail = [];
             let sendData = {
-                platform: vm.selectedPlatform.id,
+                platform: platformObjId,
                 // adminId: authService.adminId,
                 tsPhone: tsPhoneObjId
-            }
+            };
             socketService.$socket($scope.AppSocket, 'getTsPhoneFeedback', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     vm.tsPhoneFeedbackDetail = data.data;
@@ -1575,11 +1616,11 @@ define(['js/app'], function (myApp) {
                     });
                 })
             })
-        }
+        };
 
         vm.initAdminPhoneListDetails = function (rowData) {
             vm.tsPhoneDetails = rowData && rowData.tsPhone || {}
-        }
+        };
 
         vm.addTsPhoneFeedback = function (data) {
             // region phone detail page prevent multiple request send
@@ -1596,7 +1637,7 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 tsPhone: data.tsPhone._id,
                 tsPhoneList: data.tsPhone.tsPhoneList,
-                platform: vm.selectedPlatform.id,
+                platform: data.tsPhone.platform,
                 adminId: authService.adminId,
                 content: data.content || "",
                 result: data.result,
@@ -2821,17 +2862,17 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        // vm.getSMSTemplate = function () {
-        //     vm.smsTemplate = [];
-        //     $scope.$socketPromise('getMessageTemplatesForPlatform', {
-        //         platform: vm.selectedPlatform.id,
-        //         format: 'smstpl'
-        //     }).then(function (data) {
-        //         vm.smsTemplate = data.data;
-        //         console.log("vm.smsTemplate", vm.smsTemplate);
-        //         $scope.safeApply();
-        //     }).done();
-        // };
+        vm.getSMSTemplate = function (platformObjId) {
+            vm.smsTemplate = [];
+            $scope.$socketPromise('getMessageTemplatesForPlatform', {
+                platform: platformObjId,
+                format: 'smstpl'
+            }).then(function (data) {
+                vm.smsTemplate = data.data;
+                console.log("vm.smsTemplate", vm.smsTemplate);
+                $scope.safeApply();
+            }).done();
+        };
 
         vm.useSMSTemplate = function () {
             vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
@@ -6230,6 +6271,23 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getAllDepartment = (platformObjId) => {
+            let sendData = {
+                platforms: [platformObjId]
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('getAllDepartment', data);
+                    var result = [];
+                    data.data.forEach(function (departmentData) {
+                        result.push(departmentData);
+                    });
+                    vm.queryDepartments = result;
+                });
+            });
+        };
+
         vm.initFilterAndImportDXSystem = function () {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
@@ -6310,6 +6368,7 @@ define(['js/app'], function (myApp) {
                     platform: rowData && rowData.platform ? rowData.platform : vm.importPlatformForXLS,
                     tsPhoneList: rowData._id
                 };
+                console.log('sendData', sendData);
 
                 socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', sendData, function (data) {
                     if (data && data.data  && data.data.length) {
@@ -6455,10 +6514,25 @@ define(['js/app'], function (myApp) {
             vm.checkFilterIsDisable = true;
         };
 
+        vm.getTSPhoneListNameByPlatform = (platformObjId) => {
+            let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED];
+            let sendQuery = {
+                platform: platformObjId,
+                status: {$in: phoneListStatus}
+            };
+            console.log('sendQuery', sendQuery);
+            socketService.$socket($scope.AppSocket, 'getTSPhoneListName', sendQuery, function (data) {
+                console.log("getTSPhoneListName ret", data);
+                $scope.$evalAsync(() => {
+                    vm.recycleBinPhoneListNameByPlatform = data.data;
+                });
+            });
+        };
+
         vm.filterRecycleBinPhoneList = (newSearch) => {
             vm.selectedTsPhoneList = false;
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.recycleBinPhoneListSearch.platformObjId,
                 startTime: vm.recycleBinPhoneListSearch.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.recycleBinPhoneListSearch.endTime.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : (vm.recycleBinPhoneListSearch.index || 0),
@@ -6490,6 +6564,15 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getTSList = function (platformId) {
+            commonService.getTSPhoneListName($scope, {platform: platformId}).then(
+                data => {
+                    vm.allTSList = data;
+                    $scope.$evalAsync();
+                }
+            )
+        };
+
         vm.showPhoneListManagement = function () {
             utilService.actionAfterLoaded(('#phoneListSearch'), function () {
                 vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
@@ -6497,12 +6580,15 @@ define(['js/app'], function (myApp) {
                 });
                 vm.filterPhoneListManagement(true);
             });
-        }
+        };
 
         vm.filterPhoneListManagement = (newSearch) => {
             vm.selectedTsPhoneList = false;
+            if (vm.phoneListSearch && !vm.phoneListSearch.platformObjId) {
+                return;
+            }
             let sendQuery = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.phoneListSearch.platformObjId,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
                 endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : (vm.phoneListSearch.index || 0),
@@ -6524,10 +6610,30 @@ define(['js/app'], function (myApp) {
                 if(data && data.data && data.data.data){
                     $scope.$evalAsync(() => {
                         vm.tsPhoneList = data.data.data;
+                        vm.tsPhoneList.forEach(item => {
+                            if (item.platform) {
+                                let matchedPlatformData = vm.allPlatformData.filter(a => a._id.toString() === item.platform.toString());
+                                if (matchedPlatformData && matchedPlatformData.length && matchedPlatformData[0].name) {
+                                    item.platform$ = matchedPlatformData[0].name;
+                                }
+                            }
+                        });
                         let size = data.data.size || 0;
                         vm.drawPhoneListManagementTable(newSearch, vm.tsPhoneList, size);
                     })
                 }
+            });
+        };
+
+        vm.getAllTSPhoneListByPlatform = (platformObjId) => {
+            let sendQuery = {
+                platformObjId: platformObjId
+            };
+            socketService.$socket($scope.AppSocket, 'getAllTSPhoneList', sendQuery, function (data) {
+                console.log("getAllTSPhoneList ret", data);
+                $scope.$evalAsync(() => {
+                    vm.allTsPhoneListByPlatform = data.data;
+                });
             });
         };
 
@@ -6547,7 +6653,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             let sendQuery = {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.workloadSearch.platformObjId,
                 phoneListObjIds: vm.workloadSearch.phoneLists || [],
                 adminObjIds: vm.workloadSearch.admins || [],
                 startTime: vm.workloadSearch.startTime,
@@ -6593,7 +6699,7 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status) => {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status, platformObjId, platformName) => {
             vm.disableUpdateTsAssignee = false
             if (status == vm.constTsPhoneListStatus.HALF_COMPLETE || status == vm.constTsPhoneListStatus.PERFECTLY_COMPLETED || status == vm.constTsPhoneListStatus.DECOMPOSED) {
                 vm.disableAllowDistributionSettingsEdit = true;
@@ -6609,11 +6715,12 @@ define(['js/app'], function (myApp) {
             vm.assigneeRemovalList = [];
             vm.distributionDetailsQuery = {};
             vm.distributionDetails = {};
-            vm.getTsAssignees();
+            vm.getTsAssignees(platformObjId, platformName);
             $('#modalAssignmentStatusDetail').modal('show');
             $('.spicker').selectpicker('refresh');
         };
-        vm.getTsAssignees = () => {
+
+        vm.getTsAssignees = (platformObjId, platformName) => {
             vm.tsAssignees = [];
             return $scope.$socketPromise('getTsAssignees', {tsPhoneListObjId: vm.currentPhoneListObjId}).then(data => {
                 console.log("getTsAssignees_ret", data);
@@ -6622,6 +6729,7 @@ define(['js/app'], function (myApp) {
                         vm.tsAssignees = data.data;
                         vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
+                        vm.loadAdminNames(platformObjId, platformName);
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
                         if (vm.adminList && vm.adminList.length && vm.tsAssignees && vm.tsAssignees.length) {
                             vm.tsAssignees.forEach(
@@ -6775,7 +6883,7 @@ define(['js/app'], function (myApp) {
         vm.updateDistributionSettings = () => {
             //add and remove ts Assignee commands will be triggered synchronously
             let commonSendData = {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.phoneListSearch.platformObjId,
                 tsPhoneListObjId: vm.currentPhoneListObjId
             };
             let socketProms = [];
@@ -6827,7 +6935,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchDistributionDetails = () => {
-            let platformObjId = vm.selectedPlatform.id;
+            let platformObjId = vm.phoneListSearch.platformObjId;
             let adminNames = vm.distributionDetailsQuery.adminNames;
             vm.selectedReclaimAssignee = '';
 
@@ -7139,6 +7247,10 @@ define(['js/app'], function (myApp) {
                 "scrollCollapse": true,
                 columns: [
                     {
+                        title: $translate('PRODUCT_NAME'),
+                        data: "platform$"
+                    },
+                    {
                         title: $translate('NAME_LIST_TITLE'), data: "name",
                         render: function (data, type, row, index) {
                             var link = $('<a>', {
@@ -7154,7 +7266,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
                                 'class': (data && data == vm.constTsPhoneListStatus.HALF_COMPLETE? "text-danger" : "text-primary"),
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +', "'+ row.platform + '", "'+ row.platform$ + '");',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
@@ -7532,7 +7644,7 @@ define(['js/app'], function (myApp) {
             vm.retentionCheckAll = false;
             vm.allRetentionLineData = [];
             let sendData = {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.phoneListSearch.platformObjId,
                 days: vm.playerRetentionQuery.days,
                 startTime: vm.playerRetentionQuery.startTime,
                 endTime: vm.playerRetentionQuery.endTime,

@@ -2,9 +2,12 @@
     .col-md-12(ng-show="vm.curPlatformText")
         .col-md-12.search-filters-container.well
             .search-filters-item
+                label {{'PRODUCT_NAME' | translate}}
+                select.form-control(ng-model='vm.workloadSearch.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllTSPhoneListByPlatform(vm.workloadSearch.platformObjId);vm.getAllDepartment(vm.workloadSearch.platformObjId)')
+            .search-filters-item
                 label {{'NAME_LIST_TITLE' | translate}}
-                select.spicker.form-control(ng-model='vm.workloadSearch.phoneLists' bsp multiple data-actions-box='true')
-                    option(ng-repeat='(i,v) in vm.allTsPhoneList' ng-if="v.status != '7'" value='{{v._id}}') {{v.name}}
+                select.spicker.form-control(ng-model='vm.workloadSearch.phoneLists' bsp multiple data-actions-box='true', ng-options='v._id as v.name for (i,v) in vm.allTsPhoneListByPlatform')
+                    //option(ng-repeat='(i,v) in vm.allTsPhoneListByPlatform' ng-if="v.status != '7'" value='{{v._id}}') {{v.name}}
             .search-filters-item
                 label {{"Start date"|translate}}
                 #workloadStartTimePicker
