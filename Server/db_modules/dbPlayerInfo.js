@@ -3052,6 +3052,10 @@ let dbPlayerInfo = {
                             entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
+
+                        let inputDeviceData = dbUtility.getInputDevice('', false, (creator.type == 'admin') ? creator : NULL);
+                        proposalData.inputDevice = inputDeviceData;
+                        
                         if (isClientQnA) {
                             proposalData.data.remark += "（自动）"
                         }
@@ -3466,10 +3470,8 @@ let dbPlayerInfo = {
                                         entryType: constProposalEntryType.CLIENT,
                                         userType: constProposalUserType.PLAYERS,
                                     };
-                                    if (userAgent) {
-                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
-                                        proposalData.inputDevice = inputDeviceData;
-                                    }
+                                    let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                    proposalData.inputDevice = inputDeviceData;
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                                         () => {
                                             proposalData.newPassword = newPassword;
