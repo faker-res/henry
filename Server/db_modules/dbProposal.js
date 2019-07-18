@@ -3432,15 +3432,15 @@ var proposal = {
         var prom = [];
         var finalArr = [];
 
-        return dbconfig.collection_proposalType.findOne({platformId : {$in: platformId}, name: "PlayerRegistrationIntention"}).then(proposalType =>{
-            if(proposalType && proposalType._id){
-                let proposalTypesId = proposalType._id;
+        return dbconfig.collection_proposalType.find({platformId : {$in: platformId}, name: "PlayerRegistrationIntention"}).lean().then(proposalType =>{
+            if(proposalType && proposalType.length > 0){
+                let proposalTypesId = {$in: proposalType.map(item => { return item._id})};
                 var queryObj = {
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
                     },
-                    type: proposalType._id,
+                    type: proposalTypesId,
                     data: {$exists: true, $ne: null}
                 };
 

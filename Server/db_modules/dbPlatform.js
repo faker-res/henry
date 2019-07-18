@@ -6146,6 +6146,9 @@ var dbPlatform = {
                         case 'skin':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
+                        case 'partnerSkin':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
                         default:
                             prom = Promise.reject({
                                 name: "DataError",
@@ -6234,13 +6237,13 @@ var dbPlatform = {
                 }
                 prom = dbconfig.collection_frontEndPartnerUrlConfiguration.find(query).populate({
                     path: "pc.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).populate({
                     path: "h5.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).populate({
                     path: "app.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).lean()
             }
 
@@ -6298,6 +6301,9 @@ var dbPlatform = {
             }
             else if (code == "skin"){
                 prom = dbconfig.collection_frontEndSkinSetting.find(query).lean()
+            }
+            else if (code == "partnerSkin"){
+                prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
 
             return prom.then(
@@ -6443,7 +6449,7 @@ var dbPlatform = {
             }
             else if (setUpType == 2){
                 query.device = clientType;
-                if (code && code == "skin"){
+                if (code && (code == "skin" || code == "partnerSkin")){
                     delete query.status;
                 }
             }
