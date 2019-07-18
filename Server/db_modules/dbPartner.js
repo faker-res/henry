@@ -11097,12 +11097,12 @@ let dbPartner = {
             }
         ).then(
             partnerAndDownlinePlayerData => {
-                testObj = JSON.parse(JSON.stringify(partnerAndDownlinePlayerData))
                 return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
 
             }
         ).then(
             allPlayerData => {
+                testObj = JSON.parse(JSON.stringify(allPlayerData));
                 if (allPlayerData && allPlayerData.length > 0) {
                     allPlayerData.forEach(data => {
                         let index = allPlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
