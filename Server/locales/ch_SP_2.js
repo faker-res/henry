@@ -533,6 +533,7 @@ var simplifiedChinese = {
     "Minimum commission rate must be 1%": "最低佣金1%",
     "Partner can only update child commission once a week.": "每个下级代理佣金比例每周最多只能编辑一次。",
     "No relevant poster found. Please contact CS": "没有相关海报，请联系客服。",
+    "Down line player not found": "找不到该下线玩家，请检查名字是否正确。",
 
     //todo::add missing messages here
 
