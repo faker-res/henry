@@ -43,208 +43,208 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
-div.frontendConfigSeperator
+div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
     label {{"Current Skin(PC)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.pc.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==1", value='{{v._id}}') {{v.name}}
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "htmlTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.htmlTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor1" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.textColor1")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor2" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.textColor2")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveBorderColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavActiveBorderColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.navTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.navActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBgColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formBgColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formLabelTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formLabelTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formInputTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formInputTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBorderBottomColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formBorderBottomColor")
 
 
-div.frontendConfigSeperator
+div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
     label {{"Current Skin(H5)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.h5.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==2", value='{{v._id}}') {{v.name}}
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "htmlTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.htmlTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor1" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.textColor1")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor2" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.textColor2")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.mainNavTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.mainNavActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveBorderColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.mainNavActiveBorderColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.navTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.navActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBgColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.formBgColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formLabelTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.formLabelTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formInputTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.formInputTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBorderBottomColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.h5.formBorderBottomColor")
 
-div.frontendConfigSeperator
+div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
     label {{"Current Skin(APP)"|translate}}
     div.inline-block
         select.form-control(ng-model='vm.frontEndUrlConfig.app.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==4", value='{{v._id}}') {{v.name}}
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "htmlTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.htmlTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor1" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.textColor1")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "textColor2" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.textColor2")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.mainNavTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.mainNavActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "mainNavActiveBorderColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.mainNavActiveBorderColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.navTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "navActiveTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.navActiveTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBgColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.formBgColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formLabelTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.formLabelTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formInputTextColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.formInputTextColor")
 
-.full-width-input-block
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBorderBottomColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.app.formBorderBottomColor")
 
-.full-width-input-block()
+.full-width-input-block
     button.btn.btn-success(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
     button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration)') {{"SAVE_SETTING" | translate}}
     span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}

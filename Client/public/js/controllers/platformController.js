@@ -25183,17 +25183,24 @@ define(['js/app'], function (myApp) {
                             pc: {},
                         };
                         vm.urlConfigShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
                             vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, true);
                         }
                         else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                             vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
                         }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.skinSettingShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        if (vm.selectedFrontEndSettingTab == 'partnerSkinManagement'){
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
+                        }
+                        else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        }
                         break;
                     case 'rewardSetting':
                         vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
@@ -25238,10 +25245,15 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
+                        vm.isPartnerForSkinManagement = false;
+                        if (choice == 'partnerSkinManagement'){
+                            vm.isPartnerForSkinManagement = true;
+                        }
                         break;
                     case 'rewardSetting':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25582,7 +25594,7 @@ define(['js/app'], function (myApp) {
             };
 
             //#region Frontend Configuration - Skin Management
-            vm.saveFrontEndSkinSetting = function () {
+            vm.saveFrontEndSkinSetting = function (isPartner) {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
                     device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
@@ -25590,42 +25602,85 @@ define(['js/app'], function (myApp) {
                     url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
                 };
 
-                return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
-                    console.log("saveSkinSetting success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.skinSettingShowMessage = "SUCCESS";
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveSkinSetting error: ', err);
-                    vm.skinSettingShowMessage = "FAIL";
-                });
+                if (isPartner){
+                    return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
+                        console.log("savePartnerSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('savePartnerSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
+                        console.log("saveSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+
             };
 
-            vm.getFrontEndSkinSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getSkinSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndSkinSetting = data.data.map(item => {
-                            item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+            vm.getFrontEndSkinSetting = function (platformObjId, isPartner) {
+                if (isPartner){
+                    socketService.$socket($scope.AppSocket, 'getPartnerSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getPartnerSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
 
-                            return item;
-                        });
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSetting error: ', err);
-                }, true);
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getPartnerSkinSetting error: ', err);
+                    }, true);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getSkinSetting error: ', err);
+                    }, true);
+                }
             };
 
-            vm.removeFrontEndSkinSetting = function (objId) {
-                return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
-                    console.log("removeSkinSetting success:", data);
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('removeSkinSetting error: ', err);
-                });
+            vm.removeFrontEndSkinSetting = function (objId, isPartner) {
+                if (isPartner){
+                    return $scope.$socketPromise('removePartnerSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removePartnerSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removePartnerSkinSetting error: ', err);
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removeSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removeSkinSetting error: ', err);
+                    });
+                }
             }
             //#endregion
 
