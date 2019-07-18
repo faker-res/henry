@@ -186,28 +186,35 @@ define(['js/app'], function (myApp) {
             },
         }
 
-        vm.loadAdminNames = function () {
+        vm.loadAdminNames = function (platformObjId, platformName) {
             vm.adminList = [];
             vm.platformDepartmentObjId = "";
-            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+            let sendData = {
+                platformObjId: platformObjId || vm.selectedPlatform.id
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', sendData,
                 data => {
                     vm.currentPlatformDepartment = data.data;
 
                     if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
                         vm.currentPlatformDepartment.map(department => {
-                            if (department.departmentName == vm.selectedPlatform.data.name) {
+                            let selectedPlatformName = platformName || vm.selectedPlatform.data.name;
+                            if (department.departmentName === selectedPlatformName) {
                                 vm.platformDepartmentObjId = department._id;
                                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId: vm.platformDepartmentObjId}, function (data) {
-                                    vm.adminList = data.data;
-                                    vm.adminList.sort((a, b) => {
-                                        if(a.adminName > b.adminName) {
-                                            return 1;
-                                        } else if(a.adminName < b.adminName) {
-                                            return -1;
-                                        } else {
-                                            return 0;
-                                        }
-                                    })
+                                    $scope.$evalAsync(() => {
+                                        vm.adminList = data.data;
+                                        vm.adminList.sort((a, b) => {
+                                            if(a.adminName > b.adminName) {
+                                                return 1;
+                                            } else if(a.adminName < b.adminName) {
+                                                return -1;
+                                            } else {
+                                                return 0;
+                                            }
+                                        })
+                                    });
                                 });
                             }
                         });
@@ -6616,7 +6623,7 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status) => {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status, platformObjId, platformName) => {
             vm.disableUpdateTsAssignee = false
             if (status == vm.constTsPhoneListStatus.HALF_COMPLETE || status == vm.constTsPhoneListStatus.PERFECTLY_COMPLETED || status == vm.constTsPhoneListStatus.DECOMPOSED) {
                 vm.disableAllowDistributionSettingsEdit = true;
@@ -6632,11 +6639,12 @@ define(['js/app'], function (myApp) {
             vm.assigneeRemovalList = [];
             vm.distributionDetailsQuery = {};
             vm.distributionDetails = {};
-            vm.getTsAssignees();
+            vm.getTsAssignees(platformObjId, platformName);
             $('#modalAssignmentStatusDetail').modal('show');
             $('.spicker').selectpicker('refresh');
         };
-        vm.getTsAssignees = () => {
+
+        vm.getTsAssignees = (platformObjId, platformName) => {
             vm.tsAssignees = [];
             return $scope.$socketPromise('getTsAssignees', {tsPhoneListObjId: vm.currentPhoneListObjId}).then(data => {
                 console.log("getTsAssignees_ret", data);
@@ -6645,6 +6653,7 @@ define(['js/app'], function (myApp) {
                         vm.tsAssignees = data.data;
                         vm.tsAssigneesOriginal = $.extend(true, [], data.data);
                         vm.updateTsAssigneesDisplay();
+                        vm.loadAdminNames(platformObjId, platformName);
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
                         if (vm.adminList && vm.adminList.length && vm.tsAssignees && vm.tsAssignees.length) {
                             vm.tsAssignees.forEach(
