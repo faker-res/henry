@@ -2036,6 +2036,7 @@
   "createPartnerLevel": "添加代理等级",
   "partnerLevel/update": "代理等级更新",
   "createUpdatePartnerPhoneProposal": "创建更新代理电话号码提案",
+  "Player has applied for max reward times in event period": "您已经达到了该奖励周期内的申请上限",
   "updatePlayerLevel": "更新玩家等级",
   "deletePlayerLevel": "删除玩家等级",
   "createPlayerLevel": "创建玩家等级",

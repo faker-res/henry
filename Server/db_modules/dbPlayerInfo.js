@@ -16712,22 +16712,7 @@ let dbPlayerInfo = {
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
                             rewardData.selectedTopup = timeCheckData[0];
-
-                            //special handling for eu大爆炸, random reward group reward
-                            if (timeCheckData[0] && timeCheckData[1] && timeCheckData[1][0] && timeCheckData[0].settlementTime < timeCheckData[1][0].createTime
-                                && (rewardEvent.type.name != constRewardType.PLAYER_TOP_UP_RETURN || (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN
-                                    && (rewardEvent.validStartTime || rewardEvent.validEndTime)))) {
-                                // There is consumption after top up
-                                if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
-                                    // Bypass this checking
-                                } else {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "There is consumption after top up"
-                                    });
-                                }
-                            }
+                            rewardData.lastConsumptionData = timeCheckData[1];
 
                             // if there is a pending reward, then no other reward can be applied.
                             if (timeCheckData[2] && timeCheckData[2] > 0) {
@@ -16741,20 +16726,6 @@ let dbPlayerInfo = {
                             }
 
                             switch (rewardEvent.type.name) {
-                                //first top up
-                                case constRewardType.FIRST_TOP_UP:
-                                    if (data.topUpRecordId && !data.topUpRecordIds) {
-                                        data.topUpRecordIds = [data.topUpRecordId];
-                                    }
-                                    if (data.topUpRecordIds == null) {
-                                        return Q.reject({
-                                            status: constServerCode.INVALID_DATA,
-                                            name: "Missing top up record ids",
-                                            message: "Invalid Data"
-                                        });
-                                    }
-                                    return dbPlayerInfo.applyForFirstTopUpRewardProposal(userAgent, null, playerId, data.topUpRecordIds, code, adminInfo);
-                                    break;
                                 //provider reward
                                 case constRewardType.GAME_PROVIDER_REWARD:
                                     if (data.amount == null) {
@@ -26792,12 +26763,6 @@ function checkRouteSetting(url, setting) {
     }
 
     return url;
-}
-
-function isRandomRewardConsumption(rewardEvent) {
-    return rewardEvent.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP && rewardEvent.param.rewardParam
-        && rewardEvent.param.rewardParam[0] && rewardEvent.param.rewardParam[0].value
-        && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
 function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, topUpSummary, consumptionSummary, checkLevelUp) {
