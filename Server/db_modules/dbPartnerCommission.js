@@ -71,7 +71,7 @@ const dbPartnerCommission = {
         if (partner.partnerName == "pishtest01") {
             console.log('dePa3', 0.4)
         }
-        mainPartner.commissionType = commissionType || mainPartner.commissionType;
+        mainPartner.commissionType = commissionType || partner.commissionType || mainPartner.commissionType; // maybe remove partner.commissionType in future so that it always follow parent commission
         if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
             console.error("Please select a commission type -", partner.partnerName)
             return Promise.reject({message: "Please select a commission type"});
