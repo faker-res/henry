@@ -6646,7 +6646,7 @@ let dbPlayerInfo = {
                                                 {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
                                             platform: platformData._id,
-                                            'permission.forbidPlayerFromLogin': {$ne: true}
+                                            // 'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
                                     ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
@@ -6654,7 +6654,18 @@ let dbPlayerInfo = {
                         ).then(
                             async player => {
                                 if (player && player.length) {
-                                    let thisPlayer = player[0];
+                                    let thisPlayer;
+
+                                    for (i = 0; i < player.length; i++) {
+                                        if (!player[i].permission.forbidPlayerFromLogin) {
+                                            thisPlayer = player[i];
+                                            break;
+                                        }
+                                    }
+
+                                    if (!thisPlayer) {
+                                        return Promise.reject({name: "DataError", message: "Player is forbidden to login"});
+                                    }
 
                                     if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
