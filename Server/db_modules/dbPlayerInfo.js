@@ -6723,7 +6723,11 @@ let dbPlayerInfo = {
                                     }
 
                                     if (!thisPlayer) {
-                                        return Promise.reject({name: "DataError", message: "Player is forbidden to login"});
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Player is forbidden to login",
+                                            isRegisterError: true
+                                        });
                                     }
 
                                     if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
