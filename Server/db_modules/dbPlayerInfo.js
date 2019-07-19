@@ -6656,7 +6656,7 @@ let dbPlayerInfo = {
                                 if (player && player.length) {
                                     let thisPlayer;
 
-                                    for (i = 0; i < player.length; i++) {
+                                    for (let i = 0; i < player.length; i++) {
                                         if (!player[i].permission.forbidPlayerFromLogin) {
                                             thisPlayer = player[i];
                                             break;
