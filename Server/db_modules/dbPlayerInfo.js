@@ -419,7 +419,7 @@ let dbPlayerInfo = {
     },
 
     createGuestPlayer: function (inputData, deviceData) {
-        let platform, guestPlayerData;
+        let platform, guestPlayerData, newPlayerData;
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -571,7 +571,7 @@ let dbPlayerInfo = {
                                         return Promise.reject({name: "DataError", message: "Can't create new player."});
                                     }
 
-                                    let newPlayerData = playerData;
+                                    newPlayerData = playerData;
 
                                     newPlayerData.password = String(inputData.guestDeviceId);
                                     newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
@@ -606,11 +606,42 @@ let dbPlayerInfo = {
                                         }
                                     )
                             ).then(
-                                data => {
-                                    if (data) {
-                                        return dbPlayerInfo.createPlayerRewardPointsRecord(data.platform, data._id, false);
+                                () => {
+                                    // if this player is from ebet4.0 , create a ebet user at cpms too.
+                                    if (platform.isEbet4) {
+                                         //56 - ebet
+                                        return cpmsAPI.player_addPlayer({
+                                            "username": newPlayerData.name,
+                                            "platformId": platform.platformId,
+                                            "providerId": "56"
+                                        });
                                     }
-                                    else {
+                                    return
+                                }
+                            ).then(
+                                (cpmsPlayer) => {
+                                    if (platform.isEbet4 && !cpmsPlayer) {
+                                        // if the create user by cpms failed, then we will delete fpms user as well
+                                        return dbconfig.collection_players.findOneAndRemove({
+                                            _id: newPlayerData._id,
+                                            platform: newPlayerData.platform
+                                        }).lean();
+                                    }
+                                    return
+                                }
+                            ).then(
+                                data => {
+                                    if (!data) {
+                                        // findOneAndRemove return false
+                                        // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
+                                        // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
+                                        console.log('MT --checking createPlayerRewardPointsRecord', newPlayerData.platform, newPlayerData._id)
+                                        return dbPlayerInfo.createPlayerRewardPointsRecord(newPlayerData.platform, newPlayerData._id, false);
+                                    }
+                                    if (data && platform.isEbet4) {
+                                        // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
+                                        return Q.reject({name: "DataError", message: localization.localization.translate("Ebet Account created Failed")});
+                                    } else {
                                         return data;
                                     }
                                 }
