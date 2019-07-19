@@ -10602,7 +10602,7 @@ let dbPartner = {
                 returnData.stats.crewProfitTotal.downLinePlayer += player.bonusAmountSum;
             })
             returnData.stats.downLinePlayerCount = playersObj.length;
-            returnData.stats.downLinePartnerPlayerCount += playersObj.length;
+            // returnData.stats.downLinePartnerPlayerCount += playersObj.length;
             await dbPartner.getValidPlayers(playersObj).then(
                 validPlayer => {
                     if (validPlayer && validPlayer.size) {
@@ -11492,11 +11492,11 @@ let dbPartner = {
                         let index = allPartnerList.findIndex(x => x && x.partnerAccount && data.partnerName && (x.partnerAccount === data.partnerName));
 
                         let commType;
-                        if (Number(data.commissionType) === constPartnerCommissionType.DAILY_CONSUMPTION) {
-                            commType = 1;
-                        } else {
-                            commType = Number(data.commissionType);
-                        }
+                        // if (Number(data.commissionType) === constPartnerCommissionType.DAILY_CONSUMPTION) {
+                        //     commType = 1;
+                        // } else {
+                        commType = Number(data.commissionType);
+                        // }
 
                         if (index > -1) {
                             allPartnerList[index].crewProfit += data.crewProfit,
