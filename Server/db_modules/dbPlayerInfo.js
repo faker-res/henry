@@ -613,7 +613,7 @@ let dbPlayerInfo = {
                                          //56 - ebet
                                         return cpmsAPI.player_addPlayer({
                                             "username": newPlayerData.name,
-                                            "platformId": newPlayerData.platform,
+                                            "platformId": platform.platformId,
                                             "providerId": "56"
                                         });
                                     }
