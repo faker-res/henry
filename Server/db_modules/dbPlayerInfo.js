@@ -3187,7 +3187,7 @@ let dbPlayerInfo = {
         )
     },
 
-    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
+    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code, userAgent) {
         let platformObj;
         let playerObj;
         let paymentSystemId;
@@ -3380,6 +3380,36 @@ let dbPlayerInfo = {
                 }
                 returnData.password = resData.defaultPassword;
                 dbPlayerInfo.resetPlayerPassword(playerObj._id, resData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
+
+                let proposalData = {
+                    creator:
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        _id: playerObj._id,
+                        playerId: playerObj.playerId,
+                        platformId: platformObj._id,
+                        isIgnoreAudit: true,
+                        updatePassword: true,
+                        remark: '重设密码'
+                    },
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                };
+
+                if (userAgent) {
+                    let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                    proposalData.inputDevice = inputDeviceData;
+                } else {
+                    let inputDeviceData = dbUtility.getInputDevice('', false);
+                    proposalData.inputDevice = inputDeviceData;
+                }
+
+                dbProposal.createProposalWithTypeName(platformObj._id, constProposalType.UPDATE_PLAYER_INFO, proposalData);
+
                 return returnData;
             }
         )
