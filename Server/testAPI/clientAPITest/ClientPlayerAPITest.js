@@ -709,6 +709,17 @@
         });
     };
 
+    proto.setPhoneNumber = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.setPhoneNumber.request(data);
+        this.playerService.setPhoneNumber.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.getClientData = function (callback, requestData) {
         let data = requestData || {};
 

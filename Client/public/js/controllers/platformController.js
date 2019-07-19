@@ -679,6 +679,9 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformFilterByPlatform = function (platformObjId) {
                 vm.showPlatformDetailTab(null);
+                if (vm.platformPageName == 'platformSetting'){
+                    vm.rewardTabClicked(null, platformObjId);
+                }
                 let findPlatform = vm.allPlatformData.filter(e => e._id.toString() === platformObjId.toString());
                 if (findPlatform && findPlatform.length > 0) {
                     vm.showPlatform = {};

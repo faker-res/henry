@@ -1332,6 +1332,33 @@ define([], () => {
             }
             // end region
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerPhone") {
+                proposalDetail = {};
+                console.log(vm.selectedProposal.data)
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_Id"] = vm.selectedProposal.data.playerId;
+                proposalDetail["Player Level"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PrevPhone"] = (vm.selectedProposal.data && vm.selectedProposal.data.curData && vm.selectedProposal.data.curData.phoneNumber) ? vm.selectedProposal.data.curData.phoneNumber: '';
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                if (vm.selectedProposal.data.updateData && vm.selectedProposal.data.updateData["phoneNumber"]) {
+                    proposalDetail["PhoneNow"] = vm.selectedProposal.data.updateData["phoneNumber"];
+                }
+                if (vm.selectedProposal.data.updateData && vm.selectedProposal.data.updateData["phoneCity"]) {
+                    proposalDetail["phoneCity"] = vm.selectedProposal.data.updateData["phoneCity"];
+                }
+                if (vm.selectedProposal.data.updateData && vm.selectedProposal.data.updateData["phoneProvince"]) {
+                    proposalDetail["phoneProvince"] = vm.selectedProposal.data.updateData["phoneProvince"];
+                }
+                if (vm.selectedProposal.data.updateData && vm.selectedProposal.data.updateData["phoneType"]) {
+                    proposalDetail["phoneType"] = vm.selectedProposal.data.updateData["phoneType"];
+                }
+            }
+
             // region Parent Partner Commission Proposal
 
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerPromoCodeReward") {

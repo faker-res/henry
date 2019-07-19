@@ -577,7 +577,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.lastExecutedTime = null;")
-                h4.modal-title {{"PlayerReward" | translate}}{{"SETTLEMENT" | translate}} : {{vm.selectedPlatform.text}}
+                h4.modal-title {{"PlayerReward" | translate}}{{"SETTLEMENT" | translate}} : {{vm.showPlatform && vm.showPlatform.name ? vm.showPlatform.name : null}}
             .modal-body
                 label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
                 br
