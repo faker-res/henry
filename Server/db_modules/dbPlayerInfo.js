@@ -3517,9 +3517,6 @@ let dbPlayerInfo = {
                                     if (userAgent) {
                                         let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
                                         proposalData.inputDevice = inputDeviceData;
-                                    } else {
-                                        let inputDeviceData = dbUtility.getInputDevice('', false);
-                                        proposalData.inputDevice = inputDeviceData;
                                     }
 
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
