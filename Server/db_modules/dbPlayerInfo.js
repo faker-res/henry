@@ -479,7 +479,7 @@ let dbPlayerInfo = {
                             if (inputData.clientDomain) {
                                 guestPlayer.clientDomain = inputData.clientDomain;
                             }
-                            return dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true).catch(errorUtils.reportError);
+                            return dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true);
                         } else {
                             let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
                             promArr.push(guestNameProm);
@@ -6413,13 +6413,6 @@ let dbPlayerInfo = {
                 let record = new dbconfig.collection_playerLoginRecord(recordData);
 
                 return record.save();
-            },
-            error => {
-                return Promise.reject({
-                    name: "DBError",
-                    message: "Error in updating player",
-                    error: error
-                });
             }
         ).then(
             record => {
@@ -6709,7 +6702,7 @@ let dbPlayerInfo = {
                                                 {phoneNumber: rsaCrypto.legacyEncrypt(loginData.phoneNumber)}
                                             ],
                                             platform: platformData._id,
-                                            'permission.forbidPlayerFromLogin': {$ne: true}
+                                            // 'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
                                     ).sort({lastAccessTime: -1}).limit(1).lean();
                                 }
@@ -6717,7 +6710,22 @@ let dbPlayerInfo = {
                         ).then(
                             async player => {
                                 if (player && player.length) {
-                                    let thisPlayer = player[0];
+                                    let thisPlayer;
+
+                                    for (let i = 0; i < player.length; i++) {
+                                        if (!player[i].permission.forbidPlayerFromLogin) {
+                                            thisPlayer = player[i];
+                                            break;
+                                        }
+                                    }
+
+                                    if (!thisPlayer) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Player is forbidden to login",
+                                            isRegisterError: true
+                                        });
+                                    }
 
                                     if (checkLastDeviceId && thisPlayer.deviceId && loginData.deviceId && thisPlayer.deviceId != loginData.deviceId) {
                                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
@@ -9536,16 +9544,17 @@ let dbPlayerInfo = {
             let rewardEntryProm = Promise.resolve();
             let rewardListProm = Promise.resolve();
 
+            console.log("checking getRewardList - device", [device, eventObjId, playerDetail && playerDetail._id ? playerDetail._id : null]);
             if (condition && condition[device] && condition[device].visibleFromHomePage && condition[device].visibleFromHomePage.visible){
-                homePopupProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device);
+                homePopupProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromHomePage, device, 'visibleFromHomePage');
             }
 
             if (condition && condition[device] && condition[device].visibleFromRewardEntry && condition[device].visibleFromRewardEntry.visible){
-                rewardEntryProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device);
+                rewardEntryProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardEntry, device, 'visibleFromRewardEntry');
             }
 
             if (condition && condition[device] && condition[device].visibleFromRewardList && condition[device].visibleFromRewardList.visible){
-                rewardListProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device);
+                rewardListProm = dbPlayerInfo.checkIfClientCanSee(playerObjId, eventObjId, condition[device].visibleFromRewardList, device, 'visibleFromRewardList');
             }
 
             return Promise.all([homePopupProm, rewardEntryProm, rewardListProm]).then(
@@ -9636,7 +9645,7 @@ let dbPlayerInfo = {
         }
     },
 
-    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition, device) {
+    checkIfClientCanSee: function(playerObjId, rewardEventId, rewardEventCondition, device, type) {
         let phoneNumberBindingProm;
         let newPlayerProm;
         let firstLoginProm;
@@ -9682,6 +9691,7 @@ let dbPlayerInfo = {
 
         return Promise.all([phoneNumberBindingProm, newPlayerProm, firstLoginProm, playerLevelProm, creditLessThanProm, appliedFollowingRewardProm, topUpCountMoreThanProm, appliedCurrentRewardProm]).then(
             visibleResult => {
+                console.log("checking getRewardList - visibleResult ", [visibleResult, rewardEventId, playerObjId, type]);
                 let isVisible = true;
                 if(visibleResult && visibleResult.length){
                     visibleResult.forEach(
@@ -20699,7 +20709,7 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
 
         let matchObj = {
-            platform: platform,
+            platform: ObjectId(platform)
         };
 
         if(query){
@@ -20711,14 +20721,31 @@ let dbPlayerInfo = {
             }
         }
 
-        if(query && query.credibilityRemarks && query.credibilityRemarks.length){
-            query.credibilityRemarks = query.credibilityRemarks.map(
-                creditRemarkId => {
-                    creditRemarkId = ObjectId(creditRemarkId);
-                    return creditRemarkId;
-                });
-            matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
+
+        //     if(query && query.credibilityRemarks && query.credibilityRemarks.length){
+        //     query.credibilityRemarks = query.credibilityRemarks.map(
+        //         creditRemarkId => {
+        //             creditRemarkId = ObjectId(creditRemarkId);
+        //             return creditRemarkId;
+        //         });
+        //     matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
+        // }
 
         let stream = dbconfig.collection_players.find(matchObj).populate(
             [
@@ -20751,7 +20778,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 50,
+                        batchSize: 10,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20836,6 +20863,8 @@ let dbPlayerInfo = {
                                                 retData[t._id.playerId][t._id.date].date = t._id.date;
                                                 retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
                                                 retData[t._id.playerId][t._id.date].topUpCount = t.count;
+                                                retData[t._id.playerId][t._id.date].providerInfo = provider;
+
 
                                                 if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
                                                     retData[t._id.playerId][t._id.date].playerInfo = player;
@@ -20854,6 +20883,8 @@ let dbPlayerInfo = {
                                                 retData[b._id.playerId][b._id.date].date = b._id.date;
                                                 retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
                                                 retData[b._id.playerId][b._id.date].bonusCount = b.count;
+                                                retData[b._id.playerId][b._id.date].providerInfo = provider;
+
 
                                                 if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
                                                     retData[b._id.playerId][b._id.date].playerInfo = player;
