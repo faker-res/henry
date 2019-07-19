@@ -20646,7 +20646,7 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
 
         let matchObj = {
-            platform: platform,
+            platform: ObjectId(platform)
         };
 
         if(query){
@@ -20658,14 +20658,31 @@ let dbPlayerInfo = {
             }
         }
 
-        if(query && query.credibilityRemarks && query.credibilityRemarks.length){
-            query.credibilityRemarks = query.credibilityRemarks.map(
-                creditRemarkId => {
-                    creditRemarkId = ObjectId(creditRemarkId);
-                    return creditRemarkId;
-                });
-            matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
+
+        //     if(query && query.credibilityRemarks && query.credibilityRemarks.length){
+        //     query.credibilityRemarks = query.credibilityRemarks.map(
+        //         creditRemarkId => {
+        //             creditRemarkId = ObjectId(creditRemarkId);
+        //             return creditRemarkId;
+        //         });
+        //     matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
+        // }
 
         let stream = dbconfig.collection_players.find(matchObj).populate(
             [
@@ -20698,7 +20715,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 50,
+                        batchSize: 10,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20783,6 +20800,8 @@ let dbPlayerInfo = {
                                                 retData[t._id.playerId][t._id.date].date = t._id.date;
                                                 retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
                                                 retData[t._id.playerId][t._id.date].topUpCount = t.count;
+                                                retData[t._id.playerId][t._id.date].providerInfo = provider;
+
 
                                                 if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
                                                     retData[t._id.playerId][t._id.date].playerInfo = player;
@@ -20801,6 +20820,8 @@ let dbPlayerInfo = {
                                                 retData[b._id.playerId][b._id.date].date = b._id.date;
                                                 retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
                                                 retData[b._id.playerId][b._id.date].bonusCount = b.count;
+                                                retData[b._id.playerId][b._id.date].providerInfo = provider;
+
 
                                                 if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
                                                     retData[b._id.playerId][b._id.date].playerInfo = player;
