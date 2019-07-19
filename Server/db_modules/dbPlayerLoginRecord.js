@@ -697,9 +697,8 @@ var dbPlayerLoginRecord = {
                         isTestPlayer: isTestPlayer
                     };
 
-
                     if(inputDeviceTypes) {
-                        queryObj.inputDeviceType = {$in: inputDeviceTypes};
+                        queryObj.registrationInterface = {$in: inputDeviceTypes};
                     }
 
                     if (domainList){
@@ -777,6 +776,10 @@ var dbPlayerLoginRecord = {
                                     $lt: new Date(time1)
                                 }
                             };
+
+                            if(inputDeviceTypes) {
+                                matchObj.inputDeviceType = {$in: inputDeviceTypes};
+                            }
 
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
