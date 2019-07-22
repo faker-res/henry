@@ -1,10 +1,16 @@
 div
-    div
+    div.col-md-12.well
+        .search-filters-item
+            label {{'PRODUCT_NAME'| translate}}
+            //select.spicker.form-control(ng-model='vm.monitorConsumptionRecordPlatform', bsp, data-actions-box='true' ng-change="vm.changeWinnerMonitorPlatform()", ng-options='v._id as v.name for v in vm.platformByAdminId')
+            select.form-control(ng-model='vm.monitorConsumptionRecordPlatform' ng-change='vm.monitorConsumptionRecordPlatformOnChange(vm.monitorConsumptionRecordPlatform)')
+                option(ng-repeat='(i,v) in vm.platformByAdminId' value='{{v._id}}') {{v.name}}
+    div(ng-show="vm.monitorConsumptionRecordPlatform")
         label &nbsp;
         button.btn.btn-success(ng-click='vm.refreshConsumptionRecord(true)') {{'Refresh' | translate}}
         span#consumptionRecordSpin.collapse
             i.fa.fa-spinner.fa-spin
-    div.clearfix
+    div.clearfix(ng-show="vm.monitorConsumptionRecordPlatform")
         .proposalMessage
             text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastConsumptionRefresh}}
             label.text-danger.newProposalAlert
@@ -17,7 +23,7 @@ div
                     text {{"Time left until next refresh" | translate}} :&nbsp;
                     text#timeLeftRefreshOperation {{vm.refreshTime}}
                     text s
-    #consumptionRecordMonitor.block-query.col-md-12.well
+    #consumptionRecordMonitor.block-query.col-md-12.well(ng-show="vm.monitorConsumptionRecordPlatform")
         table.simple-table
             thead
                 tr
