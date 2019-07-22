@@ -14,7 +14,9 @@ var proposalTypeProcessStepSchema = new Schema({
     //assigned department
     department: {type:Schema.Types.ObjectId, ref:'department'},
     //assigned role
-    role:{type:Schema.Types.ObjectId, ref:'role'}
+    role:{type:Schema.Types.ObjectId, ref:'role'},
+    // Trigger amount for audit
+    triggerAmount: {type: Number, default: 0}
 });
 
 module.exports = proposalTypeProcessStepSchema;

@@ -224,8 +224,18 @@ var dbPlatformGameStatus = {
         let playerRouteSetting = null;
         let gamesInGroup = null;
 
+        console.log('platformId===', platformId);
+        console.log('name===', name);
+        console.log('type===', type);
+        console.log('groupCode===', groupCode);
+        console.log('playerId===', playerId);
+        console.log('playGameType===', playGameType);
+        console.log('providerId===', providerId);
         return Promise.all([platformProm, typeProm, groupProm]).then(
             data => {
+                console.log('data[0]===', data[0]);
+                console.log('data[1]===', data[1]);
+                console.log('data[2]===', data[2]);
                 if (data && data[0]) {
                     playerRouteSetting = data[0].playerRouteSetting;
 
@@ -266,6 +276,9 @@ var dbPlatformGameStatus = {
                     if (games && games.length > 0) {
                         queryObj.game = {$in: games};
                     }
+                    console.log('queryObj===11', queryObj);
+                    console.log('bGames===', bGames);
+                    console.log('games===', games);
 
                     if (bGames && (!games || games.length === 0)) {
                         return [];
@@ -281,6 +294,7 @@ var dbPlatformGameStatus = {
         ).then(
             data => {
                 platformGames = data;
+                console.log('platformGames===', platformGames);
                 let changedNameSearch = {};
                 let queryObj = {
                     $or: []
@@ -300,6 +314,8 @@ var dbPlatformGameStatus = {
                 if (queryField && changedNameSearch) {
                     let customNameObj = {};
                     customNameObj[queryField] = changedNameSearch;
+                    console.log('customNameObj===', customNameObj);
+                    console.log('gamesInGroup===', gamesInGroup);
                     if (gamesInGroup && gamesInGroup.length) {
                         queryObj.$or.push({$and: [customNameObj, {_id: {$in: gamesInGroup}}]});
                     } else {
@@ -310,6 +326,8 @@ var dbPlatformGameStatus = {
                 if (playGameType) {
                     queryObj.playGameType = playGameType;
                 }
+                console.log('queryObj===', queryObj);
+                console.log('queryObj.$or===', queryObj.$or);
 
                 return dbconfig.collection_game.find(queryObj)
                     .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
@@ -317,6 +335,7 @@ var dbPlatformGameStatus = {
             }
         ).then(
             games => {
+                console.log('games===', games);
                 if (games && games.length > 0) {
                     if(providerId){
                         games = games.filter(game => game.status != 4 && game.provider.providerId == providerId);

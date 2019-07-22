@@ -34754,6 +34754,7 @@ define(['js/app'], function (myApp) {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
                 vm.tempNewNodeRole = '';
+                vm.tempTriggerAmount = 0;
                 vm.expResMsg = '';
                 vm.expShowSubmit = true;
             }
@@ -34772,6 +34773,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.tempNewNodeRole) return;
                 vm.tempRoleID = roleNode._id;
                 vm.tempRoleName = roleNode.roleName;
+                vm.tempEditTriggerAmount = roleNode.triggerAmount;
                 console.log("selected department ", vm.tempDepartmentName);
                 console.log("selected role ", vm.tempRoleName);
             }
@@ -34806,11 +34808,14 @@ define(['js/app'], function (myApp) {
                     vm.tempAllRoles = data.data.roles;
                     $.each(vm.tempAllRoles, function (i, v) {
                         if (v.roleName == vm.tempNodeRoleName) {
+                            vm.tempEditRoleID = v._id;
                             vm.tempEditRoleName = v.roleName;
                             $scope.safeApply();
                             return true;
                         }
                     })
+
+                    vm.tempEditTriggerAmount = vm.tempNodeTriggerAmount;
                     $scope.safeApply();
                 }
             }
@@ -34826,15 +34831,17 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateProposalStepData = function () {
-                var updateNode = {
+                let updateNode = {
                     name: vm.tempNodeName,
                     id: vm.curNodeID,
                     departmentData: {id: vm.tempEditDepartID, name: vm.tempEditDepartName},
-                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName}
-                }
+                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName},
+                    triggerAmount: vm.tempEditTriggerAmount
+                };
                 vm.chartViewModel.updateNode(vm.curNodeID, updateNode);
                 vm.tempNodeDepartmentName = vm.tempEditDepartName;
                 vm.tempNodeRoleName = vm.tempEditRoleName;
+                vm.tempNodeTriggerAmount = vm.tempEditTriggerAmount;
                 socketService.setProposalNodeData();
                 $scope.safeApply();
             }
@@ -34919,12 +34926,6 @@ define(['js/app'], function (myApp) {
             // Add a new node to the chart.
             //
             vm.addNewNode = function () {
-                //todo
-                //var nodeName = prompt("Enter a node name:", "New node");
-                //if (!nodeName) {
-                //    return;
-                //}
-
                 //
                 // Template for a new node.
                 //
@@ -34941,6 +34942,7 @@ define(['js/app'], function (myApp) {
                     //departmentName: vm.tempNewNodeDepartment.departmentName,
                     //roleName: vm.tempNewNodeRole.roleName,
                     roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: vm.tempTriggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -35020,6 +35022,11 @@ define(['js/app'], function (myApp) {
                                 department: node.departmentData.id,
                                 role: node.roleData.id
                             };
+
+                            if (node.triggerAmount && node.triggerAmount.value) {
+                                steps[node.id].triggerAmount = node.triggerAmount.value;
+                            }
+
                             usedRoleId.push(node.roleData.id);
                         }
                         else {
@@ -35172,6 +35179,7 @@ define(['js/app'], function (myApp) {
                         label: $translate("DEPARTMENT")
                     },
                     roleData: {id: data.role._id, name: data.role.roleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: data.triggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -35738,6 +35746,7 @@ define(['js/app'], function (myApp) {
                         vm.tempNodeDepartmentID = newValue.departmentData.id;
                         vm.tempNodeRoleName = newValue.roleData.name;
                         vm.tempNodeRoleID = newValue.roleData.id;
+                        vm.tempNodeTriggerAmount = newValue.triggerAmount.value;
                         $scope.safeApply();
                     }
                 });
