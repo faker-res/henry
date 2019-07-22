@@ -21236,7 +21236,7 @@ let dbPlayerInfo = {
                 }
 
                 let db_password = String(playerData.password);
-                if (db_password && playerPassword === db_password ) {
+                if (playerPassword && db_password && (playerPassword === db_password) && playerPassword.length > 0) {
                     console.log('MT --checking playerPassword === db_password', playerPassword, db_password )
                     return true;
                 }
