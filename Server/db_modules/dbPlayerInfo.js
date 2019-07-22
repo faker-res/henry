@@ -20897,7 +20897,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 100,
+                        batchSize: 10,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
