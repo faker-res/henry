@@ -211,7 +211,7 @@ const dbRewardUtility = {
         }).populate({
             path: "type", model: dbConfig.collection_rewardType
         }).lean().then(
-            rewardEventData => {
+            async rewardEventData => {
                 rewardEvent = rewardEventData;
 
                 if (
@@ -263,6 +263,7 @@ const dbRewardUtility = {
 
                     if (rewardEvent.condition && rewardEvent.condition.interval) {
                         intervalTime = dbRewardUtility.getRewardEventIntervalTime(rewardData, rewardEvent);
+                        await dbRewardUtility.checkRewardApplyDeviceDetails(rewardEvent, player, intervalTime);
                     }
                     let todayTime = dbUtil.getTodaySGTime();
 

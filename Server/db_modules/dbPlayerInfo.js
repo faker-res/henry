@@ -612,7 +612,7 @@ let dbPlayerInfo = {
                                          //56 - ebet
                                         return cpmsAPI.player_addPlayer({
                                             "username": newPlayerData.name,
-                                            "platformId": newPlayerData.platform,
+                                            "platformId": platform.platformId,
                                             "providerId": "56"
                                         });
                                     }
@@ -3218,7 +3218,7 @@ let dbPlayerInfo = {
         )
     },
 
-    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
+    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code, userAgent) {
         let platformObj;
         let playerObj;
         let paymentSystemId;
@@ -3411,6 +3411,36 @@ let dbPlayerInfo = {
                 }
                 returnData.password = resData.defaultPassword;
                 dbPlayerInfo.resetPlayerPassword(playerObj._id, resData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
+
+                let proposalData = {
+                    creator:
+                        {
+                            type: 'player',
+                            name: playerObj.name,
+                            id: playerObj._id
+                        },
+                    data: {
+                        _id: playerObj._id,
+                        playerId: playerObj.playerId,
+                        platformId: platformObj._id,
+                        isIgnoreAudit: true,
+                        updatePassword: true,
+                        remark: '重设密码'
+                    },
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                };
+
+                if (userAgent) {
+                    let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                    proposalData.inputDevice = inputDeviceData;
+                } else {
+                    let inputDeviceData = dbUtility.getInputDevice('', false);
+                    proposalData.inputDevice = inputDeviceData;
+                }
+
+                dbProposal.createProposalWithTypeName(platformObj._id, constProposalType.UPDATE_PLAYER_INFO, proposalData);
+
                 return returnData;
             }
         )
@@ -20810,7 +20840,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 10,
+                        batchSize: 100,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20859,73 +20889,76 @@ let dbPlayerInfo = {
 
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
-                        consumptionRecord.map(c => {
-                            topUpRecord.map(t => {
-                                bonusRecord.map(b => {
-                                    providerInfo.map(provider => {
-                                        let providerDate = provider.createTime;
-                                        if (provider && provider.providerId && (JSON.stringify(c._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                            if (c && c._id) {
-                                                if (!retData[c._id.playerId]) {
-                                                    retData[c._id.playerId] = {};
-                                                }
-                                                if (!retData[c._id.playerId][c._id.date]) {
-                                                    retData[c._id.playerId][c._id.date] = {};
-                                                }
-                                                retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
-                                                retData[c._id.playerId][c._id.date].date = c._id.date;
-                                                retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
-                                                retData[c._id.playerId][c._id.date].consumptionCount = c.count;
-                                                retData[c._id.playerId][c._id.date].providerInfo = provider;
-
-                                                if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
-                                                    retData[c._id.playerId][c._id.date].playerInfo = player;
-                                                }
-                                            }
+                        providerInfo.map(provider => {
+                            let providerDate = provider.createTime;
+                            consumptionRecord.map(c => {
+                                if (provider && provider.providerId && (JSON.stringify(c._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
+                                    if (c && c._id) {
+                                        if (!retData[c._id.playerId]) {
+                                            retData[c._id.playerId] = {};
                                         }
-                                        if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                            if (t && t._id) {
-                                                if (!retData[t._id.playerId]) {
-                                                    retData[t._id.playerId] = {};
-                                                }
-                                                if (!retData[t._id.playerId][t._id.date]) {
-                                                    retData[t._id.playerId][t._id.date] = {};
-                                                }
-                                                retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
-                                                retData[t._id.playerId][t._id.date].date = t._id.date;
-                                                retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
-                                                retData[t._id.playerId][t._id.date].topUpCount = t.count;
-                                                retData[t._id.playerId][t._id.date].providerInfo = provider;
-
-
-                                                if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
-                                                    retData[t._id.playerId][t._id.date].playerInfo = player;
-                                                }
-                                            }
+                                        if (!retData[c._id.playerId][c._id.date]) {
+                                            retData[c._id.playerId][c._id.date] = {};
                                         }
-                                        if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                            if (b && b._id) {
-                                                if (!retData[b._id.playerId]) {
-                                                    retData[b._id.playerId] = {};
-                                                }
-                                                if (!retData[b._id.playerId][b._id.date]) {
-                                                    retData[b._id.playerId][b._id.date] = {};
-                                                }
-                                                retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
-                                                retData[b._id.playerId][b._id.date].date = b._id.date;
-                                                retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
-                                                retData[b._id.playerId][b._id.date].bonusCount = b.count;
-                                                retData[b._id.playerId][b._id.date].providerInfo = provider;
+                                        retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
+                                        retData[c._id.playerId][c._id.date].date = c._id.date;
+                                        retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
+                                        retData[c._id.playerId][c._id.date].consumptionCount = c.count;
+                                        retData[c._id.playerId][c._id.date].providerInfo = provider;
 
-
-                                                if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
-                                                    retData[b._id.playerId][b._id.date].playerInfo = player;
-                                                }
-                                            }
+                                        if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
+                                            retData[c._id.playerId][c._id.date].playerInfo = player;
                                         }
-                                    });
-                                });
+                                    }
+                                }
                             });
+
+                            topUpRecord.map(t => {
+                                if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
+                                    if (t && t._id) {
+                                        if (!retData[t._id.playerId]) {
+                                            retData[t._id.playerId] = {};
+                                        }
+                                        if (!retData[t._id.playerId][t._id.date]) {
+                                            retData[t._id.playerId][t._id.date] = {};
+                                        }
+                                        retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
+                                        retData[t._id.playerId][t._id.date].date = t._id.date;
+                                        retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
+                                        retData[t._id.playerId][t._id.date].topUpCount = t.count;
+                                        retData[t._id.playerId][t._id.date].providerInfo = provider;
+
+
+                                        if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
+                                            retData[t._id.playerId][t._id.date].playerInfo = player;
+                                        }
+                                    }
+                                }
+                            });
+
+                            bonusRecord.map(b => {
+                                if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
+                                    if (b && b._id) {
+                                        if (!retData[b._id.playerId]) {
+                                            retData[b._id.playerId] = {};
+                                        }
+                                        if (!retData[b._id.playerId][b._id.date]) {
+                                            retData[b._id.playerId][b._id.date] = {};
+                                        }
+                                        retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
+                                        retData[b._id.playerId][b._id.date].date = b._id.date;
+                                        retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
+                                        retData[b._id.playerId][b._id.date].bonusCount = b.count;
+                                        retData[b._id.playerId][b._id.date].providerInfo = provider;
+
+
+                                        if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
+                                            retData[b._id.playerId][b._id.date].playerInfo = player;
+                                        }
+                                    }
+                                }
+                            });
+
                         });
                     });
 
