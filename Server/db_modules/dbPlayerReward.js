@@ -8746,7 +8746,9 @@ let dbPlayerReward = {
 
         function setSelectedRewardParam (eventData, playerData) {
             let retObj = {};
-
+            let ignoredEventList = [
+                constRewardType.PLAYER_RANDOM_REWARD_GROUP
+            ];
             if (eventData.condition.isPlayerLevelDiff) {
                 retObj = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
             } else {
@@ -8762,6 +8764,7 @@ let dbPlayerReward = {
                 && !retObj[0].rewardPercent
                 // special handling for 特别节日
                 && (!retObj[3] || !retObj[3].rewardAmount)
+                && (eventData.type && eventData.type.name && !ignoredEventList.includes(eventData.type.name))
             ) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
