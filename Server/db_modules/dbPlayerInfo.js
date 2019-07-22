@@ -20568,6 +20568,7 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -20587,6 +20588,7 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
+                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$data.playerObjId'},
                     totalAmount: {"$sum": "$data.amount"},
                     count: {"$sum": 1}
                 }
@@ -20606,6 +20608,7 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                 }
@@ -20715,7 +20718,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 10,
+                        batchSize: 1,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20759,8 +20762,30 @@ let dbPlayerInfo = {
                 //     playerInfo: playerInfo
                 // };
 
+
+                console.log('topUpRecord.......', topUpRecord);
+                console.log('consumptionRecord.......', consumptionRecord);
+                console.log('bonusRecord.......', bonusRecord);
+                console.log('providerInfo.......', providerInfo);
+                console.log('playerInfo.......', playerInfo);
+
+
+
                 let outputData = [];
                 let retData = {};
+
+                // consumptionRecord.map(c => {
+                //     c._id.date = c._id.date.year + "-" + c._id.date.month + "-" + c._id.date.day;
+                // });
+                //
+                // topUpRecord.map(t => {
+                //     t._id.date = t._id.date.year + "-" + t._id.date.month + "-" + t._id.date.day;
+                // });
+                //
+                // bonusRecord.map(b => {
+                //     b._id.date = b._id.date.year + "-" + b._id.date.month + "-" + b._id.date.day;
+                // });
+
 
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
