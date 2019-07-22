@@ -26393,7 +26393,7 @@ let dbPlayerInfo = {
         return retArr;
     },
 
-    countAppPlayer: (platformId, period, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
+    countAppPlayer: (platformId, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
         let promoteWayProm = Promise.resolve(true);
         let proms = [];
 
@@ -26407,102 +26407,88 @@ let dbPlayerInfo = {
 
         return promoteWayProm.then(
             promoteWayData => {
-                let dayStartTime = startDate;
-                let getNextDate;
-                let dateRange = 0;
-                let periodRange = 0;
-                dateRange = (new Date(endDate) - new Date(startDate)) || 0;
+                let timeSlot = dbUtil.splitTimeFrameToDaily(startDate, endDate)
 
-                switch (period) {
-                    case 'day':
-                        periodRange = 24 * 3600 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(newDate.setDate(newDate.getDate() + 1));
-                        }
-                        break;
-                    case 'week':
-                        periodRange = 24 * 3600 * 7 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(newDate.setDate(newDate.getDate() + 7));
-                        }
-                        break;
-                    case 'month':
-                    default:
-                        periodRange = 24 * 3600 * 30 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
-                        }
-                }
+                timeSlot.forEach(
+                    item => {
+                        let startTime = item.startTime;
+                        let endTime = item.endTime;
 
-                let loopTimes = dateRange / periodRange;
-                for(let i = 0; i < loopTimes; i++){
-                    let dayEndTime = getNextDate.call(this, dayStartTime);
+                        let matchObj = {
+                            platform: platformId
+                        };
 
-                    let matchObj = {
-                        platform: platformId
-                    };
-
-                    if (deviceType && (deviceType !== 'all')) {
-                        matchObj.osType = deviceType.trim();
-                    }
-
-                    if (playerType && (playerType === 'new_registration')) {
-                        matchObj.guestDeviceId = {$exists: true, $ne: null};
-                        matchObj.registrationTime = {$gte: dayStartTime, $lt: dayEndTime};
-
-                        if (domain && promoteWayData && promoteWayData.length > 0) {
-                            matchObj.promoteWay = {$in: promoteWayData};
+                        if (deviceType && (deviceType !== 'all')) {
+                            matchObj.osType = deviceType.trim();
                         }
 
-                        let newRegistrationProm = dbconfig.collection_players.aggregate(
-                            [{
-                                $match: matchObj
-                            },
-                                {
-                                    $group: {
-                                        _id: null,
-                                        count: { $sum: 1 }
-                                    }
+                        if (playerType && (playerType === 'new_registration')) {
+                            matchObj.guestDeviceId = {$exists: true, $ne: null};
+                            matchObj.registrationTime = {$gte: startTime, $lt: endTime};
+
+                            if (domain && promoteWayData && promoteWayData.length > 0) {
+                                matchObj.promoteWay = {$in: promoteWayData};
+                            }
+
+                            let newRegistrationProm = dbconfig.collection_players.aggregate(
+                                [{
+                                    $match: matchObj
                                 },
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        count: 1
+                                    {
+                                        $group: {
+                                            _id: null,
+                                            date: {$first: startTime},
+                                            count: { $sum: 1 }
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            _id: 1,
+                                            date: 1,
+                                            count: 1
+                                        }
+                                    }]
+                            ).read("secondaryPreferred").then(
+                                data => {
+                                    if (!data || data.length == 0) {
+                                        data.push({ _id: null, date: startTime, count: 0 })
                                     }
-                                }]
-                        ).read("secondaryPreferred");
 
-                        proms.push(newRegistrationProm);
+                                    return data;
+                                }
+                            );
 
-                    } else if(playerType && (playerType === 'login')) {
-                        proms.push(countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData));
+                            proms.push(newRegistrationProm);
+
+                        } else if(playerType && (playerType === 'login')) {
+                            proms.push(countLoginAppPlayer(matchObj, startTime, endTime, platformId, domain, registrationInterfaceType, promoteWayData).then(
+                                data => {
+                                    if (!data || data.length == 0) {
+                                        data.push({date: startTime, number: 0, playerCount: 0});
+                                    }
+
+                                    return data;
+                                }
+                            ));
+                        }
                     }
-
-                    dayStartTime = dayEndTime;
-                }
+                )
 
                 return Promise.all(proms).then(
                     data => {
-                        let tempDate = startDate;
-
                         let res = data.map(item => {
                             let obj = {};
                             if (playerType && (playerType === 'new_registration')) {
                                 let countNewRegistration = item && item.length > 0 ? item.reduce( (a,b) => a + b.count, 0) : 0;
 
-                                obj = {date: tempDate, newRegistration: countNewRegistration};
+                                obj = {date: item && item[0] && item[0].date, newRegistration: countNewRegistration};
 
                             } else if (playerType && (playerType === 'login')) {
                                 let countLoginTimes = item && item.length > 0 ? item.reduce( (a,b) => a + b.number, 0) : 0;
-                                let countLoginPlayer = item ? item.length : 0;
+                                let countLoginPlayer = item && item.length > 0 ? item.reduce( (a,b) => a + b.playerCount, 0) : 0;
 
-                                obj = {date: tempDate, loginTimes: countLoginTimes, loginPlayerCount: countLoginPlayer};
+                                obj = {date: item && item[0] && item[0].date, loginTimes: countLoginTimes, loginPlayerCount: countLoginPlayer};
                             }
-
-                            tempDate = getNextDate(tempDate);
 
                             return obj;
                         });
@@ -28723,6 +28709,10 @@ function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, dom
                                     if (index > -1) {
                                         if ((temp._id.userAgentOS === '' && temp._id.userAgentDevice === 'PC' && temp._id.userAgentBrowser === '') ||
                                             (temp._id.userAgentOS === '' && temp._id.userAgentDevice === '' && temp._id.userAgentBrowser === '')) {
+
+                                            temp.date = dayStartTime;
+                                            temp.playerCount = 1;
+
                                             finalPlayerLoginData.push(temp);
                                         }
                                     }

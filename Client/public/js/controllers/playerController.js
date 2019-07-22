@@ -4016,7 +4016,8 @@ define(['js/app'], function (myApp) {
             //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.queryPara.attemptNumberRecords.platform,
+                platformId: vm.queryPara && vm.queryPara.attemptNumberRecords && vm.queryPara.attemptNumberRecords.platform &&
+                vm.queryPara.attemptNumberRecords.platform.length > 0 ? vm.queryPara.attemptNumberRecords.platform : vm.allPlatformData.map(x => x._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
