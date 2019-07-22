@@ -3168,7 +3168,7 @@ let dbPlayerInfo = {
 
                         let inputDeviceData = dbUtility.getInputDevice('', false, (creator.type == 'admin') ? creator : NULL);
                         proposalData.inputDevice = inputDeviceData;
-                        
+
                         if (isClientQnA) {
                             proposalData.data.remark += "（自动）"
                         }
@@ -21294,8 +21294,11 @@ let dbPlayerInfo = {
                 }
 
                 let db_password = String(playerData.password);
-
-                if (dbUtility.isMd5(db_password)) {
+                if (playerPassword && db_password && (playerPassword === db_password) && playerPassword.length > 0) {
+                    console.log('MT --checking playerPassword === db_password', playerPassword, db_password )
+                    return true;
+                }
+                else if (dbUtility.isMd5(db_password)) {
                     return Boolean(md5(playerPassword) === db_password);
                 }
                 else {
