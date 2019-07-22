@@ -874,8 +874,9 @@ let PlayerServiceImplement = function () {
     };
 
     this.resetPassword.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = Boolean(data && data.platformId && data.name && (!(data.answer && !data.answer.length)) && (Boolean(data.phoneNumber) === Boolean(data.smsCode)));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code, userAgent], isValidData, false, false, true);
     };
 
     this.updatePasswordPlayerPartner.expectsData = 'playerId: String, partnerId: String, oldPassword: String, newPassword: String';
