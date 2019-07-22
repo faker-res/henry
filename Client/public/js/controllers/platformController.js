@@ -2861,6 +2861,12 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
                 }
+                if (vm.sendMultiMessage.phoneLocation) {
+                    playerQuery.phoneLocation = vm.sendMultiMessage.phoneLocation;
+                }
+                if (vm.sendMultiMessage.ipLocation) {
+                    playerQuery.ipLocation = vm.sendMultiMessage.ipLocation;
+                }
                 if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
                     let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
                     let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
