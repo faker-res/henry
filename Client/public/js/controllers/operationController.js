@@ -2029,6 +2029,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.updateProposalProcessStepProm = function (proposalId, bApprove) {
+            console.log('authService.adminId', authService.adminId);
             var deferred = Q.defer();
             socketService.$socket($scope.AppSocket, 'updateProposalProcessStep', {
                 proposalId: proposalId,
