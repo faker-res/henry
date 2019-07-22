@@ -12743,13 +12743,7 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
-        vm.initStep = function () {
-            vm.tempNewNodeName = '';
-            vm.tempNewNodeDepartment = '';
-            vm.tempNewNodeRole = '';
-            vm.expResMsg = '';
-            vm.expShowSubmit = true;
-        }
+
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
             socketService.$socket($scope.AppSocket, 'getDepartment', {
@@ -12762,13 +12756,6 @@ define(['js/app'], function (myApp) {
                 vm.tempAllRoles = data.data.roles;
                 $scope.safeApply();
             }
-        }
-        vm.setSelectedRole = function (roleNode) {
-            if (!vm.tempNewNodeRole) return;
-            vm.tempRoleID = roleNode._id;
-            vm.tempRoleName = roleNode.roleName;
-            console.log("selected department ", vm.tempDepartmentName);
-            console.log("selected role ", vm.tempRoleName);
         }
 
         vm.clearData = function () {
@@ -12942,7 +12929,6 @@ define(['js/app'], function (myApp) {
                     label: $translate("DEPARTMENT")
                 },
                 //departmentName: vm.tempNewNodeDepartment.departmentName,
-                //roleName: vm.tempNewNodeRole.roleName,
                 roleData: {
                     id: vm.tempRoleID,
                     name: vm.tempRoleName,
