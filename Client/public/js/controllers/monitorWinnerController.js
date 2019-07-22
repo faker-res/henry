@@ -65,6 +65,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.platformByAdminId = data.data;
+                        commonService.sortAndAddPlatformDisplayName(vm.platformByAdminId);
                     })
                 }, function (error){
                     console.error(error);
@@ -117,6 +118,25 @@ define(['js/app'], function (myApp) {
             initPageParam();
         };
 
+        vm.changeWinnerMonitorPlatform = function () {
+            let query = {};
+
+            if(vm.winnerMonitorQuery && vm.winnerMonitorQuery.platformList && vm.winnerMonitorQuery.platformList.length > 0){
+                query.platformObjIdList = vm.winnerMonitorQuery.platformList;
+            } else {
+                query.platformObjIdList = vm.platformByAdminId.map(item => item._id);
+            }
+
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', query, function (providerList) {
+                $scope.$evalAsync(() => {
+                    console.log("Provider list ",providerList);
+                    if (providerList && providerList.data) {
+                        vm.allProviders = providerList.data;
+                    }
+                });
+            });
+        };
+
         vm.getWinnerMonitorRecord = (newSearch) => {
             $('#winnerMonitorTableSpin').show();
             vm.timerCountDown = 11;
@@ -127,7 +147,7 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 playerName: vm.winnerMonitorQuery.playerName,
                 providerObjId: vm.winnerMonitorQuery.provider,
-                platformObjId: vm.selectedPlatform._id,
+                platformObjId: vm.winnerMonitorQuery && vm.winnerMonitorQuery.platformList && vm.winnerMonitorQuery.platformList.length > 0 ? {$in: vm.winnerMonitorQuery.platformList} : {$in: vm.platformByAdminId.map(item => item._id)},
                 startTime: vm.winnerMonitorQuery.startTime,
                 endTime: vm.winnerMonitorQuery.endTime
             };
@@ -135,9 +155,10 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise("getWinnerMonitorData", sendQuery).then(
                 data => {
                     console.log('getWinnerMonitorData', data);
-                    vm.winnerMonitorData = data.data;
-                    vm.drawWinnerMonitorTable(vm.winnerMonitorData);
-
+                    $scope.$evalAsync(() => {
+                        vm.winnerMonitorData = data.data;
+                        vm.drawWinnerMonitorTable(vm.winnerMonitorData);
+                    });
                 }
             )
 
@@ -157,7 +178,7 @@ define(['js/app'], function (myApp) {
                     if (record.player && record.player.credibilityRemarks && record.player.credibilityRemarks.length) {
                         record.credibilityRemarks$ = record.player.credibilityRemarks.map(
                             remark => {
-                                return remark.name || "";
+                                return remark && remark.name || "";
                             }
                         )
                     }
@@ -169,6 +190,7 @@ define(['js/app'], function (myApp) {
                     record.consumptionValidAmount$ = $noRoundTwoDecimalPlaces(record.consumptionValidAmount);
                     record.consumptionBonusAmount$ = $noRoundTwoDecimalPlaces(record.consumptionBonusAmount);
                     record.bonusValidRatio$ = $noRoundTwoDecimalPlaces(record.bonusValidRatio*-1) + "%";
+                    record.platformName$ = record.player && record.player.platform && record.player.platform.name || "";
                 }
             );
 
@@ -181,6 +203,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName$"},
                     {title: $translate('PLAYER_NAME'), data: "playerName$"},
                     {title: $translate("LEVEL"), data: "playerLevelName$"},
                     {
@@ -240,6 +263,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            vm.getPlatformByAdminId();
             if (window.location.pathname == "/monitor/winner") {
                 vm.pageName = "winnerMonitor";
             }
@@ -261,7 +285,7 @@ define(['js/app'], function (myApp) {
             vm.selectedRecord.registrationTime$ = utilService.$getTimeFromStdTimeFormat(new Date(vm.selectedRecord.player.registrationTime));
 
             vm.recordCityReady = false;
-            vm.getCityName(vm.selectedRecord.player.bankCardCity).then(
+            vm.getCityName(vm.selectedRecord.player.bankAccountCity).then(
                 cityName => {
                     vm.selectedRecord.bankAccountCity$ = cityName;
                     vm.recordCityReady = true;
@@ -322,7 +346,7 @@ define(['js/app'], function (myApp) {
         vm.getCityName = function (cityId) {
             return $scope.$socketPromise("getCity", {cityId: cityId}).then(
                 data => {
-                    return data && data.data && data.data.city && data.data.city.name ? data.data.city.name : cityId;
+                    return data && data.data && data.data.data && data.data.data.name ? data.data.data.name : cityId;
                 }
             );
         };
