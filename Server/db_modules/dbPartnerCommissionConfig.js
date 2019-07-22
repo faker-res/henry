@@ -355,34 +355,47 @@ const dbPartnerCommissionConfig = {
                 return;
             }
 
-            let queryConfig = {
+            let platformConfig = await dbconfig.collection_platformPartnerCommConfig.find({
                 platform: platformObjId,
                 commissionType: commissionType,
-            };
+                provider: {$ne: null},
+            }).lean();
 
-            let defaultConfigProm = await dbconfig.collection_platformPartnerCommConfig.find(queryConfig).lean();
+            let platformDefaultConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+                platform: platformObjId,
+                commissionType: commissionType,
+                provider: null,
+            }).lean();
 
-            if (!(defaultConfigProm && defaultConfigProm.length)) {
+            if (!(platformConfig && platformConfig.length)) {
                 return;
             }
 
-            partnerObj.map(
-                partner => {
-                    for (let i = 0; i < defaultConfigProm.length; i++) {
-                        delete defaultConfigProm[i].__v;
-                        delete defaultConfigProm[i]._id;
-
-                        defaultConfigProm[i].partner = partner._id;
-
-                        dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
-                            platform: defaultConfigProm[i].platform,
-                            partner: defaultConfigProm[i].partner,
-                            provider: defaultConfigProm[i].provider
-                        }, defaultConfigProm[i]).lean().catch(errorUtils.reportError);
+            if (platformDefaultConfig && platformDefaultConfig.commissionSetting && platformDefaultConfig.commissionSetting.length) {
+                for(let i = 0; i < platformConfig.length; i++) {
+                    let config = platformConfig[i];
+                    if (!config.commissionSetting || !config.commissionSetting.length) {
+                        config.commissionSetting = platformDefaultConfig.commissionSetting;
                     }
+                }
+            }
 
-                    updateDownLineCommConfig(partner._id, platformObjId, commissionType, defaultConfigProm, true);
-                })
+            partnerObj.map(partner => {
+                for (let i = 0; i < platformConfig.length; i++) {
+                    delete platformConfig[i].__v;
+                    delete platformConfig[i]._id;
+
+                    platformConfig[i].partner = partner._id;
+
+                    dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
+                        platform: platformConfig[i].platform,
+                        partner: platformConfig[i].partner,
+                        provider: platformConfig[i].provider
+                    }, platformConfig[i]).lean().catch(errorUtils.reportError);
+                }
+
+                updateDownLineCommConfig(partner._id, platformObjId, commissionType, platformConfig, true);
+            });
         } else {
 
             dbconfig.collection_partnerCommissionConfig.remove({
