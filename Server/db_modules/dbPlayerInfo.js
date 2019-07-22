@@ -20813,6 +20813,8 @@ let dbPlayerInfo = {
                                 }
                             });
 
+                            console.log("log1", consumptionRecord );
+
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
                                     if (t && t._id) {
@@ -20835,6 +20837,9 @@ let dbPlayerInfo = {
                                     }
                                 }
                             });
+
+                            console.log("log2", topUpRecord );
+
 
                             bonusRecord.map(b => {
                                 if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -20859,6 +20864,9 @@ let dbPlayerInfo = {
                                 }
                             });
 
+                            console.log("log3", bonusRecord );
+
+
                         });
                     });
 
@@ -20867,6 +20875,9 @@ let dbPlayerInfo = {
                             outputData.push(retData[key][key2]);
                         }
                     }
+
+                    console.log("log4", outputData );
+
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
                         outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
@@ -20974,6 +20985,9 @@ let dbPlayerInfo = {
                             }
                         }
                     }
+
+                    console.log("log5", outputData );
+
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');
                         b = b.date.split('-').join('');
