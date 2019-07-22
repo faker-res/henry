@@ -810,7 +810,7 @@ const dbPartnerCommissionConfig = {
             }
         }
 
-        let commissionType = 0; //default, check commission type
+        let commissionType = chosenPartnerObj && chosenPartnerObj.commissionType? chosenPartnerObj.commissionType: 0; //default, check commission type
         let partnerCommConfig = [];
         let providerGroups = await dbconfig.collection_gameProviderGroup.find({platform: chosenPartnerObj.platform} , {_id: 1, name: 1, providerGroupId: 1}).lean();
         providerGroups = providerGroups || [];
@@ -820,14 +820,14 @@ const dbPartnerCommissionConfig = {
         //     providerGroupId: null
         // })
 
-        if (chosenPartnerObj.commissionType) {
-            // commission const different with API
-            if (chosenPartnerObj.commissionType == 7) {
-                commissionType = 1;
-            } else if (chosenPartnerObj.commissionType == 2) {
-                commissionType = 2;
-            }
-        }
+        // if (chosenPartnerObj.commissionType) {
+        //     // commission const different with API
+        //     if (chosenPartnerObj.commissionType == 7) {
+        //         commissionType = 1;
+        //     } else if (chosenPartnerObj.commissionType == 2) {
+        //         commissionType = 2;
+        //     }
+        // }
 
         if (commissionClass == 1) {
             let commissionQuery = {
