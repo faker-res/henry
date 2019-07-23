@@ -1987,8 +1987,8 @@ API说明：
 			{
 				platformId: “4”,
 				name: “username1” // 玩家账号
-				phoneNumber: “11755444444”
-				smsCode: “5478”
+				phoneNumber: “11755444444” // 验证电话号码
+				smsCode: “5478” //短信验证码，从getSMSCode获取
 			}// 需调用getSMSCode接口, purpose: “updatePassword”
 	* 响应内容:`{status: 200/40x, data: {token: “xsda45w7f2d4”}}`
 	* 操作成功： status--200
