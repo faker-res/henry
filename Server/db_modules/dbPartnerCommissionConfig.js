@@ -286,6 +286,24 @@ const dbPartnerCommissionConfig = {
         }).lean();
 
         if (defConfigs && defConfigs.length) {
+            let platformDefaultConfig = defConfigs.find(config=> config.provider == null || !config.provider);
+            providerArr.map(
+                providerObjId=> {
+                    // check and insert default group commission if record does not exists
+                    let providerComm = defConfigs.find(config=> String(config.provider) == String(providerObjId));
+                    if (!providerComm) {
+                        let tempConfig = {
+                            platform: platformObjId,
+                            partner: partnerObjId,
+                            provider: providerObjId,
+                            commissionType: commissionType,
+                            commissionSetting: platformDefaultConfig && platformDefaultConfig.commissionSetting? platformDefaultConfig.commissionSetting: []
+                        }
+                        defConfigs.push(tempConfig);
+                    }
+                }
+            )
+
             for (let i = 0; i < defConfigs.length; i++) {
                 let defConfig = defConfigs[i];
 
@@ -295,6 +313,11 @@ const dbPartnerCommissionConfig = {
                 }
                 delete defConfig.__v;
                 delete defConfig._id;
+                if (platformDefaultConfig && platformDefaultConfig.commissionSetting && platformDefaultConfig.commissionSetting.length &&
+                    !(defConfig && defConfig.commissionSetting && defConfig.commissionSetting.length)) {
+                    defConfig.commissionSetting = platformDefaultConfig.commissionSetting;
+                }
+
                 defConfig.partner = partnerObjId;
                 dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
                     platform: platformObjId,
@@ -326,6 +349,12 @@ const dbPartnerCommissionConfig = {
             updateSchema = dbconfig.collection_partnerMainCommConfig;
         }
 
+        let platformDefaultConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+            platform: proposalData.data.platformObjId,
+            commissionType: proposalData.data.commissionType,
+            provider: null,
+        }).lean();
+
         if (!(defCommConfig && defCommConfig.length)) {
             return;
         }
@@ -333,6 +362,11 @@ const dbPartnerCommissionConfig = {
         for (let i = 0; i < defCommConfig.length; i++) {
             delete defCommConfig[i].__v;
             delete defCommConfig[i]._id;
+
+            if (platformDefaultConfig && platformDefaultConfig.commissionSetting && platformDefaultConfig.commissionSetting.length &&
+                !(defCommConfig[i] && defCommConfig[i].commissionSetting && defCommConfig[i].commissionSetting.length)) {
+                defCommConfig[i].commissionSetting = platformDefaultConfig.commissionSetting;
+            }
 
             defCommConfig[i].partner = proposalData.data.partnerObjId;
 
