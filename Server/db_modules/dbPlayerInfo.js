@@ -25081,17 +25081,17 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
 
-                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                // let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                // let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
                 platformObj = platformData;
 
                 let playerQuery = {
                     platform: platformData._id,
                     name: playerName,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
+                    // $or: [
+                    //     {phoneNumber: encryptedPhoneNumber},
+                    //     {phoneNumber: enOldPhoneNumber}
+                    // ]
                 };
 
                 return dbconfig.collection_players.findOne(playerQuery).lean()
@@ -25106,7 +25106,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(phoneNumber)};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
                 return {token: token};
             }
@@ -25128,19 +25128,15 @@ let dbPlayerInfo = {
                 return deferred.reject({name: "DataError", message: "Invalid token"});
             }
 
-            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
-            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
-            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+            // let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            // let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            // let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
 
             return dbconfig.collection_players.findOne(
                 {
                     platform: decoded.platform,
                     name: decoded.name,
                     password: decoded.password,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
                 }
             ).lean().then(
                 playerData => {
