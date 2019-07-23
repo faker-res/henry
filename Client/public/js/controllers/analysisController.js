@@ -6197,32 +6197,20 @@ define(['js/app'], function (myApp) {
         vm.initSearchParameter = function (field, period, graphType, callback) {
             vm.queryPara[field] = {};
             vm.optionText[field] = "Hide Options";
-
-            if (field && field === 'appPlayer') {
+            if (period) {
                 utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
-                    let today = new Date();
-                    let todayEndTime = today.setHours(23, 59, 59, 999);
-                    vm.queryPara[field].startTime = utilService.createDatePickerWithoutTime('#' + field + 'Analysis .startTime');
-                    vm.queryPara[field].endTime = utilService.createDatePickerWithoutTime('#' + field + 'Analysis .endTime');
-                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
-                    vm.queryPara[field].endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
+                    vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');
+                    vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 })
             } else {
-                if (period) {
-                    utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
-                        vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
-                        vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');
-                        vm.queryPara[field].startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-                        vm.queryPara[field].endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    })
+                vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
+                if (field == 'playerRetention') {
+                    vm.queryPara[field].endTime = utilService.setNDaysAfter(new Date(), 28);
+                    vm.queryPara[field].minTime = utilService.getFormatDate(vm.queryPara[field].startTime);
                 } else {
-                    vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
-                    if (field == 'playerRetention') {
-                        vm.queryPara[field].endTime = utilService.setNDaysAfter(new Date(), 28);
-                        vm.queryPara[field].minTime = utilService.getFormatDate(vm.queryPara[field].startTime);
-                    } else {
-                        vm.queryPara[field].endTime = new Date();
-                    }
+                    vm.queryPara[field].endTime = new Date();
                 }
             }
 
@@ -7057,6 +7045,7 @@ define(['js/app'], function (myApp) {
             let endDate = vm.queryPara.appPlayer.endTime.data('datetimepicker').getLocalDate();
             let sendData = {
                 platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.appPlayer.periodText,
                 startDate: startDate,
                 endDate: endDate,
                 playerType: vm.queryPara.appPlayer.playerType,
