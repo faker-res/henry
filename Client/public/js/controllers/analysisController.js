@@ -4919,11 +4919,6 @@ define(['js/app'], function (myApp) {
                     }, 'reward');
                     $scope.$evalAsync();
                 }, true);
-
-                // if (vm.queryPara && vm.queryPara.reward) {
-                //     vm.checkDomainList('reward');
-                //
-                // }
             }
             else{
                 vm.queryPara.reward.playerType = null; // default as 总开户人数（全部）
