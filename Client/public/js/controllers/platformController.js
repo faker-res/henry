@@ -2947,6 +2947,8 @@ define(['js/app'], function (myApp) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }
                             }
+                            item.phoneLocation$ = (item.phoneProvince && item.phoneCity) ? item.phoneProvince + " " + item.phoneCity : "";
+                            item.ipLocation$ = (item.province && item.city) ? item.province + " " + item.city : "";
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3334,6 +3336,8 @@ define(['js/app'], function (myApp) {
                                 return data;
                             }
                         },
+                        {'title': $translate('PHONE_LOCATION'), data: 'phoneLocation$'},
+                        {'title': $translate('IP_LOCATION'), data: 'ipLocation$'},
                         {
                             title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
                             render: function (data, type, row) {
