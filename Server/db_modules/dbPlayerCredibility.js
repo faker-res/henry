@@ -482,11 +482,15 @@ let dbPlayerCredibility = {
 
     createUpdateCredibilityLog: (adminName, platform, player, remarks, comment) => {
         comment = comment || "";
-        return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: remarks}}).lean().then(
+        return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: remarks}, platform: platform}).lean().then(
             remarksData => {
                 let credibilityRemarkNames = [];
                 for (let i = 0, len = remarksData.length; i < len; i++) {
                     credibilityRemarkNames.push(remarksData[i].name);
+                }
+
+                if (adminName === 'System' && !comment && credibilityRemarkNames && credibilityRemarkNames.length > 0) {
+                    comment = credibilityRemarkNames.join(',');
                 }
 
                 return dbconfig.collection_playerCredibilityUpdateLog({
