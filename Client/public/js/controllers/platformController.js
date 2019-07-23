@@ -3519,7 +3519,8 @@ define(['js/app'], function (myApp) {
                                 phoneNumber: phoneNumber,
                                 platformId: vm.selectedPlatform.data.platformId,
                                 channel: vm.sendMultiMessage.channel,
-                                message: vm.sendMultiMessage.messageContent
+                                message: vm.sendMultiMessage.messageContent,
+                                platform: vm.selectedPlatform.id
                             };
 
                             socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
@@ -3541,7 +3542,8 @@ define(['js/app'], function (myApp) {
                             phoneNumber: vm.toPhoneNumber,
                             platformId: vm.selectedPlatform.data.platformId,
                             channel: vm.sendMultiMessage.channel,
-                            message: vm.sendMultiMessage.messageContent
+                            message: vm.sendMultiMessage.messageContent,
+                            platform: vm.selectedPlatform.id
                         };
 
                         socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
@@ -13882,6 +13884,26 @@ define(['js/app'], function (myApp) {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
 
+                if (vm.smsLog.type == "multi") {
+                    requestData.platform = vm.smsLog && vm.smsLog.query && vm.smsLog.query.platformList && vm.smsLog.query.platformList.length > 0 ?
+                        vm.smsLog.query.platformList : vm.platformList.map(item => item.id);
+
+                    if (requestData.platform && requestData.platform.length > 0) {
+                        let tempPlatformId = [];
+                        requestData.platform.forEach(item => {
+                            let index = vm.platformList.findIndex(x => x && x.id && item && (x.id.toString() === item.toString()));
+
+                            if (index > -1) {
+                                tempPlatformId.push(vm.platformList[index].data && vm.platformList[index].data.platformId);
+                            }
+                        })
+
+                        if (tempPlatformId && tempPlatformId.length > 0) {
+                            requestData.platformId = tempPlatformId;
+                        }
+                    }
+                }
+
                 console.log("searchSMSLog requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     $scope.$evalAsync(() => {
@@ -13894,6 +13916,13 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.status$ = $translate(item.status);
                             }
+                            item.platform$ = "";
+                            if(item && item.platform && vm.platformList && vm.platformList.length){
+                                let platformObjId = item.platform;
+                                let filteredPlatform = vm.platformList.filter(a => a.id.toString() === platformObjId.toString());
+                                item.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].text ? filteredPlatform[0].text : "";
+                            }
+
                             return item;
                         });
                         vm.smsLog.totalCount = result.data.size;
@@ -13946,6 +13975,7 @@ define(['js/app'], function (myApp) {
                       {targets: '_all', defaultContent: ' ', bSortable: false}
                   ],
                   columns: [
+                      {'title': $translate('PRODUCT_NAME'), data: 'platform$'},
                       {'title': $translate('date'), data: 'createTime$'},
                       {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
                       {'title': $translate('Recipient'), data: 'recipientName'},

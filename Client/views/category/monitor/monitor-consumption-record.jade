@@ -2,7 +2,6 @@ div
     div.col-md-12.well
         .search-filters-item
             label {{'PRODUCT_NAME'| translate}}
-            //select.spicker.form-control(ng-model='vm.monitorConsumptionRecordPlatform', bsp, data-actions-box='true' ng-change="vm.changeWinnerMonitorPlatform()", ng-options='v._id as v.name for v in vm.platformByAdminId')
             select.form-control(ng-model='vm.monitorConsumptionRecordPlatform' ng-change='vm.monitorConsumptionRecordPlatformOnChange(vm.monitorConsumptionRecordPlatform)')
                 option(ng-repeat='(i,v) in vm.platformByAdminId' value='{{v._id}}') {{v.name}}
     div(ng-show="vm.monitorConsumptionRecordPlatform")
