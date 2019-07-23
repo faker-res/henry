@@ -2060,7 +2060,7 @@ let dbPlayerInfo = {
                 let partnerCredibilityRemarkProm = Promise.resolve(false);
 
                 if (playerdata && playerdata.phoneNumber) {
-                    similarPhoneCredibilityRemarkProm = checkSimilarPhoneForPlayerCredibilityRemarks(playerdata.platform, playerdata.phoneNumber);
+                    similarPhoneCredibilityRemarkProm = checkSimilarPhoneForPlayerCredibilityRemarks(playerdata.platform, playerdata.phoneNumber, playerdata._id);
                 }
 
                 if (playerdata && playerdata.partnerId) {
@@ -28774,12 +28774,14 @@ function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, dom
     );
 }
 
-function checkSimilarPhoneForPlayerCredibilityRemarks (platformId, phoneNumber) {
+function checkSimilarPhoneForPlayerCredibilityRemarks (platformId, phoneNumber, playerId) {
+    let playerObjId = playerId ? ObjectId(playerId) : "";
     let platformObjId = platformId ? ObjectId(platformId) : "";
     let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber]} : "";
     let similarPhoneCredibilityRemarkObjId = null;
 
     let similarPhoneCountProm = dbconfig.collection_players.find({
+        _id: {$ne: playerObjId},
         platform: platformObjId,
         phoneNumber: encryptedPhoneNumber,
         isRealPlayer: true,
