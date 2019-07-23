@@ -20568,7 +20568,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -20588,7 +20587,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$data.playerObjId'},
                     totalAmount: {"$sum": "$data.amount"},
                     count: {"$sum": 1}
                 }
@@ -20608,7 +20606,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                 }
@@ -20774,19 +20771,6 @@ let dbPlayerInfo = {
                 let outputData = [];
                 let retData = {};
 
-                // consumptionRecord.map(c => {
-                //     c._id.date = c._id.date.year + "-" + c._id.date.month + "-" + c._id.date.day;
-                // });
-                //
-                // topUpRecord.map(t => {
-                //     t._id.date = t._id.date.year + "-" + t._id.date.month + "-" + t._id.date.day;
-                // });
-                //
-                // bonusRecord.map(b => {
-                //     b._id.date = b._id.date.year + "-" + b._id.date.month + "-" + b._id.date.day;
-                // });
-
-
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
                         providerInfo.map(provider => {
@@ -20813,7 +20797,7 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log1", consumptionRecord );
+                            console.log("log1..", consumptionRecord );
 
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -20838,7 +20822,7 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log2", topUpRecord );
+                            console.log("log2..", topUpRecord );
 
 
                             bonusRecord.map(b => {
@@ -20864,19 +20848,31 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log3", bonusRecord );
-
+                            console.log("log3..", bonusRecord );
 
                         });
                     });
 
-                    for (let key in retData) {
-                        for (let key2 in retData[key]) {
-                            outputData.push(retData[key][key2]);
-                        }
-                    }
+                    console.log("log4..", retData );
 
-                    console.log("log4", outputData );
+
+                    // for (let key in retData) {
+                    //     console.log("log2..", key );
+                    //
+                    //     for (let key2 in retData[key]) {
+                    //         console.log("log3..", key2 );
+                    //
+                    //         outputData.push(retData[key][key2]);
+                    //     }
+                    // }
+
+                    Object.keys(retData).map(i =>
+                        Object.keys(retData[i]).map(j =>
+                            outputData.push(retData[i][j])
+                        )
+                    );
+
+                    console.log("log5..", outputData );
 
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
@@ -20986,7 +20982,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    console.log("log5", outputData );
+                    console.log("log6..", outputData );
 
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');
