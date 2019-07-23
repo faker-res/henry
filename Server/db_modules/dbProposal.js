@@ -80,6 +80,10 @@ var proposal = {
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
         let deferred = Q.defer();
         let plyProm = null;
+        let propAmount =
+            proposalData.data.amount || proposalData.data.rewardAmount || proposalData.data.updateAmount
+            || proposalData.data.negativeProfitAmount || proposalData.data.commissionAmount || 0;
+
         // create proposal for partner
         if (proposalData.isPartner || (proposalData.data && proposalData.data.isPartner)) {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
@@ -98,7 +102,7 @@ var proposal = {
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).exec();
         //create process for proposal
-        let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName);
+        let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName, propAmount);
 
         proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
 
@@ -376,10 +380,13 @@ var proposal = {
         let deferred = Q.defer();
         let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
         let plyProm;
+        let propAmount =
+            proposalData.data.amount || proposalData.data.rewardAmount || proposalData.data.updateAmount
+            || proposalData.data.negativeProfitAmount || proposalData.data.commissionAmount || 0;
 
         //get proposal type id
         let ptProm = dbconfig.collection_proposalType.findOne({_id: typeId}).exec();
-        let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId);
+        let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId, propAmount);
         if (proposalData.isPartner) {
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
                 .populate({path: 'level', model: dbconfig.collection_partnerLevel});
@@ -1338,13 +1345,15 @@ var proposal = {
      * @param {String} memo - memo of the step
      * @param {Boolean} bApprove - memo of the step
      */
-    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove, remark, platform, rejectRemark) {
+    updateProposalProcessStep: async function (proposalId, adminId, memo, bApprove, remark, platform, rejectRemark) {
         var deferred = Q.defer();
         var nextStepId = null;
         var proposalData = null;
         let proposalObj;
         let proposalProcessData;
         let isProcessedBefore = false;
+
+        let adminInfo = await dbconfig.collection_admin.findById(adminId).lean();
 
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
@@ -1447,7 +1456,22 @@ var proposal = {
                 console.log("updateProposalProcessStep data3", data);
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
                 if(bIsBankInfoMatched == true){
-                    if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
+                    if (
+                        proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps
+                        && adminInfo.roles && adminInfo.roles.length
+                    ) {
+                        let isCorrectRole = false;
+
+                        adminInfo.roles.forEach(role => {
+                            if (String(role) === String(proposalProcessData.currentStep.role)) {
+                                isCorrectRole = true;
+                            }
+                        });
+
+                        if (!isCorrectRole) {
+                            return Promise.reject({name: "DBError", message: "Incorrect admin role"});
+                        }
+
                         var curTime = new Date();
                         nextStepId = bApprove ? proposalProcessData.currentStep.nextStepWhenApprove : proposalProcessData.currentStep.nextStepWhenReject;
                         var stepData = {

@@ -113,7 +113,7 @@ const dbPlayerConsumptionHourSummary = {
                     let config = configsData[i];
 
                     let firstMatchQuery = {
-                        platform: ObjectId(platformObjId),
+                        platform: ObjectId(config.platform),
                         startTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                         provider: ObjectId(config.provider)
                     };
@@ -183,8 +183,8 @@ const dbPlayerConsumptionHourSummary = {
                 return Promise.all(proms);
             }
         ).then(
-            filteredResult => {
-                filteredResult = filteredResult.flat();
+            resultData => {
+                let filteredResult = resultData.flat();
                 let proms = [];
 
                 for (let i = 0; i < filteredResult.length; i++) {
@@ -193,6 +193,7 @@ const dbPlayerConsumptionHourSummary = {
                     let playerProm = dbconfig.collection_players.findOne({_id: result.player})
                         .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}) // todo :: add "select"
                         .populate({path: 'credibilityRemarks', model: dbconfig.collection_playerCredibilityRemark}) // todo :: add "select"
+                        .populate({path: 'platform', model: dbconfig.collection_platform, select: {platformId: 1, name: 1}})
                         .lean();
                     let providerProm = dbconfig.collection_gameProvider.findOne({_id: result.provider}).lean(); // todo :: add projection
 
