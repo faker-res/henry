@@ -57,7 +57,6 @@ let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 let dbRewardTaskGroup = require("../db_modules/dbRewardTaskGroup");
 let dbOperation = require("../db_common/dbOperations");
 const dbTeleSales = require("../db_modules/dbTeleSales");
-let dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -720,9 +719,6 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
-                            if (proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
-                                checkIsPlayerBindToPartner(proposalData.data._id, proposalData.data.platformId);
-                            }
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -813,9 +809,6 @@ var proposalExecutor = {
                             // take last 4 phonenumber send message to player
                             proposalData.data.phoneNumber = phoneNumberLast4Digit;
                             sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
-                            if (proposalData.data.playerObjId && proposalData.data.platformId && proposalData.data.updateData.phoneNumber) {
-                                checkSimilarPhoneForPlayers(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateData.phoneNumber);
-                            }
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -6457,127 +6450,6 @@ function getPlayerCreditInProviders (playerData, platformData) {
             }
         }
     )
-}
-
-function checkSimilarPhoneForPlayers (playerId, platformId, phoneNumber) {
-    let playerObjId = playerId ? ObjectId(playerId) : "";
-    let platformObjId = platformId ? ObjectId(platformId) : "";
-    let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber]} : "";
-    let similarPhoneCredibilityRemarkObjId = null;
-
-    let similarPhoneCountProm = dbconfig.collection_players.find({
-        _id: {$ne: playerObjId},
-        platform: platformObjId,
-        phoneNumber: encryptedPhoneNumber,
-        isRealPlayer: true,
-    }).count();
-
-    let selectedPlayerProm = dbconfig.collection_players.findOne({
-        _id: playerObjId,
-        platform: platformObjId,
-        isRealPlayer: true,
-    }).lean();
-
-    let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
-        remark => {
-            if (remark && remark.length > 0) {
-                let index = remark.findIndex(x => x && x.name && (x.name === '电话重复') && (x.score || x.score === 0));
-
-                if (index > -1) {
-                    return ObjectId(remark[index]._id);
-                }
-            }
-        }
-    );
-
-    return Promise.all([similarPhoneCountProm, selectedPlayerProm, fixedCredibilityRemarksProm]).then(
-        data => {
-            let totalCount = data[0];
-            let selectedPlayer = data[1];
-            similarPhoneCredibilityRemarkObjId = data[2];
-
-            let credibilityRemarks = [];
-            // if there is other player with similar phone in playerData, selected player need to add this credibility remark
-            if (totalCount > 0) {
-                if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                    if (selectedPlayer.credibilityRemarks.some(e => e && similarPhoneCredibilityRemarkObjId && e.toString() === similarPhoneCredibilityRemarkObjId.toString())) {
-                        // if similarPhoneCredibilityRemarkObjId already exist
-                    } else {
-                        // if similarPhoneCredibilityRemarkObjId didn't exist
-                        selectedPlayer.credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
-                        credibilityRemarks = selectedPlayer.credibilityRemarks;
-                        dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
-                    }
-                } else {
-                    // player didn't have any credibility remarks, auto add
-                    credibilityRemarks.push(similarPhoneCredibilityRemarkObjId);
-                    dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, selectedPlayer._id, credibilityRemarks, '电话重复');
-                }
-            }
-        }
-    );
-}
-
-function checkIsPlayerBindToPartner (playerId, platformId) {
-    let playerObjId = playerId ? ObjectId(playerId) : "";
-    let platformObjId = platformId ? ObjectId(platformId) : "";
-    let partnerCredibilityRemarkObjId = null;
-
-    let selectedPlayerProm = dbconfig.collection_players.findOne({
-        _id: playerObjId,
-        platform: platformObjId,
-        isRealPlayer: true,
-    }).lean();
-
-    let fixedCredibilityRemarksProm = dbconfig.collection_playerCredibilityRemark.findOne({
-        platform: platformObjId,
-        name: "代理开户",
-        isFixed: true
-    }, '_id').lean().then(
-        remark => {
-            if (remark) {
-                return remark;
-            } else {
-                return dbconfig.collection_playerCredibilityRemark({
-                    platform: platformObjId,
-                    name: "代理开户",
-                    score: 0,
-                    isFixed: true
-                }).save();
-            }
-        }
-    ).then(
-        fixedRemark => {
-            if (fixedRemark && fixedRemark._id) {
-                return fixedRemark._id;
-            }
-        }
-    )
-
-    return Promise.all([selectedPlayerProm, fixedCredibilityRemarksProm]).then(
-        data => {
-            let selectedPlayer = data[0];
-            partnerCredibilityRemarkObjId = data[1];
-
-            let credibilityRemarks = [];
-            // if there is other player with similar phone in playerData, selected player need to add this credibility remark
-
-            if (selectedPlayer.credibilityRemarks && selectedPlayer.credibilityRemarks.length > 0) {
-                if (selectedPlayer.credibilityRemarks.some(e => e && partnerCredibilityRemarkObjId && e.toString() === partnerCredibilityRemarkObjId.toString())) {
-                    // if partnerCredibilityRemarkObjId already exist
-                } else {
-                    // if partnerCredibilityRemarkObjId didn't exist
-                    selectedPlayer.credibilityRemarks.push(partnerCredibilityRemarkObjId);
-                    credibilityRemarks = selectedPlayer.credibilityRemarks;
-                    dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, selectedPlayer._id, credibilityRemarks, '代理开户');
-                }
-            } else {
-                // player didn't have any credibility remarks, auto add
-                credibilityRemarks.push(partnerCredibilityRemarkObjId);
-                dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, selectedPlayer._id, credibilityRemarks, '代理开户');
-            }
-        }
-    );
 }
 
 var proto = proposalExecutorFunc.prototype;
