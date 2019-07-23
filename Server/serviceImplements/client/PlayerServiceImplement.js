@@ -1520,12 +1520,12 @@ let PlayerServiceImplement = function () {
 
     this.generateUpdatePasswordToken.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.platformId && data.phoneNumber && data.smsCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.generateUpdatePasswordToken, [data.platformId, data.name, data.phoneNumber, data.smsCode], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.generateUpdatePasswordToken, [data.platformId, data.name, data.phoneNumber, data.smsCode], isValidData);
     };
 
     this.updatePasswordWithToken.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.token && data.password);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData);
     };
 
     this.checkIsAppPlayerAndAppliedReward.onRequest = function (wsFunc, conn, data) {
