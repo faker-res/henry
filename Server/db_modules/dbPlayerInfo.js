@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -6839,7 +6839,7 @@ let dbPlayerInfo = {
                                         if (phoneLocation) {
                                             newPlayerData.phoneProvince = phoneLocation.province;
                                             newPlayerData.phoneCity = phoneLocation.city;
-                                            newPlayerData.phoneType = phoneLocation.op;
+                                            newPlayerData.phoneType = phoneLocation.sp;
                                         }
                                     }
 
@@ -26266,7 +26266,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
-                    updObj.phoneType = phoneLocation.op;
+                    updObj.phoneType = phoneLocation.sp;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(
