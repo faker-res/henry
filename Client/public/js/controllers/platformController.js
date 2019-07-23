@@ -3519,8 +3519,7 @@ define(['js/app'], function (myApp) {
                                 phoneNumber: phoneNumber,
                                 platformId: vm.selectedPlatform.data.platformId,
                                 channel: vm.sendMultiMessage.channel,
-                                message: vm.sendMultiMessage.messageContent,
-                                platform: vm.selectedPlatform.id
+                                message: vm.sendMultiMessage.messageContent
                             };
 
                             socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
@@ -3542,8 +3541,7 @@ define(['js/app'], function (myApp) {
                             phoneNumber: vm.toPhoneNumber,
                             platformId: vm.selectedPlatform.data.platformId,
                             channel: vm.sendMultiMessage.channel,
-                            message: vm.sendMultiMessage.messageContent,
-                            platform: vm.selectedPlatform.id
+                            message: vm.sendMultiMessage.messageContent
                         };
 
                         socketService.$socket($scope.AppSocket, 'sendSMStoNumber', sendData, function (data) {
