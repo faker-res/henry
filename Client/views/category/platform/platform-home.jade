@@ -492,6 +492,9 @@
                 h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
                 #groupSmsLogQuery.block-query.well
+                    div(style="width:200px")
+                        label {{'PRODUCT_NAME'| translate}}
+                        select.form-control(ng-model='vm.smsLog.query.platformList', ng-options='v.id as v.text for v in vm.platformList', multiple, bsp, data-actions-box='true')
                     div
                         label {{"RESULT" | translate}}
                         select.form-control(ng-model='vm.smsLog.query.status')

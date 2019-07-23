@@ -28805,8 +28805,6 @@ function checkSimilarPhoneForPlayerCredibilityRemarks (platformId, phoneNumber) 
             if (similarPhoneCredibilityRemarkObjId && (totalCount > 0)) {
                 return similarPhoneCredibilityRemarkObjId;
             }
-
-            return similarPhoneCredibilityRemarkObjId;
         }
     );
 }
