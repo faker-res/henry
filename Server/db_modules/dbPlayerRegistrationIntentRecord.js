@@ -10,7 +10,7 @@ let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
 let constMessageType = require('../const/constMessageType');
-let queryPhoneLocation = require('phone-query');
+let queryPhoneLocation = require('cellocate');
 let constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 const request = require('request');
 var geoip = require('geoip-lite');
@@ -96,7 +96,7 @@ var dbPlayerRegistrationIntentRecord = {
                 if (queryRes) {
                     data.phoneProvince = queryRes.province;
                     data.phoneCity = queryRes.city;
-                    data.phoneType = queryRes.type;
+                    data.phoneType = queryRes.sp;
                 }
             }
             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status, isReceiveSMS);
