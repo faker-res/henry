@@ -6012,6 +6012,24 @@ let dbPlayerInfo = {
             }
         }
 
+        var expr = {};
+
+        if(data.phoneLocation || data.ipLocation) {
+            var andExpr = [];
+            if(data.phoneLocation){
+                let tempPhoneLocation = data.phoneLocation;
+                delete data.phoneLocation;
+                andExpr.push({$eq:[tempPhoneLocation, {$concat:['$phoneProvince', ' ', '$phoneCity']}]});
+            }
+            if(data.ipLocation){
+                let tempIpLocation = data.ipLocation;
+                delete data.ipLocation;
+                andExpr.push({$eq:[tempIpLocation, {$concat:['$province', ' ', '$city']}]});
+            }
+            expr = {$and: andExpr};
+            advancedQuery.$expr = expr;
+        }
+        
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
@@ -6164,7 +6182,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data]}).count();
+                    .find({platform: platformId, $and: [data], $expr : expr}).count();
 
                 return Promise.all([a, b]);
             }

@@ -54,6 +54,12 @@
                             label {{"REGISTRATION_TIME_END" | translate}}
                             .regEnd
                         .search-filters-item
+                            label {{"PHONE_LOCATION" | translate}}
+                            input.form-control(ng-model='vm.sendMultiMessage.phoneLocation')
+                        .search-filters-item
+                            label {{"IP_LOCATION" | translate}}
+                            input.form-control(ng-model='vm.sendMultiMessage.ipLocation')
+                        .search-filters-item
                             label {{"bankAccount" | translate}}
                             input.form-control(ng-model='vm.sendMultiMessage.bankAccount')
                         .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.sendMultiMessage.loginTimesOperator === "range")}')

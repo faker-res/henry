@@ -2861,6 +2861,12 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
                 }
+                if (vm.sendMultiMessage.phoneLocation) {
+                    playerQuery.phoneLocation = vm.sendMultiMessage.phoneLocation;
+                }
+                if (vm.sendMultiMessage.ipLocation) {
+                    playerQuery.ipLocation = vm.sendMultiMessage.ipLocation;
+                }
                 if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
                     let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
                     let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
@@ -2941,6 +2947,8 @@ define(['js/app'], function (myApp) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }
                             }
+                            item.phoneLocation$ = (item.phoneProvince && item.phoneCity) ? item.phoneProvince + " " + item.phoneCity : "";
+                            item.ipLocation$ = (item.province && item.city) ? item.province + " " + item.city : "";
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3328,6 +3336,8 @@ define(['js/app'], function (myApp) {
                                 return data;
                             }
                         },
+                        {'title': $translate('PHONE_LOCATION'), data: 'phoneLocation$'},
+                        {'title': $translate('IP_LOCATION'), data: 'ipLocation$'},
                         {
                             title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
                             render: function (data, type, row) {
