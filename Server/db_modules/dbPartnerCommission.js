@@ -930,12 +930,14 @@ const dbPartnerCommission = {
         let totalPromoAmount = detail.totalRewardFee;
 
         let totalCrewProfit = 0;
+        let totalValidBet = 0;
         if (detail.rawCommissions && detail.rawCommissions.length) {
             for (let i = 0; i < detail.rawCommissions.length; i++) {
                 let groupComm = detail.rawCommissions[i];
 
                 if (groupComm && groupComm.crewProfit) {
                     totalCrewProfit = math.add(groupComm.crewProfit, totalCrewProfit);
+                    totalValidBet = math.add(Number(groupComm.totalConsumption|| 0), totalValidBet);
                 }
             }
         }
@@ -966,6 +968,7 @@ const dbPartnerCommission = {
                 totalPlatformFee,
                 totalDepositWithdrawFee,
                 totalDownLinePartnerCom,
+                totalValidBet,
                 downLinePlayerCom,
                 preditCommission,
             }
