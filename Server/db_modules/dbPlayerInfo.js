@@ -18781,6 +18781,10 @@ let dbPlayerInfo = {
                                     if(twoDaysData.gameDetail.length > 0){
                                         twoDaysData.gameDetail.forEach(
                                             gameDetail => {
+                                                if (!returnedObj.data[indexNo].gameDetail) {
+                                                    returnedObj.data[indexNo].gameDetail = [];
+                                                }
+
                                                 let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId._id);
 
                                                 if (idx !== -1){
@@ -18865,6 +18869,10 @@ let dbPlayerInfo = {
                                         if(preSummaryData.gameDetail.length > 0){
                                             preSummaryData.gameDetail.forEach(
                                                 gameDetail => {
+                                                    if (!returnedObj.data[indexNo].gameDetail) {
+                                                        returnedObj.data[indexNo].gameDetail = [];
+                                                    }
+
                                                     let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
 
                                                     if (idx !== -1){
