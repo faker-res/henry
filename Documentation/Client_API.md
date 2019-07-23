@@ -7718,7 +7718,7 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 	* 请求内容：
 		* ```
 			{
-				eventObjectId: [  // 活动ID
+				eventObjectIds: [  // 活动ID
 					"5a3e14d97417383af4f7d54b",
 					“5a3e14d97417383af4f7d54c”,
 				]
