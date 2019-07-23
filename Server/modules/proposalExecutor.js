@@ -1593,6 +1593,9 @@ var proposalExecutor = {
                         if (proms && proms.length > 0) {
                             Q.all(proms).then(
                                 async function (data) {
+                                    if (proposalData.data.skipCommissionSetting) {
+                                        return deferred.resolve(data);
+                                    }
                                     return dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr).then(
                                         () => {
                                             deferred.resolve(data);
