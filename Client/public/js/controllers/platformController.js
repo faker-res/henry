@@ -25150,7 +25150,141 @@ define(['js/app'], function (myApp) {
                         // vm.loadOpenPromoCodeTemplate();
                         vm.endLoadWeekDay();
                         break;
+                    case 'maxRewardAmountSetting':
+                        vm.filterMaxRewardAmountSettingPlatform = '';
+                        vm.maxRewardAmountSettingInEdit = false;
+                        vm.newMaxRewardAmountSetting = {};
+                        vm.maxRewardAmountSettingData = [];
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        break;
 
+                }
+            };
+
+            vm.initRoleByDepartment = function (departmentObjId) {
+                vm.roleList =[];
+                if (departmentObjId && vm.departmentList && vm.departmentList.length){
+                    let selectedDepartment = vm.departmentList.filter(
+                        p => {
+                              if (p && p._id && p._id.toString() == departmentObjId.toString()){
+                                    return p;
+                              }
+                          })
+                    if (selectedDepartment && selectedDepartment.length && selectedDepartment[0] && selectedDepartment[0].roles && selectedDepartment[0].roles.length){
+                        selectedDepartment[0].roles.forEach(
+                            role => {
+                                if (role && role._id){
+                                    vm.roleList.push(role);
+                                }
+                            }
+                        )
+                  }
+                $scope.$evalAsync();
+              }
+            };
+
+            vm.checkRewardAmountLimitByAdmin = async function (currentRewardAmount) {
+                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length){
+                    vm.disableGeneratePromoCode = false;
+                    let query = {
+                        roleObjId: authService.roleData[0]._id,
+                        departmentList: authService.roleData[0].departments,
+                        platformObjId: vm.filterCreatePromoCodePlatform || vm.filterPromoCodeTemplatePlatform || vm.filterOpenPromoCodeTemplatePlatform
+                    };
+                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdminName', query);
+
+                    if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')){
+                        if (currentRewardAmount > data.data.maxRewardAmount) {
+                            vm.disableGeneratePromoCode = true;
+                            socketService.showErrorMessage($translate("The reward amount you entered has beyond your given authority. The max reward amount you can set is:") + " " +  data.data.maxRewardAmount);
+                            $scope.$evalAsync();
+                        }
+                    }
+                }
+            };
+
+            vm.initLoadingMaxRewardSetting = async function (platformObjId) {
+                if (platformObjId){
+                    vm.allRoleList =[];
+                    let departmentList = [];
+                    let maxRewardAmountSetting = [];
+
+                    let retData = await Promise.all([$scope.$socketPromise('getDepartmentByPlatform', {platformObjId: platformObjId}), $scope.$socketPromise('loadMaxRewardAmountSetting', {platformObjId: platformObjId})])
+
+                    if (retData && retData.length){
+                        departmentList = retData[0];
+                        maxRewardAmountSetting = retData[1];
+                    };
+
+                    if (departmentList && departmentList.data && departmentList.data.length){
+                        vm.departmentList = departmentList.data;
+                        vm.departmentList.forEach(
+                            department => {
+                                if (department && department.roles && department.roles.length){
+                                    department.roles.forEach(
+                                        role => {
+                                            if (role && role._id){
+                                                vm.allRoleList.push(role);
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+                    if (maxRewardAmountSetting && maxRewardAmountSetting.data && maxRewardAmountSetting.data.length){
+                        vm.maxRewardAmountSettingData = maxRewardAmountSetting.data;
+                    }
+
+                    $scope.$evalAsync();
+                }
+            };
+
+            vm.updateMaxRewardAmountCollection = function (type, dataList, rowData, index) {
+                if (type == 'add') {
+                    dataList.push(rowData);
+
+                } else if (type == 'remove' && typeof index == 'number') {
+
+                    if (dataList && dataList[index]) {
+                        if (dataList[index]._id && vm.deletedMaxRewardAmountSettingList){
+                            vm.deletedMaxRewardAmountSettingList.push(dataList[index]._id);
+                            dataList.splice(index, 1);
+                        }
+                        else{
+                            dataList.splice(index, 1);
+                        }
+                    }
+                }
+            };
+
+            vm.updateMaxRewardAmountSetting = async function () {
+                if (vm.filterMaxRewardAmountSettingPlatform && ((vm.maxRewardAmountSettingData && vm.maxRewardAmountSettingData.length) || (vm.deletedMaxRewardAmountSettingList && vm.deletedMaxRewardAmountSettingList.length))){
+                    let objectData = {
+                        platformObjId: vm.filterMaxRewardAmountSettingPlatform,
+                        updateData: vm.maxRewardAmountSettingData,
+                        deletedData: vm.deletedMaxRewardAmountSettingList
+                    };
+
+                    let updateData = await $scope.$socketPromise('updateMaxRewardAmountSetting', objectData);
+
+                    if (updateData && updateData.success){
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        vm.loadMaxRewardAmountSetting(vm.filterMaxRewardAmountSettingPlatform);
+                    }
+
+                }
+            };
+
+            vm.loadMaxRewardAmountSetting = async function (platformObjId) {
+                if (platformObjId){
+                    let loadData = await $scope.$socketPromise('loadMaxRewardAmountSetting', {platformObjId: platformObjId});
+
+                    if (loadData && loadData.data && loadData.data.length){
+                        vm.maxRewardAmountSettingData = loadData.data;
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        $scope.$evalAsync();
+                    }
                 }
             };
 

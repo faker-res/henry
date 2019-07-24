@@ -6815,6 +6815,68 @@ var dbPlatform = {
         ).lean();
     },
 
+    getDepartmentByPlatform: function (platformObjId) {
+        return dbconfig.collection_department.find({platforms: {$elemMatch: {$eq: platformObjId}}}).populate({
+            path: "roles",
+            model: dbconfig.collection_role
+        }).lean();
+
+    },
+
+    updateMaxRewardAmountSetting: function (platformObjId, updateData, deletedData) {
+        if (platformObjId){
+            let updateProm = [];
+            if (updateData && updateData.length){
+                updateData.forEach(
+                    data => {
+                        if (data && data._id){
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(data._id)}, data).lean() )
+                        }
+                        else if (data){
+                            data.platformObjId = platformObjId;
+                            updateProm.push(saveNewRecord(data))
+                        }
+                    }
+                )
+            }
+
+            if (deletedData && deletedData.length){
+                deletedData.forEach(
+                    item => {
+                        if (item){
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(item)}, {status: 2}).lean() )
+                        }
+                    }
+                )
+            }
+
+            return Promise.all(updateProm);
+        }
+
+        function saveNewRecord (newRecordData) {
+            let newRecord = new dbconfig.collection_promoCodeMaxRewardAmountSetting(newRecordData);
+            return newRecord.save();
+        };
+    },
+
+    loadMaxRewardAmountSetting: (platformObjId) => {
+        if (platformObjId){
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.find({platformObjId: platformObjId, status: 1}).lean();
+        }
+    },
+
+    getMaxRewardAmountSettingByAdminName: (platformObjId, roleObjId, departmentList) => {
+        if (platformObjId && roleObjId && departmentList && departmentList.length){
+            let query = {
+                role: roleObjId,
+                department: {$in: departmentList.map(p => ObjectId(p))},
+                platformObjId: platformObjId,
+                status: 1,
+            };
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).lean();
+        }
+    },
+
     reEncryptPlayerPhoneNumber: () => {
         let promArr = [];
 
