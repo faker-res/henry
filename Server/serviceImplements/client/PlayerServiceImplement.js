@@ -13,7 +13,7 @@ const geoip = require('geoip-lite');
 const localization = require('../../modules/localization').localization;
 const constPlayerSMSSetting = require('../../const/constPlayerSMSSetting');
 const SMSSender = require('../../modules/SMSSender');
-const queryPhoneLocation = require('phone-query');
+const queryPhoneLocation = require('cellocate');
 const constProposalEntryType = require('./../../const/constProposalEntryType');
 const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
@@ -56,7 +56,7 @@ let PlayerServiceImplement = function () {
             if (queryRes) {
                 data.phoneProvince = queryRes.province;
                 data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
+                data.phoneType = queryRes.sp;
             }
         }
 
@@ -215,7 +215,7 @@ let PlayerServiceImplement = function () {
             if (queryRes) {
                 data.phoneProvince = queryRes.province;
                 data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
+                data.phoneType = queryRes.sp;
             }
         }
         let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
@@ -292,7 +292,7 @@ let PlayerServiceImplement = function () {
             if (queryRes) {
                 data.phoneProvince = queryRes.province;
                 data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
+                data.phoneType = queryRes.sp;
             }
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [data], isValidData, false, false, true);
@@ -337,7 +337,7 @@ let PlayerServiceImplement = function () {
                 if (queryRes) {
                     data.phoneProvince = queryRes.province;
                     data.phoneCity = queryRes.city;
-                    data.phoneType = queryRes.type;
+                    data.phoneType = queryRes.sp;
                 }
             }
             conn.captchaCode = null;
@@ -405,7 +405,7 @@ let PlayerServiceImplement = function () {
             if (queryRes) {
                 data.phoneProvince = queryRes.province;
                 data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
+                data.phoneType = queryRes.sp;
             }
         }
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -457,7 +457,7 @@ let PlayerServiceImplement = function () {
         if (queryRes) {
             data.phoneProvince = queryRes.province;
             data.phoneCity = queryRes.city;
-            data.phoneType = queryRes.type;
+            data.phoneType = queryRes.sp;
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 2], isValidData);
     };
@@ -1520,12 +1520,12 @@ let PlayerServiceImplement = function () {
 
     this.generateUpdatePasswordToken.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.platformId && data.phoneNumber && data.smsCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.generateUpdatePasswordToken, [data.platformId, data.name, data.phoneNumber, data.smsCode], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.generateUpdatePasswordToken, [data.platformId, data.name, data.phoneNumber, data.smsCode], isValidData);
     };
 
     this.updatePasswordWithToken.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.token && data.password);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordWithToken, [data.token, data.password], isValidData);
     };
 
     this.checkIsAppPlayerAndAppliedReward.onRequest = function (wsFunc, conn, data) {

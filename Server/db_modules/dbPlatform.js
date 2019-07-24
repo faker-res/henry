@@ -2083,9 +2083,19 @@ var dbPlatform = {
             if (data.partnerId) {
                 query.partnerId = data.partnerId;
             }
-            if (data.platformId) {
-                query.platformId = data.platformId;
+
+            if (data.platform && typeof data.platform == 'object' && data.platform.length > 0 && data.platformId &&  typeof data.platformId == 'object' && data.platformId.length > 0) {
+                query.platform = data.platform.map(item => ObjectId(item));
+                query['$or'] = [
+                    {'platform': data.platform.map(item => ObjectId(item))},
+                    {'platformId': data.platformId}
+                ];
+            } else {
+                if (data.platformId) {
+                    query.platformId = data.platformId;
+                }
             }
+
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');

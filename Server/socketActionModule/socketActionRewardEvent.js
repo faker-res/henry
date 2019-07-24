@@ -13,6 +13,13 @@ function socketActionRewardEvent(socketIO, socket) {
     this.socket = socket;
 
     var self = this;
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
+
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
     this.actions = {
         /**
          * Create reward event
@@ -136,7 +143,7 @@ function socketActionRewardEvent(socketIO, socket) {
         startPlatformRTGEventSettlement: function startPlatformRTGEventSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.eventCode);
-            socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode, getAdminId(), getAdminName()], actionName, isValidData);
         },
         /**
         * Assign Random Reward to Specific Player
@@ -169,6 +176,29 @@ function socketActionRewardEvent(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.rewardCode);
             socketUtil.emitter(self.socket, dbPlayerReward.getTopUpRewardDayLimit, [data.platformId, data.rewardCode], actionName, isValidData);
+        },
+
+        getPlayerRewardRetention: function getPlayerRewardRetention(data) {
+            var actionName = arguments.callee.name;
+            let diffDays;
+            if (data.startTime && data.endTime) {
+                let timeDiff =  new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+                if (timeDiff >= 0) {
+                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
+                }
+            }
+            var isValidData = Boolean(data && data.platform && data.eventObjId && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
+            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
+            socketUtil.emitter(self.socket, dbPlayerReward.getPlayerRewardRetention, [ObjectId(data.platform), ObjectId(data.eventObjId), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.domainList, data.devices], actionName, isValidData);
+        },
+
+        getDomainListFromApplicant: function getDomainListFromApplicant(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.eventObjId && data.startTime && data.endTime && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
+            var startTime = dbUtil.getDayStartTime(data.startTime);
+            var endTime = dbUtil.getDayEndTime(data.endTime);
+
+            socketUtil.emitter(self.socket, dbPlayerReward.getDomainListFromApplicant, [ObjectId(data.platformId), ObjectId(data.eventObjId), startTime, endTime, data.isRealPlayer, data.isTestPlayer, data.hasPartner, data.playerType], actionName, isValidData);
         },
     };
     socketActionRewardEvent.actions = this.actions;
