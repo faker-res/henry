@@ -1284,6 +1284,7 @@ define(['js/app'], function (myApp) {
                         "title": $translate('CREATOR'),
                         "data": null,
                         render: function (data, type, row) {
+                            console.log('Creator field', data.data.creator);
                             if (data.hasOwnProperty('creator')) {
                                 if(data.creator && data.creator.type){
                                     if (data.type && data.type.name && data.type.name == "CustomizePartnerCommRate" && data.creator.type == "admin") {
