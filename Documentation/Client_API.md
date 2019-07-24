@@ -3646,8 +3646,8 @@ API说明：
 <div id='申请奖励活动'></div>
 
 * **8. 申请奖励活动**
+    * functionName: applyRewardEvent
 	* 玩家申请当前平台的奖励活动
-	* name: applyRewardEvent
 	* 请求内容：`{code: “xxxxxx”, data: “xxxxx”}`
 	* code: 奖励活动代码
 	* appliedObjIdList: [xxxxx, xxxxx] 幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
@@ -4104,89 +4104,98 @@ API说明：
 <div id='获取申请优惠相关信息'></div>
 
 * **20. 获取申请优惠相关信息**
-	* 获取申请优惠需要的条件信息。
-	* name: getRewardApplicationData
-	* 请求内容：`{platformId: “4”, code: “rewardCode”// 系统代码}`
-	* 响应内容：
-		* ```
-			{  
-				status: 200,  
-				data:{ 
-					code:"firstDeposit_bonus_tab0",  
-					eventName:"首存",  
-					rewardType：'PlayerTopUpReturnGroup',
-					status:1 //优惠条件是否满足  
-					condition:{  //如果有存款要求返回此数据  
-						deposit:{  
-							status:1 //NuM //1满足,2不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
-							allAmount:1000, // NuM //如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
-							times:3, //NuM //如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
-							details:[  {  
-								id:"",  
-								amount:1100, //NuM //存款金额  
-							}  ],
-						list: [{ // （幸运注单）有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							depositAmount: 500, // 周期内需要完成的存款金额  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果有投注要求返回此数据  
-					bet:{  
-						status:1 //NuM //1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注） 
-						needBet:100 //NuM //需要投注金额  
-						alreadyBet:100 // NuM //已投注金额  
-						gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
-						list: [{ （幸运注单） // 有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果是洗码，享受洗码比例，不是不返回  
-					ximaRatios:[{  
-						gameType: “卡牌”, // Str  
-						ratio:0.005, //NuM  
-						amountBet:1000 //NuM  
-					}],  //如果有电话限制返回此数据  
-					telephone:{  
-						status:1 //NuM //1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
-					},  //如果有ip限制返回此数据  
-					ip:{  
-						status:1 //NuM //1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
-					},  //如果有SMSCode限制返回此数据  
-					SMSCode:{  
-						status:1 //NuM //1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
-					},// 如果有设备限制  
-					device: {  
-						status: 1 //Num 1 可领取 2 已领取  
-					}  
-				},  result:{  
-					rewardAmount:1122, //NuM //优惠金额
-					winTimes: 10 // NUM 盈利倍数（盈利翻倍组）  
-					totalBetAmount: 100 // Num 总投注金额 （盈利翻倍组）  
-					totalWinAmount: 1000 // Num 总盈利金额 （盈利翻倍组）  
-					betAmount:12222, // NuM //如果有，投注额要求  
-					betTimes:5, //NuM //如果有，投注额倍数  
-					xima:1, //NuM //此优惠是否享受洗码1享受，2不享受  
-					providerGroup:{} //如果有大厅组限制列出大厅组，没有不返回
-					topUpAmountInterval： 1000 // 本周期现在的存款金额总数 （幸运注单）  
-					quantityLimit： 3 // 可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					appliedCount： 2 // 已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					quantityLimitInInterval: 100 // Num 周期内放出总数量 (提升存留)  
-				}  
-			}}  
-	* 请求成功：status--200
-	* 请求失败：status--4xx, data--null
+    * functionName: getRewardApplicationData
+	* 获取申请优惠需要的条件信息
+	* 请求内容：
+	    ```
+	    platformId: 必填|String|平台ID
+	    code: 必填|String|优惠唯一代码
+	    ```
+	* 操作成功：
+		```
+        status: 200,  
+        data: { 
+            code: 优惠唯一代码
+            eventName: 优惠名称
+            rewardType：优惠类型
+            status: 优惠条件是否满足, 1: 满足 
+            condition: {  如果有存款要求返回此数据  
+                deposit: {  
+                    status: 1: 满足, 2: 不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
+                    allAmount: 如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
+                    times: 如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
+                    details:[{  符合申请的存款列表
+                        id: 存款唯一ID 
+                        amount: 存款金额  
+                    }],
+                    list: [{    （幸运注单）有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        depositAmount: 周期内需要完成的存款金额  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                bet: {  //如果有投注要求返回此数据  
+                    status: 1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注） 
+                    needBet: 需要投注金额  
+                    alreadyBet: 已投注金额  
+                    gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
+                    list: [{    （幸运注单） // 有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                ximaRatios: [{   如果是洗码，享受洗码比例，如不是不返回  
+                    gameType: 游戏类型名称
+                    ratio: 洗码比率
+                    amountBet: 已投注金额
+                }],  
+                telephone: { 如果有电话限制返回此数据  
+                    status: 1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
+                },   
+                ip: {   如果有ip限制返回此数据 
+                    status: 1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
+                },    
+                SMSCode: {  如果有SMSCode限制返回此数据
+                    status: 1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
+                }, 
+                device: {   如果有设备限制 
+                    status: 1 可领取 2 已领取  
+                }  
+            },  
+            result: {  
+                rewardAmount: 优惠金额
+                winTimes: 盈利倍数（盈利翻倍组）  
+                totalBetAmount: 总投注金额 （盈利翻倍组）  
+                totalWinAmount: 总盈利金额 （盈利翻倍组）  
+                betAmount: 如果有，投注额要求  
+                betTimes: 如果有，投注额倍数  
+                xima: 此优惠是否享受洗码1享受，2不享受  
+                providerGroup: 如果有大厅组限制列出大厅组，没有不返回
+                topUpAmountInterval：本周期现在的存款金额总数 （幸运注单）  
+                quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+            }  
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取某优惠领取排行榜'></div>
 
