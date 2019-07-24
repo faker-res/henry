@@ -2456,7 +2456,6 @@ define(['js/app'], function (myApp) {
                                 vm.modalYesNo = {};
                                 vm.modalYesNo.modalTitle = $translate("Already settled XIMA");
                                 vm.modalYesNo.modalText = $translate("Are you sure to settle again?");
-                                console.log('modalYesNo', vm.modalYesNo);
                                 vm.modalYesNo.actionYes = () => settleXIMA(socketParam);
                                 vm.modalYesNo.actionNo = () => { vm.playerConsumptionReturnSettlement.status = "ready" };
                                 $('#modalYesNo').modal();

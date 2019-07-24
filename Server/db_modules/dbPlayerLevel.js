@@ -14,8 +14,6 @@ const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
 const constServerCode = require('../const/constServerCode');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
-let ID;
-let NAME;
 let dbPlayerLevelInfo = {
 
     /**
