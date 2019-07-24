@@ -19107,6 +19107,9 @@ let dbPlayerInfo = {
                     };
 
                     if (isSinglePlayer) {
+                        if (!playerData || !playerData._id) {
+                            return Promise.reject({message: "Player not found"});
+                        }
                         summaryDataQuery.playerId = playerData._id;
                     } else if (query.adminIds && query.adminIds.length && playerData.length) {
                         summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
