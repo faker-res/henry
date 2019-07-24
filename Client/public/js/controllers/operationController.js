@@ -1299,9 +1299,9 @@ define(['js/app'], function (myApp) {
                                 }
                                 return data.creator.name;
                             } else {
-
+                                //here's to check creator is not null
                                 var creator;
-                                if(data.data && data.data.creator.type){
+                                if(data.data && data.data.creator){
 
                                     if(data.data.creator.type === "admin"){
                                         creator = data.data.creator.name;
@@ -1310,14 +1310,12 @@ define(['js/app'], function (myApp) {
                                         creator = $translate('System');
                                         creator += "(" + data.data.creator.name + ")";
                                     }
+
                                 }else{
-                                    if(data.data.type === "player"){
-
-                                        creator = $translate('System');
-                                        if (data && data.data && data.data.playerName) {
-                                            creator += "(" + data.data.playerName + ")";
-                                        }
-
+                                    //found out not all proposal has creator, this original checking for non-creator proposal
+                                    creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
                                     }
                                 }
                                 return creator;
