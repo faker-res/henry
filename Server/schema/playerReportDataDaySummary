@@ -28,6 +28,8 @@ var playerReportDataDaySummarySchema = new Schema({
     consumptionBonusAmount: {type: Number, required: true, default: 0, index: true},
     //provider Detail
     providerDetail: {type: JSON, default: {}},
+    // Game Detail
+    gameDetail: {type: JSON, default: {}},
     //bonus times
     bonusTimes:{type: Number, required: true, default: 0, index: true},
     //bonus amount

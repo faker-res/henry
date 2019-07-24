@@ -15,7 +15,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constSMSPurpose = require('../const/constSMSPurpose');
-const queryPhoneLocation = require('phone-query');
+const queryPhoneLocation = require('cellocate');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
@@ -952,7 +952,7 @@ const dbPlayerMail = {
                                 if (queryRes) {
                                     inputData.phoneProvince = queryRes.province;
                                     inputData.phoneCity = queryRes.city;
-                                    inputData.phoneType = queryRes.type;
+                                    inputData.phoneType = queryRes.sp;
                                 }
 
                                 if (inputData.password) {
@@ -1020,7 +1020,7 @@ const dbPlayerMail = {
                                 if (queryRes) {
                                     inputData.phoneProvince = queryRes.province;
                                     inputData.phoneCity = queryRes.city;
-                                    inputData.phoneType = queryRes.type;
+                                    inputData.phoneType = queryRes.sp;
                                 }
 
                                 if (inputData.password) {
@@ -1164,11 +1164,12 @@ const dbPlayerMail = {
             tel: phoneNumber,
             createTime: {$gte: smsExpiredDate}
         };
-
+        console.log('MT --checking smsVerificationLogQuery', smsVerificationLogQuery);
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
         return smsProm.then(
             verificationSMS => {
+                console.log('MT --checking verificationSMS', verificationSMS);
                 if (!verificationSMS || !verificationSMS[0] || !verificationSMS[0].code) {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
