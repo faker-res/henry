@@ -19044,7 +19044,7 @@ let dbPlayerInfo = {
 
                     playerSummary.gameDetail = gameDetailObj;
                 } else {
-                    playerSummary.gameDetail = playerSummary.gameDetail && playerSummary.gameDetail[0] ? playerSummary.gameDetail[0] : {};
+                    playerSummary.gameDetail = playerSummary.gameDetail && playerSummary.gameDetail[0] ? [playerSummary.gameDetail[0]] : [];
                 }
 
                 // Set platform fee to 0 if player bonus amount is positive
