@@ -11,6 +11,7 @@
     "bindings": "^1.2.1",
     "body-parser": "^1.18.3",
     "canvas": "^2.5.0",
+    "cellocate": "^1.0.0",
     "chance": "^1.0.1",
     "colors": "^1.1.2",
     "compression": "^1.7.2",

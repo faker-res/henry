@@ -27,7 +27,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var constPlayerSMSSetting = require("../const/constPlayerSMSSetting");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 
 const rsaCrypto = require("../modules/rsaCrypto");
 const RESTUtils = require("../modules/RESTUtils");
@@ -796,7 +796,7 @@ var proposalExecutor = {
                     if (queryRes) {
                         proposalData.data.updateData.phoneProvince = queryRes.province;
                         proposalData.data.updateData.phoneCity = queryRes.city;
-                        proposalData.data.updateData.phoneType = queryRes.type;
+                        proposalData.data.updateData.phoneType = queryRes.sp;
                     }
                     // for send message to player before encrypt phone number
                     let phoneNumberLast4Digit = proposalData.data.updateData.phoneNumber.substr(proposalData.data.updateData.phoneNumber.length - 4);

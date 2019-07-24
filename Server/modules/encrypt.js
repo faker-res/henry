@@ -74,6 +74,8 @@ var encrypt = {
         var creditAmountTwo = data.hasOwnProperty('creditAmountTwo') ? data.creditAmountTwo : "";
         let referral = data.hasOwnProperty('referral') ? data.referral : "";
         let loginTimes = data.hasOwnProperty('loginTimes') ? data.loginTimes : "";
+        let phoneLocation = data.hasOwnProperty('phoneLocation') ? data.phoneLocation : "";
+        let ipLocation = data.hasOwnProperty('ipLocation') ? data.ipLocation : "";
 
 
         var query = {};
@@ -197,6 +199,12 @@ var encrypt = {
         }
         if (loginTimes !== '') {
             query["loginTimes"] = loginTimes;
+        }
+        if (phoneLocation !== '') {
+            query["phoneLocation"] = phoneLocation;
+        }
+        if (ipLocation !== '') {
+            query["ipLocation"] = ipLocation;
         }
 
         if (validCredit !== '') {

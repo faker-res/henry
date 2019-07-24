@@ -6310,7 +6310,9 @@ define(['js/app'], function (myApp) {
                     var gameDetail = [];
                     if (holder.gameDetail) {
                         for (let i = 0; i < holder.gameDetail.length; i++) {
-                            if (holder.gameDetail[i].providerId._id.toString() == data.providerId.toString()) {
+                            let holderProviderId = holder.gameDetail[i].providerId._id || holder.gameDetail[i].providerId;
+
+                            if (holderProviderId.toString() == data.providerId.toString()) {
                                 gameDetail.push(holder.gameDetail[i]);
                             }
                         }
