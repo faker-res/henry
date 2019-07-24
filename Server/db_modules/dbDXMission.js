@@ -10,7 +10,7 @@ var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
 const rsaCrypto = require("../modules/rsaCrypto");
 const localization = require("./../modules/localization").localization;
-const queryPhoneLocation = require('phone-query');
+const queryPhoneLocation = require('cellocate');
 
 
 const constSystemParam = require('../const/constSystemParam');
@@ -1632,7 +1632,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 if (phoneLocation) {
                     playerData.phoneProvince = phoneLocation.province;
                     playerData.phoneCity = phoneLocation.city;
-                    playerData.phoneType = phoneLocation.type;
+                    playerData.phoneType = phoneLocation.sp;
                 }
             }
 

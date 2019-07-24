@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -6913,7 +6913,7 @@ let dbPlayerInfo = {
                                         if (phoneLocation) {
                                             newPlayerData.phoneProvince = phoneLocation.province;
                                             newPlayerData.phoneCity = phoneLocation.city;
-                                            newPlayerData.phoneType = phoneLocation.op;
+                                            newPlayerData.phoneType = phoneLocation.sp;
                                         }
                                     }
 
@@ -18746,6 +18746,7 @@ let dbPlayerInfo = {
                     twoDaysPlayerReportData.data.forEach(
                         twoDaysData => {
                             if(twoDaysData && twoDaysData._id) {
+                                // Match playerObjId
                                 let indexNo = returnedObj.data.findIndex(r => r._id == twoDaysData._id);
 
                                 if(indexNo == -1){
@@ -18791,8 +18792,29 @@ let dbPlayerInfo = {
                                                 };
                                             }
                                         }
+                                    }
 
-                                        returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                    //combine gameDetail
+                                    if(twoDaysData.gameDetail.length > 0){
+                                        twoDaysData.gameDetail.forEach(
+                                            gameDetail => {
+                                                if (!returnedObj.data[indexNo].gameDetail) {
+                                                    returnedObj.data[indexNo].gameDetail = [];
+                                                }
+
+                                                let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId._id);
+
+                                                if (idx !== -1){
+                                                    returnedObj.data[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].amount += gameDetail.amount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                    returnedObj.data[indexNo].gameDetail[idx].bonusRatio = (returnedObj.data[indexNo].gameDetail[idx].bonusAmount / returnedObj.data[indexNo].gameDetail[idx].validAmount);
+                                                } else {
+                                                    returnedObj.data[indexNo].gameDetail.push(gameDetail);
+                                                }
+                                            }
+                                        );
                                     }
                                 }
                             }
@@ -18856,8 +18878,29 @@ let dbPlayerInfo = {
                                                     };
                                                 }
                                             }
+                                        }
 
-                                            returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                        //combine gameDetail
+                                        if(preSummaryData.gameDetail.length > 0){
+                                            preSummaryData.gameDetail.forEach(
+                                                gameDetail => {
+                                                    if (!returnedObj.data[indexNo].gameDetail) {
+                                                        returnedObj.data[indexNo].gameDetail = [];
+                                                    }
+
+                                                    let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+
+                                                    if (idx !== -1){
+                                                        returnedObj.data[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].amount += gameDetail.amount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                        returnedObj.data[indexNo].gameDetail[idx].bonusRatio = (returnedObj.data[indexNo].gameDetail[idx].bonusAmount / returnedObj.data[indexNo].gameDetail[idx].validAmount);
+                                                    } else {
+                                                        returnedObj.data[indexNo].gameDetail.push(gameDetail);
+                                                    }
+                                                }
+                                            );
                                         }
                                     }
                                 }
@@ -18970,6 +19013,31 @@ let dbPlayerInfo = {
                     })
                 }
 
+                // Process game detail
+                if (playerSummary.gameDetail && playerSummary.gameDetail.length > 1) {
+                    let gameDetailObj = [];
+
+                    playerSummary.gameDetail.forEach(
+                        gameDetail => {
+                            let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+
+                            if (idx !== -1){
+                                gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
+                                gameDetailObj[idx].validAmount += gameDetail.validAmount;
+                                gameDetailObj[idx].amount += gameDetail.amount;
+                                gameDetailObj[idx].count += gameDetail.count;
+                                gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
+                            } else {
+                                gameDetailObj.push(gameDetail);
+                            }
+                        }
+                    );
+
+                    playerSummary.gameDetail = gameDetailObj;
+                } else {
+                    playerSummary.gameDetail = playerSummary.gameDetail && playerSummary.gameDetail[0] ? [playerSummary.gameDetail[0]] : [];
+                }
+
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = 0;
 
@@ -19037,7 +19105,8 @@ let dbPlayerInfo = {
                                 consumptionAmount: {$sum: "$consumptionAmount"},
                                 totalPlatformFeeEstimate: {$sum: "$totalPlatformFeeEstimate"},
                                 totalOnlineTopUpFee: {$sum: "$totalOnlineTopUpFee"},
-                                providerDetail: {$push: "$providerDetail"}
+                                providerDetail: {$push: "$providerDetail"},
+                                gameDetail: {$push: "$gameDetail"}
                             }
                         },
                         {
@@ -19060,7 +19129,8 @@ let dbPlayerInfo = {
                                 consumptionAmount: 1,
                                 totalPlatformFeeEstimate: 1,
                                 totalOnlineTopUpFee: 1,
-                                providerDetail: 1
+                                providerDetail: 1,
+                                gameDetail: 1
                             }
                         }
                     ).read("secondaryPreferred");
@@ -19306,7 +19376,7 @@ let dbPlayerInfo = {
                                         playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
                                         playerReportSummaryData[indexNo]._id = player._id || "";
                                         playerReportSummaryData[indexNo].valueScore = player.valueScore || "";
-                                        playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].providerDetail || [];
+                                        playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].gameDetail || [];
                                         playerReportSummaryData[indexNo].endTime = query.end;
 
                                         finalPlayerReportSummaryData.push(playerReportSummaryData[indexNo]);
@@ -26374,7 +26444,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
-                    updObj.phoneType = phoneLocation.op;
+                    updObj.phoneType = phoneLocation.sp;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(

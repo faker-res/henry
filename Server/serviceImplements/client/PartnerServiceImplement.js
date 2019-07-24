@@ -11,7 +11,7 @@ var jwt = require('jsonwebtoken');
 var uaParser = require('ua-parser-js');
 var localization = require('../../modules/localization').localization;
 const constSMSPurpose = require('../../const/constSMSPurpose');
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
@@ -50,7 +50,7 @@ var PartnerServiceImplement = function () {
             if (queryRes) {
                 data.phoneProvince = queryRes.province;
                 data.phoneCity = queryRes.city;
-                data.phoneType = queryRes.type;
+                data.phoneType = queryRes.sp;
             }
         }
         let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
@@ -398,7 +398,7 @@ var PartnerServiceImplement = function () {
         if (queryRes) {
             data.phoneProvince = queryRes.province;
             data.phoneCity = queryRes.city;
-            data.phoneType = queryRes.type;
+            data.phoneType = queryRes.sp;
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
     };
