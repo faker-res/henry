@@ -2521,15 +2521,13 @@ define(['js/app'], function (myApp) {
                     });
 
                 $('#playerLevelSettlementModal').modal('show');
-                $scope.safeApply();performPlayerLevelSettlement
+                $scope.safeApply();
             };
 
             vm.performPlayerLevelSettlement = function (upOrDown) {
                 let adminID = authService.adminId;
                 let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
-                console.log('Controller AID', adminID);
-                console.log('Controller ADN', adminName);
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
                     {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
                     function (data) {
