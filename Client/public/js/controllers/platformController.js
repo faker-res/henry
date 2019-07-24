@@ -2224,7 +2224,7 @@ define(['js/app'], function (myApp) {
                         vm.allRewardEvent = data.data;
 
                         vm.allRewardEvent.map(event => {
-                            if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                            if (event && event.settlementPeriod && event.type.name === "PlayerConsumptionReturn") {
                                 p = p.then(() => {
                                         getConsumptionReturnPeriodTime(event);
                                     }
@@ -2527,6 +2527,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.performPlayerLevelSettlement = function (upOrDown) {
+                let adminID = authService.adminId;
+                let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
                     {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
