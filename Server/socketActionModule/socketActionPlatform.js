@@ -1054,11 +1054,6 @@ function socketActionPlatform(socketIO, socket) {
 
         getMaxRewardAmountSettingByAdminName: function getMaxRewardAmountSettingByAdminName (data) {
             let actionName = arguments.callee.name;
-            // let qeury = {
-            //     roleObjId: authService.roleData[0]._id,
-            //     departmentList: authService.roleData[0].departments,
-            //     platformObjId: vm.filterCreatePromoCodePlatform || vm.vm.filterPromoCodeTemplatePlatform || vm.filterOpenPromoCodeTemplatePlatform
-            // }
             let isValidData = Boolean(data && data.platformObjId && data.departmentList && data.roleObjId);
             socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdminName, [ObjectId(data.platformObjId), ObjectId(data.roleObjId), data.departmentList], actionName, isValidData);
         },
