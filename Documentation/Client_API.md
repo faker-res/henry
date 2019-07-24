@@ -17,7 +17,7 @@
 	7. [获取玩家基本信息](#获取玩家基本信息get)
 	8. [修改玩家的支付信息](#修改玩家的支付信息)
 	9. [修改玩家登录密码](#修改玩家登录密码)
-	10. [设置短信通知](#设置短信通知)
+	10. [设置短信通知(已淘汰)](#设置短信通知)
 	10.1. [获取玩家短信状态](#获取玩家短信状态)
 	10.2. [设置玩家短信状态](#设置玩家短信状态)
 	11. [用户是否有效](#用户是否有效)
@@ -458,7 +458,7 @@ API说明：
   - name: create 	
   - 请求内容：
 	  - ```
-		  {
+		    {
 			  name: “test1”, 
 			  password: “123456”, 
 			  phoneNumber: “74852734”, 
@@ -469,7 +469,7 @@ API说明：
 			  platformId:”xxxxxx”, 
 			  referral: “player002”, 
 			  domain: “domain.com”
-			}
+            }
   - name: 玩家注册的用户名.(需验证用户是否被占用)
   - realName: 真实姓名
   - password: 玩家密码
@@ -490,10 +490,7 @@ API说明：
   - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
   - 操作失败： status--4xx, data--null
-
-
 <div id='获取验证码'></div>
-
 
 * **2. 获取验证码**
   - 从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来。
@@ -504,375 +501,497 @@ API说明：
 
 <div id='登录'></div>
 
-
 * **3. 登录**
-	- 玩家登录接口.
-	- name: login
-	- 请求内容：
-	- {platform Id: “1”, name: “test01”, password: “13224”, captcha: “34223”}
-	- platform Id: 玩家注册平台
-	- name: 玩家用户名
-	- password: 玩家密码
-	- captcha: 验证码 (登录三次失败后需要填验证码)
-	- clientDomain: 登陆域名
-	- deviceId: 设备号
-	- checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
-	- 响应内容:
-	- {status: 200/40x, data: playerObject}
-	- playerObject包含token，用于重新建立链接
-	- 操作成功： status--200, data--玩家对象
-	- 操作失败： status--40x, data--null
+    * functionName: login
+	* 玩家登录接口
+	* 请求内容： 
+	    ```
+        platformId: 必填|String|玩家注册平台
+        name: 必填|String|玩家用户名
+        password: 必填|String|玩家密码
+        captcha: 选填|String|验证码 (登录三次失败后需要填验证码)
+        clientDomain: 选填|String|登陆域名
+        deviceId: 选填|String|设备号
+        checkLastDeviceId: 选填|Boolean|检查上次登入设备是否与这次一样
+        ```
+	* 操作成功:
+	    ```
+	    status: 200
+	    data: 玩家对象
+	    token: 玩家token
+	    ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='注销'></div>
 
 * **4. 注销**
+    * functionName: logout
 	* 玩家注销登录接口
-	* name: logout
-	* 请求内容：`{playerId: “xxxxxxx”}`
-	* playerId: 玩家ID
-	* 响应内容：`{status: 200/40x, playerId: “xxxxxxx”}`
-	* 注销成功：status--200, playerID--玩家ID
-	* 注销失败：status--40x, playerID--玩家ID
+	* 请求内容：
+	    ```
+	    playerId: 必填|String|玩家ID
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='是否已成功登入'></div>
 
 * **5. 是否已成功登入**
+    * functionName: isLogin
 	* 查询玩家是否登录.
-	* name: isLogin
-	* 请求内容：`{playerId: “xxxxxxxx”}`
-	* playerId：玩家ID // 必填
-	* 响应内容：`{status: 200, data: true/false/null}`
-	* 操作成功：status--200, data--已登录true, 未登录false
-	* 操作失败：status--40x, data--null.
+	* 请求内容：
+        ```
+        playerId: 必填|String|玩家ID
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: 已登录true, 未登录false
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取手机验证码'></div>
 
 * **6. 获取手机验证码**
+    * functionName: getSMSCode
 	* 玩家输入有效的手机号之后，点击获取验证码. 获取之后，需1分钟之后才能点击重发。当验证用途是注册时，手机号码超出使用限制便会报错。
-	* name: getSMSCode
 	* 请求内容：
-		*  
-			```
-			{
-			    phoneNumber:”13955556666”， // 发送短信验证的号码
-			    oldPhoneNumber:”18500000000”, // 玩家旧的电话号码，当purpose是'newPhoneNumber' ，而且为一步修改电话时，需传送旧的号码核对是否匹配（注意 2 步修改不需要）。
-			    purpose: “registration”,
-			    name: “etest1234” // 玩家帐号，请注意只有『注册』、『重置密码』才可以发
-			    captcha:"5256" // 图片验证码
-			    playerId:"101946" // 玩家ID，登入的情况发送
-		    }
+        ```
+        platformId: 必填|String|平台ID
+        phoneNumber: 必填|String|发送短信验证的号码
+        oldPhoneNumber: 选填|String|玩家旧的电话号码，当purpose是'newPhoneNumber' ，而且为一步修改电话时，需传送旧的号码核对是否匹配（注意 2 步修改不需要）。
+        purpose: 选填|String|详细如下
+        name: 选填|String|玩家帐号，请注意只有『注册』、『重置密码』才可以发
+        captcha: 选填|String|图片验证码
+        playerId: 选填|String|玩家ID，登入的情况发送
+        ```
 	* purpose ( 验证用途，可收入内容如下 )：
-		* “resetPassword”: - 重置密码
-		* “inquireAccount” - 找回账号
-		* “playerLogin” - 玩家登入
-		* “playerAppLogin” - 玩家APP登入（专为现金网APP需求而客制化）
-		* “setPhoneNumber” - 初次设置手机号
-		* “registration” - 注册
-		* “oldPhoneNumber” - 修改电话时的电话验证（旧号码）
-		* "newPhoneNumber" - 修改电话时的电话验证（新号码）// 一步修改电话用此
-		* ”updatePassword” - 更新密码
-		* “updateBankInfo” - 更新支付信息
-		* “updateBankInfoFirst” - 首次设置支付信息
-		* “freeTrialReward” - 免费体验金
-		* “demoPlayer” - 试玩帐号
-		* “Partner_registration” - 代理注册
-		* “Partner_oldPhoneNumber” - 代理电话号码（旧）
-		* “Partner_newPhoneNumber” - 代理电话号码（新）
-		* “Partner_updatePassword” - 代理更新密码
-		* “Partner_updateBankInfoFirst” - 代理银行卡（首次）
-		* “Partner_updateBankInfo” - 代理银行卡（更换）
-	* 响应内容：`{status: 200/40x}`
-	* 请求成功： status--200
-	* 请求失败： status--40x 
-		* 402 - 验证码错误 
-		* 454 - 手机号码已使用过
+	    
+	    |Purpose|功能|
+	    |-------|---|
+	    |resetPassword|重置密码|
+	    |inquireAccount|找回账号|
+	    |playerLogin|玩家登入|
+	    |playerAppLogin|玩家APP登入（专为现金网APP需求而客制化）|
+	    |setPhoneNumber|初次设置手机号|
+	    |registration|注册|
+	    |oldPhoneNumber|修改电话时的电话验证（旧号码）|
+	    |newPhoneNumber|修改电话时的电话验证（新号码）// 一步修改电话用此|
+	    |updatePassword|更新密码|
+	    |updateBankInfo|更新支付信息|
+	    |updateBankInfoFirst|首次设置支付信息|
+	    |freeTrialReward|免费体验金|
+	    |demoPlayer|试玩帐号|
+	    |Partner_registration|代理注册|
+	    |Partner_oldPhoneNumber|代理电话号码（旧）|
+	    |Partner_newPhoneNumber|代理电话号码（新）|
+	    |Partner_updatePassword|代理更新密码|
+	    |Partner_updateBankInfoFirst|代理银行卡（首次）|
+	    |Partner_updateBankInfo|代理银行卡（更换）|
+
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家基本信息get'></div>	
 
 * **7. 获取玩家基本信息**
+    * functionName: get
 	* 客户端获取玩家的基本信息，包括邮箱，地址，以及玩家等级详细信息。通过这个接口，还会返回更多的玩家信息。
-	* name: get
-	* 请求内容：`{playerId: “xxxxxxxx”}`
-	* 响应内容：`{status: 200/4xx, data: playerObj/null}`
-	* 操作成功：status--200, data--玩家对象，详见下面说的.
-	* 操作失败：status--4xx, data--null
-	* 玩家对象详细说明：
-		* 
-			```
-			{
-				playerId:"xxxxxx", //玩家ID
-				email: “[Elisa@tom.com](mailto:Elisa@tom.com)”, // 玩家邮箱
-				realName: “Elisa ”, //姓名
-				playerLevel: {
-					value: 1,  //当前等级数值
-					name: 普通, //当前等级名称
-				}
-			}
-			
-	<div id='修改玩家的支付信息'></div>
-	
-
-
-* **8. 修改玩家的支付信息**
-	* 提供一个修改玩家的支付信息的接口
-	* name: updatePaymentInfo
 	* 请求内容：
-		* 
-			```
-			{
-				playerId:”xxxxxxx”, 
-				bankName: “1”, 
-				bankAccount: “123456789”, 
-				bankAccountName: “David”, 
-				bankAccountType: “2”, 
-				bankAccountProvince: “130000”,
-				bankAccountCity: “130700”, 
-				bankAccountDistrict: “130734”, 
-				bankAddress: “望京支行”, 
-				remark: “aaa”, 
-				smsCode: “xxxx”
-			}
-	* playerId: 玩家ID
-	* bankName: 银行名称ID
-	* bankAccount: 银行账号
-	* bankAccountName: 账号名称
-	* bankAccountType: 账号类型 -- 信用卡： 1 ，借记卡：2（非必填、默认2）
-	* bankAccountProvince: 开户省 "130000" (河北省）
-	* bankAccountCity: 开户城市"130700"（张家口）
-	* bankAccountDistrict: 开户地区"130734"（其它区）
-	* bankAddress: 银行地址
-	* smsCode: 短信验证码
-	* 响应内容：`{status: 200/400}`
-	* 操作成功：status--200
-	* 操作失败：status--40x
-	* *新增逻辑：关于『首次』绑定银行卡姓名，此姓名是否允许重复？需要根据『基础数据->平台基础数据->允许相同真实姓名前端开户』来判断。不勾＝不允许
-	* 回文：“此姓名已经注册，请更换银行卡或联系客服。“
+	    ```
+	    playerId: 必填|String|玩家ID
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: 玩家对象
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+        			
+<div id='修改玩家的支付信息'></div>
 	
-	<div id='修改玩家登录密码'></div>
+* **8. 修改玩家的支付信息**
+    * functionName: updatePaymentInfo
+	* 提供一个修改玩家的支付信息的接口
+	* 请求内容： 
+        ```
+        playerId: 必填|String|玩家ID 
+        bankName: 必填|String|银行名称ID
+        bankAccount: 必填|String|银行账号
+        bankAccountName: 选填|String|账号名称
+        bankAccountType: 选填|String|账号类型 -- 1:信用卡 , 2:借记卡（默认2）
+        bankAccountProvince: 选填|String|开户省 "130000" (河北省）
+        bankAccountCity: 选填|String|开户城市"130700"（张家口）
+        bankAccountDistrict: 选填|String|开户地区"130734"（其它区）
+        bankAddress: 选填|String|银行地址
+        remark: 选填|String|备注
+        smsCode: 选填|String|短信验证码
+		```
+    * 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+	
+<div id='修改玩家登录密码'></div>
 
 * **9. 修改玩家登录密码**
+    * functionName: updatePassword
 	* 提供一个用于修改玩家密码的接口
-	* name: updatePassword
 	* 请求内容：
-		* 
-			```
-			{
-				playerId: “xxxxxxxxxx”, 
-				oldPassword: “4321”, 
-				newPassword: “1234”, 
-				smsCode: "xxxx”
-			}
-	* playerId: 玩家ID // 必填
-	* oldPassword: 旧密码 // 必填
-	* newPassword: 新密码 // 必填
-	* smsCode: SMS验证码
-	* 响应内容：`{status: 200/40x}`
-	* 操作成功： status--20
-	* 操作失败： status--40x
+        ```
+        playerId: 必填|String|玩家ID 
+        oldPassword: 必填|String|旧密码
+        newPassword: 必填|String|新密码
+        smsCode: 选填|String|SMS验证码
+		```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='设置短信通知'></div>
 
-
-
-* **10. 设置短信通知**
-	* 玩家设置需要接收短信的事件类型
-	* name: updateSmsSetting (淘汰，请使用setSmsStatus)
-	* 请求内容：
-		* 
-			```
-			{
-				"manualTopup": true/false,
-				"applyBonus": true/false,
-				"cancelBonus": true/false,
-				"applyReward":true/false,
-				"consumptionReturn": true/false,
-				"updatePaymentInfo": true/false,
-				"updatePassword": true/false,
-			}	
-	* smsSetting: 是否接收相关事件短信通知的设置。内容如下: [短信通知设置内容表](#短信通知设置内容表)
-	* 响应内容:`{status: 200/40x}`
-	* Success: status--200
-	* Fail: status--40x, , data--null
-
-<div id='短信通知设置内容表'></div>
-
-# <head2>
-#### 短信通知设置内容表：
-| **名称** | **值** |**说明**	|
-|--|--|--|
-|manualTopup|true/false|手工存款充值|
-|applyBonus|true/false|申请兑奖|
-|cancelBonus|true/false|申请兑奖|
-|applyReward|true/false|取消兑奖 |
-|consumptionReturn|true/false|申请奖励优惠(除了消费返点)|
-|updatePaymentInfo|true/false|消费返点奖励|
-|updatePassword|true/false|玩家修改支付信息 |
-# <head3>
+* **10. 设置短信通知 (已淘汰)**
+    * functionName: updateSmsSetting
+	* 已淘汰 Deprecated
 
 <div id='获取玩家短信状态'></div>
 
 * **10.1 获取玩家短信状态**
+    * functionName: getSmsStatus
 	* 获取玩家接收短信的事件类型
-	* name: getSmsStatus
-	* 请求内容：{}
-	* 响应内容(树状结构)：
-		* 
-			```
-			{
-				"status": 200,
-				"data": [
-					{
-						"smsName": "短信通知分组1", //短信分组名称
-						"smsId": 59,//短信通知分组smsId,可用smsId,来调用setSmsStatus接口，设置开关
-						"status": 0, //短信分组状态（1:组内的设定都是开启的 0:任一组内设定关闭即为0）
-						"settings": [ //短信分组内设定
-						{applyRewardEvent
-						"smsName":
-						"PlayerConsumptionReturnSuccess", //短信通知的具体设定
-						"smsId": 67, // 短信通知设定 smsId
-						"status": 1 //设定是否开启 1：开启 0：关闭
-						},
-						{
-						"smsName": "ManualTopupSuccess",
-						"smsId": 68,
-						"status": 0
-						}]},
-						{
-						"smsName": "短信分组2",
-						"smsId": 62,
-						"status": 1,
-						"settings": [
-							{
-							"smsName": "AlipayTopupSuccess",
-							"smsId": 65,
-							"status": 1
-							}]},}
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        data:
+            smsName: 短信分组名称
+            smsId: 短信通知分组smsId,可用smsId,来调用setSmsStatus接口，设置开关
+            status: 短信分组状态（1:组内的设定都是开启的 0:任一组内设定关闭即为0）
+            settings: [{ //短信分组内设定
+            	smsName: 短信通知类型名
+            	smsId: 短信通知设定
+            	status: 设定是否开启 1：开启 0：关闭
+            }],
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
 <div id='设置玩家短信状态'></div>		
 					
 * **10.2 设置玩家短信状态**
+    * functionName: setSmsStatus
 	* 设置玩家接收短信的事件类型
-	* 请求内容：`{status: 1:0,20:1,30:1 // 键值对 smsId:status, smsId:参考getSmsStatus status:0/1}`
+	* 请求内容：
+	    ```
+	    status: 必填|String|键值对 smsId:status, smsId:参考getSmsStatus status:0/1, 
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 	
 <div id='用户是否有效'></div>
 
 * **11. 用户是否有效**
+    * functionName: isValidUsername
 	* 用于在注册时，检测玩家的用户名是否有效。
-	* name: isValidUsername
-	* 请求内容：`{platform Id, ‘1’, name: “xxxxxxxxx”}`
-	* platform Id: 平台 ID // 必填
-	* name: 要验证的用户名 // 必填
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 操作成功: status--200, data--true, 有效，false, 用户名已被占用
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    platformId: 必填|String|玩家注册平台
+	    name: 必填|String|要验证的用户名
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: true:有效，false:用户名已被占用
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='链接验证'></div>
 
 * **12. 链接验证**
+    * functionName: authenticate
 	* 用于验证玩家webSocket链接是否有效。
 	* 当玩家已登录，但是webSocket链接断开，再建立链接是可以用token来验证链接
-	* name: authenticate
-	* 请求内容：`{playerId: “xxxxxxxxx”, token: “xxxxxxx”}`
-	* playerId: 已登录的玩家id
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 操作成功: status--200, data--true, 有效，false, 鉴定失败
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    playerId: 必填|String|玩家ID
+	    token: 必填|String|玩家token
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: true
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家站内信'></div>
 
 * **13. 获取玩家站内信**
+    * functionName: getMailList
 	* 获取玩家站内信列表
-	* name: getMailList
-	* service:player / service:partner
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: [mailObj]}`
-	* 操作成功: status--200, data--站内信列表
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='通知玩家有新的站内信'></div>
 
 * **14. 通知玩家有新的站内信**
-	* Name: notifyNewMail
-	* service:player / service:partner service
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-			data: { title: “充值成功”，content：“xxxx”，
-			createTime: “2016-08-08”, hasBeenRead: false}
-			}
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: notifyNewMail
+	* 监听类型, 呼叫后, 如果有新邮件, 系统会主动推送
+	* 请求内容：
+        ```
+        {}
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='标记站内信为已读'></div>
 
 * **15. 标记站内信为已读**
-	* Name: readMail
-	* 请求内容：`{playerId:”xxxxxxxx” , mailObjId:”xxxxxx”}`
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-				data: { title: “ ”，content：“”，}
-			}
-	*	操作成功: status--200, data--新的站内信内容
-	*	操作失败：status--4xx, data-null
+	* functionName: readMail
+	* 标记站内信为已读
+	* 请求内容：
+	    ```
+	    mailObjId: 必填|String|邮件唯一码
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        data: 
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取未读取站内信'></div>
 
 * **16. 获取未读取站内信**
-	* Name: getUnreadMail
-	* 请求内容：`{playerId:”xxxxxxxx”}`
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-				data: { title: “ ”，content：“”，}
-			}
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: getUnreadMail
+    * 获取未读取站内信
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='删除所有邮件'></div>
 
 * **17. 删除所有邮件**
-	* Name: deleteAllMail
-	* service:player / service:partner
-	* 请求内容：`{playerId:”xxxxxxxx”}`
-	* 响应内容：`{status: 200/4xx,data: {..... }}`
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: deleteAllMail
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='删除邮件'></div>
 
 * **18. 删除邮件**
-	* Name:deleteMail
-	* service:player / service:partner
-	* 请求内容：`{playerId:”xxxxxxx”, 　mailObjId:””}`
-	* 响应内容：`{status: 200/4xx,data: { …. }`
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: deleteMail
+	* 请求内容：
+	    ```
+	    mailObjId: 必填|String|邮件唯一码
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家额度'></div>
 
 * **19. 获取玩家额度**
-	* name: getCredit
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: {gameCredit: 0, validCredit: 100, lockedCredit: 20, pendingRewardAmount: 132}}`
-	* 操作成功: status--200, data--额度信息
-	* 操作失败：status--4xx, data-null
+	* functionName: getCredit
+	* 请求内容：
+        ```
+        {}
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data: 
+            gameCredit: 供应商内额度
+            validCredit: 自由额度
+            pendingRewardAmount: 待审核优惠金额
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家全额消费'></div>
 
 * **20. 获取玩家全额消费**
 	* name: getCreditBalance
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: 400}`
-	* 操作成功: status--200, data--额度信息
-	* 操作失败：status--4xx, data-null
+    * 获取玩家总投注额度
+    * 请求内容：
+        ```
+        {}
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: 总投注额度
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='修改玩家头像'></div>
 
 * **21. 修改玩家头像**
-	* name: updatePhotoUrl
+	* functionName: updatePhotoUrl
 	* 请求内容：`{photoUrl: “abc”}`
 	* 响应内容：`{status: 200/4xx, data: 400}`
 	* 操作成功: status--200
@@ -945,8 +1064,8 @@ API说明：
 <div id='获取玩家最新额度'></div>
 
 * **26. 获取玩家最新额度**
+	* functionName: getCreditInfo
 	* 获取玩家最新额度信息
-	* name: getCreditInfo
 	* 请求内容：{}
 	* 响应内容：
 		* 
@@ -1099,36 +1218,35 @@ API说明：
 	<div id='登入后获取提款信息'></div>
 	
 * **32. 登入后获取提款信息**
-	* Name:getWithdrawalInfo
+	* functionName: getWithdrawalInfo
+	* 获取提款信息
 	* 请求内容：
-		* 
-			```
-			{
-				platformId:1,
-			},
-			platformId: 平台ID
-	* 响应内容：
-		* 
-			```
-			{
-			"status": 200,
-			"data": {
-				"freeTimes": 20,
-				"serviceCharge": 0.0015,
-				"currentFreeAmount": 0,
-				"freeAmount": 1800,
-				"lockList": [
-				{
-					"name": "第一大厅",
-					"lockAmount": 1100,
-					"currentLockAmount": 0
-				}
-				]
-			}
-			}
-	* 请求失败: `{"status": 459,"name": "DataError","message": "Provider group is not used.","errorMessage": "没有开启锁大厅（组），暂无提款进度展示"}`
+	    ```
+        platformId: 必填|String|平台ID
+        ```
+	* 请求成功：
+		```
+		status: 200
+		data:
+			freeTimes: 免手续费提款剩余次数
+			serviceCharge: 手续费
+			currentFreeAmount: 免手续费提款额
+			freeAmount: 可提款金额
+			ximaWithdraw: 可提款洗码金额
+			lockList: [{ 现有锁大厅
+                name: 大厅名字
+                lockAmount: 锁定额度
+                currentLockAmount: 锁定额度余额
+			}]
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 	
-	<div id='编辑玩家QQ'></div>
+<div id='编辑玩家QQ'></div>
 	
 * **33. 编辑玩家QQ**
 	* Name:updatePlayerQQ
@@ -1869,8 +1987,8 @@ API说明：
 			{
 				platformId: “4”,
 				name: “username1” // 玩家账号
-				phoneNumber: “11755444444”
-				smsCode: “5478”
+				phoneNumber: “11755444444” // 验证电话号码
+				smsCode: “5478” //短信验证码，从getSMSCode获取
 			}// 需调用getSMSCode接口, purpose: “updatePassword”
 	* 响应内容:`{status: 200/40x, data: {token: “xsda45w7f2d4”}}`
 	* 操作成功： status--200
@@ -7600,7 +7718,7 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 	* 请求内容：
 		* ```
 			{
-				eventObjectId: [  // 活动ID
+				eventObjectIds: [  // 活动ID
 					"5a3e14d97417383af4f7d54b",
 					“5a3e14d97417383af4f7d54c”,
 				]

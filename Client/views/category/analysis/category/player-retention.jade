@@ -9,15 +9,15 @@
         #analysisPlayerRetention.block-query.well(style='margin-bottom:3px;')
             div
                 label {{"Start date"|translate}}
-                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime', ng-change = 'vm.retentionFilterOnChange()')
+                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime', ng-change = 'vm.retentionFilterOnChange("playerRetention")')
             div
                 label {{"End date"|translate}}
                 input.form-control(type='date', min='{{vm.queryPara.playerRetention.minTime}}',
-                ng-model='vm.queryPara.playerRetention.endTime', ng-change = 'vm.retentionFilterOnChange()')
+                ng-model='vm.queryPara.playerRetention.endTime', ng-change = 'vm.retentionFilterOnChange("playerRetention")')
             div
                 label {{"newRegistrationType"|translate}}
                 //select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-options='a | translate for a in vm.allNewPlayerType')
-                select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-change = 'vm.retentionFilterOnChange()')
+                select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-change = 'vm.retentionFilterOnChange("playerRetention")')
                     option(ng-repeat='(i,v) in vm.allNewPlayerType', value = '{{i}}') {{v | translate}}
                         //option(value='') {{'all'|translate}}
             div
@@ -35,12 +35,12 @@
                                     option(ng-repeat='(i,v) in vm.dayListLength') {{vm.queryPara.playerRetention.days[vm.queryPara.playerRetention.days.length-1]+v}}
                         tr.noBoderTable
                             td(ng-repeat='(i,v) in vm.queryPara.playerRetention.days')
-                                a.fa.fa-minus-square(ng-show='$last', ng-click='vm.retentionRemoveDay(vm.queryPara.playerRetention.days[i])')
+                                a.fa.fa-minus-square(ng-show='$last', ng-click='vm.retentionRemoveDay("playerRetention")')
                             td
-                                a.fa.fa-plus-square(ng-click='vm.retentionAddDay()')
+                                a.fa.fa-plus-square(ng-click='vm.retentionAddDay("playerRetention")')
             div
                 label {{'REGISTRATION_DEVICE' | translate}}
-                select.form-control(ng-model='vm.queryPara.playerRetention.device', ng-change = 'vm.retentionFilterOnChange()')
+                select.form-control(ng-model='vm.queryPara.playerRetention.device', ng-change = 'vm.retentionFilterOnChange("playerRetention")')
                     option(value='all') {{"ALL_DEVICE"|translate}}
                     option(value='app') APP
                     option(value='web') WEB
@@ -48,7 +48,7 @@
                     option(value='backstage') {{"BACKSTAGE"|translate}}
             div
                 label {{'USER_TYPE' | translate}}
-                select.form-control(ng-model='vm.queryPara.playerRetention.userType', ng-change = 'vm.retentionFilterOnChange()')
+                select.form-control(ng-model='vm.queryPara.playerRetention.userType', ng-change = 'vm.retentionFilterOnChange("playerRetention")')
                     option(value='all') {{"REAL_PLAYER_ALL"|translate}}
                     option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
                     option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}

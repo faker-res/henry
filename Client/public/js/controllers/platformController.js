@@ -2224,7 +2224,7 @@ define(['js/app'], function (myApp) {
                         vm.allRewardEvent = data.data;
 
                         vm.allRewardEvent.map(event => {
-                            if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                            if (event && event.settlementPeriod && event.type.name === "PlayerConsumptionReturn") {
                                 p = p.then(() => {
                                         getConsumptionReturnPeriodTime(event);
                                     }
@@ -2527,6 +2527,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.performPlayerLevelSettlement = function (upOrDown) {
+                let adminID = authService.adminId;
+                let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
                     {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
@@ -2861,6 +2863,12 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
                 }
+                if (vm.sendMultiMessage.phoneLocation) {
+                    playerQuery.phoneLocation = vm.sendMultiMessage.phoneLocation;
+                }
+                if (vm.sendMultiMessage.ipLocation) {
+                    playerQuery.ipLocation = vm.sendMultiMessage.ipLocation;
+                }
                 if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
                     let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
                     let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
@@ -2941,6 +2949,8 @@ define(['js/app'], function (myApp) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }
                             }
+                            item.phoneLocation$ = (item.phoneProvince && item.phoneCity) ? item.phoneProvince + " " + item.phoneCity : "";
+                            item.ipLocation$ = (item.province && item.city) ? item.province + " " + item.city : "";
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3328,6 +3338,8 @@ define(['js/app'], function (myApp) {
                                 return data;
                             }
                         },
+                        {'title': $translate('PHONE_LOCATION'), data: 'phoneLocation$'},
+                        {'title': $translate('IP_LOCATION'), data: 'ipLocation$'},
                         {
                             title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
                             render: function (data, type, row) {
@@ -13882,6 +13894,26 @@ define(['js/app'], function (myApp) {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
 
+                if (vm.smsLog.type == "multi") {
+                    requestData.platform = vm.smsLog && vm.smsLog.query && vm.smsLog.query.platformList && vm.smsLog.query.platformList.length > 0 ?
+                        vm.smsLog.query.platformList : vm.platformList.map(item => item.id);
+
+                    if (requestData.platform && requestData.platform.length > 0) {
+                        let tempPlatformId = [];
+                        requestData.platform.forEach(item => {
+                            let index = vm.platformList.findIndex(x => x && x.id && item && (x.id.toString() === item.toString()));
+
+                            if (index > -1) {
+                                tempPlatformId.push(vm.platformList[index].data && vm.platformList[index].data.platformId);
+                            }
+                        })
+
+                        if (tempPlatformId && tempPlatformId.length > 0) {
+                            requestData.platformId = tempPlatformId;
+                        }
+                    }
+                }
+
                 console.log("searchSMSLog requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     $scope.$evalAsync(() => {
@@ -13894,6 +13926,13 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.status$ = $translate(item.status);
                             }
+                            item.platform$ = "";
+                            if(item && item.platform && vm.platformList && vm.platformList.length){
+                                let platformObjId = item.platform;
+                                let filteredPlatform = vm.platformList.filter(a => a.id.toString() === platformObjId.toString());
+                                item.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].text ? filteredPlatform[0].text : "";
+                            }
+
                             return item;
                         });
                         vm.smsLog.totalCount = result.data.size;
@@ -13946,6 +13985,7 @@ define(['js/app'], function (myApp) {
                       {targets: '_all', defaultContent: ' ', bSortable: false}
                   ],
                   columns: [
+                      {'title': $translate('PRODUCT_NAME'), data: 'platform$'},
                       {'title': $translate('date'), data: 'createTime$'},
                       {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
                       {'title': $translate('Recipient'), data: 'recipientName'},
@@ -34754,6 +34794,7 @@ define(['js/app'], function (myApp) {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
                 vm.tempNewNodeRole = '';
+                vm.tempTriggerAmount = 0;
                 vm.expResMsg = '';
                 vm.expShowSubmit = true;
             }
@@ -34772,6 +34813,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.tempNewNodeRole) return;
                 vm.tempRoleID = roleNode._id;
                 vm.tempRoleName = roleNode.roleName;
+                vm.tempEditTriggerAmount = roleNode.triggerAmount;
                 console.log("selected department ", vm.tempDepartmentName);
                 console.log("selected role ", vm.tempRoleName);
             }
@@ -34806,11 +34848,14 @@ define(['js/app'], function (myApp) {
                     vm.tempAllRoles = data.data.roles;
                     $.each(vm.tempAllRoles, function (i, v) {
                         if (v.roleName == vm.tempNodeRoleName) {
+                            vm.tempEditRoleID = v._id;
                             vm.tempEditRoleName = v.roleName;
                             $scope.safeApply();
                             return true;
                         }
                     })
+
+                    vm.tempEditTriggerAmount = vm.tempNodeTriggerAmount;
                     $scope.safeApply();
                 }
             }
@@ -34826,15 +34871,17 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateProposalStepData = function () {
-                var updateNode = {
+                let updateNode = {
                     name: vm.tempNodeName,
                     id: vm.curNodeID,
                     departmentData: {id: vm.tempEditDepartID, name: vm.tempEditDepartName},
-                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName}
-                }
+                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName},
+                    triggerAmount: vm.tempEditTriggerAmount
+                };
                 vm.chartViewModel.updateNode(vm.curNodeID, updateNode);
                 vm.tempNodeDepartmentName = vm.tempEditDepartName;
                 vm.tempNodeRoleName = vm.tempEditRoleName;
+                vm.tempNodeTriggerAmount = vm.tempEditTriggerAmount;
                 socketService.setProposalNodeData();
                 $scope.safeApply();
             }
@@ -34919,12 +34966,6 @@ define(['js/app'], function (myApp) {
             // Add a new node to the chart.
             //
             vm.addNewNode = function () {
-                //todo
-                //var nodeName = prompt("Enter a node name:", "New node");
-                //if (!nodeName) {
-                //    return;
-                //}
-
                 //
                 // Template for a new node.
                 //
@@ -34941,6 +34982,7 @@ define(['js/app'], function (myApp) {
                     //departmentName: vm.tempNewNodeDepartment.departmentName,
                     //roleName: vm.tempNewNodeRole.roleName,
                     roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: vm.tempTriggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -35020,6 +35062,11 @@ define(['js/app'], function (myApp) {
                                 department: node.departmentData.id,
                                 role: node.roleData.id
                             };
+
+                            if (node.triggerAmount && node.triggerAmount.value) {
+                                steps[node.id].triggerAmount = node.triggerAmount.value;
+                            }
+
                             usedRoleId.push(node.roleData.id);
                         }
                         else {
@@ -35172,6 +35219,7 @@ define(['js/app'], function (myApp) {
                         label: $translate("DEPARTMENT")
                     },
                     roleData: {id: data.role._id, name: data.role.roleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: data.triggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -35738,6 +35786,7 @@ define(['js/app'], function (myApp) {
                         vm.tempNodeDepartmentID = newValue.departmentData.id;
                         vm.tempNodeRoleName = newValue.roleData.name;
                         vm.tempNodeRoleID = newValue.roleData.id;
+                        vm.tempNodeTriggerAmount = newValue.triggerAmount.value;
                         $scope.safeApply();
                     }
                 });

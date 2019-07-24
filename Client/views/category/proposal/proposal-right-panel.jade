@@ -30,6 +30,9 @@
                             text {{'ROLE' | translate}}
                             label.form-control {{vm.tempNodeRoleName}}
                         .form-group
+                            text {{'Trigger amount' | translate}}
+                            label.form-control {{vm.tempNodeTriggerAmount}}
+                        .form-group
                             button.btn-sm.btn.btn-info.common-button(ng-click='vm.clearData();vm.editingNode=true') {{'EDIT' | translate}}
                     div(ng-if="vm.editingNode")
                         //.form-group
@@ -44,6 +47,9 @@
                             select(ng-model="vm.tempEditRoleName", ng-change='vm.StepRoleUpdated();', required)
                                 option(ng-repeat='(i,v) in vm.tempAllRoles') {{v.roleName}}
                         .form-group
+                            text {{'CREDIT' | translate}}
+                            input(ng-model="vm.tempEditTriggerAmount" type='number')
+                        .form-group
                             button.btn-sm.btn.btn-danger.common-button(ng-click='vm.editingNode=false;vm.proposalChanged=true;vm.updateProposalStepData()') update
                             button.btn-sm.btn.btn-danger.common-button(ng-click='vm.editingNode=false') cancel
 #modalAddProposalNode.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -54,19 +60,18 @@
                 h4.modal-title {{'ADD' | translate}}{{'STEP' | translate}}
             .modal-body
                 form(name='form_add_node', novalidate)
-                    //.label-input.width6040
-                        label {{'STEP_NAME' | translate}}
-                        input(type='text', ng-model="vm.tempNewNodeName", required)
                     .label-select-inline.width6040
                         label {{'DEPARTMENT' | translate}}&nbsp;:
                         select(ng-model="vm.tempNewNodeDepartment", ng-options="v.departmentName for (i,v) in vm.departments",ng-change='vm.loadDepartmentRole(vm.tempNewNodeDepartment);' required)
                             option(selected) {{'DEPARTMENT' | translate}}
-                            //option(ng-repeat="(i,v) in vm.departments", ng-value="v") {{v.departmentName}}
                     .label-select-inline.width6040
                         label {{'ROLE' | translate}}&nbsp;:
                         select(ng-model="vm.tempNewNodeRole", ng-options="v.roleName for (i,v) in vm.tempAllRoles",ng-change='vm.setSelectedRole(vm.tempNewNodeRole);', required)
                             option(selected) {{'ROLE' | translate}}
-                            //option(ng-repeat="(i,v) in vm.tempAllRoles", ng-value="i") {{v.roleName}}
+                    .label-select-inline.width6040
+                        label {{'Trigger amount' | translate}}&nbsp;:
+                        input(ng-model="vm.tempTriggerAmount" type='number')
+
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="form_add_node.$invalid", ng-click="vm.addNewNode();vm.proposalChanged=true;") {{"CREATE" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"OK" | translate}}

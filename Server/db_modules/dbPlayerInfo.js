@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -1873,6 +1873,7 @@ let dbPlayerInfo = {
         let pPrefix = null;
         let pName = null;
         let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
+        let credibilityRemarkObjIdArr = [];
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -2055,6 +2056,40 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                let similarPhoneCredibilityRemarkProm = Promise.resolve(false);
+                let partnerCredibilityRemarkProm = Promise.resolve(false);
+
+                if (playerdata && playerdata.phoneNumber) {
+                    similarPhoneCredibilityRemarkProm = checkSimilarPhoneForPlayerCredibilityRemarks(playerdata.platform, playerdata.phoneNumber);
+                }
+
+                if (playerdata && playerdata.partnerId) {
+                    partnerCredibilityRemarkProm = checkIsBindedToPartner(playerdata.platform)
+                }
+
+                return Promise.all([similarPhoneCredibilityRemarkProm, partnerCredibilityRemarkProm]).then(
+                    data => {
+                        let similarPhoneCredibilityRemarkObjId = data[0];
+                        let partnerCredibilityRemarkObjId = data[1];
+
+                        if (similarPhoneCredibilityRemarkObjId) {
+                            credibilityRemarkObjIdArr.push(similarPhoneCredibilityRemarkObjId);
+                        }
+
+                        if (partnerCredibilityRemarkObjId) {
+                            credibilityRemarkObjIdArr.push(partnerCredibilityRemarkObjId);
+                        }
+
+                        if (credibilityRemarkObjIdArr && credibilityRemarkObjIdArr.length > 0) {
+                            playerdata.credibilityRemarks = credibilityRemarkObjIdArr;
+                        }
+
+                        return data;
+                    }
+                );
+            }
+        ).then(
+            data => {
                 if (data) {
                     // Save deviceId as guestDeviceId as binding on registration
                     if (playerdata.deviceId) {
@@ -2082,6 +2117,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerData = data;
+
+                    if (credibilityRemarkObjIdArr && credibilityRemarkObjIdArr.length > 0) {
+                        dbPlayerCredibility.createUpdateCredibilityLog('System', playerData.platform, playerData._id, credibilityRemarkObjIdArr);
+                    }
 
                     console.log("checking playerData sourceUrl after saving", playerData.sourceUrl || null, playerData.name)
                     if (playerData.tsPhone) {
@@ -3129,7 +3168,7 @@ let dbPlayerInfo = {
 
                         let inputDeviceData = dbUtility.getInputDevice('', false, (creator.type == 'admin') ? creator : NULL);
                         proposalData.inputDevice = inputDeviceData;
-                        
+
                         if (isClientQnA) {
                             proposalData.data.remark += "（自动）"
                         }
@@ -5345,12 +5384,12 @@ let dbPlayerInfo = {
                 var rewardAmount = Math.min((recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount);
                 var proposalData = {
                     type: eventData.executeProposal,
-                    creator: adminInfo ? adminInfo :
-                        {
-                            type: 'player',
-                            name: player.name,
-                            id: playerId
-                        },
+                    // creator: adminInfo ? adminInfo :
+                    //     {
+                    //         type: 'player',
+                    //         name: player.name,
+                    //         id: playerId
+                    //     },
                     data: {
                         playerObjId: player._id,
                         playerId: player.playerId,
@@ -5370,7 +5409,14 @@ let dbPlayerInfo = {
                         eventName: eventData.name,
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
-                        useLockedCredit: Boolean(player.platform.useLockedCredit)
+                        useLockedCredit: Boolean(player.platform.useLockedCredit),
+
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: player.name,
+                                id: playerId
+                            }
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -5576,12 +5622,12 @@ let dbPlayerInfo = {
                         )) {
                         proposalData = {
                             type: data[1].executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: data[0].name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: data[0].name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: data[0]._id,
                                 playerId: data[0].playerId,
@@ -5595,7 +5641,13 @@ let dbPlayerInfo = {
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
                                 eventCode: data[1].code,
-                                eventDescription: data[1].description
+                                eventDescription: data[1].description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: data[0].name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -5956,6 +6008,21 @@ let dbPlayerInfo = {
             }
         }
 
+        var orPhoneCondition = {};
+        var orIpCondition = {};
+
+        if(data.phoneLocation){
+            let tempPhoneLocation = data.phoneLocation;
+            delete data.phoneLocation;
+            orPhoneCondition = {$or: [{phoneProvince: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}, {phoneCity: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}]};
+        }
+
+        if(data.ipLocation){
+            let tempIpLocation = data.ipLocation;
+            delete data.ipLocation;
+            orIpCondition = {$or: [{province: new RegExp('.*' + tempIpLocation + '.*', 'i')}, {city: new RegExp('.*' + tempIpLocation + '.*', 'i')}]};
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -5963,16 +6030,18 @@ let dbPlayerInfo = {
                 platform: {$in: platformId},
                 $and: [
                     data,
+                    orPhoneCondition,
+                    orIpCondition,
                     {$or: [{email: tempEmail}, {qq: tempEmail}]}
                 ]
             }
         } else {
             advancedQuery = {
                 platform: {$in: platformId},
-                $and: [data]
+                $and: [data, orPhoneCondition, orIpCondition]
             }
         }
-
+        
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
@@ -6125,7 +6194,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data]}).count();
+                    .find({platform: platformId, $and: [data, orPhoneCondition, orIpCondition]}).count();
 
                 return Promise.all([a, b]);
             }
@@ -6503,6 +6572,24 @@ let dbPlayerInfo = {
             }
         ).then(
             res => {
+                let similarIpCredibilityRemarkProm = Promise.resolve();
+                let blackListIpCredibilityRemarkProm = Promise.resolve();
+
+                if (res) {
+                    similarIpCredibilityRemarkProm = checkSimilarIpForPlayerCredibilityRemarks(res);
+                    blackListIpCredibilityRemarkProm = checkPlayerIsBlacklistIp(res);
+
+                    return Promise.all([similarIpCredibilityRemarkProm, blackListIpCredibilityRemarkProm]).then(
+                        data => {
+                            return res;
+                        }
+                    )
+                }
+
+                return res;
+            }
+        ).then(
+            res => {
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
 
@@ -6839,7 +6926,7 @@ let dbPlayerInfo = {
                                         if (phoneLocation) {
                                             newPlayerData.phoneProvince = phoneLocation.province;
                                             newPlayerData.phoneCity = phoneLocation.city;
-                                            newPlayerData.phoneType = phoneLocation.op;
+                                            newPlayerData.phoneType = phoneLocation.sp;
                                         }
                                     }
 
@@ -6906,10 +6993,11 @@ let dbPlayerInfo = {
                                                         if (!playerDeviceNotExist) {
                                                             return Promise.reject({name: "DataError", message: "Duplicate device detected. This device has been created by an account and a phone number."});
                                                         } else {
-                                                            console.log("checking newPlayerData", newPlayerData)
+
                                                             if (loginData && loginData.osType) {
                                                                 newPlayerData.osType = loginData.osType;
                                                             }
+                                                            console.log("checking newPlayerData", newPlayerData)
                                                             return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
                                                         }
                                                     }
@@ -16018,12 +16106,12 @@ let dbPlayerInfo = {
 
                             var proposalData = {
                                 type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: player.name,
-                                        id: playerId
-                                    },
+                                // creator: adminInfo ? adminInfo :
+                                //     {
+                                //         type: 'player',
+                                //         name: player.name,
+                                //         id: playerId
+                                //     },
                                 data: {
                                     playerObjId: player._id,
                                     playerId: player.playerId,
@@ -16043,7 +16131,13 @@ let dbPlayerInfo = {
                                     eventName: eventData.name,
                                     eventCode: eventData.code,
                                     eventDescription: eventData.description,
-                                    useLockedCredit: Boolean(player.platform.useLockedCredit)
+                                    useLockedCredit: Boolean(player.platform.useLockedCredit),
+                                    creator: adminInfo ? adminInfo :
+                                        {
+                                            type: 'player',
+                                            name: player.name,
+                                            id: playerId
+                                        }
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
@@ -16364,12 +16458,12 @@ let dbPlayerInfo = {
 
                     let proposalData = {
                         type: event.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: player.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: player.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: player._id,
                             playerId: player.playerId,
@@ -16382,7 +16476,13 @@ let dbPlayerInfo = {
                             eventName: event.name,
                             eventCode: event.code,
                             eventDescription: event.description,
-                            useConsumption: Boolean(event.param.useConsumption)
+                            useConsumption: Boolean(event.param.useConsumption),
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: player.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -16582,12 +16682,12 @@ let dbPlayerInfo = {
                         var rewardAmount = rewardParam.rewardAmount;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -16603,7 +16703,13 @@ let dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -16663,7 +16769,6 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
-        console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -16998,6 +17103,7 @@ let dbPlayerInfo = {
                                     }
 
                                     rewardData.smsCode = data.smsCode;
+
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
                                 default:
@@ -17447,12 +17553,12 @@ let dbPlayerInfo = {
                 if (rewardAmount) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17466,7 +17572,13 @@ let dbPlayerInfo = {
                             referralName: referralName,
                             referralId: referralObj.playerId,
                             referralTopUpAmount: topUpAmount,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17551,12 +17663,12 @@ let dbPlayerInfo = {
                 if (!proposalData) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17567,7 +17679,13 @@ let dbPlayerInfo = {
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17780,12 +17898,12 @@ let dbPlayerInfo = {
                         bDoneDeduction = bDeduct;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -17802,7 +17920,13 @@ let dbPlayerInfo = {
                                 eventCode: eventData.code,
                                 eventDescription: eventData.description,
                                 providers: eventData.param.providers,
-                                targetEnable: eventData.param.targetEnable
+                                targetEnable: eventData.param.targetEnable,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -18199,8 +18323,11 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updateBatchPlayerLevel: (adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+    updateBatchPlayerLevel: (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
         let proms = [];
+        let proposalTypeName = constProposalType.UPDATE_PLAYER_INFO_LEVEL;
+        let levelName;
+        remarks = remarks || "";
 
         playerNames.forEach(playerName => {
             let trimPlayerName = playerName.trim();
@@ -18216,7 +18343,33 @@ let dbPlayerInfo = {
                 });
             proms.push(prom);
         });
-        return Promise.all(proms);
+
+        return Promise.all(proms).then(() => {
+            return dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId});
+        }).then(levelData => {
+            levelName = levelData.name;
+            return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName});
+        }).then(proposalType => {
+            let proposalData = {
+                mainType: constProposalMainType[proposalTypeName],
+                type: proposalType._id,
+                creator: {
+                    "id" : adminObjId,
+                    "name" : adminName,
+                    "type" : "admin"
+                },
+                data: {
+                    platformId: ObjectId(platformObjId),
+                    newLevelName: levelName,
+                    playerName: playerNames.join(", "),
+                    playerNameList: playerNames,
+                    remark: "批量编辑玩家等级;" + remarks
+                },
+                noSteps: constSystemParam.PROPOSAL_NO_STEP,
+                status: constProposalStatus.APPROVED,
+            };
+            dbProposal.createProposal(proposalData);
+        });
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
@@ -18671,6 +18824,7 @@ let dbPlayerInfo = {
                     twoDaysPlayerReportData.data.forEach(
                         twoDaysData => {
                             if(twoDaysData && twoDaysData._id) {
+                                // Match playerObjId
                                 let indexNo = returnedObj.data.findIndex(r => r._id == twoDaysData._id);
 
                                 if(indexNo == -1){
@@ -18716,8 +18870,29 @@ let dbPlayerInfo = {
                                                 };
                                             }
                                         }
+                                    }
 
-                                        returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                    //combine gameDetail
+                                    if(twoDaysData.gameDetail.length > 0){
+                                        twoDaysData.gameDetail.forEach(
+                                            gameDetail => {
+                                                if (!returnedObj.data[indexNo].gameDetail) {
+                                                    returnedObj.data[indexNo].gameDetail = [];
+                                                }
+
+                                                let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId._id);
+
+                                                if (idx !== -1){
+                                                    returnedObj.data[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].amount += gameDetail.amount;
+                                                    returnedObj.data[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                    returnedObj.data[indexNo].gameDetail[idx].bonusRatio = (returnedObj.data[indexNo].gameDetail[idx].bonusAmount / returnedObj.data[indexNo].gameDetail[idx].validAmount);
+                                                } else {
+                                                    returnedObj.data[indexNo].gameDetail.push(gameDetail);
+                                                }
+                                            }
+                                        );
                                     }
                                 }
                             }
@@ -18781,8 +18956,29 @@ let dbPlayerInfo = {
                                                     };
                                                 }
                                             }
+                                        }
 
-                                            returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                        //combine gameDetail
+                                        if(preSummaryData.gameDetail.length > 0){
+                                            preSummaryData.gameDetail.forEach(
+                                                gameDetail => {
+                                                    if (!returnedObj.data[indexNo].gameDetail) {
+                                                        returnedObj.data[indexNo].gameDetail = [];
+                                                    }
+
+                                                    let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+
+                                                    if (idx !== -1){
+                                                        returnedObj.data[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].amount += gameDetail.amount;
+                                                        returnedObj.data[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                        returnedObj.data[indexNo].gameDetail[idx].bonusRatio = (returnedObj.data[indexNo].gameDetail[idx].bonusAmount / returnedObj.data[indexNo].gameDetail[idx].validAmount);
+                                                    } else {
+                                                        returnedObj.data[indexNo].gameDetail.push(gameDetail);
+                                                    }
+                                                }
+                                            );
                                         }
                                     }
                                 }
@@ -18895,6 +19091,31 @@ let dbPlayerInfo = {
                     })
                 }
 
+                // Process game detail
+                if (playerSummary.gameDetail && playerSummary.gameDetail.length > 1) {
+                    let gameDetailObj = [];
+
+                    playerSummary.gameDetail.forEach(
+                        gameDetail => {
+                            let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+
+                            if (idx !== -1){
+                                gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
+                                gameDetailObj[idx].validAmount += gameDetail.validAmount;
+                                gameDetailObj[idx].amount += gameDetail.amount;
+                                gameDetailObj[idx].count += gameDetail.count;
+                                gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
+                            } else {
+                                gameDetailObj.push(gameDetail);
+                            }
+                        }
+                    );
+
+                    playerSummary.gameDetail = gameDetailObj;
+                } else {
+                    playerSummary.gameDetail = playerSummary.gameDetail && playerSummary.gameDetail[0] ? [playerSummary.gameDetail[0]] : [];
+                }
+
                 // Set platform fee to 0 if player bonus amount is positive
                 playerSummary.totalPlatformFeeEstimate = 0;
 
@@ -18935,6 +19156,9 @@ let dbPlayerInfo = {
                     };
 
                     if (isSinglePlayer) {
+                        if (!playerData || !playerData._id) {
+                            return Promise.reject({message: "Player not found"});
+                        }
                         summaryDataQuery.playerId = playerData._id;
                     } else if (query.adminIds && query.adminIds.length && playerData.length) {
                         summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
@@ -18962,7 +19186,8 @@ let dbPlayerInfo = {
                                 consumptionAmount: {$sum: "$consumptionAmount"},
                                 totalPlatformFeeEstimate: {$sum: "$totalPlatformFeeEstimate"},
                                 totalOnlineTopUpFee: {$sum: "$totalOnlineTopUpFee"},
-                                providerDetail: {$push: "$providerDetail"}
+                                providerDetail: {$push: "$providerDetail"},
+                                gameDetail: {$push: "$gameDetail"}
                             }
                         },
                         {
@@ -18985,7 +19210,8 @@ let dbPlayerInfo = {
                                 consumptionAmount: 1,
                                 totalPlatformFeeEstimate: 1,
                                 totalOnlineTopUpFee: 1,
-                                providerDetail: 1
+                                providerDetail: 1,
+                                gameDetail: 1
                             }
                         }
                     ).read("secondaryPreferred");
@@ -19231,7 +19457,7 @@ let dbPlayerInfo = {
                                         playerReportSummaryData[indexNo].registrationTime = player.registrationTime || "";
                                         playerReportSummaryData[indexNo]._id = player._id || "";
                                         playerReportSummaryData[indexNo].valueScore = player.valueScore || "";
-                                        playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].providerDetail || [];
+                                        playerReportSummaryData[indexNo].gameDetail = playerReportSummaryData[indexNo].gameDetail || [];
                                         playerReportSummaryData[indexNo].endTime = query.end;
 
                                         finalPlayerReportSummaryData.push(playerReportSummaryData[indexNo]);
@@ -20839,7 +21065,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 100,
+                        batchSize: 1,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20883,6 +21109,15 @@ let dbPlayerInfo = {
                 //     playerInfo: playerInfo
                 // };
 
+
+                console.log('topUpRecord.......', topUpRecord);
+                console.log('consumptionRecord.......', consumptionRecord);
+                console.log('bonusRecord.......', bonusRecord);
+                console.log('providerInfo.......', providerInfo);
+                console.log('playerInfo.......', playerInfo);
+
+
+
                 let outputData = [];
                 let retData = {};
 
@@ -20912,6 +21147,8 @@ let dbPlayerInfo = {
                                 }
                             });
 
+                            console.log("log1..", consumptionRecord );
+
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
                                     if (t && t._id) {
@@ -20934,6 +21171,9 @@ let dbPlayerInfo = {
                                     }
                                 }
                             });
+
+                            console.log("log2..", topUpRecord );
+
 
                             bonusRecord.map(b => {
                                 if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -20958,14 +21198,32 @@ let dbPlayerInfo = {
                                 }
                             });
 
+                            console.log("log3..", bonusRecord );
+
                         });
                     });
 
-                    for (let key in retData) {
-                        for (let key2 in retData[key]) {
-                            outputData.push(retData[key][key2]);
-                        }
-                    }
+                    console.log("log4..", retData );
+
+
+                    // for (let key in retData) {
+                    //     console.log("log2..", key );
+                    //
+                    //     for (let key2 in retData[key]) {
+                    //         console.log("log3..", key2 );
+                    //
+                    //         outputData.push(retData[key][key2]);
+                    //     }
+                    // }
+
+                    Object.keys(retData).map(i =>
+                        Object.keys(retData[i]).map(j =>
+                            outputData.push(retData[i][j])
+                        )
+                    );
+
+                    console.log("log5..", outputData );
+
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
                         outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
@@ -21073,6 +21331,9 @@ let dbPlayerInfo = {
                             }
                         }
                     }
+
+                    console.log("log6..", outputData );
+
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');
                         b = b.date.split('-').join('');
@@ -21236,8 +21497,11 @@ let dbPlayerInfo = {
                 }
 
                 let db_password = String(playerData.password);
-
-                if (dbUtility.isMd5(db_password)) {
+                if (playerPassword && db_password && (playerPassword === db_password) && playerPassword.length > 0) {
+                    console.log('MT --checking playerPassword === db_password', playerPassword, db_password )
+                    return true;
+                }
+                else if (dbUtility.isMd5(db_password)) {
                     return Boolean(md5(playerPassword) === db_password);
                 }
                 else {
@@ -25039,17 +25303,17 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
 
-                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                // let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                // let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
                 platformObj = platformData;
 
                 let playerQuery = {
                     platform: platformData._id,
                     name: playerName,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
+                    // $or: [
+                    //     {phoneNumber: encryptedPhoneNumber},
+                    //     {phoneNumber: enOldPhoneNumber}
+                    // ]
                 };
 
                 return dbconfig.collection_players.findOne(playerQuery).lean()
@@ -25064,7 +25328,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(phoneNumber)};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
                 return {token: token};
             }
@@ -25086,19 +25350,15 @@ let dbPlayerInfo = {
                 return deferred.reject({name: "DataError", message: "Invalid token"});
             }
 
-            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
-            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
-            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+            // let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            // let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            // let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
 
             return dbconfig.collection_players.findOne(
                 {
                     platform: decoded.platform,
                     name: decoded.name,
                     password: decoded.password,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
                 }
             ).lean().then(
                 playerData => {
@@ -25206,23 +25466,24 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean();
 
-        dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
             remark => {
                 if (remark && remark.length > 0) {
-                    remark.forEach(data => {
-                        if (data && data.name && data.name === '电话重复' && (data.score || data.score === 0)) {
-                            similarPhoneCredibilityRemarkObjId = ObjectId(data._id);
-                        }
-                    })
+                    let index = remark.findIndex(x => x && x.name && (x.name === '电话重复') && (x.score || x.score === 0));
+
+                    if (index > -1) {
+                        return ObjectId(remark[index]._id);
+                    }
                 }
             }
         );
 
-        return Promise.all([similarPhoneCountProm, similarPhoneProm, selectedPlayerProm]).then(
+        return Promise.all([similarPhoneCountProm, similarPhoneProm, selectedPlayerProm, fixedCredibilityRemarksProm]).then(
             data => {
                 let totalCount = data[0];
                 let playerData = data[1];
                 let selectedPlayer = data[2];
+                similarPhoneCredibilityRemarkObjId = data[3];
 
                 if (!selectedPlayer) return Q.reject({
                     name: "DataError",
@@ -25334,23 +25595,24 @@ let dbPlayerInfo = {
             model: dbconfig.collection_playerLevel
         }).lean();
 
-        dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
             remark => {
                 if (remark && remark.length > 0) {
-                    remark.forEach(data => {
-                        if (data && data.name && data.name === '注册IP重复' && (data.score || data.score === 0)) {
-                            similarIpCredibilityRemarkObjId = ObjectId(data._id);
-                        }
-                    })
+                    let index = remark.findIndex(x => x && x.name && (x.name === '注册IP重复') && (x.score || x.score === 0));
+
+                    if (index > -1) {
+                        return ObjectId(remark[index]._id);
+                    }
                 }
             }
         );
 
-        return Promise.all([similarIpCountProm, similarIpProm, selectedPlayerProm]).then(
+        return Promise.all([similarIpCountProm, similarIpProm, selectedPlayerProm, fixedCredibilityRemarksProm]).then(
             data => {
                 let totalCount = data[0];
                 let playerData = data[1];
                 let selectedPlayer = data[2];
+                similarIpCredibilityRemarkObjId = data[3];
 
                 if (!selectedPlayer) return Q.reject({
                     name: "DataError",
@@ -26263,7 +26525,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
-                    updObj.phoneType = phoneLocation.op;
+                    updObj.phoneType = phoneLocation.sp;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(
@@ -26333,7 +26595,7 @@ let dbPlayerInfo = {
         return retArr;
     },
 
-    countAppPlayer: (platformId, period, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
+    countAppPlayer: (platformId, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
         let promoteWayProm = Promise.resolve(true);
         let proms = [];
 
@@ -26347,102 +26609,88 @@ let dbPlayerInfo = {
 
         return promoteWayProm.then(
             promoteWayData => {
-                let dayStartTime = startDate;
-                let getNextDate;
-                let dateRange = 0;
-                let periodRange = 0;
-                dateRange = (new Date(endDate) - new Date(startDate)) || 0;
+                let timeSlot = dbUtil.splitTimeFrameToDaily(startDate, endDate)
 
-                switch (period) {
-                    case 'day':
-                        periodRange = 24 * 3600 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(newDate.setDate(newDate.getDate() + 1));
-                        }
-                        break;
-                    case 'week':
-                        periodRange = 24 * 3600 * 7 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(newDate.setDate(newDate.getDate() + 7));
-                        }
-                        break;
-                    case 'month':
-                    default:
-                        periodRange = 24 * 3600 * 30 * 1000;
-                        getNextDate = function (date) {
-                            var newDate = new Date(date);
-                            return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
-                        }
-                }
+                timeSlot.forEach(
+                    item => {
+                        let startTime = item.startTime;
+                        let endTime = item.endTime;
 
-                let loopTimes = dateRange / periodRange;
-                for(let i = 0; i < loopTimes; i++){
-                    let dayEndTime = getNextDate.call(this, dayStartTime);
+                        let matchObj = {
+                            platform: platformId
+                        };
 
-                    let matchObj = {
-                        platform: platformId
-                    };
-
-                    if (deviceType && (deviceType !== 'all')) {
-                        matchObj.osType = deviceType.trim();
-                    }
-
-                    if (playerType && (playerType === 'new_registration')) {
-                        matchObj.guestDeviceId = {$exists: true, $ne: null};
-                        matchObj.registrationTime = {$gte: dayStartTime, $lt: dayEndTime};
-
-                        if (domain && promoteWayData && promoteWayData.length > 0) {
-                            matchObj.promoteWay = {$in: promoteWayData};
+                        if (deviceType && (deviceType !== 'all')) {
+                            matchObj.osType = deviceType.trim();
                         }
 
-                        let newRegistrationProm = dbconfig.collection_players.aggregate(
-                            [{
-                                $match: matchObj
-                            },
-                                {
-                                    $group: {
-                                        _id: null,
-                                        count: { $sum: 1 }
-                                    }
+                        if (playerType && (playerType === 'new_registration')) {
+                            matchObj.guestDeviceId = {$exists: true, $ne: null};
+                            matchObj.registrationTime = {$gte: startTime, $lt: endTime};
+
+                            if (domain && promoteWayData && promoteWayData.length > 0) {
+                                matchObj.promoteWay = {$in: promoteWayData};
+                            }
+
+                            let newRegistrationProm = dbconfig.collection_players.aggregate(
+                                [{
+                                    $match: matchObj
                                 },
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        count: 1
+                                    {
+                                        $group: {
+                                            _id: null,
+                                            date: {$first: startTime},
+                                            count: { $sum: 1 }
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            _id: 1,
+                                            date: 1,
+                                            count: 1
+                                        }
+                                    }]
+                            ).read("secondaryPreferred").then(
+                                data => {
+                                    if (!data || data.length == 0) {
+                                        data.push({ _id: null, date: startTime, count: 0 })
                                     }
-                                }]
-                        ).read("secondaryPreferred");
 
-                        proms.push(newRegistrationProm);
+                                    return data;
+                                }
+                            );
 
-                    } else if(playerType && (playerType === 'login')) {
-                        proms.push(countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, domain, registrationInterfaceType, promoteWayData));
+                            proms.push(newRegistrationProm);
+
+                        } else if(playerType && (playerType === 'login')) {
+                            proms.push(countLoginAppPlayer(matchObj, startTime, endTime, platformId, domain, registrationInterfaceType, promoteWayData).then(
+                                data => {
+                                    if (!data || data.length == 0) {
+                                        data.push({date: startTime, number: 0, playerCount: 0});
+                                    }
+
+                                    return data;
+                                }
+                            ));
+                        }
                     }
-
-                    dayStartTime = dayEndTime;
-                }
+                )
 
                 return Promise.all(proms).then(
                     data => {
-                        let tempDate = startDate;
-
                         let res = data.map(item => {
                             let obj = {};
                             if (playerType && (playerType === 'new_registration')) {
                                 let countNewRegistration = item && item.length > 0 ? item.reduce( (a,b) => a + b.count, 0) : 0;
 
-                                obj = {date: tempDate, newRegistration: countNewRegistration};
+                                obj = {date: item && item[0] && item[0].date, newRegistration: countNewRegistration};
 
                             } else if (playerType && (playerType === 'login')) {
                                 let countLoginTimes = item && item.length > 0 ? item.reduce( (a,b) => a + b.number, 0) : 0;
-                                let countLoginPlayer = item ? item.length : 0;
+                                let countLoginPlayer = item && item.length > 0 ? item.reduce( (a,b) => a + b.playerCount, 0) : 0;
 
-                                obj = {date: tempDate, loginTimes: countLoginTimes, loginPlayerCount: countLoginPlayer};
+                                obj = {date: item && item[0] && item[0].date, loginTimes: countLoginTimes, loginPlayerCount: countLoginPlayer};
                             }
-
-                            tempDate = getNextDate(tempDate);
 
                             return obj;
                         });
@@ -28663,6 +28911,10 @@ function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, dom
                                     if (index > -1) {
                                         if ((temp._id.userAgentOS === '' && temp._id.userAgentDevice === 'PC' && temp._id.userAgentBrowser === '') ||
                                             (temp._id.userAgentOS === '' && temp._id.userAgentDevice === '' && temp._id.userAgentBrowser === '')) {
+
+                                            temp.date = dayStartTime;
+                                            temp.playerCount = 1;
+
                                             finalPlayerLoginData.push(temp);
                                         }
                                     }
@@ -28680,6 +28932,256 @@ function countLoginAppPlayer(matchObj, dayStartTime, dayEndTime, platformId, dom
             return playerLoginData;
         }
     );
+}
+
+function checkSimilarPhoneForPlayerCredibilityRemarks (platformId, phoneNumber) {
+    let platformObjId = platformId ? ObjectId(platformId) : "";
+    let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber]} : "";
+    let similarPhoneCredibilityRemarkObjId = null;
+
+    let similarPhoneCountProm = dbconfig.collection_players.find({
+        platform: platformObjId,
+        phoneNumber: encryptedPhoneNumber,
+        isRealPlayer: true,
+    }).count();
+
+    let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+        remark => {
+            if (remark && remark.length > 0) {
+                let index = remark.findIndex(x => x && x.name && (x.name === '电话重复') && (x.score || x.score === 0));
+                if (index > -1) {
+                    return ObjectId(remark[index]._id);
+                }
+            }
+        }
+    );
+
+    return Promise.all([similarPhoneCountProm, fixedCredibilityRemarksProm]).then(
+        data => {
+            let totalCount = data[0] || 0;
+            similarPhoneCredibilityRemarkObjId = data[1];
+
+            // if there is other player with similar phone in playerData, player need to add this credibility remark
+            if (similarPhoneCredibilityRemarkObjId && (totalCount > 0)) {
+                return similarPhoneCredibilityRemarkObjId;
+            }
+        }
+    );
+}
+
+function checkIsBindedToPartner (platformObjId) {
+    let query = {
+        platform: platformObjId,
+        name: "代理开户",
+        isFixed: true
+    };
+
+    return dbconfig.collection_playerCredibilityRemark.findOne(query, '_id').lean().then(
+        remark => {
+            if (remark) {
+                return remark;
+            } else {
+                return dbconfig.collection_playerCredibilityRemark({
+                    platform: platformObjId,
+                    name: "代理开户",
+                    score: 0,
+                    isFixed: true
+                }).save();
+            }
+        }
+    ).then(
+        fixedRemark => {
+            if (fixedRemark && fixedRemark._id) {
+                return fixedRemark._id;
+            }
+        }
+    )
+}
+
+function checkSimilarIpForPlayerCredibilityRemarks (player) {
+    let playerObjId = player._id ? ObjectId(player._id) : "";
+    let platformObjId = player.platform && player.platform._id ? ObjectId(player.platform._id) : "";
+    let similarIpCredibilityRemarkObjId = null;
+    let registrationIp = player.loginIps && player.loginIps[0] || "";
+    let skippedIP = ['localhost', '127.0.0.1'];
+
+    if (registrationIp && !skippedIP.includes(registrationIp)) {
+        let similarIpCountProm = dbconfig.collection_players.find({
+            _id: {$ne: playerObjId},
+            platform: platformObjId,
+            "loginIps.0": registrationIp, // only take first IP in loginIps, which is considered to be registration IP
+            isRealPlayer: true,
+        }).count();
+
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId).then(
+            remark => {
+                if (remark && remark.length > 0) {
+                    let index = remark.findIndex(x => x && x.name && (x.name === '注册IP重复') && (x.score || x.score === 0));
+
+                    if (index > -1) {
+                        return ObjectId(remark[index]._id);
+                    }
+                }
+            }
+        );
+
+        return Promise.all([similarIpCountProm, fixedCredibilityRemarksProm]).then(
+            data => {
+                let totalCount = data[0];
+                similarIpCredibilityRemarkObjId = data[1];
+                let prom = Promise.resolve();
+
+                let credibilityRemarks = [];
+
+                if (totalCount > 0) {
+                    if (player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                        if (player.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                            // if similarIpCredibilityRemarkObjId already exist
+                        } else {
+                            // if similarIpCredibilityRemarkObjId didn't exist
+                            player.credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                            credibilityRemarks = player.credibilityRemarks;
+                            prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '注册IP重复');
+                        }
+                    } else {
+                        // player didn't have any credibility remarks, auto add
+                        credibilityRemarks.push(similarIpCredibilityRemarkObjId);
+                        prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '注册IP重复');
+                    }
+                }
+
+                // if there is no other player with similar ip in playerData, selected player need to remove this credibility remark
+                if (totalCount === 0 && player.credibilityRemarks && player.credibilityRemarks.length > 0) {
+                    if (player.credibilityRemarks.some(e => e && similarIpCredibilityRemarkObjId && e.toString() === similarIpCredibilityRemarkObjId.toString())) {
+                        // if similarIpCredibilityRemarkObjId already exist
+                        let credibilityRemarks = player.credibilityRemarks.filter(e => e && similarIpCredibilityRemarkObjId && e.toString() !== similarIpCredibilityRemarkObjId.toString());
+                        prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除注册IP重复');
+                    }
+                }
+
+                return prom;
+            }
+        );
+    }
+}
+
+function checkPlayerIsBlacklistIp(player) {
+    let registrationIp = player.loginIps && player.loginIps[0] || "";
+    let skippedIP = ['localhost', '127.0.0.1'];
+
+    if (registrationIp && !skippedIP.includes(registrationIp)) {
+        let playerProm = dbconfig.collection_players.findOne({
+            _id: player._id,
+            platform: player.platform._id
+        }).lean();
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(player.platform._id);
+        let blacklistIpConfigProm = dbPlatform.getBlacklistIpConfig();
+        let playerActionLogProm = dbconfig.collection_actionLog.aggregate(
+            {
+                $match: {
+                    platform: player.platform._id,
+                    player: player._id,
+                    $or: [
+                        {providerId: {$exists: true}}, // login ip to provider
+                        {action: {$in: ['login', 'player - create']}} // login ip and registration ip
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: "$ipAddress"
+                }
+            }
+        );
+
+        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm, playerActionLogProm]).then(
+            data => {
+                let playerData = data[0];
+                let fixedCredibilityRemarks = data[1];
+                let blacklistIpData = data[2];
+                let playerActionLogData = data[3];
+                let blacklistIpID = null;
+                let blacklistIpList = [];
+                let matchBlacklistIpList = [];
+                let credibilityRemarks = [];
+                let playerUniqueLoginIP = [];
+                let prom = Promise.resolve();
+
+                if (playerActionLogData && playerActionLogData.length > 0) {
+                    playerActionLogData.forEach(data => {
+                        if (data && data._id) {
+                            playerUniqueLoginIP.push(data._id);
+                        }
+                    });
+                }
+
+                if (blacklistIpData && blacklistIpData.length > 0) {
+                    for (let x = 0; x < blacklistIpData.length; x++) {
+                        if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
+                            blacklistIpList.push(blacklistIpData[x].ip);
+                        }
+                    }
+                    if (playerUniqueLoginIP && blacklistIpData && playerUniqueLoginIP.length > 0 && blacklistIpData.length > 0) {
+                        playerUniqueLoginIP.forEach(IP => {
+                            blacklistIpData.forEach(bIP => {
+                                if (IP === bIP.ip && bIP.isEffective) {
+                                    matchBlacklistIpList.push(bIP._id);
+                                }
+                            })
+                        })
+                    }
+                }
+
+                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
+                    fixedCredibilityRemarks.forEach(remark => {
+                        if (remark.name === '黑名单IP') {
+                            blacklistIpID = remark._id;
+                        }
+                    });
+                }
+
+                if (matchBlacklistIpList) {
+                    dbconfig.collection_players.findOneAndUpdate({
+                        platform: player.platform._id,
+                        _id: player._id
+                    }, {
+                        $set:{
+                            blacklistIp: matchBlacklistIpList
+                        }
+                    }).lean().exec();
+
+                    // add fixed credibility to player if found match blacklist ip
+                    if (matchBlacklistIpList.length > 0) {
+                        if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                            if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                                // if blacklistIpID already exist
+                            } else {
+                                // if blacklistIpID didn't exist
+                                playerData.credibilityRemarks.push(blacklistIpID);
+                                credibilityRemarks = playerData.credibilityRemarks;
+                                prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', player.platform._id, player._id, credibilityRemarks, '黑名单IP');
+                            }
+                        } else {
+                            // player didn't have any credibility remarks, auto add
+                            credibilityRemarks.push(blacklistIpID);
+                            prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', player.platform._id, player._id, credibilityRemarks, '黑名单IP');
+                        }
+                    }
+
+                    // remove fixed credibility from player if no match blacklist ip
+                    if (matchBlacklistIpList.length === 0 && playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                        if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                            // if blacklistIpID already exist
+                            credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
+                            prom = dbPlayerInfo.updatePlayerCredibilityRemark('System', player.platform._id, player._id, credibilityRemarks, '删除黑名单IP');
+                        }
+                    }
+                }
+
+                return prom;
+            }
+        )
+    }
 }
 
 var proto = dbPlayerInfoFunc.prototype;

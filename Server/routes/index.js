@@ -294,19 +294,23 @@ router.post('/resetPassword', function (req, res, next) {
 
 router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
     let phoneNumber = req.body.phoneNumber;
-    let platformId = req.body.platformId;
+    let platformId = (req.body.platformId) ? JSON.parse(req.body.platformId) : null;
 
     if (!phoneNumber || !platformId) {
         res.json({success: false, error: {name: "DataError", message: "Missing parameter: phoneNumber or platformId"}});
         return;
     }
 
-    dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+    dbConfig.collection_platform.find({platformId: {$in:platformId}}, {_id:true}).lean().then(
         function (doc) {
-            if (!doc) {
+            if (doc.length == 0) {
                 res.json({success: false, error: {name: "DataError", message: "No such platform"}});
                 return;
             }
+            var docIds = [];
+            doc.forEach(function(obj){
+                docIds.push(obj._id);
+            })
             let encryptPhoneNumber = phoneNumber;
             let enOldPhoneNumber = phoneNumber;
             try {
@@ -316,7 +320,7 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             catch (error) {
                 console.log(error);
             }
-            return dbConfig.collection_players.find({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, enOldPhoneNumber, phoneNumber]}}).then(
+            return dbConfig.collection_players.find({platform: {$in:docIds}, phoneNumber: {$in: [encryptPhoneNumber, enOldPhoneNumber, phoneNumber]}}).then(
                 function (playerData) {
                     if( playerData && playerData.length > 0){
                         let resData = playerData.map(
