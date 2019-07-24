@@ -17,7 +17,7 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbLogger = require('./../modules/dbLogger');
 let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let errorUtils = require('./../modules/errorUtils');
-let queryPhoneLocation = require('phone-query');
+let queryPhoneLocation = require('cellocate');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -522,10 +522,10 @@ let dbPlayerPartner = {
                         if (phoneLocation) {
                             updateData.phoneProvince = phoneLocation.province;
                             updateData.phoneCity = phoneLocation.city;
-                            updateData.phoneType = phoneLocation.op;
+                            updateData.phoneType = phoneLocation.sp;
                             phoneProvince = phoneLocation.province;
                             phoneCity = phoneLocation.city;
-                            phoneType = phoneLocation.op;
+                            phoneType = phoneLocation.sp;
                         }
                     }
                     let plyProm, partnerProm;

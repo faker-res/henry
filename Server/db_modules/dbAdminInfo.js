@@ -632,6 +632,7 @@ var dbAdminInfo = {
                 bodyJSON = JSON.parse( body.replace(/'/g, '"') );
             }
             if( error ){
+                console.log("callTell400 error", url, error);
                 deferred.reject(error);
                 return;
             }

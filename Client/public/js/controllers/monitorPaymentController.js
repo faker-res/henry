@@ -205,6 +205,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            vm.monitorConsumptionRecordPlatform = null;
             vm.getPlatformByAdminId();
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
@@ -232,7 +233,12 @@ define(['js/app'], function (myApp) {
             )
         }
 
+        vm.monitorConsumptionRecordPlatformOnChange = function () {
+            vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
+        }
+
         vm.getProviderLatestTimeRecord = function () {
+            vm.providerLatestTimeRecord = [];
             let longestDelayDate = new Date().toString();
 
             let providerIdArr = [];
@@ -245,7 +251,7 @@ define(['js/app'], function (myApp) {
             })
 
             let sendData = {
-                platformObjId: vm.selectedPlatform._id,
+                platformObjId: vm.monitorConsumptionRecordPlatform || vm.selectedPlatform._id,
                 providerIdList: providerIdArr
             }
 
@@ -284,7 +290,8 @@ define(['js/app'], function (myApp) {
                 return
             }
             //console.log("getGames", gameIds);
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            let platformQuery = vm.monitorConsumptionRecordPlatform ? vm.monitorConsumptionRecordPlatform : vm.selectedPlatform.id;
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformQuery}, function (data) {
                 console.log('getPlatform', data.data);
                 //provider list init
                 vm.platformProviderList = data.data.gameProviders;
@@ -2421,11 +2428,9 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual") {
-                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
-                    let str = vm.newPlayerProposal.data.phoneNumber;
-                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
-                }
+            if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                let str = vm.newPlayerProposal.data.phoneNumber;
+                vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
             }
 
             let tmpt = vm.proposalTemplate[templateNo];
