@@ -10962,7 +10962,8 @@ let dbPartner = {
             curChildPartnerHeadCount: parent.children ? parent.children.length : 0,
             updateChildPartnerHeadCount: parent.children ? parent.children.length + 1 : 1,
             curChildPartnerName: curChildPartnerName,
-            updateChildPartnerName: updateChildPartnerName
+            updateChildPartnerName: updateChildPartnerName,
+            skipCommissionSetting: true
         }
         dbProposal.createProposalWithTypeNameWithProcessInfo(parent.platform, constProposalType.UPDATE_CHILD_PARTNER, proposalData).catch(errorUtils.reportError);
         return output;
