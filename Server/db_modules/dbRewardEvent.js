@@ -664,7 +664,7 @@ var dbRewardEvent = {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}, playerRetentionRecord).then(
                                         checkRewardData => {
                                             // Check reward apply limit in period
-                                            if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
+                                            if ((rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) || (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP && eventInPeriodCount)) {
                                                 checkRewardData.status = 3;
                                             }
 
@@ -684,6 +684,17 @@ var dbRewardEvent = {
                                                 if (rewardEvent.type.name != constRewardType.PLAYER_RANDOM_REWARD_GROUP && checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                     checkRewardData.status = 2;
                                                 }
+                                            }
+
+                                            if (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+                                                checkRewardData.condition = checkRewardData.condition? checkRewardData.condition: {};
+                                                if (!playerObj.bankAccount) {
+                                                    checkRewardData.status = 2;
+                                                    checkRewardData.condition.bankInfo = {status: 2}
+                                                } else {
+                                                    checkRewardData.condition.bankInfo = {status: 1}
+                                                }
+
                                             }
 
 
