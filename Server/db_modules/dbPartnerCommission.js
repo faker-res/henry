@@ -310,6 +310,7 @@ const dbPartnerCommission = {
                 groupId: groupRate.groupId,
                 amount: math.round(rawDirectCommission, 2), // direct amount, nett commission
                 totalConsumption: totalConsumption,
+                totalValidBet: providerGroupConsumptionData[groupRate.groupName].validAmount,
                 commissionRate: directCommissionRate.commissionRate,
                 platformFee: platformFeeDirect,
                 platformFeeRate: platformFeeRateDirect,
@@ -937,7 +938,7 @@ const dbPartnerCommission = {
 
                 if (groupComm && groupComm.crewProfit) {
                     totalCrewProfit = math.add(groupComm.crewProfit, totalCrewProfit);
-                    totalValidBet = math.add(Number(groupComm.totalConsumption|| 0), totalValidBet);
+                    totalValidBet = math.add(Number(groupComm.totalValidBet|| 0), totalValidBet);
                 }
             }
         }
