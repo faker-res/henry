@@ -5995,6 +5995,21 @@ let dbPlayerInfo = {
             }
         }
 
+        var orPhoneCondition = {};
+        var orIpCondition = {};
+
+        if(data.phoneLocation){
+            let tempPhoneLocation = data.phoneLocation;
+            delete data.phoneLocation;
+            orPhoneCondition = {$or: [{phoneProvince: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}, {phoneCity: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}]};
+        }
+
+        if(data.ipLocation){
+            let tempIpLocation = data.ipLocation;
+            delete data.ipLocation;
+            orIpCondition = {$or: [{province: new RegExp('.*' + tempIpLocation + '.*', 'i')}, {city: new RegExp('.*' + tempIpLocation + '.*', 'i')}]};
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -6002,32 +6017,16 @@ let dbPlayerInfo = {
                 platform: {$in: platformId},
                 $and: [
                     data,
+                    orPhoneCondition,
+                    orIpCondition,
                     {$or: [{email: tempEmail}, {qq: tempEmail}]}
                 ]
             }
         } else {
             advancedQuery = {
                 platform: {$in: platformId},
-                $and: [data]
+                $and: [data, orPhoneCondition, orIpCondition]
             }
-        }
-
-        var expr = {};
-
-        if(data.phoneLocation || data.ipLocation) {
-            var andExpr = [];
-            if(data.phoneLocation){
-                let tempPhoneLocation = data.phoneLocation;
-                delete data.phoneLocation;
-                andExpr.push({$eq:[tempPhoneLocation, {$concat:['$phoneProvince', ' ', '$phoneCity']}]});
-            }
-            if(data.ipLocation){
-                let tempIpLocation = data.ipLocation;
-                delete data.ipLocation;
-                andExpr.push({$eq:[tempIpLocation, {$concat:['$province', ' ', '$city']}]});
-            }
-            expr = {$and: andExpr};
-            advancedQuery.$expr = expr;
         }
         
         return dbconfig.collection_platform.findOne({
@@ -6182,7 +6181,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data], $expr : expr}).count();
+                    .find({platform: platformId, $and: [data, orPhoneCondition, orIpCondition]}).count();
 
                 return Promise.all([a, b]);
             }
