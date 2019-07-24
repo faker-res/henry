@@ -6840,7 +6840,15 @@ var dbPlatform = {
                 updateData.forEach(
                     data => {
                         if (data && data._id){
-                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(data._id)}, data).lean() )
+                            let recordObjId = data._id;
+                            if (data._id){
+                                delete data._id;
+                            }
+                            if (data.hasOwnProperty('__v')){
+                                delete data.__v;
+                            }
+
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(recordObjId)}, data).lean() )
                         }
                         else if (data){
                             data.platformObjId = platformObjId;

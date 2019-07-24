@@ -25275,6 +25275,9 @@ define(['js/app'], function (myApp) {
                     if (maxRewardAmountSetting && maxRewardAmountSetting.data && maxRewardAmountSetting.data.length){
                         vm.maxRewardAmountSettingData = maxRewardAmountSetting.data;
                     }
+                    else{
+                       vm.maxRewardAmountSettingData = [];
+                    }
 
                     $scope.$evalAsync();
                 }
