@@ -2221,7 +2221,7 @@ define(['js/app'], function (myApp) {
                         vm.allRewardEvent = data.data;
 
                         vm.allRewardEvent.map(event => {
-                            if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
+                            if (event && event.settlementPeriod && event.type.name === "PlayerConsumptionReturn") {
                                 p = p.then(() => {
                                         getConsumptionReturnPeriodTime(event);
                                     }
@@ -2456,6 +2456,7 @@ define(['js/app'], function (myApp) {
                                 vm.modalYesNo = {};
                                 vm.modalYesNo.modalTitle = $translate("Already settled XIMA");
                                 vm.modalYesNo.modalText = $translate("Are you sure to settle again?");
+                                console.log('modalYesNo', vm.modalYesNo);
                                 vm.modalYesNo.actionYes = () => settleXIMA(socketParam);
                                 vm.modalYesNo.actionNo = () => { vm.playerConsumptionReturnSettlement.status = "ready" };
                                 $('#modalYesNo').modal();
@@ -2520,11 +2521,15 @@ define(['js/app'], function (myApp) {
                     });
 
                 $('#playerLevelSettlementModal').modal('show');
-                $scope.safeApply();
+                $scope.safeApply();performPlayerLevelSettlement
             };
 
             vm.performPlayerLevelSettlement = function (upOrDown) {
+                let adminID = authService.adminId;
+                let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
+                console.log('Controller AID', adminID);
+                console.log('Controller ADN', adminName);
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
                     {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
                     function (data) {

@@ -3538,7 +3538,7 @@ var dbRewardEvent = {
             }
         )
     },
-    startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
+    startPlatformRTGEventSettlement: function (platformObjId, eventCode, adminID, adminName) {
         let applyTargetDate;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
@@ -3546,7 +3546,7 @@ var dbRewardEvent = {
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
         let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();
-
+        console.log('start RTG');
         return Promise.all([platformProm, eventProm, rewardTypesProm]).then(
             data => {
                 if (!data) {
@@ -3694,7 +3694,9 @@ var dbRewardEvent = {
                                                     return playerIdObj.playerId;
                                                 }),
                                                 eventCode,
-                                                applyTargetDate
+                                                applyTargetDate,
+                                                adminID,
+                                                adminName
                                             });
                                         }
                                     }
@@ -3707,11 +3709,11 @@ var dbRewardEvent = {
         );
     },
 
-    bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate) {
+    bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate, adminId, adminName) {
         let proms = [];
         // console.log("checking playerIdArray", playerIdArray)
         for (let i = 0; i < playerIdArray.length; i++) {
-            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}, null, null, true).catch(err => {
+            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}, adminId, adminName, true).catch(err => {
                 console.error("rejectedId:", playerIdArray[i], "eventCode", eventCode, " error:", err)
                 errorUtils.reportError(err)
             });

@@ -28,7 +28,13 @@ function socketActionPlatform(socketIO, socket) {
 
     this.socketIO = socketIO;
     this.socket = socket;
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
 
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
     var self = this;
     this.actions = {
 
@@ -399,7 +405,7 @@ function socketActionPlatform(socketIO, socket) {
         startPlatformPlayerConsumptionReturnSettlement: function startPlatformPlayerConsumptionReturnSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, consumptionReturnEvent.checkPlatformWeeklyConsumptionReturnEvent, [ObjectId(data.platformId), data.selectedEvent], actionName, isValidData);
+            socketUtil.emitter(self.socket, consumptionReturnEvent.checkPlatformWeeklyConsumptionReturnEvent, [ObjectId(data.platformId), data.selectedEvent, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         /**
@@ -419,7 +425,7 @@ function socketActionPlatform(socketIO, socket) {
          startPlatformPlayerLevelSettlement: function startPlatformPlayerLevelSettlement(data) {
              let actionName = arguments.callee.name;
              let isValidData = Boolean(data && data.platformId);
-             socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelSettlement, [ObjectId(data.platformId), data.upOrDown], actionName, isValidData);
+             socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelSettlement, [ObjectId(data.platformId), data.upOrDown, getAdminId(), getAdminName()], actionName, isValidData);
          },
 
         /**

@@ -14,7 +14,8 @@ const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
 const constServerCode = require('../const/constServerCode');
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
-
+let ID;
+let NAME;
 let dbPlayerLevelInfo = {
 
     /**
@@ -79,7 +80,7 @@ let dbPlayerLevelInfo = {
         return dbconfig.collection_playerLevel.findOneAndRemove({_id: playerLevelObjId});
     },
 
-    startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
+    startPlatformPlayerLevelSettlement: (platformObjId, upOrDown, adminID, adminName) => {
         // let lastMonth = dbUtil.getLastMonthSGTime();
         let period = {};
 
@@ -95,21 +96,18 @@ let dbPlayerLevelInfo = {
                         period = dbUtil.getLastMonthSGTime();
                     }
                 } else {
-                    period = dbUtil.getLastMonthSGTime();
+                    period = dbUtil.getYesterdaySGTime();
                 }
-
                 // if (!upOrDown) {
                 //     period.startTime = moment(period.startTime).add(12, 'hours').toDate();
                 //     period.endTime = moment(period.endTime).add(12, 'hours').toDate();
                 // }
-                console.log('check level time', period);
 
                 return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
                     levels => {
                         let stream = dbconfig.collection_players.find(
                             {platform: platformObjId}
                         ).cursor({batchSize: 10000});
-
                         let balancer = new SettlementBalancer();
                         return balancer.initConns().then(function () {
                             return balancer.processStream(
@@ -127,7 +125,9 @@ let dbPlayerLevelInfo = {
                                             endTime: period.endTime,
                                             upOrDown: upOrDown,
                                             platformPeriod: platformPeriod,
-                                            disableAutoPlayerLevelUpReward: platformData.disableAutoPlayerLevelUpReward
+                                            disableAutoPlayerLevelUpReward: platformData.disableAutoPlayerLevelUpReward,
+                                            adminId: adminID,
+                                            adminName: adminName
                                         });
                                     }
                                 }
@@ -152,10 +152,10 @@ let dbPlayerLevelInfo = {
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      * @returns {Promise.<boolean>}
      */
-    performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward) => {
+    performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName) => {
         let promsArr = [];
         playerObjIds.map(player => {
-            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward).catch(errorUtils.reportError));
+            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName).catch(errorUtils.reportError));
         });
 
         return Promise.all(promsArr);
@@ -170,8 +170,9 @@ let dbPlayerLevelInfo = {
      * @param endTime
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      */
-    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward) => {
+    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName) => {
         // let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
+
         let lvlDownPeriod;
         let playerProm = dbconfig.collection_players.findOne({_id: playerObjId})
             .populate(
@@ -268,15 +269,22 @@ let dbPlayerLevelInfo = {
                 let levelUpObjArr = []
                 let levelUpCounter = 0;
                 let oldPlayerLevelName = playerData.playerLevel.name;
-
                 let playersTopupForPeriod = topUpSummary && topUpSummary.amount ? topUpSummary.amount : 0;
                 let playersConsumptionForPeriod = consumptionSummary && consumptionSummary.validAmount ? consumptionSummary.validAmount : 0;
+                let creatorName = playerData.name;
+                let creatorID = playerData.playerId;
+                let creatorType = "player";
+                if(adminId && adminName) {
+                    creatorName = adminName;
+                    creatorID = adminId;
+                    creatorType = "admin";
+                }
+                playerData.creator = {type: creatorType, name: creatorName, id: creatorID};
 
                 // filter levels
                 let checkingUpLevels = levels.filter(level => level.value > playerData.playerLevel.value);
                 let checkingDownLevels = levels.filter(level => level.value <= playerData.playerLevel.value);
 
-                
                 if (playerData.permission && playerData.permission.levelChange === false) {
                     return Promise.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -379,13 +387,17 @@ let dbPlayerLevelInfo = {
                     levelDownObj = previousLevel;
                 }
                 if (levelObjId && String(levelObjId) != String(playerData.playerLevel._id) && ((upOrDown && levelUpObj) || (!upOrDown && levelDownObj))) {
+
                     let proposalData = {
+
                         levelOldName: oldPlayerLevelName,
                         upOrDown: upOrDown ? "LEVEL_UP" : "LEVEL_DOWN",
                         playerObjId: playerData._id,
                         playerName: playerData.name,
                         playerId: playerData.playerId,
-                        platformObjId: playerData.platform
+                        platformObjId: playerData.platform,
+                        creator: {type: creatorType, name: creatorName, id: creatorID}
+
                     };
 
                     let promResolve = Promise.resolve();
@@ -479,6 +491,7 @@ let dbPlayerLevelInfo = {
                         } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                             checkLevelDownPeriod = dbUtil.getLastMonthSGTime();
                         }
+
                         if (checkLevelDownPeriod) {
                             checkLevelMaintainReward(playerData, lvlDownPeriod, checkLevelDownPeriod).catch(errorUtils.reportError);
                         }

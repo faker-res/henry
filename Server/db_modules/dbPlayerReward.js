@@ -2166,12 +2166,12 @@ let dbPlayerReward = {
                     // create reward proposal
                     let proposalData = {
                         type: eventData.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -2188,7 +2188,13 @@ let dbPlayerReward = {
                             eventDescription: eventData.description,
                             providers: eventData.param.providers,
                             useConsumption: eventData.param.useConsumption,
-                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit),
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
@@ -2489,12 +2495,12 @@ let dbPlayerReward = {
                     // create reward proposal
                     let proposalData = {
                         type: eventData.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -2505,7 +2511,13 @@ let dbPlayerReward = {
                             eventId: eventData._id,
                             eventName: eventData.name,
                             eventCode: eventData.code,
-                            eventDescription: eventData.description
+                            eventDescription: eventData.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
@@ -8300,12 +8312,12 @@ let dbPlayerReward = {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {
                                 type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: playerData.name,
-                                        id: playerData._id
-                                    },
+                                // creator: adminInfo ? adminInfo :
+                                //     {
+                                //         type: 'player',
+                                //         name: playerData.name,
+                                //         id: playerData._id
+                                //     },
                                 data: {
                                     playerObjId: playerData._id,
                                     playerId: playerData.playerId,
@@ -8325,6 +8337,12 @@ let dbPlayerReward = {
                                     providerGroup: eventData.condition.providerGroup,
                                     forbidWithdrawIfBalanceAfterUnlock: applyDetail.forbidWithdrawIfBalanceAfterUnlock ? applyDetail.forbidWithdrawIfBalanceAfterUnlock : 0,
                                     consumptionSlipNo: applyDetail.consumptionSlipNo || null,
+                                    creator: adminInfo ? adminInfo :
+                                        {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData._id
+                                        }
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
@@ -8448,12 +8466,12 @@ let dbPlayerReward = {
                         // create reward proposal
                         let proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: playerData.name,
-                                    id: playerData._id
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: playerData.name,
+                            //         id: playerData._id
+                            //     },
                             data: {
                                 playerObjId: playerData._id,
                                 playerId: playerData.playerId,
@@ -8475,7 +8493,13 @@ let dbPlayerReward = {
                                 isGroupReward: true,
                                 // If player credit is more than this number after unlock reward group, will ban bonus
                                 forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
-                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
+                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount),
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: playerData.name,
+                                        id: playerData._id
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
@@ -10404,12 +10428,12 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
 
                     let proposalData = {
                         type: event.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerData.name,
-                                id: playerData.playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerData.name,
+                        //         id: playerData.playerId
+                        //     },
                         data: {
                             playerObjId: playerData._id,
                             playerId: playerData.playerId,
@@ -10424,7 +10448,13 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
-                            eventDescription: event.description
+                            eventDescription: event.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerData.name,
+                                    id: playerData.playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,

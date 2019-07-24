@@ -146,11 +146,31 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {JSON} eventData
      * @param {ObjectId} proposalTypeId
      */
-    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
+    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period, adminID, adminName) {
 
+        console.log('comes of settlement');
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
+        console.log('admin', adminName + " : " + adminID);
         return balancer.initConns().then(function () {
+            dbconfig.collection_playerConsumptionRecord.aggregate(
+                [
+                    {
+                        $match: {
+                            platformId: platformId,
+                            createTime: {$gte: settleTime.startTime, $lt: settleTime.endTime}
+                        }
+                    },
+                    {
+                        $group: {_id: '$playerId'}
+                    }
+                ]
+            ).then(data => {
+                console.log('data', data)
+            }).catch(err =>{
+                console.error('err', err)
+            });
+
             let query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
@@ -166,12 +186,13 @@ var dbPlayerConsumptionWeekSummary = {
             );
 
             var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
-
+            console.log('before settlement');
             return balancer.processStream(
                 {
                     stream: stream,
                     batchSize: constSystemParam.BATCH_SIZE,
                     makeRequest: function (playerIdObjs, request) {
+                        console.log('comes to settlement');
                         request("player", "checkPlatformWeeklyConsumptionReturnForPlayers", {
                             platformId: platformId,
                             eventData: eventData,
@@ -180,19 +201,24 @@ var dbPlayerConsumptionWeekSummary = {
                             endTime: settleTime.endTime,
                             playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                 return playerIdObj._id;
-                            })
+                            }),
+                            adminName: adminName,
+                            adminID: adminID
                         });
                     }
                 }
             );
+
         });
+
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds,adminName, adminId , bRequest, userAgent, isForceApply) {
         let isLessThanEnoughReward = false;
         let processedSummaries = [];
         let promArr = [];
 
+        console.log('Comes into checkPlatform');
         if (playerIds && playerIds.length) {
             // Loop through players
             playerIds.forEach(player => {
@@ -296,6 +322,7 @@ var dbPlayerConsumptionWeekSummary = {
                             if (promArrRes) {
                                 let [playerData, recSumm, consumptionSumm, pastProps, thisPeriodProps, lastConsumption] = promArrRes;
 
+                                console.log('Comes into promArrRes');
                                 let returnAmount = 0;
                                 let returnDetail = {};
                                 let doneXIMAConsumption = {};
@@ -438,9 +465,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         proposalData.data.winAmount = lastConsumptionDetail.bonusAmount;
                                         proposalData.data.winTimes = lastConsumptionDetail.winRatio;
                                     }
-
                                     if (adminId && adminName) {
-                                        proposalData.creator = {
+                                        proposalData.data.creator = {
                                             name: adminName,
                                             type: 'admin',
                                             id: adminId
@@ -448,7 +474,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     } else if (bRequest) {
                                         // if userAgent is null, inputDevice should be H5 player or partner
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
-                                        proposalData.creator = {
+                                        proposalData.data.creator = {
                                             type: 'player',
                                             name: playerData.name,
                                             id: playerData.playerId
@@ -473,6 +499,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
                                 } else if (bRequest && returnAmount === 0) {
+                                    console.log('Comes into else returnamount');
                                     isLessThanEnoughReward = true;
                                 }
 
@@ -797,7 +824,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, adminId, adminName, isForceApply);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], adminId, adminName, bRequest, userAgent,  isForceApply);
     },
 
     /**

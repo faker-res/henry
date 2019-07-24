@@ -5279,12 +5279,12 @@ let dbPlayerInfo = {
                 var rewardAmount = Math.min((recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount);
                 var proposalData = {
                     type: eventData.executeProposal,
-                    creator: adminInfo ? adminInfo :
-                        {
-                            type: 'player',
-                            name: player.name,
-                            id: playerId
-                        },
+                    // creator: adminInfo ? adminInfo :
+                    //     {
+                    //         type: 'player',
+                    //         name: player.name,
+                    //         id: playerId
+                    //     },
                     data: {
                         playerObjId: player._id,
                         playerId: player.playerId,
@@ -5304,7 +5304,14 @@ let dbPlayerInfo = {
                         eventName: eventData.name,
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
-                        useLockedCredit: Boolean(player.platform.useLockedCredit)
+                        useLockedCredit: Boolean(player.platform.useLockedCredit),
+
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: player.name,
+                                id: playerId
+                            }
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -5510,12 +5517,12 @@ let dbPlayerInfo = {
                         )) {
                         proposalData = {
                             type: data[1].executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: data[0].name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: data[0].name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: data[0]._id,
                                 playerId: data[0].playerId,
@@ -5529,7 +5536,13 @@ let dbPlayerInfo = {
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
                                 eventCode: data[1].code,
-                                eventDescription: data[1].description
+                                eventDescription: data[1].description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: data[0].name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -15942,12 +15955,12 @@ let dbPlayerInfo = {
 
                             var proposalData = {
                                 type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: player.name,
-                                        id: playerId
-                                    },
+                                // creator: adminInfo ? adminInfo :
+                                //     {
+                                //         type: 'player',
+                                //         name: player.name,
+                                //         id: playerId
+                                //     },
                                 data: {
                                     playerObjId: player._id,
                                     playerId: player.playerId,
@@ -15967,7 +15980,13 @@ let dbPlayerInfo = {
                                     eventName: eventData.name,
                                     eventCode: eventData.code,
                                     eventDescription: eventData.description,
-                                    useLockedCredit: Boolean(player.platform.useLockedCredit)
+                                    useLockedCredit: Boolean(player.platform.useLockedCredit),
+                                    creator: adminInfo ? adminInfo :
+                                        {
+                                            type: 'player',
+                                            name: player.name,
+                                            id: playerId
+                                        }
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
@@ -16288,12 +16307,12 @@ let dbPlayerInfo = {
 
                     let proposalData = {
                         type: event.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: player.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: player.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: player._id,
                             playerId: player.playerId,
@@ -16306,7 +16325,13 @@ let dbPlayerInfo = {
                             eventName: event.name,
                             eventCode: event.code,
                             eventDescription: event.description,
-                            useConsumption: Boolean(event.param.useConsumption)
+                            useConsumption: Boolean(event.param.useConsumption),
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: player.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -16506,12 +16531,12 @@ let dbPlayerInfo = {
                         var rewardAmount = rewardParam.rewardAmount;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -16527,7 +16552,13 @@ let dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -16587,7 +16618,6 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
-        console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -16951,6 +16981,7 @@ let dbPlayerInfo = {
                                     }
 
                                     rewardData.smsCode = data.smsCode;
+
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
                                 default:
@@ -17400,12 +17431,12 @@ let dbPlayerInfo = {
                 if (rewardAmount) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17419,7 +17450,13 @@ let dbPlayerInfo = {
                             referralName: referralName,
                             referralId: referralObj.playerId,
                             referralTopUpAmount: topUpAmount,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17504,12 +17541,12 @@ let dbPlayerInfo = {
                 if (!proposalData) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17520,7 +17557,13 @@ let dbPlayerInfo = {
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17733,12 +17776,12 @@ let dbPlayerInfo = {
                         bDoneDeduction = bDeduct;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -17755,7 +17798,13 @@ let dbPlayerInfo = {
                                 eventCode: eventData.code,
                                 eventDescription: eventData.description,
                                 providers: eventData.param.providers,
-                                targetEnable: eventData.param.targetEnable
+                                targetEnable: eventData.param.targetEnable,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
