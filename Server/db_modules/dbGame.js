@@ -391,7 +391,10 @@ var dbGame = {
 
                 return Q.all(proms);
             }
-        );
+        ).then(
+            data => {
+                return true
+        })
     },
 
     /**
