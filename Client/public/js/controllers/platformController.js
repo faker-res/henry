@@ -25223,20 +25223,33 @@ define(['js/app'], function (myApp) {
               }
             };
 
-            vm.checkRewardAmountLimitByAdmin = async function (currentRewardAmount) {
-                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length){
-                    vm.disableGeneratePromoCode = false;
+            vm.getMaxRewardAmountSetting = async function (platformObjId) {
+                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length && platformObjId){
                     let query = {
                         roleObjId: authService.roleData[0]._id,
                         departmentList: authService.roleData[0].departments,
-                        platformObjId: vm.filterCreatePromoCodePlatform || vm.filterPromoCodeTemplatePlatform || vm.filterOpenPromoCodeTemplatePlatform
+                        platformObjId: platformObjId
                     };
                     let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdminName', query);
 
-                    if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')){
-                        if (currentRewardAmount > data.data.maxRewardAmount) {
+                    if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')) {
+                        vm.maxRewardAmount =  data.data.maxRewardAmount;
+                    }
+                    else{
+                        vm.maxRewardAmount = null;
+                    }
+                    $scope.$evalAsync();
+                }
+            };
+
+            vm.checkRewardAmountLimitByAdmin = async function (currentRewardAmount) {
+                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length){
+                    vm.disableGeneratePromoCode = false;
+
+                    if (vm.maxRewardAmount && currentRewardAmount){
+                        if (currentRewardAmount > vm.maxRewardAmount) {
                             vm.disableGeneratePromoCode = true;
-                            socketService.showErrorMessage($translate("The reward amount you entered has beyond your given authority. The max reward amount you can set is:") + " " +  data.data.maxRewardAmount);
+                            socketService.showErrorMessage($translate("The reward amount you entered has beyond your given authority. The max reward amount you can set is:") + " " +  vm.maxRewardAmount);
                             $scope.$evalAsync();
                         }
                     }
@@ -27423,6 +27436,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadPromoCodeTemplate = function (platformObjId) {
+                vm.disableGeneratePromoCode = false;
                 vm.getPlatformProviderGroup(platformObjId);
                 vm.promoCodeTemplateData = [];
                 let sendData = {
@@ -27450,6 +27464,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadOpenPromoCodeTemplate = function (platformObjId) {
+                vm.disableGeneratePromoCode = false;
                 vm.getPlatformProviderGroup(platformObjId);
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.id,
@@ -32964,7 +32979,8 @@ define(['js/app'], function (myApp) {
 
                 let sendData = {
                     platformObjId: vm.filterPromoCodeTemplatePlatform || vm.selectedPlatform.id,
-                    promoCodeTemplate: vm.promoCodeTemplateData
+                    promoCodeTemplate: vm.promoCodeTemplateData,
+                    maxRewardAmount: vm.maxRewardAmount
                 };
                 console.log('sendData', sendData);
 
@@ -33024,6 +33040,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformObjId: vm.filterOpenPromoCodeTemplatePlatform || vm.selectedPlatform.id,
                     openPromoCodeTemplate: vm.openPromoCodeTemplateSetting,
+                    maxRewardAmount: vm.maxRewardAmount
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateOpenPromoCodeTemplate', sendData, function (data) {
@@ -33054,6 +33071,14 @@ define(['js/app'], function (myApp) {
                 if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
+
+                if (data && type && (type == 1 || type == 2) && data.hasOwnProperty('amount') && vm.maxRewardAmount && data.amount > vm.maxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+                else if (data && type && type == 3 && data.hasOwnProperty('maxRewardAmount') && vm.maxRewardAmount && data.maxRewardAmount > vm.maxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type, "openPromoCode");

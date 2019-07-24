@@ -38,7 +38,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform)')
+                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
                     .text-center(ng-if='!vm.filterCreatePromoCodePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-show='vm.filterCreatePromoCodePlatform')
@@ -924,7 +924,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform)')
+                                    select.form-control(ng-model='vm.filterPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform); vm.getMaxRewardAmountSetting(vm.filterPromoCodeTemplatePlatform);')
                     .text-center(ng-if='!vm.filterPromoCodeTemplatePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-if='vm.filterPromoCodeTemplatePlatform')
@@ -1272,7 +1272,7 @@
                                    text {{'EDIT' | translate}}
                                    img.img-edit
                                button.btn.btn-danger.common-button(ng-if='vm.promoCodeTemplateEdit', ng-click='vm.promoCodeTemplateEdit=false; vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform)') {{"CANCEL" | translate}}
-                               button.btn.btn-primary.common-button(ng-if='vm.promoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean || vm.disableGeneratePromoCode', ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.updateMaxRewardSetting()') {{"CONFIRM" | translate}}
+                               button.btn.btn-primary.common-button(ng-if='vm.promoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean || vm.disableGeneratePromoCode', ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.configSubmitUpdate("promoCodeTemplate")') {{"CONFIRM" | translate}}
                             br
                             table.playerLvlTable(style="width:22%")
                                 thead
@@ -1290,7 +1290,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterOpenPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform)')
+                                    select.form-control(ng-model='vm.filterOpenPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform); vm.getMaxRewardAmountSetting(vm.filterOpenPromoCodeTemplatePlatform);')
                     .text-center(ng-if='!vm.filterOpenPromoCodeTemplatePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-if='vm.filterOpenPromoCodeTemplatePlatform')
