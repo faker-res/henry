@@ -18785,13 +18785,7 @@ let dbPlayerInfo = {
                                                     returnedObj.data[indexNo].gameDetail = [];
                                                 }
 
-                                                try {
-                                                    let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId._id);
-                                                } catch (er) {
-                                                    console.log('returnedObj.data[indexNo].gameDetail', returnedObj.data[indexNo].gameDetail);
-                                                    throw er;
-                                                }
-
+                                                let idx = returnedObj.data[indexNo].gameDetail.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId._id);
 
                                                 if (idx !== -1){
                                                     returnedObj.data[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
