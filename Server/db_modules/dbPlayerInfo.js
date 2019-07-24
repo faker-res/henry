@@ -18861,8 +18861,6 @@ let dbPlayerInfo = {
                                                     };
                                                 }
                                             }
-
-                                            returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
                                         }
 
                                         //combine gameDetail
