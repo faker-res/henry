@@ -7923,6 +7923,8 @@ let dbPlayerReward = {
                             selectedReward = null;
                         }
 
+                        console.log("checking checkpoint 1: selectedRewardParam", selectedRewardParam)
+                        console.log("checking checkpoint 1: yerTopupProbability", yerTopupProbability)
                         // randomRewardMode: 0 is possibility; 1 is topupCondition
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
                             selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
@@ -7957,7 +7959,7 @@ let dbPlayerReward = {
                             });
                             selectedRewardParam = filterTopupCondition;
                         }
-
+                        console.log("checking checkpoint 2: selectedRewardParam", selectedRewardParam)
                         // if no top up record from yesterday, default will be the lowest range of reward param
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
                             let lowestValue = 1;
@@ -7990,6 +7992,7 @@ let dbPlayerReward = {
                                 }
                             });
                             selectedRewardParam = filterTopupCondition;
+                            console.log("checking checkpoint 2.1 when topupProbability = 0: selectedRewardParam", selectedRewardParam)
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {

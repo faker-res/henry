@@ -6883,15 +6883,15 @@ var dbPlatform = {
         }
     },
 
-    getMaxRewardAmountSettingByAdminName: (platformObjId, roleObjId, departmentList) => {
-        if (platformObjId && roleObjId && departmentList && departmentList.length){
+    getMaxRewardAmountSettingByAdmin: (platformObjId, roleList, departmentList) => {
+        if (platformObjId && roleList && roleList.length && departmentList && departmentList.length){
             let query = {
-                role: roleObjId,
+                role: {$in: roleList.map(r => ObjectId(r))},
                 department: {$in: departmentList.map(p => ObjectId(p))},
                 platformObjId: platformObjId,
                 status: 1,
             };
-            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).lean();
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).sort({maxRewardAmount: -1}).lean();
         }
     },
 
