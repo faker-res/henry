@@ -3450,6 +3450,7 @@ var dbPlatform = {
             if (err) {
                 deferred.reject(`phoneapichat request failed  ${err}`);
             } else {
+                console.log("playerPhoneChat request.get",res);
                 let streamInfo = JSON.parse(res.body);
                 let streamResult = {};
                 if (streamInfo.content) {
