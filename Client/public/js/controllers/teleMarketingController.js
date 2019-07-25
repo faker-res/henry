@@ -8184,16 +8184,20 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.initTrashClassificationDecompositionList = function () {
-            vm.getTrashClassificationList();
-            vm.getDecompositionListCount();
-            vm.getfeedbackPhoneListCount();
+        vm.initTrashClassificationDecompositionList = function (platformObjId) {
+            if (!platformObjId) {
+                return;
+            }
+            vm.getTrashClassificationList(platformObjId);
+            vm.getDecompositionListCount(platformObjId);
+            vm.getfeedbackPhoneListCount(platformObjId);
+            vm.getAllTSPhoneListByPlatform(platformObjId);
         };
 
-        vm.getTrashClassificationList = function () {
+        vm.getTrashClassificationList = function (platformObjId) {
             vm.trashClassificationList = [];
             let sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformObjId,
             };
             socketService.$socket($scope.AppSocket, 'getTrashClassification', sendData, function (data) {
                 $scope.$evalAsync(() => {
@@ -8203,10 +8207,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getDecompositionListCount = function () {
+        vm.getDecompositionListCount = function (platformObjId) {
             vm.decompositionListCount = 0;
             let sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformObjId,
             };
             socketService.$socket($scope.AppSocket, 'getCountDecompositionList', sendData, function (data) {
                 $scope.$evalAsync(() => {
@@ -8216,10 +8220,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getfeedbackPhoneListCount = function () {
+        vm.getfeedbackPhoneListCount = function (platformObjId) {
             vm.feedbackPhoneListCount = 0;
             let sendData = {
-                platformId: vm.selectedPlatform.id,
+                platformId: platformObjId,
             };
             socketService.$socket($scope.AppSocket, 'getfeedbackPhoneList', sendData, function (data) {
                 $scope.$evalAsync(() => {
@@ -8236,7 +8240,7 @@ define(['js/app'], function (myApp) {
             vm.trashClassificationTradeSelection = [];
             vm.trashClassificationTradeSelectionPhoneNumber = [];
             vm.lastTenDecomposedPhontList = [];
-            vm.lastTenDecomposedPhontList = vm.allTsPhoneList.filter(item => {
+            vm.lastTenDecomposedPhontList = vm.allTsPhoneListByPlatform.filter(item => {
                 return item.status == vm.constTsPhoneListStatus.DECOMPOSED;
             });
             vm.lastTenDecomposedPhontList.sort(function(a,b) {

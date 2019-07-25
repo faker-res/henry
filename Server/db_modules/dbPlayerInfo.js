@@ -19092,21 +19092,27 @@ let dbPlayerInfo = {
                 }
 
                 // Process game detail
-                if (playerSummary.gameDetail && playerSummary.gameDetail.length > 1) {
+                if (playerSummary.gameDetail && playerSummary.gameDetail.length) {
                     let gameDetailObj = [];
 
                     playerSummary.gameDetail.forEach(
-                        gameDetail => {
-                            let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+                        dayDetail => {
+                            if (dayDetail && dayDetail.length) {
+                                dayDetail.forEach(
+                                    gameDetail => {
+                                        let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
 
-                            if (idx !== -1){
-                                gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
-                                gameDetailObj[idx].validAmount += gameDetail.validAmount;
-                                gameDetailObj[idx].amount += gameDetail.amount;
-                                gameDetailObj[idx].count += gameDetail.count;
-                                gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
-                            } else {
-                                gameDetailObj.push(gameDetail);
+                                        if (idx !== -1){
+                                            gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
+                                            gameDetailObj[idx].validAmount += gameDetail.validAmount;
+                                            gameDetailObj[idx].amount += gameDetail.amount;
+                                            gameDetailObj[idx].count += gameDetail.count;
+                                            gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
+                                        } else {
+                                            gameDetailObj.push(gameDetail);
+                                        }
+                                    }
+                                )
                             }
                         }
                     );
