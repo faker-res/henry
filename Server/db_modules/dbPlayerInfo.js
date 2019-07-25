@@ -11940,6 +11940,13 @@ let dbPlayerInfo = {
             }
         }
 
+        if(query.registrationInterface == 0){
+            query.guestDeviceId = null;
+        } else if(query.registrationInterface == 5 || query.registrationInterface == 6){
+            query.registrationInterface = {$in: [query.registrationInterface, 0]};
+            query.guestDeviceId = {$ne:null};
+        }
+
         let count = dbconfig.collection_players.find(query).count();
         let detail = dbconfig.collection_players.find(query).sort(sortCol).skip(index).limit(limit)
             .populate({path: 'partner', model: dbconfig.collection_partner}).lean()
