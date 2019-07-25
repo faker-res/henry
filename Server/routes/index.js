@@ -320,12 +320,14 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             catch (error) {
                 console.log(error);
             }
-            return dbConfig.collection_players.find({platform: {$in:docIds}, phoneNumber: {$in: [encryptPhoneNumber, enOldPhoneNumber, phoneNumber]}}).then(
+            return dbConfig.collection_players.find({platform: {$in:docIds}, phoneNumber: {$in: [encryptPhoneNumber, enOldPhoneNumber, phoneNumber]}}).populate(
+                {path: "platform", model: dbConfig.collection_platform}
+            ).then(
                 function (playerData) {
                     if( playerData && playerData.length > 0){
                         let resData = playerData.map(
                             player => {
-                                return {loginname: player.name, phone: player.phoneNumber, createTime: player.registrationTime};
+                                return {loginname: player.name, phone: player.phoneNumber, platformId: player.platform.platformId, platformName: player.platform.name, createTime: player.registrationTime};
                             }
                         );
                         res.json({success: true, data: resData});
