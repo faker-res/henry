@@ -734,7 +734,7 @@ API说明：
 	* 设置玩家接收短信的事件类型
 	* 请求内容：
 	    ```
-	    status: 必填|String|键值对 smsId:status, smsId:参考getSmsStatus status:0/1, 
+	    status: 必填|String|smsId:status, smsId:参考getSmsStatus status:0/1, 例子"1:0,20:1,30:1"
 	    ```
     * 操作成功:
         ```
