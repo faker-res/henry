@@ -1034,6 +1034,30 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.updateXBETAdvCss, [data.platformId, data._id, data.css, data.hoverCss], actionName, isValidData);
         },
 
+        getDepartmentByPlatform: function getDepartmentByPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getDepartmentByPlatform, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        updateMaxRewardAmountSetting: function updateMaxRewardAmountSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.updateMaxRewardAmountSetting, [ObjectId(data.platformObjId), data.updateData, data.deletedData], actionName, isValidData);
+        },
+
+        loadMaxRewardAmountSetting: function loadMaxRewardAmountSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.loadMaxRewardAmountSetting, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        getMaxRewardAmountSettingByAdminName: function getMaxRewardAmountSettingByAdminName (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.departmentList && data.roleObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdminName, [ObjectId(data.platformObjId), ObjectId(data.roleObjId), data.departmentList], actionName, isValidData);
+        },
+
     };
     socketActionPlatform.actions = this.actions;
 }

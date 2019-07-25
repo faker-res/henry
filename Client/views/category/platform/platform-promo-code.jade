@@ -20,6 +20,8 @@
             span {{"PROMO_CODE_TEMPLATE" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "openPromoCodeTemplate"}', ng-click='vm.promoCodeTabClicked("openPromoCodeTemplate")')
             span {{"OPEN_PROMO_CODE_TEMPLATE" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedPromoCodeTab === "maxRewardAmountSetting"}', ng-click='vm.promoCodeTabClicked("maxRewardAmountSetting")')
+            span {{"MAX_REWARD_AMOUNT_SETTING" | translate}}
     .col-md-12
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -36,7 +38,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform)')
+                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
                     .text-center(ng-if='!vm.filterCreatePromoCodePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-show='vm.filterCreatePromoCodePlatform')
@@ -75,7 +77,7 @@
                                         td
                                             select.form-control(ng-model='promoCode.promoCodeType', ng-change="vm.checkIsForbidPromoCode(promoCode, promoCode.playerName, promoCode.promoCodeType)", ng-options='type.name for type in vm.promoCodeType1', ng-disabled="vm.checkPromoCodeDisabled(promoCode) && !promoCode.isInForbidList")
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
+                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                         td
                                             input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
@@ -108,7 +110,7 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
                                             button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode1 && vm.newPromoCode1.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode1, $index);')
                                                 text {{'CANCEL' | translate}}
@@ -132,14 +134,14 @@
                                         td
                                             input.form-control(style="display:block;overflow:auto;" type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
-                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
+                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)', ng-if="!vm.disableGeneratePromoCode")
 
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, false, vm.promoCodeSmsChannel)", ng-if = "!vm.promoCode1HasMoreThanOne")
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, false, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && !vm.promoCode1HasMoreThanOne")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, true, vm.promoCodeSmsChannel)", ng-if = "vm.promoCode1HasMoreThanOne" )
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, true, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && vm.promoCode1HasMoreThanOne" )
                                     text {{'Execute All' | translate}}
                                     img.img-create
 
@@ -170,7 +172,7 @@
                                         td
                                             select.form-control(ng-model='promoCode.promoCodeType', ng-change="vm.checkIsForbidPromoCode(promoCode, promoCode.playerName, promoCode.promoCodeType)", ng-options='type.name for type in vm.promoCodeType2', ng-disabled="vm.checkPromoCodeDisabled(promoCode) && !promoCode.isInForbidList")
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
+                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
@@ -201,7 +203,7 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
                                             button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode2 && vm.newPromoCode2.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode2, $index);')
                                                 text {{'CANCEL' | translate}}
@@ -225,13 +227,13 @@
                                         td
                                             input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
-                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
+                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)', ng-if="!vm.disableGeneratePromoCode")
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode2, 2, false, vm.promoCodeSmsChannel)", ng-if = "!vm.promoCode2HasMoreThanOne")
+                                button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode2, 2, false, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && !vm.promoCode2HasMoreThanOne")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode2, 2, true, vm.promoCodeSmsChannel)", ng-if = "vm.promoCode2HasMoreThanOne" )
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode2, 2, true, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && vm.promoCode2HasMoreThanOne" )
                                     text {{'Execute All' | translate}}
                                     img.img-create
                             br
@@ -268,7 +270,7 @@
                                         td
                                             input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
-                                            input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
+                                            input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.maxRewardAmount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
@@ -299,7 +301,7 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
                                             button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode3 && vm.newPromoCode3.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode3, $index);')
                                                 text {{'CANCEL' | translate}}
@@ -323,13 +325,13 @@
                                         td
                                             input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                         td
-                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
+                                            i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)', ng-if="!vm.disableGeneratePromoCode")
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3, 3, false, vm.promoCodeSmsChannel)", ng-if = "!vm.promoCode3HasMoreThanOne")
+                                button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3, 3, false, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && !vm.promoCode3HasMoreThanOne")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode3, 3, true, vm.promoCodeSmsChannel)", ng-if = "vm.promoCode3HasMoreThanOne" )
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode3, 3, true, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && vm.promoCode3HasMoreThanOne" )
                                     text {{'Execute All' | translate}}
                                     img.img-create
 
@@ -922,7 +924,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform)')
+                                    select.form-control(ng-model='vm.filterPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform); vm.getMaxRewardAmountSetting(vm.filterPromoCodeTemplatePlatform);')
                     .text-center(ng-if='!vm.filterPromoCodeTemplatePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-if='vm.filterPromoCodeTemplatePlatform')
@@ -955,7 +957,7 @@
 
                                            //input.form-control(type='text', value='{{promoCode.typeName}}', ng-model='promoCode.typeName', ng-disabled="!vm.promoCodeTemplateEdit")
                                        td
-                                           input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.promoCodeTemplateEdit")
+                                           input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.promoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                        td
                                            input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="!vm.promoCodeTemplateEdit")
                                        td
@@ -998,12 +1000,12 @@
                                        td(colspan=14) {{'ADD' | translate}}
                                    tr(ng-if='vm.promoCodeTemplateEdit')
                                        td
-                                           i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate1, 1); vm.initNewPromoCodeTemplate(1); ')
+                                           i.fa.fa-plus(ng-if="!vm.disableGeneratePromoCode", ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate1, 1); vm.initNewPromoCodeTemplate(1); ')
 
                                        td
                                            input.form-control(type='text', ng-model='vm.newPromoCodeTemplate1.name')
                                        td
-                                           input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.amount')
+                                           input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.amount', ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate1.amount)")
                                        td
                                            input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.minTopUpAmount")
                                        td
@@ -1066,7 +1068,7 @@
                                         td
                                             div {{promoCode.name}}
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.promoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.promoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.promoCodeTemplateEdit")
                                         td
@@ -1107,12 +1109,12 @@
                                         td(colspan=14) {{'ADD' | translate}}
                                     tr(ng-if='vm.promoCodeTemplateEdit')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate2, 2); vm.initNewPromoCodeTemplate(2); ')
+                                            i.fa.fa-plus(ng-if="!vm.disableGeneratePromoCode", ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate2, 2); vm.initNewPromoCodeTemplate(2); ')
 
                                         td
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate2.name')
                                         td
-                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.amount')
+                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.amount', ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate2.amount)")
                                         td
                                             input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.requiredConsumption')
                                         td
@@ -1179,7 +1181,7 @@
                                         td
                                             input.form-control(type='number', ng-model='promoCode.minTopUpAmount', ng-disabled="!vm.promoCodeTemplateEdit")
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.maxRewardAmount', ng-disabled="!vm.promoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model='promoCode.maxRewardAmount', ng-disabled="!vm.promoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.maxRewardAmount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.promoCodeTemplateEdit")
                                         td
@@ -1220,7 +1222,7 @@
                                         td(colspan=14) {{'ADD' | translate}}
                                     tr(ng-if='vm.promoCodeTemplateEdit')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate3, 3); vm.initNewPromoCodeTemplate(3); ')
+                                            i.fa.fa-plus(ng-if="!vm.disableGeneratePromoCode", ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.promoCodeTemplateData, vm.newPromoCodeTemplate3, 3); vm.initNewPromoCodeTemplate(3); ')
 
                                         td
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.name')
@@ -1229,7 +1231,7 @@
                                         td
                                             input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.minTopUpAmount')
                                         td
-                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.maxRewardAmount')
+                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.maxRewardAmount', ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate3.maxRewardAmount)")
                                         td
                                             input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.requiredConsumption')
                                         td
@@ -1270,7 +1272,7 @@
                                    text {{'EDIT' | translate}}
                                    img.img-edit
                                button.btn.btn-danger.common-button(ng-if='vm.promoCodeTemplateEdit', ng-click='vm.promoCodeTemplateEdit=false; vm.loadPromoCodeTemplate(vm.filterPromoCodeTemplatePlatform)') {{"CANCEL" | translate}}
-                               button.btn.btn-primary.common-button(ng-if='vm.promoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit;vm.configSubmitUpdate("promoCodeTemplate")') {{"CONFIRM" | translate}}
+                               button.btn.btn-primary.common-button(ng-if='vm.promoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean || vm.disableGeneratePromoCode', ng-click='vm.promoCodeTemplateEdit=!vm.promoCodeTemplateEdit; vm.configSubmitUpdate("promoCodeTemplate")') {{"CONFIRM" | translate}}
                             br
                             table.playerLvlTable(style="width:22%")
                                 thead
@@ -1288,7 +1290,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterOpenPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform)')
+                                    select.form-control(ng-model='vm.filterOpenPromoCodeTemplatePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform); vm.getMaxRewardAmountSetting(vm.filterOpenPromoCodeTemplatePlatform);')
                     .text-center(ng-if='!vm.filterOpenPromoCodeTemplatePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-if='vm.filterOpenPromoCodeTemplatePlatform')
@@ -1321,7 +1323,7 @@
                                         td
                                             div {{promoCode.name}}
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                         td
                                             input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                         td
@@ -1351,10 +1353,10 @@
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate1, $index, promoCode, 1);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate1, $index, promoCode, 1);')
                                                 text {{'GENERATE' | translate}}
                                             text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
-                                            button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
                                                 text {{'GENERATE' | translate}}
                                         td
                                             input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
@@ -1370,12 +1372,12 @@
                                         td(colspan=15) {{'ADD' | translate}}
                                     tr(ng-if='vm.openPromoCodeTemplateEdit')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate1, vm.newPromoCodeTemplate1, 1, "openPromoCode"); vm.initNewPromoCodeTemplate(1, "openPromoCode"); ')
+                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate1, vm.newPromoCodeTemplate1, 1, "openPromoCode"); vm.initNewPromoCodeTemplate(1, "openPromoCode");', ng-if="!vm.disableGeneratePromoCode")
 
                                         td
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate1.name')
                                         td
-                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.amount')
+                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate1.amount', ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate1.amount)")
                                         td
                                             input.form-control(type='number', ng-model="vm.newPromoCodeTemplate1.minTopUpAmount")
                                         td
@@ -1405,7 +1407,7 @@
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate1, 1, vm.openPromoCodeTemplate1);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate1, 1, vm.openPromoCodeTemplate1);')
                                                 text {{'GENERATE' | translate}}
 
                                         td
@@ -1422,7 +1424,7 @@
 
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate1, 1)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate1, 1)", ng-if = "!vm.disableGeneratePromoCode && vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
                             table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
@@ -1450,7 +1452,7 @@
                                         td
                                             div {{promoCode.name}}
                                         td
-                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="!vm.openPromoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.amount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                         td
@@ -1478,10 +1480,10 @@
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate2, $index, promoCode, 2);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate2, $index, promoCode, 2);')
                                                 text {{'GENERATE' | translate}}
                                             text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
-                                            button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
                                                 text {{'GENERATE' | translate}}
                                         td
                                             input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
@@ -1497,12 +1499,12 @@
                                         td(colspan=16) {{'ADD' | translate}}
                                     tr(ng-if='vm.openPromoCodeTemplateEdit')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate2, vm.newPromoCodeTemplate2, 2,"openPromoCode"); vm.initNewPromoCodeTemplate(2, "openPromoCode"); ')
+                                            i.fa.fa-plus(ng-if="!vm.disableGeneratePromoCode", ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate2, vm.newPromoCodeTemplate2, 2,"openPromoCode"); vm.initNewPromoCodeTemplate(2, "openPromoCode"); ')
 
                                         td
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate2.name')
                                         td
-                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.amount')
+                                            input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.amount', ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate2.amount)")
                                         td
                                             input.form-control(type='number', ng-model='vm.newPromoCodeTemplate2.requiredConsumption')
                                         td
@@ -1529,7 +1531,7 @@
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate2, 2, vm.openPromoCodeTemplate2);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate2, 2, vm.openPromoCodeTemplate2);')
                                                 text {{'GENERATE' | translate}}
 
                                         td
@@ -1545,7 +1547,7 @@
 
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate2, 2)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate2.length  > 0")
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate2, 2)", ng-if = "!vm.disableGeneratePromoCode && vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate2.length  > 0")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
                             table.simple-table(style="margin-top:80px; display:block; white-space:pre-wrap; word-wrap:break-word;")
@@ -1579,7 +1581,7 @@
                                         td
                                             input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
                                         td
-                                            input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(promoCode.maxRewardAmount)")
                                         td
                                             input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="!vm.openPromoCodeTemplateEdit")
                                         td
@@ -1607,10 +1609,10 @@
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate3, $index, promoCode, 3);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click= 'vm.generateOpenPromoCode(vm.openPromoCodeTemplate3, $index, promoCode, 3);')
                                                 text {{'GENERATE' | translate}}
                                             text(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit") &nbsp
-                                            button.btn.btn-primary(ng-if="promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && promoCode.code && vm.openPromoCodeTemplateEdit", ng-click= 'vm.changeOpenPromoCode(promoCode);')
                                                 text {{'GENERATE' | translate}}
                                         td
                                             input.form-control(type='string', ng-model="promoCode.remark", ng-disabled="!vm.openPromoCodeTemplateEdit")
@@ -1626,7 +1628,7 @@
                                         td(colspan=16) {{'ADD' | translate}}
                                     tr(ng-if='vm.openPromoCodeTemplateEdit')
                                         td
-                                            i.fa.fa-plus(ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate3, vm.newPromoCodeTemplate3, 3, "openPromoCode"); vm.initNewPromoCodeTemplate(3, "openPromoCode"); ')
+                                            i.fa.fa-plus(ng-if="!vm.disableGeneratePromoCode", ng-click='vm.updatePromoCodeTemplateInEdit("add", vm.openPromoCodeTemplate3, vm.newPromoCodeTemplate3, 3, "openPromoCode"); vm.initNewPromoCodeTemplate(3, "openPromoCode"); ')
 
                                         td
                                             input.form-control(type='text', ng-model='vm.newPromoCodeTemplate3.name')
@@ -1635,7 +1637,7 @@
                                         td
                                             input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.minTopUpAmount")
                                         td
-                                            input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit")
+                                            input.form-control(type='number', ng-model="vm.newPromoCodeTemplate3.maxRewardAmount", ng-disabled="!vm.openPromoCodeTemplateEdit", ng-change="vm.checkRewardAmountLimitByAdmin(vm.newPromoCodeTemplate3.maxRewardAmount)")
                                         td
                                             input.form-control(type='number', ng-model='vm.newPromoCodeTemplate3.requiredConsumption')
                                         td
@@ -1662,7 +1664,7 @@
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                         td
-                                            button.btn.btn-primary(ng-if="!promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate3, 3, vm.openPromoCodeTemplate3);')
+                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code", ng-click='vm.generateOpenPromoCode(null, null, vm.newPromoCodeTemplate3, 3, vm.openPromoCodeTemplate3);')
                                                 text {{'GENERATE' | translate}}
 
                                         td
@@ -1678,7 +1680,7 @@
 
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate3, 3)", ng-if = "vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllOpenPromoCode(vm.openPromoCodeTemplate3, 3)", ng-if = "!vm.disableGeneratePromoCode && vm.openPromoCodeTemplateEdit && vm.openPromoCodeTemplate1.length  > 0")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
                             br
@@ -1689,7 +1691,7 @@
                                     text {{'EDIT' | translate}}
                                     img.img-edit
                                 button.btn.btn-danger.common-button(ng-if='vm.openPromoCodeTemplateEdit', ng-click='vm.openPromoCodeTemplateEdit=false; vm.loadOpenPromoCodeTemplate(vm.filterOpenPromoCodeTemplatePlatform)') {{"CANCEL" | translate}}
-                                button.btn.btn-primary.common-button(ng-if='vm.openPromoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean', ng-click='vm.openPromoCodeTemplateEdit=!vm.openPromoCodeTemplateEdit;vm.configSubmitUpdate("openPromoCodeTemplate")') {{"CONFIRM" | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.openPromoCodeTemplateEdit', ng-disabled='vm.smsTitleDuplicationBoolean || vm.disableGeneratePromoCode', ng-click='vm.openPromoCodeTemplateEdit=!vm.openPromoCodeTemplateEdit;vm.configSubmitUpdate("openPromoCodeTemplate")') {{"CONFIRM" | translate}}
                             br
                             table.playerLvlTable(style="width:22%")
                                 thead
@@ -1699,6 +1701,62 @@
                                     tr(ng-repeat="(i, v) in constPromoCodeLegend")
                                         td(style="text-align:center;") {{ i | translate }}
                                         td(style="text-align:center;") ({{ v }})
+                //Tab -Max Reward Amount Setting
+                div(ng-if='vm.selectedPromoCodeTab == "maxRewardAmountSetting" && checkViewPermission("Platform", "promoCode", "maxRewardAmountSetting")')
+                    .row
+                        .col-md-12
+                            .well.col-xs-12
+                                .search-filters-item
+                                    label {{'PRODUCT_NAME' | translate}}
+                                    select.form-control(ng-model='vm.filterMaxRewardAmountSettingPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.initLoadingMaxRewardSetting(vm.filterMaxRewardAmountSettingPlatform)')
+                    .text-center(ng-if='!vm.filterMaxRewardAmountSettingPlatform')
+                        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+                    .row(ng-if='vm.filterMaxRewardAmountSettingPlatform')
+                        .col-md-12
+                            table.simple-table(style="margin-top:20px; white-space:pre-wrap; word-wrap:break-word;")
+                                thead
+                                    tr
+                                        th(style="width: 10%", ng-if='vm.maxRewardAmountSettingInEdit') {{"ACTION_BUTTON" | translate}}
+                                        th(style="width: 35%;") {{"Department" | translate}}
+                                        th(style="width: 35%;") {{"Role" | translate}}
+                                        th(style="width: 20%;") {{"Max Reward Amount" | translate}}
+                                tbody
+                                    tr(ng-repeat= 'item in vm.maxRewardAmountSettingData')
+                                        td(ng-if="vm.maxRewardAmountSettingInEdit")
+                                            i.fa.fa-minus(ng-click='vm.updateMaxRewardAmountCollection("remove", vm.maxRewardAmountSettingData, null, $index)')
+                                        td
+                                            div
+                                                select.form-control(ng-disabled="!vm.maxRewardAmountSettingInEdit" ng-model='item.department', required, ng-options='v._id as v.departmentName for v in vm.departmentList', ng-change="vm.initRoleByDepartment(item.department)")
+                                        td
+                                            div
+                                                select.form-control(ng-disabled="!vm.maxRewardAmountSettingInEdit" ng-model='item.role', required, ng-options='v._id as v.roleName for v in vm.allRoleList')
+                                        td
+                                            input.form-control(ng-disabled="!vm.maxRewardAmountSettingInEdit" type="number", min=0, ng-model="item.maxRewardAmount")
+
+                                    tr(ng-if='vm.maxRewardAmountSettingInEdit')
+                                        td(colspan=4) {{'ADD' | translate}}
+                                    tr(ng-if='vm.maxRewardAmountSettingInEdit')
+                                        td
+                                            i.fa.fa-plus(ng-click='vm.updateMaxRewardAmountCollection("add", vm.maxRewardAmountSettingData, vm.newMaxRewardAmountSetting); vm.newMaxRewardAmountSetting = {}')
+
+                                        td
+                                            div
+                                                select.form-control(ng-model='vm.newMaxRewardAmountSetting.department', required, ng-options='v._id as v.departmentName for v in vm.departmentList', ng-change="vm.initRoleByDepartment(vm.newMaxRewardAmountSetting.department)")
+
+                                        td
+                                            div
+                                                select.form-control(ng-model='vm.newMaxRewardAmountSetting.role', required, ng-options='v._id as v.roleName for v in vm.roleList')
+                                        td
+                                            input.form-control(type="number", min=0, ng-model="vm.newMaxRewardAmountSetting.maxRewardAmount")
+
+                             br
+                            .pull-right
+                                button.btn.btn-primary.common-button(ng-if="!vm.maxRewardAmountSettingInEdit && checkViewPermission('Platform', 'promoCode', 'maxRewardAmountSetting')", ng-click='vm.maxRewardAmountSettingInEdit=!vm.maxRewardAmountSettingInEdit;')
+                                    text {{'EDIT' | translate}}
+                                    img.img-edit
+                                button.btn.btn-danger.common-button(ng-if='vm.maxRewardAmountSettingInEdit', ng-click='vm.maxRewardAmountSettingInEdit=false; vm.loadMaxRewardAmountSetting(vm.filterMaxRewardAmountSettingPlatform)') {{"CANCEL" | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.maxRewardAmountSettingInEdit', ng-click='vm.maxRewardAmountSettingInEdit=!vm.maxRewardAmountSettingInEdit; vm.updateMaxRewardAmountSetting()') {{"CONFIRM" | translate}}
+
 
 
 

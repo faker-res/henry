@@ -3352,11 +3352,11 @@ let dbPlayerReward = {
         ).catch(errorUtils.reportError);
     },
 
-    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo) => {
+    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3381,15 +3381,24 @@ let dbPlayerReward = {
                         delete entry._id;
                     }
 
-                    prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
@@ -3398,11 +3407,11 @@ let dbPlayerReward = {
         return Promise.all(prom);
     },
 
-    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3423,15 +3432,24 @@ let dbPlayerReward = {
                         delete entry.code;
                     }
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
