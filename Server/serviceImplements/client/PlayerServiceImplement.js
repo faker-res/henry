@@ -1068,7 +1068,7 @@ let PlayerServiceImplement = function () {
         data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + data.partnerName : "";
 
         if (data.phoneNumber && data.phoneNumber.toString().length === 11) {
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data, false, null, data.useVoiceCode], isValidData, false, false, true);
         } else {
             conn.captchaCode = null;
             wsFunc.response(conn, {

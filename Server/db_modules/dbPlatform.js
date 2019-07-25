@@ -6825,6 +6825,76 @@ var dbPlatform = {
         ).lean();
     },
 
+    getDepartmentByPlatform: function (platformObjId) {
+        return dbconfig.collection_department.find({platforms: {$elemMatch: {$eq: platformObjId}}}).populate({
+            path: "roles",
+            model: dbconfig.collection_role
+        }).lean();
+
+    },
+
+    updateMaxRewardAmountSetting: function (platformObjId, updateData, deletedData) {
+        if (platformObjId){
+            let updateProm = [];
+            if (updateData && updateData.length){
+                updateData.forEach(
+                    data => {
+                        if (data && data._id){
+                            let recordObjId = data._id;
+                            if (data._id){
+                                delete data._id;
+                            }
+                            if (data.hasOwnProperty('__v')){
+                                delete data.__v;
+                            }
+
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(recordObjId)}, data).lean() )
+                        }
+                        else if (data){
+                            data.platformObjId = platformObjId;
+                            updateProm.push(saveNewRecord(data))
+                        }
+                    }
+                )
+            }
+
+            if (deletedData && deletedData.length){
+                deletedData.forEach(
+                    item => {
+                        if (item){
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(item)}, {status: 2}).lean() )
+                        }
+                    }
+                )
+            }
+
+            return Promise.all(updateProm);
+        }
+
+        function saveNewRecord (newRecordData) {
+            let newRecord = new dbconfig.collection_promoCodeMaxRewardAmountSetting(newRecordData);
+            return newRecord.save();
+        };
+    },
+
+    loadMaxRewardAmountSetting: (platformObjId) => {
+        if (platformObjId){
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.find({platformObjId: platformObjId, status: 1}).lean();
+        }
+    },
+
+    getMaxRewardAmountSettingByAdmin: (platformObjId, roleList, departmentList) => {
+        if (platformObjId && roleList && roleList.length && departmentList && departmentList.length){
+            let query = {
+                role: {$in: roleList.map(r => ObjectId(r))},
+                department: {$in: departmentList.map(p => ObjectId(p))},
+                platformObjId: platformObjId,
+                status: 1,
+            };
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).sort({maxRewardAmount: -1}).lean();
+        }
+    },
+
     reEncryptPlayerPhoneNumber: () => {
         let promArr = [];
 

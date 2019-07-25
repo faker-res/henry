@@ -132,24 +132,23 @@
 	2. [获取玩家奖励任务](#获取玩家奖励任务)
 	3. [获取玩家申请奖励](#获取玩家申请奖励)
 	4. [申请提前洗码](#申请提前洗码)
-	5. [是否符合首冲奖励条件](#是否符合首冲奖励条件)
-	6. [创建首冲奖励提案](#创建首冲奖励提案)
-	7. [申请游戏提供商奖励](#申请游戏提供商奖励)
-	8. [申请奖励活动](#申请奖励活动)
-	9. [获取消费返点额度](#获取消费返点额度)
-	10. [获取推荐玩家列表](#获取推荐玩家列表)
-	11. [获取玩家累计签到信息](#获取玩家累计签到信息)
-	12. [获取优惠代码](#获取优惠代码)
-	13. [申请优惠代码](#申请优惠代码)
-	14. [秒杀礼包列表](#秒杀礼包列表)
-	15. [获取充值优惠](#获取充值优惠)
-	16. [设置优惠代码显示](#设置优惠代码显示)
-	17. [获取签到信息](#获取签到信息)
-	18. [获取签到奖励](#获取签到奖励)
-	19. [标记优惠代码已读](#标记优惠代码已读)
-	20. [获取存送金信息](#获取存送金信息)
-	21. [获取某优惠领取排行榜](#获取某优惠领取排行榜)
-	22. [获取玩家洗码数据](#获取玩家洗码数据)
+	5. [获取申请优惠相关信息](#获取申请优惠相关信息)
+	6. [申请奖励活动](#申请奖励活动)
+	7. [获取消费返点额度](#获取消费返点额度)
+	8. [获取推荐玩家列表](#获取推荐玩家列表)
+	9. [获取玩家累计签到信息](#获取玩家累计签到信息)
+	10. [获取优惠代码](#获取优惠代码)
+	11. [申请优惠代码](#申请优惠代码)
+	12. [秒杀礼包列表](#秒杀礼包列表)
+	13. [获取充值优惠](#获取充值优惠)
+	14. [设置优惠代码显示](#设置优惠代码显示)
+	15. [获取签到信息](#获取签到信息)
+	16. [获取签到奖励](#获取签到奖励)
+	17. [标记优惠代码已读](#标记优惠代码已读)
+	18. [获取存送金信息](#获取存送金信息)
+	19. [获取某优惠领取排行榜](#获取某优惠领取排行榜)
+	20. [获取玩家洗码数据](#获取玩家洗码数据)
+	21. [获取开放式优惠代码](#获取开放式优惠代码)
 10. [游戏信息服务](#游戏信息服务：)
 	1. [获取游戏类型列表](#获取游戏类型列表)
 	2. [获取游戏列表](#获取游戏列表)
@@ -583,6 +582,7 @@ API说明：
         name: 选填|String|玩家帐号，请注意只有『注册』、『重置密码』才可以发
         captcha: 选填|String|图片验证码
         playerId: 选填|String|玩家ID，登入的情况发送
+        useVoiceCode: 选填|Boolean| 是否使用语音验证码
         ```
 	* purpose ( 验证用途，可收入内容如下 )：
 
@@ -1159,64 +1159,50 @@ API说明：
 <div id='玩家当前额度'></div>
 
 * **31. 玩家当前额度**
+    * functionName: getCreditDetail
 	* 获取已登录玩家额度
-	* name: getCreditDetail
-	* 请求内容：{}
-	* 响应内容：
-	* 请求成功：
-		*
-			```
-			"data": {  
-			"gameCreditList": [//游戏额度列表  
-			{
-				"nickName":"AG真人",  
-				"validCredit":"200",
-				“status”: 0 //status表示游戏平台状态,0表示正常,1表示维护中  
-			}  ],
-			"credit": 0,//本地自由额度
-			finalAmount:50000, // 帐号中的总馀额（含自由本地+锁定本地+游戏馀额有过绿）
-			sameLineProviders:{ // 同一条线路的供应商有哪些
-				0:["47", "55" ],
-				1:["16", "20", "70", "85"],
-				}
-			"lockedCreditList": [//锁大厅额度列表
-			{  
-				"nickName":"百家乐（真人）",
-				"lockCredit":"0",//本地锁大厅额度  
-				"list":[//大厅列表  
-				{  
-					"providerId":"18",  
-					"nickName":"AG真人",  
-					"validCredit":200,
-					“status”: 0  
-				},  
-				{  
-					"providerId":"19",  
-					"nickName":"ebet真人",  
-					"validCredit":0,
-					“status”: 0  
-				}  ]  },  
-				{  
-					"nickName":"电子",  
-					"lockCredit":"0",  
-					"list":[  
-						{  
-							"providerId":"18",  
-							"nickName":"PT电子",  
-							"validCredit":200,
-							“status”: 0  
-						},  
-						{  
-							"providerId":"19",  
-							"nickName":"MG电子",  
-							"validCredit":0,
-							“status”: 0  
-							}  ]  
-						}  ]  
-					}
-	* 请求失败：`{"status": 420,"errorMessage": "验证失败, 请先登录","data": null}`
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功：
+		```
+		status: 200
+		data: {  
+			gameCreditList: [{  游戏大厅内额度列表  
+				nickName: 大厅名称
+				chName: 大厅中文名称
+				validCredit: 额度
+				status: 大厅状态,0表示正常,1表示维护中
+				providerId: 大厅ID
+			}],
+			credit: 本地自由额度
+			finalAmount: 帐号中的总馀额（含自由本地+锁定本地+游戏馀额）
+			sameLineProviders: {    同一条线路的供应商有哪些
+			    例子: 序号: ["大厅ID"]
+				0: ["47", "55" ],
+				1: ["16", "20", "70", "85"],
+			},
+			lockedCreditList: [{    锁大厅额度列表   
+				nickName: 大厅组名称
+				lockCredit: 本地锁大厅额度  
+				list: [{    大厅列表  
+					providerId: 大厅ID
+					nickName: 大厅名称  
+					validCredit: 额度
+					status: 大厅状态,0表示正常,1表示维护中
+				}]  
+            }]
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
-	<div id='登入后获取提款信息'></div>
+<div id='登入后获取提款信息'></div>
 
 * **32. 登入后获取提款信息**
 	* functionName: getWithdrawalInfo
@@ -3616,68 +3602,130 @@ API说明：
 	* 请求成功：status--200
 	* 请求失败：status--4xx
 
-<div id='是否符合首冲奖励条件'></div>
+<div id='获取申请优惠相关信息'></div>
 
-* **5. 是否符合首冲奖励条件**
-	* 玩家是否符合当前平台的首冲奖励活动条件
-	* name: isValidForFirstTopUpReward
-	* 请求内容：`{playerId: “xxxxxx”}`
-	* playerId: 玩家ID
-	* 响应内容：
-	* 正常响应内容：玩家符合条件，返回玩家是否以消费信息
-	* status--200, data: {ConsumptionRecord: true/false}
-	* 异常响应内容：玩家不符合条件
-	* status--4xx, error: 不符合条件原因
-
-<div id='创建首冲奖励提案'></div>
-
-* **6. 创建首冲奖励提案**
-	* 创建玩家首冲奖励提案
-	* name: createFirstTopUpRewardProposal
-	* 请求内容：`{playerId: “xxxxxx”}`
-	* playerId: 玩家ID
-	* topUpRecordId: 存款记录ID
-	* code: 优惠系统代码
-	* 响应内容：`{status: 200/4xx, data: proposalObject}`
-	* 正常响应内容：status--200, data--proposalObject
-	* 异常响应内容：status--4xx, error: Object
-
-<div id='申请游戏提供商奖励'></div>
-
-* **7. 申请游戏提供商奖励**
-	* 玩家申请当前平台的游戏提供商奖励
-	* name: applyProviderReward
-	* 请求内容：`{playerId: “xxxxxx”, eventId: “xxxxx”}`
-	* playerId: 玩家ID
-	* eventId: 奖励活动id
-	* amount: 金额
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 正常响应内容：status--200, data--true：成功, false：失败
-	* 异常响应内容：status--4xx, error: Object
+* **5. 获取申请优惠相关信息**
+    * functionName: getRewardApplicationData
+	* 获取申请优惠需要的条件信息
+	* 请求内容：
+	    ```
+	    platformId: 必填|String|平台ID
+	    code: 必填|String|优惠唯一代码
+	    ```
+	* 操作成功：
+		```
+        status: 200,  
+        data: {
+            code: 优惠唯一代码
+            eventName: 优惠名称
+            rewardType：优惠类型
+            status: 优惠条件是否满足, 1: 满足, 2: 不满足, 3: 已达到领取上限
+            condition: {  如果有存款要求返回此数据  
+                deposit: {  
+                    status: 1: 满足, 2: 不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
+                    allAmount: 如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
+                    times: 如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
+                    details:[{  符合申请的存款列表
+                        id: 存款唯一ID
+                        amount: 存款金额  
+                    }],
+                    list: [{    （幸运注单）有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        depositAmount: 周期内需要完成的存款金额  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                bet: {  //如果有投注要求返回此数据  
+                    status: 1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注）
+                    needBet: 需要投注金额  
+                    alreadyBet: 已投注金额  
+                    gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
+                    list: [{    （幸运注单） // 有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                ximaRatios: [{   如果是洗码，享受洗码比例，如不是不返回  
+                    gameType: 游戏类型名称
+                    ratio: 洗码比率
+                    amountBet: 已投注金额
+                }],  
+                telephone: { 如果有电话限制返回此数据  
+                    status: 1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
+                },   
+                ip: {   如果有ip限制返回此数据
+                    status: 1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
+                },    
+                SMSCode: {  如果有SMSCode限制返回此数据
+                    status: 1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
+                },
+                device: {   如果有设备限制
+                    status: 1 可领取 2 已领取  
+                }  
+            },  
+            result: {  
+                rewardAmount: 优惠金额
+                winTimes: 盈利倍数（盈利翻倍组）  
+                totalBetAmount: 总投注金额 （盈利翻倍组）  
+                totalWinAmount: 总盈利金额 （盈利翻倍组）  
+                betAmount: 如果有，投注额要求  
+                betTimes: 如果有，投注额倍数  
+                xima: 此优惠是否享受洗码1享受，2不享受  
+                providerGroup: 如果有大厅组限制列出大厅组，没有不返回
+                topUpAmountInterval：本周期现在的存款金额总数 （幸运注单）  
+                quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+            }  
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='申请奖励活动'></div>
 
-* **8. 申请奖励活动**
+* **6. 申请奖励活动**
 	* 玩家申请当前平台的奖励活动
-	* name: applyRewardEvent
-	* 请求内容：`{code: “xxxxxx”, data: “xxxxx”}`
-	* code: 奖励活动代码
-	* appliedObjIdList: [xxxxx, xxxxx] 幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
-	* type: 1 1 活动开始 2 活动结束
-	* data: 申请数据
-	* 玩家首冲: `{ topUpRecordIds: [xxxxx, xxxx] }` 充值记录id数组
-	* 提供商奖励： `{amount: xxxx}` 申请额度
-	* 申请消费返点： ｛｝
-	* 存送金&提升存款: `{ topUpRecordId: xxxxx }` 充值记录id
-	* 消费激励： ｛｝
-	* 推荐人奖励： `{referralId: xxxx}` 玩家id
-	* 响应内容：`{status: 200/4xx, data: {proposalObj}/false/null}`
-	* 正常响应内容：status--200, data--提案信息：成功, false：失败
-	* 异常响应内容：status--4xx, error: Object
+	* functionName: applyRewardEvent
+	* 请求内容：
+	    ```
+	    code: 必填|String|优惠唯一代码
+	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
+	    ```
+	* 操作成功：
+	    ```
+	    status: 200
+	    data: {
+	        rewardAmount: 优惠额度
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取消费返点额度'></div>
 
-* **9. 获取消费返点额度**
+* **7. 获取消费返点额度**
 	* 获取玩家消费返点额度
 	* name: getConsumeRebateAmount
 	* 请求内容：{eventCode: xxxx}
@@ -3702,7 +3750,7 @@ API说明：
 
 <div id='获取推荐玩家列表'></div>
 
-* **10. 获取推荐玩家列表**
+* **8. 获取推荐玩家列表**
 	* 获取推荐玩家列表
 	* name: getPlayerReferralList
 	* 请求内容：`{requestCount: 10, startIndex： 0}`
@@ -3729,7 +3777,7 @@ API说明：
 
 <div id='获取玩家累计签到信息'></div>
 
-* **11. 获取玩家累计签到信息**
+* **9. 获取玩家累计签到信息**
 	* 获取玩家累计签到信息, 需要玩家登陆才可请求该接口. 注：这是对应旧的全勤签到。若要获取『全勤签到（组）』的相关资料，请使用getSignBonus
 	* name: getConsecutiveLoginRewardDay
 	* 请求内容：`{code: “ljqd”}`
@@ -3747,7 +3795,7 @@ API说明：
 
 <div id='获取优惠代码'></div>
 
-* **12. 获取优惠代码**
+* **10. 获取优惠代码**
 	* name: getPromoCode
 	* 请求内容:`{"platformId": "1", "status": "1"}`
 	* playerId: 玩家Id
@@ -3794,7 +3842,7 @@ API说明：
 
 <div id='申请优惠代码'></div>
 
-* **13. 申请优惠代码**
+* **11. 申请优惠代码**
 	* name: applyPromoCode
 	* 请求内容:`{"promoCode": "7620"}`
 	* 响应内容:
@@ -3825,7 +3873,7 @@ API说明：
 
 <div id='秒杀礼包列表'></div>
 
-* **14. 秒杀礼包列表**
+* **12. 秒杀礼包列表**
 	* name:getLimitedOffers
 	* request:`{ "platformId": "6","status": "5"}`
 	* Status:
@@ -3943,7 +3991,7 @@ API说明：
 
 <div id='获取充值优惠'></div>
 
-* **15. 获取充值优惠**
+* **13. 获取充值优惠**
 	* 获取目前正在进行中的充值优惠。
 	* name: getTopUpPromoList
 	* 请求内容：`{"clientType": "1"}`
@@ -3986,7 +4034,7 @@ API说明：
 
 <div id='设置优惠代码显示'></div>
 
-* **16. 设置优惠代码显示**
+* **14. 设置优惠代码显示**
 	* name: setBonusShowInfo
 	* 请求内容：`{ platformId: 6, showInfo:0 }`
 	* showInfo : 0:不显示,1:显示
@@ -3994,7 +4042,7 @@ API说明：
 
 <div id='获取签到信息'></div>
 
-* **17. 获取签到信息**
+* **15. 获取签到信息**
 	* 当有签到奖励时，显示每一阶的领取状态
 	* name: getSignInfo
 	* 请求内容：
@@ -4037,7 +4085,7 @@ API说明：
 
 <div id='获取签到奖励'></div>
 
-* **18. 获取签到奖励**
+* **16. 获取签到奖励**
 	* 一键领取所有可获得的签到奖励。若没有，则返回报错。
 	* name: getSignBonus
 	* 请求内容：`{eventCode: “knxyz”}`
@@ -4048,7 +4096,7 @@ API说明：
 
 <div id='标记优惠代码已读'></div>
 
-* **19. 标记优惠代码已读**
+* **17. 标记优惠代码已读**
 	* 标记优惠代码已读。
 	* name: markPromoCodeAsViewed
 	* 请求内容：`{"promoCode": "7620"}` // 优惠代码
@@ -4080,7 +4128,7 @@ API说明：
 
 <div id='获取存送金信息'></div>
 
-* **20. 获取存送金信息**
+* **18. 获取存送金信息**
 	* 获取玩家存送金优惠状态。即使没登入，只要发送平台ID仍可获取。可否获取奖励是以最新的存款来判断。
 	* name: getSlotInfo
 	* 请求内容：
@@ -4202,7 +4250,7 @@ API说明：
 
 <div id='获取某优惠领取排行榜'></div>
 
-* **21. 获取某优惠领取排行榜**
+* **19. 获取某优惠领取排行榜**
 	* 获取申请优惠需要的条件信息。
 	* name: getRewardRanking
 	* 请求内容：
@@ -4271,7 +4319,7 @@ API说明：
 
 <div id='获取玩家洗码数据'></div>
 
-* **22. 获取玩家洗码数据**
+* **20. 获取玩家洗码数据**
 	* 获取玩家洗码数据
 	* name: getConsumeRebateDetail
 	* 请求内容：`{eventCode: xxxx}` // 必填
@@ -4336,7 +4384,7 @@ API说明：
 
 <div id='获取开放式优惠代码'></div>
 
-* **23. 获取开放式优惠代码**
+* **21. 获取开放式优惠代码**
 	* name: getOpenPromoCode
 	* 请求内容: `{"platformId": "1", "status": "1"}`
 	* playerId: 玩家Id

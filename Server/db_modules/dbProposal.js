@@ -3734,7 +3734,15 @@ var proposal = {
 
                         orQuery.push({type: {$in: proposalTypeList}, status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED] }});
                         orQuery.push({type: {$in: approveProposalTypeList}, status: constProposalStatus.SUCCESS});
-                        queryData["$or"] = orQuery;
+
+                        if (queryData.hasOwnProperty("$or")) {
+                            queryData.$and = queryData.$and ? queryData.$and : [];
+                            queryData.$and.push({$or: queryData["$or"]});
+                            queryData.$and.push({$or: orQuery});
+                            delete queryData.$or;
+                        } else {
+                            queryData["$or"] = orQuery;
+                        }
                     } else {
                         queryData.type = {$in: proposalTypeList.concat(approveProposalTypeList)};
                     }

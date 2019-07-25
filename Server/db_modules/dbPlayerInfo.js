@@ -19103,21 +19103,27 @@ let dbPlayerInfo = {
                 }
 
                 // Process game detail
-                if (playerSummary.gameDetail && playerSummary.gameDetail.length > 1) {
+                if (playerSummary.gameDetail && playerSummary.gameDetail.length) {
                     let gameDetailObj = [];
 
                     playerSummary.gameDetail.forEach(
-                        gameDetail => {
-                            let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
+                        dayDetail => {
+                            if (dayDetail && dayDetail.length) {
+                                dayDetail.forEach(
+                                    gameDetail => {
+                                        let idx = gameDetailObj.findIndex(obj => obj.gameId === gameDetail.gameId && obj.providerId === gameDetail.providerId);
 
-                            if (idx !== -1){
-                                gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
-                                gameDetailObj[idx].validAmount += gameDetail.validAmount;
-                                gameDetailObj[idx].amount += gameDetail.amount;
-                                gameDetailObj[idx].count += gameDetail.count;
-                                gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
-                            } else {
-                                gameDetailObj.push(gameDetail);
+                                        if (idx !== -1){
+                                            gameDetailObj[idx].bonusAmount += gameDetail.bonusAmount;
+                                            gameDetailObj[idx].validAmount += gameDetail.validAmount;
+                                            gameDetailObj[idx].amount += gameDetail.amount;
+                                            gameDetailObj[idx].count += gameDetail.count;
+                                            gameDetailObj[idx].bonusRatio = (gameDetailObj[idx].bonusAmount / gameDetailObj[idx].validAmount);
+                                        } else {
+                                            gameDetailObj.push(gameDetail);
+                                        }
+                                    }
+                                )
                             }
                         }
                     );
@@ -20948,8 +20954,8 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
-                    totalAmount: {"$sum": "$data.amount"},
-                    count: {"$sum": 1}
+                    totalAmount: {$sum: "$data.amount"},
+                    count: {$sum: 1}
                 }
             }
         ]).read("secondaryPreferred");
@@ -21045,7 +21051,16 @@ let dbPlayerInfo = {
         //     matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
         // }
 
-        let stream = dbconfig.collection_players.find(matchObj).populate(
+        let dataObj = {
+            _id: 1,
+            name: 1,
+            playerLevel: 1,
+            credibilityRemarks: 1,
+            csOfficer: 1,
+            valueScore: 1,
+        };
+
+        let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
             [
                 {
                     path: 'playerLevel',
@@ -21059,7 +21074,8 @@ let dbPlayerInfo = {
                 },
                 {
                     path: 'csOfficer',
-                    model: dbconfig.collection_admin
+                    model: dbconfig.collection_admin,
+                    select: "_id adminName"
                 }
 
             ]).lean().cursor({batchSize: 100});
@@ -21121,14 +21137,6 @@ let dbPlayerInfo = {
                 // };
 
 
-                console.log('topUpRecord.......', topUpRecord);
-                console.log('consumptionRecord.......', consumptionRecord);
-                console.log('bonusRecord.......', bonusRecord);
-                console.log('providerInfo.......', providerInfo);
-                console.log('playerInfo.......', playerInfo);
-
-
-
                 let outputData = [];
                 let retData = {};
 
@@ -21158,7 +21166,6 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log1..", consumptionRecord );
 
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -21183,8 +21190,6 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log2..", topUpRecord );
-
 
                             bonusRecord.map(b => {
                                 if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -21208,21 +21213,13 @@ let dbPlayerInfo = {
                                     }
                                 }
                             });
-
-                            console.log("log3..", bonusRecord );
-
                         });
                     });
 
-                    console.log("log4..", retData );
 
 
                     // for (let key in retData) {
-                    //     console.log("log2..", key );
-                    //
                     //     for (let key2 in retData[key]) {
-                    //         console.log("log3..", key2 );
-                    //
                     //         outputData.push(retData[key][key2]);
                     //     }
                     // }
@@ -21232,8 +21229,6 @@ let dbPlayerInfo = {
                             outputData.push(retData[i][j])
                         )
                     );
-
-                    console.log("log5..", outputData );
 
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
@@ -21342,8 +21337,6 @@ let dbPlayerInfo = {
                             }
                         }
                     }
-
-                    console.log("log6..", outputData );
 
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');
