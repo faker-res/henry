@@ -1158,64 +1158,50 @@ API说明：
 <div id='玩家当前额度'></div>	
 
 * **31. 玩家当前额度**
+    * functionName: getCreditDetail
 	* 获取已登录玩家额度
-	* name: getCreditDetail
-	* 请求内容：{}
-	* 响应内容：
-	* 请求成功：
-		* 
-			```
-			"data": {  
-			"gameCreditList": [//游戏额度列表  
-			{ 
-				"nickName":"AG真人",  
-				"validCredit":"200",
-				“status”: 0 //status表示游戏平台状态,0表示正常,1表示维护中  
-			}  ],
-			"credit": 0,//本地自由额度
-			finalAmount:50000, // 帐号中的总馀额（含自由本地+锁定本地+游戏馀额有过绿）
-			sameLineProviders:{ // 同一条线路的供应商有哪些
-				0:["47", "55" ],
-				1:["16", "20", "70", "85"],
-				}
-			"lockedCreditList": [//锁大厅额度列表 
-			{  
-				"nickName":"百家乐（真人）",
-				"lockCredit":"0",//本地锁大厅额度  
-				"list":[//大厅列表  
-				{  
-					"providerId":"18",  
-					"nickName":"AG真人",  
-					"validCredit":200,
-					“status”: 0  
-				},  
-				{  
-					"providerId":"19",  
-					"nickName":"ebet真人",  
-					"validCredit":0,
-					“status”: 0  
-				}  ]  },  
-				{  
-					"nickName":"电子",  
-					"lockCredit":"0",  
-					"list":[  
-						{  
-							"providerId":"18",  
-							"nickName":"PT电子",  
-							"validCredit":200,
-							“status”: 0  
-						},  
-						{  
-							"providerId":"19",  
-							"nickName":"MG电子",  
-							"validCredit":0,
-							“status”: 0  
-							}  ]  
-						}  ]  
-					}
-	* 请求失败：`{"status": 420,"errorMessage": "验证失败, 请先登录","data": null}`
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功：
+		```
+		status: 200
+		data: {  
+			gameCreditList: [{  游戏大厅内额度列表  
+				nickName: 大厅名称
+				chName: 大厅中文名称
+				validCredit: 额度
+				status: 大厅状态,0表示正常,1表示维护中
+				providerId: 大厅ID
+			}],
+			credit: 本地自由额度
+			finalAmount: 帐号中的总馀额（含自由本地+锁定本地+游戏馀额）
+			sameLineProviders: {    同一条线路的供应商有哪些
+			    例子: 序号: ["大厅ID"]
+				0: ["47", "55" ],
+				1: ["16", "20", "70", "85"],
+			},
+			lockedCreditList: [{    锁大厅额度列表   
+				nickName: 大厅组名称
+				lockCredit: 本地锁大厅额度  
+				list: [{    大厅列表  
+					providerId: 大厅ID
+					nickName: 大厅名称  
+					validCredit: 额度
+					status: 大厅状态,0表示正常,1表示维护中
+				}]  
+            }]
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 	
-	<div id='登入后获取提款信息'></div>
+<div id='登入后获取提款信息'></div>
 	
 * **32. 登入后获取提款信息**
 	* functionName: getWithdrawalInfo
