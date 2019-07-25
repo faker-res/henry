@@ -25246,13 +25246,26 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getMaxRewardAmountSetting = async function (platformObjId) {
-                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length && platformObjId){
+                if (authService && authService.adminId && authService.roleData && authService.roleData.length && authService.department && authService.department.length && platformObjId){
+                    let involvedDepartmentList = [];
+                    let involvedRoleList = [];
+                    authService.department.forEach( d => {
+                        if (d && d._id){
+                            involvedDepartmentList.push(d._id);
+                        }
+                    });
+                    authService.roleData.forEach( r => {
+                        if (r && r._id) {
+                            involvedRoleList.push(r._id)
+                        }
+                    });
+
                     let query = {
-                        roleObjId: authService.roleData[0]._id,
-                        departmentList: authService.roleData[0].departments,
+                        roleList: involvedRoleList,
+                        departmentList: involvedDepartmentList,
                         platformObjId: platformObjId
                     };
-                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdminName', query);
+                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdmin', query);
 
                     if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')) {
                         vm.maxRewardAmount =  data.data.maxRewardAmount;
