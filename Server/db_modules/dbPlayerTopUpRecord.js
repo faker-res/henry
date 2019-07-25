@@ -438,13 +438,13 @@ var dbPlayerTopUpRecord = {
                                                 let idx = playerReportDaySummary[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
 
                                                 if (idx !== -1){
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].amount += gameDetail.amount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].amount += consumption.amount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].count += consumption.count;
                                                     playerReportDaySummary[indexNo].gameDetail[idx].bonusRatio = (playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount / playerReportDaySummary[indexNo].gameDetail[idx].validAmount);
                                                 } else {
-                                                    playerReportDaySummary[indexNo].gameDetail.push(gameDetail);
+                                                    playerReportDaySummary[indexNo].gameDetail.push(consumption);
                                                 }
                                             } else {
                                                 playerReportDaySummary[indexNo].gameDetail = [consumption];
