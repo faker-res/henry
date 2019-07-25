@@ -12363,11 +12363,33 @@ define(['js/app'], function (myApp) {
                                 if (data.hasOwnProperty('creator')) {
                                     return data.creator.name;
                                 } else {
-                                    var creator = $translate('System');
-                                    if (data && data.data && data.data.playerName) {
-                                        creator += "(" + data.data.playerName + ")";
+                                    //here's to check creator is not null
+                                    var creator;
+                                    if(data.data && data.data.creator){
+
+                                        if(data.data.creator.type === "admin"){
+                                            creator = data.data.creator.name;
+
+                                        }else if(data.data.creator.type === "player"){
+                                            creator = $translate('System');
+                                            creator += "(" + data.data.creator.name + ")";
+                                        }
+
+                                    }else{
+                                        //found out not all proposal has creator, this original checking for non-creator proposal
+                                        creator = $translate('System');
+                                        if (data && data.data && data.data.playerName) {
+                                            creator += "(" + data.data.playerName + ")";
+                                        }
                                     }
                                     return creator;
+
+                                    //This is the original, revert it if the new checking doesn't work
+                                    // var creator = $translate('System');
+                                    // if (data && data.data && data.data.playerName) {
+                                    //     creator += "(" + data.data.playerName + ")";
+                                    // }
+                                    // return creator;
                                 }
                             }
                         },
@@ -17068,11 +17090,9 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
-                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
-                }
+                //testing block start
 
-                if (vm.playerFeedbackQuery.filterFeedback) {
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 && vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
                     };
@@ -17083,13 +17103,11 @@ define(['js/app'], function (myApp) {
                     };
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                }
-
-                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
                             sendQuery.$and.push({$or: sendQuery.$or});
                             sendQuery.$and.push({$or: sendQueryOr});
+                            sendQuery.$and.push({lastFeedbackTopic: sendQuery.lastFeedbackTopic});
                         } else {
                             sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
                         }
@@ -17097,7 +17115,72 @@ define(['js/app'], function (myApp) {
                     } else {
                         sendQuery["$or"] = sendQueryOr;
                     }
+                }else{
+                    if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                        sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
+                    }
+
+
+                    if (vm.playerFeedbackQuery.filterFeedback) {
+                        let lastFeedbackTimeExist = {
+                            lastFeedbackTime: null
+                        };
+                        let lastFeedbackTime = {
+                            lastFeedbackTime: {
+                                $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                            }
+                        };
+                        sendQueryOr.push(lastFeedbackTimeExist);
+                        sendQueryOr.push(lastFeedbackTime);
+                    }
+
+                    if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
+                        if (sendQuery.hasOwnProperty("$or")) {
+                            if (sendQuery.$and) {
+                                sendQuery.$and.push({$or: sendQuery.$or});
+                                sendQuery.$and.push({$or: sendQueryOr});
+                            } else {
+                                sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                            }
+                            delete sendQuery.$or;
+                        } else {
+                            sendQuery["$or"] = sendQueryOr;
+                        }
+                    }
                 }
+                //testing block end
+
+                // if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                //     sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
+                // }
+                //
+                //
+                // if (vm.playerFeedbackQuery.filterFeedback) {
+                //     let lastFeedbackTimeExist = {
+                //         lastFeedbackTime: null
+                //     };
+                //     let lastFeedbackTime = {
+                //         lastFeedbackTime: {
+                //             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                //         }
+                //     };
+                //     sendQueryOr.push(lastFeedbackTimeExist);
+                //     sendQueryOr.push(lastFeedbackTime);
+                // }
+                //
+                // if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
+                //     if (sendQuery.hasOwnProperty("$or")) {
+                //         if (sendQuery.$and) {
+                //             sendQuery.$and.push({$or: sendQuery.$or});
+                //             sendQuery.$and.push({$or: sendQueryOr});
+                //         } else {
+                //             sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                //         }
+                //         delete sendQuery.$or;
+                //     } else {
+                //         sendQuery["$or"] = sendQueryOr;
+                //     }
+                // }
 
                 if (vm.playerFeedbackQuery.callPermission == 'true') {
                     sendQuery['permission.phoneCallFeedback'] = {$ne: false};
