@@ -8279,6 +8279,8 @@ let dbPlayerReward = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
                             };
+                            console.log('Group Reward AdminInfo', proposalData.data.creator);
+                            console.log('Group Reward PlayerInfo', playerData.name);
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                             if (intervalTime){
