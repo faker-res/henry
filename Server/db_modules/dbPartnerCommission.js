@@ -553,7 +553,9 @@ const dbPartnerCommission = {
                 // if (promsResult.length !== partnersLeftToCalc.length && partnersLeftToCalc.length <= 10) {
                 //     stream = dbconfig.collection_partner.find({_id: {$in: partnersLeftToCalc}}, {_id:1}).cursor({batchSize: 100});
                 // }
-
+                if (!stream) {
+                    return;
+                }
                 let balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
                     return balancer.processStream(
@@ -583,7 +585,7 @@ const dbPartnerCommission = {
                     if (!partnerObjId) {
                         return result;
                     }
-                    return getCalcPartnerByObjId(partnerObjId, startTime);
+                    return getCalcPartnerByObjId(partnerObjId, commissionType, startTime);
                 }
 
                 return getCalcPartnerByType(platformObjId, commissionType, startTime);
@@ -2004,9 +2006,9 @@ function getDirectCommissionRate (commissionRateTable, consumptionAmount, active
     };
 }
 
-function getCalcPartnerByObjId (partnerObjId, startTime) {
+function getCalcPartnerByObjId (partnerObjId, commissionType, startTime) {
     let commCalc;
-    return dbconfig.collection_commCalc.findOne({partner: partnerObjId, startTime}).lean().then(
+    return dbconfig.collection_commCalc.findOne({partner: partnerObjId, commissionType, startTime}).lean().then(
         commCalcData => {
             if (!commCalcData) {
                 return [];
