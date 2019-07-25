@@ -551,7 +551,9 @@ var platformSchema = new Schema({
     // if is ebet4.0 user, will generate a ebet4.0 user from cpms
     isEbet4: {type: Boolean, default: false},
     // native app version number
-    appDataVer: {type: String}
+    appDataVer: {type: String},
+    // is use voice code verification
+    useVoiceCode: {type: Boolean, default: false},
 });
 
 //add platform id before save
