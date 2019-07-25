@@ -581,6 +581,7 @@ API说明：
         name: 选填|String|玩家帐号，请注意只有『注册』、『重置密码』才可以发
         captcha: 选填|String|图片验证码
         playerId: 选填|String|玩家ID，登入的情况发送
+        useVoiceCode: 选填|Boolean| 是否使用语音验证码
         ```
 	* purpose ( 验证用途，可收入内容如下 )：
 	    
