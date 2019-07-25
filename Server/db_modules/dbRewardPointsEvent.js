@@ -45,7 +45,11 @@ let dbRewardPointsEvent = {
     },
 
     removeRewardPointsEventById: function (id) {
-        return dbConfig.collection_rewardPointsEvent.remove({_id: id}).exec();
+        if(id.length && id.length > 0){
+            return dbConfig.collection_rewardPointsEvent.remove({_id: {$in: id}}).exec();
+        }else{
+            return dbConfig.collection_rewardPointsEvent.remove({_id: id}).exec();
+        }
     },
 
 };

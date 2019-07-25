@@ -5934,6 +5934,13 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // Set reward param for player level to use
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
+
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
+
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
         // Query setup
@@ -5972,13 +5979,6 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
         // Check registration interface condition
         await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
-
-        // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
-        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
-
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
 
         let dailyRewardPointData;
         let rewardAmountInPeriod = 0;
@@ -8810,7 +8810,22 @@ let dbPlayerReward = {
                 && !retObj[0].amountPercent
                 && !retObj[0].rewardPercent
                 // special handling for 特别节日
-                && (!retObj[3] || !retObj[3].rewardAmount)
+                &&
+                    (
+                        // 会员生日
+                        eventData.param.condition
+                        && eventData.param.condition.festivalType === "1"
+                        && (retObj[3] && !retObj[3].rewardAmount)
+                        && (retObj[4] && !retObj[4].amountPercent)
+                        && (retObj[5] && !retObj[5].rewardAmount)
+                    ) || (
+                        // 特别节日
+                        eventData.param.condition
+                        && eventData.param.condition.festivalType === "2"
+                        && (retObj[0] && !retObj[0].rewardAmount)
+                        && (retObj[1] && !retObj[1].amountPercent)
+                        && (retObj[2] && !retObj[2].rewardAmount)
+                    )
                 && (eventData.type && eventData.type.name && !ignoredEventList.includes(eventData.type.name))
             ) {
                 return Promise.reject({
