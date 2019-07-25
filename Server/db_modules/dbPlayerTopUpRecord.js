@@ -391,7 +391,7 @@ var dbPlayerTopUpRecord = {
                                                 consumptionValidAmount: consumption.validAmount,
                                                 consumptionBonusAmount: consumption.bonusAmount,
                                                 providerDetail: providerDetail,
-                                                gameDetail: consumption
+                                                gameDetail: [consumption]
                                             });
                                         }else{
                                             if(typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined"){
@@ -434,7 +434,22 @@ var dbPlayerTopUpRecord = {
                                             }
 
                                             // Push game detail
-                                            playerReportDaySummary[indexNo].gameDetail = consumption;
+                                            if (playerReportDaySummary[indexNo].gameDetail && playerReportDaySummary[indexNo].gameDetail.length) {
+                                                let idx = playerReportDaySummary[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
+
+                                                if (idx !== -1){
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += gameDetail.bonusAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += gameDetail.validAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].amount += gameDetail.amount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].count += gameDetail.count;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusRatio = (playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount / playerReportDaySummary[indexNo].gameDetail[idx].validAmount);
+                                                } else {
+                                                    playerReportDaySummary[indexNo].gameDetail.push(gameDetail);
+                                                }
+                                            } else {
+                                                playerReportDaySummary[indexNo].gameDetail = [consumption];
+                                            }
+
                                         }
                                     }
                                 }
