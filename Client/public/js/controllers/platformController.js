@@ -31313,6 +31313,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isEbet4 = platformData.isEbet4;
+                        vm.platformBasic.useVoiceCode = platformData.useVoiceCode;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -33399,6 +33400,7 @@ define(['js/app'], function (myApp) {
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         isEbet4: srcData.isEbet4,
+                        useVoiceCode: srcData.useVoiceCode,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
