@@ -134,6 +134,12 @@ style.
                                     button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
 
                     br
+                    .pull-left
+                        button.btn.btn-danger.common-button(ng-click='vm.closeAllRewardPointsEvent();')
+                            text {{'CLOSE_ALL'| translate}}
+                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
+                            text {{'DELETE_ALL'| translate}}
+
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
@@ -214,6 +220,12 @@ style.
                                     button.btn.btn-danger(ng-if='!val.isEditing' data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click="vm.deletingRewardPointsEvent=val" style='margin: 1px 1px;') {{'DELETE' | translate}}
                                     button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'Closed':'Open' | translate}}
                     br
+                    .pull-left
+                        button.btn.btn-danger.common-button(ng-click='vm.closeAllRewardPointsEvent();')
+                            text {{'CLOSE_ALL'| translate}}
+                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
+                            text {{'DELETE_ALL'| translate}}
+
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
@@ -302,6 +314,12 @@ style.
                                     button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 0px 5px;') {{val.status? 'Closed':'Open' | translate}}
 
                     br
+                    .pull-left
+                        button.btn.btn-danger.common-button(ng-click='vm.closeAllRewardPointsEvent();')
+                            text {{'CLOSE_ALL'| translate}}
+                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
+                            text {{'DELETE_ALL'| translate}}
+
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
@@ -500,10 +518,13 @@ style.
                     .panel-body
                         .row
                             .col-md-12
-                                .well
+                                .well(ng-if="!vm.deletingRewardPointsEvent.length")
                                     label {{"Are you sure you want to delete reward points event"|translate}}
                                     strong.text-danger &nbsp;{{vm.deletingRewardPointsEvent.rewardTitle}}
                                     label ?
+                                .well(ng-if="vm.deletingRewardPointsEvent.length")
+                                    label {{"Are you sure you want to delete all reward points event"|translate}} ?
+
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteRewardPointsEvent(vm.deletingRewardPointsEvent)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

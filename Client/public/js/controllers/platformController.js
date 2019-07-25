@@ -26639,8 +26639,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category, platform: vm.selectedPlatform.id}).then((data) => {
-                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                let sendQuery = {};
+                let rewardPointId = [];
+                if(rewardPointsEvent.length && rewardPointsEvent.length > 0){
+                    rewardPointsEvent.forEach(rewardPoint => {
+                        rewardPointId.push(rewardPoint._id);
+
+                        sendQuery = {
+                            _id: rewardPointId,
+                            category: rewardPoint.category,
+                            platform: vm.selectedPlatform.id
+                        }
+                    });
+                }else {
+                    sendQuery = {
+                        _id: rewardPointsEvent._id,
+                        category: rewardPointsEvent.category,
+                        platform: vm.selectedPlatform.id
+                    }
+                }
+                $scope.$socketPromise('deleteRewardPointsEventById', sendQuery).then((data) => {
+                    vm.getRewardPointsEventByCategory(sendQuery.category);
                     $scope.safeApply();
                 });
             };
@@ -26699,7 +26718,25 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
                 vm.rewardPointsEventUpdateAll = false;
-            }
+            };
+
+            vm.closeAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = false;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.deleteAllRewardPointsEvent = () => {
+                vm.deletingRewardPointsEvent = [];
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    vm.deletingRewardPointsEvent.push(rewardPointsEvent);
+                });
+            };
 
             vm.rewardPointsEventReset = (idx) => {
                 console.log(vm.rewardPointsEventOld[idx]);
