@@ -11981,11 +11981,34 @@ define(['js/app'], function (myApp) {
                             if (data.hasOwnProperty('creator')) {
                                 return data.creator.name;
                             } else {
-                                var creator = $translate('System');
-                                if (data && data.data && data.data.playerName) {
-                                    creator += "(" + data.data.playerName + ")";
+
+                                //here's to check creator is not null
+                                var creator;
+                                if(data.data && data.data.creator){
+
+                                    if(data.data.creator.type === "admin"){
+                                        creator = data.data.creator.name;
+
+                                    }else if(data.data.creator.type === "player"){
+                                        creator = $translate('System');
+                                        creator += "(" + data.data.creator.name + ")";
+                                    }
+
+                                }else{
+                                    //found out not all proposal has creator, this original checking for non-creator proposal
+                                    creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
                                 }
                                 return creator;
+
+                                //This is the original, revert it if the new checking doesn't work
+                                // var creator = $translate('System');
+                                // if (data && data.data && data.data.playerName) {
+                                //     creator += "(" + data.data.playerName + ")";
+                                // }
+                                // return creator;
                             }
                         }
                     },

@@ -79,13 +79,13 @@ function socketActionPromoCode(socketIO, socket) {
         updatePromoCodeTemplate: function updatePromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.promoCodeTemplate && adminInfo && adminInfo.id);
-            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate, adminInfo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeTemplate, [ObjectId(data.platformObjId), data.promoCodeTemplate, adminInfo, data.maxRewardAmount], actionName, isValidData);
         },
 
         updateOpenPromoCodeTemplate: function updateOpenPromoCodeTemplate(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.openPromoCodeTemplate);
-            socketUtil.emitter(self.socket, dbPlayerReward.updateOpenPromoCodeTemplate, [ObjectId(data.platformObjId), data.openPromoCodeTemplate], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.updateOpenPromoCodeTemplate, [ObjectId(data.platformObjId), data.openPromoCodeTemplate, data.maxRewardAmount], actionName, isValidData);
         },
 
         updatePromoCodeIsDeletedFlag: function updatePromoCodeIsDeletedFlag(data) {

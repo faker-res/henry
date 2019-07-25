@@ -2083,9 +2083,19 @@ var dbPlatform = {
             if (data.partnerId) {
                 query.partnerId = data.partnerId;
             }
-            if (data.platformId) {
-                query.platformId = data.platformId;
+
+            if (data.platform && typeof data.platform == 'object' && data.platform.length > 0 && data.platformId &&  typeof data.platformId == 'object' && data.platformId.length > 0) {
+                query.platform = data.platform.map(item => ObjectId(item));
+                query['$or'] = [
+                    {'platform': data.platform.map(item => ObjectId(item))},
+                    {'platformId': data.platformId}
+                ];
+            } else {
+                if (data.platformId) {
+                    query.platformId = data.platformId;
+                }
             }
+
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -6813,6 +6823,76 @@ var dbPlatform = {
                 hoverCss: hoverCss
             }
         ).lean();
+    },
+
+    getDepartmentByPlatform: function (platformObjId) {
+        return dbconfig.collection_department.find({platforms: {$elemMatch: {$eq: platformObjId}}}).populate({
+            path: "roles",
+            model: dbconfig.collection_role
+        }).lean();
+
+    },
+
+    updateMaxRewardAmountSetting: function (platformObjId, updateData, deletedData) {
+        if (platformObjId){
+            let updateProm = [];
+            if (updateData && updateData.length){
+                updateData.forEach(
+                    data => {
+                        if (data && data._id){
+                            let recordObjId = data._id;
+                            if (data._id){
+                                delete data._id;
+                            }
+                            if (data.hasOwnProperty('__v')){
+                                delete data.__v;
+                            }
+
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(recordObjId)}, data).lean() )
+                        }
+                        else if (data){
+                            data.platformObjId = platformObjId;
+                            updateProm.push(saveNewRecord(data))
+                        }
+                    }
+                )
+            }
+
+            if (deletedData && deletedData.length){
+                deletedData.forEach(
+                    item => {
+                        if (item){
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(item)}, {status: 2}).lean() )
+                        }
+                    }
+                )
+            }
+
+            return Promise.all(updateProm);
+        }
+
+        function saveNewRecord (newRecordData) {
+            let newRecord = new dbconfig.collection_promoCodeMaxRewardAmountSetting(newRecordData);
+            return newRecord.save();
+        };
+    },
+
+    loadMaxRewardAmountSetting: (platformObjId) => {
+        if (platformObjId){
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.find({platformObjId: platformObjId, status: 1}).lean();
+        }
+    },
+
+    getMaxRewardAmountSettingByAdminName: (platformObjId, roleObjId, departmentList) => {
+        if (platformObjId && roleObjId && departmentList && departmentList.length){
+            let query = {
+                role: roleObjId,
+                department: {$in: departmentList.map(p => ObjectId(p))},
+                platformObjId: platformObjId,
+                status: 1,
+            };
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).lean();
+        }
     },
 
     reEncryptPlayerPhoneNumber: () => {

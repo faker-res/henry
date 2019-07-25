@@ -54,7 +54,7 @@ var pmsAPI = require("../externalAPI/pmsAPI.js");
 var localization = require("../modules/localization");
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 var serverInstance = require("../modules/serverInstance");
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalEntryType = require('../const/constProposalEntryType');
@@ -5384,12 +5384,12 @@ let dbPlayerInfo = {
                 var rewardAmount = Math.min((recordAmount * playerLvlData.rewardPercentage), playerLvlData.maxRewardAmount);
                 var proposalData = {
                     type: eventData.executeProposal,
-                    creator: adminInfo ? adminInfo :
-                        {
-                            type: 'player',
-                            name: player.name,
-                            id: playerId
-                        },
+                    // creator: adminInfo ? adminInfo :
+                    //     {
+                    //         type: 'player',
+                    //         name: player.name,
+                    //         id: playerId
+                    //     },
                     data: {
                         playerObjId: player._id,
                         playerId: player.playerId,
@@ -5409,7 +5409,14 @@ let dbPlayerInfo = {
                         eventName: eventData.name,
                         eventCode: eventData.code,
                         eventDescription: eventData.description,
-                        useLockedCredit: Boolean(player.platform.useLockedCredit)
+                        useLockedCredit: Boolean(player.platform.useLockedCredit),
+
+                        creator: adminInfo ? adminInfo :
+                            {
+                                type: 'player',
+                                name: player.name,
+                                id: playerId
+                            }
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -5615,12 +5622,12 @@ let dbPlayerInfo = {
                         )) {
                         proposalData = {
                             type: data[1].executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: data[0].name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: data[0].name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: data[0]._id,
                                 playerId: data[0].playerId,
@@ -5634,7 +5641,13 @@ let dbPlayerInfo = {
                                 eventId: data[1]._id,
                                 eventName: data[1].name,
                                 eventCode: data[1].code,
-                                eventDescription: data[1].description
+                                eventDescription: data[1].description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: data[0].name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -5995,6 +6008,21 @@ let dbPlayerInfo = {
             }
         }
 
+        var orPhoneCondition = {};
+        var orIpCondition = {};
+
+        if(data.phoneLocation){
+            let tempPhoneLocation = data.phoneLocation;
+            delete data.phoneLocation;
+            orPhoneCondition = {$or: [{phoneProvince: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}, {phoneCity: new RegExp('.*' + tempPhoneLocation + '.*', 'i')}]};
+        }
+
+        if(data.ipLocation){
+            let tempIpLocation = data.ipLocation;
+            delete data.ipLocation;
+            orIpCondition = {$or: [{province: new RegExp('.*' + tempIpLocation + '.*', 'i')}, {city: new RegExp('.*' + tempIpLocation + '.*', 'i')}]};
+        }
+
         if (data.email) {
             let tempEmail = data.email;
             delete data.email;
@@ -6002,16 +6030,18 @@ let dbPlayerInfo = {
                 platform: {$in: platformId},
                 $and: [
                     data,
+                    orPhoneCondition,
+                    orIpCondition,
                     {$or: [{email: tempEmail}, {qq: tempEmail}]}
                 ]
             }
         } else {
             advancedQuery = {
                 platform: {$in: platformId},
-                $and: [data]
+                $and: [data, orPhoneCondition, orIpCondition]
             }
         }
-
+        
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
@@ -6164,7 +6194,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data]}).count();
+                    .find({platform: platformId, $and: [data, orPhoneCondition, orIpCondition]}).count();
 
                 return Promise.all([a, b]);
             }
@@ -6896,7 +6926,7 @@ let dbPlayerInfo = {
                                         if (phoneLocation) {
                                             newPlayerData.phoneProvince = phoneLocation.province;
                                             newPlayerData.phoneCity = phoneLocation.city;
-                                            newPlayerData.phoneType = phoneLocation.op;
+                                            newPlayerData.phoneType = phoneLocation.sp;
                                         }
                                     }
 
@@ -16076,12 +16106,12 @@ let dbPlayerInfo = {
 
                             var proposalData = {
                                 type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: player.name,
-                                        id: playerId
-                                    },
+                                // creator: adminInfo ? adminInfo :
+                                //     {
+                                //         type: 'player',
+                                //         name: player.name,
+                                //         id: playerId
+                                //     },
                                 data: {
                                     playerObjId: player._id,
                                     playerId: player.playerId,
@@ -16101,7 +16131,13 @@ let dbPlayerInfo = {
                                     eventName: eventData.name,
                                     eventCode: eventData.code,
                                     eventDescription: eventData.description,
-                                    useLockedCredit: Boolean(player.platform.useLockedCredit)
+                                    useLockedCredit: Boolean(player.platform.useLockedCredit),
+                                    creator: adminInfo ? adminInfo :
+                                        {
+                                            type: 'player',
+                                            name: player.name,
+                                            id: playerId
+                                        }
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS,
@@ -16422,12 +16458,12 @@ let dbPlayerInfo = {
 
                     let proposalData = {
                         type: event.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: player.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: player.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: player._id,
                             playerId: player.playerId,
@@ -16440,7 +16476,13 @@ let dbPlayerInfo = {
                             eventName: event.name,
                             eventCode: event.code,
                             eventDescription: event.description,
-                            useConsumption: Boolean(event.param.useConsumption)
+                            useConsumption: Boolean(event.param.useConsumption),
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: player.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -16640,12 +16682,12 @@ let dbPlayerInfo = {
                         var rewardAmount = rewardParam.rewardAmount;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -16661,7 +16703,13 @@ let dbPlayerInfo = {
                                 eventId: eventData._id,
                                 eventName: eventData.name,
                                 eventCode: eventData.code,
-                                eventDescription: eventData.description
+                                eventDescription: eventData.description,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -16721,7 +16769,6 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
-        console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
@@ -17056,6 +17103,7 @@ let dbPlayerInfo = {
                                     }
 
                                     rewardData.smsCode = data.smsCode;
+
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
                                 default:
@@ -17505,12 +17553,12 @@ let dbPlayerInfo = {
                 if (rewardAmount) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17524,7 +17572,13 @@ let dbPlayerInfo = {
                             referralName: referralName,
                             referralId: referralObj.playerId,
                             referralTopUpAmount: topUpAmount,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17609,12 +17663,12 @@ let dbPlayerInfo = {
                 if (!proposalData) {
                     var proposalData = {
                         type: rewardEvent.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -17625,7 +17679,13 @@ let dbPlayerInfo = {
                             eventId: rewardEvent._id,
                             eventName: rewardEvent.name,
                             eventCode: rewardEvent.code,
-                            eventDescription: rewardEvent.description
+                            eventDescription: rewardEvent.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
@@ -17838,12 +17898,12 @@ let dbPlayerInfo = {
                         bDoneDeduction = bDeduct;
                         var proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: player.name,
-                                    id: playerId
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: player.name,
+                            //         id: playerId
+                            //     },
                             data: {
                                 playerObjId: player._id,
                                 playerId: player.playerId,
@@ -17860,7 +17920,13 @@ let dbPlayerInfo = {
                                 eventCode: eventData.code,
                                 eventDescription: eventData.description,
                                 providers: eventData.param.providers,
-                                targetEnable: eventData.param.targetEnable
+                                targetEnable: eventData.param.targetEnable,
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: player.name,
+                                        id: playerId
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
@@ -18257,8 +18323,11 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updateBatchPlayerLevel: (adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+    updateBatchPlayerLevel: (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
         let proms = [];
+        let proposalTypeName = constProposalType.UPDATE_PLAYER_INFO_LEVEL;
+        let levelName;
+        remarks = remarks || "";
 
         playerNames.forEach(playerName => {
             let trimPlayerName = playerName.trim();
@@ -18274,7 +18343,33 @@ let dbPlayerInfo = {
                 });
             proms.push(prom);
         });
-        return Promise.all(proms);
+
+        return Promise.all(proms).then(() => {
+            return dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId});
+        }).then(levelData => {
+            levelName = levelData.name;
+            return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName});
+        }).then(proposalType => {
+            let proposalData = {
+                mainType: constProposalMainType[proposalTypeName],
+                type: proposalType._id,
+                creator: {
+                    "id" : adminObjId,
+                    "name" : adminName,
+                    "type" : "admin"
+                },
+                data: {
+                    platformId: ObjectId(platformObjId),
+                    newLevelName: levelName,
+                    playerName: playerNames.join(", "),
+                    playerNameList: playerNames,
+                    remark: "批量编辑玩家等级;" + remarks
+                },
+                noSteps: constSystemParam.PROPOSAL_NO_STEP,
+                status: constProposalStatus.APPROVED,
+            };
+            dbProposal.createProposal(proposalData);
+        });
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
@@ -19067,6 +19162,9 @@ let dbPlayerInfo = {
                     };
 
                     if (isSinglePlayer) {
+                        if (!playerData || !playerData._id) {
+                            return Promise.reject({message: "Player not found"});
+                        }
                         summaryDataQuery.playerId = playerData._id;
                     } else if (query.adminIds && query.adminIds.length && playerData.length) {
                         summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
@@ -20826,7 +20924,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -20846,7 +20943,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$data.playerObjId'},
                     totalAmount: {"$sum": "$data.amount"},
                     count: {"$sum": 1}
                 }
@@ -20866,7 +20962,6 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                    // _id : { date: {year: { $year: "$createTime" }, month: { $month: "$createTime" }, day: { $dayOfMonth: "$createTime" }}, playerId: '$playerId'},
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                 }
@@ -21032,19 +21127,6 @@ let dbPlayerInfo = {
                 let outputData = [];
                 let retData = {};
 
-                // consumptionRecord.map(c => {
-                //     c._id.date = c._id.date.year + "-" + c._id.date.month + "-" + c._id.date.day;
-                // });
-                //
-                // topUpRecord.map(t => {
-                //     t._id.date = t._id.date.year + "-" + t._id.date.month + "-" + t._id.date.day;
-                // });
-                //
-                // bonusRecord.map(b => {
-                //     b._id.date = b._id.date.year + "-" + b._id.date.month + "-" + b._id.date.day;
-                // });
-
-
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
                         providerInfo.map(provider => {
@@ -21071,7 +21153,7 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log1", consumptionRecord );
+                            console.log("log1..", consumptionRecord );
 
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -21096,7 +21178,7 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log2", topUpRecord );
+                            console.log("log2..", topUpRecord );
 
 
                             bonusRecord.map(b => {
@@ -21122,19 +21204,31 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log3", bonusRecord );
-
+                            console.log("log3..", bonusRecord );
 
                         });
                     });
 
-                    for (let key in retData) {
-                        for (let key2 in retData[key]) {
-                            outputData.push(retData[key][key2]);
-                        }
-                    }
+                    console.log("log4..", retData );
 
-                    console.log("log4", outputData );
+
+                    // for (let key in retData) {
+                    //     console.log("log2..", key );
+                    //
+                    //     for (let key2 in retData[key]) {
+                    //         console.log("log3..", key2 );
+                    //
+                    //         outputData.push(retData[key][key2]);
+                    //     }
+                    // }
+
+                    Object.keys(retData).map(i =>
+                        Object.keys(retData[i]).map(j =>
+                            outputData.push(retData[i][j])
+                        )
+                    );
+
+                    console.log("log5..", outputData );
 
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
@@ -21244,7 +21338,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    console.log("log5", outputData );
+                    console.log("log6..", outputData );
 
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');
@@ -25215,17 +25309,17 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
                 }
 
-                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-                let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                // let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                // let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
                 platformObj = platformData;
 
                 let playerQuery = {
                     platform: platformData._id,
                     name: playerName,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
+                    // $or: [
+                    //     {phoneNumber: encryptedPhoneNumber},
+                    //     {phoneNumber: enOldPhoneNumber}
+                    // ]
                 };
 
                 return dbconfig.collection_players.findOne(playerQuery).lean()
@@ -25240,7 +25334,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(playerObj.phoneNumber)};
+                let profile = {platform: String(platformObj._id), name: playerObj.name, password: playerObj.password, phoneNumber: rsaCrypto.encrypt(phoneNumber)};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 5});
                 return {token: token};
             }
@@ -25262,19 +25356,15 @@ let dbPlayerInfo = {
                 return deferred.reject({name: "DataError", message: "Invalid token"});
             }
 
-            let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
-            let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
-            let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
+            // let decryptedPhoneNumber = rsaCrypto.decrypt(decoded.phoneNumber)
+            // let encryptedPhoneNumber = rsaCrypto.encrypt(decryptedPhoneNumber);
+            // let enOldPhoneNumber = rsaCrypto.oldEncrypt(decryptedPhoneNumber);
 
             return dbconfig.collection_players.findOne(
                 {
                     platform: decoded.platform,
                     name: decoded.name,
                     password: decoded.password,
-                    $or: [
-                        {phoneNumber: encryptedPhoneNumber},
-                        {phoneNumber: enOldPhoneNumber}
-                    ]
                 }
             ).lean().then(
                 playerData => {
@@ -26441,7 +26531,7 @@ let dbPlayerInfo = {
                 if (phoneLocation) {
                     updObj.phoneProvince = phoneLocation.province;
                     updObj.phoneCity = phoneLocation.city;
-                    updObj.phoneType = phoneLocation.op;
+                    updObj.phoneType = phoneLocation.sp;
                 }
 
                 return dbUtility.findOneAndUpdateForShard(
@@ -28881,8 +28971,6 @@ function checkSimilarPhoneForPlayerCredibilityRemarks (platformId, phoneNumber) 
             if (similarPhoneCredibilityRemarkObjId && (totalCount > 0)) {
                 return similarPhoneCredibilityRemarkObjId;
             }
-
-            return similarPhoneCredibilityRemarkObjId;
         }
     );
 }

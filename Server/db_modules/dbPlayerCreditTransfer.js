@@ -1553,6 +1553,7 @@ let dbPlayerCreditTransfer = {
                         transferWallet[gameProviderGroup.ebetWallet] = lockedTransferAmount;
                     }
                 } else {
+                    console.log('MT --checking gameProviderGroup', gameProviderGroup, platform, playerObjId, validTransferAmount);
                     transferWallet[0] = validTransferAmount;
                 }
 

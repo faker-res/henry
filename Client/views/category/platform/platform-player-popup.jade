@@ -477,14 +477,14 @@
                     .form-group-col-md-6
                         label.control-label {{'Player Level' | translate}}
                         select.form-control(ng-model='vm.batchPermitPlayerLevel')
-                            option(value='all') {{'ALL' | translate}}
                             option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                     .form-group-col-md-6
                         label.control-label {{'Remark' | translate}}
                         textarea.form-control(ng-model='vm.batchPermitPlayerLevelRemark')
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.batchPermitPlayerLevel || !vm.batchPermitPlayerLevelRemark' ng-click='vm.updateBatchPermitPlayerLevel()') {{'CONFIRM' | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-show='!vm.batchPermitPlayerLevelResMsg' ng-disabled='!vm.batchPermitPlayerLevel || !vm.batchPermitPlayerLevelRemark' ng-click='vm.updateBatchPermitPlayerLevel()') {{'SUBMIT' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(ng-show='!vm.batchPermitPlayerLevelResMsg' data-dismiss='modal') {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(ng-show='vm.batchPermitPlayerLevelResMsg' data-dismiss='modal') {{"CONFIRM" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.batchPermitPlayerLevelResMsg') {{vm.batchPermitPlayerLevelResMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='vm.batchPermitPlayerLevelSubmit')
 

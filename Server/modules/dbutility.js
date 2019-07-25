@@ -14,7 +14,9 @@ var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
 var datx = require('ipip-datx');
 var path = require('path');
 var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
-const queryPhoneLocationFromPackage = require('phone-query');
+const queryPhoneLocationFromPackage = require('cellocate');
+const env = require('./../config/env').config();
+const rp = require('request-promise');
 
 var dbUtility = {
 
@@ -83,6 +85,34 @@ var dbUtility = {
     },
 
     //region Time
+
+    sendVoiceCode: function (phoneNumber, smsCode) {
+        let options = {
+            method: "POST",
+            uri: env.voiceCodeUrl,
+            headers: {
+                'Accept': "application/json;charset=utf-8;",
+                'Content-Type': "application/x-www-form-urlencoded;charset=utf-8;"
+            },
+            form: {
+                apikey: env.voiceCodeKEY,
+                mobile: phoneNumber,
+                code: String(smsCode)
+            },
+            json: true // Automatically stringifies the body to JSON
+        };
+
+        return rp(options).then(
+            data => {
+                console.log("check send voice code", data);
+                return data;
+            },
+            err => {
+                console.log("send voice code failed",err)
+            }
+        )
+
+    },
 
     //region Specific time
     getFirstDayOfYear: () => {
@@ -1873,7 +1903,7 @@ var dbUtility = {
         if (queryRes) {
             retObj.phoneProvince = queryRes.province;
             retObj.phoneCity = queryRes.city;
-            retObj.phoneType = queryRes.op;
+            retObj.phoneType = queryRes.sp;
         }
 
         return retObj;

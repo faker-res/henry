@@ -458,6 +458,8 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case "REWARD_ANALYSIS":
+                        vm.checkRewardWithRetentionRate = false;
+                        vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
                         vm.platformRewardAnalysisSort = {};
                         vm.selectReward = {};
                         vm.initSearchParameter('reward', 'day', 3);
@@ -508,10 +510,10 @@ define(['js/app'], function (myApp) {
                             }
                             vm.queryPara.playerRetention.device = "all";
                             vm.queryPara.playerRetention.userType = "all";
-                            vm.checkDomainList();
+                            vm.checkDomainList('playerRetention');
                             vm.playerRetentionInit(function () {
                                 //vm.getPlayerRetention();
-                            });
+                            }, 'playerRetention');
                             $scope.safeApply();
                         });
                         break;
@@ -4727,6 +4729,209 @@ define(['js/app'], function (myApp) {
         // player location end ================================================
 
         //reward analysis clicked ================================================
+        vm.toggleRewardRetentionCheckAll = function () {
+            if (vm.retentionCheckAll) {
+                for (var i in vm.rewardRetentionData) {
+                    vm.showRetention[i] = true;
+                }
+            } else {
+                vm.showRetention = {};
+            }
+            $scope.$evalAsync();
+            vm.drawRewardRetentionGraph();
+        };
+
+        vm.drawRewardRetentionGraph = function () {
+            vm.allRetentionLineData = [];
+            $.each(vm.rewardRetentionData, function (day, obj) {
+                var rowData = [];
+                if (vm.showRetention[day]) {
+                    $.each(obj, function (a, b) {
+                        if (a != 'day0' && a != 'date' && a != '$$hashKey') {
+                            if (obj.day0 != 0) {
+                                rowData.push([a, b / obj.day0 * 100]);
+                            } else {
+                                rowData.push([a, 0]);
+                            }
+                        }
+                    });
+                    rowData.sort((a, b) => {
+                        return a[0] - b[0];
+                    });
+                    var lineData = {label: obj.date == $translate("average line") ? $translate("average line") : vm.dateReformat(obj.date), data: rowData};
+                    vm.allRetentionLineData.push(lineData);
+                }
+            })
+            var xLabel = [];
+            for (var j in vm.queryPara.reward.days) {
+                xLabel.push([vm.queryPara.reward.days[j], vm.queryPara.reward.days[j]]);
+            }
+            var placeholder = '#line-playerRewardRetention';
+            var newOptions = {};
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: 'day N',
+            }];
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: 'Retention %',
+            }];
+            newOptions.xaxis = {
+                ticks: xLabel,
+            };
+
+            let retentionGraph = socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions)
+
+            if (retentionGraph.getData()[0] && retentionGraph.getData()[0].data){
+                $.each(retentionGraph.getData()[0].data, function (i, el) {
+                    var o = retentionGraph.pointOffset({x: el[0], y: el[1]});
+                    $('<div class="data-point-label">' + el[1].toFixed(1) + '%</div>').css({
+                        position: 'absolute',
+                        left: o.left + 4,
+                        top: o.top - 15,
+                        display: 'none'
+                    }).appendTo(retentionGraph.getPlaceholder()).fadeIn('slow');
+                });
+            }
+
+            vm.bindHover(placeholder, function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+
+                var fre = $translate('DAY');
+                $("#tooltip").html("% : " + y + '<br>' + fre + " : " + x)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+        };
+
+        vm.getRewardPlayerRetention = function () {
+            vm.isShowLoadingSpinner('#rewardAnalysis', true);
+            // vm.rewardRetentionGraphData = [];
+            vm.showRetention = {0: true};//set default
+            vm.retentionCheckAll = false;
+            vm.allRetentionLineData = [];
+
+            if (vm.selectedPlatform && vm.selectedPlatform._id && vm.selectReward && vm.selectReward._id) {
+                let sendData = {
+                    platform: vm.selectedPlatform._id,
+                    days: vm.queryPara.reward.days,
+                    startTime: vm.queryPara.reward.startTime,
+                    endTime: vm.queryPara.reward.endTime,
+                    playerType: vm.queryPara.reward.playerType,
+                    eventObjId: vm.selectReward._id
+                };
+
+                if (vm.queryPara.reward && vm.queryPara.reward.domain && vm.queryPara.reward.domain.length > 0) {
+                    sendData.domainList = vm.queryPara.reward.domain;
+                }
+
+                switch (vm.queryPara.reward.userType) {
+                    case 'all':
+                        sendData.isRealPlayer = true;
+                        sendData.isTestPlayer = false;
+                        break;
+                    case 'individual':
+                        sendData.isRealPlayer = true;
+                        sendData.isTestPlayer = false;
+                        sendData.hasPartner = false;
+                        break;
+                    case 'underPartner':
+                        sendData.isRealPlayer = true;
+                        sendData.isTestPlayer = false;
+                        sendData.hasPartner = true;
+                        break;
+                    case 'test':
+                        sendData.isRealPlayer = false;
+                        sendData.isTestPlayer = true;
+                        break;
+                }
+
+                switch (vm.queryPara.reward.device) {
+                    case 'app':
+                        sendData.devices = ["5", "6", "7", "8", 5, 6, 7, 8];
+                        break;
+                    case 'web':
+                        sendData.devices = ["1", "2", 1, 2];
+                        break;
+                    case 'h5':
+                        sendData.devices = ["3", "4", 3, 4];
+                        break;
+                    case 'backstage':
+                        sendData.devices = ["0", 0];
+                        break;
+                }
+
+                if (typeof sendData.hasPartner !== 'boolean') {
+                    sendData.hasPartner = null;
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardRetention', sendData, function (data) {
+                    console.log("retention data", data);
+                    vm.rewardRetentionData = data.data;
+                    let dataLength = vm.rewardRetentionData.length;
+                    vm.averageRetention = {};
+                    vm.rewardRetentionData.forEach(retentionData => {
+                        for (let key in retentionData) {
+                            if (retentionData[key] != "date") {
+                                if (vm.averageRetention[key]) {
+                                    vm.averageRetention[key] += retentionData[key];
+                                } else {
+                                    vm.averageRetention[key] = retentionData[key];
+                                }
+                            }
+                        }
+                    });
+                    for (let key in vm.averageRetention) {
+                        if (vm.averageRetention.hasOwnProperty(key)) {
+                            vm.averageRetention[key] = (vm.averageRetention[key] / dataLength);
+                        }
+                    }
+                    vm.averageRetention.date = $translate("average line");
+                    vm.rewardRetentionData.splice(0, 0, vm.averageRetention);
+
+                    $scope.safeApply();
+                    vm.drawRewardRetentionGraph();
+                    vm.isShowLoadingSpinner('#rewardAnalysis', false);
+                }, function (data) {
+                    vm.isShowLoadingSpinner('#rewardAnalysis', false);
+                    console.log("retention data not", data);
+                });
+            }
+        };
+
+        vm.changeToRetentionMode = function (isTrue) {
+            if (isTrue){
+                vm.initSearchParameter('reward', null, 2, function () {
+                    vm.queryPara.reward.days = [1, 2, 3, 5, 7, 10, 12, 14, 16, 18, 21, 23, 25, 27, 30];
+                    vm.queryPara.reward.playerType = "1"; //set default value
+                    vm.dayListLength = [];
+                    for (var i = 1; i < 31; i++) {
+                        vm.dayListLength.push(i);
+                    }
+                    vm.queryPara.reward.playerType = "1"; // default as 总开户人数（全部）
+                    vm.queryPara.reward.device = "all";
+                    vm.queryPara.reward.userType = "all"; // default as 真钱玩家（全）
+                    vm.queryPara.reward.periodText = null;
+                    vm.checkDomainList('reward');
+                    vm.playerRetentionInit(function () {
+                        //vm.getPlayerRetention();
+                    }, 'reward');
+                    $scope.$evalAsync();
+                }, true);
+            }
+            else{
+                vm.queryPara.reward.playerType = null; // default as 总开户人数（全部）
+                vm.queryPara.reward.userType = null; // default as 真钱玩家（全）
+                vm.queryPara.reward.periodText = null;
+                vm.queryPara.reward.device = null;
+                vm.queryPara.reward.domain = null;
+                vm.queryPara.reward.days = null;
+                vm.queryPara.reward.periodText = "day";
+
+            }
+        };
+
         vm.rewardAnalysisInit = function (callback) {
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
                 vm.rewardList = data.data;
@@ -4744,15 +4949,20 @@ define(['js/app'], function (myApp) {
             vm.selectReward = v;
             console.log('v', v);
             $scope.safeApply();
-            vm.plotRewardLine();
+            if (!vm.checkRewardWithRetentionRate){
+                vm.plotRewardLine();
+            }
+            else{
+                vm.checkDomainList('reward');
+            }
         }
         vm.plotRewardLine = function () {
             if (!vm.selectReward.type) return;
             vm.isShowLoadingSpinner('#rewardAnalysis', true);
             console.log('vm.selectReward', vm.selectReward);
 
-            let startDate = vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate();
-            let endDate =  vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate();
+            let startDate = vm.queryPara.reward.startTime;
+            let endDate =  vm.queryPara.reward.endTime;
             var sendData = {
                 platformId: vm.selectReward.platform,
                 period: vm.queryPara.reward.periodText,
@@ -4955,35 +5165,38 @@ define(['js/app'], function (myApp) {
         //player domain analysis clicked end ================================================
 
         //player retention start ==================================================================
-        vm.retentionAddDay = function () {
-            vm.queryPara.playerRetention.days.push(parseInt(vm.newDay));
-            vm.playerRetentionInit();
-        }
-        vm.retentionRemoveDay = function () {
-            vm.queryPara.playerRetention.days.pop();
-            if (vm.queryPara.playerRetention.days.length == 0) {
-                vm.queryPara.playerRetention.days = [1];
+        vm.retentionAddDay = function (key) {
+            vm.queryPara[key].days.push(parseInt(vm.newDay));
+            vm.playerRetentionInit(null, key);
+        };
+
+        vm.retentionRemoveDay = function (key) {
+            vm.queryPara[key].days.pop();
+            if (vm.queryPara[key].days.length == 0) {
+                vm.queryPara[key].days = [1];
             }
-            vm.playerRetentionInit();
-        }
-        vm.playerRetentionInit = function (callback) {
-            vm.newDay = (vm.queryPara.playerRetention.days.slice(-1).pop() + 1).toString();
+            vm.playerRetentionInit(null, key);
+        };
+
+        vm.playerRetentionInit = function (callback, key) {
+            vm.newDay = (vm.queryPara[key].days.slice(-1).pop() + 1).toString();
             $scope.safeApply();
             if (callback) {
                 callback();
             }
         };
 
-        vm.checkDomainList = function (){
+        vm.checkDomainList = function (key){
             vm.domainList = null;
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                startTime: vm.queryPara.playerRetention.startTime,
-                endTime: vm.queryPara.playerRetention.endTime,
-                playerType: vm.queryPara.playerRetention.playerType
+                startTime: vm.queryPara[key].startTime,
+                endTime: vm.queryPara[key].endTime,
+                playerType: vm.queryPara[key].playerType,
+                eventObjId: vm.selectReward && vm.selectReward._id ? vm.selectReward._id : null
             };
 
-            switch (vm.queryPara.playerRetention.userType) {
+            switch (vm.queryPara[key].userType) {
                 case 'all':
                     sendData.isRealPlayer = true;
                     sendData.isTestPlayer = false;
@@ -5007,18 +5220,34 @@ define(['js/app'], function (myApp) {
                 sendData.hasPartner = null;
             }
 
-            socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
-                    console.log('domain data', vm.domainList);
-                })
-            });
+            if (key == 'reward'){
+                socketService.$socket($scope.AppSocket, 'getDomainListFromApplicant', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                        console.log('domain data', vm.domainList);
+                    })
+                });
+            }
+            else{
+                socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                        console.log('domain data', vm.domainList);
+                    })
+                });
+            }
         };
 
-        vm.retentionFilterOnChange = function () {
+        vm.retentionFilterOnChange = function (key, notCheckDomain) {
             $scope.$evalAsync( () => {
-                vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
-                vm.checkDomainList();
+                if (key == 'playerRetention') {
+                    vm.queryPara[key].minTime = utilService.getFormatDate(vm.queryPara["playerRetention"].startTime);
+                }
+
+                if (!notCheckDomain) {
+                    vm.checkDomainList(key);
+                }
+
             })
         };
 
@@ -5026,13 +5255,13 @@ define(['js/app'], function (myApp) {
             if (Number.isInteger(data)) {
                 return data;
             } else {
-                if(data.toFixed(1) != "0.0"){
+                if(data && data.toFixed(1) != "0.0"){
                     return data.toFixed(1);
                 }else{
                     return "0";
                 }
             }
-        }
+        };
 
         vm.getPlayerRetention = function () {
             vm.isShowLoadingSpinner('#analysisPlayerRetention', true);
@@ -6194,11 +6423,16 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        vm.initSearchParameter = function (field, period, graphType, callback) {
-            vm.queryPara[field] = {};
+        vm.initSearchParameter = function (field, period, graphType, callback, noResetTime) {
+            if (!noResetTime){
+                vm.queryPara[field] = {};
+            }
             vm.optionText[field] = "Hide Options";
 
-            if (field && field === 'appPlayer') {
+            if(noResetTime) {
+                // do nothing
+            }
+            else if (field && field === 'appPlayer') {
                 utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
                     let today = new Date();
                     let todayEndTime = today.setHours(23, 59, 59, 999);
@@ -6208,7 +6442,7 @@ define(['js/app'], function (myApp) {
                     vm.queryPara[field].endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                 })
             } else {
-                if (period) {
+                if (period && field != 'reward') {
                     utilService.actionAfterLoaded(('#' + field + 'Analysis'), function () {
                         vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + 'Analysis .startTime');
                         vm.queryPara[field].endTime = utilService.createDatePicker('#' + field + 'Analysis .endTime');

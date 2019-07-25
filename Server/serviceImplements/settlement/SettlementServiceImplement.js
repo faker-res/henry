@@ -44,10 +44,10 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionDaySummary.calculatePlayersDaySummaryForTimeFrame, args, isValidData);
     };
 
-    this.checkPlatformWeeklyConsumptionReturnForPlayers.expectsData = 'platformId, eventData: {}, proposalTypeId, startTime: Date, endTime: Date, playerObjIds: []';
+    this.checkPlatformWeeklyConsumptionReturnForPlayers.expectsData = 'platformId, eventData: {}, proposalTypeId, startTime: Date, endTime: Date, playerObjIds: [], adminName, adminID';
     this.checkPlatformWeeklyConsumptionReturnForPlayers.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId && data.eventData && data.proposalTypeId && data.startTime && data.endTime && data.playerObjIds);
-        var args = [ObjectId(data.platformId), data.eventData, ObjectId(data.proposalTypeId), new Date(data.startTime), new Date(data.endTime), mapIdsToMongooseIds(data.playerObjIds)];
+        var args = [ObjectId(data.platformId), data.eventData, ObjectId(data.proposalTypeId), new Date(data.startTime), new Date(data.endTime), mapIdsToMongooseIds(data.playerObjIds), data.adminName, data.adminID];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers, args, isValidData);
     };
 
@@ -255,7 +255,7 @@ var SettlementServiceImplement = function () {
 
     this.performPlatformPlayerLevelSettlement.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerObjIds && data.levels);
-        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown, data.platformPeriod, data.disableAutoPlayerLevelUpReward];
+        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown, data.platformPeriod, data.disableAutoPlayerLevelUpReward, data.adminId, data.adminName];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
     this.sendPlayerMailFromAdminToPlayer.onRequest = function (wsFunc, conn, data) {
@@ -278,7 +278,7 @@ var SettlementServiceImplement = function () {
 
     this.bulkPlayerApplyReward.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerIdArray && data.eventCode && data.applyTargetDate);
-        let args = [data.playerIdArray, data.eventCode, data.applyTargetDate];
+        let args = [data.playerIdArray, data.eventCode, data.applyTargetDate, data.adminID, data.adminName];
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.bulkPlayerApplyReward, args, isValidData);
     };
 

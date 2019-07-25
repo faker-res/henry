@@ -664,7 +664,7 @@ var dbRewardEvent = {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}, playerRetentionRecord).then(
                                         checkRewardData => {
                                             // Check reward apply limit in period
-                                            if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
+                                            if ((rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) || (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP && eventInPeriodCount)) {
                                                 checkRewardData.status = 3;
                                             }
 
@@ -684,6 +684,17 @@ var dbRewardEvent = {
                                                 if (rewardEvent.type.name != constRewardType.PLAYER_RANDOM_REWARD_GROUP && checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                     checkRewardData.status = 2;
                                                 }
+                                            }
+
+                                            if (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+                                                checkRewardData.condition = checkRewardData.condition? checkRewardData.condition: {};
+                                                if (!playerObj.bankAccount) {
+                                                    checkRewardData.status = 2;
+                                                    checkRewardData.condition.bankInfo = {status: 2}
+                                                } else {
+                                                    checkRewardData.condition.bankInfo = {status: 1}
+                                                }
+
                                             }
 
 
@@ -3538,7 +3549,7 @@ var dbRewardEvent = {
             }
         )
     },
-    startPlatformRTGEventSettlement: function (platformObjId, eventCode) {
+    startPlatformRTGEventSettlement: function (platformObjId, eventCode, adminID, adminName) {
         let applyTargetDate;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
@@ -3546,7 +3557,7 @@ var dbRewardEvent = {
         let eventProm = dbconfig.collection_rewardEvent.findOne({code: eventCode}).lean();
 
         let rewardTypesProm = dbconfig.collection_rewardType.find({isGrouped: true}).lean();
-
+        console.log('start RTG');
         return Promise.all([platformProm, eventProm, rewardTypesProm]).then(
             data => {
                 if (!data) {
@@ -3694,7 +3705,9 @@ var dbRewardEvent = {
                                                     return playerIdObj.playerId;
                                                 }),
                                                 eventCode,
-                                                applyTargetDate
+                                                applyTargetDate,
+                                                adminID,
+                                                adminName
                                             });
                                         }
                                     }
@@ -3707,11 +3720,11 @@ var dbRewardEvent = {
         );
     },
 
-    bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate) {
+    bulkPlayerApplyReward: function (playerIdArray, eventCode, applyTargetDate, adminId, adminName) {
         let proms = [];
         // console.log("checking playerIdArray", playerIdArray)
         for (let i = 0; i < playerIdArray.length; i++) {
-            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}, null, null, true).catch(err => {
+            let prom = dbPlayerInfo.applyRewardEvent(0, playerIdArray[i], eventCode, {applyTargetDate}, adminId, adminName, true).catch(err => {
                 console.error("rejectedId:", playerIdArray[i], "eventCode", eventCode, " error:", err)
                 errorUtils.reportError(err)
             });
