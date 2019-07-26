@@ -3499,12 +3499,6 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    if (playerObj.guestDeviceId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Guest ID cannot update password"
-                        })
-                    }
                     return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
                         playerState => {
                             if (playerState) {
@@ -22589,10 +22583,12 @@ let dbPlayerInfo = {
     setPlayerSmsStatus: function (playerId, status) {
         // can update multiple status,so status can be: 15:1, 10:0, 2:1, ...
         // example: (smsId:status) 15:0  status:1(true),0(false)
+        console.log("status",status);
         let statusGroups = status.split(",");
         let playerSmsSetting = {};
         let updateData = {};
         let playerData;
+        console.log("statusGroups",statusGroups);
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             (player) => {
                 if (!player) return Q.reject({name: "DataError", message: "Cant find player"});
@@ -22602,6 +22598,7 @@ let dbPlayerInfo = {
             }
         ).then(
             (platformSmsGroups) => {
+                console.log("platformSmsGroups",platformSmsGroups);
                 statusGroups.forEach(statusGroup => {
                     // statusPairArray[0]:smsId/MessageTypeName statusPairArray[1]:status
                     // statusPairArray[0] is MessageTypeName when this smsSetting not in smsGroup
@@ -22614,6 +22611,8 @@ let dbPlayerInfo = {
                     let smsSettingGroup = platformSmsGroups.find(
                         SmsGroup => SmsGroup.smsId === smsIdOrTypeName
                     );
+
+                    console.log("smsSettingGroup",smsSettingGroup);
                     if (smsSettingGroup) {
                         if (smsSettingGroup.smsParentSmsId === -1) {
                             // smsId is a sms group
@@ -22633,10 +22632,12 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
+                console.log("updateData",updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
                             (smsSetting) => {
+                                console.log("smsSetting",smsSetting);
                                 playerData.smsSetting = smsSetting;
                                 return true;
                             }
