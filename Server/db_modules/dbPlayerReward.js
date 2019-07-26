@@ -5935,11 +5935,13 @@ let dbPlayerReward = {
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
         // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData, rewardData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
 
         // check if player apply festival_reward and is he set the birthday
         await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
+        // check festival apply times and other condition
+        await dbRewardUtil.checkFestivalOverApplyTimes(eventData, playerData, rewardData, selectedRewardParam);
 
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
@@ -6274,15 +6276,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            if (!rewardData.festivalItemId) {
-                return Q.reject({name: "DataError", message: localization.localization.translate("The Festival Item is not Exist")});
-            }
-            selectedRewardParam = selectedRewardParam.filter( item => {
-                return item.id == rewardData.festivalItemId;
-            })
-
-            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
-
             if (eventData.condition.isPlayerLevelDiff) {
                 let isQualifyThisLevel = dbPlayerReward.checkQualifyThisLevel(selectedRewardParam, nextLevelRewardParam);
                 if (!isQualifyThisLevel) {
@@ -7923,6 +7916,8 @@ let dbPlayerReward = {
                             selectedReward = null;
                         }
 
+                        console.log("checking checkpoint 1: selectedRewardParam", selectedRewardParam)
+                        console.log("checking checkpoint 1: yerTopupProbability", yerTopupProbability)
                         // randomRewardMode: 0 is possibility; 1 is topupCondition
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
                             selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
@@ -7957,7 +7952,7 @@ let dbPlayerReward = {
                             });
                             selectedRewardParam = filterTopupCondition;
                         }
-
+                        console.log("checking checkpoint 2: selectedRewardParam", selectedRewardParam)
                         // if no top up record from yesterday, default will be the lowest range of reward param
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
                             let lowestValue = 1;
@@ -7990,6 +7985,7 @@ let dbPlayerReward = {
                                 }
                             });
                             selectedRewardParam = filterTopupCondition;
+                            console.log("checking checkpoint 2.1 when topupProbability = 0: selectedRewardParam", selectedRewardParam)
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
@@ -8788,7 +8784,7 @@ let dbPlayerReward = {
             }
         );
 
-        function setSelectedRewardParam (eventData, playerData) {
+        function setSelectedRewardParam (eventData, playerData, rewardData) {
             let retObj = {};
             let ignoredEventList = [
                 constRewardType.PLAYER_RANDOM_REWARD_GROUP
@@ -8830,6 +8826,19 @@ let dbPlayerReward = {
                     name: "DataError",
                     message: "Player does not reach level requirement for reward"
                 })
+            }
+
+            // Festival reward group filter selectedParam
+            if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                if (!rewardData.festivalItemId) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("The Festival Item is not Exist")
+                    });
+                }
+
+                retObj = retObj.filter(item => String(item.id) === String(rewardData.festivalItemId));
+                retObj = (retObj && retObj[0]) ? retObj[0] : [];
             }
 
             return retObj;

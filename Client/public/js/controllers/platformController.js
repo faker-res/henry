@@ -25246,13 +25246,26 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getMaxRewardAmountSetting = async function (platformObjId) {
-                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length && platformObjId){
+                if (authService && authService.adminId && authService.roleData && authService.roleData.length && authService.department && authService.department.length && platformObjId){
+                    let involvedDepartmentList = [];
+                    let involvedRoleList = [];
+                    authService.department.forEach( d => {
+                        if (d && d._id){
+                            involvedDepartmentList.push(d._id);
+                        }
+                    });
+                    authService.roleData.forEach( r => {
+                        if (r && r._id) {
+                            involvedRoleList.push(r._id)
+                        }
+                    });
+
                     let query = {
-                        roleObjId: authService.roleData[0]._id,
-                        departmentList: authService.roleData[0].departments,
+                        roleList: involvedRoleList,
+                        departmentList: involvedDepartmentList,
                         platformObjId: platformObjId
                     };
-                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdminName', query);
+                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdmin', query);
 
                     if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')) {
                         vm.maxRewardAmount =  data.data.maxRewardAmount;
@@ -26987,8 +27000,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category, platform: vm.selectedPlatform.id}).then((data) => {
-                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                let sendQuery = {};
+                let rewardPointId = [];
+                if(rewardPointsEvent.length && rewardPointsEvent.length > 0){
+                    rewardPointsEvent.forEach(rewardPoint => {
+                        rewardPointId.push(rewardPoint._id);
+
+                        sendQuery = {
+                            _id: rewardPointId,
+                            category: rewardPoint.category,
+                            platform: vm.selectedPlatform.id
+                        }
+                    });
+                }else {
+                    sendQuery = {
+                        _id: rewardPointsEvent._id,
+                        category: rewardPointsEvent.category,
+                        platform: vm.selectedPlatform.id
+                    }
+                }
+                $scope.$socketPromise('deleteRewardPointsEventById', sendQuery).then((data) => {
+                    vm.getRewardPointsEventByCategory(sendQuery.category);
                     $scope.safeApply();
                 });
             };
@@ -27047,7 +27079,25 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
                 vm.rewardPointsEventUpdateAll = false;
-            }
+            };
+
+            vm.closeAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = false;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.deleteAllRewardPointsEvent = () => {
+                vm.deletingRewardPointsEvent = [];
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    vm.deletingRewardPointsEvent.push(rewardPointsEvent);
+                });
+            };
 
             vm.rewardPointsEventReset = (idx) => {
                 console.log(vm.rewardPointsEventOld[idx]);
@@ -27686,7 +27736,13 @@ define(['js/app'], function (myApp) {
                     col.splice(index, 1);
                 }
             };
+
             vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 let prom = new Promise((resolve, reject) => {
                     let result = vm.generatePromoCode(obj, index, data, type, channel);
                     resolve(result);
@@ -27694,8 +27750,14 @@ define(['js/app'], function (myApp) {
                 prom.then(() => {
                     $scope.$evalAsync();
                 })
-            }
+            };
+
             vm.generatePromoCode = function (col, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
