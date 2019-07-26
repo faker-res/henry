@@ -1065,11 +1065,11 @@ const dbRewardUtility = {
         }
     },
 
-    checkPlayerBirthday: (playerData, eventData, rewardData, selectedRewardParam) => {
+    checkPlayerBirthday: (eventData, playerData) => {
         // check if player apply festival_reward and is he set the birthday
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
             // if that's a birthday event and this player didnt set his birthday in profile
-            if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
+            if (eventData.condition.festivalType === "1" && !playerData.DOB) {
                 return Promise.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
             }
         }

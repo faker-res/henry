@@ -5934,12 +5934,11 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(eventData, playerData);
         // Set reward param for player level to use
         let selectedRewardParam = await setSelectedRewardParam(eventData, playerData, rewardData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
-
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
         // check festival apply times and other condition
         await dbRewardUtil.checkFestivalOverApplyTimes(eventData, playerData, rewardData, selectedRewardParam);
 
