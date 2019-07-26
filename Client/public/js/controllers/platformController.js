@@ -27736,7 +27736,13 @@ define(['js/app'], function (myApp) {
                     col.splice(index, 1);
                 }
             };
+
             vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 let prom = new Promise((resolve, reject) => {
                     let result = vm.generatePromoCode(obj, index, data, type, channel);
                     resolve(result);
@@ -27744,8 +27750,14 @@ define(['js/app'], function (myApp) {
                 prom.then(() => {
                     $scope.$evalAsync();
                 })
-            }
+            };
+
             vm.generatePromoCode = function (col, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
