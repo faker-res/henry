@@ -875,6 +875,7 @@ var proposalExecutor = {
 
                                 if(playerUpdate.updatePassword) {
                                     playerUpdate["qnaWrongCount.forgotPassword"] = 0;
+                                    playerUpdate["hasPassword"] = true;
                                 }
 
                                 proms.push(

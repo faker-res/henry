@@ -263,6 +263,10 @@ let dbTsCallOutMission = {
             }
         ).then(
             mission => {
+                if (!mission) {
+                    console.log("ts confirm mission finish failure, mission not found", missionName)
+                    return Promise.reject({message: "Mission not found, probably finished."})
+                }
                 addCallOutMissionFailureFeedback(mission._id, adminObjId).catch(err => {
                     console.log("ts auto feedback failure", mission._id, err);
                 });

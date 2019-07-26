@@ -365,6 +365,8 @@ var playerSchema = new Schema({
         editBankCard: {type: Number, default: 0},
         editName: {type: Number, default: 0}
     },
+    // verify if this is generate by app, and is been change the password before
+    hasPassword: {type: Boolean, default: false},
     //os for native app
     osType: {type: String, index: true}
 });

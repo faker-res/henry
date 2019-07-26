@@ -330,6 +330,12 @@
         this.playerService.updatePassword.once(callback);
     };
 
+    proto.settingPlayerPassword = function (callback, requestData) {
+        var data = requestData;
+        this.playerService.settingPlayerPassword.request(data);
+        this.playerService.settingPlayerPassword.once(callback);
+    };
+
     proto.inquireAccountByPhoneNumber = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.inquireAccountByPhoneNumber.request(data);
