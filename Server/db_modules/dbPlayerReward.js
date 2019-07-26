@@ -8806,15 +8806,15 @@ let dbPlayerReward = {
                 &&
                     (
                         // 会员生日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "1"
+                        eventData.condition
+                        && eventData.condition.festivalType === "1"
                         && (retObj[3] && !retObj[3].rewardAmount)
                         && (retObj[4] && !retObj[4].amountPercent)
                         && (retObj[5] && !retObj[5].rewardAmount)
                     ) || (
                         // 特别节日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "2"
+                        eventData.condition
+                        && eventData.condition.festivalType === "2"
                         && (retObj[0] && !retObj[0].rewardAmount)
                         && (retObj[1] && !retObj[1].amountPercent)
                         && (retObj[2] && !retObj[2].rewardAmount)
