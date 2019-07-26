@@ -17046,6 +17046,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
                 }
+                vm.backupPlayerFeedbackQuery = Object.assign({}, vm.playerFeedbackQuery);
             };
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
@@ -17967,7 +17968,7 @@ define(['js/app'], function (myApp) {
                 },100);
             };
 
-            vm.initPlayerFeedback = function () {
+            vm.initPlayerFeedback = function (searchFieldReset) {
                 console.log("initPlayerFeedback");
                 vm.hasFeedbackPlatformChange = true;
                 vm.playerFeedbackSearchType = "many";
@@ -18038,6 +18039,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    if (vm.backupPlayerFeedbackQuery) {
+                        vm.playerFeedbackQuery = Object.assign(vm.playerFeedbackQuery, vm.backupPlayerFeedbackQuery)
+                    }
                     vm.getCtiData();
                     $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
                     $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
