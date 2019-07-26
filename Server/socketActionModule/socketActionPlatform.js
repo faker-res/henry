@@ -1052,10 +1052,10 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.loadMaxRewardAmountSetting, [ObjectId(data.platformObjId)], actionName, isValidData);
         },
 
-        getMaxRewardAmountSettingByAdminName: function getMaxRewardAmountSettingByAdminName (data) {
+        getMaxRewardAmountSettingByAdmin: function getMaxRewardAmountSettingByAdmin (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.departmentList && data.roleObjId);
-            socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdminName, [ObjectId(data.platformObjId), ObjectId(data.roleObjId), data.departmentList], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.departmentList && data.roleList);
+            socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdmin, [ObjectId(data.platformObjId), data.roleList, data.departmentList], actionName, isValidData);
         },
 
     };

@@ -3487,9 +3487,10 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent, isAppFirstPWD) {
         let db_password = null;
         let playerObj = null;
+        let respData = {};
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -3508,7 +3509,6 @@ let dbPlayerInfo = {
                         playerState => {
                             if (playerState) {
                                 db_password = String(data.password);
-
                                 return dbconfig.collection_platform.findOne({
                                     _id: playerObj.platform
                                 }).lean();
@@ -3532,8 +3532,9 @@ let dbPlayerInfo = {
         ).then(
             platformData => {
                 if (platformData) {
-                    // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPasswordUpdate) {
+                    // Check if platform sms verification is required OR
+                    //  if resetpassword from app, no need check sms
+                    if (!platformData.requireSMSVerificationForPasswordUpdate || isAppFirstPWD) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
@@ -3550,7 +3551,12 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
-                    if (dbUtility.isMd5(db_password)) {
+                    // if resetpassword from app ,the password could be null;
+                    if (isAppFirstPWD && !playerObj.hasPassword) {
+                        respData.text = localization.localization.translate("Password successfully added");
+                        return Q.resolve(true);
+                    }
+                    else if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
                         }
@@ -3578,6 +3584,11 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     let deferred = Q.defer();
+
+                    if (!isAppFirstPWD) {
+                        respData.text = localization.localization.translate("Password successfully changed");;
+                    }
+
                     bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
                         if (err) {
                             deferred.reject(err);
@@ -3629,7 +3640,7 @@ let dbPlayerInfo = {
                                             messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err => {
                                                 console.error(err)
                                             });
-                                            deferred.resolve();
+                                            deferred.resolve(respData);
                                         }
                                     )
                                 }, deferred.reject
@@ -6041,7 +6052,7 @@ let dbPlayerInfo = {
                 $and: [data, orPhoneCondition, orIpCondition]
             }
         }
-        
+
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
@@ -20950,8 +20961,8 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
-                    totalAmount: {"$sum": "$data.amount"},
-                    count: {"$sum": 1}
+                    totalAmount: {$sum: "$data.amount"},
+                    count: {$sum: 1}
                 }
             }
         ]).read("secondaryPreferred");
@@ -21047,7 +21058,16 @@ let dbPlayerInfo = {
         //     matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
         // }
 
-        let stream = dbconfig.collection_players.find(matchObj).populate(
+        let dataObj = {
+            _id: 1,
+            name: 1,
+            playerLevel: 1,
+            credibilityRemarks: 1,
+            csOfficer: 1,
+            valueScore: 1,
+        };
+
+        let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
             [
                 {
                     path: 'playerLevel',
@@ -21061,7 +21081,8 @@ let dbPlayerInfo = {
                 },
                 {
                     path: 'csOfficer',
-                    model: dbconfig.collection_admin
+                    model: dbconfig.collection_admin,
+                    select: "_id adminName"
                 }
 
             ]).lean().cursor({batchSize: 100});
@@ -21123,14 +21144,6 @@ let dbPlayerInfo = {
                 // };
 
 
-                console.log('topUpRecord.......', topUpRecord);
-                console.log('consumptionRecord.......', consumptionRecord);
-                console.log('bonusRecord.......', bonusRecord);
-                console.log('providerInfo.......', providerInfo);
-                console.log('playerInfo.......', playerInfo);
-
-
-
                 let outputData = [];
                 let retData = {};
 
@@ -21160,7 +21173,6 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log1..", consumptionRecord );
 
                             topUpRecord.map(t => {
                                 if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -21185,8 +21197,6 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("log2..", topUpRecord );
-
 
                             bonusRecord.map(b => {
                                 if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
@@ -21210,21 +21220,13 @@ let dbPlayerInfo = {
                                     }
                                 }
                             });
-
-                            console.log("log3..", bonusRecord );
-
                         });
                     });
 
-                    console.log("log4..", retData );
 
 
                     // for (let key in retData) {
-                    //     console.log("log2..", key );
-                    //
                     //     for (let key2 in retData[key]) {
-                    //         console.log("log3..", key2 );
-                    //
                     //         outputData.push(retData[key][key2]);
                     //     }
                     // }
@@ -21234,8 +21236,6 @@ let dbPlayerInfo = {
                             outputData.push(retData[i][j])
                         )
                     );
-
-                    console.log("log5..", outputData );
 
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
@@ -21344,8 +21344,6 @@ let dbPlayerInfo = {
                             }
                         }
                     }
-
-                    console.log("log6..", outputData );
 
                     outputData.sort(function (a, b) {
                         a = a.date.split('-').join('');

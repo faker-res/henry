@@ -862,8 +862,25 @@ let PlayerServiceImplement = function () {
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
+                    data: res
                 }, data);
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    this.settingPlayerPassword.expectsData = 'playerId: String, password: String';
+    this.settingPlayerPassword.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(data && data.password);
+        data.smsCode = data.smsCode ? data.smsCode : "";
+        let isAppFirstPWD = true;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [conn.playerId, null, data.password, data.smsCode, userAgent, isAppFirstPWD], isValidData, true, false, false).then(
+            function (res) {
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS, // operation successful
+                    data: res
+                }, data);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
