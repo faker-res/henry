@@ -5798,5 +5798,9 @@
   "LOGIN_TIMES_AVERAGE": "登录次数平均值",
   "LOGIN_PLAYER_COUNT_AVERAGE": "登录人数平均值",
   "LOGIN_PLAYER_COUNT": "登录人数",
-  "AppPlayer": "APP玩家"
+  "AppPlayer": "APP玩家",
+  "Registration Start Date": "注册开始时间",
+  "Registration End Date": "注册结束时间",
+  "Apply Reward Start Date": "优惠领取开始时间",
+  "Apply Reward End Date": "优惠领取结束时间"
 }
