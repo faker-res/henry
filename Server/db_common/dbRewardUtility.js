@@ -1,5 +1,6 @@
 const dbUtil = require('./../modules/dbutility');
 const dbConfig = require('./../modules/dbproperties');
+const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -1067,10 +1068,6 @@ const dbRewardUtility = {
     checkPlayerBirthday: (playerData, eventData, rewardData, selectedRewardParam) => {
         // check if player apply festival_reward and is he set the birthday
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            selectedRewardParam = selectedRewardParam.filter( item => {
-                return item.id == rewardData.festivalItemId;
-            })
-            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
             // if that's a birthday event and this player didnt set his birthday in profile
             if (!playerData.DOB && selectedRewardParam.rewardType && ( selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6 )) {
                 return Promise.reject({status: constServerCode.NO_BIRTHDAY, name: "DataError", message: localization.localization.translate("You need to set your birthday before apply this event")});
@@ -1078,6 +1075,171 @@ const dbRewardUtility = {
         }
         return true;
     },
+
+    checkFestivalOverApplyTimes: (eventData, playerData, rewardData, selectedRewardParam) => {
+        let proms = [];
+        let platformId = playerData.platform._id;
+        let playerObjId = playerData._id;
+        let playerBirthday = playerData.DOB;
+
+        let result = {count: 0, festivals: []};
+
+        if (eventData.condition && eventData.condition.festivalType) {
+            if (rewardData.festivalItemId) {
+                let festivalItem = selectedRewardParam;
+                let festivalDate = getFestivalItem(selectedRewardParam, playerBirthday, eventData);
+                let isRightApplyTime = checkIfRightApplyTime(festivalItem, festivalDate);
+
+                if (isRightApplyTime) {
+                    // if date match , check if the proposal match topup / consumption
+                    let prom = checkFestivalProposal(festivalItem, platformId, playerObjId, eventData._id, festivalItem.id);
+                    proms.push(prom);
+                } else {
+                    let errorMsg = localization.localization.translate('Not In the Period of This Reward.');
+
+                    if (selectedRewardParam.rewardType && selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
+                        errorMsg = localization.localization.translate('Your Birthday is Not In the Period of This Reward.');
+                    }
+
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: errorMsg
+                    });
+                }
+            }
+        }
+
+        return Promise.all(proms).then(
+            data => {
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        if (item && item.status) {
+                            result.count += 1;
+                            result.festivals.push(item.festivalObjId)
+                        }
+                    })
+                }
+
+                return result;
+            }
+        )
+
+        function getFestivalItem(selectedRewardParam, playerBirthday, eventData) {
+            let result;
+            if (selectedRewardParam.rewardType == 4 || selectedRewardParam.rewardType == 5 || selectedRewardParam.rewardType == 6) {
+                result = getBirthday(playerBirthday);
+            } else {
+                // if is festival
+                result = getFestivalRewardDate(selectedRewardParam, eventData.param.others);
+            }
+            return result;
+        }
+
+        function getBirthday(playerBirthday) {
+            let result = {month: null, day: null};
+            let month = new Date(playerBirthday).getMonth() + 1;
+            let day = new Date(playerBirthday).getDate();
+
+            result.month = month;
+            result.day = day;
+
+            return result;
+        }
+
+        function getFestivalRewardDate(reward, festivals) {
+            //find the festival date inside the reward param
+            let rewardId = reward.festivalId ? reward.festivalId : null;
+            let festival;
+
+            if (festivals && festivals.length > 0) {
+                festival = festivals.filter(item => String(item.id) === String(rewardId))
+            }
+
+            return (festival && festival[0]) ? festival[0] : [];
+        }
+
+        function checkIfRightApplyTime(specificDate, festival) {
+            // reconstruct the month/time to a timestamp to verify if fulfil the apply time
+            let result = false;
+            let currentTime = moment(new Date()).toDate();
+            // time conversion , add expiredInDay / convert month ,day to a proper date
+            let period = getTimePeriod(specificDate.expiredInDay || 0, festival);
+
+            if ( currentTime > moment(period.startTime).toDate() && currentTime < moment(period.endTime).toDate() ) {
+                result = true;
+            }
+
+            return result;
+        }
+
+        function checkFestivalProposal (rewardParam, platformId, playerObjId, eventId, festivalId) {
+            let todayTime = dbUtil.getDayTime(new Date());
+            let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
+            // time conversion , add expiredInDay / convert month ,day to a proper date
+            let applyPeriod = getTimePeriod(expiredInDay, todayTime);
+            let sendQuery = {
+                "data.platformObjId": platformId,
+                "data.playerObjId": playerObjId,
+                "data.eventId": eventId,
+                "createTime": {
+                    '$gte': applyPeriod.startTime,
+                    '$lte': moment(applyPeriod.endTime).toDate()
+                },
+                "data.festivalObjId": festivalId,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+
+            return dbConfig.collection_proposal.find(sendQuery).lean().then(
+                data => {
+                    let retObj = {status: false, festivalObjId: festivalId};
+
+                    if (data) {
+                        // type 3 dont have attribute of applytimes, so make this default:1
+                        if (rewardParam.applyTimes && data.length < rewardParam.applyTimes) {
+                            retObj.status = true;
+                        }
+                    }
+
+                    return retObj;
+                }
+            )
+        }
+
+        function getTimePeriod(expiredInDay, festival) {
+            let todayTime, year, month, day;
+            let fullDate = [];
+
+            if (festival && festival.month && festival.day) {
+                year = new Date().getFullYear();
+
+                month = getPlural(festival.month);
+                day = getPlural(festival.day);
+                fullDate = [year, month, day];
+                fullDate = fullDate.join('-');
+
+                //date convertion
+                todayTime = {
+                    "startTime": moment(fullDate).format('YYYY-MM-DD HH:mm:ss.sss'),
+                    "endTime": moment(fullDate).add(1, 'days')
+                }
+            } else {
+                todayTime = dbUtil.getDayTime(new Date());
+            }
+
+            let expiredDay = expiredInDay ? Number(expiredInDay) : 0;
+
+            return {
+                "startTime": todayTime.startTime,
+                "endTime": moment(todayTime.endTime).add(expiredDay, 'days').format('YYYY-MM-DD HH:mm:ss.sss')
+            };
+
+            function getPlural (num) {
+                return (num < 9) ? "0" + num : num;
+            }
+        }
+    },
+
     // endregion
 
     // region Reward permission

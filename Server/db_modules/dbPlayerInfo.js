@@ -3487,9 +3487,10 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent, isAppFirstPWD) {
         let db_password = null;
         let playerObj = null;
+        let respData = {};
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -3498,17 +3499,10 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    if (playerObj.guestDeviceId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Guest ID cannot update password"
-                        })
-                    }
                     return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
                         playerState => {
                             if (playerState) {
                                 db_password = String(data.password);
-
                                 return dbconfig.collection_platform.findOne({
                                     _id: playerObj.platform
                                 }).lean();
@@ -3532,8 +3526,9 @@ let dbPlayerInfo = {
         ).then(
             platformData => {
                 if (platformData) {
-                    // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPasswordUpdate) {
+                    // Check if platform sms verification is required OR
+                    //  if resetpassword from app, no need check sms
+                    if (!platformData.requireSMSVerificationForPasswordUpdate || isAppFirstPWD) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
@@ -3550,7 +3545,12 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
-                    if (dbUtility.isMd5(db_password)) {
+                    // if resetpassword from app ,the password could be null;
+                    if (isAppFirstPWD && !playerObj.hasPassword) {
+                        respData.text = localization.localization.translate("Password successfully added");
+                        return Q.resolve(true);
+                    }
+                    else if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
                         }
@@ -3578,6 +3578,11 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     let deferred = Q.defer();
+
+                    if (!isAppFirstPWD) {
+                        respData.text = localization.localization.translate("Password successfully changed");;
+                    }
+
                     bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
                         if (err) {
                             deferred.reject(err);
@@ -3629,7 +3634,7 @@ let dbPlayerInfo = {
                                             messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err => {
                                                 console.error(err)
                                             });
-                                            deferred.resolve();
+                                            deferred.resolve(respData);
                                         }
                                     )
                                 }, deferred.reject
@@ -6041,7 +6046,7 @@ let dbPlayerInfo = {
                 $and: [data, orPhoneCondition, orIpCondition]
             }
         }
-        
+
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
@@ -11943,7 +11948,7 @@ let dbPlayerInfo = {
         if(query.registrationInterface == 0){
             query.guestDeviceId = null;
         } else if(query.registrationInterface == 5 || query.registrationInterface == 6){
-            query.registrationInterface = {$in: [query.registrationInterface, 0]};
+            query.registrationInterface = {$in: [query.registrationInterface, parseInt(query.registrationInterface), 0]};
             query.guestDeviceId = {$ne:null};
         }
 
@@ -22573,10 +22578,12 @@ let dbPlayerInfo = {
     setPlayerSmsStatus: function (playerId, status) {
         // can update multiple status,so status can be: 15:1, 10:0, 2:1, ...
         // example: (smsId:status) 15:0  status:1(true),0(false)
+        console.log("status",status);
         let statusGroups = status.split(",");
         let playerSmsSetting = {};
         let updateData = {};
         let playerData;
+        console.log("statusGroups",statusGroups);
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             (player) => {
                 if (!player) return Q.reject({name: "DataError", message: "Cant find player"});
@@ -22586,6 +22593,7 @@ let dbPlayerInfo = {
             }
         ).then(
             (platformSmsGroups) => {
+                console.log("platformSmsGroups",platformSmsGroups);
                 statusGroups.forEach(statusGroup => {
                     // statusPairArray[0]:smsId/MessageTypeName statusPairArray[1]:status
                     // statusPairArray[0] is MessageTypeName when this smsSetting not in smsGroup
@@ -22598,6 +22606,8 @@ let dbPlayerInfo = {
                     let smsSettingGroup = platformSmsGroups.find(
                         SmsGroup => SmsGroup.smsId === smsIdOrTypeName
                     );
+
+                    console.log("smsSettingGroup",smsSettingGroup);
                     if (smsSettingGroup) {
                         if (smsSettingGroup.smsParentSmsId === -1) {
                             // smsId is a sms group
@@ -22617,10 +22627,12 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
+                console.log("updateData",updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
                             (smsSetting) => {
+                                console.log("smsSetting",smsSetting);
                                 playerData.smsSetting = smsSetting;
                                 return true;
                             }

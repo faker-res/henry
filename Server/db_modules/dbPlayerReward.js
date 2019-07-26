@@ -5935,11 +5935,13 @@ let dbPlayerReward = {
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
         // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData, rewardData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
 
         // check if player apply festival_reward and is he set the birthday
         await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
+        // check festival apply times and other condition
+        await dbRewardUtil.checkFestivalOverApplyTimes(eventData, playerData, rewardData, selectedRewardParam);
 
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
@@ -6274,15 +6276,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            if (!rewardData.festivalItemId) {
-                return Q.reject({name: "DataError", message: localization.localization.translate("The Festival Item is not Exist")});
-            }
-            selectedRewardParam = selectedRewardParam.filter( item => {
-                return item.id == rewardData.festivalItemId;
-            })
-
-            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
-
             if (eventData.condition.isPlayerLevelDiff) {
                 let isQualifyThisLevel = dbPlayerReward.checkQualifyThisLevel(selectedRewardParam, nextLevelRewardParam);
                 if (!isQualifyThisLevel) {
@@ -8791,7 +8784,7 @@ let dbPlayerReward = {
             }
         );
 
-        function setSelectedRewardParam (eventData, playerData) {
+        function setSelectedRewardParam (eventData, playerData, rewardData) {
             let retObj = {};
             let ignoredEventList = [
                 constRewardType.PLAYER_RANDOM_REWARD_GROUP
@@ -8813,15 +8806,15 @@ let dbPlayerReward = {
                 &&
                     (
                         // 会员生日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "1"
+                        eventData.condition
+                        && eventData.condition.festivalType === "1"
                         && (retObj[3] && !retObj[3].rewardAmount)
                         && (retObj[4] && !retObj[4].amountPercent)
                         && (retObj[5] && !retObj[5].rewardAmount)
                     ) || (
                         // 特别节日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "2"
+                        eventData.condition
+                        && eventData.condition.festivalType === "2"
                         && (retObj[0] && !retObj[0].rewardAmount)
                         && (retObj[1] && !retObj[1].amountPercent)
                         && (retObj[2] && !retObj[2].rewardAmount)
@@ -8833,6 +8826,19 @@ let dbPlayerReward = {
                     name: "DataError",
                     message: "Player does not reach level requirement for reward"
                 })
+            }
+
+            // Festival reward group filter selectedParam
+            if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                if (!rewardData.festivalItemId) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("The Festival Item is not Exist")
+                    });
+                }
+
+                retObj = retObj.filter(item => String(item.id) === String(rewardData.festivalItemId));
+                retObj = (retObj && retObj[0]) ? retObj[0] : [];
             }
 
             return retObj;
