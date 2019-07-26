@@ -618,7 +618,19 @@ define([], function () {
                 }
             }
             return result;
-        }
+        };
+
+        this.checkExceedPromoCodeMaxRewardAmount = function (type, rowData, maxRewardAmount) {
+            if (type && (type == 1 || type == 2) && rowData && rowData.hasOwnProperty('amount') && maxRewardAmount && rowData.amount > maxRewardAmount){
+                return true
+            }
+            else if ( type && type == 3 && rowData && rowData.hasOwnProperty('maxRewardAmount') && maxRewardAmount && rowData.maxRewardAmount > maxRewardAmount){
+                return true
+            }
+            else {
+                return false
+            }
+        };
 
         this.getDifferenceBetweenTwoDays = function (startTime, endTime) {
 

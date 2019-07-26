@@ -27738,10 +27738,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
-                if (type && (type == 1 || type == 2) && data && data.hasOwnProperty('amount') && vm.maxRewardAmount && data.amount > vm.maxRewardAmount){
-                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
-                }
-                else if ( type && type == 3 && data && data.hasOwnProperty('maxRewardAmount') && vm.maxRewardAmount && data.maxRewardAmount > vm.maxRewardAmount){
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
                     return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
                 }
 
@@ -27755,10 +27753,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCode = function (col, index, data, type, channel) {
-                if (type && (type == 1 || type == 2) && data && data.hasOwnProperty('amount') && vm.maxRewardAmount && data.amount > vm.maxRewardAmount){
-                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
-                }
-                else if ( type && type == 3 && data && data.hasOwnProperty('maxRewardAmount') && vm.maxRewardAmount && data.maxRewardAmount > vm.maxRewardAmount){
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
                     return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
                 }
 
