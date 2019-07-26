@@ -676,7 +676,7 @@ define(['js/app'], function (myApp) {
 
             // Zero dependencies variable
             [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
-                vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+                vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, /*vm.allPartnerCommSettPreview,*/
                 vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allPartnerFeedbackResults,
                 [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
                 [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.smsTemplate, vm.allActiveBankTypeList
@@ -689,7 +689,7 @@ define(['js/app'], function (myApp) {
                 commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardPointsEvent($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                // commonService.getAllPartnerCommSettPreview($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
@@ -993,6 +993,10 @@ define(['js/app'], function (myApp) {
         }
 
         vm.startPlatformPartnerCommissionSettlement = function ($event) {
+            if (!vm.platformInSettlementTab) {
+                return;
+            }
+
             vm.partnerCommissionSettlement = {
                 data: [],
                 result: false,
@@ -1007,7 +1011,7 @@ define(['js/app'], function (myApp) {
             };
 
             $scope.$socketPromise("getPlatformPartnerSettLog", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 modes: modes
             }).then(
                 logs => {
@@ -1023,7 +1027,7 @@ define(['js/app'], function (myApp) {
 
         vm.generatePartnerCommSettPreview = (modeObj) => {
             $scope.$socketPromise("generatePartnerCommSettPreview", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 settMode: modeObj.mode,
                 startTime: modeObj.settStartTime,
                 endTime: modeObj.settEndTime,
@@ -1052,7 +1056,7 @@ define(['js/app'], function (myApp) {
                 $('#modalYesNo').modal();
             } else {
                 $scope.$socketPromise("skipNextPartnerCommissionPeriod", {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.platformInSettlementTab._id,
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime,
@@ -19034,7 +19038,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync();
                 });
 
-                vm.getConfigData();
+                // vm.getConfigData();
             }
         };
 
