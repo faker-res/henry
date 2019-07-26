@@ -670,7 +670,7 @@ var dbRewardEvent = {
 
                                             if (rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 // if the status == 3, it has already exceeded the limit of applying; does not need to follow the deposit's status
-                                                if ( checkRewardData && checkRewardData.status != 3){
+                                                if ( checkRewardData && checkRewardData.hasOwnProperty('status') && checkRewardData.status != 3){
                                                     checkRewardData.status = checkRewardData.condition.deposit.status;
                                                 }
                                             }
