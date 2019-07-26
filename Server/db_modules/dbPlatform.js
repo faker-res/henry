@@ -3457,7 +3457,7 @@ var dbPlatform = {
             if (err) {
                 deferred.reject(`phoneapichat request failed  ${err}`);
             } else {
-                console.log("playerPhoneChat request.get",res);
+                console.log("playerPhoneChat request.get",res.body);
                 let streamInfo = JSON.parse(res.body);
                 let streamResult = {};
                 if (streamInfo.content) {
