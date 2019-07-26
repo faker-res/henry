@@ -3352,11 +3352,11 @@ let dbPlayerReward = {
         ).catch(errorUtils.reportError);
     },
 
-    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo) => {
+    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3381,15 +3381,24 @@ let dbPlayerReward = {
                         delete entry._id;
                     }
 
-                    prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
@@ -3398,11 +3407,11 @@ let dbPlayerReward = {
         return Promise.all(prom);
     },
 
-    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3423,15 +3432,24 @@ let dbPlayerReward = {
                         delete entry.code;
                     }
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
@@ -5916,6 +5934,13 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // Set reward param for player level to use
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
+        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
+
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
+
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
         // Query setup
@@ -5954,13 +5979,6 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
         // Check registration interface condition
         await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
-
-        // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
-        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
-
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
 
         let dailyRewardPointData;
         let rewardAmountInPeriod = 0;
@@ -7905,6 +7923,8 @@ let dbPlayerReward = {
                             selectedReward = null;
                         }
 
+                        console.log("checking checkpoint 1: selectedRewardParam", selectedRewardParam)
+                        console.log("checking checkpoint 1: yerTopupProbability", yerTopupProbability)
                         // randomRewardMode: 0 is possibility; 1 is topupCondition
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
                             selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
@@ -7939,7 +7959,7 @@ let dbPlayerReward = {
                             });
                             selectedRewardParam = filterTopupCondition;
                         }
-
+                        console.log("checking checkpoint 2: selectedRewardParam", selectedRewardParam)
                         // if no top up record from yesterday, default will be the lowest range of reward param
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
                             let lowestValue = 1;
@@ -7972,6 +7992,7 @@ let dbPlayerReward = {
                                 }
                             });
                             selectedRewardParam = filterTopupCondition;
+                            console.log("checking checkpoint 2.1 when topupProbability = 0: selectedRewardParam", selectedRewardParam)
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
@@ -8789,7 +8810,22 @@ let dbPlayerReward = {
                 && !retObj[0].amountPercent
                 && !retObj[0].rewardPercent
                 // special handling for 特别节日
-                && (!retObj[3] || !retObj[3].rewardAmount)
+                &&
+                    (
+                        // 会员生日
+                        eventData.param.condition
+                        && eventData.param.condition.festivalType === "1"
+                        && (retObj[3] && !retObj[3].rewardAmount)
+                        && (retObj[4] && !retObj[4].amountPercent)
+                        && (retObj[5] && !retObj[5].rewardAmount)
+                    ) || (
+                        // 特别节日
+                        eventData.param.condition
+                        && eventData.param.condition.festivalType === "2"
+                        && (retObj[0] && !retObj[0].rewardAmount)
+                        && (retObj[1] && !retObj[1].amountPercent)
+                        && (retObj[2] && !retObj[2].rewardAmount)
+                    )
                 && (eventData.type && eventData.type.name && !ignoredEventList.includes(eventData.type.name))
             ) {
                 return Promise.reject({

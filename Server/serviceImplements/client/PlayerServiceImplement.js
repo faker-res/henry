@@ -862,8 +862,25 @@ let PlayerServiceImplement = function () {
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
+                    data: res
                 }, data);
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+            }
+        ).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    this.settingPlayerPassword.expectsData = 'playerId: String, password: String';
+    this.settingPlayerPassword.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(data && data.password);
+        data.smsCode = data.smsCode ? data.smsCode : "";
+        let isAppFirstPWD = true;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [conn.playerId, null, data.password, data.smsCode, userAgent, isAppFirstPWD], isValidData, true, false, false).then(
+            function (res) {
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS, // operation successful
+                    data: res
+                }, data);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
@@ -1051,7 +1068,7 @@ let PlayerServiceImplement = function () {
         data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + data.partnerName : "";
 
         if (data.phoneNumber && data.phoneNumber.toString().length === 11) {
-            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
+            WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data, false, null, data.useVoiceCode], isValidData, false, false, true);
         } else {
             conn.captchaCode = null;
             wsFunc.response(conn, {
