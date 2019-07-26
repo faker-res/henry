@@ -47,6 +47,8 @@ var smsLogSchema = new Schema ({
     isPlayer: {type: Boolean, default: true},
     // is used by partner
     isPartner: {type: Boolean, default: false},
+    // is use voice code verification
+    useVoiceCode: {type: Boolean, default: false},
 });
 
 smsLogSchema.index({"data.dxMission": 1});

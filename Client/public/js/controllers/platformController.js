@@ -3074,6 +3074,7 @@ define(['js/app'], function (myApp) {
                     purpose: vm.smsRecordQuery.purpose,
                     accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
+                    useVoiceCode: vm.smsRecordQuery.sendType,
                     type: 'registration',
                     status: 'all',
                     tel: vm.smsRecordQuery.phoneNumber || '',
@@ -3114,6 +3115,8 @@ define(['js/app'], function (myApp) {
                                 item.platform$ = matchedPlatformData[0].name;
                             }
                         }
+                        item.useVoiceCode$ = item.useVoiceCode? $translate("VOICE"): $translate("MESSAGE(SMS)");
+
                         return item;
                     }), size, newSearch);
 
@@ -3146,6 +3149,7 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
                         {'title': $translate('Type'), data: 'purpose$'},
+                        {'title': $translate('SEND_BY'), data: 'useVoiceCode$'},
                         {
                             'title': $translate('DEVICE'),
                             data: 'inputDevice',
