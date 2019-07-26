@@ -3450,16 +3450,20 @@ var dbPlatform = {
             if (err) {
                 deferred.reject(`phoneapichat request failed  ${err}`);
             } else {
-                console.log("playerPhoneChat request.get",res);
-                let streamInfo = JSON.parse(res.body);
-                let streamResult = {};
-                if (streamInfo.content) {
-                    streamResult = streamInfo.content;
+                try {
+                    console.log("playerPhoneChat request.get",res);
+                    let streamInfo = JSON.parse(res.body);
+                    let streamResult = {};
+                    if (streamInfo.content) {
+                        streamResult = streamInfo.content;
+                    }
+                    if (streamInfo.code) {
+                        streamResult.code = streamInfo.code;
+                    }
+                    deferred.resolve(streamResult);
+                } catch (err) {
+                    deferred.reject(`phoneapichat request failed to parse response`);
                 }
-                if (streamInfo.code) {
-                    streamResult.code = streamInfo.code;
-                }
-                deferred.resolve(streamResult);
             }
         });
 
