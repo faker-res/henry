@@ -993,6 +993,10 @@ define(['js/app'], function (myApp) {
         }
 
         vm.startPlatformPartnerCommissionSettlement = function ($event) {
+            if (!vm.platformInSettlementTab) {
+                return;
+            }
+
             vm.partnerCommissionSettlement = {
                 data: [],
                 result: false,
@@ -1007,7 +1011,7 @@ define(['js/app'], function (myApp) {
             };
 
             $scope.$socketPromise("getPlatformPartnerSettLog", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 modes: modes
             }).then(
                 logs => {
@@ -1023,7 +1027,7 @@ define(['js/app'], function (myApp) {
 
         vm.generatePartnerCommSettPreview = (modeObj) => {
             $scope.$socketPromise("generatePartnerCommSettPreview", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 settMode: modeObj.mode,
                 startTime: modeObj.settStartTime,
                 endTime: modeObj.settEndTime,
@@ -1052,7 +1056,7 @@ define(['js/app'], function (myApp) {
                 $('#modalYesNo').modal();
             } else {
                 $scope.$socketPromise("skipNextPartnerCommissionPeriod", {
-                    platformObjId: vm.selectedPlatform.id,
+                    platformObjId: vm.platformInSettlementTab._id,
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime,
