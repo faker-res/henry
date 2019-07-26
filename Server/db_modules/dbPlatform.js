@@ -1050,6 +1050,10 @@ var dbPlatform = {
      * @param sameLineProviders
      */
     syncPlatformProvider: function (platformId, providerIds, sameLineProviders, isRemoveProvider) {
+        console.log('platformId===', platformId);
+        console.log('providerIds===', providerIds);
+        console.log('sameLineProviders===', sameLineProviders);
+        console.log('isRemoveProvider===', isRemoveProvider);
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -1083,6 +1087,7 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
+                        console.log('okok2===');
                         sameLineProviders.forEach(providers => {
                             if (providers && providers.length) {
                                 providers.forEach(provider => {
@@ -1120,7 +1125,9 @@ var dbPlatform = {
         var proms = [];
         platformProviders.forEach(
             row => {
+                console.log('row===', row);
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
+                    console.log('okok===');
                     proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders, isRemoveProvider));
                 }
             }
