@@ -594,6 +594,14 @@ define(['js/app'], function (myApp) {
                 6: "IOS APP",
             };
 
+            vm.allTopUpTypeList = {
+                1: 'TOPUPMANUAL',
+                2: 'TOPUPONLINE',
+                3: 'TOPUPALIPAY',
+                4: 'TOPUPWECHAT',
+                5: 'CommonTopUp'
+            };
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -32164,6 +32172,15 @@ define(['js/app'], function (myApp) {
                         vm.monitorBasic.monitorPlayerUseSound = platformData.monitorPlayerUseSound;
                         vm.monitorBasic.monitorMerchantSoundChoice = platformData.monitorMerchantSoundChoice;
                         vm.monitorBasic.monitorPlayerSoundChoice = platformData.monitorPlayerSoundChoice;
+                        vm.monitorBasic.monitorTopUpAmount = platformData.monitorTopUpAmount;
+                        vm.monitorBasic.monitorTopUpAmountUseSound = platformData.monitorTopUpAmountUseSound;
+                        vm.monitorBasic.monitorTopUpAmountSoundChoice = platformData.monitorTopUpAmountSoundChoice;
+                        vm.monitorBasic.monitorMerchantCountTopUpType = platformData.monitorMerchantCountTopUpType;
+                        vm.monitorBasic.monitorPlayerCountTopUpType = platformData.monitorPlayerCountTopUpType;
+                        vm.monitorBasic.monitorTopUpAmountTopUpType = platformData.monitorTopUpAmountTopUpType;
+                        vm.monitorBasic.monitorMerchantCountTime = platformData.monitorMerchantCountTime;
+                        vm.monitorBasic.monitorPlayerCountTime = platformData.monitorPlayerCountTime;
+                        vm.monitorBasic.monitorTopUpAmountTime = platformData.monitorTopUpAmountTime;
                         vm.monitorBasic.monitorTopUpCount = platformData.monitorTopUpCount;
                         vm.monitorBasic.monitorCommonTopUpCount = platformData.monitorCommonTopUpCount;
                         vm.monitorBasic.monitorTopUpNotify = platformData.monitorTopUpNotify;
@@ -34047,6 +34064,15 @@ define(['js/app'], function (myApp) {
                         monitorPlayerUseSound: srcData.monitorPlayerUseSound,
                         monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
                         monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice,
+                        monitorTopUpAmount: srcData.monitorTopUpAmount,
+                        monitorTopUpAmountUseSound: srcData.monitorTopUpAmountUseSound,
+                        monitorTopUpAmountSoundChoice: srcData.monitorTopUpAmountSoundChoice,
+                        monitorMerchantCountTopUpType: srcData.monitorMerchantCountTopUpType,
+                        monitorPlayerCountTopUpType: srcData.monitorPlayerCountTopUpType,
+                        monitorTopUpAmountTopUpType: srcData.monitorTopUpAmountTopUpType,
+                        monitorMerchantCountTime: srcData.monitorMerchantCountTime,
+                        monitorPlayerCountTime: srcData.monitorPlayerCountTime,
+                        monitorTopUpAmountTime: srcData.monitorTopUpAmountTime,
                         monitorTopUpCount: srcData.monitorTopUpCount,
                         monitorCommonTopUpCount: srcData.monitorCommonTopUpCount,
                         monitorTopUpNotify: srcData.monitorTopUpNotify,
