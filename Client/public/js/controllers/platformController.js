@@ -24800,6 +24800,9 @@ define(['js/app'], function (myApp) {
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting(platformObjId);
                         break;
+                    case 'emailAuditConfig':
+                        vm.getEmailAuditConfig(platformObjId);
+                        break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
                         break;
@@ -31886,6 +31889,50 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getEmailAuditConfig = async (platformObjId) => {
+                console.log('here')
+                vm.editAuditConfig = vm.editAuditConfig || {};
+                vm.auditCreditChangeSetting = vm.auditCreditChangeSetting || {};
+                vm.auditManualRewardSetting = vm.auditManualRewardSetting || {};
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAuditCreditChangeSetting', sendData, function (data) {
+                    console.log('getAuditCreditChangeSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditCreditChangeSetting = {};
+                        if (data && data.data) {
+                            vm.auditCreditChangeSetting = data.data;
+                        }
+                        if (!vm.auditCreditChangeSetting.recipient) {
+                            vm.auditCreditChangeSetting.recipient = [];
+                        }
+                        if (!vm.auditCreditChangeSetting.reviewer) {
+                            vm.auditCreditChangeSetting.reviewer = [];
+                        }
+                    });
+                });
+
+                socketService.$socket($scope.AppSocket, 'getAuditManualRewardSetting', sendData, function (data) {
+                    console.log('getAuditManualRewardSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditManualRewardSetting = {};
+                        if (data && data.data) {
+                            vm.auditManualRewardSetting = data.data;
+                        }
+                        if (!vm.auditManualRewardSetting.recipient) {
+                            vm.auditManualRewardSetting.recipient = [];
+                        }
+                        if (!vm.auditManualRewardSetting.reviewer) {
+                            vm.auditManualRewardSetting.reviewer = [];
+                        }
+                    });
+                });
+
+
+            };
+
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
                 vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
@@ -33231,6 +33278,38 @@ define(['js/app'], function (myApp) {
                })
             };
 
+            vm.initRecipientModal = function (setting) {
+                vm.curAuditSetting = setting;
+                vm.auditRecipientList = {};
+                vm.auditReviewerList = {};
+
+                let uniqueAdminList = [...new Set(vm.adminList.map(item => item._id))];
+                for (let i = 0; i < uniqueAdminList.length; i++) {
+                    let adminObjId = uniqueAdminList[i];
+
+                    vm.auditRecipientList[i] = Boolean(
+                        adminObjId
+                        && vm[setting]
+                        && vm[setting].recipient
+                        && vm[setting].recipient.length
+                        && vm[setting].recipient.indexOf(String(adminObjId)) > -1
+                    );
+
+                    vm.auditReviewerList[i] = Boolean(
+                        adminObjId
+                        && vm[setting]
+                        && vm[setting].reviewer
+                        && vm[setting].reviewer.length
+                        && vm[setting].reviewer.indexOf(String(adminObjId)) > -1
+                    );
+
+                    $('#auditSettingRow' + i).removeAttr('style');
+                    if (vm.auditReviewerList[i]) {
+                        $('#auditSettingRow' + i).css('background-color', 'pink');
+                    }
+                }
+            };
+
             vm.getLargeWithdrawIsRecipient = function (adminObjId) {
                 // largeWithdrawalSetting
                 let isRecipient = false;
@@ -33270,6 +33349,25 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.setEmailAuditRecipient = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm[vm.curAuditSetting].recipient.indexOf(String(adminObjId)) < 0) {
+                        vm[vm.curAuditSetting].recipient.push(String(adminObjId));
+                    }
+                } else {
+                    let indexRecipient = vm[vm.curAuditSetting].recipient.indexOf(String(adminObjId));
+                    if (indexRecipient > -1) {
+                        vm[vm.curAuditSetting].recipient.splice(indexRecipient, 1);
+                        let indexReviewer = vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId));
+                        if (indexReviewer > -1) {
+                            $('#auditSettingRow' + index).removeAttr('style');
+                            vm[vm.curAuditSetting].reviewer.splice(indexReviewer, 1);
+                            vm.auditReviewerList[index] = false;
+                        }
+                    }
+                }
+            };
+
             vm.setLargeWithdrawReviewer = function (adminObjId, isAdd, index) {
                 if (isAdd) {
                     if (vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) < 0) {
@@ -33281,6 +33379,21 @@ define(['js/app'], function (myApp) {
                     if (indexReviewer > -1) {
                         vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
                         $('#largeWithdrawRow' + index).removeAttr('style');
+                    }
+                }
+            };
+
+            vm.setEmailAuditReviewer = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId)) < 0) {
+                        vm[vm.curAuditSetting].reviewer.push(String(adminObjId));
+                        $('#auditSettingRow' + index).css('background-color', 'pink');
+                    }
+                } else {
+                    let indexReviewer = vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        vm[vm.curAuditSetting].reviewer.splice(indexReviewer, 1);
+                        $('#auditSettingRow' + index).removeAttr('style');
                     }
                 }
             };
@@ -33297,6 +33410,55 @@ define(['js/app'], function (myApp) {
                     console.log("updateLargeWithdrawalRecipient complete", data)
                 });
             }
+
+            function getAuditSettingSocket(setting) {
+                switch(setting) {
+                    case 'auditCreditChangeSetting':
+                        return 'setAuditCreditChangeSetting';
+                        break;
+                    case 'auditManualRewardSetting':
+                        return 'setAuditManualRewardSetting';
+                        break;
+                    default:
+                        console.log('current audit setting not found');
+                        return;
+                }
+            }
+
+            vm.updateEmailAuditReviewSetting = async function () {
+                console.log('setting', vm.curAuditSetting, vm[vm.curAuditSetting]);
+                let updateSocket = getAuditSettingSocket(vm.curAuditSetting);
+
+                if (!updateSocket) {
+                    return;
+                }
+
+                let result = await $scope.$socketPromise(updateSocket, {
+                    platformObjId: vm.filterConfigPlatform,
+                    recipient: vm[vm.curAuditSetting].recipient,
+                    reviewer: vm[vm.curAuditSetting].reviewer
+                });
+
+                vm.configTabClicked("emailAuditConfig");
+            };
+
+            vm.updateEmailAuditSetting = async function (settingName) {
+                console.log('setting', settingName, vm[settingName]);
+                let updateSocket = getAuditSettingSocket(settingName);
+
+                if (!updateSocket) {
+                    return;
+                }
+
+                let result = await $scope.$socketPromise(updateSocket, {
+                    platformObjId: vm.filterConfigPlatform,
+                    minimumAuditAmount: vm[settingName].minimumAuditAmount,
+                    emailNameExtension: vm[settingName].emailNameExtension,
+                    domain: vm[settingName].domain
+                });
+
+                vm.configTabClicked("emailAuditConfig");
+            };
 
             vm.initModalLargeWithdrawalPartner = function () {
                 vm.largeWithdrawPartnerCheckReviewer = {};
@@ -34330,6 +34492,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
+                console.warn('getAdminNameByDepartment', departmentId)
                 if (!departmentId) {
                     $scope.$evalAsync(() =>{
                         if(assignTarget){

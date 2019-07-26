@@ -57,6 +57,8 @@
                         span {{"financialSettlementConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalSetting"}', ng-click='vm.configTabClicked("largeWithdrawalSetting")')
                         span {{"largeWithdrawalSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "emailAuditConfig"}', ng-click='vm.configTabClicked("emailAuditConfig")')
+                        span {{"emailAuditConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformFeeEstimateSetting"}', ng-click='vm.configTabClicked("platformFeeEstimateSetting")')
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
@@ -2364,6 +2366,8 @@
 
 
 
+                div(ng-if='vm.selectedConfigTab=="emailAuditConfig"')
+                    include platform-settings/email-audit
                 div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
                     h4(style='text-align:center;font-weight:bold') {{"PLAYER" | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

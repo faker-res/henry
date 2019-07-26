@@ -4889,6 +4889,12 @@
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "域名瀏覽次數分析（IP重复）",
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT": "瀏覽 IP 數（IP 不重複計算））",
 
+  "emailAuditConfig": "邮件审核设置",
+  "setCreditAmount": "金额设置",
+  "when changed amount reached": "当额度加减± 达到 ",
+  "dollars, auto send audit email": " 元, 自动触发邮件",
+  "credit amount changes (x): username -- date": " — 额度加减（X）：会员账号 -- 日期",
+
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
   "RECEIVE_BANK_ACC_NAME": "收款银行姓名",
