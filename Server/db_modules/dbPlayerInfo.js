@@ -3487,9 +3487,10 @@ let dbPlayerInfo = {
     /**
      *  Update password
      */
-    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent) {
+    updatePassword: function (playerId, currPassword, newPassword, smsCode, userAgent, isAppFirstPWD) {
         let db_password = null;
         let playerObj = null;
+        let respData = {};
         if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
             return Q.reject({name: "DataError", message: "Password is too short"});
         }
@@ -3508,7 +3509,6 @@ let dbPlayerInfo = {
                         playerState => {
                             if (playerState) {
                                 db_password = String(data.password);
-
                                 return dbconfig.collection_platform.findOne({
                                     _id: playerObj.platform
                                 }).lean();
@@ -3532,8 +3532,9 @@ let dbPlayerInfo = {
         ).then(
             platformData => {
                 if (platformData) {
-                    // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPasswordUpdate) {
+                    // Check if platform sms verification is required OR
+                    //  if resetpassword from app, no need check sms
+                    if (!platformData.requireSMSVerificationForPasswordUpdate || isAppFirstPWD) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
@@ -3550,7 +3551,12 @@ let dbPlayerInfo = {
         ).then(
             isVerified => {
                 if (isVerified) {
-                    if (dbUtility.isMd5(db_password)) {
+                    // if resetpassword from app ,the password could be null;
+                    if (isAppFirstPWD && !playerObj.hasPassword) {
+                        respData.text = localization.localization.translate("Password successfully added");
+                        return Q.resolve(true);
+                    }
+                    else if (dbUtility.isMd5(db_password)) {
                         if (md5(currPassword) == db_password) {
                             return Q.resolve(true);
                         }
@@ -3578,6 +3584,11 @@ let dbPlayerInfo = {
             isMatch => {
                 if (isMatch) {
                     let deferred = Q.defer();
+
+                    if (!isAppFirstPWD) {
+                        respData.text = localization.localization.translate("Password successfully changed");;
+                    }
+
                     bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
                         if (err) {
                             deferred.reject(err);
@@ -3629,7 +3640,7 @@ let dbPlayerInfo = {
                                             messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err => {
                                                 console.error(err)
                                             });
-                                            deferred.resolve();
+                                            deferred.resolve(respData);
                                         }
                                     )
                                 }, deferred.reject
@@ -6041,7 +6052,7 @@ let dbPlayerInfo = {
                 $and: [data, orPhoneCondition, orIpCondition]
             }
         }
-        
+
         return dbconfig.collection_platform.findOne({
             _id: {$in: platformId}
         }).lean().then(
