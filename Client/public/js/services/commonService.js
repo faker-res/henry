@@ -1291,7 +1291,7 @@ define([], () => {
                         totalPlatformFee += rawCommission.platformFee;
                         let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
                             + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
-                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate && rawCommission.platformFeeRate * 100 || 0) + "%)";
                         let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
                             + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
