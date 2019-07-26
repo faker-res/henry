@@ -113,7 +113,7 @@
 	37. [获取pms可用银行卡类型](#获取pms可用银行卡类型)
 	38. [(通用充值接口) 创建通用接口充值提案](#创建通用接口充值提案(通用充值接口) )
 	39. [(通用充值接口) 获取通用充值最高和最低可接收充值额度](#获取通用充值最高和最低可接收充值额度(通用充值接口))
-	40. [获取玩家『总』有效投注额](#获取玩家(总)有效投注额)
+	40. [获取玩家『总』有效投注额](#获取玩家(总)有效投注额)	
 	41. [(第三方上下分接口) 快付充值接口](#快付充值接口(第三方上下分接口))
 6. [充值意向服务](#充值意向服务：)
 	1. [添加充值意向](#添加充值意向)
@@ -149,6 +149,7 @@
 	19. [获取某优惠领取排行榜](#获取某优惠领取排行榜)
 	20. [获取玩家洗码数据](#获取玩家洗码数据)
 	21. [获取开放式优惠代码](#获取开放式优惠代码)
+	22. [获取存送申请日限剩余可领取值](#获取存送申请日限剩余可领取值)
 10. [游戏信息服务](#游戏信息服务：)
 	1. [获取游戏类型列表](#获取游戏类型列表)
 	2. [获取游戏列表](#获取游戏列表)
@@ -735,7 +736,7 @@ API说明：
 	* 设置玩家接收短信的事件类型
 	* 请求内容：
 	    ```
-	    status: 必填|String|键值对 smsId:status, smsId:参考getSmsStatus status:0/1,
+	    status: 必填|String|smsId:status, smsId:参考getSmsStatus status:0/1, 例子"1:0,20:1,30:1"
 	    ```
     * 操作成功:
         ```
@@ -4161,95 +4162,6 @@ API说明：
 	* 请求成功：status--200
 	* 请求失败：status--4xx, data--null
 
-<div id='获取申请优惠相关信息'></div>
-
-* **20. 获取申请优惠相关信息**
-	* 获取申请优惠需要的条件信息。
-	* name: getRewardApplicationData
-	* 请求内容：`{platformId: “4”, code: “rewardCode”// 系统代码}`
-	* 响应内容：
-		* ```
-			{  
-				status: 200,  
-				data:{
-					code:"firstDeposit_bonus_tab0",  
-					eventName:"首存",  
-					rewardType：'PlayerTopUpReturnGroup',
-					status:1 //优惠条件是否满足  
-					condition:{  //如果有存款要求返回此数据  
-						deposit:{  
-							status:1 //NuM //1满足,2不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
-							allAmount:1000, // NuM //如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
-							times:3, //NuM //如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
-							details:[  {  
-								id:"",  
-								amount:1100, //NuM //存款金额  
-							}  ],
-						list: [{ // （幸运注单）有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							depositAmount: 500, // 周期内需要完成的存款金额  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果有投注要求返回此数据  
-					bet:{  
-						status:1 //NuM //1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注）
-						needBet:100 //NuM //需要投注金额  
-						alreadyBet:100 // NuM //已投注金额  
-						gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
-						list: [{ （幸运注单） // 有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果是洗码，享受洗码比例，不是不返回  
-					ximaRatios:[{  
-						gameType: “卡牌”, // Str  
-						ratio:0.005, //NuM  
-						amountBet:1000 //NuM  
-					}],  //如果有电话限制返回此数据  
-					telephone:{  
-						status:1 //NuM //1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
-					},  //如果有ip限制返回此数据  
-					ip:{  
-						status:1 //NuM //1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
-					},  //如果有SMSCode限制返回此数据  
-					SMSCode:{  
-						status:1 //NuM //1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
-					},// 如果有设备限制  
-					device: {  
-						status: 1 //Num 1 可领取 2 已领取  
-					}  
-				},  result:{  
-					rewardAmount:1122, //NuM //优惠金额
-					winTimes: 10 // NUM 盈利倍数（盈利翻倍组）  
-					totalBetAmount: 100 // Num 总投注金额 （盈利翻倍组）  
-					totalWinAmount: 1000 // Num 总盈利金额 （盈利翻倍组）  
-					betAmount:12222, // NuM //如果有，投注额要求  
-					betTimes:5, //NuM //如果有，投注额倍数  
-					xima:1, //NuM //此优惠是否享受洗码1享受，2不享受  
-					providerGroup:{} //如果有大厅组限制列出大厅组，没有不返回
-					topUpAmountInterval： 1000 // 本周期现在的存款金额总数 （幸运注单）  
-					quantityLimit： 3 // 可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					appliedCount： 2 // 已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					quantityLimitInInterval: 100 // Num 周期内放出总数量 (提升存留)  
-				}  
-			}}  
-	* 请求成功：status--200
-	* 请求失败：status--4xx, data--null
-
-<div id='获取某优惠领取排行榜'></div>
-
 * **19. 获取某优惠领取排行榜**
 	* 获取申请优惠需要的条件信息。
 	* name: getRewardRanking
@@ -4426,6 +4338,29 @@ API说明：
 			}
    * 正常响应内容：status--200,成功, false：失败
    * 异常响应内容：status--4xx, error: Object
+   
+* **22. 获取存送申请日限剩余可领取值**
+    * functionName: getTopUpRewardDayLimit
+	* 需要先在后台设定优惠日限
+	* 请求内容：
+        ```
+        platformId: 必填|String|平台ID
+        rewardCode: 必填|String|优惠唯一代码
+        ```
+	* 操作成功：
+		```
+        status: 200,  
+        data: {
+            applied: 已申请数量
+            balance: 剩余数量
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 # 游戏信息服务：
 提供游戏信息相关服务的接口.
