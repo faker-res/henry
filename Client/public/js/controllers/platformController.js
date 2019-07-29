@@ -24782,7 +24782,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         vm.getMonitorBasic(platformObjId);
-                        vm.refreshSPicker();
+                        utilService.actionAfterLoaded('#monitorTable .spicker', function () {
+                            vm.refreshSPicker();
+                        });
                         break;
                     case 'playerValue':
                         vm.getPlayerValueBasic(platformObjId);
