@@ -3770,14 +3770,10 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    let topupProm = new Promise((resolve, reject) => {
-                        return dbPlayerTopUpRecord.topupReport({
+                    let topupProm = dbPlayerTopUpRecord.topupReport({
                             playerName: playerObj.name,
                             status: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
-                        }, 0, 1, {proposalId: -1}, false).then(topupResult => {
-                            resolve(topupResult)
-                        });
-                    });
+                        }, 0, 1, {proposalId: -1}, false);
 
                     return Promise.all([realNameCountProm, sameBankAccountCountProm, bankAccountBindingRecordProm, firstBankInfoProm, topupProm])
                 }
