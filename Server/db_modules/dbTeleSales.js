@@ -1182,19 +1182,21 @@ let dbTeleSales = {
                 if(item.assignee._id && !workloadData[item.assignee._id]) {
                     workloadData[item.assignee._id] = {};
                 }
-                if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
-                    workloadData[item.assignee._id][item.tsPhoneList._id] = {
-                        adminId: item.assignee._id,
-                        adminName: item.assignee.adminName,
-                        phoneListObjId: item.tsPhoneList._id,
-                        phoneListName: item.tsPhoneList.name,
-                        distributed:0,
-                        fulfilled:0,
-                        success:0,
-                        registered:0
-                    };
+                if (item.tsPhoneList != null) {
+                    if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
+                        workloadData[item.assignee._id][item.tsPhoneList._id] = {
+                            adminId: item.assignee._id,
+                            adminName: item.assignee.adminName,
+                            phoneListObjId: item.tsPhoneList._id,
+                            phoneListName: item.tsPhoneList.name,
+                            distributed:0,
+                            fulfilled:0,
+                            success:0,
+                            registered:0
+                        };
+                    }
+                    workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
                 }
-                workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
             });
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
