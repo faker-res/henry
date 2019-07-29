@@ -21,6 +21,12 @@
                     option(value=1) {{'CREATED_ACCOUNT' | translate}}
                     option(value=2) {{'NOT_YET_CREATE_ACCOUNT' | translate}}
             .search-filters-item
+                label {{"SEND_BY"|translate}}
+                select.form-control(ng-model="vm.smsRecordQuery.sendType")
+                    option(value='') {{'all'|translate}}
+                    option(value=1) {{'VOICE'|translate}}
+                    option(value=2) {{'MESSAGE(SMS)'|translate}}
+            .search-filters-item
                 label {{"DEVICE"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.inputDevice")
                     option(value='') {{'all'|translate}}

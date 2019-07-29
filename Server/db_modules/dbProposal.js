@@ -6633,44 +6633,147 @@ var proposal = {
                     return item;
                 });
                 console.log("LH Check payment monitor total 4----------------------", proposals.length);
-                return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
-                    platformDetail => {
-                        if(platformDetail){
-                            proposals.forEach(
-                                proposal => {
-                                    if(proposal){
-                                        if(data.failCount && data.failCount.length) {
-                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
-                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+                // return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                //     platformDetail => {
+                //         if(platformDetail){
+                //             proposals.forEach(
+                //                 proposal => {
+                //                     console.log('proposal ======== 2222', proposal);
+                //                     if(proposal){
+                //                         if(data.failCount && data.failCount.length) {
+                //                             let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                //                             let memberIndex = data.failCount.findIndex(f => f == "member");
+                //
+                //                             if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                //                                 && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
+                //                                     || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
+                //                             {
+                //                                 filteredProposal.push(proposal);
+                //                             }else if(merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                //                                 && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
+                //                             {
+                //                                 filteredProposal.push(proposal);
+                //                             }else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount &&
+                //                                 (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
+                //                             {
+                //                                 filteredProposal.push(proposal);
+                //                             }
+                //                         }else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
+                //                             && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4))
+                //                         {
+                //                             filteredProposal.push(proposal);
+                //                         }
+                //                     }
+                //                 }
+                //             )
+                //         }
+                //
+                //         console.log("LH Check payment monitor total 5----------------------", filteredProposal);
+                //         return filteredProposal;
+                //     }
+                // );
 
-                                            if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
-                                                && ((proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)
-                                                    || (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))))
-                                            {
+                if (proposals && proposals.length > 0) {
+                    let platformQuery = {};
+
+                    if(data.platformList && data.platformList.length > 0){
+                        platformQuery = {_id: {$in: data.platformList}};
+                    } else {
+                        platformQuery = {_id: data.currentPlatformId};
+                    }
+
+                    let platformProm = dbconfig.collection_platform.find(platformQuery).lean();
+
+                    return platformProm.then(
+                        platformData => {
+                            if (platformData && platformData.length > 0) {
+                                proposals.forEach(proposal => {
+
+                                    if (proposal) {
+                                        let proposalPlatform = proposal.data && proposal.data.platformId;
+                                        let platformIndex = platformData.map(x => x && x._id && x._id.toString()).indexOf(proposalPlatform && proposalPlatform._id && proposalPlatform._id.toString());
+
+                                        if (platformIndex > -1) {
+                                            let platformRecord = platformData[platformIndex];
+
+                                            let monitorMerchantCountTopUpType = [];
+                                            let playerCountTopUpTypes = [];
+                                            let topUpAmountTopUpTypes = [];
+
+                                            monitorMerchantCountTopUpType = getTopUpTypeNames(platformRecord.monitorMerchantCountTopUpType);
+                                            playerCountTopUpTypes = getTopUpTypeNames(platformRecord.monitorPlayerCountTopUpType);
+                                            topUpAmountTopUpTypes = getTopUpTypeNames(platformRecord.monitorTopUpAmountTopUpType);
+
+                                            if (data.failCount && data.failCount.length) {
+                                                let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                                let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                                if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                                    && (
+                                                        (proposal.$merchantCurrentCount == proposal.$merchantAllCount
+                                                            && proposal.$merchantAllCount >= (platformRecord.monitorMerchantCount || 10)
+                                                            && monitorMerchantCountTopUpType && monitorMerchantCountTopUpType.length > 0 && proposal.type && proposal.type.name
+                                                            && monitorMerchantCountTopUpType.includes(proposal.type.name))
+                                                        ||
+                                                        (proposal.$playerCurrentCount == proposal.$playerAllCount
+                                                            && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4)
+                                                            && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
+                                                            && playerCountTopUpTypes.includes(proposal.type.name))
+                                                    ))
+                                                {
+                                                    filteredProposal.push(proposal);
+                                                } else if (merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
+                                                    && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformRecord.monitorMerchantCount || 10))
+                                                    && monitorMerchantCountTopUpType && monitorMerchantCountTopUpType.length > 0 && proposal.type && proposal.type.name
+                                                    && monitorMerchantCountTopUpType.includes(proposal.type.name))
+                                                {
+                                                    filteredProposal.push(proposal);
+                                                } else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount
+                                                    && (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4))
+                                                    && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
+                                                    && playerCountTopUpTypes.includes(proposal.type.name))
+                                                {
+                                                    filteredProposal.push(proposal);
+                                                }
+                                            } else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
+                                                && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4)
+                                                && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
+                                                && playerCountTopUpTypes.includes(proposal.type.name)) {
+
                                                 filteredProposal.push(proposal);
-                                            }else if(merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
-                                                && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformDetail.monitorMerchantCount || 10)))
-                                            {
-                                                filteredProposal.push(proposal);
-                                            }else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount &&
-                                                (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4)))
-                                            {
-                                                filteredProposal.push(proposal);
+
+                                            } else if ((proposal.status !== constProposalStatus.APPROVED || proposal.status !== constProposalStatus.SUCCESS) && proposal.data.amount && platformRecord.monitorTopUpAmount && (proposal.data.amount >= platformRecord.monitorTopUpAmount)
+                                                && !proposal.$isSuccessTopUpExistAfterTopUp) {
+
+                                                if (topUpAmountTopUpTypes && topUpAmountTopUpTypes.length > 0 && proposal.type && proposal.type.name && topUpAmountTopUpTypes.includes(proposal.type.name)) {
+                                                    if (platformRecord.monitorTopUpAmountTime) {
+                                                        let dt = new Date();
+                                                        dt.setMinutes( dt.getMinutes() + 30 );
+                                                        let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorTopUpAmountTime ?
+                                                            new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorTopUpAmountTime ) : proposal.createTime;
+
+                                                        if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                            proposal.$isExceedAmountTopUpDetect = true;
+                                                            filteredProposal.push(proposal);
+                                                        }
+                                                    } else {
+                                                        proposal.$isExceedAmountTopUpDetect = true;
+                                                        filteredProposal.push(proposal);
+                                                    }
+                                                }
                                             }
-                                        }else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
-                                            && proposal.$playerAllCount >= (platformDetail.monitorPlayerCount || 4))
-                                        {
-                                            filteredProposal.push(proposal);
                                         }
                                     }
-                                }
-                            )
-                        }
+                                });
 
-                        console.log("LH Check payment monitor total 5----------------------", filteredProposal);
-                        return filteredProposal;
-                    }
-                );
+                                console.log("LH Check payment monitor total 5----------------------", filteredProposal);
+                                return filteredProposal;
+                            }
+                        }
+                    )
+                } else {
+                    return proposals;
+                }
             }
         ).then(
             filteredResult => {
@@ -6830,13 +6933,13 @@ var proposal = {
             name: mainTopUpType
         };
 
-        if(data.platformList && data.platformList.length > 0){
+        if (data.platformList && data.platformList.length > 0) {
             proposalTypeQuery.platformId = {$in: data.platformList};
         }
 
         return dbconfig.collection_proposalType.find(proposalTypeQuery).lean().then(
             proposalTypes => {
-                if(proposalTypes){
+                if (proposalTypes) {
                     let typeIds = proposalTypes.map(type => {
                         return type._id;
                     });
@@ -6845,47 +6948,78 @@ var proposal = {
 
                     return dbconfig.collection_paymentMonitorFollowUp.find(query).limit(1000)
                         .populate({path: "type", model: dbconfig.collection_proposalType})
-                        .populate({path: "playerObjId", model: dbconfig.collection_players}).lean();
+                        .populate({path: "playerObjId", model: dbconfig.collection_players})
+                        .populate({path: "platformObjId", model: dbconfig.collection_platform}).lean();
                 }
             }
         ).then(
             followUpDataList => {
-                if(followUpDataList && followUpDataList.length){
-                    return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
-                        platformDetail => {
-                            if(platformDetail){
-                                followUpDataList.forEach(
-                                    followUpData => {
-                                        if(data.failCount && data.failCount.length){
-                                            let merchantIndex = data.failCount.findIndex(f => f == "merchant");
-                                            let memberIndex = data.failCount.findIndex(f => f == "member");
+                if (followUpDataList && followUpDataList.length) {
+                    // return dbconfig.collection_platform.findOne({_id: data.currentPlatformId}).then(
+                    //     platformDetail => {
+                    //         if(platformDetail){
+                    //             followUpDataList.forEach(
+                    //                 followUpData => {
+                    //                     if(data.failCount && data.failCount.length){
+                    //                         let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                    //                         let memberIndex = data.failCount.findIndex(f => f == "member");
+                    //
+                    //                         if(merchantIndex > -1 && memberIndex > -1){
+                    //                             filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                    //                         }else if(merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
+                    //                             && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformDetail.monitorMerchantCount || 10)){
+                    //                             filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                    //                         }else if(memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
+                    //                             && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4)){
+                    //                             filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                    //                         }
+                    //                     }else if(followUpData.playerCurrentCount && followUpData.playerTotalCount
+                    //                         && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4))
+                    //                     {
+                    //                         filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                    //                     }else if(followUpData.isExceedAmountTopUpDetect) {
+                    //                         filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                    //                     }
+                    //                 }
+                    //             )
+                    //         }
+                    //
+                    //         return Promise.all(filteredProposal);
+                    //     }
+                    // );
 
-                                            if(merchantIndex > -1 && memberIndex > -1){
-                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
-                                            }else if(merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
-                                                && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformDetail.monitorMerchantCount || 10)){
-                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
-                                            }else if(memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
-                                                && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4)){
-                                                filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
-                                            }
-                                        }else if(followUpData.playerCurrentCount && followUpData.playerTotalCount
-                                            && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformDetail.monitorPlayerCount || 4))
-                                        {
-                                            filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
-                                        }
+                    followUpDataList.forEach(
+                        followUpData => {
+                            if (followUpData) {
+                                let platformData = followUpData.platformObjId;
+
+                                if (data.failCount && data.failCount.length) {
+                                    let merchantIndex = data.failCount.findIndex(f => f == "merchant");
+                                    let memberIndex = data.failCount.findIndex(f => f == "member");
+
+                                    if (merchantIndex > -1 && memberIndex > -1) {
+                                        filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                    } else if (merchantIndex > -1 && followUpData.merchantCurrentCount && followUpData.merchantTotalCount
+                                        && followUpData.merchantCurrentCount == followUpData.merchantTotalCount && followUpData.merchantTotalCount >= (platformData.monitorMerchantCount || 10)) {
+                                        filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                    } else if (memberIndex > -1 && followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                        && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformData.monitorPlayerCount || 4)) {
+                                        filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
                                     }
-                                )
+                                } else if (followUpData.playerCurrentCount && followUpData.playerTotalCount
+                                    && followUpData.playerCurrentCount == followUpData.playerTotalCount && followUpData.playerTotalCount >= (platformData.monitorPlayerCount || 4)) {
+                                    filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                } else if (followUpData.isExceedAmountTopUpDetect) {
+                                    filteredProposal.push(proposal.getTotalSuccessNoAfterFollowUp(followUpData));
+                                }
                             }
-
-                            return Promise.all(filteredProposal);
                         }
                     );
-                }else{
+                    return Promise.all(filteredProposal);
+                } else {
                     return [];
                 }
-            }
-        );
+            });
     },
 
     getTotalSuccessNoAfterFollowUp: (proposalData) => {
@@ -8460,7 +8594,8 @@ var proposal = {
                         lockedAdminName: followUpData.lockedAdminName,
                         followUpCompletedTime: followUpData.followUpCompletedTime,
                         followUpContent: followUpContent,
-                        line: followUpData.line
+                        line: followUpData.line,
+                        isExceedAmountTopUpDetect: followUpData.isExceedAmountTopUpDetect
                     };
 
                     return dbconfig.collection_paymentMonitorFollowUp(followUpObj).save();
@@ -9487,6 +9622,7 @@ function insertRepeatCount(proposals, platformList, query, isFromMain) {
             let lastCommonTopUpProm = Promise.resolve(true);
             let prevSuccessTopUp;
             let nextSuccessTopUp;
+            let isSuccessTopUpExistAfterTopUp = false;
 
             let prevSuccessProm = dbconfig.collection_proposal.find({
                 type: {$in: typeIds},
@@ -9553,6 +9689,7 @@ function insertRepeatCount(proposals, platformList, query, isFromMain) {
                     }
 
                     if (nextSuccess[0]) {
+                        isSuccessTopUpExistAfterTopUp = true;
                         allCountQuery.createTime = allCountQuery.createTime ? allCountQuery.createTime : {};
                         allCountQuery.createTime.$lt = nextSuccess[0].createTime;
                     } else {
@@ -9611,6 +9748,7 @@ function insertRepeatCount(proposals, platformList, query, isFromMain) {
                     proposal.$playerCurrentCount = currentCount;
                     proposal.$playerAllCommonTopUpCount = allCommonTopUpCount;
                     proposal.$playerCurrentCommonTopUpCount = currentCommonTopUpCount;
+                    proposal.$isSuccessTopUpExistAfterTopUp = isSuccessTopUpExistAfterTopUp;
 
                     if (proposal && proposal.type && proposal.type.name && proposal.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         if (firstCommonTopUp && firstCommonTopUp.createTime) {
@@ -11666,6 +11804,36 @@ function populateProposalData (data) {
             return data;
         }
     );
+}
+
+function getTopUpTypeNames (topUpTypeConfig) {
+    let monitorTopUpTypes = [];
+
+    if (topUpTypeConfig && topUpTypeConfig.length > 0) {
+        topUpTypeConfig.forEach(
+            item => {
+                switch (item) {
+                    case "1":
+                        monitorTopUpTypes.push(constProposalType.PLAYER_MANUAL_TOP_UP);
+                        break;
+                    case "2":
+                        monitorTopUpTypes.push(constProposalType.PLAYER_TOP_UP);
+                        break;
+                    case "3":
+                        monitorTopUpTypes.push(constProposalType.PLAYER_ALIPAY_TOP_UP);
+                        break;
+                    case "4":
+                        monitorTopUpTypes.push(constProposalType.PLAYER_WECHAT_TOP_UP);
+                        break;
+                    case "5":
+                        monitorTopUpTypes.push(constProposalType.PLAYER_COMMON_TOP_UP);
+                        break;
+                }
+            }
+        )
+    }
+
+    return monitorTopUpTypes;
 }
 
 var proto = proposalFunc.prototype;

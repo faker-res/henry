@@ -242,6 +242,12 @@ let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 let largeWithdrawalSettingSchema = require('../schema/largeWithdrawalSetting');
 let largeWithdrawalSettingModel = db_admin.model('largeWithdrawalSetting', largeWithdrawalSettingSchema, 'largeWithdrawalSetting');
 
+let auditManualRewardSettingSchema = require('../schema/auditManualRewardSetting');
+let auditManualRewardSettingModel = db_admin.model('auditManualRewardSetting', auditManualRewardSettingSchema, 'auditManualRewardSetting');
+
+let auditCreditChangeSettingSchema = require('../schema/auditCreditChangeSetting');
+let auditCreditChangeSettingModel = db_admin.model('auditCreditChangeSetting', auditCreditChangeSettingSchema, 'auditCreditChangeSetting');
+
 let largeWithdrawalPartnerSettingSchema = require('../schema/largeWithdrawalPartnerSetting');
 let largeWithdrawalPartnerSettingModel = db_admin.model('largeWithdrawalPartnerSetting', largeWithdrawalPartnerSettingSchema, 'largeWithdrawalPartnerSetting');
 
@@ -748,6 +754,8 @@ var dbProperties = {
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
+    collection_auditManualRewardSetting: auditManualRewardSettingModel,
+    collection_auditCreditChangeSetting: auditCreditChangeSettingModel,
 
     collection_winnerMonitorConfig: winnerMonitorConfigModel,
 

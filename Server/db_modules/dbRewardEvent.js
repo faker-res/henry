@@ -668,14 +668,7 @@ var dbRewardEvent = {
                                                 checkRewardData.status = 3;
                                             }
 
-                                            if (rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
-                                                // if the status == 3, it has already exceeded the limit of applying; does not need to follow the deposit's status
-                                                if ( checkRewardData && checkRewardData.hasOwnProperty('status') && checkRewardData.status != 3){
-                                                    checkRewardData.status = checkRewardData.condition.deposit.status;
-                                                }
-                                            }
-
-                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
+                                            if ((rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP) && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
 
