@@ -51,7 +51,8 @@ form(name="form_new_partner", novalidate)
             span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.exists===true') {{'playerName' | translate}}&nbsp;{{'existed already' | translate}}
         .form-group.col-md-6
             label.control-label {{"own domain" | translate}}
-            input.form-control(type="text", placeholder='{{"own domain" | translate}}', ng-model="vm.newPartner.ownDomain")
+            input.form-control(type="text", placeholder='{{"own domain" | translate}}', name='ownDomain', ng-model="vm.newPartner.ownDomain", ng-change='vm.checkOwnDomain(vm.newPartner.ownDomain, form_new_partner, true);')
+            span.help-block.colorRed(ng-show='vm.partnerValidity.ownDomainDuplicate==true') {{vm.partnerValidity.ownDomainName}}&nbsp;{{'existed already' | translate}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"Registration Domain" | translate}}
