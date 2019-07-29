@@ -9646,10 +9646,11 @@ let dbPlayerInfo = {
                     break;
                 case 3:
                 case 4:
-                    device = 'h5';
-                    break;
                 case 5:
                 case 6:
+                    //（app包壳）： 5 & 6 classified under h5, upon Echo's request
+                    device = 'h5';
+                    break;
                 case 7:
                 case 8:
                     device = 'app';
