@@ -31522,6 +31522,10 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerPasswordMinLength = platformData.playerPasswordMinLength;
                         vm.platformBasic.prefix = platformData.prefix;
                         vm.platformBasic.samePhoneNumberRegisterCount = platformData.samePhoneNumberRegisterCount;
+                        vm.platformBasic.updateBankCardDepositCount = platformData.updateBankCardDepositCount;
+                        vm.platformBasic.updateBankCardDepositCountCheck = platformData.updateBankCardDepositCountCheck;
+                        vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
+                        vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
@@ -33611,6 +33615,10 @@ define(['js/app'], function (myApp) {
                         requireSMSCodeForBankRegistrationAtFirstTime: srcData.requireSMSCodeForBankRegistrationAtFirstTime,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        updateBankCardDepositCount: srcData.updateBankCardDepositCount,
+                        updateBankCardDepositCountCheck: srcData.updateBankCardDepositCountCheck,
+                        updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
+                        updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,

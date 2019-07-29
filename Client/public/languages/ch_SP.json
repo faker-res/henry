@@ -3804,6 +3804,7 @@
   "SET": "设置",
   "PROMO_CODE_MODIFIED": "优惠代码被更改",
   "samePhoneNumberRegisterCount": "相同电话号码开户次数",
+  "Player Update Bank Card, Top Up Condition": "玩家修改银行卡，判断存款条件",
   "bankRegistrationAtFirstTimeNeedSMSCode": "玩家首绑银行卡需短信验证",
   "unknown": "未知",
   "registration": "注册",

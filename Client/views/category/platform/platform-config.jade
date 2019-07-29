@@ -1113,6 +1113,17 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
+                                td {{'Player Update Bank Card, Top Up Condition' | translate}}
+                                td
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text() {{'DEPOSIT_COUNT' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositCount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositCountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text {{'TOTAL_TOP_UP' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositAmount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositAmountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                            tr
                                 td {{'bankRegistrationAtFirstTimeNeedSMSCode' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime', ng-disabled='!vm.configTableEdit')

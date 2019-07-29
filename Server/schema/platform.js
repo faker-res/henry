@@ -216,6 +216,14 @@ var platformSchema = new Schema({
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
     samePhoneNumberRegisterCount: {type: Number, default: 1},
+    // deposit count required to allow updating of bank card
+    updateBankCardDepositCount: {type: Number, default: 0},
+    // check deposit count required to allow updating of bank card
+    updateBankCardDepositCountCheck: {type: Boolean, default: false},
+    // total deposit amount required to allow updating of bank card
+    updateBankCardDepositAmount: {type: Number, default: 0},
+    // check total deposit amount required to allow updating of bank card
+    updateBankCardDepositAmountCheck: {type: Boolean, default: false},
     // the limit of the same bank account number used
     sameBankAccountCount: {type: Number, default: 1},
     // check if require sms code when update bankcard for the first time
