@@ -129,11 +129,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             $scope.checkForExpiredPassword();
         }).on('disconnect', function () {
-            console.log('Management server disconnected');
+            console.warn('Management server disconnected');
         }).on('connect_failed', function (err) {
-            console.log('connection failed', err);
+            console.warn('connection failed', err);
         }).on('connect_error', function (err) {
-            console.log('connection err', err);
+            console.warn('connection err', err);
             // $scope.AppSocket.disconnect();
             //socketService.showErrorMessage("Cannot connect to server!");
         });

@@ -342,11 +342,11 @@ const dbPlayerMail = {
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner, isUseVoiceCode);
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
                 errorUtils.reportError(retErr);
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
@@ -912,6 +912,10 @@ const dbPlayerMail = {
 
                     if (playerName){
                         saveObj.playerName = playerName;
+                    }
+
+                    if (isUseVoiceCode) {
+                        saveObj.useVoiceCode = true;
                     }
 
                     console.log("checking playerName", playerName || "NULL")

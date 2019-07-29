@@ -4525,6 +4525,10 @@ define(['js/app'], function (myApp) {
                         item.partner$ = item.parent.partnerName;
                     }
 
+                    if (item && item.osType) {
+                        item.registrationOS$ = item.osType;
+                    }
+
                     return item;
                 }), data.data.size, newSearch, isExport);
                 $scope.safeApply();
@@ -5722,8 +5726,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.provider$ = "";
-                    if (item.providerInfo && item.providerInfo.providerId && item.providerInfo.providerId.name) {
-                        item.provider$ = item.providerInfo.providerId.name;
+                    if (item.providerInfo) {
+                        item.provider$ = item.providerInfo;
                     }else{
                         item.provider$ = "";
                     }
