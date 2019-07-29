@@ -26654,7 +26654,7 @@ let dbPlayerInfo = {
                         };
 
                         if (deviceType && (deviceType !== 'all')) {
-                            matchObj.osType = deviceType.trim();
+                            matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
                         }
 
                         if (playerType && (playerType === 'new_registration')) {
