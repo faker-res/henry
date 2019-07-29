@@ -89,9 +89,9 @@ define([], function () {
                   }
                   else if (data.registrationInterface == 3 || data.registrationInterface == 4){
                       data.registrationInterface$ = "H5"
-                  }
+                  }// 包壳APP：5 & 6 considered under H5 upon Echo's request
                   else if (data.registrationInterface == 5 || data.registrationInterface == 6){
-                      data.registrationInterface$ = "APP"
+                      data.registrationInterface$ = "H5"
                   }
               }
               else{
