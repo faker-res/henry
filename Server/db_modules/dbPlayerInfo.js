@@ -11953,7 +11953,7 @@ let dbPlayerInfo = {
             delete query.registrationInterface;
 
             if(tempRegistrationInterface == 5){
-                query.partner  = null; 
+                query.partner  = null;
             } else {
                 query.partner  = {$ne:null};
             }
@@ -15169,7 +15169,8 @@ let dbPlayerInfo = {
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
                     clientType: clientType || 1,
-                    closeMusic: closeMusic || false
+                    closeMusic: closeMusic || false,
+                    inputDevice: inputDevice
                 };
 
                 if (gameData && gameData.orientationSetting) {
@@ -15246,7 +15247,7 @@ let dbPlayerInfo = {
         }
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
 
         var platformData = null;
         var providerData = null;
@@ -15287,7 +15288,8 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType || 1
+                        clientType: clientType || 1,
+                        inputDevice: inputDevice
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
@@ -15304,7 +15306,7 @@ let dbPlayerInfo = {
             );
     },
 
-    getTestLoginURLWithoutUser: function (platformId, gameId, ip, lang, clientDomainName, clientType) {
+    getTestLoginURLWithoutUser: function (platformId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
 
         var providerData = null;
         var platformData = null;
@@ -15336,7 +15338,8 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType || 1
+                        clientType: clientType || 1,
+                        inputDevice: inputDevice
                     };
                     if (gameData && gameData.orientationSetting) {
                         console.log('MT --checking orientation setting', gameData.orientationSetting);
