@@ -4525,6 +4525,10 @@ define(['js/app'], function (myApp) {
                         item.partner$ = item.parent.partnerName;
                     }
 
+                    if (item && item.osType) {
+                        item.registrationOS$ = item.osType;
+                    }
+
                     return item;
                 }), data.data.size, newSearch, isExport);
                 $scope.safeApply();
