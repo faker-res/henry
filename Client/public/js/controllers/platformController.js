@@ -17638,42 +17638,53 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.addPlayerFeedback = function (data) {
-                let resultName = vm.allPlayerFeedbackResults.filter(item => {
-                    return item.key == data.result;
-                });
-                resultName = resultName.length > 0 ? resultName[0].value : "";
-                let sendData = {
-                    playerId: data.playerId,
-                    platform: data.platform,
-                    createTime: Date.now(),
-                    adminId: authService.adminId,
-                    content: data.content,
-                    result: data.result,
-                    resultName: resultName,
-                    topic: data.topic
-                };
-                console.log('sendData', sendData);
-                socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
-                    vm.addFeedback.content = "";
-                    vm.addFeedback.result = "";
-                    if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
-                        return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
-                    }
-                    if (vm.playerFeedbackSearchType = 'one') {
-                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                            vm.curPlayerFeedbackDetail = data;
+            vm.addPlayerFeedback = function (data, isConfirm = false) {
 
-                            vm.curPlayerFeedbackDetail.forEach(item => {
-                                item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("ADD_FEEDBACK");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.addPlayerFeedback(data, true);
+                    $('#modalYesNo').modal();
+
+                } else {
+                    
+                    let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                        return item.key == data.result;
+                    });
+                    resultName = resultName.length > 0 ? resultName[0].value : "";
+                    let sendData = {
+                        playerId: data.playerId,
+                        platform: data.platform,
+                        createTime: Date.now(),
+                        adminId: authService.adminId,
+                        content: data.content,
+                        result: data.result,
+                        resultName: resultName,
+                        topic: data.topic
+                    };
+                    console.log('sendData', sendData);
+                    socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                        vm.addFeedback.content = "";
+                        vm.addFeedback.result = "";
+                        if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
+                            return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                        }
+                        if (vm.playerFeedbackSearchType = 'one') {
+                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                vm.curPlayerFeedbackDetail = data;
+
+                                vm.curPlayerFeedbackDetail.forEach(item => {
+                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                });
+
+                                $scope.safeApply();
                             });
-
-                            $scope.safeApply();
-                        });
-                    } else {
-                        vm.submitPlayerFeedbackQuery();
-                    }
-                });
+                        } else {
+                            vm.submitPlayerFeedbackQuery();
+                        }
+                    });
+                }
             };
 
             vm.toggleCallOutMissionStatus = function() {
