@@ -9671,8 +9671,9 @@ let dbPlayerInfo = {
 
         function checkVisible (playerObjId, eventObjId, condition, rewardEventList, playerDetail) {
             let device;
+            // set those have guestDeviceId as native APP
             if (playerDetail && playerDetail.guestDeviceId){
-                playerDetail.registrationInterface = 5;
+                playerDetail.registrationInterface = 7;
             }
             switch (playerDetail.registrationInterface) {
                 case 1:
