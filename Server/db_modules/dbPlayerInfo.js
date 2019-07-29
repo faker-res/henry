@@ -27181,10 +27181,6 @@ function getNextDateByPeriodAndDate(period, startDate) {
 }
 
 async function checkPhoneNumberWhiteList(inputData, platformObj) {
-    console.log('checkPhoneNumberWhiteList');
-    let bindedCount = await checkPhoneNumberBindedBefore(inputData, platformObj);
-    console.log('bindedCount', bindedCount);
-
     // phone number white listing
     if (platformObj.whiteListingPhoneNumbers
         && platformObj.whiteListingPhoneNumbers.length > 0
@@ -27193,6 +27189,8 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
         return {isPhoneNumberValid: true};
 
     if (inputData && inputData.phoneNumber) {
+        let bindedCount = await checkPhoneNumberBindedBefore(inputData, platformObj);
+
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                 phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
