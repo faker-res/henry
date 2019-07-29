@@ -3334,6 +3334,10 @@ hr {
     background-color: #FFFF66;
 }
 
+.topUpAmountExceed .playerTopUpAmountExceed {
+    background-color: #ffc766;
+}
+
 .fronendConfigDiv {
     background: #d3d3d34d;
     box-sizing: border-box;
