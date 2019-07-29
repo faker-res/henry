@@ -31523,6 +31523,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.prefix = platformData.prefix;
                         vm.platformBasic.samePhoneNumberRegisterCount = platformData.samePhoneNumberRegisterCount;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
+                        vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime = platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
                         vm.platformBasic.showAllowSamePhoneNumberToRegister = platformData.allowSamePhoneNumberToRegister;
@@ -33612,6 +33613,7 @@ define(['js/app'], function (myApp) {
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         sameBankAccountCount: srcData.sameBankAccountCount,
+                        checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,

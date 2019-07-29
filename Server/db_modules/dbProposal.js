@@ -412,6 +412,7 @@ var proposal = {
         let bExecute = false;
         let proposalTypeData = null;
         let pendingProposalData = null;
+        let duplicateBankAccountName = false;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -556,6 +557,53 @@ var proposal = {
                         pendingProposal => {
                             pendingProposalData = pendingProposal;
 
+                            // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
+                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
+                                && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+
+                                return dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean().then(
+                                    platformData => {
+                                        if (!platformData) {
+                                            deferred.reject({name: "DataError", message: "Cannot find platform"});
+                                        }
+
+                                        // if checking required
+                                        if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime) {
+                                            return dbconfig.collection_proposal.find({
+                                                type: proposalTypeData._id,
+                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                'data.platformId': proposalData.data.platformId,
+                                                'data.playerId': proposalData.data.playerId,
+                                                'data.playerName': proposalData.data.playerName
+                                            }).lean().then(
+                                                bankProposal => {
+                                                    // checking only applies for 2nd bank proposal, 1st time is add new bank
+                                                    if (bankProposal && bankProposal.length === 1) {
+                                                        bankProposal = bankProposal[0];
+                                                        return dbconfig.collection_players.findOne({
+                                                            _id: {$ne: bankProposal.data._id}, // exclude this player
+                                                            platform: bankProposal.data.platformId,
+                                                            realName: bankProposal.data.bankAccountName
+                                                        }).lean().then(
+                                                            player => {
+                                                                if (player) {
+                                                                    duplicateBankAccountName = true;
+                                                                    deferred.reject({
+                                                                        name: "DataError",
+                                                                        message: "银行信息重复绑定，请联系客服，谢谢！"
+                                                                    });
+                                                                }
+                                                            }
+                                                        );
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    
+                                })
+                            }
+
                             // for player update bank info, check if first time bound to the bank info
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
@@ -590,7 +638,9 @@ var proposal = {
                                 });
 
                             }
-                        }).then(bankInfoProposal => {
+                        }
+                    ).then(
+                        bankInfoProposal => {
                             // add remark if first time bound to the bank info
                             if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
@@ -640,6 +690,13 @@ var proposal = {
                                         }
                                     );
                                 } else {
+                                    // if from fpms back end, proceed update bank info
+                                    // if from front end, prohibit update bank info
+                                    if (duplicateBankAccountName && proposalData.hasOwnProperty('creator') && proposalData.creator.type === 'player') {
+                                        proposalData.data.remark = '二次银改姓名重复';
+                                        proposalData.status = constProposalStatus.FAIL;
+                                        bExecute = false;
+                                    }
                                     var proposalProm = proposal.createProposal(proposalData);
                                     var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                     return Q.all([proposalProm, platProm, data[0].expirationDuration]);
