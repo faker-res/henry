@@ -24771,6 +24771,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         vm.getMonitorBasic(platformObjId);
+                        vm.refreshSPicker();
                         break;
                     case 'playerValue':
                         vm.getPlayerValueBasic(platformObjId);
