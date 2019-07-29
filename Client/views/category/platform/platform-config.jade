@@ -1128,6 +1128,10 @@
                             //    td
                             //        input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'CHECK_DUPLICATE_BANK_ACCOUNT_NAME_IF_EDIT_BANK_CARD_SECOND_TIME' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForDemoPlayer', ng-disabled='!vm.configTableEdit')
