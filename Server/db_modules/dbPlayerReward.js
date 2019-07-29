@@ -5934,12 +5934,11 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(eventData, playerData);
         // Set reward param for player level to use
         let selectedRewardParam = await setSelectedRewardParam(eventData, playerData, rewardData);
         let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
-
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
         // check festival apply times and other condition
         await dbRewardUtil.checkFestivalOverApplyTimes(eventData, playerData, rewardData, selectedRewardParam);
 
@@ -8806,15 +8805,15 @@ let dbPlayerReward = {
                 &&
                     (
                         // 会员生日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "1"
+                        eventData.condition
+                        && eventData.condition.festivalType === "1"
                         && (retObj[3] && !retObj[3].rewardAmount)
                         && (retObj[4] && !retObj[4].amountPercent)
                         && (retObj[5] && !retObj[5].rewardAmount)
                     ) || (
                         // 特别节日
-                        eventData.param.condition
-                        && eventData.param.condition.festivalType === "2"
+                        eventData.condition
+                        && eventData.condition.festivalType === "2"
                         && (retObj[0] && !retObj[0].rewardAmount)
                         && (retObj[1] && !retObj[1].amountPercent)
                         && (retObj[2] && !retObj[2].rewardAmount)

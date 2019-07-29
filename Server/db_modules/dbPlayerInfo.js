@@ -11946,10 +11946,25 @@ let dbPlayerInfo = {
         }
 
         if(query.registrationInterface == 0){
-            query.guestDeviceId = null;
+            query.guestDeviceId = {$exists: false};
         } else if(query.registrationInterface == 5 || query.registrationInterface == 6){
-            query.registrationInterface = {$in: [query.registrationInterface, parseInt(query.registrationInterface), 0]};
-            query.guestDeviceId = {$ne:null};
+            let tempRegistrationInterface = query.registrationInterface;
+            delete query.registrationInterface;
+
+            if(tempRegistrationInterface == 5){
+                query.partner  = null; 
+            } else {
+                query.partner  = {$ne:null};
+            }
+
+            let tempQuery = query;
+            query = {
+                $and:[tempQuery],
+                $or: [
+                    {'guestDeviceId': {$exists: true, $ne: null}},
+                    {'registrationInterface': tempRegistrationInterface}
+                ]
+            };
         }
 
         let count = dbconfig.collection_players.find(query).count();
