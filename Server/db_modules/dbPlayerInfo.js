@@ -20735,7 +20735,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 1,
+                        batchSize: 50,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -20767,18 +20767,22 @@ let dbPlayerInfo = {
                 let providerInfo = res.provider;
                 let playerInfo = res.player;
 
-                if(providerInfo.length && providerInfo.length > 0){
-                    providerInfo.filter(p => {
-                        topUpRecord = topUpRecord.filter(t => {
-                            return t._id.date === p._id.date;
+                if(providerInfo && providerInfo.length){
+                    topUpRecord = topUpRecord.filter(t => {
+                        return providerInfo.some(p => {
+                            return t._id.date === p._id.date && t._id.playerId === p._id.playerId
+                        })
+                    });
+                    bonusRecord = bonusRecord.filter(b =>{
+                        return providerInfo.some(p => {
+                            return b._id.date === p._id.date && b._id.playerId === p._id.playerId;
                         });
-
-                        bonusRecord = bonusRecord.filter(b => {
-                            return b._id.date === p._id.date;
-                        });
-                    })
+                    });
                 }
-
+                else if (consumptionRecord && !consumptionRecord.length && providerInfo && !providerInfo.length){
+                    topUpRecord = [];
+                    bonusRecord = [];
+                }
 
                 // return {
                 //     topUpRecord: topUpRecord,
@@ -20787,7 +20791,6 @@ let dbPlayerInfo = {
                 //     providerInfo: providerInfo,
                 //     playerInfo: playerInfo
                 // };
-                //
 
 
                 let outputData = [];
