@@ -12,6 +12,8 @@ let smsVerificationLogSchema = new Schema ({
     createTime: {type: Date, default: Date.now, index: true},
     loginAttempts: {type: Number, default: 0},
     playerName: {type: String, index: true},
+    // is use voice code verification
+    useVoiceCode: {type: Boolean, default: false},
 });
 
 module.exports = smsVerificationLogSchema;

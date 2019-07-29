@@ -3499,12 +3499,6 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    if (playerObj.guestDeviceId) {
-                        return Promise.reject({
-                            name: "DBError",
-                            message: "Guest ID cannot update password"
-                        })
-                    }
                     return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
                         playerState => {
                             if (playerState) {
@@ -11979,10 +11973,25 @@ let dbPlayerInfo = {
         }
 
         if(query.registrationInterface == 0){
-            query.guestDeviceId = null;
+            query.guestDeviceId = {$exists: false};
         } else if(query.registrationInterface == 5 || query.registrationInterface == 6){
-            query.registrationInterface = {$in: [query.registrationInterface, 0]};
-            query.guestDeviceId = {$ne:null};
+            let tempRegistrationInterface = query.registrationInterface;
+            delete query.registrationInterface;
+
+            if(tempRegistrationInterface == 5){
+                query.partner  = null; 
+            } else {
+                query.partner  = {$ne:null};
+            }
+
+            let tempQuery = query;
+            query = {
+                $and:[tempQuery],
+                $or: [
+                    {'guestDeviceId': {$exists: true, $ne: null}},
+                    {'registrationInterface': tempRegistrationInterface}
+                ]
+            };
         }
 
         let count = dbconfig.collection_players.find(query).count();
@@ -20973,7 +20982,7 @@ let dbPlayerInfo = {
                     count: {$sum: 1},
                 }
             }
-        ]).read("secondaryPreferred");
+        ]).allowDiskUse(true).read("secondaryPreferred");
 
         let bonusProm = dbconfig.collection_proposal.aggregate([
             {
@@ -20992,12 +21001,43 @@ let dbPlayerInfo = {
                     count: {$sum: 1}
                 }
             }
-        ]).read("secondaryPreferred");
+        ]).allowDiskUse(true).read("secondaryPreferred");
+
+        let matchConsumObj = {
+            playerId: {$in: playerIds},
+            createTime: {
+                $gte: new Date(query.queryStart),
+                $lt: new Date(query.queryEnd)
+            }
+        };
+
+        if (query && query.providerId) {
+            matchConsumObj.providerId = ObjectId(query.providerId);
+        }
 
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
-                $match: {
+                $match: matchConsumObj
+            },
+            {
+                $group: {
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    totalAmount: {$sum: "$validAmount"},
+                    count: {$sum: 1},
+                    providerInfo : {$first: "$providerId"}
+                }
+            }
+        ]).allowDiskUse(true).read("secondaryPreferred").then(
+            data => {
+                return dbconfig.collection_gameProvider.populate(data, {path: 'providerInfo', select: '_id name'});
+            }
+        );
+
+        let providerInfoProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match:{
                     playerId: {$in: playerIds},
+                    providerId: ObjectId(query.providerId),
                     createTime: {
                         $gte: new Date(query.queryStart),
                         $lt: new Date(query.queryEnd)
@@ -21007,27 +21047,15 @@ let dbPlayerInfo = {
             {
                 $group: {
                     _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
-                    totalAmount: {$sum: "$validAmount"},
-                    count: {$sum: 1},
+                    providerInfo : {$first: "$providerId"}
                 }
             }
-        ]).read("secondaryPreferred");
-
-        let matchProviderObj = {
-            playerId: {$in: playerIds}
-        };
-
-        if (query && query.providerId) {
-            matchProviderObj.providerId = query.providerId;
-        }
-
-        let providerInfoProm = dbconfig.collection_playerConsumptionRecord.find(matchProviderObj).populate(
-            {
-                path: 'providerId',
-                model: dbconfig.collection_gameProvider,
-                select: "name nickName"
+        ]).allowDiskUse(true).read("secondaryPreferred").then(
+            data => {
+                return dbconfig.collection_gameProvider.populate(data, {path: 'providerInfo', select: '_id name'});
             }
-        ).read("secondaryPreferred");
+        );
+
 
         return Promise.all([topUpProm, consumptionProm, bonusProm, providerInfoProm, playerInfo]).then(
             data => {
@@ -21075,15 +21103,6 @@ let dbPlayerInfo = {
 
             });
         }
-
-        //     if(query && query.credibilityRemarks && query.credibilityRemarks.length){
-        //     query.credibilityRemarks = query.credibilityRemarks.map(
-        //         creditRemarkId => {
-        //             creditRemarkId = ObjectId(creditRemarkId);
-        //             return creditRemarkId;
-        //         });
-        //     matchObj.credibilityRemarks = {$in: query.credibilityRemarks};
-        // }
 
         let dataObj = {
             _id: 1,
@@ -21158,9 +21177,18 @@ let dbPlayerInfo = {
                 let providerInfo = res.provider;
                 let playerInfo = res.player;
 
-                // let topUp = [].concat(...topUpRecord);
-                // let consumption = [].concat(...consumptionRecord);
-                // let bonus = [].concat(...bonusRecord);
+                if(providerInfo.length && providerInfo.length > 0){
+                    providerInfo.filter(p => {
+                        topUpRecord = topUpRecord.filter(t => {
+                            return t._id.date === p._id.date;
+                        });
+
+                        bonusRecord = bonusRecord.filter(b => {
+                            return b._id.date === p._id.date;
+                        });
+                    })
+                }
+
 
                 // return {
                 //     topUpRecord: topUpRecord,
@@ -21169,6 +21197,7 @@ let dbPlayerInfo = {
                 //     providerInfo: providerInfo,
                 //     playerInfo: playerInfo
                 // };
+                //
 
 
                 let outputData = [];
@@ -21176,94 +21205,79 @@ let dbPlayerInfo = {
 
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
-                        providerInfo.map(provider => {
-                            let providerDate = provider.createTime;
-                            consumptionRecord.map(c => {
-                                if (provider && provider.providerId && (JSON.stringify(c._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                    if (c && c._id) {
-                                        if (!retData[c._id.playerId]) {
-                                            retData[c._id.playerId] = {};
-                                        }
-                                        if (!retData[c._id.playerId][c._id.date]) {
-                                            retData[c._id.playerId][c._id.date] = {};
-                                        }
-                                        retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
-                                        retData[c._id.playerId][c._id.date].date = c._id.date;
-                                        retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
-                                        retData[c._id.playerId][c._id.date].consumptionCount = c.count;
-                                        retData[c._id.playerId][c._id.date].providerInfo = provider;
-
-                                        if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
-                                            retData[c._id.playerId][c._id.date].playerInfo = player;
-                                        }
-                                    }
+                        consumptionRecord.map(c => {
+                            if (c && c._id) {
+                                if (!retData[c._id.playerId]) {
+                                    retData[c._id.playerId] = {};
                                 }
-                            });
-
-
-                            topUpRecord.map(t => {
-                                if (provider && provider.providerId && (JSON.stringify(t._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                    if (t && t._id) {
-                                        if (!retData[t._id.playerId]) {
-                                            retData[t._id.playerId] = {};
-                                        }
-                                        if (!retData[t._id.playerId][t._id.date]) {
-                                            retData[t._id.playerId][t._id.date] = {};
-                                        }
-                                        retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
-                                        retData[t._id.playerId][t._id.date].date = t._id.date;
-                                        retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
-                                        retData[t._id.playerId][t._id.date].topUpCount = t.count;
-                                        retData[t._id.playerId][t._id.date].providerInfo = provider;
-
-
-                                        if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
-                                            retData[t._id.playerId][t._id.date].playerInfo = player;
-                                        }
-                                    }
+                                if (!retData[c._id.playerId][c._id.date]) {
+                                    retData[c._id.playerId][c._id.date] = {};
                                 }
-                            });
 
+                                retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
+                                retData[c._id.playerId][c._id.date].date = c._id.date;
+                                retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
+                                retData[c._id.playerId][c._id.date].consumptionCount = c.count;
+                                retData[c._id.playerId][c._id.date].providerInfo = c.providerInfo.name;
 
-                            bonusRecord.map(b => {
-                                if (provider && provider.providerId && (JSON.stringify(b._id.date).slice(0, 11) === JSON.stringify(providerDate).slice(0, 11))) {
-                                    if (b && b._id) {
-                                        if (!retData[b._id.playerId]) {
-                                            retData[b._id.playerId] = {};
-                                        }
-                                        if (!retData[b._id.playerId][b._id.date]) {
-                                            retData[b._id.playerId][b._id.date] = {};
-                                        }
-                                        retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
-                                        retData[b._id.playerId][b._id.date].date = b._id.date;
-                                        retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
-                                        retData[b._id.playerId][b._id.date].bonusCount = b.count;
-                                        retData[b._id.playerId][b._id.date].providerInfo = provider;
-
-
-                                        if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
-                                            retData[b._id.playerId][b._id.date].playerInfo = player;
-                                        }
-                                    }
+                                if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
+                                    retData[c._id.playerId][c._id.date].playerInfo = player;
                                 }
-                            });
+
+                            }
+                        });
+
+                        topUpRecord.map(t => {
+                            if (t && t._id) {
+                                if (!retData[t._id.playerId]) {
+                                    retData[t._id.playerId] = {};
+                                }
+                                if (!retData[t._id.playerId][t._id.date]) {
+                                    retData[t._id.playerId][t._id.date] = {};
+                                }
+
+                                retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
+                                retData[t._id.playerId][t._id.date].date = t._id.date;
+                                retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
+                                retData[t._id.playerId][t._id.date].topUpCount = t.count;
+
+                                if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
+                                    retData[t._id.playerId][t._id.date].playerInfo = player;
+                                }
+
+                            }
+                        });
+
+
+                        bonusRecord.map(b => {
+                            if (b && b._id) {
+                                if (!retData[b._id.playerId]) {
+                                    retData[b._id.playerId] = {};
+                                }
+                                if (!retData[b._id.playerId][b._id.date]) {
+                                    retData[b._id.playerId][b._id.date] = {};
+                                }
+
+                                retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
+                                retData[b._id.playerId][b._id.date].date = b._id.date;
+                                retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
+                                retData[b._id.playerId][b._id.date].bonusCount = b.count;
+
+                                if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
+                                    retData[b._id.playerId][b._id.date].playerInfo = player;
+                                }
+
+                            }
                         });
                     });
 
 
 
-                    // for (let key in retData) {
-                    //     for (let key2 in retData[key]) {
-                    //         outputData.push(retData[key][key2]);
-                    //     }
-                    // }
-
-                    Object.keys(retData).map(i =>
-                        Object.keys(retData[i]).map(j =>
-                            outputData.push(retData[i][j])
-                        )
-                    );
-
+                    for (let key in retData) {
+                        for (let key2 in retData[key]) {
+                            outputData.push(retData[key][key2]);
+                        }
+                    }
 
                     for (let i = outputData.length - 1; i >= 0; i--) {
                         outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
@@ -27202,10 +27216,6 @@ function getNextDateByPeriodAndDate(period, startDate) {
 }
 
 async function checkPhoneNumberWhiteList(inputData, platformObj) {
-    console.log('checkPhoneNumberWhiteList');
-    let bindedCount = await checkPhoneNumberBindedBefore(inputData, platformObj);
-    console.log('bindedCount', bindedCount);
-
     // phone number white listing
     if (platformObj.whiteListingPhoneNumbers
         && platformObj.whiteListingPhoneNumbers.length > 0
@@ -27214,6 +27224,8 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
         return {isPhoneNumberValid: true};
 
     if (inputData && inputData.phoneNumber) {
+        let bindedCount = await checkPhoneNumberBindedBefore(inputData, platformObj);
+
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                 phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},

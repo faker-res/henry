@@ -1050,6 +1050,10 @@ var dbPlatform = {
      * @param sameLineProviders
      */
     syncPlatformProvider: function (platformId, providerIds, sameLineProviders, isRemoveProvider) {
+        console.log('platformId===', platformId);
+        console.log('providerIds===', providerIds);
+        console.log('sameLineProviders===', sameLineProviders);
+        console.log('isRemoveProvider===', isRemoveProvider);
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -1083,6 +1087,7 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
+                        console.log('okok2===');
                         sameLineProviders.forEach(providers => {
                             if (providers && providers.length) {
                                 providers.forEach(provider => {
@@ -1120,7 +1125,9 @@ var dbPlatform = {
         var proms = [];
         platformProviders.forEach(
             row => {
+                console.log('row===', row);
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
+                    console.log('okok===');
                     proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders, isRemoveProvider));
                 }
             }
@@ -2180,6 +2187,14 @@ var dbPlatform = {
         data.purpose ? query.purpose = data.purpose : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
         data.accountStatus ? query.phoneStatus = data.accountStatus : "";
+
+        if (data.useVoiceCode) {
+            if (data.useVoiceCode == 1) {
+                query.useVoiceCode = true;
+            } else {
+                query.useVoiceCode = {$in: [null, false]};
+            }
+        }
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -3450,16 +3465,20 @@ var dbPlatform = {
             if (err) {
                 deferred.reject(`phoneapichat request failed  ${err}`);
             } else {
-                console.log("playerPhoneChat request.get",res.body);
-                let streamInfo = JSON.parse(res.body);
-                let streamResult = {};
-                if (streamInfo.content) {
-                    streamResult = streamInfo.content;
+                try {
+                    console.log("playerPhoneChat request.get",res);
+                    let streamInfo = JSON.parse(res.body);
+                    let streamResult = {};
+                    if (streamInfo.content) {
+                        streamResult = streamInfo.content;
+                    }
+                    if (streamInfo.code) {
+                        streamResult.code = streamInfo.code;
+                    }
+                    deferred.resolve(streamResult);
+                } catch (err) {
+                    deferred.reject(`phoneapichat request failed to parse response`);
                 }
-                if (streamInfo.code) {
-                    streamResult.code = streamInfo.code;
-                }
-                deferred.resolve(streamResult);
             }
         });
 
@@ -4816,10 +4835,19 @@ var dbPlatform = {
                 "consecutiveTransferInOut",
                 "monitorMerchantCount",
                 "monitorPlayerCount",
+                "monitorTopUpAmount",
                 "monitorMerchantUseSound",
                 "monitorPlayerUseSound",
+                "monitorTopUpAmountUseSound",
                 "monitorMerchantSoundChoice",
                 "monitorPlayerSoundChoice",
+                "monitorTopUpAmountSoundChoice",
+                "monitorMerchantCountTopUpType",
+                "monitorPlayerCountTopUpType",
+                "monitorTopUpAmountTopUpType",
+                "monitorMerchantCountTime",
+                "monitorPlayerCountTime",
+                "monitorTopUpAmountTime",
                 "playerValueConfig",
                 "csEmailImageUrlList",
                 "csPhoneList",

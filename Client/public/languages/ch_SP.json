@@ -3603,6 +3603,7 @@
   "WECHAT_DO_NOT_MATCH": "微信帐号不相同",
   "PAYMENT_MONITOR_MERCHANT_COLOR_CHANGE_COUNT": "商户连续被充值失败 X 次后出现变色提醒",
   "PAYMENT_MONITOR_PLAYER_COLOR_CHANGE_COUNT": "玩家连续充值失败 X 次后出现变色提醒",
+  "PAYMENT_MONITOR_TOPUP_AMOUNT_COLOR_CHANGE": "玩家单笔充值金额达到 X 元触发支付监控",
   "Front End Display":"前端展示",
   "Topup Method Front End reminder":"玩家连续 （充值方式）失败 X 次后前端提醒",
   "General Topup Front End reminder":"玩家连续 （通用充值）失败 X 次后前端提醒",
@@ -4893,6 +4894,12 @@
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "域名瀏覽次數分析（IP重复）",
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_NOT_REPEAT": "瀏覽 IP 數（IP 不重複計算））",
 
+  "emailAuditConfig": "邮件审核设置",
+  "setCreditAmount": "金额设置",
+  "when changed amount reached": "当额度加减± 达到 ",
+  "dollars, auto send audit email": " 元, 自动触发邮件",
+  "credit amount changes (x): username -- date": " — 额度加减（X）：会员账号 -- 日期",
+
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
   "RECEIVE_BANK_ACC_NAME": "收款银行姓名",
@@ -5800,8 +5807,12 @@
   "LOGIN_PLAYER_COUNT_AVERAGE": "登录人数平均值",
   "LOGIN_PLAYER_COUNT": "登录人数",
   "AppPlayer": "APP玩家",
+  "SEND_BY": "发送方式",
+  "VOICE": "语音",
+  "MESSAGE(SMS)": "信息",
   "Registration Start Date": "注册开始时间",
   "Registration End Date": "注册结束时间",
   "Apply Reward Start Date": "优惠领取开始时间",
-  "Apply Reward End Date": "优惠领取结束时间"
+  "Apply Reward End Date": "优惠领取结束时间",
+  "Top Up Pending N Minute(s) After Submit": "提交后（X）分钟仍未成功"
 }
