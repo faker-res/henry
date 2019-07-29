@@ -13455,7 +13455,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 data: sendData,
-                platformId: vm.selectedPlatform.id
+                platformId: vm.isOneSelectedPlayer().platform
             }, function (data) {
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -13519,7 +13519,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     data: sendData,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.isOneSelectedPlayer().platform
                 }, function (data) {
                     if (data.data && data.data.stepInfo) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);

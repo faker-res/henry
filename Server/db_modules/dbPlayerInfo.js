@@ -9694,8 +9694,9 @@ let dbPlayerInfo = {
 
         function checkVisible (playerObjId, eventObjId, condition, rewardEventList, playerDetail) {
             let device;
+            // set those have guestDeviceId as native APP
             if (playerDetail && playerDetail.guestDeviceId){
-                playerDetail.registrationInterface = 5;
+                playerDetail.registrationInterface = 7;
             }
             switch (playerDetail.registrationInterface) {
                 case 1:
@@ -9704,10 +9705,11 @@ let dbPlayerInfo = {
                     break;
                 case 3:
                 case 4:
-                    device = 'h5';
-                    break;
                 case 5:
                 case 6:
+                    //（app包壳）： 5 & 6 classified under h5, upon Echo's request
+                    device = 'h5';
+                    break;
                 case 7:
                 case 8:
                     device = 'app';
@@ -26669,7 +26671,7 @@ let dbPlayerInfo = {
                         };
 
                         if (deviceType && (deviceType !== 'all')) {
-                            matchObj.osType = deviceType.trim();
+                            matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
                         }
 
                         if (playerType && (playerType === 'new_registration')) {
