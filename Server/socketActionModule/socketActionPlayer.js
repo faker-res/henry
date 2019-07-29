@@ -24,7 +24,7 @@ var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-var queryPhoneLocation = require('phone-query');
+var queryPhoneLocation = require('cellocate');
 var dbUtil = require('./../modules/dbutility');
 var smsAPI = require('../externalAPI/smsAPI');
 var cpmsAPI = require('../externalAPI/cpmsAPI');
@@ -61,7 +61,7 @@ function socketActionPlayer(socketIO, socket) {
                 if (queryRes) {
                     data.phoneProvince = queryRes.province;
                     data.phoneCity = queryRes.city;
-                    data.phoneType = queryRes.type;
+                    data.phoneType = queryRes.sp;
                 }
             }
             socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerInfoAPI, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
@@ -79,7 +79,7 @@ function socketActionPlayer(socketIO, socket) {
                 if (queryRes) {
                     data.phoneProvince = queryRes.province;
                     data.phoneCity = queryRes.city;
-                    data.phoneType = queryRes.type;
+                    data.phoneType = queryRes.sp;
                 }
             }
             socketUtil.emitter(self.socket, dbPlayerPartner.createPlayerPartner, [data], actionName, isValidData);
@@ -201,7 +201,7 @@ function socketActionPlayer(socketIO, socket) {
                 if (queryRes) {
                     data.updateData.phoneProvince = queryRes.province;
                     data.updateData.phoneCity = queryRes.city;
-                    data.updateData.phoneType = queryRes.type;
+                    data.updateData.phoneType = queryRes.sp;
                 }
             }
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerInfo, [data.query, data.updateData], actionName, isValidData);
@@ -1169,7 +1169,7 @@ function socketActionPlayer(socketIO, socket) {
         updateBatchPlayerLevel: function updateBatchPlayerLevel(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.playerNames.length && data.playerLevelObjId && data.remarks);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerLevel, [data.admin, data.platformObjId, data.playerNames, data.playerLevelObjId, data.remarks], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerLevel, [getAdminId(), data.admin, data.platformObjId, data.playerNames, data.playerLevelObjId, data.remarks], actionName, isValidData);
         },
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
             var actionName = arguments.callee.name;

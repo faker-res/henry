@@ -205,6 +205,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            vm.monitorConsumptionRecordPlatform = null;
             vm.getPlatformByAdminId();
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
@@ -232,7 +233,12 @@ define(['js/app'], function (myApp) {
             )
         }
 
+        vm.monitorConsumptionRecordPlatformOnChange = function () {
+            vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
+        }
+
         vm.getProviderLatestTimeRecord = function () {
+            vm.providerLatestTimeRecord = [];
             let longestDelayDate = new Date().toString();
 
             let providerIdArr = [];
@@ -245,7 +251,7 @@ define(['js/app'], function (myApp) {
             })
 
             let sendData = {
-                platformObjId: vm.selectedPlatform._id,
+                platformObjId: vm.monitorConsumptionRecordPlatform || vm.selectedPlatform._id,
                 providerIdList: providerIdArr
             }
 
@@ -284,7 +290,8 @@ define(['js/app'], function (myApp) {
                 return
             }
             //console.log("getGames", gameIds);
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            let platformQuery = vm.monitorConsumptionRecordPlatform ? vm.monitorConsumptionRecordPlatform : vm.selectedPlatform.id;
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformQuery}, function (data) {
                 console.log('getPlatform', data.data);
                 //provider list init
                 vm.platformProviderList = data.data.gameProviders;
@@ -2421,11 +2428,9 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual") {
-                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
-                    let str = vm.newPlayerProposal.data.phoneNumber;
-                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
-                }
+            if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                let str = vm.newPlayerProposal.data.phoneNumber;
+                vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
             }
 
             let tmpt = vm.proposalTemplate[templateNo];
@@ -3968,6 +3973,8 @@ define(['js/app'], function (myApp) {
                                         item.lockedButtonDisplay = "商户";
                                     } else if (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                                         item.lockedButtonDisplay = "玩家";
+                                    } else if (item.$isExceedAmountTopUpDetect && item.data && item.data.amount && vm.selectedPlatform.monitorTopUpAmount && (item.data.amount >= vm.selectedPlatform.monitorTopUpAmount)) {
+                                        item.lockedButtonDisplay = "玩家";
                                     }
 
                                     if(typeof item.data.userAgent == "object") {
@@ -4444,11 +4451,11 @@ define(['js/app'], function (myApp) {
                     },
                     //{title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$", sClass: 'wordWrap', width: "5%"},
-                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount wordWrap", width: "5%"},
-                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "playerCount wordWrap", width: "5%"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "playerCount wordWrap", width: "5%"},
-                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount wordWrap" , width: "5%"},
-                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount wordWrap", width: "5%"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName", sClass: "playerCount playerTopUpAmountExceed wordWrap", width: "5%"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "playerCount playerTopUpAmountExceed wordWrap", width: "5%"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "playerCount playerTopUpAmountExceed wordWrap", width: "5%"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount playerTopUpAmountExceed wordWrap" , width: "5%"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight playerCount playerTopUpAmountExceed wordWrap", width: "5%"},
 
                     {title: $translate('START_TIME'), data: "startTime$", sClass: 'wordWrap', width: "5%"},
                     {
@@ -4508,7 +4515,7 @@ define(['js/app'], function (myApp) {
                 "autoWidth": false,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                    if (!aData.$isExceedAmountTopUpDetect && aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
                         $(nRow).addClass('merchantExceed');
                         if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
                             checkMerchantNotificationAlert(aData);
@@ -4518,13 +4525,23 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                    if (!aData.$isExceedAmountTopUpDetect && aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
                         $(nRow).addClass('playerExceed');
                         if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
                             checkPlayerNotificationAlert(aData);
                         }
                         if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
                             vm.lastPlayerExceedId = aData._id;
+                        }
+                    }
+
+                    if (aData.$isExceedAmountTopUpDetect && aData.data && aData.data.amount && vm.selectedPlatform.monitorTopUpAmount && (aData.data.amount >= vm.selectedPlatform.monitorTopUpAmount)) {
+                        $(nRow).addClass('topUpAmountExceed');
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorTopUpAmountUseSound) {
+                            checkTopUpAmountNotificationAlert(aData);
+                        }
+                        if (!vm.lastTopUpAmountExceedId || vm.lastTopUpAmountExceedId < aData._id) {
+                            vm.lastTopUpAmountExceedId = aData._id;
                         }
                     }
                 },
@@ -4636,11 +4653,11 @@ define(['js/app'], function (myApp) {
                         "width": "90px"},
                     //{title: $translate('Total Business Acc'), data: "merchantCount$", sClass: 'merchantCount'},
                     {title: $translate('STATUS'), data: "status$"},
-                    {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount"},
-                    {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount"},
-                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount"},
-                    {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount"},
+                    {title: $translate('PLAYER_NAME'), data: "playerObjId.name", sClass: "playerCount playerTopUpAmountExceed"},
+                    {title: $translate('Real Name'), data: "playerObjId.realName", sClass: "sumText playerCount playerTopUpAmountExceed"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText playerCount playerTopUpAmountExceed"},
+                    {title: $translate('Total Members Common Top up'), data: "playerCommonTopUpCount$", sClass: "sumText playerCount playerTopUpAmountExceed"},
+                    {title: $translate('TopUp Amount'), data: "amount", sClass: "sumFloat alignRight playerCount playerTopUpAmountExceed"},
 
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
@@ -4672,7 +4689,7 @@ define(['js/app'], function (myApp) {
                 "autoWidth": true,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    if (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                    if (!aData.isExceedAmountTopUpDetect && (aData.merchantTotalCount >= (vm.selectedPlatform.monitorMerchantCount || 10))) {
                         $(nRow).addClass('merchantExceed');
                         if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
                             checkMerchantNotificationAlert(aData);
@@ -4682,13 +4699,23 @@ define(['js/app'], function (myApp) {
                         }
                     }
 
-                    if (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                    if (!aData.isExceedAmountTopUpDetect && (aData.playerTotalCount >= (vm.selectedPlatform.monitorPlayerCount || 4))) {
                         $(nRow).addClass('playerExceed');
                         if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
                             checkPlayerNotificationAlert(aData);
                         }
                         if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
                             vm.lastPlayerExceedId = aData._id;
+                        }
+                    }
+
+                    if (aData.isExceedAmountTopUpDetect) {
+                        $(nRow).addClass('topUpAmountExceed');
+                        if ($('#paymentTotalAutoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorTopUpAmountUseSound) {
+                            checkTopUpAmountNotificationAlert(aData);
+                        }
+                        if (!vm.lastTopUpAmountExceedId || vm.lastTopUpAmountExceedId < aData._id) {
+                            vm.lastTopUpAmountExceedId = aData._id;
                         }
                     }
                 },
@@ -4814,7 +4841,8 @@ define(['js/app'], function (myApp) {
                     accountNo: rowData.data.accountNo,
                     alipayAccount: rowData.data.alipayAccount,
                     wechatAccount: rowData.data.wechatAccount,
-                    weChatAccount: rowData.data.weChatAccount
+                    weChatAccount: rowData.data.weChatAccount,
+                    isExceedAmountTopUpDetect: rowData.$isExceedAmountTopUpDetect
                 };
 
                 if (rowData && rowData.amount$ && rowData.amount$ !== "NaN") {
@@ -4833,6 +4861,14 @@ define(['js/app'], function (myApp) {
                 vm.getPaymentMonitorTotalRecord(true);
                 vm.getPaymentMonitorTotalCompletedRecord(true);
             });
+        };
+
+        function checkTopUpAmountNotificationAlert(aData) {
+            if (!vm.lastTopUpAmountExceedId || vm.lastTopUpAmountExceedId < aData._id) {
+                let soundUrl = "sound/notification/" + vm.selectedPlatform.monitorTopUpAmountSoundChoice;
+                let sound = new Audio(soundUrl);
+                sound.play();
+            }
         };
 
         function checkPlayerNotificationAlert(aData) {

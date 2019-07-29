@@ -12,8 +12,8 @@ var smsLogSchema = new Schema ({
     // purpose of the sms
     purpose: {type: String, index: true},
     channel: {type: Number, required: true},
-    platform: {type: Schema.ObjectId, ref: 'platform', required: false},
-    platformId: {type: String, required: false},
+    platform: {type: Schema.ObjectId, ref: 'platform', required: false, index: true},
+    platformId: {type: String, required: false, index: true},
     //Admin LoginId.
     admin: {type: Schema.ObjectId, ref: 'admin', required: false},
     adminName: {type: String, required: false},
@@ -47,6 +47,8 @@ var smsLogSchema = new Schema ({
     isPlayer: {type: Boolean, default: true},
     // is used by partner
     isPartner: {type: Boolean, default: false},
+    // is use voice code verification
+    useVoiceCode: {type: Boolean, default: false},
 });
 
 smsLogSchema.index({"data.dxMission": 1});

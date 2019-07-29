@@ -2166,12 +2166,12 @@ let dbPlayerReward = {
                     // create reward proposal
                     let proposalData = {
                         type: eventData.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -2188,7 +2188,13 @@ let dbPlayerReward = {
                             eventDescription: eventData.description,
                             providers: eventData.param.providers,
                             useConsumption: eventData.param.useConsumption,
-                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit)
+                            useLockedCredit: Boolean(playerObj.platform.useLockedCredit),
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
@@ -2489,12 +2495,12 @@ let dbPlayerReward = {
                     // create reward proposal
                     let proposalData = {
                         type: eventData.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerObj.name,
-                                id: playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerObj.name,
+                        //         id: playerId
+                        //     },
                         data: {
                             playerObjId: playerObj._id,
                             playerId: playerObj.playerId,
@@ -2505,7 +2511,13 @@ let dbPlayerReward = {
                             eventId: eventData._id,
                             eventName: eventData.name,
                             eventCode: eventData.code,
-                            eventDescription: eventData.description
+                            eventDescription: eventData.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS
@@ -3340,11 +3352,11 @@ let dbPlayerReward = {
         ).catch(errorUtils.reportError);
     },
 
-    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo) => {
+    updatePromoCodeTemplate: (platformObjId, promoCodeTemplate, adminInfo, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3369,15 +3381,24 @@ let dbPlayerReward = {
                         delete entry._id;
                     }
 
-                    prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_promoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
@@ -3386,11 +3407,11 @@ let dbPlayerReward = {
         return Promise.all(prom);
     },
 
-    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate) => {
+    updateOpenPromoCodeTemplate: (platformObjId, promoCodeTemplate, maxRewardAmount) => {
         let prom = [];
 
         promoCodeTemplate.forEach(entry => {
-
+            let passMaxRewardAmountCheck = true;
             if (entry) {
 
                 if (entry.hasOwnProperty("__v")) {
@@ -3411,15 +3432,24 @@ let dbPlayerReward = {
                         delete entry.code;
                     }
 
-                    prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
-                        {
-                            platformObjId: platformObjId,
-                            name: entry.name,
-                            type: entry.type,
-                        },
-                        entry,
-                        {upsert: true, setDefaultsOnInsert: true}
-                    ));
+                    if ((entry.type == 1 ||  entry.type == 2) && entry.hasOwnProperty('amount') && maxRewardAmount && entry.amount > maxRewardAmount){
+                        passMaxRewardAmountCheck = false;
+                    }
+                    else if(entry.type == 3 && entry.hasOwnProperty('maxRewardAmount') && maxRewardAmount && entry.maxRewardAmount > maxRewardAmount) {
+                        passMaxRewardAmountCheck = false;
+                    }
+
+                    if (passMaxRewardAmountCheck) {
+                        prom.push(dbConfig.collection_openPromoCodeTemplate.findOneAndUpdate(
+                            {
+                                platformObjId: platformObjId,
+                                name: entry.name,
+                                type: entry.type,
+                            },
+                            entry,
+                            {upsert: true, setDefaultsOnInsert: true}
+                        ));
+                    }
                 }
             }
 
@@ -5904,6 +5934,14 @@ let dbPlayerReward = {
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
+        // check if player apply festival_reward and is he set the birthday
+        await dbRewardUtil.checkPlayerBirthday(eventData, playerData);
+        // Set reward param for player level to use
+        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData, rewardData);
+        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
+        // check festival apply times and other condition
+        await dbRewardUtil.checkFestivalOverApplyTimes(eventData, playerData, rewardData, selectedRewardParam);
+
         // Get interval time
         let intervalTime = getIntervalTime(eventData, rewardData);
         // Query setup
@@ -5942,13 +5980,6 @@ let dbPlayerReward = {
         await dbRewardUtil.checkRewardApplyType(eventData, userAgent, adminInfo);
         // Check registration interface condition
         await dbRewardUtil.checkRewardApplyRegistrationInterface(eventData, rewardData);
-
-        // Set reward param for player level to use
-        let selectedRewardParam = await setSelectedRewardParam(eventData, playerData);
-        let nextLevelRewardParam = setNextLevelRewardParam(eventData, playerData);
-
-        // check if player apply festival_reward and is he set the birthday
-        await dbRewardUtil.checkPlayerBirthday(playerData, eventData, rewardData, selectedRewardParam);
 
         let dailyRewardPointData;
         let rewardAmountInPeriod = 0;
@@ -6244,15 +6275,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
-            if (!rewardData.festivalItemId) {
-                return Q.reject({name: "DataError", message: localization.localization.translate("The Festival Item is not Exist")});
-            }
-            selectedRewardParam = selectedRewardParam.filter( item => {
-                return item.id == rewardData.festivalItemId;
-            })
-
-            selectedRewardParam = ( selectedRewardParam && selectedRewardParam[0] ) ? selectedRewardParam[0] : [];
-
             if (eventData.condition.isPlayerLevelDiff) {
                 let isQualifyThisLevel = dbPlayerReward.checkQualifyThisLevel(selectedRewardParam, nextLevelRewardParam);
                 if (!isQualifyThisLevel) {
@@ -7893,6 +7915,8 @@ let dbPlayerReward = {
                             selectedReward = null;
                         }
 
+                        console.log("checking checkpoint 1: selectedRewardParam", selectedRewardParam)
+                        console.log("checking checkpoint 1: yerTopupProbability", yerTopupProbability)
                         // randomRewardMode: 0 is possibility; 1 is topupCondition
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability) {
                             selectedRewardParam = selectedRewardParam.filter( p => p.topupOperator && p.topupValue);
@@ -7927,7 +7951,7 @@ let dbPlayerReward = {
                             });
                             selectedRewardParam = filterTopupCondition;
                         }
-
+                        console.log("checking checkpoint 2: selectedRewardParam", selectedRewardParam)
                         // if no top up record from yesterday, default will be the lowest range of reward param
                         if (eventData.condition.randomRewardMode === '1' && yerTopupProbability === 0) {
                             let lowestValue = 1;
@@ -7960,6 +7984,7 @@ let dbPlayerReward = {
                                 }
                             });
                             selectedRewardParam = filterTopupCondition;
+                            console.log("checking checkpoint 2.1 when topupProbability = 0: selectedRewardParam", selectedRewardParam)
                         }
 
                         if (!selectedReward || (selectedReward && selectedReward.length == 0)) {
@@ -8232,12 +8257,12 @@ let dbPlayerReward = {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {
                                 type: eventData.executeProposal,
-                                creator: adminInfo ? adminInfo :
-                                    {
-                                        type: 'player',
-                                        name: playerData.name,
-                                        id: playerData._id
-                                    },
+                                // creator: adminInfo ? adminInfo :
+                                //     {
+                                //         type: 'player',
+                                //         name: playerData.name,
+                                //         id: playerData._id
+                                //     },
                                 data: {
                                     playerObjId: playerData._id,
                                     playerId: playerData.playerId,
@@ -8257,10 +8282,18 @@ let dbPlayerReward = {
                                     providerGroup: eventData.condition.providerGroup,
                                     forbidWithdrawIfBalanceAfterUnlock: applyDetail.forbidWithdrawIfBalanceAfterUnlock ? applyDetail.forbidWithdrawIfBalanceAfterUnlock : 0,
                                     consumptionSlipNo: applyDetail.consumptionSlipNo || null,
+                                    creator: adminInfo ? adminInfo :
+                                        {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData._id
+                                        }
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
                             };
+                            console.log('Group Reward AdminInfo', proposalData.data.creator);
+                            console.log('Group Reward PlayerInfo', playerData.name);
                             proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                             if (intervalTime){
@@ -8380,12 +8413,12 @@ let dbPlayerReward = {
                         // create reward proposal
                         let proposalData = {
                             type: eventData.executeProposal,
-                            creator: adminInfo ? adminInfo :
-                                {
-                                    type: 'player',
-                                    name: playerData.name,
-                                    id: playerData._id
-                                },
+                            // creator: adminInfo ? adminInfo :
+                            //     {
+                            //         type: 'player',
+                            //         name: playerData.name,
+                            //         id: playerData._id
+                            //     },
                             data: {
                                 playerObjId: playerData._id,
                                 playerId: playerData.playerId,
@@ -8407,7 +8440,13 @@ let dbPlayerReward = {
                                 isGroupReward: true,
                                 // If player credit is more than this number after unlock reward group, will ban bonus
                                 forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
-                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
+                                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount),
+                                creator: adminInfo ? adminInfo :
+                                    {
+                                        type: 'player',
+                                        name: playerData.name,
+                                        id: playerData._id
+                                    }
                             },
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
@@ -8744,7 +8783,7 @@ let dbPlayerReward = {
             }
         );
 
-        function setSelectedRewardParam (eventData, playerData) {
+        function setSelectedRewardParam (eventData, playerData, rewardData) {
             let retObj = {};
             let ignoredEventList = [
                 constRewardType.PLAYER_RANDOM_REWARD_GROUP
@@ -8763,7 +8802,22 @@ let dbPlayerReward = {
                 && !retObj[0].amountPercent
                 && !retObj[0].rewardPercent
                 // special handling for 特别节日
-                && (!retObj[3] || !retObj[3].rewardAmount)
+                &&
+                    (
+                        // 会员生日
+                        eventData.condition
+                        && eventData.condition.festivalType === "1"
+                        && (retObj[3] && !retObj[3].rewardAmount)
+                        && (retObj[4] && !retObj[4].amountPercent)
+                        && (retObj[5] && !retObj[5].rewardAmount)
+                    ) || (
+                        // 特别节日
+                        eventData.condition
+                        && eventData.condition.festivalType === "2"
+                        && (retObj[0] && !retObj[0].rewardAmount)
+                        && (retObj[1] && !retObj[1].amountPercent)
+                        && (retObj[2] && !retObj[2].rewardAmount)
+                    )
                 && (eventData.type && eventData.type.name && !ignoredEventList.includes(eventData.type.name))
             ) {
                 return Promise.reject({
@@ -8771,6 +8825,19 @@ let dbPlayerReward = {
                     name: "DataError",
                     message: "Player does not reach level requirement for reward"
                 })
+            }
+
+            // Festival reward group filter selectedParam
+            if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
+                if (!rewardData.festivalItemId) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: localization.localization.translate("The Festival Item is not Exist")
+                    });
+                }
+
+                retObj = retObj.filter(item => String(item.id) === String(rewardData.festivalItemId));
+                retObj = (retObj && retObj[0]) ? retObj[0] : [];
             }
 
             return retObj;
@@ -10684,12 +10751,12 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
 
                     let proposalData = {
                         type: event.executeProposal,
-                        creator: adminInfo ? adminInfo :
-                            {
-                                type: 'player',
-                                name: playerData.name,
-                                id: playerData.playerId
-                            },
+                        // creator: adminInfo ? adminInfo :
+                        //     {
+                        //         type: 'player',
+                        //         name: playerData.name,
+                        //         id: playerData.playerId
+                        //     },
                         data: {
                             playerObjId: playerData._id,
                             playerId: playerData.playerId,
@@ -10704,7 +10771,13 @@ function processConsecutiveLoginRewardRequest(playerData, inputDate, event, admi
                             eventId: event._id,
                             eventName: event.name,
                             eventCode: event.code,
-                            eventDescription: event.description
+                            eventDescription: event.description,
+                            creator: adminInfo ? adminInfo :
+                                {
+                                    type: 'player',
+                                    name: playerData.name,
+                                    id: playerData.playerId
+                                }
                         },
                         entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,

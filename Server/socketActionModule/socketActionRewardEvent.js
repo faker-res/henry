@@ -13,6 +13,13 @@ function socketActionRewardEvent(socketIO, socket) {
     this.socket = socket;
 
     var self = this;
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
+
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
     this.actions = {
         /**
          * Create reward event
@@ -136,7 +143,7 @@ function socketActionRewardEvent(socketIO, socket) {
         startPlatformRTGEventSettlement: function startPlatformRTGEventSettlement(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.eventCode);
-            socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardEvent.startPlatformRTGEventSettlement, [data.platformId, data.eventCode, getAdminId(), getAdminName()], actionName, isValidData);
         },
         /**
         * Assign Random Reward to Specific Player

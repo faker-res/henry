@@ -40,6 +40,7 @@ var paymentMonitorFollowUpSchema = new Schema({
     alipayAccount: {type: String, index: true},
     wechatAccount: {type: String, index: true},
     weChatAccount: {type: String, index: true},
+    isExceedAmountTopUpDetect: {type: Boolean, default: false},
 });
 
 module.exports = paymentMonitorFollowUpSchema;

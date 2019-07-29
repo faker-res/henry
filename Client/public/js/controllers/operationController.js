@@ -1284,6 +1284,7 @@ define(['js/app'], function (myApp) {
                         "title": $translate('CREATOR'),
                         "data": null,
                         render: function (data, type, row) {
+                            console.log('Creator field', data.data.creator);
                             if (data.hasOwnProperty('creator')) {
                                 if(data.creator && data.creator.type){
                                     if (data.type && data.type.name && data.type.name == "CustomizePartnerCommRate" && data.creator.type == "admin") {
@@ -1298,9 +1299,24 @@ define(['js/app'], function (myApp) {
                                 }
                                 return data.creator.name;
                             } else {
-                                var creator = $translate('System');
-                                if (data && data.data && data.data.playerName) {
-                                    creator += "(" + data.data.playerName + ")";
+                                //here's to check creator is not null
+                                var creator;
+                                if(data.data && data.data.creator){
+
+                                    if(data.data.creator.type === "admin"){
+                                        creator = data.data.creator.name;
+
+                                    }else if(data.data.creator.type === "player"){
+                                        creator = $translate('System');
+                                        creator += "(" + data.data.creator.name + ")";
+                                    }
+
+                                }else{
+                                    //found out not all proposal has creator, this original checking for non-creator proposal
+                                    creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
                                 }
                                 return creator;
                             }
@@ -1840,8 +1856,8 @@ define(['js/app'], function (myApp) {
                                 return data.creator.name;
                             } else {
                                 var creator = $translate('System');
-                                if (data && data.data && data.data.playerName) {
-                                    creator += "(" + data.data.playerName + ")";
+                                if (data && data.data && data.data.creator.name) {
+                                    creator += "(" + data.data.creator.name + ")";
                                 }
                                 return creator;
                             }

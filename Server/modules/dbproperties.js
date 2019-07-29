@@ -111,6 +111,7 @@ let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfigurati
 let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
+let promoCodeMaxRewardAmountSettingSchema = require('./../schema/promoCodeMaxRewardAmountSetting');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -241,6 +242,12 @@ let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 let largeWithdrawalSettingSchema = require('../schema/largeWithdrawalSetting');
 let largeWithdrawalSettingModel = db_admin.model('largeWithdrawalSetting', largeWithdrawalSettingSchema, 'largeWithdrawalSetting');
 
+let auditManualRewardSettingSchema = require('../schema/auditManualRewardSetting');
+let auditManualRewardSettingModel = db_admin.model('auditManualRewardSetting', auditManualRewardSettingSchema, 'auditManualRewardSetting');
+
+let auditCreditChangeSettingSchema = require('../schema/auditCreditChangeSetting');
+let auditCreditChangeSettingModel = db_admin.model('auditCreditChangeSetting', auditCreditChangeSettingSchema, 'auditCreditChangeSetting');
+
 let largeWithdrawalPartnerSettingSchema = require('../schema/largeWithdrawalPartnerSetting');
 let largeWithdrawalPartnerSettingModel = db_admin.model('largeWithdrawalPartnerSetting', largeWithdrawalPartnerSettingSchema, 'largeWithdrawalPartnerSetting');
 
@@ -285,6 +292,7 @@ let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', f
 let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
+let promoCodeMaxRewardAmountSettingModel = db_admin.model('promoCodeMaxRewardAmountSetting', promoCodeMaxRewardAmountSettingSchema, 'promoCodeMaxRewardAmountSetting');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -746,6 +754,8 @@ var dbProperties = {
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
+    collection_auditManualRewardSetting: auditManualRewardSettingModel,
+    collection_auditCreditChangeSetting: auditCreditChangeSettingModel,
 
     collection_winnerMonitorConfig: winnerMonitorConfigModel,
 
@@ -789,6 +799,7 @@ var dbProperties = {
     collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
+    collection_promoCodeMaxRewardAmountSetting: promoCodeMaxRewardAmountSettingModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,

@@ -146,11 +146,13 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {JSON} eventData
      * @param {ObjectId} proposalTypeId
      */
-    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period) {
+    checkPlatformWeeklyConsumptionReturn: function (platformId, eventData, proposalTypeId, period, adminID, adminName) {
 
         var settleTime = period == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
         var balancer = new SettlementBalancer();
+        console.log('admin', adminName + " : " + adminID);
         return balancer.initConns().then(function () {
+
             let query = dbconfig.collection_playerConsumptionRecord.aggregate(
                 [
                     {
@@ -166,7 +168,6 @@ var dbPlayerConsumptionWeekSummary = {
             );
 
             var stream = query.cursor({batchSize: 1000}).allowDiskUse(true).exec();
-
             return balancer.processStream(
                 {
                     stream: stream,
@@ -180,15 +181,19 @@ var dbPlayerConsumptionWeekSummary = {
                             endTime: settleTime.endTime,
                             playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                 return playerIdObj._id;
-                            })
+                            }),
+                            adminName: adminName,
+                            adminID: adminID
                         });
                     }
                 }
             );
+
         });
+
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, bRequest, userAgent, adminId=null, adminName=null, isForceApply) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds,adminName, adminId , bRequest, userAgent, isForceApply) {
         let isLessThanEnoughReward = false;
         let processedSummaries = [];
         let promArr = [];
@@ -438,9 +443,8 @@ var dbPlayerConsumptionWeekSummary = {
                                         proposalData.data.winAmount = lastConsumptionDetail.bonusAmount;
                                         proposalData.data.winTimes = lastConsumptionDetail.winRatio;
                                     }
-
                                     if (adminId && adminName) {
-                                        proposalData.creator = {
+                                        proposalData.data.creator = {
                                             name: adminName,
                                             type: 'admin',
                                             id: adminId
@@ -448,7 +452,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     } else if (bRequest) {
                                         // if userAgent is null, inputDevice should be H5 player or partner
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
-                                        proposalData.creator = {
+                                        proposalData.data.creator = {
                                             type: 'player',
                                             name: playerData.name,
                                             id: playerData.playerId
@@ -797,7 +801,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], bRequest, userAgent, adminId, adminName, isForceApply);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], adminId, adminName, bRequest, userAgent,  isForceApply);
     },
 
     /**
