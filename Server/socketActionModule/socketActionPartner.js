@@ -246,7 +246,7 @@ function socketActionPartner(socketIO, socket) {
         },
         checkOwnDomainValidity: function checkOwnDomainValidity(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.partner && data.value);
+            var isValidData = Boolean(data && data.value);
             socketUtil.emitter(self.socket, dbPartner.checkOwnDomainValidity, [ObjectId(data.partner), data.value, data.time], actionName, isValidData);
 
         },

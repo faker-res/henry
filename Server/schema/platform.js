@@ -216,8 +216,18 @@ var platformSchema = new Schema({
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
     samePhoneNumberRegisterCount: {type: Number, default: 1},
+    // deposit count required to allow updating of bank card
+    updateBankCardDepositCount: {type: Number, default: 0},
+    // check deposit count required to allow updating of bank card
+    updateBankCardDepositCountCheck: {type: Boolean, default: false},
+    // total deposit amount required to allow updating of bank card
+    updateBankCardDepositAmount: {type: Number, default: 0},
+    // check total deposit amount required to allow updating of bank card
+    updateBankCardDepositAmountCheck: {type: Boolean, default: false},
     // the limit of the same bank account number used
     sameBankAccountCount: {type: Number, default: 1},
+    // check duplicate bank account name if this is editing bank card for the second time
+    checkDuplicateBankAccountNameIfEditBankCardSecondTime: {type: Boolean, default: false},
     // check if require sms code when update bankcard for the first time
     requireSMSCodeForBankRegistrationAtFirstTime: {type: Boolean, default: false},
     // white listing phone number
@@ -342,14 +352,32 @@ var platformSchema = new Schema({
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player
     monitorPlayerCount: {type: Number, default: 4},
+    // check topup amount that trigger the alert in payment monitor for player
+    monitorTopUpAmount: {type: Number, default: 1},
     // whether to use the sound notification on merchant count alert
     monitorMerchantUseSound: {type: Boolean, default: false},
     // whether to use the sound notification on player count alert
     monitorPlayerUseSound: {type: Boolean, default: false},
+    // whether to use the sound notification on player topup amount alert
+    monitorTopUpAmountUseSound: {type: Boolean, default: false},
     // select the sound notification that use for merchant count alert
     monitorMerchantSoundChoice: {type: String, default: '1.wav'},
     // select the sound notification that use for player count alert
     monitorPlayerSoundChoice: {type: String, default: '1.wav'},
+    // select the sound notification that use for player topup amount alert
+    monitorTopUpAmountSoundChoice: {type: String, default: '1.wav'},
+    // merchant count 充值类型
+    monitorMerchantCountTopUpType: [],
+    // player count 充值类型
+    monitorPlayerCountTopUpType: [],
+    // TopUp Amount 充值类型
+    monitorTopUpAmountTopUpType: [],
+    // merchant count 提交后（X）分钟仍未成功
+    monitorMerchantCountTime: {type: Number},
+    // player count 提交后（X）分钟仍未成功
+    monitorPlayerCountTime: {type: Number},
+    // TopUp Amount 提交后（X）分钟仍未成功
+    monitorTopUpAmountTime: {type: Number},
     // the count that trigger the error msg when create top up proposal
     monitorTopUpCount: {type: Number, min: 0},
     // the count that trigger the error msg when create common top up proposal

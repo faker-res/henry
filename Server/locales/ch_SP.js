@@ -31,6 +31,7 @@ var simplifiedChinese = {
     "SUBMIT": "提交",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
+    "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
     "Exceeded available application quantity": "超过申请次数",
     "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",

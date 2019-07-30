@@ -109,6 +109,10 @@ var dbUtility = {
             },
             err => {
                 console.log("send voice code failed",err)
+                return Promise.reject({
+                    name: "DataError",
+                    message: err
+                });
             }
         )
 

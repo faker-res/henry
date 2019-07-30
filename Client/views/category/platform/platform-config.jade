@@ -3,7 +3,7 @@
         .well.col-xs-12
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
-                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab)')
+                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab="player")')
 .text-center(ng-if='!vm.filterConfigPlatform')
     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
@@ -57,6 +57,8 @@
                         span {{"financialSettlementConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalSetting"}', ng-click='vm.configTabClicked("largeWithdrawalSetting")')
                         span {{"largeWithdrawalSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "emailAuditConfig"}', ng-click='vm.configTabClicked("emailAuditConfig")')
+                        span {{"emailAuditConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformFeeEstimateSetting"}', ng-click='vm.configTabClicked("platformFeeEstimateSetting")')
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
@@ -1113,6 +1115,17 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
+                                td {{'Player Update Bank Card, Top Up Condition' | translate}}
+                                td
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text() {{'DEPOSIT_COUNT' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositCount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositCountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text {{'TOTAL_TOP_UP' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositAmount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositAmountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                            tr
                                 td {{'bankRegistrationAtFirstTimeNeedSMSCode' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime', ng-disabled='!vm.configTableEdit')
@@ -1125,6 +1138,10 @@
                             //    td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                             //    td
                             //        input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'CHECK_DUPLICATE_BANK_ACCOUNT_NAME_IF_EDIT_BANK_CARD_SECOND_TIME' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
                                 td
@@ -1629,11 +1646,13 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}
                 div(ng-if='vm.selectedConfigTab=="monitor"')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    table.common-table.playerLvlTable#monitorTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th {{'NAME' | translate}}
                                 th {{'VALUE' | translate}}
+                                th {{'topUpType' | translate}}
+                                th {{'Top Up Pending N Minute(s) After Submit' | translate}}
                                 th {{'SOUND_NOTIFICATION' | translate}}
                                 th {{'SOUND_NOTIFICATION_CHOICE' | translate}}
                         tbody
@@ -1642,6 +1661,12 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCount')
+                                td
+                                    select.spicker.form-control(ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorMerchantCountTopUpType', multiple, data-container="body" data-width='180px' data-actions-box='true')
+                                        option(ng-repeat='(i,v) in vm.allTopUpTypeList', value='{{i}}', ng-init='$last && vm.refreshSPicker()') {{v | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorMerchantCountTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorMerchantCountTime')
                                 td
                                     input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorMerchantUseSound')
                                 td
@@ -1653,16 +1678,39 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCount')
                                 td
+                                    select.spicker.form-control(ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorPlayerCountTopUpType', multiple, data-container="body" data-width='180px' data-actions-box='true')
+                                        option(ng-repeat='(i,v) in vm.allTopUpTypeList', value='{{i}}', ng-init='$last && vm.refreshSPicker()') {{v | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorPlayerCountTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorPlayerCountTime')
+                                td
                                     input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorPlayerUseSound')
                                 td
                                     select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorPlayerSoundChoice", required, ng-change="vm.testSound(vm.monitorBasic.monitorPlayerSoundChoice)")
                                         option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
+
+                            tr
+                                td {{'PAYMENT_MONITOR_TOPUP_AMOUNT_COLOR_CHANGE' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorTopUpAmount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.monitorBasic.monitorTopUpAmount')
+                                td
+                                    select.spicker.form-control(ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorTopUpAmountTopUpType', multiple, data-container="body" data-width='180px' data-actions-box='true')
+                                        option(ng-repeat='(i,v) in vm.allTopUpTypeList', value='{{i}}', ng-init='$last && vm.refreshSPicker()') {{v | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.monitorBasic.monitorTopUpAmountTime}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.monitorBasic.monitorTopUpAmountTime')
+                                td
+                                    input(type='checkbox', ng-disabled="!vm.configTableEdit" ng-model='vm.monitorBasic.monitorTopUpAmountUseSound')
+                                td
+                                    select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorTopUpAmountSoundChoice", required, ng-change="vm.testSound(vm.monitorBasic.monitorTopUpAmountSoundChoice)")
+                                        option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.refreshSPicker();')
                         text {{'EDIT' | translate}}
                         img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor");vm.refreshSPicker();') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor");vm.refreshSPicker();') {{"CONFIRM" | translate}}
 
                 br
                 div(ng-if='vm.selectedConfigTab=="monitor"')
@@ -2364,6 +2412,8 @@
 
 
 
+                div(ng-if='vm.selectedConfigTab=="emailAuditConfig"')
+                    include platform-settings/email-audit
                 div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
                     h4(style='text-align:center;font-weight:bold') {{"PLAYER" | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

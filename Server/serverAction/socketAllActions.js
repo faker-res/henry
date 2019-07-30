@@ -53,6 +53,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionWinnerMonitor'),
     require('./../socketActionModule/socketActionPartnerCommission'),
     require('./../socketActionModule/socketActionFrontEndSetting'),
+    require('./../socketActionModule/socketActionEmailAudit'),
 ];
 
 var socketActions = [

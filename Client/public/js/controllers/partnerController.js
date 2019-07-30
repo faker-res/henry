@@ -8503,7 +8503,7 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         }
 
-        vm.checkOwnDomain = function (value, form) {
+        vm.checkOwnDomain = function (value, form, checkNewCreate) {
             var difArrays = function (array1, array2) {
                 var res = [];
                 var has = {};
@@ -8535,9 +8535,9 @@ define(['js/app'], function (myApp) {
             }
             //form.ownDomain.$setValidity('invalidOwnDomainURL', !vm.partnerValidity.ownDomainInvalidURL);
             var time = new Date().getTime();
-            var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
+            var newDomains = checkNewCreate? value.split('\n'): difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
             socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
-                partner: vm.selectedSinglePartner._id,
+                partner: checkNewCreate? null: vm.selectedSinglePartner._id,
                 value: newDomains,
                 time: time
             }, function (data) {

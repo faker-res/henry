@@ -2188,6 +2188,14 @@ var dbPlatform = {
         data.platformObjId ? query.platform = data.platformObjId : "";
         data.accountStatus ? query.phoneStatus = data.accountStatus : "";
 
+        if (data.useVoiceCode) {
+            if (data.useVoiceCode == 1) {
+                query.useVoiceCode = true;
+            } else {
+                query.useVoiceCode = {$in: [null, false]};
+            }
+        }
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -4889,10 +4897,19 @@ var dbPlatform = {
                 "consecutiveTransferInOut",
                 "monitorMerchantCount",
                 "monitorPlayerCount",
+                "monitorTopUpAmount",
                 "monitorMerchantUseSound",
                 "monitorPlayerUseSound",
+                "monitorTopUpAmountUseSound",
                 "monitorMerchantSoundChoice",
                 "monitorPlayerSoundChoice",
+                "monitorTopUpAmountSoundChoice",
+                "monitorMerchantCountTopUpType",
+                "monitorPlayerCountTopUpType",
+                "monitorTopUpAmountTopUpType",
+                "monitorMerchantCountTime",
+                "monitorPlayerCountTime",
+                "monitorTopUpAmountTime",
                 "playerValueConfig",
                 "csEmailImageUrlList",
                 "csPhoneList",
