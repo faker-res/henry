@@ -201,7 +201,10 @@ var GameServiceImplement = function () {
             device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
             os: ua.os.name || ''
         }];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId, data.closeMusic], isValidData);
+        if (data) {
+            data.clientType = inputDevice
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, userAgent, data.tableId, data.closeMusic], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
@@ -209,6 +212,7 @@ var GameServiceImplement = function () {
         let isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
         let ip = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
                 ip = forwardedIp[0].trim();
@@ -216,6 +220,9 @@ var GameServiceImplement = function () {
         }
         if (ip && ip.substr(0, 7) == "::ffff:") {
             ip = ip.substr(7)
+        }
+        if (data) {
+            data.clientType = inputDevice;
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData);
     };
@@ -225,10 +232,14 @@ var GameServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId && data.gameId && data.clientDomainName);
         let ip = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
                 ip = forwardedIp[0].trim();
             }
+        }
+        if (data) {
+            data.clientType = inputDevice;
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData, false, false, true);
     };

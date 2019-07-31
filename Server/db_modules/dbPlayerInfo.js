@@ -3705,6 +3705,8 @@ let dbPlayerInfo = {
         let duplicatedRealNameCount = 0;
         let sameBankAccountCount = 0;
         let bankAccountBindingRecordCount = 0;
+        let depositAmount = 0;
+        let depositCount = 0;
         let isfirstTimeRegistration = false;
 
         console.log('updatePlayerPayment updateData:', updateData);
@@ -3768,7 +3770,12 @@ let dbPlayerInfo = {
                         }
                     );
 
-                    return Promise.all([realNameCountProm, sameBankAccountCountProm, bankAccountBindingRecordProm, firstBankInfoProm])
+                    let topupProm = dbPlayerTopUpRecord.topupReport({
+                            playerName: playerObj.name,
+                            status: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
+                        }, 0, 1, {proposalId: -1}, false);
+
+                    return Promise.all([realNameCountProm, sameBankAccountCountProm, bankAccountBindingRecordProm, firstBankInfoProm, topupProm])
                 }
                 else{
                     return Promise.reject({
@@ -3789,6 +3796,8 @@ let dbPlayerInfo = {
                 duplicatedRealNameCount = data[0] || 0;
                 sameBankAccountCount = data[1] || 0;
                 bankAccountBindingRecordCount = data[2] || 0;
+                depositAmount = data[4].total || 0;
+                depositCount = data[4].size || 0;
 
                 if (data && data[3] && data[3].hasOwnProperty('isFirstBankInfo') && data[3].isFirstBankInfo) {
                     isfirstTimeRegistration = true;
@@ -3841,6 +3850,20 @@ let dbPlayerInfo = {
         ).then(
             platformData => {
                 if (platformData) {
+                    let isDepositConditionFulfill = true;
+                    if (platformData.updateBankCardDepositCountCheck && platformData.updateBankCardDepositCount > depositCount) {
+                        isDepositConditionFulfill = false;
+                    }
+                    if (platformData.updateBankCardDepositAmountCheck && platformData.updateBankCardDepositAmount > depositAmount) {
+                        isDepositConditionFulfill = false;
+                    }
+                    if(!isfirstTimeRegistration && !isDepositConditionFulfill) {
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "Unable to update bank account, condition unfulfilled, Please contact our cs."
+                        });
+                    }
                     // check if the limit of using the same bank account number
                     if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
@@ -11954,7 +11977,7 @@ let dbPlayerInfo = {
             delete query.registrationInterface;
 
             if(tempRegistrationInterface == 5){
-                query.partner  = null; 
+                query.partner  = null;
             } else {
                 query.partner  = {$ne:null};
             }
@@ -14916,7 +14939,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode, closeMusic) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, userAgent, tableCode, closeMusic) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -21120,7 +21143,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 1,
+                        batchSize: 50,
                         makeRequest: function (playerId, request) {
                                 let playerIds = [];
                                 let playerInfo = [];
@@ -21152,18 +21175,22 @@ let dbPlayerInfo = {
                 let providerInfo = res.provider;
                 let playerInfo = res.player;
 
-                if(providerInfo.length && providerInfo.length > 0){
-                    providerInfo.filter(p => {
-                        topUpRecord = topUpRecord.filter(t => {
-                            return t._id.date === p._id.date;
+                if(providerInfo && providerInfo.length){
+                    topUpRecord = topUpRecord.filter(t => {
+                        return providerInfo.some(p => {
+                            return t._id.date === p._id.date && t._id.playerId === p._id.playerId
+                        })
+                    });
+                    bonusRecord = bonusRecord.filter(b =>{
+                        return providerInfo.some(p => {
+                            return b._id.date === p._id.date && b._id.playerId === p._id.playerId;
                         });
-
-                        bonusRecord = bonusRecord.filter(b => {
-                            return b._id.date === p._id.date;
-                        });
-                    })
+                    });
                 }
-
+                else if (consumptionRecord && !consumptionRecord.length && providerInfo && !providerInfo.length){
+                    topUpRecord = [];
+                    bonusRecord = [];
+                }
 
                 // return {
                 //     topUpRecord: topUpRecord,
@@ -21172,7 +21199,6 @@ let dbPlayerInfo = {
                 //     providerInfo: providerInfo,
                 //     playerInfo: playerInfo
                 // };
-                //
 
 
                 let outputData = [];
@@ -22600,12 +22626,10 @@ let dbPlayerInfo = {
     setPlayerSmsStatus: function (playerId, status) {
         // can update multiple status,so status can be: 15:1, 10:0, 2:1, ...
         // example: (smsId:status) 15:0  status:1(true),0(false)
-        console.log("status",status);
         let statusGroups = status.split(",");
         let playerSmsSetting = {};
         let updateData = {};
         let playerData;
-        console.log("statusGroups",statusGroups);
         return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
             (player) => {
                 if (!player) return Q.reject({name: "DataError", message: "Cant find player"});
@@ -22615,7 +22639,6 @@ let dbPlayerInfo = {
             }
         ).then(
             (platformSmsGroups) => {
-                console.log("platformSmsGroups",platformSmsGroups);
                 statusGroups.forEach(statusGroup => {
                     // statusPairArray[0]:smsId/MessageTypeName statusPairArray[1]:status
                     // statusPairArray[0] is MessageTypeName when this smsSetting not in smsGroup
@@ -22628,8 +22651,6 @@ let dbPlayerInfo = {
                     let smsSettingGroup = platformSmsGroups.find(
                         SmsGroup => SmsGroup.smsId === smsIdOrTypeName
                     );
-
-                    console.log("smsSettingGroup",smsSettingGroup);
                     if (smsSettingGroup) {
                         if (smsSettingGroup.smsParentSmsId === -1) {
                             // smsId is a sms group
@@ -22649,12 +22670,10 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
-                console.log("updateData",updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
                             (smsSetting) => {
-                                console.log("smsSetting",smsSetting);
                                 playerData.smsSetting = smsSetting;
                                 return true;
                             }

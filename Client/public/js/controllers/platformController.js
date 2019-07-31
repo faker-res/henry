@@ -13210,51 +13210,59 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.updatePlayerFeedback = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
-                let resultName = vm.allPlayerFeedbackResults.filter(item => {
-                    return item.key == vm.playerFeedback.result;
-                });
-                resultName = resultName.length > 0 ? resultName[0].value : "";
-                let sendData = {
-                    playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: vm.isOneSelectedPlayer().platform || platformObjId,
-                    createTime: Date.now(),
-                    adminId: authService.adminId,
-                    content: vm.playerFeedback.content,
-                    result: vm.playerFeedback.result,
-                    resultName: resultName,
-                    topic: vm.playerFeedback.topic
-                };
-                console.log('add feedback', sendData);
-                socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
-                    console.log('feedbackadded', data);
-                    vm.playerFeedback = {};
-                    // vm.getPlatformPlayersData();
+            vm.updatePlayerFeedback = function (isConfirm = false) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("ADD_FEEDBACK");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.updatePlayerFeedback(true);
+                    $('#modalYesNo').modal();
+                } else {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                    let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                        return item.key == vm.playerFeedback.result;
+                    });
+                    resultName = resultName.length > 0 ? resultName[0].value : "";
+                    let sendData = {
+                        playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
+                        platform: vm.isOneSelectedPlayer().platform || platformObjId,
+                        createTime: Date.now(),
+                        adminId: authService.adminId,
+                        content: vm.playerFeedback.content,
+                        result: vm.playerFeedback.result,
+                        resultName: resultName,
+                        topic: vm.playerFeedback.topic
+                    };
+                    console.log('add feedback', sendData);
+                    socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
+                        console.log('feedbackadded', data);
+                        vm.playerFeedback = {};
+                        // vm.getPlatformPlayersData();
 
-                    let rowData = vm.playerTableClickedRow.data();
-                    rowData.feedbackTimes++;
-                    vm.playerTableClickedRow.data(rowData).draw();
+                        let rowData = vm.playerTableClickedRow.data();
+                        rowData.feedbackTimes++;
+                        vm.playerTableClickedRow.data(rowData).draw();
 
-                    if (vm.platformPageName == 'Feedback') {
-                        if (vm.playerFeedbackSearchType = 'one') {
-                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                                vm.curPlayerFeedbackDetail = data;
+                        if (vm.platformPageName == 'Feedback') {
+                            if (vm.playerFeedbackSearchType = 'one') {
+                                vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                    vm.curPlayerFeedbackDetail = data;
 
-                                vm.curPlayerFeedbackDetail.forEach(item => {
-                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    vm.curPlayerFeedbackDetail.forEach(item => {
+                                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    });
+
+                                    $scope.$evalAsync();
                                 });
-
-                                $scope.$evalAsync();
-                            });
+                            }
+                            else {
+                                vm.submitPlayerFeedbackQuery();
+                            }
                         }
-                        else {
-                            vm.submitPlayerFeedbackQuery();
-                        }
-                    }
-                    $scope.safeApply();
-                });
+                        $scope.safeApply();
+                    });
+                }
             };
 
             vm.initBulkAddPlayerFeedback = () => {
@@ -16588,31 +16596,91 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.playerFeedbackQuery.filterFeedback) {
+                if(vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0){
+                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
+                }
+
+                if(vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 && vm.playerFeedbackQuery.filterFeedback){
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
                     };
                     let lastFeedbackTime = {
                         lastFeedbackTime: {
-                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                            $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
-
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-
+                    let lastFeedbackTopic = "lastFeedbackTopic";
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
+
                             sendQuery.$and.push({$or: sendQuery.$or});
                             sendQuery.$and.push({$or: sendQueryOr});
+                            sendQuery.$and.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
                         } else {
-                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
                         }
                         delete sendQuery.$or;
                     } else {
-                        sendQuery["$or"] = sendQueryOr;
+                        sendQuery.$and = [{$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
                     }
+                }else{
+
+                    if (vm.playerFeedbackQuery.filterFeedback) {
+                        let lastFeedbackTimeExist = {
+                            lastFeedbackTime: null
+                        };
+                        let lastFeedbackTime = {
+                            lastFeedbackTime: {
+                                $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                            }
+                        };
+                        sendQueryOr.push(lastFeedbackTimeExist);
+                        sendQueryOr.push(lastFeedbackTime);
+                    }
+
+                    if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
+                        if (sendQuery.hasOwnProperty("$or")) {
+                            if (sendQuery.$and) {
+                                sendQuery.$and.push({$or: sendQuery.$or});
+                                sendQuery.$and.push({$or: sendQueryOr});
+                            } else {
+                                sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
+                            }
+                            delete sendQuery.$or;
+                        } else {
+                            sendQuery["$or"] = sendQueryOr;
+                        }
+                    }
+
                 }
+
+                // if (vm.playerFeedbackQuery.filterFeedback) {
+                //     let lastFeedbackTimeExist = {
+                //         lastFeedbackTime: null
+                //     };
+                //     let lastFeedbackTime = {
+                //         lastFeedbackTime: {
+                //             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                //         }
+                //     };
+                //
+                //     sendQueryOr.push(lastFeedbackTimeExist);
+                //     sendQueryOr.push(lastFeedbackTime);
+                //
+                //     if (sendQuery.hasOwnProperty("$or")) {
+                //         if (sendQuery.$and) {
+                //             sendQuery.$and.push({$or: sendQuery.$or});
+                //             sendQuery.$and.push({$or: sendQueryOr});
+                //         } else {
+                //             sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                //         }
+                //         delete sendQuery.$or;
+                //     } else {
+                //         sendQuery["$or"] = sendQueryOr;
+                //     }
+                // }
 
                 if (vm.playerFeedbackQuery.callPermission == 'true') {
                     sendQuery['permission.phoneCallFeedback'] = {$ne: false};
@@ -17085,324 +17153,35 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
-                let sendQuery = {platform: vm.playerFeedbackQuery.selectedPlatform};
-                let sendQueryOr = [];
-
-                if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
-                    sendQuery.playerType = vm.playerFeedbackQuery.playerType;
-                }
-
-                if (vm.playerFeedbackQuery.playerLevel !== "all") {
-                    sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
-                }
-
-                if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
-                    let tempArr = [];
-                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
-                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
-                            if(remark != "") {
-                                tempArr.push(remark);
-                            }
-                        });
-                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
-                    } else {
-                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
-                    let tempArr = [];
-                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
-                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
-                            if (remark != "") {
-                                tempArr.push(remark);
-                            }
-                        });
-                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
-                    } else {
-                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
-                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
-                        }
-                        else {
-                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
-                        }
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.lastAccess === "range") {
-                    sendQuery.lastAccessTime = {
-                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
-                        $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
-                    };
-                } else {
-                    let range = vm.playerFeedbackQuery.lastAccess.split("-");
-                    sendQuery.lastAccessTime = {
-                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
-                    };
-                    if (range[1]) {
-                        sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
-                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
-                }
-
-                if (vm.playerFeedbackQuery.filterFeedback) {
-                    let lastFeedbackTimeExist = {
-                        lastFeedbackTime: null
-                    };
-                    let lastFeedbackTime = {
-                        lastFeedbackTime: {
-                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                        }
-                    };
-                    sendQueryOr.push(lastFeedbackTimeExist);
-                    sendQueryOr.push(lastFeedbackTime);
-                }
-
-                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
-                    if (sendQuery.hasOwnProperty("$or")) {
-                        if (sendQuery.$and) {
-                            sendQuery.$and.push({$or: sendQuery.$or});
-                            sendQuery.$and.push({$or: sendQueryOr});
-                        } else {
-                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
-                        }
-                        delete sendQuery.$or;
-                    } else {
-                        sendQuery["$or"] = sendQueryOr;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.callPermission == 'true') {
-                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
-                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
-                    sendQuery['permission.phoneCallFeedback'] = false;
-                }
-
-                if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
-                    switch (vm.playerFeedbackQuery.depositCountOperator) {
-                        case ">=":
-                            sendQuery.topUpTimes = {
-                                $gte: vm.playerFeedbackQuery.depositCountFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.topUpTimes = vm.playerFeedbackQuery.depositCountFormal;
-                            break;
-                        case "<=":
-                            sendQuery.topUpTimes = {
-                                $lte: vm.playerFeedbackQuery.depositCountFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.depositCountLatter != null) {
-                                sendQuery.topUpTimes = {
-                                    $lte: vm.playerFeedbackQuery.depositCountLatter,
-                                    $gte: vm.playerFeedbackQuery.depositCountFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-
-                if (vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal != null) {
-                    switch (vm.playerFeedbackQuery.playerValueOperator) {
-                        case ">=":
-                            sendQuery.valueScore = {
-                                $gte: vm.playerFeedbackQuery.playerValueFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.valueScore = vm.playerFeedbackQuery.playerValueFormal;
-                            break;
-                        case "<=":
-                            sendQuery.valueScore = {
-                                $lte: vm.playerFeedbackQuery.playerValueFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.playerValueLatter != null) {
-                                sendQuery.valueScore = {
-                                    $lte: vm.playerFeedbackQuery.playerValueLatter,
-                                    $gte: vm.playerFeedbackQuery.playerValueFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
-                    switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
-                        case ">=":
-                            sendQuery.consumptionTimes = {
-                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
-                            break;
-                        case "<=":
-                            sendQuery.consumptionTimes = {
-                                $lte: vm.playerFeedbackQuery.consumptionTimesFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
-                                sendQuery.consumptionTimes = {
-                                    $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
-                                    $gte: vm.playerFeedbackQuery.consumptionTimesFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
-                    switch (vm.playerFeedbackQuery.bonusAmountOperator) {
-                        case ">=":
-                            sendQuery.bonusAmountSum = {
-                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
-                            break;
-                        case "<=":
-                            sendQuery.bonusAmountSum = {
-                                $lte: vm.playerFeedbackQuery.bonusAmountFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
-                                sendQuery.bonusAmountSum = {
-                                    $lte: vm.playerFeedbackQuery.bonusAmountLatter,
-                                    $gte: vm.playerFeedbackQuery.bonusAmountFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
-                    switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
-                        case ">=":
-                            sendQuery.withdrawTimes = {
-                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
-                            break;
-                        case "<=":
-                            sendQuery.withdrawTimes = {
-                                $lte: vm.playerFeedbackQuery.withdrawTimesFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
-                                sendQuery.withdrawTimes = {
-                                    $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
-                                    $gte: vm.playerFeedbackQuery.withdrawTimesFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
-                    switch (vm.playerFeedbackQuery.topUpSumOperator) {
-                        case ">=":
-                            sendQuery.topUpSum = {
-                                $gte: vm.playerFeedbackQuery.topUpSumFormal
-                            };
-                            break;
-                        case "=":
-                            sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
-                            break;
-                        case "<=":
-                            sendQuery.topUpSum = {
-                                $lte: vm.playerFeedbackQuery.topUpSumFormal
-                            };
-                            break;
-                        case "range":
-                            if (vm.playerFeedbackQuery.topUpSumLatter != null) {
-                                sendQuery.topUpSum = {
-                                    $lte: vm.playerFeedbackQuery.topUpSumLatter,
-                                    $gte: vm.playerFeedbackQuery.topUpSumFormal
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
-                    sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
-                }
-
-                if (vm.playerFeedbackQuery.isNewSystem === "old") {
-                    sendQuery.isNewSystem = {$ne: true};
-                } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
-                    sendQuery.isNewSystem = true;
-                }
-                if (startTime && endTime) {
-                    sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
-                }
-
-                let admins = [];
-
-                if (vm.playerFeedbackQuery.departments) {
-                    if (vm.playerFeedbackQuery.roles) {
-                        vm.queryRoles.map(e => {
-                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
-                                e.users.map(f => admins.push(f._id))
-                            }
-                        })
-                    } else {
-                        vm.queryRoles.map(e => {
-                            if (e._id != "" && e.users && e.users.length) {
-                                e.users.map(f => {
-                                    if (f._id != "") {
-                                        admins.push(f._id)
-                                    }
-                                })
-                            }
-                        })
-                    }
-                }
-
-                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
-                    sendQuery.csOfficer = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
-                }
 
                 $('#platformFeedbackSpin').show();
-                console.log('sendQuery', sendQuery);
-                vm.exportQuery = sendQuery;
+                console.log('sendQuery', vm.playerFeedbackQuery);
+                vm.exportQuery = vm.getPlayerFeedbackQuery();
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
                     vm.feedbackPlayersPara.index = 1;
                     vm.playerFeedbackQuery.index = 0;
                 }
-                if (vm.playerFeedbackSearchType == "one") {
-                    socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
-                        query: sendQuery,
-                        index: vm.feedbackPlayersPara.index - 1
-                    }, function (data) {
-                        console.log('_getSinglePlayerFeedbackQuery', data);
-                        vm.drawSinglePlayerFeedback(data);
-                    });
-                }
-                else {
-                    socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-                        query: sendQuery,
-                        index: vm.playerFeedbackQuery.index,
-                        limit: vm.playerFeedbackQuery.limit,
-                        sortCol: vm.playerFeedbackQuery.sortCol
-                    }, function (data) {
-                        $scope.$evalAsync(() => {
-                            console.log('_getPlayerFeedbackQuery', data);
+                let isMany = {
+                                limit: vm.playerFeedbackQuery.limit,
+                                sortCol: vm.playerFeedbackQuery.sortCol,
+                                searchType: vm.playerFeedbackSearchType
+                            };
+                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                    query: vm.playerFeedbackQuery,
+                    index: vm.playerFeedbackQuery.index,
+                    //new block
+                    isMany: isMany,
+                    startTime: startTime,
+                    endTime: endTime
+                    //new Block
+                }, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('_getPlayerFeedbackQuery', data);
+                        if(vm.playerFeedbackSearchType === "one"){
+                            console.log('_getSinglePlayerFeedbackQuery', data);
+                            vm.drawSinglePlayerFeedback(data);
+                        }else{
                             let playerList = data.data.data;
                             console.log(playerList);
                             // setTableData(vm.playerFeedbackTable, playerList);
@@ -17414,9 +17193,9 @@ define(['js/app'], function (myApp) {
                             vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                             $('#platformFeedbackSpin').hide();
                             // $scope.safeApply();
-                        });
+                        }
                     });
-                }
+                });
                 vm.playerCredibilityComment = [];
             };
             vm.drawExtendedFeedbackTable = function (data) {
@@ -24782,6 +24561,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         vm.getMonitorBasic(platformObjId);
+                        utilService.actionAfterLoaded('#monitorTable .spicker', function () {
+                            vm.refreshSPicker();
+                        });
                         break;
                     case 'playerValue':
                         vm.getPlayerValueBasic(platformObjId);
@@ -31552,7 +31334,12 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerPasswordMinLength = platformData.playerPasswordMinLength;
                         vm.platformBasic.prefix = platformData.prefix;
                         vm.platformBasic.samePhoneNumberRegisterCount = platformData.samePhoneNumberRegisterCount;
+                        vm.platformBasic.updateBankCardDepositCount = platformData.updateBankCardDepositCount;
+                        vm.platformBasic.updateBankCardDepositCountCheck = platformData.updateBankCardDepositCountCheck;
+                        vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
+                        vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
+                        vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime = platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
                         vm.platformBasic.showAllowSamePhoneNumberToRegister = platformData.allowSamePhoneNumberToRegister;
@@ -33809,7 +33596,12 @@ define(['js/app'], function (myApp) {
                         requireSMSCodeForBankRegistrationAtFirstTime: srcData.requireSMSCodeForBankRegistrationAtFirstTime,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        updateBankCardDepositCount: srcData.updateBankCardDepositCount,
+                        updateBankCardDepositCountCheck: srcData.updateBankCardDepositCountCheck,
+                        updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
+                        updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
+                        checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
@@ -39879,6 +39671,8 @@ define(['js/app'], function (myApp) {
                 $('#platformFeedbackSpin').show();
                 let sendQuery = {};
                 let selectedPlayers = [];
+                let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 sendQuery.platformObjId = vm.playerFeedbackQuery.selectedPlatform;
                 sendQuery.adminObjId = authService.adminId;

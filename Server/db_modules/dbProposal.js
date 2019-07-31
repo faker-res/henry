@@ -412,6 +412,7 @@ var proposal = {
         let bExecute = false;
         let proposalTypeData = null;
         let pendingProposalData = null;
+        let duplicateBankAccountName = false;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -556,6 +557,53 @@ var proposal = {
                         pendingProposal => {
                             pendingProposalData = pendingProposal;
 
+                            // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
+                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
+                                && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+
+                                return dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean().then(
+                                    platformData => {
+                                        if (!platformData) {
+                                            deferred.reject({name: "DataError", message: "Cannot find platform"});
+                                        }
+
+                                        // if checking required
+                                        if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime) {
+                                            return dbconfig.collection_proposal.find({
+                                                type: proposalTypeData._id,
+                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                'data.platformId': proposalData.data.platformId,
+                                                'data.playerId': proposalData.data.playerId,
+                                                'data.playerName': proposalData.data.playerName
+                                            }).lean().then(
+                                                bankProposal => {
+                                                    // checking only applies for 2nd bank proposal, 1st time is add new bank
+                                                    if (bankProposal && bankProposal.length === 1) {
+                                                        bankProposal = bankProposal[0];
+                                                        return dbconfig.collection_players.findOne({
+                                                            _id: {$ne: bankProposal.data._id}, // exclude this player
+                                                            platform: bankProposal.data.platformId,
+                                                            realName: bankProposal.data.bankAccountName
+                                                        }).lean().then(
+                                                            player => {
+                                                                if (player) {
+                                                                    duplicateBankAccountName = true;
+                                                                    deferred.reject({
+                                                                        name: "DataError",
+                                                                        message: "银行信息重复绑定，请联系客服，谢谢！"
+                                                                    });
+                                                                }
+                                                            }
+                                                        );
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    
+                                })
+                            }
+
                             // for player update bank info, check if first time bound to the bank info
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
@@ -590,7 +638,9 @@ var proposal = {
                                 });
 
                             }
-                        }).then(bankInfoProposal => {
+                        }
+                    ).then(
+                        bankInfoProposal => {
                             // add remark if first time bound to the bank info
                             if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
@@ -640,6 +690,13 @@ var proposal = {
                                         }
                                     );
                                 } else {
+                                    // if from fpms back end, proceed update bank info
+                                    // if from front end, prohibit update bank info
+                                    if (duplicateBankAccountName && proposalData.hasOwnProperty('creator') && proposalData.creator.type === 'player') {
+                                        proposalData.data.remark = '二次银改姓名重复';
+                                        proposalData.status = constProposalStatus.FAIL;
+                                        bExecute = false;
+                                    }
                                     var proposalProm = proposal.createProposal(proposalData);
                                     var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                     return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -6708,47 +6765,94 @@ var proposal = {
                                                 let merchantIndex = data.failCount.findIndex(f => f == "merchant");
                                                 let memberIndex = data.failCount.findIndex(f => f == "member");
 
-                                                if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount
-                                                    && (
-                                                        (proposal.$merchantCurrentCount == proposal.$merchantAllCount
+                                                if (merchantIndex > -1 && memberIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount && proposal.$playerCurrentCount && proposal.$playerAllCount)
+                                                {
+                                                    if (proposal.$merchantCurrentCount == proposal.$merchantAllCount
                                                             && proposal.$merchantAllCount >= (platformRecord.monitorMerchantCount || 10)
                                                             && monitorMerchantCountTopUpType && monitorMerchantCountTopUpType.length > 0 && proposal.type && proposal.type.name
-                                                            && monitorMerchantCountTopUpType.includes(proposal.type.name))
-                                                        ||
-                                                        (proposal.$playerCurrentCount == proposal.$playerAllCount
-                                                            && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4)
-                                                            && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
-                                                            && playerCountTopUpTypes.includes(proposal.type.name))
-                                                    ))
-                                                {
-                                                    filteredProposal.push(proposal);
+                                                            && monitorMerchantCountTopUpType.includes(proposal.type.name)) {
+
+                                                        if (platformRecord.monitorMerchantCountTime) {
+                                                            let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorMerchantCountTime ?
+                                                                new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorMerchantCountTime ) : proposal.createTime;
+
+                                                            if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                                filteredProposal.push(proposal);
+                                                            }
+                                                        } else {
+                                                            filteredProposal.push(proposal);
+                                                        }
+                                                    } else if (proposal.$playerCurrentCount == proposal.$playerAllCount
+                                                        && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4)
+                                                        && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
+                                                        && playerCountTopUpTypes.includes(proposal.type.name)) {
+
+                                                        if (platformRecord.monitorPlayerCountTime) {
+                                                            let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorPlayerCountTime ?
+                                                                new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorPlayerCountTime ) : proposal.createTime;
+
+                                                            if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                                filteredProposal.push(proposal);
+                                                            }
+                                                        } else {
+                                                            filteredProposal.push(proposal);
+                                                        }
+                                                    }
+
                                                 } else if (merchantIndex > -1 && proposal.$merchantCurrentCount && proposal.$merchantAllCount
                                                     && (proposal.$merchantCurrentCount == proposal.$merchantAllCount && proposal.$merchantAllCount >= (platformRecord.monitorMerchantCount || 10))
                                                     && monitorMerchantCountTopUpType && monitorMerchantCountTopUpType.length > 0 && proposal.type && proposal.type.name
                                                     && monitorMerchantCountTopUpType.includes(proposal.type.name))
                                                 {
-                                                    filteredProposal.push(proposal);
+                                                    if (platformRecord.monitorMerchantCountTime) {
+                                                        let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorMerchantCountTime ?
+                                                            new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorMerchantCountTime ) : proposal.createTime;
+
+                                                        if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                            filteredProposal.push(proposal);
+                                                        }
+                                                    } else {
+                                                        filteredProposal.push(proposal);
+                                                    }
+
                                                 } else if(memberIndex > -1 && proposal.$playerCurrentCount && proposal.$playerAllCount
                                                     && (proposal.$playerCurrentCount == proposal.$playerAllCount && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4))
                                                     && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
                                                     && playerCountTopUpTypes.includes(proposal.type.name))
                                                 {
-                                                    filteredProposal.push(proposal);
+                                                    if (platformRecord.monitorPlayerCountTime) {
+                                                        let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorPlayerCountTime ?
+                                                            new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorPlayerCountTime ) : proposal.createTime;
+
+                                                        if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                            filteredProposal.push(proposal);
+                                                        }
+                                                    } else {
+                                                        filteredProposal.push(proposal);
+                                                    }
+
                                                 }
                                             } else if (proposal.$playerCurrentCount && proposal.$playerAllCount && proposal.$playerCurrentCount == proposal.$playerAllCount
                                                 && proposal.$playerAllCount >= (platformRecord.monitorPlayerCount || 4)
                                                 && playerCountTopUpTypes && playerCountTopUpTypes.length > 0 && proposal.type && proposal.type.name
                                                 && playerCountTopUpTypes.includes(proposal.type.name)) {
 
-                                                filteredProposal.push(proposal);
+                                                if (platformRecord.monitorPlayerCountTime) {
+                                                    let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorPlayerCountTime ?
+                                                        new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorPlayerCountTime ) : proposal.createTime;
+
+                                                    if (new Date(proposalTimeWithMonitorTime).getTime() <= new Date().getTime()) {
+                                                        filteredProposal.push(proposal);
+                                                    }
+                                                } else {
+                                                    filteredProposal.push(proposal);
+                                                }
 
                                             } else if ((proposal.status !== constProposalStatus.APPROVED || proposal.status !== constProposalStatus.SUCCESS) && proposal.data.amount && platformRecord.monitorTopUpAmount && (proposal.data.amount >= platformRecord.monitorTopUpAmount)
                                                 && !proposal.$isSuccessTopUpExistAfterTopUp) {
 
                                                 if (topUpAmountTopUpTypes && topUpAmountTopUpTypes.length > 0 && proposal.type && proposal.type.name && topUpAmountTopUpTypes.includes(proposal.type.name)) {
                                                     if (platformRecord.monitorTopUpAmountTime) {
-                                                        let dt = new Date();
-                                                        dt.setMinutes( dt.getMinutes() + 30 );
                                                         let proposalTimeWithMonitorTime = proposal.createTime && platformRecord.monitorTopUpAmountTime ?
                                                             new Date(proposal.createTime).setMinutes( new Date(proposal.createTime).getMinutes() + platformRecord.monitorTopUpAmountTime ) : proposal.createTime;
 

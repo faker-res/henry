@@ -3,7 +3,7 @@
         .well.col-xs-12
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
-                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab)')
+                select.form-control(ng-model='vm.filterConfigPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.configTabClicked(vm.selectedConfigTab="player")')
 .text-center(ng-if='!vm.filterConfigPlatform')
     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
@@ -1115,6 +1115,17 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
+                                td {{'Player Update Bank Card, Top Up Condition' | translate}}
+                                td
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text() {{'DEPOSIT_COUNT' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositCount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositCountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                                    div(style="display: inline-block; border: solid 1px #005f8d; margin: 0 5px; padding: 5px;")
+                                        text {{'TOTAL_TOP_UP' | translate}} &ge;&nbsp;
+                                        input(type='number', ng-disabled='!vm.configTableEdit', min=1, ng-model='vm.platformBasic.updateBankCardDepositAmount' style="max-width:100px;")
+                                        input(type='checkbox', ng-model='vm.platformBasic.updateBankCardDepositAmountCheck', ng-disabled='!vm.configTableEdit' style="vertical-align:text-bottom;")
+                            tr
                                 td {{'bankRegistrationAtFirstTimeNeedSMSCode' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSCodeForBankRegistrationAtFirstTime', ng-disabled='!vm.configTableEdit')
@@ -1127,6 +1138,10 @@
                             //    td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                             //    td
                             //        input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'CHECK_DUPLICATE_BANK_ACCOUNT_NAME_IF_EDIT_BANK_CARD_SECOND_TIME' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
                                 td
@@ -1631,7 +1646,7 @@
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}
                 div(ng-if='vm.selectedConfigTab=="monitor"')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    table.common-table.playerLvlTable#monitorTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th {{'NAME' | translate}}

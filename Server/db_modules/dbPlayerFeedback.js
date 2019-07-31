@@ -16,7 +16,9 @@ const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const errorUtils = require("../modules/errorUtils.js");
 const rsaCrypto = require("../modules/rsaCrypto");
 const ObjectId = mongoose.Types.ObjectId;
-
+//Testing Block
+var dbUtility = require('./../modules/dbutility');
+//Tesing Block
 var dbPlayerFeedback = {
 
     /**
@@ -628,33 +630,359 @@ var dbPlayerFeedback = {
         });
     },
 
-    getPlayerFeedbackQuery: function (query, index, limit, sortCol) {
+    getPlayerFeedbackQuery: function (query, index, isMany, startTime, endTime) {
+
+        let sendQuery = {platform: query.selectedPlatform};
+        let sendQueryOr = [];
+
+        if (query.playerType && query.playerType != null) {
+            sendQuery.playerType = query.playerType;
+        }
+
+        if (query.playerLevel !== "all") {
+            sendQuery.playerLevel = query.playerLevel;
+        }else{
+            delete query.playerLevel;
+        }
+
+        if (query.credibilityRemarks && query.credibilityRemarks.length > 0) {
+            let tempArr = [];
+            if (query.credibilityRemarks.includes("")) {
+                query.credibilityRemarks.forEach(remark => {
+                    if(remark != "") {
+                        tempArr.push(remark);
+                    }
+                });
+                sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+            } else {
+                sendQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+            }
+        }
+
+        if (query.credibilityRemarksFilter && query.credibilityRemarksFilter.length > 0) {
+            let tempArr = [];
+            if (query.credibilityRemarksFilter.includes("")) {
+                query.credibilityRemarksFilter.forEach(remark => {
+                    if (remark != "") {
+                        tempArr.push(remark);
+                    }
+                });
+                sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+            } else {
+                if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                    sendQuery.$and = [{credibilityRemarks: {$nin: query.credibilityRemarksFilter}}];
+                }
+                else {
+                    sendQuery.credibilityRemarks = {$nin: query.credibilityRemarksFilter};
+                }
+            }
+        }
+
+        if (query.lastAccess === "range") {
+            sendQuery.lastAccessTime = {
+
+                $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.lastAccessFormal)),
+                $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.lastAccessLatter)),
+            };
+        } else {
+            let range = query.lastAccess.split("-");
+            sendQuery.lastAccessTime = {
+                $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
+            };
+            if (range[1]) {
+                sendQuery.lastAccessTime["$gte"] = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[1])));
+            }
+        }
+
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0) {
+            sendQuery.lastFeedbackTopic = {$nin: query.filterFeedbackTopic};
+        }
+
+        if(query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+            let lastFeedbackTimeExist = {
+                lastFeedbackTime: null
+            };
+            let lastFeedbackTime = {
+                lastFeedbackTime: {
+                    // $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
+                    $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
+                }
+            };
+            sendQueryOr.push(lastFeedbackTimeExist);
+            sendQueryOr.push(lastFeedbackTime);
+            let lastFeedbackTopic = "lastFeedbackTopic";
+            if (sendQuery.hasOwnProperty("$or")) {
+                if (sendQuery.$and) {
+
+                    sendQuery.$and.push({$or: sendQuery.$or});
+                    sendQuery.$and.push({$or: sendQueryOr});
+                    sendQuery.$and.push({lastFeedbackTopic: {$nin: query.filterFeedbackTopic}});
+                } else {
+                    sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}, {lastFeedbackTopic: {$nin: query.filterFeedbackTopic}}];
+                }
+                delete sendQuery.$or;
+            } else {
+                // sendQuery["$or"] = sendQueryOr;
+                sendQuery.$and = [{$or: sendQueryOr}, {lastFeedbackTopic: {$nin: query.filterFeedbackTopic}}];
+            }
+        }else{
+            //original block
+            if (query.filterFeedback) {
+                let lastFeedbackTimeExist = {
+                    lastFeedbackTime: null
+                };
+                let lastFeedbackTime = {
+                    lastFeedbackTime: {
+                        $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
+                        // $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
+                    }
+                };
+                sendQueryOr.push(lastFeedbackTimeExist);
+                sendQueryOr.push(lastFeedbackTime);
+            }
+
+            if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 || query.filterFeedback) {
+                if (sendQuery.hasOwnProperty("$or")) {
+                    if (sendQuery.$and) {
+                        sendQuery.$and.push({$or: sendQuery.$or});
+                        sendQuery.$and.push({$or: sendQueryOr});
+                    } else {
+                        sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
+                        // sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                    }
+                    delete sendQuery.$or;
+                } else {
+                    sendQuery["$or"] = sendQueryOr;
+                }
+            }
+            //original block
+        }
+        if (query.callPermission === 'true') {
+            sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+        } else if (query.callPermission === 'false') {
+            sendQuery['permission.phoneCallFeedback'] = false;
+        }
+
+        if (query.depositCountOperator && query.depositCountFormal != null) {
+            switch (query.depositCountOperator) {
+                case ">=":
+                    sendQuery.topUpTimes = {
+                        $gte: query.depositCountFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.topUpTimes = query.depositCountFormal;
+                    break;
+                case "<=":
+                    sendQuery.topUpTimes = {
+                        $lte: query.depositCountFormal
+                    };
+                    break;
+                case "range":
+                    if (query.depositCountLatter != null) {
+                        sendQuery.topUpTimes = {
+                            $lte: query.depositCountLatter,
+                            $gte: query.depositCountFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.playerValueOperator && query.playerValueFormal != null) {
+            switch (query.playerValueOperator) {
+                case ">=":
+                    sendQuery.valueScore = {
+                        $gte: query.playerValueFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.valueScore = query.playerValueFormal;
+                    break;
+                case "<=":
+                    sendQuery.valueScore = {
+                        $lte: query.playerValueFormal
+                    };
+                    break;
+                case "range":
+                    if (query.playerValueLatter != null) {
+                        sendQuery.valueScore = {
+                            $lte: query.playerValueLatter,
+                            $gte: query.playerValueFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.consumptionTimesOperator && query.consumptionTimesFormal != null) {
+            switch (query.consumptionTimesOperator) {
+                case ">=":
+                    sendQuery.consumptionTimes = {
+                        $gte: query.consumptionTimesFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.consumptionTimes = query.consumptionTimesFormal;
+                    break;
+                case "<=":
+                    sendQuery.consumptionTimes = {
+                        $lte: query.consumptionTimesFormal
+                    };
+                    break;
+                case "range":
+                    if (query.consumptionTimesLatter != null) {
+                        sendQuery.consumptionTimes = {
+                            $lte: query.consumptionTimesLatter,
+                            $gte: query.consumptionTimesFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.bonusAmountOperator && query.bonusAmountFormal != null) {
+            switch (query.bonusAmountOperator) {
+                case ">=":
+                    sendQuery.bonusAmountSum = {
+                        $gte: query.bonusAmountFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.bonusAmountSum = query.bonusAmountFormal;
+                    break;
+                case "<=":
+                    sendQuery.bonusAmountSum = {
+                        $lte: query.bonusAmountFormal
+                    };
+                    break;
+                case "range":
+                    if (query.bonusAmountLatter != null) {
+                        sendQuery.bonusAmountSum = {
+                            $lte: query.bonusAmountLatter,
+                            $gte: query.bonusAmountFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.withdrawTimesOperator && query.withdrawTimesFormal != null) {
+            switch (query.withdrawTimesOperator) {
+                case ">=":
+                    sendQuery.withdrawTimes = {
+                        $gte: query.withdrawTimesFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.withdrawTimes = query.withdrawTimesFormal;
+                    break;
+                case "<=":
+                    sendQuery.withdrawTimes = {
+                        $lte: query.withdrawTimesFormal
+                    };
+                    break;
+                case "range":
+                    if (query.withdrawTimesLatter != null) {
+                        sendQuery.withdrawTimes = {
+                            $lte: query.withdrawTimesLatter,
+                            $gte: query.withdrawTimesFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.topUpSumOperator && query.topUpSumFormal != null) {
+            switch (query.topUpSumOperator) {
+                case ">=":
+                    sendQuery.topUpSum = {
+                        $gte: query.topUpSumFormal
+                    };
+                    break;
+                case "=":
+                    sendQuery.topUpSum = query.topUpSumFormal;
+                    break;
+                case "<=":
+                    sendQuery.topUpSum = {
+                        $lte: query.topUpSumFormal
+                    };
+                    break;
+                case "range":
+                    if (query.topUpSumLatter != null) {
+                        sendQuery.topUpSum = {
+                            $lte: query.topUpSumLatter,
+                            $gte: query.topUpSumFormal
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.gameProviderId && query.gameProviderId.length > 0) {
+            sendQuery.gameProviderPlayed = {$in: query.gameProviderId};
+        }
+
+        if (query.isNewSystem === "old") {
+            sendQuery.isNewSystem = {$ne: true};
+        } else if (query.isNewSystem === "new") {
+            sendQuery.isNewSystem = true;
+        }
+        if (startTime && endTime) {
+            sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
+        }
+
+        let admins = [];
+
+        if (query.departments) {
+            if (query.roles) {
+                vm.queryRoles.map(e => {
+                    if (e._id != "" && (query.roles.indexOf(e._id) >= 0)) {
+                        e.users.map(f => admins.push(f._id))
+                    }
+                })
+            } else {
+                vm.queryRoles.map(e => {
+                    if (e._id != "" && e.users && e.users.length) {
+                        e.users.map(f => {
+                            if (f._id != "") {
+                                admins.push(f._id)
+                            }
+                        })
+                    }
+                })
+            }
+        }
+
+        if ( (query.admins && query.admins.length > 0) || admins.length) {
+            sendQuery.csOfficer = query.admins && query.admins.length > 0 ? query.admins : admins;
+        }
         index = index || 0;
-        limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        isMany.limit = Math.min(isMany.limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         // query.noMoreFeedback = {$ne: true};
         switch (query.playerType) {
             case 'Test Player':
-                query.isRealPlayer = false;
+                sendQuery.isRealPlayer = false;
                 break;
             case 'Real Player (all)':
-                query.isRealPlayer = true;
+                sendQuery.isRealPlayer = true;
                 break;
             case 'Real Player (Individual)':
-                query.isRealPlayer = true;
-                query.partner = null;
+                sendQuery.isRealPlayer = true;
+                sendQuery.partner = null;
                 break;
             case 'Real Player (Under Partner)':
-                query.isRealPlayer = true;
-                query.partner = {$ne: null};
+                sendQuery.isRealPlayer = true;
+                sendQuery.partner = {$ne: null};
         }
-        if ("playerType" in query) {
-            delete query.playerType;
+        if ("playerType" in sendQuery) {
+            delete sendQuery.playerType;
         }
 
-        if (query.csOfficer && query.csOfficer.length) {
+        if (sendQuery.csOfficer && sendQuery.csOfficer.length) {
             let noneCSOfficerQuery = {}, csOfficerArr = [];
 
-            query.csOfficer.forEach(item => {
+            sendQuery.csOfficer.forEach(item => {
                 if (item == "") {
                     noneCSOfficerQuery = {csOfficer: {$exists: false}};
                 } else {
@@ -663,28 +991,64 @@ var dbPlayerFeedback = {
             });
 
             if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
-                query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
-                delete query.csOfficer;
+                sendQuery.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+                delete sendQuery.csOfficer;
 
             } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
-                query.csOfficer = {$exists: false};
+                sendQuery.csOfficer = {$exists: false};
 
             } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
-                query.csOfficer = {$in: csOfficerArr};
+                sendQuery.csOfficer = {$in: csOfficerArr};
 
             }
         }
-        let players = dbconfig.collection_players.find(query).skip(index).limit(limit)
-            .populate({path: "partner", model: dbconfig.collection_partner})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .sort(sortCol).lean();
-        let count = dbconfig.collection_players.find(query, { _id: 1}).lean();
-        return Q.all([players, count]).then(data => {
-            let total = data[1].length ? data[1].length : 0;
-            if(data[0] && data[0].length){
-                console.log('=CallOutMission= callout query result', data[0].length);
-            }
 
+        let playerResult;
+        let players;
+        let count;
+        if(isMany.searchType === "one"){
+            players = dbconfig.collection_players.find(sendQuery).skip(index).limit(isMany.limit)
+                .populate({path: "partner", model: dbconfig.collection_partner})
+                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                .sort(isMany.sortCol).lean().then(
+                    player => {
+                        if(player && player.length >0){
+                            playerResult = player[0];
+                            return dbPlayerInfo.getConsumptionDetailOfPlayers(player[0].platform, player[0].registrationTime, new Date().toISOString(), {}, [player[0]._id]);
+                        }else{
+                            return null;
+                        }
+                    }
+                ).then(
+                    consumptionDetail => {
+                        if(consumptionDetail && playerResult) {
+                            return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
+                        } else {
+                            return playerResult;
+                        }
+                    }
+                );
+
+            count = dbconfig.collection_players.count(sendQuery);
+        }else{
+            players = dbconfig.collection_players.find(sendQuery).skip(index).limit(isMany.limit)
+                .populate({path: "partner", model: dbconfig.collection_partner})
+                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                .sort(isMany.sortCol).lean();
+            count = dbconfig.collection_players.find(sendQuery, { _id: 1}).lean();
+        }
+
+        let total;
+        return Q.all([players, count]).then(data => {
+            if(isMany.searchType === "one"){
+                total = data[1];
+            }else{
+                total = data[1].length ? data[1].length : 0;
+                if(data[0] && data[0].length){
+                    console.log('=CallOutMission= callout query result', data[0].length);
+                }
+            }
+            console.log('return data', data);
             return {
                 data: data[0] ? data[0] : {},
                 index: index,
