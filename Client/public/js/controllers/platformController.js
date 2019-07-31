@@ -26609,11 +26609,8 @@ define(['js/app'], function (myApp) {
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
-                if(rewardPointsEvent.status == true){
-                    vm.allOpen = true;
-                }else{
-                    vm.allOpen = false;
-                }
+                vm.allOpen = rewardPointsEvent.status === true
+                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
