@@ -26079,6 +26079,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
+                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -26780,6 +26781,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
+
+                vm.allOpen = rewardPointsEvent.status === true
+                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -26901,6 +26905,19 @@ define(['js/app'], function (myApp) {
                 for (let x in vm.rewardPointsEvent) {
                     vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
                 }
+                vm.allOpen = false;
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.openAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = true;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.allOpen = true;
                 vm.rewardPointsEventUpdateAll = false;
             };
 

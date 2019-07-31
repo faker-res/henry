@@ -189,6 +189,7 @@
   "EDIT_ALL": "编辑全部",
   "DELETE_ALL": "全部删除",
   "CLOSE_ALL":"全部关闭",
+  "OPEN_ALL":"全部开启",
   "DELETE": "删除",
   "GO_BACK": "取消",
   "READ_ONLY": "只读",
