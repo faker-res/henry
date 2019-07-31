@@ -17094,7 +17094,7 @@ define(['js/app'], function (myApp) {
 
                 $('#platformFeedbackSpin').show();
                 console.log('sendQuery', vm.playerFeedbackQuery);
-                // vm.exportQuery = sendQuery;
+                vm.exportQuery = vm.getPlayerFeedbackQuery();
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
                     vm.feedbackPlayersPara.index = 1;
