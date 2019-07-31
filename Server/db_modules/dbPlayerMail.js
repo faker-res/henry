@@ -1087,7 +1087,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData, useVoiceCode) {
         let blackListingPhoneNumber = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
@@ -1128,7 +1128,7 @@ const dbPlayerMail = {
                     }
                 }
 
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData, false, null, useVoiceCode);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
