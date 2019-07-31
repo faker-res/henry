@@ -412,7 +412,6 @@ var proposal = {
         let bExecute = false;
         let proposalTypeData = null;
         let pendingProposalData = null;
-        let duplicateBankAccountName = false;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -557,53 +556,6 @@ var proposal = {
                         pendingProposal => {
                             pendingProposalData = pendingProposal;
 
-                            // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
-                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
-                                && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
-
-                                return dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean().then(
-                                    platformData => {
-                                        if (!platformData) {
-                                            deferred.reject({name: "DataError", message: "Cannot find platform"});
-                                        }
-
-                                        // if checking required
-                                        if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime) {
-                                            return dbconfig.collection_proposal.find({
-                                                type: proposalTypeData._id,
-                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                                'data.platformId': proposalData.data.platformId,
-                                                'data.playerId': proposalData.data.playerId,
-                                                'data.playerName': proposalData.data.playerName
-                                            }).lean().then(
-                                                bankProposal => {
-                                                    // checking only applies for 2nd bank proposal, 1st time is add new bank
-                                                    if (bankProposal && bankProposal.length === 1) {
-                                                        bankProposal = bankProposal[0];
-                                                        return dbconfig.collection_players.findOne({
-                                                            _id: {$ne: bankProposal.data._id}, // exclude this player
-                                                            platform: bankProposal.data.platformId,
-                                                            realName: bankProposal.data.bankAccountName
-                                                        }).lean().then(
-                                                            player => {
-                                                                if (player) {
-                                                                    duplicateBankAccountName = true;
-                                                                    deferred.reject({
-                                                                        name: "DataError",
-                                                                        message: "银行信息重复绑定，请联系客服，谢谢！"
-                                                                    });
-                                                                }
-                                                            }
-                                                        );
-                                                    }
-                                                }
-                                            );
-                                        }
-                                    
-                                })
-                            }
-
                             // for player update bank info, check if first time bound to the bank info
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
@@ -638,9 +590,7 @@ var proposal = {
                                 });
 
                             }
-                        }
-                    ).then(
-                        bankInfoProposal => {
+                        }).then(bankInfoProposal => {
                             // add remark if first time bound to the bank info
                             if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
@@ -690,13 +640,6 @@ var proposal = {
                                         }
                                     );
                                 } else {
-                                    // if from fpms back end, proceed update bank info
-                                    // if from front end, prohibit update bank info
-                                    if (duplicateBankAccountName && proposalData.hasOwnProperty('creator') && proposalData.creator.type === 'player') {
-                                        proposalData.data.remark = '二次银改姓名重复';
-                                        proposalData.status = constProposalStatus.FAIL;
-                                        bExecute = false;
-                                    }
                                     var proposalProm = proposal.createProposal(proposalData);
                                     var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                     return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -9291,8 +9234,6 @@ var proposal = {
         }
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
-            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-            .populate({path: "data.partnerObjId", model: dbconfig.collection_partner})
             .populate({path: "data.platformId", model: dbconfig.collection_platform}).then(
             proposalData => {
                 if (proposalData) {
@@ -9307,41 +9248,62 @@ var proposal = {
                         entryType: proposalData.entryType
                     };
 
-                    if (proposalData.data && proposalData.data.playerObjId && Object.keys(proposalData.data.playerObjId).length > 0) {
-                        message.bankTypeId = proposalData.data.playerObjId.bankName || "";
-                        message.accountName = proposalData.data.playerObjId.bankAccountName || "";
-                        message.accountCity = proposalData.data.playerObjId.bankAccountCity || "";
-                        message.accountProvince = proposalData.data.playerObjId.bankAccountProvince || "";
-                        message.accountNo = proposalData.data.playerObjId.bankAccount ? proposalData.data.playerObjId.bankAccount.replace(/\s/g, '') : "";
-                        message.bankAddress = proposalData.data.playerObjId.bankAddress || "";
-                        message.bankName = proposalData.data.playerObjId.bankName || "";
-                        message.loginName = proposalData.data.playerObjId.name || "";
-                    }
-
-                    if (proposalData.data && proposalData.data.partnerObjId && Object.keys(proposalData.data.partnerObjId).length > 0) {
-                        message.bankTypeId = proposalData.data.partnerObjId.bankName || "";
-                        message.accountName = proposalData.data.partnerObjId.bankAccountName || "";
-                        message.accountCity = proposalData.data.partnerObjId.bankAccountCity || "";
-                        message.accountProvince = proposalData.data.partnerObjId.bankAccountProvince || "";
-                        message.accountNo = proposalData.data.partnerObjId.bankAccount ? proposalData.data.partnerObjId.bankAccount.replace(/\s/g, '') : "";
-                        message.bankAddress = proposalData.data.partnerObjId.bankAddress || "";
-                        message.bankName = proposalData.data.partnerObjId.bankName || "";
-                        message.loginName = proposalData.data.partnerObjId.partnerName || "";
-                    }
                     console.log('check status before syncWithdrawalProposalToPMS:', proposalData.status);
-                    console.log('syncWithdrawalProposalToPMS req:', message);
-                    return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
-                        bonusData => {
-                            if (bonusData) {
-                                let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
-                                return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
-                                    return Promise.resolve(true);
-                                });
+                    if (proposalData.data && proposalData.data.playerObjId) {
+                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                            playerData => {
+                                if (playerData) {
+                                    message.bankTypeId = playerData.bankName || "";
+                                    message.accountName = playerData.bankAccountName || "";
+                                    message.accountCity = playerData.bankAccountCity || "";
+                                    message.accountProvince = playerData.bankAccountProvince || "";
+                                    message.accountNo = playerData.bankAccount ? playerData.bankAccount.replace(/\s/g, '') : "";
+                                    message.bankAddress = playerData.bankAddress || "";
+                                    message.bankName = playerData.bankName || "";
+                                    message.loginName = playerData.name || "";
+
+                                    console.log('player -- syncWithdrawalProposalToPMS req:', message);
+                                    return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                                        bonusData => {
+                                            if (bonusData) {
+                                                let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
+                                                return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
+                                                    return Promise.resolve(true);
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
                             }
-                        }
-                    );
+                        )
+                    } else if (proposalData.data && proposalData.data.partnerObjId) {
+                        return dbconfig.collection_partner.findOne({_id: proposalData.data.partnerObjId}).lean().then(
+                            partnerData => {
+                                if (partnerData) {
+                                    message.bankTypeId = partnerData.bankName || "";
+                                    message.accountName = partnerData.bankAccountName || "";
+                                    message.accountCity = partnerData.bankAccountCity || "";
+                                    message.accountProvince = partnerData.bankAccountProvince || "";
+                                    message.accountNo = partnerData.bankAccount ? partnerData.bankAccount.replace(/\s/g, '') : "";
+                                    message.bankAddress = partnerData.bankAddress || "";
+                                    message.bankName = partnerData.bankName || "";
+                                    message.loginName = partnerData.partnerName || "";
 
-
+                                    console.log('partner -- syncWithdrawalProposalToPMS req:', message);
+                                    return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                                        bonusData => {
+                                            if (bonusData) {
+                                                let proposalRemark = proposalData.data.remark && proposalData.data.remark != 'undefined' ? proposalData.data.remark + "; " + remark : remark;
+                                                return dbconfig.collection_proposal.update({_id: proposalData._id}, {'data.remark': proposalRemark}).then(() => {
+                                                    return Promise.resolve(true);
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
+                            }
+                        )
+                    }
                 }
             }
         );
@@ -11897,21 +11859,17 @@ function populateProposalData (data) {
     }
 
     return getPMSWithdrawalProposal(withdrawalProposalIds).then(pmsWithdrawalProposal => {
-        if (pmsWithdrawalProposal && pmsWithdrawalProposal.length > 0) {
-            data.map(item => {
-                if (item && item.type && item.type.name && (item.type.name === constProposalType.PLAYER_BONUS || item.type.name === constProposalType.PARTNER_BONUS)
-                    && item.status === 'Approved' && item.data.bonusSystemName === 'PMS2') {
-                    let index = pmsWithdrawalProposal.map(pmsData => pmsData && pmsData.proposalId).indexOf(item.proposalId);
+        return data.map(item => {
+            if (item && item.type && item.type.name && (item.type.name === constProposalType.PLAYER_BONUS || item.type.name === constProposalType.PARTNER_BONUS)
+                && item.status === 'Approved' && item.data.bonusSystemName === 'PMS2') {
+                let index = pmsWithdrawalProposal.map(pmsData => pmsData && pmsData.proposalId).indexOf(item.proposalId);
 
-                    if (index === -1) {
-                        item.data.enableSyncWithdraw = Boolean(true);
-                    }
+                if (index === -1) {
+                    item.data.enableSyncWithdraw = Boolean(true);
                 }
-                return item;
-            });
-        }
-
-        return data;
+            }
+            return item;
+        });
     }).catch(
         err => {
             return data;

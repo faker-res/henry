@@ -14939,7 +14939,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode, closeMusic) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, userAgent, tableCode, closeMusic) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -15270,7 +15270,7 @@ let dbPlayerInfo = {
         }
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
 
         var platformData = null;
         var providerData = null;
@@ -20989,7 +20989,8 @@ let dbPlayerInfo = {
                     createTime: {
                         $gte: new Date(query.queryStart),
                         $lt: new Date(query.queryEnd)
-                    }
+                    },
+                    "data.amount": {$exists: true}
                 }
             },
             {
@@ -21273,7 +21274,6 @@ let dbPlayerInfo = {
                     });
 
 
-
                     for (let key in retData) {
                         for (let key2 in retData[key]) {
                             outputData.push(retData[key][key2]);
@@ -21284,8 +21284,44 @@ let dbPlayerInfo = {
                         outputData[i].topUpCount = outputData && outputData[i].topUpCount ? outputData[i].topUpCount : 0;
                         outputData[i].topUpAmount = outputData && outputData[i].topUpAmount ? outputData[i].topUpAmount : 0;
                         outputData[i].bonusCount = outputData && outputData[i].bonusCount ? outputData[i].bonusCount : 0;
+                        outputData[i].consumptionCount = outputData && outputData[i].consumptionCount ? outputData[i].consumptionCount : 0;
+
 
                         let isSplice = false;
+                        if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesOperator && query.consumptionTimesValue !== null) {
+
+                            switch (query.consumptionTimesOperator) {
+                                case '>=':
+                                    if (outputData[i].consumptionCount <= query.consumptionTimesValue) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                    break;
+                                case '=':
+                                    if (outputData[i].consumptionCount !== Number(query.consumptionTimesValue)) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                    break;
+                                case '<=':
+                                    if (outputData[i].consumptionCount >= query.consumptionTimesValue) {
+                                        outputData.splice(i, 1);
+                                        isSplice = true;
+                                    }
+                                    break;
+                                case 'range':
+                                    if (query.tconsumptionTimesValueTwo) {
+                                        if (outputData[i].consumptionCount <= query.consumptionTimesValue && outputData[i].consumptionCount >= query.consumptionTimesValueTwo) {
+                                            outputData.splice(i, 1);
+                                            isSplice = true;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                        if (isSplice) {
+                            continue;
+                        }
                         if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
 
                             switch (query.topUpTimesOperator) {
@@ -21392,15 +21428,17 @@ let dbPlayerInfo = {
                         b = b.date.split('-').join('');
                         return a - b;
                     });
+
                 }
                 else{
                     outputData = [];
                 }
                 return {data: outputData, size: outputData.length};
+
             }
         );
     },
-
+    
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;

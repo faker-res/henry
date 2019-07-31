@@ -1168,6 +1168,17 @@
                 .search-filters-item
                     label {{'End date' | translate}}
                     .queryEndTime
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.consumptionTimesOperator === "range")}')
+                    label {{"Consumption Times"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.dxTrackingQuery.consumptionTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.consumptionTimesValue")
+                            div.symbol(ng-if="vm.dxTrackingQuery.consumptionTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.consumptionTimesValueTwo" ng-if="vm.dxTrackingQuery.consumptionTimesOperator === 'range'")
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
                     div

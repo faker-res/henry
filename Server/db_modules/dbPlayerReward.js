@@ -10023,9 +10023,11 @@ let dbPlayerReward = {
 
     getPlayerRewardRetention: async function (platform, eventObjId, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, inputDeviceTypes) {
         let day0PlayerObj = {};
+        let day0NewPlayerObj = {};
         let dayNPlayerObj = {};
         let day0PlayerArrayProm = [];
-        let playerArrayProm = [];
+        let day0NewPlayerArrayProm = [];
+        // let playerArrayProm = [];
         let time0 = new Date(startTime);
         let time1 = new Date(startTime);
         time1.setHours(23, 59, 59, 999);
@@ -10062,24 +10064,58 @@ let dbPlayerReward = {
             }
         }
 
+        // getting the new registered player
         for (let day = 0; day <= dayCount; day++) {
             let queryObj = {
-                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                settleTime: {
+                platform: platform,
+                registrationTime: {
                     $gte: new Date(time0),
                     $lt: new Date(time1)
                 },
-                'data.platformId': platform,
-                'data.eventId': eventObjId
+                isRealPlayer: isRealPlayer,
+                isTestPlayer: isTestPlayer
             };
 
-            let temp = dbConfig.collection_proposal.aggregate(
+            if(inputDeviceTypes) {
+                queryObj.registrationInterface = {$in: inputDeviceTypes};
+            }
+
+            if (domainList){
+                if (domainList.indexOf("") != -1){
+                    queryObj['$and'] = [
+                        {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
+                    ]
+                }
+                else{
+                    queryObj.domain = {$in: domainList};
+                }
+            }
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    queryObj.partner = {$type: "objectId"};
+                }else {
+                    if (queryObj.hasOwnProperty("$and")){
+                        queryObj['$and'].push({$or: [ {partner: null}, {partner: {$exists: false}} ]})
+                    }
+                    else{
+                        queryObj['$or'] = [
+                            {partner: null},
+                            {partner: {$exists: false}}
+                        ]
+                    }
+                }
+            }
+
+            queryObj = Object.assign({}, queryObj, playerFilter);
+
+            var temp = dbConfig.collection_players.aggregate(
                 [{
                     $match: queryObj
                 }, {
                     $group: {
                         _id: {
-                            playerId: "$data.playerObjId",
+                            playerId: "$_id",
                         }
                     }
                 }, {
@@ -10091,172 +10127,167 @@ let dbPlayerReward = {
                     }
                 }]
             ).read("secondaryPreferred").exec();
+            day0NewPlayerArrayProm.push(temp);
+            time0.setDate(time0.getDate() + 1);
+            time1.setDate(time1.getDate() + 1);
+        }
+
+        let day0NewPlayerArrayData = await Promise.all(day0NewPlayerArrayProm);
+
+        if (day0NewPlayerArrayData && day0NewPlayerArrayData.length) {
+            //containing new player data on each 'day 0'
+            for (let i in day0NewPlayerArrayData) {
+                if (day0NewPlayerArrayData[i].length > 0) {
+                    day0NewPlayerObj[day0NewPlayerArrayData[i][0]._id] = day0NewPlayerArrayData[i][0].playerId
+                        .map(a => ObjectId(a))
+                        .sort((a, b) => a < b ? -1 : 1);
+                }
+            }
+        }
+
+        time0 = new Date(startTime);
+        time1 = new Date(startTime);
+        time1.setHours(23, 59, 59, 999);
+        for (let day = 0; day <= dayCount; day++) {
+            let queryObj = {
+                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                settleTime: {
+                    $gte: new Date(time0),
+                    $lt: new Date(time1)
+                },
+                'data.platformId': platform,
+                'data.eventId': eventObjId,
+            };
+
+            let temp = Promise.resolve([]);
+            if (time0 && time0.toString() && day0NewPlayerObj && day0NewPlayerObj[time0.toString()] && day0NewPlayerObj[time0.toString()].length){
+                queryObj['data.playerObjId'] = {$in: day0NewPlayerObj[time0.toString()]};
+
+                temp = dbConfig.collection_proposal.aggregate(
+                    [{
+                        $match: queryObj
+                    }, {
+                        $group: {
+                            _id: {
+                                playerId: "$data.playerObjId",
+                            }
+                        }
+                    }, {
+                        $group: {
+                            _id: time0.toString(),
+                            playerId: {
+                                "$addToSet": "$_id.playerId"
+                            }
+                        }
+                    }]
+                ).read("secondaryPreferred").exec()
+            }
+
             day0PlayerArrayProm.push(temp);
             time0.setDate(time0.getDate() + 1);
             time1.setDate(time1.getDate() + 1);
         }
 
-        let day0PlayerArrayData = await Promise.all(day0PlayerArrayProm);
+        var day0PlayerArrayData = await Promise.all(day0PlayerArrayProm);
 
         if (day0PlayerArrayData && day0PlayerArrayData.length) {
             //containing new player data on each 'day 0'
             for (var i in day0PlayerArrayData) {
                 if (day0PlayerArrayData[i].length > 0) {
                     day0PlayerObj[day0PlayerArrayData[i][0]._id] = day0PlayerArrayData[i][0].playerId
-                        .map(a => ObjectId(a))
+                        .map(a => a.toString())
                         .sort((a, b) => a < b ? -1 : 1);
                 }
             }
 
-            Object.keys(day0PlayerObj).forEach(key => {
-                let playerQuery = {
-                    _id: {$in: day0PlayerObj[key]},
-                    isRealPlayer: isRealPlayer,
-                    isTestPlayer: isTestPlayer
+            time0 = new Date(startTime);
+            time1 = new Date(startTime);
+            time1.setHours(23, 59, 59, 999);
+            let loginDataArrayProm = [];
+            for (let day = 0; day <= dayCount + days[days.length - 1]; day++) {
+
+                let matchObj = {
+                    platform: platform,
+                    loginTime: {
+                        $gte: new Date(time0),
+                        $lt: new Date(time1)
+                    }
                 };
 
                 if (inputDeviceTypes) {
-                    playerQuery.registrationInterface = {$in: inputDeviceTypes};
+                    matchObj.inputDeviceType = {$in: inputDeviceTypes};
                 }
 
-                if (domainList) {
-                    if (domainList.indexOf("") != -1) {
-                        playerQuery['$and'] = [
-                            {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
-                        ]
-                    } else {
-                        playerQuery.domain = {$in: domainList};
-                    }
-                }
+                let temp = dbConfig.collection_playerLoginRecord.aggregate(
+                    [{
+                        $match: matchObj
 
-                if (hasPartner !== null) {
-                    if (hasPartner == true) {
-                        playerQuery.partner = {$type: "objectId"};
-                    } else {
-                        if (playerQuery.hasOwnProperty("$and")) {
-                            playerQuery['$and'].push({$or: [{partner: null}, {partner: {$exists: false}}]})
-                        } else {
-                            playerQuery['$or'] = [
-                                {partner: null},
-                                {partner: {$exists: false}}
-                            ]
+                    }, {
+                        $group: {
+                            _id: {
+                                playerId: "$player",
+                            }
                         }
-                    }
-                }
-
-                playerQuery = Object.assign({}, playerQuery, playerFilter);
-                // console.log("checking playerQuery", JSON.stringify(playerQuery))
-
-                let playerTemp = dbConfig.collection_players.find(playerQuery, {_id: -1}).lean();
-                playerArrayProm.push(playerTemp);
-            });
-
-            let playerArr = await Promise.all(playerArrayProm);
-            if (playerArr && playerArr.length) {
-                let count = 0;
-                Object.keys(day0PlayerObj).forEach(key => {
-                    let tempArr = [];
-                    playerArr[count].forEach( p => {
-                        if (p && p._id){
-                            tempArr.push(p._id.toString())
+                    }, {
+                        $group: {
+                            _id: time0.toString(),
+                            playerId: {
+                                "$addToSet": "$_id.playerId"
+                            }
                         }
-                    })
-                    day0PlayerObj[key] = tempArr;
-                    count += 1;
-                })
+                    }]
+                ).read("secondaryPreferred").exec();
+                loginDataArrayProm.push(temp);
+                time0.setDate(time0.getDate() + 1);
+                time1.setDate(time1.getDate() + 1);
             }
 
-            if (day0PlayerObj) {
-                let time0 = new Date(startTime);
-                let time1 = new Date(startTime);
-                time1.setHours(23, 59, 59, 999);
-                let loginDataArrayProm = [];
-                for (let day = 0; day <= dayCount + days[days.length - 1]; day++) {
-
-                    let matchObj = {
-                        platform: platform,
-                        loginTime: {
-                            $gte: new Date(time0),
-                            $lt: new Date(time1)
-                        }
-                    };
-
-                    if (inputDeviceTypes) {
-                        matchObj.inputDeviceType = {$in: inputDeviceTypes};
-                    }
-
-                    let temp = dbConfig.collection_playerLoginRecord.aggregate(
-                        [{
-                            $match: matchObj
-
-                        }, {
-                            $group: {
-                                _id: {
-                                    playerId: "$player",
-                                }
-                            }
-                        }, {
-                            $group: {
-                                _id: time0.toString(),
-                                playerId: {
-                                    "$addToSet": "$_id.playerId"
-                                }
-                            }
-                        }]
-                    ).read("secondaryPreferred").exec();
-                    loginDataArrayProm.push(temp);
-                    time0.setDate(time0.getDate() + 1);
-                    time1.setDate(time1.getDate() + 1);
+            let dayNPlayerArrayData = await Promise.all(loginDataArrayProm);
+            for (let i in dayNPlayerArrayData) {
+                if (dayNPlayerArrayData[i].length > 0) {
+                    dayNPlayerObj[dayNPlayerArrayData[i][0]._id] = dayNPlayerArrayData[i][0].playerId
+                        .map(a => a.toString())
+                        .sort((a, b) => a < b ? -1 : 1);
                 }
-
-                let dayNPlayerArrayData = await Promise.all(loginDataArrayProm);
-
-                for (let i in dayNPlayerArrayData) {
-                    if (dayNPlayerArrayData[i].length > 0) {
-                        dayNPlayerObj[dayNPlayerArrayData[i][0]._id] = dayNPlayerArrayData[i][0].playerId
-                            .map(a => a.toString())
-                            .sort((a, b) => a < b ? -1 : 1);
-                    }
-                }
-                // console.log("checking --- day0PlayerObj", day0PlayerObj)
-                // console.log("checking --- dayNPlayerObj", dayNPlayerObj)
-                //now computing result array
-                var resultArr = [];
-                for (let i = 1; i <= dayCount; i++) {
-                    let date = new Date(startTime);
-                    date.setDate(date.getDate() + i - 1);
-                    // var showDate = new Date(startTime);
-                    // showDate.setDate(showDate.getDate() + i);
-                    let row = {date: date};
-                    let baseArr = [];
-
-                    if (day0PlayerObj[date]) {
-                        row.day0 = day0PlayerObj[date].length;
-                        baseArr = day0PlayerObj[date];
-                    } else {
-                        row.day0 = 0;
-                    }
-                    for (let day in days) {
-                        let time = new Date(date);
-                        time.setDate(time.getDate() + days[day]);
-                        let num = dayNPlayerObj[time];
-                        if (!num || (row.day0 == 0)) {
-                            row[days[day]] = 0;
-                        } else {
-                            let count = 0;
-                            for (var e in num) {
-                                if (baseArr.indexOf(num[e]) != -1) {
-                                    count++;
-                                }
-                            }
-                            row[days[day]] = count;
-                        }
-                    }
-                    resultArr.push(row);
-                }
-
-                return resultArr;
             }
+            // console.log("checking --- day0PlayerObj", day0PlayerObj)
+            // console.log("checking --- dayNPlayerObj", dayNPlayerObj)
+            //now computing result array
+            var resultArr = [];
+            for (let i = 1; i <= dayCount; i++) {
+                let date = new Date(startTime);
+                date.setDate(date.getDate() + i - 1);
+                // var showDate = new Date(startTime);
+                // showDate.setDate(showDate.getDate() + i);
+                let row = {date: date};
+                let baseArr = [];
+
+                if (day0PlayerObj[date]) {
+                    row.day0 = day0PlayerObj[date].length;
+                    baseArr = day0PlayerObj[date];
+                } else {
+                    row.day0 = 0;
+                }
+                for (let day in days) {
+                    let time = new Date(date);
+                    time.setDate(time.getDate() + days[day]);
+                    let num = dayNPlayerObj[time];
+                    if (!num || (row.day0 == 0)) {
+                        row[days[day]] = 0;
+                    } else {
+                        let count = 0;
+                        for (var e in num) {
+                            if (baseArr.indexOf(num[e]) != -1) {
+                                count++;
+                            }
+                        }
+                        row[days[day]] = count;
+                    }
+                }
+                resultArr.push(row);
+            }
+
+            return resultArr;
         }
     },
 
