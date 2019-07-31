@@ -42665,6 +42665,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.checkProposalStepUpdatePermission = () => {
+                let isValid = false;
+                if (authService.checkViewPermission('Platform', 'Proposal', 'Create') || authService.checkViewPermission('Platform', 'Proposal', 'Update')
+                    || authService.checkViewPermission('Platform', 'Proposal', 'Delete')) {
+                    isValid = true;
+                }
+                return isValid;
+            }
+
             function getSelectedPlatform() {
                 let platform = null;
                 let selectedPlatformObjId = null;
