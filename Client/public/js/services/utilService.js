@@ -379,6 +379,10 @@ define([], function () {
             if (!date) return null;
             return new Date(date.setHours(0, 0, 0, 0));
         }
+        this.setThisDayEndTime = function (date) {
+            if (!date) return null;
+            return new Date(date.setHours(23, 59, 59, 999));
+        }
         this.getTodayStartTime = function () {
             let todayDate = new Date();
             return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
