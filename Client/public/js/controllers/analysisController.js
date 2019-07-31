@@ -5223,22 +5223,13 @@ define(['js/app'], function (myApp) {
                 sendData.hasPartner = null;
             }
 
-            if (key == 'reward'){
-                socketService.$socket($scope.AppSocket, 'getDomainListFromApplicant', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
-                        console.log('domain data', vm.domainList);
-                    })
-                });
-            }
-            else{
-                socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
-                        console.log('domain data', vm.domainList);
-                    })
-                });
-            }
+            socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                    console.log('domain data', vm.domainList);
+                })
+            });
+
         };
 
         vm.retentionFilterOnChange = function (key, notCheckDomain) {

@@ -3721,6 +3721,10 @@ API说明：
 	    status: 200
 	    data: {
 	        rewardAmount: 优惠额度
+	        selectedReward: {
+	            //随机抽奖组优惠 
+	            rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
+	        }
         }
         ```
 	* 操作失败:
