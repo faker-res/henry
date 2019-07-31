@@ -3695,7 +3695,16 @@ var proposal = {
         };
 
         if (reqData.inputDevice) {
-            reqData.inputDevice = Number(reqData.inputDevice);
+            if(reqData.inputDevice == 6){
+                reqData.inputDevice = {$in: [6, '6', 8, '8']};
+                queryData.inputDevice = {$in: [6, '6', 8, '8']};
+            } else if (reqData.inputDevice == 5) {
+                reqData.inputDevice = {$in: [5, '5', 7, '7']};
+                queryData.inputDevice = {$in: [5, '5', 7, '7']};
+            } else {
+                reqData.inputDevice = Number(reqData.inputDevice);
+                queryData.inputDevice = Number(queryData.inputDevice);
+            }
         }
 
         if (reqData.status) {
