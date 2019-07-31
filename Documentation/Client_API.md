@@ -1124,8 +1124,9 @@ API说明：
 		*
 			```
 			{
-				platformId:1,purpose:
-				“updateBankInfo”
+				platformId:1,
+				purpose: “updateBankInfo”,
+				useVoiceCode: true, //选填|Boolean| 是否使用语音验证码
 			},
 				platformId: 平台ID
 				purpose: 验证用途，可收入内容如下：
