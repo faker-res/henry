@@ -907,8 +907,8 @@ const dbRewardUtility = {
 
         let orArray = [{'data.playerObjId': playerData._id}];
 
-        if (eventData.condition.checkSameIP && playerData.lastLoginIp) {
-            orArray.push({'data.lastLoginIp': playerData.lastLoginIp})
+        if (eventData.condition.checkSameIP && playerData.loginIps) {
+            orArray.push({'data.lastLoginIp': {$in: playerData.loginIps}})
         }
         if (eventData.condition.checkSamePhoneNumber && playerData.phoneNumber) {
             orArray.push({'data.phoneNumber': playerData.phoneNumber})
