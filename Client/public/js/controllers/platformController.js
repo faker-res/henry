@@ -26608,9 +26608,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
-                console.log("idx.....", idx);
-                console.log("rewardPointsEvent.....", rewardPointsEvent);
-                console.log("rewardPointsEvent.....target", rewardPointsEvent.target);
 
                 if(rewardPointsEvent.status == true){
                     vm.allOpen = true;

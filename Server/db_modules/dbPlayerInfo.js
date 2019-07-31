@@ -21030,9 +21030,7 @@ let dbPlayerInfo = {
             }
         );
     },
-
-    //ricco9007
-
+    
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;
