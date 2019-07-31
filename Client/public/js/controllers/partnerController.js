@@ -7025,6 +7025,10 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
             }
 
+            if (vm.newPartner && vm.newPartner.ownDomain && !Array.isArray(vm.newPartner.ownDomain)) {
+                vm.newPartner.ownDomain = [vm.newPartner.ownDomain]; //db create partnerOwnDomain using array
+            }
+
             console.log(vm.newPartner);
 
             socketService.$socket($scope.AppSocket, str, vm.newPartner, function (data) {

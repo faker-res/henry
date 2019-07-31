@@ -11977,7 +11977,7 @@ let dbPlayerInfo = {
             delete query.registrationInterface;
 
             if(tempRegistrationInterface == 5){
-                query.partner  = null; 
+                query.partner  = null;
             } else {
                 query.partner  = {$ne:null};
             }
@@ -15270,7 +15270,7 @@ let dbPlayerInfo = {
         }
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
 
         var platformData = null;
         var providerData = null;
