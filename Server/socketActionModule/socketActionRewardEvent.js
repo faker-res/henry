@@ -184,7 +184,7 @@ function socketActionRewardEvent(socketIO, socket) {
             if (data.startTime && data.endTime) {
                 let timeDiff =  new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
                 if (timeDiff >= 0) {
-                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
+                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
                 }
             }
             var isValidData = Boolean(data && data.platform && data.eventObjId && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');

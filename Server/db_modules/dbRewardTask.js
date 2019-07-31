@@ -2117,8 +2117,9 @@ const dbRewardTask = {
             let query = {
                 'data.platformId': platformId,
                 type: data._id,
-                createTime: {$gte: startDate, $lt: endDate},
-                "data.eventName": eventName
+                settleTime: {$gte: startDate, $lt: endDate},
+                "data.eventName": eventName,
+                status: {$in: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
 
             return dbconfig.collection_proposal.find(query);
