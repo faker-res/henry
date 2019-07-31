@@ -5667,6 +5667,9 @@ define(['js/app'], function (myApp) {
                     end: vm.dxTrackingQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxTrackingQuery.queryStart.data('datetimepicker').getLocalDate(),
                     queryEnd: vm.dxTrackingQuery.queryEnd.data('datetimepicker').getLocalDate(),
+                    consumptionTimesOperator: vm.dxTrackingQuery.consumptionTimesOperator,
+                    consumptionTimesValue: vm.dxTrackingQuery.consumptionTimesValue,
+                    consumptionTimesValueTwo: vm.dxTrackingQuery.consumptionTimesValueTwo,
                     topUpTimesOperator: vm.dxTrackingQuery.topUpTimesOperator,
                     topUpTimesValue: vm.dxTrackingQuery.topUpTimesValue,
                     topUpTimesValueTwo: vm.dxTrackingQuery.topUpTimesValueTwo,
@@ -10819,7 +10822,8 @@ define(['js/app'], function (myApp) {
                     vm.dxTrackingQuery = {
                         topUpTimesOperator: ">=",
                         bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
+                        topUpAmountOperator: ">=",
+                        consumptionTimesOperator: ">="
                     };
 
 
