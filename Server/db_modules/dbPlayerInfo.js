@@ -15169,8 +15169,7 @@ let dbPlayerInfo = {
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
                     clientType: clientType || 1,
-                    closeMusic: closeMusic || false,
-                    inputDevice: inputDevice
+                    closeMusic: closeMusic || false
                 };
 
                 if (gameData && gameData.orientationSetting) {
@@ -15288,8 +15287,7 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType || 1,
-                        inputDevice: inputDevice
+                        clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
@@ -15306,7 +15304,7 @@ let dbPlayerInfo = {
             );
     },
 
-    getTestLoginURLWithoutUser: function (platformId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getTestLoginURLWithoutUser: function (platformId, gameId, ip, lang, clientDomainName, clientType) {
 
         var providerData = null;
         var platformData = null;
@@ -15338,8 +15336,7 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType || 1,
-                        inputDevice: inputDevice
+                        clientType: clientType || 1
                     };
                     if (gameData && gameData.orientationSetting) {
                         console.log('MT --checking orientation setting', gameData.orientationSetting);

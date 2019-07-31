@@ -201,6 +201,9 @@ var GameServiceImplement = function () {
             device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
             os: ua.os.name || ''
         }];
+        if (data) {
+            data.clientType = inputDevice
+        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId, data.closeMusic], isValidData);
     };
 
@@ -218,6 +221,9 @@ var GameServiceImplement = function () {
         if (ip && ip.substr(0, 7) == "::ffff:") {
             ip = ip.substr(7)
         }
+        if (data) {
+            data.clientType = inputDevice;
+        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType, inputDevice], isValidData);
     };
 
@@ -231,6 +237,9 @@ var GameServiceImplement = function () {
             if(forwardedIp[0].trim() != "undefined"){
                 ip = forwardedIp[0].trim();
             }
+        }
+        if (data) {
+            data.clientType = inputDevice;
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType, inputDevice], isValidData, false, false, true);
     };
