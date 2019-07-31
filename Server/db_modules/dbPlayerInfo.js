@@ -14915,7 +14915,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice, userAgent, tableCode, closeMusic) {
+    getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, userAgent, tableCode, closeMusic) {
         let providerData = null;
         let playerData = null;
         let platform = null;
@@ -15246,7 +15246,7 @@ let dbPlayerInfo = {
         }
     },
 
-    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
+    getTestLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType) {
 
         var platformData = null;
         var providerData = null;
