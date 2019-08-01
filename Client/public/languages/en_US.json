@@ -1281,6 +1281,7 @@
   "TOP_UP_CONDITION_INTERVAL": "Top up condition between interval type",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
+  "CHECK_DUPLICATE_BANK_ACCOUNT_NAME_IF_EDIT_BANK_CARD_SECOND_TIME": "Check duplicate bank account name if edit bank card for the second time",
   "SMS_VERIFICATION": "SMS Verification",
   "SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER": "SMS Verification For Create Test Player",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "SMS Verification For Password Update",
