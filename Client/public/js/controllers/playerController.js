@@ -1827,7 +1827,7 @@ define(['js/app'], function (myApp) {
         vm.performPlayerLevelSettlement = function (upOrDown) {
             vm.playerLevelSettlement.status = 'processing';
             socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
-                {platformId: vm.selectedPlatform.id, upOrDown: upOrDown},
+                {platformId: vm.selectedPlatform.id, upOrDown: upOrDown, isPlayer: true},
                 function (data) {
                     console.log('playerLevelSettlement', data);
                     vm.playerLevelSettlement.status = 'completed';
@@ -11983,14 +11983,14 @@ define(['js/app'], function (myApp) {
 
                                 //here's to check creator is not null
                                 var creator;
-                                if(data.data && data.data.creator){
+                                if(data && data.creator){
 
-                                    if(data.data.creator.type === "admin"){
-                                        creator = data.data.creator.name;
+                                    if(data.creator.type === "admin"){
+                                        creator = data.creator.name;
 
-                                    }else if(data.data.creator.type === "player"){
+                                    }else if(data.creator.type === "player"){
                                         creator = $translate('System');
-                                        creator += "(" + data.data.creator.name + ")";
+                                        creator += "(" + data.creator.name + ")";
                                     }
 
                                 }else{

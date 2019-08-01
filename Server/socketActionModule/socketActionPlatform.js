@@ -425,7 +425,7 @@ function socketActionPlatform(socketIO, socket) {
          startPlatformPlayerLevelSettlement: function startPlatformPlayerLevelSettlement(data) {
              let actionName = arguments.callee.name;
              let isValidData = Boolean(data && data.platformId);
-             socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelSettlement, [ObjectId(data.platformId), data.upOrDown, getAdminId(), getAdminName()], actionName, isValidData);
+             socketUtil.emitter(self.socket, dbPlayerLevel.startPlatformPlayerLevelSettlement, [ObjectId(data.platformId), data.upOrDown, data.isPlayer, getAdminId(), getAdminName()], actionName, isValidData);
          },
 
         /**

@@ -2528,7 +2528,7 @@ define(['js/app'], function (myApp) {
                 let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
-                    {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
+                    {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown, isPlayer: false},
                     function (data) {
                         console.log('playerLevelSettlement', data);
                         vm.playerLevelSettlement.status = 'completed';
@@ -12365,14 +12365,14 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     //here's to check creator is not null
                                     var creator;
-                                    if(data.data && data.data.creator){
+                                    if(data && data.creator){
 
-                                        if(data.data.creator.type === "admin"){
-                                            creator = data.data.creator.name;
+                                        if(data.creator.type === "admin"){
+                                            creator = data.creator.name;
 
-                                        }else if(data.data.creator.type === "player"){
+                                        }else if(data.creator.type === "player"){
                                             creator = $translate('System');
-                                            creator += "(" + data.data.creator.name + ")";
+                                            creator += "(" + data.creator.name + ")";
                                         }
 
                                     }else{
@@ -16539,60 +16539,33 @@ define(['js/app'], function (myApp) {
                     sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
                 }
 
-                if(vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 && vm.playerFeedbackQuery.filterFeedback){
+                if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
                     };
                     let lastFeedbackTime = {
                         lastFeedbackTime: {
-                            $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    let lastFeedbackTopic = "lastFeedbackTopic";
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
-
                             sendQuery.$and.push({$or: sendQuery.$or});
                             sendQuery.$and.push({$or: sendQueryOr});
-                            sendQuery.$and.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
                         } else {
-                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
+                            sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
                         }
                         delete sendQuery.$or;
                     } else {
-                        sendQuery.$and = [{$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
-                    }
-                }else{
-
-                    if (vm.playerFeedbackQuery.filterFeedback) {
-                        let lastFeedbackTimeExist = {
-                            lastFeedbackTime: null
-                        };
-                        let lastFeedbackTime = {
-                            lastFeedbackTime: {
-                                $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                            }
-                        };
-                        sendQueryOr.push(lastFeedbackTimeExist);
-                        sendQueryOr.push(lastFeedbackTime);
-                    }
-
-                    if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
-                        if (sendQuery.hasOwnProperty("$or")) {
-                            if (sendQuery.$and) {
-                                sendQuery.$and.push({$or: sendQuery.$or});
-                                sendQuery.$and.push({$or: sendQueryOr});
-                            } else {
-                                sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
-                            }
-                            delete sendQuery.$or;
-                        } else {
+                        if(sendQueryOr.length > 0){
                             sendQuery["$or"] = sendQueryOr;
                         }
                     }
-
                 }
 
                 // if (vm.playerFeedbackQuery.filterFeedback) {

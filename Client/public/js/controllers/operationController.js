@@ -1301,12 +1301,12 @@ define(['js/app'], function (myApp) {
                             } else {
                                 //here's to check creator is not null
                                 var creator;
-                                if(data.data && data.data.creator){
+                                if(data && data.creator){
 
-                                    if(data.data.creator.type === "admin"){
-                                        creator = data.data.creator.name;
+                                    if(data.creator.type === "admin"){
+                                        creator = data.creator.name;
 
-                                    }else if(data.data.creator.type === "player"){
+                                    }else if(data.creator.type === "player"){
                                         creator = $translate('System');
                                         creator += "(" + data.data.creator.name + ")";
                                     }
