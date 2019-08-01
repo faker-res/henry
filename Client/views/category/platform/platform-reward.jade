@@ -677,7 +677,7 @@
                             .inlineBlk.pull-right
                                 button.btn.btn-primary.common-button.excluded(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
                             .inlineBlk.pull-right
-                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id && checkViewPermission("Platform", "Reward", "Update") && checkViewPermission("Platform", "Reward", "Add")', ng-disabled="!vm.isPlayerAllowedPromoCode") {{'SAVE' | translate }}
+                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id', ng-disabled="!vm.isPlayerAllowedPromoCode") {{'SAVE' | translate }}
                             .inlineBlk.pull-right
                                 div.text-success {{ vm.saveRandomRewardMsg }}
                             //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
