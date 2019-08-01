@@ -14983,7 +14983,7 @@ let dbPlayerInfo = {
                 //check if its a demo player
                 if (data && data[0] && data[0].isTestPlayer) {
                     playerData = data[0];
-                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
+                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice);
                 }
 
                 if (data && data[0] && data[1] && data[1].provider) {
@@ -15193,6 +15193,7 @@ let dbPlayerInfo = {
                     lang: lang || localization.lang.ch_SP,
                     ip: ip,
                     clientType: clientType || 1,
+                    inputDevice: inputDevice,
                     closeMusic: closeMusic || false
                 };
 
@@ -15311,7 +15312,8 @@ let dbPlayerInfo = {
                         clientDomainName: clientDomainName || "Can not find domain",
                         lang: lang || localization.lang.ch_SP,
                         ip: ip,
-                        clientType: clientType || 1
+                        clientType: clientType || 1,
+                        inputDevice: inputDevice,
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
                     if (gameData && gameData.orientationSetting && gameData.orientationSetting[platformData._id]) {
