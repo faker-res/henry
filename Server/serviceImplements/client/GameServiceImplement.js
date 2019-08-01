@@ -201,10 +201,8 @@ var GameServiceImplement = function () {
             device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
             os: ua.os.name || ''
         }];
-        if (data) {
-            data.clientType = inputDevice
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, userAgent, data.tableId, data.closeMusic], isValidData);
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId, data.closeMusic], isValidData);
     };
 
     this.getTestLoginURL.expectsData = 'gameId: String, clientDomainName: String';
@@ -221,10 +219,8 @@ var GameServiceImplement = function () {
         if (ip && ip.substr(0, 7) == "::ffff:") {
             ip = ip.substr(7)
         }
-        if (data) {
-            data.clientType = inputDevice;
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData);
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURL, [conn.playerId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType, inputDevice], isValidData);
     };
 
     this.getTestLoginURLWithOutUser.expectsData = 'platformId: String, gameId: String, clientDomainName: String';
@@ -241,7 +237,7 @@ var GameServiceImplement = function () {
         if (data) {
             data.clientType = inputDevice;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getTestLoginURLWithoutUser, [data.platformId, data.gameId, ip, conn.lang, data.clientDomainName, data.clientType, inputDevice], isValidData, false, false, true);
     };
 
     this.getGameUserInfo.expectsData = 'platformId: String, providerId: String';
