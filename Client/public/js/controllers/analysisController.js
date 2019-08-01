@@ -4847,15 +4847,16 @@ define(['js/app'], function (myApp) {
                         break;
                 }
 
+                // 开户设备： 5 & 6 treated as H5, upon Echo's request
                 switch (vm.queryPara.reward.device) {
                     case 'app':
-                        sendData.devices = ["5", "6", "7", "8", 5, 6, 7, 8];
+                        sendData.devices = ["7", "8", 7, 8];
                         break;
                     case 'web':
                         sendData.devices = ["1", "2", 1, 2];
                         break;
                     case 'h5':
-                        sendData.devices = ["3", "4", 3, 4];
+                        sendData.devices = ["3", "4", "5","6", 3, 4, 5, 6];
                         break;
                     case 'backstage':
                         sendData.devices = ["0", 0];
@@ -4976,6 +4977,8 @@ define(['js/app'], function (myApp) {
 
                 $scope.$evalAsync(() => {
                     let periodDateData = [];
+                    startDate = utilService.setThisDayStartTime(startDate);
+                    endDate = utilService.setThisDayEndTime(endDate);
                     while (startDate.getTime() <= endDate.getTime()) {
                         let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, startDate);
                         periodDateData.push(startDate);
@@ -4985,7 +4988,7 @@ define(['js/app'], function (myApp) {
                     vm.platformRewardData = data1.data;
                     vm.platformRewardAnalysisData = [];
                     for(let i = 0; i<periodDateData.length; i++){
-                        let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.createTime).getTime() > periodDateData[i].getTime() && new Date(reward.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
+                        let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.settleTime).getTime() > periodDateData[i].getTime() && new Date(reward.settleTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
                         vm.platformRewardAnalysisData.push({
                             date: periodDateData[i],
                             rewards: rewardWithinPeriod,
@@ -5220,22 +5223,13 @@ define(['js/app'], function (myApp) {
                 sendData.hasPartner = null;
             }
 
-            if (key == 'reward'){
-                socketService.$socket($scope.AppSocket, 'getDomainListFromApplicant', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
-                        console.log('domain data', vm.domainList);
-                    })
-                });
-            }
-            else{
-                socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
-                        console.log('domain data', vm.domainList);
-                    })
-                });
-            }
+            socketService.$socket($scope.AppSocket, 'getDomainList', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.domainList = data && data.data && data.data[0] && data.data[0].urls ? data.data[0].urls : [];
+                    console.log('domain data', vm.domainList);
+                })
+            });
+
         };
 
         vm.retentionFilterOnChange = function (key, notCheckDomain) {

@@ -1093,7 +1093,7 @@ let PlayerServiceImplement = function () {
         // Spam check temporary log
         console.log('sendSMSCodeToPlayer IP: ', requestIp);
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, inputData], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, inputData, data.useVoiceCode], isValidData);
     };
 
     this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';

@@ -37,6 +37,7 @@ var simplifiedChinese = {
     "Editing bank information is successful": "银行资料绑定成功",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
+    "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
     "CLOSED_COMMISSION": "关闭",
     "Please bind phone number first": "请先绑定手机号码",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",

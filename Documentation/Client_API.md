@@ -1124,8 +1124,9 @@ API说明：
 		*
 			```
 			{
-				platformId:1,purpose:
-				“updateBankInfo”
+				platformId:1,
+				purpose: “updateBankInfo”,
+				useVoiceCode: true, //选填|Boolean| 是否使用语音验证码
 			},
 				platformId: 平台ID
 				purpose: 验证用途，可收入内容如下：
@@ -3188,9 +3189,9 @@ API说明：
 			}
 	* amount: 充值金额,
 	* clientType (客户端类型):
-		* 1--浏览器(browser)
-		* 2--手机h5
-		* 3手机app
+		* 1-- Web 电脑端
+		* 2-- H5 手机端
+		* 4-- APP APP端
 	* bonusCode: (可选) 优惠代码
 	* limitedOfferObjId: (可选) 指定充值应用于哪个秒杀礼包
 	* topUpReturnCode: (可选) 指定充值应用于哪个秒存送金
@@ -3720,6 +3721,10 @@ API说明：
 	    status: 200
 	    data: {
 	        rewardAmount: 优惠额度
+	        selectedReward: {
+	            //随机抽奖组优惠 
+	            rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
+	        }
         }
         ```
 	* 操作失败:

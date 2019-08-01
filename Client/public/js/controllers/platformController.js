@@ -13210,51 +13210,59 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.updatePlayerFeedback = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
-                let resultName = vm.allPlayerFeedbackResults.filter(item => {
-                    return item.key == vm.playerFeedback.result;
-                });
-                resultName = resultName.length > 0 ? resultName[0].value : "";
-                let sendData = {
-                    playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: vm.isOneSelectedPlayer().platform || platformObjId,
-                    createTime: Date.now(),
-                    adminId: authService.adminId,
-                    content: vm.playerFeedback.content,
-                    result: vm.playerFeedback.result,
-                    resultName: resultName,
-                    topic: vm.playerFeedback.topic
-                };
-                console.log('add feedback', sendData);
-                socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
-                    console.log('feedbackadded', data);
-                    vm.playerFeedback = {};
-                    // vm.getPlatformPlayersData();
+            vm.updatePlayerFeedback = function (isConfirm = false) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("ADD_FEEDBACK");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.updatePlayerFeedback(true);
+                    $('#modalYesNo').modal();
+                } else {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                    let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                        return item.key == vm.playerFeedback.result;
+                    });
+                    resultName = resultName.length > 0 ? resultName[0].value : "";
+                    let sendData = {
+                        playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
+                        platform: vm.isOneSelectedPlayer().platform || platformObjId,
+                        createTime: Date.now(),
+                        adminId: authService.adminId,
+                        content: vm.playerFeedback.content,
+                        result: vm.playerFeedback.result,
+                        resultName: resultName,
+                        topic: vm.playerFeedback.topic
+                    };
+                    console.log('add feedback', sendData);
+                    socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
+                        console.log('feedbackadded', data);
+                        vm.playerFeedback = {};
+                        // vm.getPlatformPlayersData();
 
-                    let rowData = vm.playerTableClickedRow.data();
-                    rowData.feedbackTimes++;
-                    vm.playerTableClickedRow.data(rowData).draw();
+                        let rowData = vm.playerTableClickedRow.data();
+                        rowData.feedbackTimes++;
+                        vm.playerTableClickedRow.data(rowData).draw();
 
-                    if (vm.platformPageName == 'Feedback') {
-                        if (vm.playerFeedbackSearchType = 'one') {
-                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                                vm.curPlayerFeedbackDetail = data;
+                        if (vm.platformPageName == 'Feedback') {
+                            if (vm.playerFeedbackSearchType = 'one') {
+                                vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                    vm.curPlayerFeedbackDetail = data;
 
-                                vm.curPlayerFeedbackDetail.forEach(item => {
-                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    vm.curPlayerFeedbackDetail.forEach(item => {
+                                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    });
+
+                                    $scope.$evalAsync();
                                 });
-
-                                $scope.$evalAsync();
-                            });
+                            }
+                            else {
+                                vm.submitPlayerFeedbackQuery();
+                            }
                         }
-                        else {
-                            vm.submitPlayerFeedbackQuery();
-                        }
-                    }
-                    $scope.safeApply();
-                });
+                        $scope.safeApply();
+                    });
+                }
             };
 
             vm.initBulkAddPlayerFeedback = () => {
@@ -26300,6 +26308,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
+                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -27001,6 +27010,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
+
+                vm.allOpen = rewardPointsEvent.status === true
+                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -27122,6 +27134,19 @@ define(['js/app'], function (myApp) {
                 for (let x in vm.rewardPointsEvent) {
                     vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
                 }
+                vm.allOpen = false;
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.openAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = true;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.allOpen = true;
                 vm.rewardPointsEventUpdateAll = false;
             };
 
@@ -31560,7 +31585,6 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
                         vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
-                        vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime = platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
                         vm.platformBasic.showAllowSamePhoneNumberToRegister = platformData.allowSamePhoneNumberToRegister;
@@ -33822,7 +33846,6 @@ define(['js/app'], function (myApp) {
                         updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
                         updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
-                        checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
