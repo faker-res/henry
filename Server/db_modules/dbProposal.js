@@ -78,6 +78,7 @@ var proposal = {
      * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
+        let deferred = Q.defer();
         let plyProm = null;
         let propAmount =
             proposalData.data.amount || proposalData.data.rewardAmount || proposalData.data.updateAmount
@@ -103,7 +104,9 @@ var proposal = {
         //create process for proposal
         let ptpProm = dbProposalProcess.createProposalProcessWithType(platformId, typeName, propAmount);
 
-        return proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData);
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
+
+        return deferred.promise;
     },
 
     checkUpdateCreditProposal: function (platformId, typeName, proposalData) {
@@ -374,6 +377,7 @@ var proposal = {
      * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeId: function (typeId, proposalData) {
+        let deferred = Q.defer();
         let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
         let plyProm;
         let propAmount =
@@ -392,7 +396,8 @@ var proposal = {
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
         }
 
-        return proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData);
+        proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData, deferred);
+        return deferred.promise;
     },
 
     /**
@@ -401,16 +406,17 @@ var proposal = {
      * @param {json} ptpProm - Promise create proposal process
      * @param {json} plyProm - Promise player info
      * @param {Object} proposalData - Proposal Data
+     * @param {json} deferred - Promise from parent
      */
-    createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData) {
+    createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
         let bExecute = false;
         let proposalTypeData = null;
         let pendingProposalData = null;
         let duplicateBankAccountName = false;
 
-        return Promise.all([ptProm, ptpProm, plyProm]).then(
+        Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
-            data => {
+            function (data) {
                 if (data && data[0] && data[1]) {
                     proposalTypeData = data[0];
                     proposalData.type = data[0]._id;
@@ -554,20 +560,16 @@ var proposal = {
                             // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
-                            ) {
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+
                                 return dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean().then(
                                     platformData => {
                                         if (!platformData) {
-                                            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                                            deferred.reject({name: "DataError", message: "Cannot find platform"});
                                         }
 
                                         // if checking required
-                                        if (
-                                            platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime
-                                            && proposalData.hasOwnProperty('creator')
-                                            && proposalData.creator.type === 'player'
-                                        ) {
+                                        if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime) {
                                             return dbconfig.collection_proposal.find({
                                                 type: proposalTypeData._id,
                                                 status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
@@ -586,7 +588,8 @@ var proposal = {
                                                         }).lean().then(
                                                             player => {
                                                                 if (player) {
-                                                                    return Promise.reject({
+                                                                    duplicateBankAccountName = true;
+                                                                    deferred.reject({
                                                                         name: "DataError",
                                                                         message: "银行信息重复绑定，请联系客服，谢谢！"
                                                                     });
@@ -660,7 +663,7 @@ var proposal = {
                                 && data[0].name !== constProposalType.AUCTION_REAL_PRIZE
                                 && data[0].name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
                             ) {
-                                return Promise.reject({
+                                deferred.reject({
                                     name: "DBError",
                                     message: "Player or partner already has a pending proposal for this type"
                                 });
@@ -670,7 +673,7 @@ var proposal = {
                                     return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
                                         platformData => {
                                             if (!platformData) {
-                                                return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                                                deferred.reject({name: "DataError", message: "Cannot find platform"});
                                             }
 
                                             if (platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
@@ -683,19 +686,29 @@ var proposal = {
                                             }
                                             var proposalProm = proposal.createProposal(proposalData);
                                             var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                            return Promise.all([proposalProm, platProm, data[0].expirationDuration]);
+                                            return Q.all([proposalProm, platProm, data[0].expirationDuration]);
                                         }
                                     );
                                 } else {
+                                    // if from fpms back end, proceed update bank info
+                                    // if from front end, prohibit update bank info
+                                    if (duplicateBankAccountName && proposalData.hasOwnProperty('creator') && proposalData.creator.type === 'player') {
+                                        proposalData.data.remark = '二次银改姓名重复';
+                                        proposalData.status = constProposalStatus.FAIL;
+                                        bExecute = false;
+                                    }
                                     var proposalProm = proposal.createProposal(proposalData);
                                     var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                    return Promise.all([proposalProm, platProm, data[0].expirationDuration]);
+                                    return Q.all([proposalProm, platProm, data[0].expirationDuration]);
                                 }
 
                             }
                         }
                     );
                 }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error creating proposal with type", error: error});
             }
         ).then(
             function (data) {
@@ -739,17 +752,20 @@ var proposal = {
                     ).populate({path: 'type', model: dbconfig.collection_proposalType}).lean();
                 }
                 else {
-                    return Promise.reject({
+                    deferred.reject({
                         name: "DataError",
                         message: "Can't create proposal or find platform"
                     });
                 }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error creating proposal", error: error});
             }
         ).then(
             function (data) {
                 if (data) {
                     if (bExecute) {
-                        return proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
+                        proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             .then(
                                 updatedProposalData => {
                                     // get the promo code from the updated proposal and pass it to the current one to return back
@@ -758,17 +774,21 @@ var proposal = {
                                         data.promoCode = updatedProposalData.data.promoCode;
                                     }
 
-                                    return data;
-                                }
+                                    deferred.resolve(data)
+                                },
+                                err => deferred.reject(err)
                             );
                     }
                     else {
-                        return data;
+                        deferred.resolve(data);
                     }
                 }
                 else {
-                    return Promise.reject({name: "DataError", message: "Can't create proposal"});
+                    deferred.reject({name: "DataError", message: "Can't create proposal"});
                 }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error updating proposal", error: error});
             }
         );
     },
