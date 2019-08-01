@@ -57,10 +57,13 @@ let dbPartnerPoster = {
     },
 
     async getPartnerPoster (platformId, url, device, production = true) {
+        console.log('getPartnerPoster 1', new Date())
         let platform = await dbconfig.collection_platform.findOne({platformId}, {_id: 1}).lean();
         if (!platform) {
             return Promise.reject({message: "Platform does not exist"});
         }
+
+        console.log('getPartnerPoster 2', new Date())
 
         production = Boolean(production);
 
@@ -76,6 +79,8 @@ let dbPartnerPoster = {
 
         let posterUsed = await dbconfig.collection_partnerPosterAdsConfig.find(query, {posterImage: 1}).sort({orderNo: 1}).limit(1).lean();
 
+        console.log('getPartnerPoster 3', new Date())
+
         if (!posterUsed || !posterUsed[0] || !posterUsed[0].posterImage) {
             return Promise.reject({message: "No relevant poster found. Please contact CS"}); // todo :: translate
         }
@@ -87,12 +92,16 @@ let dbPartnerPoster = {
             encoding: null
         });
 
+        console.log('getPartnerPoster 4', new Date())
+
         let textCanvas = dbPartnerPoster.getTextCanvas(`专属链接：${url}`);
         let textBuffer = textCanvas.toBuffer();
 
         let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 240);
         let qrBuffer = qrCanvas.toBuffer();
         let qrB64 = qrCanvas.toDataURL();
+
+        console.log('getPartnerPoster 5', new Date())
 
         let completePosterBuffer = await sharp(posterBuffer)
             .composite([
@@ -101,6 +110,8 @@ let dbPartnerPoster = {
             ])
             .png()
             .toBuffer();
+
+        console.log('getPartnerPoster 6', new Date())
 
         return {
             qrcode: qrB64,
