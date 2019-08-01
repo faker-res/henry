@@ -1161,7 +1161,7 @@ define(['js/app'], function (myApp) {
             vm.generalRewardReportTableProp = {};
             vm.operationReportLoadingStatus = '';
             vm.otherRewardList = [];
-            vm.selectedOtherReward = null;
+            //vm.selectedOtherReward = null;
             vm.selectedRewardPlatform = null;
             vm.refreshSPicker();
 
@@ -4462,6 +4462,7 @@ define(['js/app'], function (myApp) {
                     // if (!item.sourceUrl) {
                     //     item.registrationAgent$ = "Backstage";
                     // }
+                    
                     if (item && item.guestDeviceId) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
@@ -4522,6 +4523,10 @@ define(['js/app'], function (myApp) {
                     }
                     else if (item.parent && item.parent.partnerName) {
                         item.partner$ = item.parent.partnerName;
+                    }
+
+                    if (item && item.osType) {
+                        item.registrationOS$ = item.osType;
                     }
 
                     return item;
@@ -5672,6 +5677,9 @@ define(['js/app'], function (myApp) {
                     end: vm.dxTrackingQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxTrackingQuery.queryStart.data('datetimepicker').getLocalDate(),
                     queryEnd: vm.dxTrackingQuery.queryEnd.data('datetimepicker').getLocalDate(),
+                    consumptionTimesOperator: vm.dxTrackingQuery.consumptionTimesOperator,
+                    consumptionTimesValue: vm.dxTrackingQuery.consumptionTimesValue,
+                    consumptionTimesValueTwo: vm.dxTrackingQuery.consumptionTimesValueTwo,
                     topUpTimesOperator: vm.dxTrackingQuery.topUpTimesOperator,
                     topUpTimesValue: vm.dxTrackingQuery.topUpTimesValue,
                     topUpTimesValueTwo: vm.dxTrackingQuery.topUpTimesValueTwo,
@@ -5721,8 +5729,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.provider$ = "";
-                    if (item.providerInfo && item.providerInfo.providerId && item.providerInfo.providerId.name) {
-                        item.provider$ = item.providerInfo.providerId.name;
+                    if (item.providerInfo) {
+                        item.provider$ = item.providerInfo;
                     }else{
                         item.provider$ = "";
                     }
@@ -6309,7 +6317,9 @@ define(['js/app'], function (myApp) {
                     var gameDetail = [];
                     if (holder.gameDetail) {
                         for (let i = 0; i < holder.gameDetail.length; i++) {
-                            if (holder.gameDetail[i].providerId._id.toString() == data.providerId.toString()) {
+                            let holderProviderId = holder.gameDetail[i].providerId._id || holder.gameDetail[i].providerId;
+
+                            if (holderProviderId.toString() == data.providerId.toString()) {
                                 gameDetail.push(holder.gameDetail[i]);
                             }
                         }
@@ -8418,7 +8428,7 @@ define(['js/app'], function (myApp) {
         };
         // end partner commission report
 
-        // start of reward proposal report
+        // start of reward proposal report （total - reward report）
         vm.getRewardProposalReport = function () {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.rewardProposalQuery = vm.rewardProposalQuery || {};
@@ -8498,24 +8508,42 @@ define(['js/app'], function (myApp) {
         }
         // end of reward proposal report
 
-        // start of general reward proposal report
+        // start of general reward proposal report (other reward report)
         vm.generalRewardProposalSearch = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
             vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
 
-            var startTime = vm.generalRewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
-            var endTime = vm.generalRewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
+            let startTime = vm.generalRewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
+            let endTime = vm.generalRewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
             vm["#generalRewardProposalQuery"] = {};
             vm["#generalRewardProposalQuery"].startTime = startTime;
             vm["#generalRewardProposalQuery"].endTime = endTime;
+
+            let registrationStartTime = vm.generalRewardProposalQuery.registrationStartTime.data('datetimepicker').getLocalDate();
+            let registrationEndTime = vm.generalRewardProposalQuery.registrationEndTime.data('datetimepicker').getLocalDate();
+
+            if (registrationStartTime && registrationEndTime) {
+                vm["#generalRewardProposalQuery"].registrationStartTime = registrationStartTime;
+                vm["#generalRewardProposalQuery"].registrationEndTime = registrationEndTime;
+            }
+
             utilService.getDataTablePageSize("#generalRewardProposalTablePage", vm.generalRewardProposalQuery, 30);
 
             var sendData = {
-                platformId: vm.selectedRewardPlatform || vm.curPlatformId || vm.selectedPlatform._id,
+                platformId: vm.selectedRewardPlatform,
                 startTime: startTime,
                 endTime: endTime,
                 type: vm.rewardTypeName,
                 code: vm.currentRewardCode,
+                topUpTimesOperator: vm.generalRewardProposalQuery.topUpTimesOperator,
+                topUpTimesValue: vm.generalRewardProposalQuery.topUpTimesValue,
+                topUpTimesValueTwo: vm.generalRewardProposalQuery.topUpTimesValueTwo,
+                bonusTimesOperator: vm.generalRewardProposalQuery.bonusTimesOperator,
+                bonusTimesValue: vm.generalRewardProposalQuery.bonusTimesValue,
+                bonusTimesValueTwo: vm.generalRewardProposalQuery.bonusTimesValueTwo,
+                topUpAmountOperator: vm.generalRewardProposalQuery.topUpAmountOperator,
+                topUpAmountValue: vm.generalRewardProposalQuery.topUpAmountValue,
+                topUpAmountValueTwo: vm.generalRewardProposalQuery.topUpAmountValueTwo,
                 limit: vm.generalRewardProposalQuery.limit || 10,
                 index: newSearch ? 0 : (vm.generalRewardProposalQuery.index || 0),
                 sortCol: vm.generalRewardProposalQuery.sortCol
@@ -8527,10 +8555,16 @@ define(['js/app'], function (myApp) {
             if (vm.generalRewardProposalQuery.playerName){
                 sendData.playerName = vm.generalRewardProposalQuery.playerName;
             }
+
+            if (registrationStartTime && registrationEndTime) {
+                sendData.registrationStartTime = registrationStartTime;
+                sendData.registrationEndTime = registrationEndTime;
+            }
+
             console.log('sendData', sendData);
             $('#generalRewardProposalTableSpin').show();
 
-            if (vm.currentRewardCode != 'ALL'){
+            if (vm.currentRewardCode && vm.currentRewardCode !== 'ALL'){
                 socketService.$socket($scope.AppSocket, 'getRewardProposalByType', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         findReportSearchTime();
@@ -8542,6 +8576,10 @@ define(['js/app'], function (myApp) {
                         vm.drawSpecificRewardProposalTable(data.data && data.data.data && data.data.data.length > 0 ? data.data.data.map(item => {
                             if (item.registrationTime) {
                                 item.registrationTime$ = vm.dateReformat(item.registrationTime);
+                            }
+
+                            if (item.lastAccessTime) {
+                                item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
                             }
 
                             if (item.providerId && item.providerId.length > 0) {
@@ -8683,13 +8721,14 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                 // {'sortCol': 'adminName', 'aTargets': [0]},
                 // {'sortCol': 'action', 'aTargets': [1]},
-                    {'sortCol': 'totalCount', 'aTargets': [2]},
-                    {'sortCol': 'totalRewardAmount', 'aTargets': [3]},
+                    {'sortCol': 'totalCount', 'aTargets': [3]},
+                    {'sortCol': 'totalRewardAmount', 'aTargets': [4]},
                     {targets: '_all', defaultContent: ' '}
                 ],
                 columns: [
                     {title: $translate("PLAYER_NAME"), data: "name", bSortable: false},
-                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$", sClass:"sumText"},
+                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$"},
+                    {title: $translate("LAST_ACCESS_TIME"), data: "lastAccessTime$", sClass:"sumText"},
                     {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount", sClass: "sumInt alignRight" },
                     {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount", sClass: "sumFloat alignRight"},
                     {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount", sClass: "sumFloat alignRight"},
@@ -8729,11 +8768,11 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {
-                2: total && total.totalCount ? total.totalCount : 0,
-                3: total && total.totalRewardAmount ? total.totalRewardAmount : 0,
-                4: total && total.totalDepositAmount ? total.totalDepositAmount : 0,
-                5: total && total.totalBonusAmount ? total.totalBonusAmount : 0,
-                6: total && total.winLostAmount ? total.winLostAmount : 0,
+                3: total && total.totalCount ? total.totalCount : 0,
+                4: total && total.totalRewardAmount ? total.totalRewardAmount : 0,
+                5: total && total.totalDepositAmount ? total.totalDepositAmount : 0,
+                6: total && total.totalBonusAmount ? total.totalBonusAmount : 0,
+                7: total && total.winLostAmount ? total.winLostAmount : 0,
             });
             vm.generalRewardProposalQuery.pageObj.init({maxCount: size}, newSearch);
 
@@ -10824,7 +10863,8 @@ define(['js/app'], function (myApp) {
                     vm.dxTrackingQuery = {
                         topUpTimesOperator: ">=",
                         bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
+                        topUpAmountOperator: ">=",
+                        consumptionTimesOperator: ">="
                     };
 
 
@@ -11819,7 +11859,7 @@ define(['js/app'], function (myApp) {
                 let rewardNameWithoutReport = choice.replace("_REPORT", "");
                 vm.rewardTypeName = rewardNameWithoutReport;
                 vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                if(choice.indexOf('REWARD_REPORT') !== -1) {
+                if(choice.indexOf('PLAYER_PROMO_CODE_REWARD') === -1 && choice.indexOf('REWARD_REPORT') !== -1) {
                     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
                     vm.currentRewardTaskName = rewardNameWithoutReport;
                 }
@@ -11855,7 +11895,6 @@ define(['js/app'], function (myApp) {
 
         vm.resetOtherReward = function() {
             vm.otherRewardList = [];
-            vm.selectedOtherReward = null;
             vm.currentRewardCode = null;
             vm.currentRewardTaskName = null;
         };
@@ -11866,10 +11905,79 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedRewardPlatform}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.otherRewardList = data.data;
+                        vm.otherRewardList.push({_id: '优惠代码', name: '优惠代码'});
                         console.log('vm.otherRewardList', vm.otherRewardList);
+                        if (vm.otherRewardList && vm.otherRewardList.length > 0 && vm.otherRewardList[0] && vm.otherRewardList[0]._id) {
+                            vm.generalRewardProposalQuery.reward = vm.otherRewardList[0]._id;
+                            vm.rewardOnChange(vm.getPageNameByRewardObjId(vm.generalRewardProposalQuery.reward), vm.generalRewardProposalQuery.reward, vm.getRewardCodeByRewardObjId(vm.generalRewardProposalQuery.reward))
+                        }
                     });
                 });
             }
+        };
+
+        vm.initOtherRewardPage = function () {
+            socketService.clearValue();
+            $('#generalRewardProposalTableSpin').hide();
+
+            if (vm.generalRewardProposalQuery && vm.generalRewardProposalQuery.table) {
+                vm.generalRewardProposalQuery.table.clear();
+                $('#generalRewardProposalTable').prop('innerHTML', "");
+                vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", vm.commonTableOption, {});
+            }
+            if (vm.generalRewardTaskQuery && vm.generalRewardTaskQuery.table) {
+                vm.generalRewardTaskQuery.table.clear();
+                $('#generalRewardTaskTable').prop('innerHTML', "");
+                vm.generalRewardTaskQuery.table = utilService.createDatatableWithFooter("#generalRewardTaskTable", vm.commonTableOption, {});
+            }
+            vm.generalRewardReportTableProp = {};
+            vm.operationReportLoadingStatus = '';
+            vm.refreshSPicker();
+
+            vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
+            vm.generalRewardProposalQuery.totalCount = 0;
+            vm.generalRewardProposalQuery.totalApplicant = 0;
+            vm.reportSearchTime = 0;
+            utilService.actionAfterLoaded("#generalRewardProposalTablePage", function () {
+                vm.generalRewardProposalQuery.startTime = utilService.createDatePicker('#generalRewardProposalQuery .startTime');
+                vm.generalRewardProposalQuery.endTime = utilService.createDatePicker('#generalRewardProposalQuery .endTime');
+                vm.generalRewardProposalQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.generalRewardProposalQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                vm.generalRewardProposalQuery.registrationStartTime = utilService.createDatePicker('#generalRewardProposalQuery .registrationStartTime');
+                $('#generalRewardProposalQuery .registrationStartTime').datetimepicker('setDate', null);
+                vm.generalRewardProposalQuery.registrationEndTime = utilService.createDatePicker('#generalRewardProposalQuery .registrationEndTime');
+                $('#generalRewardProposalQuery .registrationEndTime').datetimepicker('setDate', null);
+
+                vm.generalRewardProposalQuery.pageObj = utilService.createPageForPagingTable("#generalRewardProposalTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "generalRewardProposalQuery", vm.generalRewardProposalSearch)
+                });
+            });
+
+            if (vm.currentRewardTaskName) {
+                vm.generalRewardTaskQuery = {};
+                vm.generalRewardTaskQuery.totalCount = 0;
+                vm.generalRewardTaskTableProp.totalCount = 0;
+                vm.reportSearchTime = 0;
+                utilService.actionAfterLoaded("#generalRewardTaskTablePage", function () {
+                    vm.commonInitTime(vm.generalRewardTaskQuery, '#generalRewardTaskQuery', true);
+                    vm.generalRewardTaskQuery.pageObj = utilService.createPageForPagingTable("#generalRewardTaskTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "generalRewardTaskQuery", vm.searchGeneralRewardTask)
+                    });
+                })
+            }
+
+            $scope.$evalAsync();
+        };
+
+        vm.rewardOnChange = function (choice, eventObjId, code) {
+            vm.currentRewardTaskName = null;
+            vm.rewardTypeName = null;
+            vm.currentRewardCode = code;
+            vm.currentEventId = eventObjId;
+
+            drawReportQuery(choice);
+            vm.initOtherRewardPage();
         };
 
         vm.getPageNameByRewardObjId = function (rewardObjId) {
@@ -11878,9 +11986,12 @@ define(['js/app'], function (myApp) {
 
             if (rewardTypeName && vm.rewardNamePage[rewardTypeName]) {
                 return vm.rewardNamePage[rewardTypeName];
-            } else if (rewardTypeName.indexOf("Reward") !== -1 || rewardTypeName.indexOf("Group") !== -1) {
+            } else if (rewardTypeName && (rewardTypeName.indexOf("Reward") !== -1 || rewardTypeName.indexOf("Group") !== -1)) {
                 let splitRewardName = rewardTypeName.split(/(?=[A-Z])/);
                 let rewardReportString = (splitRewardName.join("_") + "_REPORT").toUpperCase();
+                return rewardReportString;
+            } else if (!rewardTypeName && rewardObjId && (rewardObjId === '优惠代码')) {
+                let rewardReportString = 'PLAYER_PROMO_CODE_REWARD_REPORT';
                 return rewardReportString;
             } else {
                 return 'NO_PAGE';
@@ -11890,6 +12001,10 @@ define(['js/app'], function (myApp) {
         vm.getRewardCodeByRewardObjId = function (rewardObjId) {
             let flteredReward = filterReward(rewardObjId);
             let rewardCode = flteredReward && flteredReward.code ? flteredReward.code : null;
+
+            if (!rewardCode && rewardObjId && (rewardObjId === '优惠代码')) {
+                rewardCode = rewardObjId;
+            }
 
             return rewardCode;
         };

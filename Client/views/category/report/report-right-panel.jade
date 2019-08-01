@@ -1168,6 +1168,17 @@
                 .search-filters-item
                     label {{'End date' | translate}}
                     .queryEndTime
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.consumptionTimesOperator === "range")}')
+                    label {{"Consumption Times"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.dxTrackingQuery.consumptionTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.consumptionTimesValue")
+                            div.symbol(ng-if="vm.dxTrackingQuery.consumptionTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.dxTrackingQuery.consumptionTimesValueTwo" ng-if="vm.dxTrackingQuery.consumptionTimesOperator === 'range'")
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.topUpTimesOperator === "range")}')
                     label {{"TOP_UP_TIMES"|translate}}
                     div
@@ -1843,27 +1854,66 @@
                             select.form-control(ng-model='vm.selectedRewardPlatform', ng-change='vm.getOtherRewardList()')
                                 option(value="")
                                 option(ng-repeat='v in vm.platformList', value='{{v._id}}') {{v.name|translate}}
-                        .search-filters-item
-                            label.control-label  {{'REWARD' | translate}}
-                                select.form-control(ng-model='vm.selectedOtherReward', ng-change='vm.loadOtherRewardPage(vm.getPageNameByRewardObjId(vm.selectedOtherReward), vm.selectedOtherReward, vm.getRewardCodeByRewardObjId(vm.selectedOtherReward))' style="min-width:100%; display:inline-block;")
-                                    option(ng-repeat='v in vm.otherRewardList', value='{{v._id}}') {{v.name|translate}}
-                        .panel.panel-primary(ng-show='vm.currentRewardCode')
+                        .panel.panel-primary(ng-show='vm.selectedRewardPlatform')
                             .panel-heading
                                 label {{'PROPOSAL' | translate}}
                             .panel-body
                                 #generalRewardProposalQuery.col-md-12.well
                                     .search-filters-item
-                                        label {{"Start date"|translate}}
+                                        label.control-label  {{'REWARD' | translate}}
+                                        select.form-control(ng-model='vm.generalRewardProposalQuery.reward', ng-change='vm.rewardOnChange(vm.getPageNameByRewardObjId(vm.generalRewardProposalQuery.reward), vm.generalRewardProposalQuery.reward, vm.getRewardCodeByRewardObjId(vm.generalRewardProposalQuery.reward))' style="min-width:100%; display:inline-block;")
+                                            option(ng-repeat='v in vm.otherRewardList', value='{{v._id}}') {{v.name|translate}}
+                                    .search-filters-item
+                                        label {{"Registration Start Date"|translate}}
+                                        .registrationStartTime
+                                    .search-filters-item
+                                        label {{"Registration End Date"|translate}}
+                                        .registrationEndTime
+                                    .search-filters-item
+                                        label {{'PLAYER_NAME' | translate}}
+                                        input.form-control(type='text', ng-model='vm.generalRewardProposalQuery.playerName')
+                                    .search-filters-item
+                                        label {{"Apply Reward Start Date"|translate}}
                                         .startTime
                                     .search-filters-item
-                                        label {{"End date"|translate}}
+                                        label {{"Apply Reward End Date"|translate}}
                                         .endTime
                                     .search-filters-item(ng-if="vm.currentRewardCode != 'ALL'")
                                         label {{'Number_Of_Day_After_Receiving' | translate}}
                                         input.form-control(type='number', ng-model='vm.generalRewardProposalQuery.dayAfterReceiving')
-                                    .search-filters-item
-                                        label {{'PLAYER_NAME' | translate}}
-                                        input.form-control(type='text', ng-model='vm.generalRewardProposalQuery.playerName')
+                                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.generalRewardProposalQuery.topUpTimesOperator === "range")}')
+                                        label {{"TOP_UP_TIMES"|translate}}
+                                        div
+                                            select.threeBoxes.form-control(ng-model="vm.generalRewardProposalQuery.topUpTimesOperator")
+                                                option(value='>=') {{'>='}}
+                                                option(value='=') {{'='}}
+                                                option(value='<=') {{'<='}}
+                                                option(value='range') {{'range'|translate}}
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.topUpTimesValue")
+                                            div.symbol(ng-if="vm.generalRewardProposalQuery.topUpTimesOperator === 'range'") ~
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.topUpTimesValueTwo" ng-if="vm.generalRewardProposalQuery.topUpTimesOperator === 'range'")
+                                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.generalRewardProposalQuery.bonusTimesOperator === "range")}')
+                                        label {{"BonusTime"|translate}}
+                                        div
+                                            select.threeBoxes.form-control(ng-model="vm.generalRewardProposalQuery.bonusTimesOperator")
+                                                option(value='>=') {{'>='}}
+                                                option(value='=') {{'='}}
+                                                option(value='<=') {{'<='}}
+                                                option(value='range') {{'range'|translate}}
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.bonusTimesValue")
+                                            div.symbol(ng-if="vm.generalRewardProposalQuery.bonusTimesOperator === 'range'") ~
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.bonusTimesValueTwo" ng-if="vm.generalRewardProposalQuery.bonusTimesOperator === 'range'")
+                                    .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.generalRewardProposalQuery.topUpAmountOperator === "range")}')
+                                        label {{"TOTAL_TOP_UP"|translate}}
+                                        div
+                                            select.threeBoxes.form-control(ng-model="vm.generalRewardProposalQuery.topUpAmountOperator")
+                                                option(value='>=') {{'>='}}
+                                                option(value='=') {{'='}}
+                                                option(value='<=') {{'<='}}
+                                                option(value='range') {{'range'|translate}}
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.topUpAmountValue" )
+                                            div.symbol(ng-if="vm.generalRewardProposalQuery.topUpAmountOperator === 'range'") ~
+                                            input.threeBoxes.form-control(type="number" ng-model="vm.generalRewardProposalQuery.topUpAmountValueTwo" ng-if="vm.generalRewardProposalQuery.topUpAmountOperator === 'range'")
                                     .text-right.widthto100
                                         button.btn.btn-success(ng-click='vm.generalRewardProposalSearch(true)') {{'SEARCH' | translate}}
                                         span#generalRewardProposalTableSpin.collapse

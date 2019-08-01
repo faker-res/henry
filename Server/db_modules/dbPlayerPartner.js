@@ -17,6 +17,7 @@ let dbProposal = require('./../db_modules/dbProposal');
 let dbLogger = require('./../modules/dbLogger');
 let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let errorUtils = require('./../modules/errorUtils');
+let queryPhoneLocation = require('cellocate');
 
 let dbPlayerPartner = {
     createPlayerPartnerAPI: registerData => {
@@ -307,6 +308,7 @@ let dbPlayerPartner = {
         let platform;
         let verificationSmsDetail;
         let smsLogDetail;
+        let phoneProvince, phoneCity, phoneType;
         newPhoneNumber = newPhoneNumber || "";
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
@@ -515,6 +517,17 @@ let dbPlayerPartner = {
                     let updateData = {
                         phoneNumber: newEncrpytedPhoneNumber
                     };
+                    if (newPhoneNumber) {
+                        let phoneLocation = queryPhoneLocation(newPhoneNumber);
+                        if (phoneLocation) {
+                            updateData.phoneProvince = phoneLocation.province;
+                            updateData.phoneCity = phoneLocation.city;
+                            updateData.phoneType = phoneLocation.sp;
+                            phoneProvince = phoneLocation.province;
+                            phoneCity = phoneLocation.city;
+                            phoneType = phoneLocation.sp;
+                        }
+                    }
                     let plyProm, partnerProm;
 
                     if (playerData) {
@@ -559,6 +572,11 @@ let dbPlayerPartner = {
                             }
 
                         };
+                        if (phoneProvince || phoneCity || phoneType) {
+                            playerUpdateData.updateData.phoneProvince = phoneProvince;
+                            playerUpdateData.updateData.phoneCity = phoneCity;
+                            playerUpdateData.updateData.phoneType = phoneType;
+                        }
                         // result.isPlayerInit = true;
                         return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {
                             data: playerUpdateData,
@@ -577,6 +595,11 @@ let dbPlayerPartner = {
                             }
 
                         };
+                        if (phoneProvince || phoneCity || phoneType) {
+                            partnerUpdateData.updateData.phoneProvince = phoneProvince;
+                            partnerUpdateData.updateData.phoneCity = phoneCity;
+                            partnerUpdateData.updateData.phoneType = phoneType;
+                        }
                         creator = {type: "partner", name: partner.partnerName, id: partner._id};
                         // result.isPlayerInit = true;
                         return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice, creator: creator}).catch(errorUtils.reportError);
@@ -606,6 +629,14 @@ let dbPlayerPartner = {
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
+                        if (phoneProvince || phoneCity || phoneType) {
+                            playerUpdateData.updateData.phoneProvince = phoneProvince;
+                            playerUpdateData.updateData.phoneCity = phoneCity;
+                            playerUpdateData.updateData.phoneType = phoneType;
+                            partnerUpdateData.updateData.phoneProvince = phoneProvince;
+                            partnerUpdateData.updateData.phoneCity = phoneCity;
+                            partnerUpdateData.updateData.phoneType = phoneType;
+                        }
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner}).catch(errorUtils.reportError);
                         return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer}).catch(errorUtils.reportError);
                         break;

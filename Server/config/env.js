@@ -47,7 +47,12 @@ var localConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/8H_tfnbk5J3_j8rjthtPGdyo70QPBqoqeDti1YaCwj4",
-    keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
+    keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service,
+    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
+    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
+    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    voiceCodeSecret: "bfb2bab2d9ec",
 };
 
 //for aws-development
@@ -79,6 +84,11 @@ var devConfig = {
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
+    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
+    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
+    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    voiceCodeSecret: "bfb2bab2d9ec",
 };
 
 //for settlement
@@ -140,6 +150,11 @@ var qaConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
+    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
+    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
+    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    voiceCodeSecret: "bfb2bab2d9ec",
 };
 
 var testAPIConfig = {
@@ -273,7 +288,12 @@ var prodConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
-    keyMode: 0 // Mode 0: Legacy Key, Mode 1: Key Service
+    keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
+    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
+    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
+    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    voiceCodeSecret: "bfb2bab2d9ec",
 };
 
 

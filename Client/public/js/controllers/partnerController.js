@@ -7025,6 +7025,10 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
             }
 
+            if (vm.newPartner && vm.newPartner.ownDomain && !Array.isArray(vm.newPartner.ownDomain)) {
+                vm.newPartner.ownDomain = [vm.newPartner.ownDomain]; //db create partnerOwnDomain using array
+            }
+
             console.log(vm.newPartner);
 
             socketService.$socket($scope.AppSocket, str, vm.newPartner, function (data) {
@@ -8328,7 +8332,7 @@ define(['js/app'], function (myApp) {
             return deferred.promise;
         }
 
-        vm.checkOwnDomain = function (value, form) {
+        vm.checkOwnDomain = function (value, form, checkNewCreate) {
             var difArrays = function (array1, array2) {
                 var res = [];
                 var has = {};
@@ -8360,9 +8364,9 @@ define(['js/app'], function (myApp) {
             }
             //form.ownDomain.$setValidity('invalidOwnDomainURL', !vm.partnerValidity.ownDomainInvalidURL);
             var time = new Date().getTime();
-            var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
+            var newDomains = checkNewCreate? value.split('\n'): difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
             socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
-                partner: vm.selectedSinglePartner._id,
+                partner: checkNewCreate? null: vm.selectedSinglePartner._id,
                 value: newDomains,
                 time: time
             }, function (data) {
@@ -12743,13 +12747,7 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
-        vm.initStep = function () {
-            vm.tempNewNodeName = '';
-            vm.tempNewNodeDepartment = '';
-            vm.tempNewNodeRole = '';
-            vm.expResMsg = '';
-            vm.expShowSubmit = true;
-        }
+
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
             socketService.$socket($scope.AppSocket, 'getDepartment', {
@@ -12762,13 +12760,6 @@ define(['js/app'], function (myApp) {
                 vm.tempAllRoles = data.data.roles;
                 $scope.safeApply();
             }
-        }
-        vm.setSelectedRole = function (roleNode) {
-            if (!vm.tempNewNodeRole) return;
-            vm.tempRoleID = roleNode._id;
-            vm.tempRoleName = roleNode.roleName;
-            console.log("selected department ", vm.tempDepartmentName);
-            console.log("selected role ", vm.tempRoleName);
         }
 
         vm.clearData = function () {
@@ -12942,7 +12933,6 @@ define(['js/app'], function (myApp) {
                     label: $translate("DEPARTMENT")
                 },
                 //departmentName: vm.tempNewNodeDepartment.departmentName,
-                //roleName: vm.tempNewNodeRole.roleName,
                 roleData: {
                     id: vm.tempRoleID,
                     name: vm.tempRoleName,

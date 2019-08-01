@@ -1050,6 +1050,10 @@ var dbPlatform = {
      * @param sameLineProviders
      */
     syncPlatformProvider: function (platformId, providerIds, sameLineProviders, isRemoveProvider) {
+        console.log('platformId===', platformId);
+        console.log('providerIds===', providerIds);
+        console.log('sameLineProviders===', sameLineProviders);
+        console.log('isRemoveProvider===', isRemoveProvider);
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -1083,6 +1087,7 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
+                        console.log('okok2===');
                         sameLineProviders.forEach(providers => {
                             if (providers && providers.length) {
                                 providers.forEach(provider => {
@@ -1120,7 +1125,9 @@ var dbPlatform = {
         var proms = [];
         platformProviders.forEach(
             row => {
+                console.log('row===', row);
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
+                    console.log('okok===');
                     proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders, isRemoveProvider));
                 }
             }
@@ -2083,9 +2090,19 @@ var dbPlatform = {
             if (data.partnerId) {
                 query.partnerId = data.partnerId;
             }
-            if (data.platformId) {
-                query.platformId = data.platformId;
+
+            if (data.platform && typeof data.platform == 'object' && data.platform.length > 0 && data.platformId &&  typeof data.platformId == 'object' && data.platformId.length > 0) {
+                query.platform = data.platform.map(item => ObjectId(item));
+                query['$or'] = [
+                    {'platform': data.platform.map(item => ObjectId(item))},
+                    {'platformId': data.platformId}
+                ];
+            } else {
+                if (data.platformId) {
+                    query.platformId = data.platformId;
+                }
             }
+
             // Strip any fields which have value `undefined`
             query = JSON.parse(JSON.stringify(query));
             addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -2170,6 +2187,14 @@ var dbPlatform = {
         data.purpose ? query.purpose = data.purpose : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
         data.accountStatus ? query.phoneStatus = data.accountStatus : "";
+
+        if (data.useVoiceCode) {
+            if (data.useVoiceCode == 1) {
+                query.useVoiceCode = true;
+            } else {
+                query.useVoiceCode = {$in: [null, false]};
+            }
+        }
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
@@ -3440,15 +3465,20 @@ var dbPlatform = {
             if (err) {
                 deferred.reject(`phoneapichat request failed  ${err}`);
             } else {
-                let streamInfo = JSON.parse(res.body);
-                let streamResult = {};
-                if (streamInfo.content) {
-                    streamResult = streamInfo.content;
+                try {
+                    console.log("playerPhoneChat request.get",res);
+                    let streamInfo = JSON.parse(res.body);
+                    let streamResult = {};
+                    if (streamInfo.content) {
+                        streamResult = streamInfo.content;
+                    }
+                    if (streamInfo.code) {
+                        streamResult.code = streamInfo.code;
+                    }
+                    deferred.resolve(streamResult);
+                } catch (err) {
+                    deferred.reject(`phoneapichat request failed to parse response`);
                 }
-                if (streamInfo.code) {
-                    streamResult.code = streamInfo.code;
-                }
-                deferred.resolve(streamResult);
             }
         });
 
@@ -4805,10 +4835,19 @@ var dbPlatform = {
                 "consecutiveTransferInOut",
                 "monitorMerchantCount",
                 "monitorPlayerCount",
+                "monitorTopUpAmount",
                 "monitorMerchantUseSound",
                 "monitorPlayerUseSound",
+                "monitorTopUpAmountUseSound",
                 "monitorMerchantSoundChoice",
                 "monitorPlayerSoundChoice",
+                "monitorTopUpAmountSoundChoice",
+                "monitorMerchantCountTopUpType",
+                "monitorPlayerCountTopUpType",
+                "monitorTopUpAmountTopUpType",
+                "monitorMerchantCountTime",
+                "monitorPlayerCountTime",
+                "monitorTopUpAmountTime",
                 "playerValueConfig",
                 "csEmailImageUrlList",
                 "csPhoneList",
@@ -6146,6 +6185,9 @@ var dbPlatform = {
                         case 'skin':
                             prom = getFrontEndSettingType2(platformObjId, clientType, code);
                             break;
+                        case 'partnerSkin':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
                         default:
                             prom = Promise.reject({
                                 name: "DataError",
@@ -6234,13 +6276,13 @@ var dbPlatform = {
                 }
                 prom = dbconfig.collection_frontEndPartnerUrlConfiguration.find(query).populate({
                     path: "pc.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).populate({
                     path: "h5.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).populate({
                     path: "app.skin",
-                    model: dbconfig.collection_frontEndSkinSetting
+                    model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).lean()
             }
 
@@ -6298,6 +6340,9 @@ var dbPlatform = {
             }
             else if (code == "skin"){
                 prom = dbconfig.collection_frontEndSkinSetting.find(query).lean()
+            }
+            else if (code == "partnerSkin"){
+                prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
 
             return prom.then(
@@ -6443,7 +6488,7 @@ var dbPlatform = {
             }
             else if (setUpType == 2){
                 query.device = clientType;
-                if (code && code == "skin"){
+                if (code && (code == "skin" || code == "partnerSkin")){
                     delete query.status;
                 }
             }
@@ -6807,6 +6852,76 @@ var dbPlatform = {
                 hoverCss: hoverCss
             }
         ).lean();
+    },
+
+    getDepartmentByPlatform: function (platformObjId) {
+        return dbconfig.collection_department.find({platforms: {$elemMatch: {$eq: platformObjId}}}).populate({
+            path: "roles",
+            model: dbconfig.collection_role
+        }).lean();
+
+    },
+
+    updateMaxRewardAmountSetting: function (platformObjId, updateData, deletedData) {
+        if (platformObjId){
+            let updateProm = [];
+            if (updateData && updateData.length){
+                updateData.forEach(
+                    data => {
+                        if (data && data._id){
+                            let recordObjId = data._id;
+                            if (data._id){
+                                delete data._id;
+                            }
+                            if (data.hasOwnProperty('__v')){
+                                delete data.__v;
+                            }
+
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(recordObjId)}, data).lean() )
+                        }
+                        else if (data){
+                            data.platformObjId = platformObjId;
+                            updateProm.push(saveNewRecord(data))
+                        }
+                    }
+                )
+            }
+
+            if (deletedData && deletedData.length){
+                deletedData.forEach(
+                    item => {
+                        if (item){
+                            updateProm.push(dbconfig.collection_promoCodeMaxRewardAmountSetting.findOneAndUpdate({_id: ObjectId(item)}, {status: 2}).lean() )
+                        }
+                    }
+                )
+            }
+
+            return Promise.all(updateProm);
+        }
+
+        function saveNewRecord (newRecordData) {
+            let newRecord = new dbconfig.collection_promoCodeMaxRewardAmountSetting(newRecordData);
+            return newRecord.save();
+        };
+    },
+
+    loadMaxRewardAmountSetting: (platformObjId) => {
+        if (platformObjId){
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.find({platformObjId: platformObjId, status: 1}).lean();
+        }
+    },
+
+    getMaxRewardAmountSettingByAdmin: (platformObjId, roleList, departmentList) => {
+        if (platformObjId && roleList && roleList.length && departmentList && departmentList.length){
+            let query = {
+                role: {$in: roleList.map(r => ObjectId(r))},
+                department: {$in: departmentList.map(p => ObjectId(p))},
+                platformObjId: platformObjId,
+                status: 1,
+            };
+            return dbconfig.collection_promoCodeMaxRewardAmountSetting.findOne(query).sort({maxRewardAmount: -1}).lean();
+        }
     },
 
     reEncryptPlayerPhoneNumber: () => {

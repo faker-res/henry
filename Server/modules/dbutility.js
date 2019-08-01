@@ -14,7 +14,10 @@ var geoip2wsCity = new geoip2ws(101359, "oVO2d561nEW9", 'city');
 var datx = require('ipip-datx');
 var path = require('path');
 var ipipCity = new datx.City(path.join(__dirname, "../IPIPDotNet/17monipdb.datx"));
-const queryPhoneLocationFromPackage = require('phone-query');
+const queryPhoneLocationFromPackage = require('cellocate');
+const env = require('./../config/env').config();
+const rp = require('request-promise');
+const sha1 = require('sha1')
 
 var dbUtility = {
 
@@ -83,6 +86,96 @@ var dbUtility = {
     },
 
     //region Time
+
+    sendVoiceCode: function (phoneNumber, smsCode) {
+        let nonce = "";
+        let curTime = new Date().getTime();
+        const HEX_DIGITS = "0123456789abcdef";
+
+        function checkSumBuilder(randomStr) {
+            let maxRand = randomStr.length - 1;
+            let minRand = 0;
+            for (let i = 0; i < 20; i++) {            //随机字符串最大128个字符，也可以小于该数
+                nonce += randomStr.charAt(Math.floor(Math.random() * (maxRand - minRand + 1)) + minRand);
+            }
+
+            let joinString = env.voiceCodeSecret + nonce + String(curTime);
+            return sha1(joinString);
+        }
+
+        let options = {
+            method: "POST",
+            uri: env.voiceCodeUrl,
+            headers: {
+                AppKey: env.voiceCodeKEY,
+                CurTime: String(curTime),
+                CheckSum: checkSumBuilder(HEX_DIGITS),
+                Nonce: nonce,
+                'Content-Type': "application/x-www-form-urlencoded"
+            },
+            form: {
+                mobile: phoneNumber,
+                authCode: Number(smsCode),
+                templateid: 14794553 // yun xin setting
+            },
+            json: true // Automatically stringifies the body to JSON
+        };
+
+        return rp(options).then(
+            data => {
+                if (!(data && data.code && data.code == 200)) {
+                    //315	IP限制
+                    //403	非法操作或没有权限
+                    //414	参数错误
+                    //416	频率控制
+                    //500	服务器内部错误
+
+                    return Promise.reject({
+                        name: "DataError",
+                        message: data
+                    });
+                }
+                return data;
+            },
+            err => {
+                console.log("send voice code failed",err)
+                return Promise.reject({
+                    name: "DataError",
+                    message: err
+                });
+            }
+        )
+
+        // let options = {
+        //     method: "POST",
+        //     uri: env.voiceCodeUrl,
+        //     headers: {
+        //         'Accept': "application/json;charset=utf-8;",
+        //         'Content-Type': "application/x-www-form-urlencoded;charset=utf-8;"
+        //     },
+        //     form: {
+        //         apikey: env.voiceCodeKEY,
+        //         mobile: phoneNumber,
+        //         code: String(smsCode)
+        //     },
+        //     json: true // Automatically stringifies the body to JSON
+        // };
+        //
+        // return rp(options).then(
+        //     data => {
+        //         console.log("check send voice code", data);
+        //         return data;
+        //     },
+        //     err => {
+        //         console.log("send voice code failed",err)
+        //         return Promise.reject({
+        //             name: "DataError",
+        //             message: err
+        //         });
+        //     }
+        // )
+
+    },
 
     //region Specific time
     getFirstDayOfYear: () => {
@@ -647,20 +740,6 @@ var dbUtility = {
             endTime: moment(date).tz('Asia/Singapore').subtract(1, 'days').startOf('day').add(1, 'days').toDate()
         } : null;
     },
-
-    //Testing Block
-    setLocalDayEndTime: function (date) {
-        if (!date) return null;
-        date.setHours(23, 59, 59, 999);
-        return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
-    },
-    setNDaysAgo: function (inputDate, n) {
-        if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
-            return;
-        }
-        return new Date(inputDate.setDate(inputDate.getDate() - n));
-    },
-    //Testing Block
 
     /**
      * @deprecated
@@ -1887,7 +1966,7 @@ var dbUtility = {
         if (queryRes) {
             retObj.phoneProvince = queryRes.province;
             retObj.phoneCity = queryRes.city;
-            retObj.phoneType = queryRes.op;
+            retObj.phoneType = queryRes.sp;
         }
 
         return retObj;

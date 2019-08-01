@@ -1,6 +1,9 @@
 div
     #winnerMonitorQuery.col-md-12.well
         .search-filters-item
+            label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+            select.spicker.form-control(ng-model='vm.winnerMonitorQuery.platformList', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinnerMonitorPlatform()", ng-options='v._id as v.name for v in vm.platformByAdminId')
+        .search-filters-item
             label {{'PLAYER_NAME' | translate}}
             input.form-control(type='text', ng-model='vm.winnerMonitorQuery.playerName')
         .search-filters-item

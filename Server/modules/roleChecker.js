@@ -539,6 +539,7 @@ var roleChecker = {
                 promoCodeAnalysis: ['getPromoCodeTypeByObjId'],
                 promoCodeTemplate: ['updatePromoCodeTemplate'],
                 openPromoCodeTemplate: ['updateOpenPromoCodeTemplate'],
+                maxRewardAmountSetting: [],
             },
             "RegistrationUrlConfig": {
                 Read: ['getAllOfficer', 'getAllPromoteWay', 'getAllUrl', 'getAdminNameByDepartment'],
@@ -584,6 +585,7 @@ var roleChecker = {
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
                 partnerUrlConfiguration: [],
+                partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },
             "AuctionSystem": {
                 Read: [],

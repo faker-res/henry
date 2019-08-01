@@ -186,20 +186,16 @@ var dbPlayerTopUpRecord = {
                                 $lt: new Date(endTime)
                             },
                             playerId: {$in: playerIds},
-                            $or: [
-                                {isDuplicate: {$exists: false}},
-                                {
-                                    $and: [
-                                        {isDuplicate: {$exists: true}},
-                                        {isDuplicate: false}
-                                    ]
-                                }
-                            ]
+                            isDuplicate: {$ne: true}
                         }
                     },
                     {
                         $group: {
-                            _id: {gameId: "$gameId", playerId: "$playerId", platformId: "$platformId"},
+                            _id: {
+                                playerId: "$playerId",
+                                gameId: "$gameId",
+                                platformId: "$platformId"
+                            },
                             gameId: {"$first": "$gameId"},
                             providerId: {"$first": "$providerId"},
                             count: {$sum: {$cond: ["$count", "$count", 1]}},
@@ -316,7 +312,6 @@ var dbPlayerTopUpRecord = {
                         let consumptionReturnDetails = result[3];
                         let rewardDetails = result[4];
                         let onlineTopUpByMerchantDetails = result[5];
-                        let rewardList = [];
                         let playerReportDaySummary = [];
 
                         if(topUpDetails && topUpDetails.length > 0){
@@ -395,7 +390,8 @@ var dbPlayerTopUpRecord = {
                                                 consumptionAmount: consumption.amount,
                                                 consumptionValidAmount: consumption.validAmount,
                                                 consumptionBonusAmount: consumption.bonusAmount,
-                                                providerDetail: providerDetail
+                                                providerDetail: providerDetail,
+                                                gameDetail: [consumption]
                                             });
                                         }else{
                                             if(typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined"){
@@ -436,6 +432,24 @@ var dbPlayerTopUpRecord = {
                                             }else{
                                                 playerReportDaySummary[indexNo].providerDetail = providerDetail;
                                             }
+
+                                            // Push game detail
+                                            if (playerReportDaySummary[indexNo].gameDetail && playerReportDaySummary[indexNo].gameDetail.length) {
+                                                let idx = playerReportDaySummary[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
+
+                                                if (idx !== -1){
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].amount += consumption.amount;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].count += consumption.count;
+                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusRatio = (playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount / playerReportDaySummary[indexNo].gameDetail[idx].validAmount);
+                                                } else {
+                                                    playerReportDaySummary[indexNo].gameDetail.push(consumption);
+                                                }
+                                            } else {
+                                                playerReportDaySummary[indexNo].gameDetail = [consumption];
+                                            }
+
                                         }
                                     }
                                 }

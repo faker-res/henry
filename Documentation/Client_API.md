@@ -8,7 +8,7 @@
 2. [服务列表](#服务列表：)
     1. [设置语言](#设置语言)
 3. [玩家信息服务](#玩家信息服务：)
-	1. [玩家开户](#玩家开户) 
+	1. [玩家开户](#玩家开户)
 	2. [获取验证码](#获取验证码)
 	3. [登录](#登录)
 	4. [注销](#注销)
@@ -17,7 +17,7 @@
 	7. [获取玩家基本信息](#获取玩家基本信息get)
 	8. [修改玩家的支付信息](#修改玩家的支付信息)
 	9. [修改玩家登录密码](#修改玩家登录密码)
-	10. [设置短信通知](#设置短信通知)
+	10. [设置短信通知(已淘汰)](#设置短信通知)
 	10.1. [获取玩家短信状态](#获取玩家短信状态)
 	10.2. [设置玩家短信状态](#设置玩家短信状态)
 	11. [用户是否有效](#用户是否有效)
@@ -69,6 +69,7 @@
 	57. [获取更新密码令牌](#获取更新密码令牌)
 	58. [令牌更新密码](#令牌更新密码)
 	59. [获取玩家最近玩的两个游戏](#获取玩家最近玩的两个游戏)
+    60. [APP设置密码](#APP设置密码)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -82,11 +83,11 @@
 	7. [申请手工存款充值](#申请手工存款充值)
 	8. [取消手工存款申请单](#取消手工存款申请单)
 	9. [延长手工存款申请单有效时间](#延长手工存款申请单有效时间)
-	10. [修改手工存款申请单信息](#修改手工存款申请单信息) 
-	11. [获取手工存款申请单列表](#获取手工存款申请单列表) 
-	12. [获取支付宝存款申请单列表](#获取支付宝存款申请单列表) 
-	13. [获取微信存款申请单列表](#获取微信存款申请单列表) 
-	14. [申请支付宝转账充值](#申请支付宝转账充值) 
+	10. [修改手工存款申请单信息](#修改手工存款申请单信息)
+	11. [获取手工存款申请单列表](#获取手工存款申请单列表)
+	12. [获取支付宝存款申请单列表](#获取支付宝存款申请单列表)
+	13. [获取微信存款申请单列表](#获取微信存款申请单列表)
+	14. [申请支付宝转账充值](#申请支付宝转账充值)
 	15. [申请微信转账充值](#申请微信转账充值)
 	16. [申请秒付宝充值](#申请秒付宝充值)
 	17. [取消支付宝转账充值](#取消支付宝转账充值)
@@ -114,10 +115,10 @@
 	39. [(通用充值接口) 获取通用充值最高和最低可接收充值额度](#获取通用充值最高和最低可接收充值额度(通用充值接口))
 	40. [获取玩家『总』有效投注额](#获取玩家(总)有效投注额)
 	41. [(第三方上下分接口) 快付充值接口](#快付充值接口(第三方上下分接口))
-6. [充值意向服务](#充值意向服务：) 
-	1. [添加充值意向](#添加充值意向) 
-	2. [修改充值意向](#修改充值意向) 
-7. [玩家消费记录服务](#玩家消费记录服务：) 
+6. [充值意向服务](#充值意向服务：)
+	1. [添加充值意向](#添加充值意向)
+	2. [修改充值意向](#修改充值意向)
+7. [玩家消费记录服务](#玩家消费记录服务：)
 	1. [获取最近消费记录](#获取最近消费记录)
 	2. [查询消费记录](#查询消费记录)
 	3. [新消费通知(以后再做)](#新消费通知(以后再做))
@@ -131,24 +132,24 @@
 	2. [获取玩家奖励任务](#获取玩家奖励任务)
 	3. [获取玩家申请奖励](#获取玩家申请奖励)
 	4. [申请提前洗码](#申请提前洗码)
-	5. [是否符合首冲奖励条件](#是否符合首冲奖励条件)
-	6. [创建首冲奖励提案](#创建首冲奖励提案)
-	7. [申请游戏提供商奖励](#申请游戏提供商奖励)
-	8. [申请奖励活动](#申请奖励活动)
-	9. [获取消费返点额度](#获取消费返点额度)
-	10. [获取推荐玩家列表](#获取推荐玩家列表)
-	11. [获取玩家累计签到信息](#获取玩家累计签到信息)
-	12. [获取优惠代码](#获取优惠代码)
-	13. [申请优惠代码](#申请优惠代码)
-	14. [秒杀礼包列表](#秒杀礼包列表)
-	15. [获取充值优惠](#获取充值优惠)
-	16. [设置优惠代码显示](#设置优惠代码显示)
-	17. [获取签到信息](#获取签到信息)
-	18. [获取签到奖励](#获取签到奖励)
-	19. [标记优惠代码已读](#标记优惠代码已读)
-	20. [获取存送金信息](#获取存送金信息)
-	21. [获取某优惠领取排行榜](#获取某优惠领取排行榜)
-	22. [获取玩家洗码数据](#获取玩家洗码数据)
+	5. [获取申请优惠相关信息](#获取申请优惠相关信息)
+	6. [申请奖励活动](#申请奖励活动)
+	7. [获取消费返点额度](#获取消费返点额度)
+	8. [获取推荐玩家列表](#获取推荐玩家列表)
+	9. [获取玩家累计签到信息](#获取玩家累计签到信息)
+	10. [获取优惠代码](#获取优惠代码)
+	11. [申请优惠代码](#申请优惠代码)
+	12. [秒杀礼包列表](#秒杀礼包列表)
+	13. [获取充值优惠](#获取充值优惠)
+	14. [设置优惠代码显示](#设置优惠代码显示)
+	15. [获取签到信息](#获取签到信息)
+	16. [获取签到奖励](#获取签到奖励)
+	17. [标记优惠代码已读](#标记优惠代码已读)
+	18. [获取存送金信息](#获取存送金信息)
+	19. [获取某优惠领取排行榜](#获取某优惠领取排行榜)
+	20. [获取玩家洗码数据](#获取玩家洗码数据)
+	21. [获取开放式优惠代码](#获取开放式优惠代码)
+	22. [获取存送申请日限剩余可领取值](#获取存送申请日限剩余可领取值)
 10. [游戏信息服务](#游戏信息服务：)
 	1. [获取游戏类型列表](#获取游戏类型列表)
 	2. [获取游戏列表](#获取游戏列表)
@@ -438,7 +439,7 @@ API说明：
 <div id='设置语言'></div>
 
 功能列表:
-* **1. 设置语言** 
+* **1. 设置语言**
 	* 设置服务器返回信息语言。 name:setLang.
 	* 请求内容：`{lang: 1}//1:简体中文，2:英语`
 	* 响应内容：`{status: 200/40x}`
@@ -454,22 +455,22 @@ API说明：
 <div id='玩家开户'></div>
 
 * **1. 玩家开户**
-  - 向服务端提交开户申请，开户成功需通过短信验证(1分钟后才能重发，5分钟短信失效). 
+  - 向服务端提交开户申请，开户成功需通过短信验证(1分钟后才能重发，5分钟短信失效).
   - name: create 	
   - 请求内容：
 	  - ```
-		  {
-			  name: “test1”, 
-			  password: “123456”, 
-			  phoneNumber: “74852734”, 
-			  smsCode: “888888”, 
-			  email: “[tes1@163.com](mailto:tes1@163.com)”, 
-			  gender: “0”, 
-			  "DOB": "2017-01-18", 
-			  platformId:”xxxxxx”, 
-			  referral: “player002”, 
+		    {
+			  name: “test1”,
+			  password: “123456”,
+			  phoneNumber: “74852734”,
+			  smsCode: “888888”,
+			  email: “[tes1@163.com](mailto:tes1@163.com)”,
+			  gender: “0”,
+			  "DOB": "2017-01-18",
+			  platformId:”xxxxxx”,
+			  referral: “player002”,
 			  domain: “domain.com”
-			}
+            }
   - name: 玩家注册的用户名.(需验证用户是否被占用)
   - realName: 真实姓名
   - password: 玩家密码
@@ -490,10 +491,7 @@ API说明：
   - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
   - 操作失败： status--4xx, data--null
-
-
 <div id='获取验证码'></div>
-
 
 * **2. 获取验证码**
   - 从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来。
@@ -504,375 +502,503 @@ API说明：
 
 <div id='登录'></div>
 
-
 * **3. 登录**
-	- 玩家登录接口.
-	- name: login
-	- 请求内容：
-	- {platform Id: “1”, name: “test01”, password: “13224”, captcha: “34223”}
-	- platform Id: 玩家注册平台
-	- name: 玩家用户名
-	- password: 玩家密码
-	- captcha: 验证码 (登录三次失败后需要填验证码)
-	- clientDomain: 登陆域名
-	- deviceId: 设备号
-	- checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
-	- 响应内容:
-	- {status: 200/40x, data: playerObject}
-	- playerObject包含token，用于重新建立链接
-	- 操作成功： status--200, data--玩家对象
-	- 操作失败： status--40x, data--null
+    * functionName: login
+	* 玩家登录接口
+	* 请求内容：
+	    ```
+        platformId: 必填|String|玩家注册平台
+        name: 必填|String|玩家用户名
+        password: 必填|String|玩家密码
+        captcha: 选填|String|验证码 (登录三次失败后需要填验证码)
+        clientDomain: 选填|String|登陆域名
+        deviceId: 选填|String|设备号
+        checkLastDeviceId: 选填|Boolean|检查上次登入设备是否与这次一样
+        ```
+	* 操作成功:
+	    ```
+	    status: 200
+	    data: 玩家对象
+	    token: 玩家token
+	    ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='注销'></div>
 
 * **4. 注销**
+    * functionName: logout
 	* 玩家注销登录接口
-	* name: logout
-	* 请求内容：`{playerId: “xxxxxxx”}`
-	* playerId: 玩家ID
-	* 响应内容：`{status: 200/40x, playerId: “xxxxxxx”}`
-	* 注销成功：status--200, playerID--玩家ID
-	* 注销失败：status--40x, playerID--玩家ID
+	* 请求内容：
+	    ```
+	    playerId: 必填|String|玩家ID
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='是否已成功登入'></div>
 
 * **5. 是否已成功登入**
+    * functionName: isLogin
 	* 查询玩家是否登录.
-	* name: isLogin
-	* 请求内容：`{playerId: “xxxxxxxx”}`
-	* playerId：玩家ID // 必填
-	* 响应内容：`{status: 200, data: true/false/null}`
-	* 操作成功：status--200, data--已登录true, 未登录false
-	* 操作失败：status--40x, data--null.
+	* 请求内容：
+        ```
+        playerId: 必填|String|玩家ID
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: 已登录true, 未登录false
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取手机验证码'></div>
 
 * **6. 获取手机验证码**
+    * functionName: getSMSCode
 	* 玩家输入有效的手机号之后，点击获取验证码. 获取之后，需1分钟之后才能点击重发。当验证用途是注册时，手机号码超出使用限制便会报错。
-	* name: getSMSCode
 	* 请求内容：
-		*  
-			```
-			{
-			    phoneNumber:”13955556666”， // 发送短信验证的号码
-			    oldPhoneNumber:”18500000000”, // 玩家旧的电话号码，当purpose是'newPhoneNumber' ，而且为一步修改电话时，需传送旧的号码核对是否匹配（注意 2 步修改不需要）。
-			    purpose: “registration”,
-			    name: “etest1234” // 玩家帐号，请注意只有『注册』、『重置密码』才可以发
-			    captcha:"5256" // 图片验证码
-			    playerId:"101946" // 玩家ID，登入的情况发送
-		    }
+        ```
+        platformId: 必填|String|平台ID
+        phoneNumber: 必填|String|发送短信验证的号码
+        oldPhoneNumber: 选填|String|玩家旧的电话号码，当purpose是'newPhoneNumber' ，而且为一步修改电话时，需传送旧的号码核对是否匹配（注意 2 步修改不需要）。
+        purpose: 选填|String|详细如下
+        name: 选填|String|玩家帐号，请注意只有『注册』、『重置密码』才可以发
+        captcha: 选填|String|图片验证码
+        playerId: 选填|String|玩家ID，登入的情况发送
+        useVoiceCode: 选填|Boolean| 是否使用语音验证码
+        ```
 	* purpose ( 验证用途，可收入内容如下 )：
-		* “resetPassword”: - 重置密码
-		* “inquireAccount” - 找回账号
-		* “playerLogin” - 玩家登入
-		* “playerAppLogin” - 玩家APP登入（专为现金网APP需求而客制化）
-		* “setPhoneNumber” - 初次设置手机号
-		* “registration” - 注册
-		* “oldPhoneNumber” - 修改电话时的电话验证（旧号码）
-		* "newPhoneNumber" - 修改电话时的电话验证（新号码）// 一步修改电话用此
-		* ”updatePassword” - 更新密码
-		* “updateBankInfo” - 更新支付信息
-		* “updateBankInfoFirst” - 首次设置支付信息
-		* “freeTrialReward” - 免费体验金
-		* “demoPlayer” - 试玩帐号
-		* “Partner_registration” - 代理注册
-		* “Partner_oldPhoneNumber” - 代理电话号码（旧）
-		* “Partner_newPhoneNumber” - 代理电话号码（新）
-		* “Partner_updatePassword” - 代理更新密码
-		* “Partner_updateBankInfoFirst” - 代理银行卡（首次）
-		* “Partner_updateBankInfo” - 代理银行卡（更换）
-	* 响应内容：`{status: 200/40x}`
-	* 请求成功： status--200
-	* 请求失败： status--40x 
-		* 402 - 验证码错误 
-		* 454 - 手机号码已使用过
 
-<div id='获取玩家基本信息get'></div>	
+	    |Purpose|功能|
+	    |-------|---|
+	    |resetPassword|重置密码|
+	    |inquireAccount|找回账号|
+	    |playerLogin|玩家登入|
+	    |playerAppLogin|玩家APP登入（专为现金网APP需求而客制化）|
+	    |setPhoneNumber|初次设置手机号|
+	    |registration|注册|
+	    |oldPhoneNumber|修改电话时的电话验证（旧号码）|
+	    |newPhoneNumber|修改电话时的电话验证（新号码）// 一步修改电话用此|
+	    |updatePassword|更新密码|
+	    |updateBankInfo|更新支付信息|
+	    |updateBankInfoFirst|首次设置支付信息|
+	    |freeTrialReward|免费体验金|
+	    |demoPlayer|试玩帐号|
+	    |Partner_registration|代理注册|
+	    |Partner_oldPhoneNumber|代理电话号码（旧）|
+	    |Partner_newPhoneNumber|代理电话号码（新）|
+	    |Partner_updatePassword|代理更新密码|
+	    |Partner_updateBankInfoFirst|代理银行卡（首次）|
+	    |Partner_updateBankInfo|代理银行卡（更换）|
+
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
+<div id='获取玩家基本信息get'></div>
 
 * **7. 获取玩家基本信息**
+    * functionName: get
 	* 客户端获取玩家的基本信息，包括邮箱，地址，以及玩家等级详细信息。通过这个接口，还会返回更多的玩家信息。
-	* name: get
-	* 请求内容：`{playerId: “xxxxxxxx”}`
-	* 响应内容：`{status: 200/4xx, data: playerObj/null}`
-	* 操作成功：status--200, data--玩家对象，详见下面说的.
-	* 操作失败：status--4xx, data--null
-	* 玩家对象详细说明：
-		* 
-			```
-			{
-				playerId:"xxxxxx", //玩家ID
-				email: “[Elisa@tom.com](mailto:Elisa@tom.com)”, // 玩家邮箱
-				realName: “Elisa ”, //姓名
-				playerLevel: {
-					value: 1,  //当前等级数值
-					name: 普通, //当前等级名称
-				}
-			}
-			
-	<div id='修改玩家的支付信息'></div>
-	
+	* 请求内容：
+	    ```
+	    playerId: 必填|String|玩家ID
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: {
+            玩家对象
+			hasPassword: 玩家是否有修改过密码
+            ...
+            ...
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
+<div id='修改玩家的支付信息'></div>
 
 * **8. 修改玩家的支付信息**
+    * functionName: updatePaymentInfo
 	* 提供一个修改玩家的支付信息的接口
-	* name: updatePaymentInfo
 	* 请求内容：
-		* 
-			```
-			{
-				playerId:”xxxxxxx”, 
-				bankName: “1”, 
-				bankAccount: “123456789”, 
-				bankAccountName: “David”, 
-				bankAccountType: “2”, 
-				bankAccountProvince: “130000”,
-				bankAccountCity: “130700”, 
-				bankAccountDistrict: “130734”, 
-				bankAddress: “望京支行”, 
-				remark: “aaa”, 
-				smsCode: “xxxx”
-			}
-	* playerId: 玩家ID
-	* bankName: 银行名称ID
-	* bankAccount: 银行账号
-	* bankAccountName: 账号名称
-	* bankAccountType: 账号类型 -- 信用卡： 1 ，借记卡：2（非必填、默认2）
-	* bankAccountProvince: 开户省 "130000" (河北省）
-	* bankAccountCity: 开户城市"130700"（张家口）
-	* bankAccountDistrict: 开户地区"130734"（其它区）
-	* bankAddress: 银行地址
-	* smsCode: 短信验证码
-	* 响应内容：`{status: 200/400}`
-	* 操作成功：status--200
-	* 操作失败：status--40x
-	* *新增逻辑：关于『首次』绑定银行卡姓名，此姓名是否允许重复？需要根据『基础数据->平台基础数据->允许相同真实姓名前端开户』来判断。不勾＝不允许
-	* 回文：“此姓名已经注册，请更换银行卡或联系客服。“
-	
-	<div id='修改玩家登录密码'></div>
+        ```
+        playerId: 必填|String|玩家ID
+        bankName: 必填|String|银行名称ID
+        bankAccount: 必填|String|银行账号
+        bankAccountName: 选填|String|账号名称
+        bankAccountType: 选填|String|账号类型 -- 1:信用卡 , 2:借记卡（默认2）
+        bankAccountProvince: 选填|String|开户省 "130000" (河北省）
+        bankAccountCity: 选填|String|开户城市"130700"（张家口）
+        bankAccountDistrict: 选填|String|开户地区"130734"（其它区）
+        bankAddress: 选填|String|银行地址
+        remark: 选填|String|备注
+        smsCode: 选填|String|短信验证码
+		```
+    * 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
+<div id='修改玩家登录密码'></div>
 
 * **9. 修改玩家登录密码**
+    * functionName: updatePassword
 	* 提供一个用于修改玩家密码的接口
-	* name: updatePassword
 	* 请求内容：
-		* 
-			```
-			{
-				playerId: “xxxxxxxxxx”, 
-				oldPassword: “4321”, 
-				newPassword: “1234”, 
-				smsCode: "xxxx”
-			}
-	* playerId: 玩家ID // 必填
-	* oldPassword: 旧密码 // 必填
-	* newPassword: 新密码 // 必填
-	* smsCode: SMS验证码
-	* 响应内容：`{status: 200/40x}`
-	* 操作成功： status--20
-	* 操作失败： status--40x
+        ```
+        playerId: 必填|String|玩家ID
+        oldPassword: 必填|String|旧密码
+        newPassword: 必填|String|新密码
+        smsCode: 选填|String|SMS验证码
+		```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='设置短信通知'></div>
 
-
-
-* **10. 设置短信通知**
-	* 玩家设置需要接收短信的事件类型
-	* name: updateSmsSetting (淘汰，请使用setSmsStatus)
-	* 请求内容：
-		* 
-			```
-			{
-				"manualTopup": true/false,
-				"applyBonus": true/false,
-				"cancelBonus": true/false,
-				"applyReward":true/false,
-				"consumptionReturn": true/false,
-				"updatePaymentInfo": true/false,
-				"updatePassword": true/false,
-			}	
-	* smsSetting: 是否接收相关事件短信通知的设置。内容如下: [短信通知设置内容表](#短信通知设置内容表)
-	* 响应内容:`{status: 200/40x}`
-	* Success: status--200
-	* Fail: status--40x, , data--null
-
-<div id='短信通知设置内容表'></div>
-
-# <head2>
-#### 短信通知设置内容表：
-| **名称** | **值** |**说明**	|
-|--|--|--|
-|manualTopup|true/false|手工存款充值|
-|applyBonus|true/false|申请兑奖|
-|cancelBonus|true/false|申请兑奖|
-|applyReward|true/false|取消兑奖 |
-|consumptionReturn|true/false|申请奖励优惠(除了消费返点)|
-|updatePaymentInfo|true/false|消费返点奖励|
-|updatePassword|true/false|玩家修改支付信息 |
-# <head3>
+* **10. 设置短信通知 (已淘汰)**
+    * functionName: updateSmsSetting
+	* 已淘汰 Deprecated
 
 <div id='获取玩家短信状态'></div>
 
 * **10.1 获取玩家短信状态**
+    * functionName: getSmsStatus
 	* 获取玩家接收短信的事件类型
-	* name: getSmsStatus
-	* 请求内容：{}
-	* 响应内容(树状结构)：
-		* 
-			```
-			{
-				"status": 200,
-				"data": [
-					{
-						"smsName": "短信通知分组1", //短信分组名称
-						"smsId": 59,//短信通知分组smsId,可用smsId,来调用setSmsStatus接口，设置开关
-						"status": 0, //短信分组状态（1:组内的设定都是开启的 0:任一组内设定关闭即为0）
-						"settings": [ //短信分组内设定
-						{applyRewardEvent
-						"smsName":
-						"PlayerConsumptionReturnSuccess", //短信通知的具体设定
-						"smsId": 67, // 短信通知设定 smsId
-						"status": 1 //设定是否开启 1：开启 0：关闭
-						},
-						{
-						"smsName": "ManualTopupSuccess",
-						"smsId": 68,
-						"status": 0
-						}]},
-						{
-						"smsName": "短信分组2",
-						"smsId": 62,
-						"status": 1,
-						"settings": [
-							{
-							"smsName": "AlipayTopupSuccess",
-							"smsId": 65,
-							"status": 1
-							}]},}
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        data:
+            smsName: 短信分组名称
+            smsId: 短信通知分组smsId,可用smsId,来调用setSmsStatus接口，设置开关
+            status: 短信分组状态（1:组内的设定都是开启的 0:任一组内设定关闭即为0）
+            settings: [{ //短信分组内设定
+            	smsName: 短信通知类型名
+            	smsId: 短信通知设定
+            	status: 设定是否开启 1：开启 0：关闭
+            }],
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
 <div id='设置玩家短信状态'></div>		
-					
+
 * **10.2 设置玩家短信状态**
+    * functionName: setSmsStatus
 	* 设置玩家接收短信的事件类型
-	* 请求内容：`{status: 1:0,20:1,30:1 // 键值对 smsId:status, smsId:参考getSmsStatus status:0/1}`
-	
+	* 请求内容：
+	    ```
+	    status: 必填|String|smsId:status, smsId:参考getSmsStatus status:0/1, 例子"1:0,20:1,30:1"
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
 <div id='用户是否有效'></div>
 
 * **11. 用户是否有效**
+    * functionName: isValidUsername
 	* 用于在注册时，检测玩家的用户名是否有效。
-	* name: isValidUsername
-	* 请求内容：`{platform Id, ‘1’, name: “xxxxxxxxx”}`
-	* platform Id: 平台 ID // 必填
-	* name: 要验证的用户名 // 必填
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 操作成功: status--200, data--true, 有效，false, 用户名已被占用
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    platformId: 必填|String|玩家注册平台
+	    name: 必填|String|要验证的用户名
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: true:有效，false:用户名已被占用
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='链接验证'></div>
 
 * **12. 链接验证**
+    * functionName: authenticate
 	* 用于验证玩家webSocket链接是否有效。
 	* 当玩家已登录，但是webSocket链接断开，再建立链接是可以用token来验证链接
-	* name: authenticate
-	* 请求内容：`{playerId: “xxxxxxxxx”, token: “xxxxxxx”}`
-	* playerId: 已登录的玩家id
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 操作成功: status--200, data--true, 有效，false, 鉴定失败
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    playerId: 必填|String|玩家ID
+	    token: 必填|String|玩家token
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: true
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家站内信'></div>
 
 * **13. 获取玩家站内信**
+    * functionName: getMailList
 	* 获取玩家站内信列表
-	* name: getMailList
-	* service:player / service:partner
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: [mailObj]}`
-	* 操作成功: status--200, data--站内信列表
-	* 操作失败：status--4xx, data-null
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='通知玩家有新的站内信'></div>
 
 * **14. 通知玩家有新的站内信**
-	* Name: notifyNewMail
-	* service:player / service:partner service
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-			data: { title: “充值成功”，content：“xxxx”，
-			createTime: “2016-08-08”, hasBeenRead: false}
-			}
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: notifyNewMail
+	* 监听类型, 呼叫后, 如果有新邮件, 系统会主动推送
+	* 请求内容：
+        ```
+        {}
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='标记站内信为已读'></div>
 
 * **15. 标记站内信为已读**
-	* Name: readMail
-	* 请求内容：`{playerId:”xxxxxxxx” , mailObjId:”xxxxxx”}`
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-				data: { title: “ ”，content：“”，}
-			}
-	*	操作成功: status--200, data--新的站内信内容
-	*	操作失败：status--4xx, data-null
+	* functionName: readMail
+	* 标记站内信为已读
+	* 请求内容：
+	    ```
+	    mailObjId: 必填|String|邮件唯一码
+	    ```
+    * 操作成功:
+        ```
+        status: 200
+        data:
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取未读取站内信'></div>
 
 * **16. 获取未读取站内信**
-	* Name: getUnreadMail
-	* 请求内容：`{playerId:”xxxxxxxx”}`
-	* 响应内容：
-		* 
-			```
-			{status: 200/4xx,
-				data: { title: “ ”，content：“”，}
-			}
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: getUnreadMail
+    * 获取未读取站内信
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='删除所有邮件'></div>
 
 * **17. 删除所有邮件**
-	* Name: deleteAllMail
-	* service:player / service:partner
-	* 请求内容：`{playerId:”xxxxxxxx”}`
-	* 响应内容：`{status: 200/4xx,data: {..... }}`
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: deleteAllMail
+	* 请求内容：
+	    ```
+	    {}
+	    ```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='删除邮件'></div>
 
 * **18. 删除邮件**
-	* Name:deleteMail
-	* service:player / service:partner
-	* 请求内容：`{playerId:”xxxxxxx”, 　mailObjId:””}`
-	* 响应内容：`{status: 200/4xx,data: { …. }`
-	* 操作成功: status--200, data--新的站内信内容
-	* 操作失败：status--4xx, data-null
+	* functionName: deleteMail
+	* 请求内容：
+	    ```
+	    mailObjId: 必填|String|邮件唯一码
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data: [{
+            _id: 邮件唯一码
+            title: 邮件标题
+            content: 邮件内容
+            hasBeenRead: 是否被阅读
+            createTime: 邮件生成时间
+        }]
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家额度'></div>
 
 * **19. 获取玩家额度**
-	* name: getCredit
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: {gameCredit: 0, validCredit: 100, lockedCredit: 20, pendingRewardAmount: 132}}`
-	* 操作成功: status--200, data--额度信息
-	* 操作失败：status--4xx, data-null
+	* functionName: getCredit
+	* 请求内容：
+        ```
+        {}
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        data:
+            gameCredit: 供应商内额度
+            validCredit: 自由额度
+            pendingRewardAmount: 待审核优惠金额
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家全额消费'></div>
 
 * **20. 获取玩家全额消费**
 	* name: getCreditBalance
-	* 请求内容：{}
-	* 响应内容：`{status: 200/4xx, data: 400}`
-	* 操作成功: status--200, data--额度信息
-	* 操作失败：status--4xx, data-null
+    * 获取玩家总投注额度
+    * 请求内容：
+        ```
+        {}
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: 总投注额度
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='修改玩家头像'></div>
 
 * **21. 修改玩家头像**
-	* name: updatePhotoUrl
+	* functionName: updatePhotoUrl
 	* 请求内容：`{photoUrl: “abc”}`
 	* 响应内容：`{status: 200/4xx, data: 400}`
 	* 操作成功: status--200
@@ -884,7 +1010,7 @@ API说明：
 	* Name: getPlayerDayStatus
 	* 请求内容：`{providerIds: [“18”, “20”]} // 提供商ID，选填，只获取指定提供商ID的投注记录，不填则全拿`
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200/4xx,
@@ -903,7 +1029,7 @@ API说明：
 	* Name: getPlayerWeekStatus
 	* 请求内容：`{providerIds: [“18”, “20”]} // 提供商ID，选填，只获取指定提供商ID的投注记录，不填则全拿`
 	* 响应内容：
-		* 
+		*
 			```
 			{"status": 200/4xx,
 				"data": {
@@ -920,7 +1046,7 @@ API说明：
 	* Name: getPlayerMonthStatus
 	* 请求内容：`{providerIds: [“18”, “20”]} // 提供商ID，选填，只获取指定提供商ID的投注记录，不填则全拿`
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200/4xx,
@@ -945,11 +1071,11 @@ API说明：
 <div id='获取玩家最新额度'></div>
 
 * **26. 获取玩家最新额度**
+	* functionName: getCreditInfo
 	* 获取玩家最新额度信息
-	* name: getCreditInfo
 	* 请求内容：{}
 	* 响应内容：
-		* 
+		*
 			```
 			{
 			"status": 200,
@@ -983,23 +1109,24 @@ API说明：
 	* 操作成功: status--200, data--额度信息
 	* 操作失败：status--4xx, data-null
 
-<div id='修改玩家电话'></div>	
+<div id='修改玩家电话'></div>
 
 * **27. 修改玩家电话**
 	* Name: updatePhoneNumberWithSMS
 	* 请求内容：`（若有验证旧号码和用getSMSCode获取新号码验证码）{platformId: 1, playerId: 123, smsCode: 1234}（若只验证旧号码或无验证）{platformId: 1, playerId: 123, newPhoneNumber: 15876748763, smsCode: 1234}`
 	* 响应内容：`{ "status": 200/4xx}`
 
-<div id='登入后获取手机验证码'></div>	
+<div id='登入后获取手机验证码'></div>
 
 * **28. 登入后获取手机验证码**
 	* Name:sendSMSCodeToPlayer
 	* 请求内容：
-		* 
+		*
 			```
 			{
-				platformId:1,purpose: 
-				“updateBankInfo”
+				platformId:1,
+				purpose: “updateBankInfo”,
+				useVoiceCode: true, //选填|Boolean| 是否使用语音验证码
 			},
 				platformId: 平台ID
 				purpose: 验证用途，可收入内容如下：
@@ -1009,12 +1136,12 @@ API说明：
 					“updateBankInfo” - 更新支付信息
 	* 响应内容：`{“status”: 200/4xx}`
 
-<div id='通过验证码验证手机'></div>	
+<div id='通过验证码验证手机'></div>
 
 * **29. 通过验证码验证手机**
 	* Name: verifyPhoneNumberBySMSCode
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				smsCode: “2654
@@ -1025,7 +1152,7 @@ API说明：
 	* 操作成功: status--200 （成功验证）
 	* 操作失败：status--4xx （验证失败）
 
-<div id='玩家前端自助判断升级'></div>	
+<div id='玩家前端自助判断升级'></div>
 
 
 * **30. 玩家前端自助判断升级**
@@ -1036,105 +1163,90 @@ API说明：
 	* 请求成功：status--200,"data": {"message": "恭喜您从 (当前等级) 升级到(当前等级),获得 xx元、xx元共x个礼包"}
 	* 请求失败：status--453, errorMessage--充值金额不足, 有效投注不足。
 
-<div id='玩家当前额度'></div>	
+<div id='玩家当前额度'></div>
 
 * **31. 玩家当前额度**
+    * functionName: getCreditDetail
 	* 获取已登录玩家额度
-	* name: getCreditDetail
-	* 请求内容：{}
-	* 响应内容：
-	* 请求成功：
-		* 
-			```
-			"data": {  
-			"gameCreditList": [//游戏额度列表  
-			{ 
-				"nickName":"AG真人",  
-				"validCredit":"200",
-				“status”: 0 //status表示游戏平台状态,0表示正常,1表示维护中  
-			}  ],
-			"credit": 0,//本地自由额度
-			finalAmount:50000, // 帐号中的总馀额（含自由本地+锁定本地+游戏馀额有过绿）
-			sameLineProviders:{ // 同一条线路的供应商有哪些
-				0:["47", "55" ],
-				1:["16", "20", "70", "85"],
-				}
-			"lockedCreditList": [//锁大厅额度列表 
-			{  
-				"nickName":"百家乐（真人）",
-				"lockCredit":"0",//本地锁大厅额度  
-				"list":[//大厅列表  
-				{  
-					"providerId":"18",  
-					"nickName":"AG真人",  
-					"validCredit":200,
-					“status”: 0  
-				},  
-				{  
-					"providerId":"19",  
-					"nickName":"ebet真人",  
-					"validCredit":0,
-					“status”: 0  
-				}  ]  },  
-				{  
-					"nickName":"电子",  
-					"lockCredit":"0",  
-					"list":[  
-						{  
-							"providerId":"18",  
-							"nickName":"PT电子",  
-							"validCredit":200,
-							“status”: 0  
-						},  
-						{  
-							"providerId":"19",  
-							"nickName":"MG电子",  
-							"validCredit":0,
-							“status”: 0  
-							}  ]  
-						}  ]  
-					}
-	* 请求失败：`{"status": 420,"errorMessage": "验证失败, 请先登录","data": null}`
-	
-	<div id='登入后获取提款信息'></div>
-	
-* **32. 登入后获取提款信息**
-	* Name:getWithdrawalInfo
 	* 请求内容：
-		* 
-			```
-			{
-				platformId:1,
+	    ```
+	    {}
+	    ```
+	* 操作成功：
+		```
+		status: 200
+		data: {  
+			gameCreditList: [{  游戏大厅内额度列表  
+				nickName: 大厅名称
+				chName: 大厅中文名称
+				validCredit: 额度
+				status: 大厅状态,0表示正常,1表示维护中
+				providerId: 大厅ID
+			}],
+			credit: 本地自由额度
+			finalAmount: 帐号中的总馀额（含自由本地+锁定本地+游戏馀额）
+			sameLineProviders: {    同一条线路的供应商有哪些
+			    例子: 序号: ["大厅ID"]
+				0: ["47", "55" ],
+				1: ["16", "20", "70", "85"],
 			},
-			platformId: 平台ID
-	* 响应内容：
-		* 
-			```
-			{
-			"status": 200,
-			"data": {
-				"freeTimes": 20,
-				"serviceCharge": 0.0015,
-				"currentFreeAmount": 0,
-				"freeAmount": 1800,
-				"lockList": [
-				{
-					"name": "第一大厅",
-					"lockAmount": 1100,
-					"currentLockAmount": 0
-				}
-				]
-			}
-			}
-	* 请求失败: `{"status": 459,"name": "DataError","message": "Provider group is not used.","errorMessage": "没有开启锁大厅（组），暂无提款进度展示"}`
-	
-	<div id='编辑玩家QQ'></div>
-	
+			lockedCreditList: [{    锁大厅额度列表   
+				nickName: 大厅组名称
+				lockCredit: 本地锁大厅额度  
+				list: [{    大厅列表  
+					providerId: 大厅ID
+					nickName: 大厅名称  
+					validCredit: 额度
+					status: 大厅状态,0表示正常,1表示维护中
+				}]  
+            }]
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
+<div id='登入后获取提款信息'></div>
+
+* **32. 登入后获取提款信息**
+	* functionName: getWithdrawalInfo
+	* 获取提款信息
+	* 请求内容：
+	    ```
+        platformId: 必填|String|平台ID
+        ```
+	* 请求成功：
+		```
+		status: 200
+		data:
+			freeTimes: 免手续费提款剩余次数
+			serviceCharge: 手续费
+			currentFreeAmount: 免手续费提款额
+			freeAmount: 可提款金额
+			ximaWithdraw: 可提款洗码金额
+			lockList: [{ 现有锁大厅
+                name: 大厅名字
+                lockAmount: 锁定额度
+                currentLockAmount: 锁定额度余额
+			}]
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
+<div id='编辑玩家QQ'></div>
+
 * **33. 编辑玩家QQ**
 	* Name:updatePlayerQQ
 	* 请求内容：`{qq: xxxxx (第一次绑定可选择不填写,第二次修改必填)},`
 	* 响应内容：
-		* 第一次绑定，没填qq	
+		* 第一次绑定，没填qq
 			```
 			 {
 				 "status": 200
@@ -1155,7 +1267,7 @@ API说明：
 
 <div id='编辑玩家wechat'></div>
 
-* **34. 编辑玩家wechat**	
+* **34. 编辑玩家wechat**
 	* Name:updatePlayerWeChat
 	* 请求内容：`{wechat: xxxxx (第一次绑定可选择不填写,第二次修改必填)},`
 	* 响应内容：
@@ -1181,7 +1293,7 @@ API说明：
 
 <div id='编辑玩家email'></div>
 
-* **35. 编辑玩家email**	
+* **35. 编辑玩家email**
 	* Name:updatePlayerEmail
 	* 请求内容：`{email: xxxxx (第一次绑定可选择不填写,第二次修改必填)},`
 	* 响应内容：
@@ -1211,7 +1323,7 @@ API说明：
 	* Name: loginJblShow
 	* 请求内容：{},
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1229,7 +1341,7 @@ API说明：
 	* 请求内容：`{"playerId": "yunvince6989", // 玩家ID，必填}`
 	* 响应内容：`{"status": 200,"data": playerObject // 玩家资料}`
 	* 请求失败：
-		* 
+		*
 			```
 			{
 				{
@@ -1249,7 +1361,7 @@ API说明：
 	* 请求内容：`{"platformId": "1",”realName”: “xxx” }`
 	* 响应内容：`{"status": 200,"data": playerObject // 玩家资料}`
 	* 请求失败：
-		* 
+		*
 			```
 			{
 				{
@@ -1258,7 +1370,7 @@ API说明：
 					"data": null
 				}
 			}
-	
+
 <div id='发送站内信给另一玩家'></div>
 
 
@@ -1269,7 +1381,7 @@ API说明：
 	* content: 内容 // 选添
 	* 请求内容：`{"recipientPlayerId": "yunvince6911","title": "Re: Testing","content": "testing 1 2 3"}`
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1290,7 +1402,7 @@ API说明：
 				}
 			}
 	* 请求失败：
-		* 
+		*
 			```
 			{
 				{
@@ -1309,7 +1421,7 @@ API说明：
 	* title: 标题
 	* content: 内容
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				"recipientAdminObjId": "57579e3987f68123f74f4ec4",
@@ -1317,7 +1429,7 @@ API说明：
 				"content": "The credits still have not appeared in my account"
 			}
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1339,7 +1451,7 @@ API说明：
 				}
 			}
 	* 请求失败：
-		* 
+		*
 			```
 			{
 				{
@@ -1355,7 +1467,7 @@ API说明：
 * **41. 创建试玩玩家**
 	* Function  name: createDemoPlayer
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				"platformId": "6", // 平台ID，必填
@@ -1363,7 +1475,7 @@ API说明：
 				"smsCode": “3963” // 需sms验证时必填，否则可无视
 			}
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1376,7 +1488,7 @@ API说明：
 					"password": "a484b5",  // 试玩玩家密码
 				}
 	* 请求失败：
-		* 
+		*
 			```
 			{
 				{
@@ -1385,7 +1497,7 @@ API说明：
 					"data": null
 				}
 			}
-	
+
 <div id='获取玩家客户端数据'></div>
 
 * **42. 获取玩家客户端数据**
@@ -1408,7 +1520,7 @@ API说明：
 * **44. 玩家充值投注排行榜**
 	* Function  name: getPlayerBillBoard
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				"platformId": "1", // 平台ID
@@ -1420,7 +1532,7 @@ API说明：
 				“providerId”: [“18”, “56”]  当 mode 为 4、5、6, 7 时候添加该字段 所有mode 当不填该字段时，默认返回所有
 			}
 	* 响应内容：
-		* 
+		*
 			```
 			++++++++++++++++++++++
 			{ // 1：累积存款排行
@@ -1605,7 +1717,7 @@ API说明：
 	* service:player
 	* 请求内容：`{platformId: ‘4’} // 平台ID`
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1622,7 +1734,7 @@ API说明：
 	* Function  name: callBackToUser
 	* service:player
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				platformId: ‘4’  // 平台ID
@@ -1641,14 +1753,14 @@ API说明：
 	* Name: getPlayerAnyDayStatus
 	* service:player
 	* 请求内容：
-		* 
+		*
 			```
 			{
 				providerIds: [“35”,”38”], // 平台ID，可不填，不填时搜索全部
 				startTime: “2018-08-06T09:17:01.970Z” // 选择日期，可不填，不填则为当日
 			}
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				status: 200/4xx,
@@ -1672,7 +1784,7 @@ API说明：
 		* 2.  name, smsCode, phoneNumber （重置密码方式1）
 		* 3.  name, answer （重置密码方式2）
 		* 4. name, code （重置密码方式3 code为inquireAccountByPhoneNumber 返回的code）
-		* 
+		*
 				```
 				{
 					platformId: “4” // 必填
@@ -1682,9 +1794,9 @@ API说明：
 					answer: [{quesNo: “1”, ans: “1111”}, {quesNo: “2”, ans: “哈哈哈”}] //密保问题和答案
 					code : “5678” 识别码（详见：inquireAccountByPhoneNumber）
 				},
-	
+
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1712,7 +1824,7 @@ API说明：
 	* Name: inquireAccountByPhoneNumber
 	* 请求内容：`{platformId: “4” // 必填smsCode: “4422” // 必填, 短信验证码phoneNumber: “17355544411“ // 必填, 玩家电话号码},`
 	* 响应内容：
-		* 
+		*
 			```
 			{
 				"status": 200,
@@ -1738,7 +1850,7 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: “1”, //平台ID - 必填 **	
+				platformId: “1”, //平台ID - 必填 **
 				startTime: “”, //开始时间
 				endTime: “”, //结束时间
 				requestPage: 1, //请求第几页
@@ -1748,7 +1860,7 @@ API说明：
 			**当只传platformId时，默认返回当前月的数据
 	* 响应内容：
 		* ```
-			{ 
+			{
 				"status": 200,  
 				"data":{  
 					"stats": {  
@@ -1795,7 +1907,7 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: “1”, //平台ID - 必填 
+				platformId: “1”, //平台ID - 必填
 				**phoneNumber: “17355544411“ // 玩家电话号码, 必填
 				smsCode: “8888”, // 短信验证码, 必填
 				accountPrefix: “e” // 玩家帐号前缀，可不填
@@ -1869,8 +1981,8 @@ API说明：
 			{
 				platformId: “4”,
 				name: “username1” // 玩家账号
-				phoneNumber: “11755444444”
-				smsCode: “5478”
+				phoneNumber: “11755444444” // 验证电话号码
+				smsCode: “5478” //短信验证码，从getSMSCode获取
 			}// 需调用getSMSCode接口, purpose: “updatePassword”
 	* 响应内容:`{status: 200/40x, data: {token: “xsda45w7f2d4”}}`
 	* 操作成功： status--200
@@ -1896,6 +2008,17 @@ API说明：
 	* 响应内容:`{status: 200/40x}`
 	* 操作成功： `{status--200，data: true}`
 	* 操作失败： `{status--40x，errorMessage: ””}`
+
+<div id='APP设置密码'></div>
+
+* **60. APP设置密码**
+    * service: player
+    * name: settingPlayerPassword
+    * 需登陆: 是
+    * 请求内容：{password: 'abc123'}
+    * 响应内容:`{status: 200/40x}`
+    * 操作成功： `{status--200，data: {text:'密码添加成功'}}`
+    * 操作失败： `{status--40x，errorMessage: ””}`
 
 # 注册意向服务：
 用于关注玩家注册过程中是否遇到问题，便于改进登录界面以及在适当的时候为玩家提供帮助。
@@ -1952,20 +2075,20 @@ API说明：
   - 响应内容：
 	  - ```
 		  - {
-				 status: 200/4xx, 
+				 status: 200/4xx,
 				 data: {
-					 proposalId: “000123”, 
-					 proposalType: “003”, 
-					 status: “001”, 
+					 proposalId: “000123”,
+					 proposalType: “003”,
+					 status: “001”,
 					 requestDetail: {
-						 bonusId: “001”, 
-						 amount: 1, 
+						 bonusId: “001”,
+						 amount: 1,
 						 honoreeDetail: {
 							 mobile: 13500101111
 						}
-					}, 
+					},
 					createTime: “2016-08-15 12:00:00”,...
-				}, 
+				},
 				errorMessage: “xxxxxx”
 			}
   - Status：操作状态， 200--操作成功， 4xx--操作失败
@@ -2026,20 +2149,20 @@ API说明：
 	* 响应内容:
 		* ```
 			{
-				“status”: 200/4xx, 
-				requestId: “43985498”, 
+				“status”: 200/4xx,
+				requestId: “43985498”,
 				“data”: [{
-					“id”: “001”, 
-					“code”: “TeleCard”, 
-					“name”: “10元移动充值卡”, 
-					“credit”: 9.0, 
+					“id”: “001”,
+					“code”: “TeleCard”,
+					“name”: “10元移动充值卡”,
+					“credit”: 9.0,
 					“description”: “10块电话卡9个额度就可以啦！”
 				},{
-					“id”:”002”, 
-					“code”: “ThailandTravel”, 
-					“name”: “泰国五日游”, 
-					“credit”: 3888, 
-					“description”: “豪华泰国五日游, 
+					“id”:”002”,
+					“code”: “ThailandTravel”,
+					“name”: “泰国五日游”,
+					“credit”: 3888,
+					“description”: “豪华泰国五日游,
 					High翻天”
 				}], “errorMessage”: “xxxxxx”}
 	* status: 操作状态, 200--成功, 4xx--失败
@@ -2051,7 +2174,7 @@ API说明：
 	* credit: 消耗额度
 	* description: 奖品说明
 	* errorMessage: 详细错误信息
-	
+
 <div id='获取有效在线充值方式'></div>
 
 * **5. 获取有效在线充值方式**
@@ -2064,13 +2187,13 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx; 
+				status: 200/4xx;
 				topupTypes: [{
-					type: 1, 
-					status:1, 
+					type: 1,
+					status:1,
 					"maxDepositAmount": 2000
 				},{
-					type: 2, 
+					type: 2,
 					status:1,，
 					accountNumber：xxx
 				}]
@@ -2089,9 +2212,9 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				topupType:1, 
-				amount: 300, 
-				merchantUseType: xxx, 
+				topupType:1,
+				amount: 300,
+				merchantUseType: xxx,
 				clientType: xxx
 			}
 	* topupType: 充值方式
@@ -2099,7 +2222,7 @@ API说明：
 	* merchantUseType(商户号用途):
 		* 1--普通充值 (normal topup)
 		* 2--开户充值 ( create acc & topup )，目前没有用
-	* clientType(客户端类型) : 
+	* clientType(客户端类型) :
 		* 1--浏览器(browser)
 		* 2--手机h5
 		* 3--手机app
@@ -2110,15 +2233,15 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data:{
-					proposalId: “xxxxxx”, 
-					topupType: 1, 
-					amount: 300, 
+					proposalId: “xxxxxx”,
+					topupType: 1,
+					amount: 300,
 					createTime: “2016-08-20 12: 20: 20”,
-					status: “01”, 
+					status: “01”,
 					topupDetail:{}
-				}, 
+				},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态， 200--成功， 4xx--失败
@@ -2154,14 +2277,14 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				bankTypeId: “1”, 
-				lastBankcardNo: “435”, 
-				amount: 500, 
-				depositMethod:”1”, 
-				provinceId: “01”, 
-				cityId: “03”, 
-				districtId: “02”, 
-				bPMSGroup: false/true, 
+				bankTypeId: “1”,
+				lastBankcardNo: “435”,
+				amount: 500,
+				depositMethod:”1”,
+				provinceId: “01”,
+				cityId: “03”,
+				districtId: “02”,
+				bPMSGroup: false/true,
 				supportMode: “new”
 			}
 	* bankTypeId: 手工充值银行类型id (微信和支付宝转帐和云闪付不需要填，其他必须填)
@@ -2181,19 +2304,19 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: {
-					proposalId: “900958”, 
-					status: “2”, 
+					proposalId: “900958”,
+					status: “2”,
 					result: {
-						requestId: “532485”, 
-						bankTypeId: “1”, 
-						bankCardNo: “xxxx-xxxx-xxxx-xxxx”, 
-						cardOwner: “李四”, 
-						createTime: “2016-07-10 12:12:30”, 
+						requestId: “532485”,
+						bankTypeId: “1”,
+						bankCardNo: “xxxx-xxxx-xxxx-xxxx”,
+						cardOwner: “李四”,
+						createTime: “2016-07-10 12:12:30”,
 						validTime: “2016-07-10 13:12:30”
 					}
-				}, 
+				},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态， 200--成功，4xx--失败
@@ -2233,11 +2356,11 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: {
-					proposalId: “0001”, 
+					proposalId: “0001”,
 					delayTime: 30
-				}, 
+				},
 				errorMessage: “xxxxxxx”
 			}
 	* Status: 操作状态， 200--操作成功， 4xx--操作失败
@@ -2251,12 +2374,12 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				proposalId:”043852343”, 
-				bankTypeId: “003”, 
-				lastBankcardNo: “435”, 
-				amount: 800, 
-				providerId: “01”, 
-				cityId: “03”, 
+				proposalId:”043852343”,
+				bankTypeId: “003”,
+				lastBankcardNo: “435”,
+				amount: 800,
+				providerId: “01”,
+				cityId: “03”,
 				districtId: “02”
 			} // province
 	*	proposalId: 提案Id
@@ -2269,10 +2392,10 @@ API说明：
 	*	响应内容：
 		*	```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: {
 					proposalId: “043852343”
-				}, 
+				},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态, 200--成功， 4xx--操作失败
@@ -2403,9 +2526,9 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				amount: 100, 
-				alipayName:’testaliUser1’, 
-				bonusCode: 优惠代码, 
+				amount: 100,
+				alipayName:’testaliUser1’,
+				bonusCode: 优惠代码,
 				realName: xxx
 			}
 	* limitedOfferObjId: (可选) 指定充值应用于哪个秒杀礼包
@@ -2432,7 +2555,7 @@ API说明：
 	* proposalId: 支付宝转账充值单提案Id
 	* amount: 充值金额
 	* status:充值提案状态
-	
+
 <div id='申请微信转账充值'></div>
 
 * **15.  申请微信转账充值**
@@ -2515,11 +2638,11 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status:200/4xx, 
+				status:200/4xx,
 				data: {
-					proposalId: “867437854”, 
-					amount: 300, 
-					handleTime:”2016-08-08 8:08:08”, 
+					proposalId: “867437854”,
+					amount: 300,
+					handleTime:”2016-08-08 8:08:08”,
 					status: “Pending”
 				}
 			}
@@ -2537,11 +2660,11 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status:200/4xx, 
+				status:200/4xx,
 				data: {
-					proposalId: “578945697”, 
-					amount: 300, 
-					handleTime: “2016-08-08 8:08:08”, 
+					proposalId: “578945697”,
+					amount: 300,
+					handleTime: “2016-08-08 8:08:08”,
 					status: “Pending”
 				}
 			}
@@ -2603,14 +2726,14 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: [{
-					id: “001”, 
+					id: “001”,
 					name: “北京”
 				},{
-					id: “002”, 
+					id: “002”,
 					name: “河北”
-				}], 
+				}],
 			errorMsg: “xxxxxxx”
 			}
 	* Status: 操作状态， 200--成功， 4xx--失败
@@ -2626,15 +2749,15 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data:[{
-					id: “001”, 
-					provinceId: “001”, 
-					name: “北京” 
+					id: “001”,
+					provinceId: “001”,
+					name: “北京”
 				},{
-					id: “002”, 
-					provinceId: “002”, 
-					name: “石家庄” 
+					id: “002”,
+					provinceId: “002”,
+					name: “石家庄”
 				}], errorMsg: “xxxxxxxxxx”
 			}
 	* Status: 操作状态，200--成功， 4xx--失败
@@ -2651,16 +2774,16 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data:[{
-					id: “001”, 
-					provinceId: “001”, 
-					cityId: “001”, 
+					id: “001”,
+					provinceId: “001”,
+					cityId: “001”,
 					name: “朝阳区”
 				},{
-					id: “002”, 
-					provinceId: “001”, 
-					cityId: “001”, 
+					id: “002”,
+					provinceId: “001”,
+					cityId: “001”,
 					name: “东城区”
 				}]
 			}
@@ -2676,16 +2799,16 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: [{
-					bankTypeId: 001, 
-					alias: “ICBC”, 
-					name: “中国工商银行”, 
+					bankTypeId: 001,
+					alias: “ICBC”,
+					name: “中国工商银行”,
 					iconURL: “www.net.com/xxx.png”
 				},{
-					bankTypeId: 002, 
-					alias: “BOC”, 
-					name: “中国银行”, 
+					bankTypeId: 002,
+					alias: “BOC”,
+					name: “中国银行”,
 					iconURL: “”
 				}]
 			}
@@ -3015,7 +3138,7 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				queryId: “xxxxxxxx”，
 				data:[,{
 					"depositMethod":"1",
@@ -3037,7 +3160,7 @@ API说明：
 							"bankTypeId":11,
 							"name":"招商银行",
 							"status":"1"
-						}]], 
+						}]],
 						errorMsg: “xxxxx”
 					}
 	* status: 操作状态， 200--成功，4xx--失败 （包含用户不允许存款的code）
@@ -3058,17 +3181,17 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				amount: 300, 
+				amount: 300,
 				clientType: xxx，
-				bonusCode: 2211, 
-				limitedOfferObjId: _1255443, 
+				bonusCode: 2211,
+				limitedOfferObjId: _1255443,
 				topUpReturnCode: ‘code_01’
 			}
 	* amount: 充值金额,
 	* clientType (客户端类型):
-		* 1--浏览器(browser)
-		* 2--手机h5
-		* 3手机app
+		* 1-- Web 电脑端
+		* 2-- H5 手机端
+		* 4-- APP APP端
 	* bonusCode: (可选) 优惠代码
 	* limitedOfferObjId: (可选) 指定充值应用于哪个秒杀礼包
 	* topUpReturnCode: (可选) 指定充值应用于哪个秒存送金
@@ -3089,12 +3212,12 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
-				data:{xxx}, 
+				status: 200/4xx,
+				data:{xxx},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态， 200--成功， 4xx--失败
-	* data: 
+	* data:
 		* ```
 			{
 				minDepositAmount: 最低充值额
@@ -3110,8 +3233,8 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
-				data:{xxx}, 
+				status: 200/4xx,
+				data:{xxx},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态， 200--成功， 4xx--失败
@@ -3126,8 +3249,8 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
-				data:{xxx}, 
+				status: 200/4xx,
+				data:{xxx},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 操作状态， 200--成功， 4xx--失败
@@ -3147,22 +3270,22 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				playerId: “xxxxxx”, 
-				createTime: “2016-03-08”, 
-				operationList: “input money”, 
-				topupChannel:”xxxxxx”, 
-				topupMoney: 50, 
-				Status: 3, 
-				proposalId: “xxxxxx”, 
-				topupTime: “2016-03-08 11:50:00”, 
-				finishTime: “2016-03-08 12:00:00” 
+				playerId: “xxxxxx”,
+				createTime: “2016-03-08”,
+				operationList: “input money”,
+				topupChannel:”xxxxxx”,
+				topupMoney: 50,
+				Status: 3,
+				proposalId: “xxxxxx”,
+				topupTime: “2016-03-08 11:50:00”,
+				finishTime: “2016-03-08 12:00:00”
 			}
 	* playerId: 玩家ID
 	* createTime: 创建时间 (由服务器设置)
 	* operationList: 操作记录， 以数组方式保存操作列表
 	* topupChannel: 充值渠道
 	* topupMoney: 充值金额
-	* status(充值的状态): 
+	* status(充值的状态):
 		* 1--意向
 		* 2--充值中
 		* 3--成功
@@ -3237,11 +3360,11 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				startTime: “2016-03-08”, 
-				endTime: “2016-03-10”, 
-				providerId: “xxxx”, 
-				gameId: “xxxxx”, 
-				startIndex: 0, 
+				startTime: “2016-03-08”,
+				endTime: “2016-03-10”,
+				providerId: “xxxx”,
+				gameId: “xxxxx”,
+				startIndex: 0,
 				requestCount: 15
 			}
 	* startTime: 查询消费开始时间
@@ -3436,11 +3559,11 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				playerId: “xxxxx”, 
-				startIndex: 0, 
-				requestCount: 10, 
+				playerId: “xxxxx”,
+				startIndex: 0,
+				requestCount: 10,
 				rewardType: xxx,
-				startTime:xxx, 
+				startTime:xxx,
 				endTime: xxx，
 				eventCode: xxx,
 				 status:xxx
@@ -3486,68 +3609,134 @@ API说明：
 	* 请求成功：status--200
 	* 请求失败：status--4xx
 
-<div id='是否符合首冲奖励条件'></div>
+<div id='获取申请优惠相关信息'></div>
 
-* **5. 是否符合首冲奖励条件**
-	* 玩家是否符合当前平台的首冲奖励活动条件
-	* name: isValidForFirstTopUpReward
-	* 请求内容：`{playerId: “xxxxxx”}`
-	* playerId: 玩家ID
-	* 响应内容：
-	* 正常响应内容：玩家符合条件，返回玩家是否以消费信息
-	* status--200, data: {ConsumptionRecord: true/false}
-	* 异常响应内容：玩家不符合条件
-	* status--4xx, error: 不符合条件原因
-
-<div id='创建首冲奖励提案'></div>
-
-* **6. 创建首冲奖励提案**
-	* 创建玩家首冲奖励提案
-	* name: createFirstTopUpRewardProposal
-	* 请求内容：`{playerId: “xxxxxx”}`
-	* playerId: 玩家ID
-	* topUpRecordId: 存款记录ID
-	* code: 优惠系统代码
-	* 响应内容：`{status: 200/4xx, data: proposalObject}`
-	* 正常响应内容：status--200, data--proposalObject
-	* 异常响应内容：status--4xx, error: Object
-
-<div id='申请游戏提供商奖励'></div>
-
-* **7. 申请游戏提供商奖励**
-	* 玩家申请当前平台的游戏提供商奖励
-	* name: applyProviderReward
-	* 请求内容：`{playerId: “xxxxxx”, eventId: “xxxxx”}`
-	* playerId: 玩家ID
-	* eventId: 奖励活动id
-	* amount: 金额
-	* 响应内容：`{status: 200/4xx, data: true/false/null}`
-	* 正常响应内容：status--200, data--true：成功, false：失败
-	* 异常响应内容：status--4xx, error: Object
+* **5. 获取申请优惠相关信息**
+    * functionName: getRewardApplicationData
+	* 获取申请优惠需要的条件信息
+	* 请求内容：
+	    ```
+	    platformId: 必填|String|平台ID
+	    code: 必填|String|优惠唯一代码
+	    ```
+	* 操作成功：
+		```
+        status: 200,  
+        data: {
+            code: 优惠唯一代码
+            eventName: 优惠名称
+            rewardType：优惠类型
+            status: 优惠条件是否满足, 1: 满足, 2: 不满足, 3: 已达到领取上限
+            condition: {  如果有存款要求返回此数据  
+                deposit: {  
+                    status: 1: 满足, 2: 不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
+                    allAmount: 如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
+                    times: 如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
+                    details:[{  符合申请的存款列表
+                        id: 存款唯一ID
+                        amount: 存款金额  
+                    }],
+                    list: [{    （幸运注单）有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        depositAmount: 周期内需要完成的存款金额  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                bet: {  //如果有投注要求返回此数据  
+                    status: 1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注）
+                    needBet: 需要投注金额  
+                    alreadyBet: 已投注金额  
+                    gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
+                    list: [{    （幸运注单） // 有存款要求的中单号  
+                        id: 中单id  
+                        no: 中单单号  
+                        time: 下注时间  
+                        betAmount: 下注金额  
+                        winAmount: 彩金  
+                        rewardAmount: 优惠金额  
+                        spendingTimes: 提款流水倍数  
+                        status: 1 满足 2 不满足  
+                    }]  
+                },  
+                ximaRatios: [{   如果是洗码，享受洗码比例，如不是不返回  
+                    gameType: 游戏类型名称
+                    ratio: 洗码比率
+                    amountBet: 已投注金额
+                }],  
+                telephone: { 如果有电话限制返回此数据  
+                    status: 1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
+                },   
+                ip: {   如果有ip限制返回此数据
+                    status: 1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
+                },    
+                SMSCode: {  如果有SMSCode限制返回此数据
+                    status: 1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
+                },
+                device: {   如果有设备限制
+                    status: 1 可领取 2 已领取  
+                }  
+            },  
+            result: {  
+                rewardAmount: 优惠金额
+                winTimes: 盈利倍数（盈利翻倍组）  
+                totalBetAmount: 总投注金额 （盈利翻倍组）  
+                totalWinAmount: 总盈利金额 （盈利翻倍组）  
+                betAmount: 如果有，投注额要求  
+                betTimes: 如果有，投注额倍数  
+                xima: 此优惠是否享受洗码1享受，2不享受  
+                providerGroup: 如果有大厅组限制列出大厅组，没有不返回
+                topUpAmountInterval：本周期现在的存款金额总数 （幸运注单）  
+                quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+                quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+            }  
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='申请奖励活动'></div>
 
-* **8. 申请奖励活动**
+* **6. 申请奖励活动**
 	* 玩家申请当前平台的奖励活动
-	* name: applyRewardEvent
-	* 请求内容：`{code: “xxxxxx”, data: “xxxxx”}`
-	* code: 奖励活动代码
-	* appliedObjIdList: [xxxxx, xxxxx] 幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
-	* type: 1 1 活动开始 2 活动结束
-	* data: 申请数据
-	* 玩家首冲: `{ topUpRecordIds: [xxxxx, xxxx] }` 充值记录id数组
-	* 提供商奖励： `{amount: xxxx}` 申请额度
-	* 申请消费返点： ｛｝
-	* 存送金&提升存款: `{ topUpRecordId: xxxxx }` 充值记录id
-	* 消费激励： ｛｝
-	* 推荐人奖励： `{referralId: xxxx}` 玩家id
-	* 响应内容：`{status: 200/4xx, data: {proposalObj}/false/null}`
-	* 正常响应内容：status--200, data--提案信息：成功, false：失败
-	* 异常响应内容：status--4xx, error: Object
+	* functionName: applyRewardEvent
+	* 请求内容：
+	    ```
+	    code: 必填|String|优惠唯一代码
+	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
+	    ```
+	* 操作成功：
+	    ```
+	    status: 200
+	    data: {
+	        rewardAmount: 优惠额度
+	        selectedReward: {
+	            //随机抽奖组优惠 
+	            rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
+	        }
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取消费返点额度'></div>
 
-* **9. 获取消费返点额度**
+* **7. 获取消费返点额度**
 	* 获取玩家消费返点额度
 	* name: getConsumeRebateAmount
 	* 请求内容：{eventCode: xxxx}
@@ -3572,7 +3761,7 @@ API说明：
 
 <div id='获取推荐玩家列表'></div>
 
-* **10. 获取推荐玩家列表**
+* **8. 获取推荐玩家列表**
 	* 获取推荐玩家列表
 	* name: getPlayerReferralList
 	* 请求内容：`{requestCount: 10, startIndex： 0}`
@@ -3599,7 +3788,7 @@ API说明：
 
 <div id='获取玩家累计签到信息'></div>
 
-* **11. 获取玩家累计签到信息**
+* **9. 获取玩家累计签到信息**
 	* 获取玩家累计签到信息, 需要玩家登陆才可请求该接口. 注：这是对应旧的全勤签到。若要获取『全勤签到（组）』的相关资料，请使用getSignBonus
 	* name: getConsecutiveLoginRewardDay
 	* 请求内容：`{code: “ljqd”}`
@@ -3617,7 +3806,7 @@ API说明：
 
 <div id='获取优惠代码'></div>
 
-* **12. 获取优惠代码**
+* **10. 获取优惠代码**
 	* name: getPromoCode
 	* 请求内容:`{"platformId": "1", "status": "1"}`
 	* playerId: 玩家Id
@@ -3664,7 +3853,7 @@ API说明：
 
 <div id='申请优惠代码'></div>
 
-* **13. 申请优惠代码**
+* **11. 申请优惠代码**
 	* name: applyPromoCode
 	* 请求内容:`{"promoCode": "7620"}`
 	* 响应内容:
@@ -3695,17 +3884,17 @@ API说明：
 
 <div id='秒杀礼包列表'></div>
 
-* **14. 秒杀礼包列表**
+* **12. 秒杀礼包列表**
 	* name:getLimitedOffers
 	* request:`{ "platformId": "6","status": "5"}`
-	* Status: 
+	* Status:
 		* 0:初始状态
 		* 1:可以秒杀
 		* 2:秒杀成功
 		* 3:付款成功
 		* 4:已售完
 		* 5:已弃标
-	* Success response: 
+	* Success response:
 		* ```
 			{
 				"status": 200,
@@ -3813,7 +4002,7 @@ API说明：
 
 <div id='获取充值优惠'></div>
 
-* **15. 获取充值优惠**
+* **13. 获取充值优惠**
 	* 获取目前正在进行中的充值优惠。
 	* name: getTopUpPromoList
 	* 请求内容：`{"clientType": "1"}`
@@ -3856,7 +4045,7 @@ API说明：
 
 <div id='设置优惠代码显示'></div>
 
-* **16. 设置优惠代码显示**
+* **14. 设置优惠代码显示**
 	* name: setBonusShowInfo
 	* 请求内容：`{ platformId: 6, showInfo:0 }`
 	* showInfo : 0:不显示,1:显示
@@ -3864,7 +4053,7 @@ API说明：
 
 <div id='获取签到信息'></div>
 
-* **17. 获取签到信息**
+* **15. 获取签到信息**
 	* 当有签到奖励时，显示每一阶的领取状态
 	* name: getSignInfo
 	* 请求内容：
@@ -3907,7 +4096,7 @@ API说明：
 
 <div id='获取签到奖励'></div>
 
-* **18. 获取签到奖励**
+* **16. 获取签到奖励**
 	* 一键领取所有可获得的签到奖励。若没有，则返回报错。
 	* name: getSignBonus
 	* 请求内容：`{eventCode: “knxyz”}`
@@ -3918,13 +4107,13 @@ API说明：
 
 <div id='标记优惠代码已读'></div>
 
-* **19. 标记优惠代码已读**
+* **17. 标记优惠代码已读**
 	* 标记优惠代码已读。
 	* name: markPromoCodeAsViewed
 	* 请求内容：`{"promoCode": "7620"}` // 优惠代码
 	* 响应内容：
 		* ```
-			{ 
+			{
 				"status": 200,
 				"data":{
 					"_id": "59c0bb967227a82de217fa65",
@@ -3950,7 +4139,7 @@ API说明：
 
 <div id='获取存送金信息'></div>
 
-* **20. 获取存送金信息**
+* **18. 获取存送金信息**
 	* 获取玩家存送金优惠状态。即使没登入，只要发送平台ID仍可获取。可否获取奖励是以最新的存款来判断。
 	* name: getSlotInfo
 	* 请求内容：
@@ -3983,96 +4172,7 @@ API说明：
 	* 请求成功：status--200
 	* 请求失败：status--4xx, data--null
 
-<div id='获取申请优惠相关信息'></div>
-
-* **20. 获取申请优惠相关信息**
-	* 获取申请优惠需要的条件信息。
-	* name: getRewardApplicationData
-	* 请求内容：`{platformId: “4”, code: “rewardCode”// 系统代码}`
-	* 响应内容：
-		* ```
-			{  
-				status: 200,  
-				data:{ 
-					code:"firstDeposit_bonus_tab0",  
-					eventName:"首存",  
-					rewardType：'PlayerTopUpReturnGroup',
-					status:1 //优惠条件是否满足  
-					condition:{  //如果有存款要求返回此数据  
-						deposit:{  
-							status:1 //NuM //1满足,2不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
-							allAmount:1000, // NuM //如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
-							times:3, //NuM //如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
-							details:[  {  
-								id:"",  
-								amount:1100, //NuM //存款金额  
-							}  ],
-						list: [{ // （幸运注单）有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							depositAmount: 500, // 周期内需要完成的存款金额  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果有投注要求返回此数据  
-					bet:{  
-						status:1 //NuM //1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注） 
-						needBet:100 //NuM //需要投注金额  
-						alreadyBet:100 // NuM //已投注金额  
-						gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
-						list: [{ （幸运注单） // 有存款要求的中单号  
-							id: 12312313 // Num 中单id  
-							no: ‘AG-25618488‘ // string 中单单号  
-							time: '2018-08-06T01:02:08.957Z' //string 下注时间  
-							betAmount: 10, // Num 下注金额  
-							winAmount: 100, // Num 彩金  
-							rewardAmount: 800 // 优惠金额  
-							spendingTimes: 10 // 提款流水倍数  
-							status: 1 // 1 满足 2 不满足  
-						}]  
-					},  //如果是洗码，享受洗码比例，不是不返回  
-					ximaRatios:[{  
-						gameType: “卡牌”, // Str  
-						ratio:0.005, //NuM  
-						amountBet:1000 //NuM  
-					}],  //如果有电话限制返回此数据  
-					telephone:{  
-						status:1 //NuM //1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
-					},  //如果有ip限制返回此数据  
-					ip:{  
-						status:1 //NuM //1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
-					},  //如果有SMSCode限制返回此数据  
-					SMSCode:{  
-						status:1 //NuM //1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
-					},// 如果有设备限制  
-					device: {  
-						status: 1 //Num 1 可领取 2 已领取  
-					}  
-				},  result:{  
-					rewardAmount:1122, //NuM //优惠金额
-					winTimes: 10 // NUM 盈利倍数（盈利翻倍组）  
-					totalBetAmount: 100 // Num 总投注金额 （盈利翻倍组）  
-					totalWinAmount: 1000 // Num 总盈利金额 （盈利翻倍组）  
-					betAmount:12222, // NuM //如果有，投注额要求  
-					betTimes:5, //NuM //如果有，投注额倍数  
-					xima:1, //NuM //此优惠是否享受洗码1享受，2不享受  
-					providerGroup:{} //如果有大厅组限制列出大厅组，没有不返回
-					topUpAmountInterval： 1000 // 本周期现在的存款金额总数 （幸运注单）  
-					quantityLimit： 3 // 可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					appliedCount： 2 // 已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-					quantityLimitInInterval: 100 // Num 周期内放出总数量 (提升存留)  
-				}  
-			}}  
-	* 请求成功：status--200
-	* 请求失败：status--4xx, data--null
-
-<div id='获取某优惠领取排行榜'></div>
-
-* **21. 获取某优惠领取排行榜**
+* **19. 获取某优惠领取排行榜**
 	* 获取申请优惠需要的条件信息。
 	* name: getRewardRanking
 	* 请求内容：
@@ -4141,7 +4241,7 @@ API说明：
 
 <div id='获取玩家洗码数据'></div>
 
-* **22. 获取玩家洗码数据**
+* **20. 获取玩家洗码数据**
 	* 获取玩家洗码数据
 	* name: getConsumeRebateDetail
 	* 请求内容：`{eventCode: xxxx}` // 必填
@@ -4206,7 +4306,7 @@ API说明：
 
 <div id='获取开放式优惠代码'></div>
 
-* **23. 获取开放式优惠代码**
+* **21. 获取开放式优惠代码**
 	* name: getOpenPromoCode
 	* 请求内容: `{"platformId": "1", "status": "1"}`
 	* playerId: 玩家Id
@@ -4249,6 +4349,29 @@ API说明：
    * 正常响应内容：status--200,成功, false：失败
    * 异常响应内容：status--4xx, error: Object
 
+* **22. 获取存送申请日限剩余可领取值**
+    * functionName: getTopUpRewardDayLimit
+	* 需要先在后台设定优惠日限
+	* 请求内容：
+        ```
+        platformId: 必填|String|平台ID
+        rewardCode: 必填|String|优惠唯一代码
+        ```
+	* 操作成功：
+		```
+        status: 200,  
+        data: {
+            applied: 已申请数量
+            balance: 剩余数量
+        }
+        ```
+	* 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
+
 # 游戏信息服务：
 提供游戏信息相关服务的接口.
 
@@ -4282,10 +4405,10 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				type: “xxxx”, 
-				providerId: “xxxxxx”, 
-				playGameType: 1, 
-				requestCount: 20, 
+				type: “xxxx”,
+				providerId: “xxxxxx”,
+				playGameType: 1,
+				requestCount: 20,
 				startIndex: 0
 			}
 	* type: 游戏类型，可选参数，默认查询所有类型排名靠前的N个游戏。
@@ -4410,7 +4533,7 @@ API说明：
 			{
 				platformId:“4”,　
 				gameId: “002”,　
-				clientDomainName: “xxx”, 
+				clientDomainName: “xxx”,
 				clientType:1
 			}
 	* gameId: 游戏Id
@@ -4437,13 +4560,13 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “200/4xx”, 
-				data: { 
-					platformId: “001”, 
-					providerId: “002”, 
-					gameUser: “blgSven”, 
-					password: “gswet3fk” 
-				}, 
+				status: “200/4xx”,
+				data: {
+					platformId: “001”,
+					providerId: “002”,
+					gameUser: “blgSven”,
+					password: “gswet3fk”
+				},
 				errorMessage: “xxxxxxx”
 			}
 	* status: 成功--200, 失败--4xx
@@ -4459,9 +4582,9 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				username: “gSven”, 
-				platformId: “YunYou”, 
-				providerId: “Billizard”, 
+				username: “gSven”,
+				platformId: “YunYou”,
+				providerId: “Billizard”,
 				oldPassword: “xxxxx”,
 				newPassword: “cccccc”
 			}
@@ -4473,12 +4596,12 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “200/4xx”, 
+				status: “200/4xx”,
 				data: {
-					username: “gSven”, 
-					platformId: “YunYou”, 
+					username: “gSven”,
+					platformId: “YunYou”,
 					providerId:“Billizard”
-				}, 
+				},
 				errorMessage: “xxxxxx”
 			}
 	* status: 成功--200, 失败--4xx
@@ -4496,13 +4619,13 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “20x/4xx”, 
+				status: “20x/4xx”,
 				data : {
-					username: “gSven”, 
-					platformId: “001”, 
+					username: “gSven”,
+					platformId: “001”,
 					providerId: “002”,
 					progressContent: “xxxxxx”
-				}, 
+				},
 				errorMessage: “xxxxx”,
 			}
 	* Status: 200--收录完成，CPMS会调用添加消费记录API来添加新收录到的消费记录。 201--正在收录中，可以通过查看progressContent内容来得到处理内容。 4xx--收录过程出现异常，可以查看errorMessage来得到错误内容。
@@ -4609,10 +4732,10 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: “xxx”, 
-				code: “001”, 
-				containGames: true/false, 
-				startIndex: 0, 
+				platformId: “xxx”,
+				code: “001”,
+				containGames: true/false,
+				startIndex: 0,
 				requestCount: 10
 			}
 	* platformId: 平台Id
@@ -4657,7 +4780,7 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “20x/4xx”, 
+				status: “20x/4xx”,
 				data: {[gameObj]}/errorMessage: “xxxxx”
 			}
 	* Status: 200--操作成功， 4xx--操作失败
@@ -4672,9 +4795,9 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “20x/4xx”, 
+				status: “20x/4xx”,
 				data: { {
-					"providerId": "xxx", 
+					"providerId": "xxx",
 					"credit": "0.0"
 				} }/errorMessage: “xxxxx”
 			}
@@ -4723,7 +4846,7 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: “20x/4xx”, 
+				status: “20x/4xx”,
 				"data":{  
 					"stats": {  
 						"totalCount": 1,  
@@ -4755,7 +4878,7 @@ API说明：
 		* ```
 			{
 				status: “20x/4xx”,
-				"data":{ 
+				"data":{
 					tableNumber： ‘aaa111’,  
 					dealerName: ‘翠花’,  
 					result: 0,  
@@ -5028,13 +5151,13 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				partnerId: “xxxxx”, 
-				bankName: “1”, 
+				partnerId: “xxxxx”,
+				bankName: “1”,
 				bankAccount: “123456789”,
 				bankAccountName: “陈小名”,
 				bankAccountType: “1”,
 				bankAccountProvince: “110000”,
-				bankAccountCity: “110100”, 
+				bankAccountCity: “110100”,
 				bankAddress: “望京支行”,
 				smsCode:”5558”
 			}
@@ -5061,15 +5184,15 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data:{
-					queryType: “day/week/month”, 
-					topup: 2000, 
-					getBonus: 180, 
-					bonus: 200, 
-					playerWin: 424.5, 
-					newPlayers: 10, 
-					activePlayers: 2, 
+					queryType: “day/week/month”,
+					topup: 2000,
+					getBonus: 180,
+					bonus: 200,
+					playerWin: 424.5,
+					newPlayers: 10,
+					activePlayers: 2,
 					subPartners: 0
 				}, errorMsg: “xxxxx”
 			}
@@ -5093,13 +5216,13 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				partnerId: “xxxxxx”, 
-				queryType: “registrationTime/lastAccessTime”, 
-				startTime: “2016-10-20 00:00:00”, 
-				endTime: “2016-10-22 00:00:00”, 
-				startIndex: 0, 
-				requestCount: 100, 
-				sort: true 
+				partnerId: “xxxxxx”,
+				queryType: “registrationTime/lastAccessTime”,
+				startTime: “2016-10-20 00:00:00”,
+				endTime: “2016-10-22 00:00:00”,
+				startIndex: 0,
+				requestCount: 100,
+				sort: true
 			}
 	* partnerId: 代理Id
 	* queryType(查询类型)分两种类型:
@@ -5152,21 +5275,21 @@ API说明：
 			{
 				partnerId: “xxxxxx”,
 				queryType: “registrationTime/lastAccessTime”,
-				startTime: “2016-10-20 00:00:00”, 
-				endTime: “2016-10-22 00:00:00”, 
-				startIndex: 0, 
-				requestCount: 100, 
-				sort: true 
+				startTime: “2016-10-20 00:00:00”,
+				endTime: “2016-10-22 00:00:00”,
+				startIndex: 0,
+				requestCount: 100,
+				sort: true
 			}
 	* partnerId: 代理Id
-	* queryType(查询类型) 分两种类型: 
+	* queryType(查询类型) 分两种类型:
 		* registrationTime注册时间查询,
 		* lastAccessTime最后登录时间查询
 	* startTime: 查询起始时间
 	* endTime: 查询结束时间
 	* startIndex: 记录开始索引， 用于分页
 	* requestCount: 请求记录数量, 用于分页
-	* sort: 排序方向 
+	* sort: 排序方向
 		* true--正序
 		* false--降序
 	* 响应内容：
@@ -5276,20 +5399,20 @@ API说明：
 	* 响应内容：
 		* ```
 			{
-				status: 200/4xx, 
+				status: 200/4xx,
 				data: {
-					proposalId: “000123”, 
-					proposalType: “003”, 
-					status: “001”, 
+					proposalId: “000123”,
+					proposalType: “003”,
+					status: “001”,
 					requestDetail: {
-						bonusId: “001”, 
-						amount: 1, 
+						bonusId: “001”,
+						amount: 1,
 						honoreeDetail: {
 							mobile: 13500101111
 						}
-					}, 
+					},
 						createTime: “2016-08-15 12:00:00”,...
-					}, 
+					},
 					errorMessage: “xxxxxx”
 				}
 	* Status：操作状态， 200--操作成功， 4xx--操作失败
@@ -5322,13 +5445,13 @@ API说明：
 						startIndex: 5
 					},
 					records: [{
-						proposalId:”001”, 
+						proposalId:”001”,
 						proposalType: “002”
 					...},{
-						proposalId:”002”, 
+						proposalId:”002”,
 						proposalType: “002”
 					...}]
-				}, 
+				},
 				errorMessage: “xxxxxxxx”
 			}
 	* status:操作状态，200--操作成功，4xx--操作失败
@@ -5344,7 +5467,7 @@ API说明：
 	* 响应内容：`{status: 200/4xx, errorMessage: “xxxxxxx”}`
 	* Status: 操作状态， 200--操作成功, 4xx--操作失败. 主要是操作状态不对的情况。
 	* errorMessage: 详细错误信息
-	* 
+	*
 <div id='代理其下玩家充值兑奖情况记录'></div>
 
 * **21. 代理其下玩家充值兑奖情况记录**
@@ -5786,7 +5909,7 @@ API说明：
 				“errorMessage“: “xxxxx”
 				”data”: [{  
 					date:2018-05-09T08:20:28.915Z, //必须是时间格式
-					newCrewNumbers:2, //总新注册人数 
+					newCrewNumbers:2, //总新注册人数
 					list:[{  
 						crewAccount:sallen888, //下线帐号  
 						depositAmount:200, //充值额度  
@@ -5867,7 +5990,7 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				partnerId: “15085” //可选择不填，不填只显示平台设置的代理佣金比例 
+				partnerId: “15085” //可选择不填，不填只显示平台设置的代理佣金比例
 				platformId: “4”, //必填
 			}
 	* 响应内容：
@@ -6075,7 +6198,7 @@ API说明：
 					"status": 200,
 					"data": {
 						"totalcommission ": {
-							"partnerRanking": {	
+							"partnerRanking": {
 								"amount": -490.3,
 								"rank": 2,
 								"name": "te***artne1"
@@ -6093,7 +6216,7 @@ API说明：
 					}
 				}
 	* 请求失败：`{"status": 4xx,"errorMessage": "","data": null}`
-				
+
 <div id='查询代理佣金提案'></div>
 
 * **37. 查询代理佣金提案**
@@ -6241,22 +6364,22 @@ API说明：
 				platformId: “1”, //平台ID - 必填
 				partnerId: “1234”, //代理ID - 必填
 				targetList: [{
-					username: ‘test01’, 
-					amount: 100, 
-					providerGroupId: 4, 
+					username: ‘test01’,
+					amount: 100,
+					providerGroupId: 4,
 					spendingTimes: 10
 				}, {
-					username: ‘test02’, 
+					username: ‘test02’,
 					amount: 10
 				}] //转账明细数组 - username: “abc”, //玩家账号 - 必填, providerGroupId: 1, //锁大厅ID(当不填该字段，代表转入自由额度（此处的锁大厅ID 是 后台基础设置 -> 锁大厅设置的id）), spendingTimes: 10, //流水倍数(providerGroupId字段填写后，该字段必填)
 			}
 	* 响应内容：
 		* ```
 			{  
-				"status": 200, 
+				"status": 200,
 				"data":{  
 					amount: 2000，//返回转账金额,
-					balance: 5000 //账户余额 
+					balance: 5000 //账户余额
 				}
 			}
 	* 操作失败：status--4xx, data-null, errorMessage:””
@@ -6303,8 +6426,8 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: “1”, //平台ID - 必填 
-				partnerId: “1234”, //代理ID - 必填 
+				platformId: “1”, //平台ID - 必填
+				partnerId: “1234”, //代理ID - 必填
 				requestPage: 1, //请求第几页
 				count: 10, //每页数据条数（默认为10条）
 				startTime: “”, //开始时间
@@ -6343,7 +6466,7 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: “1”, //平台ID - 必填 
+				platformId: “1”, //平台ID - 必填
 				partnerId: “1234”, //代理ID - 必填
 				startTime: “”, //开始时间
 				endTime: “”, //结束时间
@@ -6394,7 +6517,7 @@ API说明：
 				platformId: “4”, //平台ID
 				playerId: “11335”, //玩家ID（可不填），只显示此下线
 				crewAccount: “yunvince8431” // 玩家账号（可不填）
-				singleSearchMode: “0” // （非必填/单一玩家搜寻模式/给crewAccount用 ） 
+				singleSearchMode: “0” // （非必填/单一玩家搜寻模式/给crewAccount用 ）
 				“0”：精准搜索（默认值/代表只搜索此准确帐号）  
 				“1”：模糊搜索（如搜p1，会出现p12,p13开头帐号）
 				sortMode: “1”, // ”1“:充值 ”2“:提款 “3”:输赢（负）最多 “4”:有效投注额
@@ -6842,13 +6965,13 @@ API说明：
 	* 请求内容：
 		* ```
 			{
-				platformId: xxx, 
-				startTime: xxx, 
-				endTime:xxx, 
+				platformId: xxx,
+				startTime: xxx,
+				endTime:xxx,
 				minBonusAmount: xxx,
-				minAmount: xxx, 
-				minValidAmount: xxx, 
-				startIndex: xxxx, 
+				minAmount: xxx,
+				minValidAmount: xxx,
+				startIndex: xxxx,
 				requestCount: xxxx
 			}
 	* minBonusAmount: 最小输赢值（必须大于等于0）
@@ -7109,7 +7232,7 @@ API说明：
 					"platform": "5733e26ef8c8a9355caf49d8",
 					"__v": 0,
 					"data": "abc"
-				} 
+				}
 			}
 	* 操作失败：status--4xx, data-null, errorMessage:””
 
@@ -7152,6 +7275,7 @@ API说明：
 			* reward - 优惠配置
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
+			* partnerSkin - 代理皮肤管理
 
 <!--文档没有华语名称，因此暂时命名“奖励点数”-->
 # 奖励点数：
@@ -7353,7 +7477,7 @@ API说明：
 		* 4 - 每月
 		* 5 - 无周期
 	* （一般上可以直接参考开始时间和结束时间）
-	
+
 <div id='手动申请积分活动奖励'></div>
 
 * **5. 手动申请积分活动奖励**
@@ -7515,7 +7639,7 @@ API说明：
 				“errorMessage”: “兑换失败，欲兑换的点数不足最低金额（1）元”
 			}
 	* "status":200, // 状况1：有足够的积分可以兑换真钱，没有积分馀数（真钱＝整数且馀0）。如：300（积分）/30（兑换比例）＝10（现金） 馀 0（积分）  
-msg:"兑换成功，已用（300）积分,换取（10）元。" 
+msg:"兑换成功，已用（300）积分,换取（10）元。"
 	* "status":200, // 状况2：有足够的积分可以兑换真钱，且『有』积分馀数。如：329（积分）/30（兑换比例）＝10 （现金）馀 29（积分）  
 msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积分不足兑换（1）元，已返回帐户。"
 	* "status":200, // 状况3：有足够的积分可以兑换真钱，但部分积分超出单日可兑换限额。如欲兑换：300（积分）/30（兑换比例）＝10（现金） 馀 0（积分），但今日 180（积分）  
@@ -7599,7 +7723,7 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 	* 请求内容：
 		* ```
 			{
-				eventObjectId: [  // 活动ID
+				eventObjectIds: [  // 活动ID
 					"5a3e14d97417383af4f7d54b",
 					“5a3e14d97417383af4f7d54c”,
 				]
@@ -7680,11 +7804,11 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 	* domain: 当下注册域名
 	* 响应内容：
 		* ```
-			{ 
-				status: 200/400/405, 
+			{
+				status: 200/400/405,
 				data: {
 					redirect: “foobar.com playerId=yunvince6896&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoieXVudmluY2V5aDY2ODgiLCJwYXNzd29yZCI6IiQyYSQxMCREejhRSFhmTjJjeWtnWHBrdXVFZHdlVjVlZ1NTeDNIb2NXaEx5VnBzZWU5cWtpMXY3c3dRNiIsImlhdCI6MTUyOTkwODUxNCwiZXhwIjoxNTI5OTI2NTE0fQ.xts8n_iucqybjQG7eDhie-akmlz_YIAi9D-4ZING9nI”
-				} 
+				}
 			}
 	* 操作成功：status--200
 	* playerId: 玩家ID，authenticate用
@@ -7781,7 +7905,7 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 	* **客服登陆群控时会使用此接口操做绑定玩家微信号+昵称+备注**
 	* name:  bindPlayerWechatInfo
 	* 请求内容:
-		* ``` 
+		* ```
 			{
 				deviceId - String // - 手机设备号 - 必填 //”abc123”
 				playerWechatRemark - String //备注 - 必填 //”player123”

@@ -15,7 +15,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const moment = require('moment-timezone');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const constSMSPurpose = require('../const/constSMSPurpose');
-const queryPhoneLocation = require('phone-query');
+const queryPhoneLocation = require('cellocate');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
@@ -329,7 +329,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -337,15 +337,16 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-        return smsAPI.sending_sendMessage(sendObj).then(
+        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode): smsAPI.sending_sendMessage(sendObj);
+        return sendSMSProm.then(
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner, isUseVoiceCode);
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
                 errorUtils.reportError(retErr);
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
@@ -396,7 +397,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId, useVoiceCode) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -427,12 +428,18 @@ const dbPlayerMail = {
         let dayNow = dbUtility.getSGTimeCurrentDayInterval(timeNow);
         let checkBlackWhiteListPhoneNumber = telNum ? telNum : '';
         let checkBlackWhiteListIpAddress = inputData && inputData.ipAddress ? inputData.ipAddress : '';
+        let isUseVoiceCode = false;
 
         return getPlatform.then(
             platformData => {
                 if (platformData) {
                     platform = platformData;
                     platformObjId = platform._id;
+
+                    if (platform.useVoiceCode && useVoiceCode) {
+                        isUseVoiceCode = true;
+                    }
+
                     // verify captcha if necessary
                     if (platform[requireCaptchaInSMS] && inputDevice != constPlayerRegistrationInterface.BACKSTAGE) {
                         if (!captchaValidation) {
@@ -785,12 +792,12 @@ const dbPlayerMail = {
                         }
                     }
 
-                    let smsChannelProm = smsAPI.channel_getChannelList({});
+                    let smsChannelProm = isUseVoiceCode? Promise.resolve(): smsAPI.channel_getChannelList({});
                     let smsVerificationLogProm = dbconfig.collection_smsVerificationLog.findOne({
                         tel: telNum,
                         createTime: {$gt: lastMin}
                     }).lean();
-                    let messageTemplateProm = dbconfig.collection_messageTemplate.findOne({
+                    let messageTemplateProm = isUseVoiceCode? Promise.resolve(): dbconfig.collection_messageTemplate.findOne({
                         platform: platformObjId,
                         type: constMessageType.SMS_VERIFICATION,
                         format: "sms"
@@ -839,6 +846,7 @@ const dbPlayerMail = {
             function (data) {
                 if (data) {
                     channel = data[0] && data[0].channels && data[0].channels[0] ? 1 : 2;
+                    channel = isUseVoiceCode? 0: channel;
                     lastMinuteHistory = data[1];
                     template = data[2];
                     let phoneValidation = data[3];
@@ -860,15 +868,18 @@ const dbPlayerMail = {
                         });
                     }
 
-                    if (!template) {
+                    if (!template && !isUseVoiceCode) {
                         return Q.reject({message: 'Template not set for current platform'});
                     }
 
 
-                    template.content = template.content.replace('{{smsCode}}', code);
-                    template.content = template.content.replace('smsCode', code); // for backward compatibility
-                    template.content = template.content.replace('{{sendTime}}', new Date());
-                    if (channel === null || platformId === null) {
+                    if (!isUseVoiceCode) {
+                        template.content = template.content.replace('{{smsCode}}', code);
+                        template.content = template.content.replace('smsCode', code); // for backward compatibility
+                        template.content = template.content.replace('{{sendTime}}', new Date());
+                    }
+
+                    if ((channel === null && !isUseVoiceCode) || platformId === null) {
                         return Q.reject({message: "cannot find platform or sms channel."});
                     }
 
@@ -895,12 +906,16 @@ const dbPlayerMail = {
                         tel: telNum,
                         channel: channel,
                         platformId: platformId,
-                        message: template.content,
+                        message: template && template.content || "语音验证码",
                         delay: 0
                     };
 
                     if (playerName){
                         saveObj.playerName = playerName;
+                    }
+
+                    if (isUseVoiceCode) {
+                        saveObj.useVoiceCode = true;
                     }
 
                     console.log("checking playerName", playerName || "NULL")
@@ -915,7 +930,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner, isUseVoiceCode);
                 }
             }
         ).then(
@@ -952,7 +967,7 @@ const dbPlayerMail = {
                                 if (queryRes) {
                                     inputData.phoneProvince = queryRes.province;
                                     inputData.phoneCity = queryRes.city;
-                                    inputData.phoneType = queryRes.type;
+                                    inputData.phoneType = queryRes.sp;
                                 }
 
                                 if (inputData.password) {
@@ -1020,7 +1035,7 @@ const dbPlayerMail = {
                                 if (queryRes) {
                                     inputData.phoneProvince = queryRes.province;
                                     inputData.phoneCity = queryRes.city;
-                                    inputData.phoneType = queryRes.type;
+                                    inputData.phoneType = queryRes.sp;
                                 }
 
                                 if (inputData.password) {
@@ -1072,7 +1087,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData, useVoiceCode) {
         let blackListingPhoneNumber = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
@@ -1113,7 +1128,7 @@ const dbPlayerMail = {
                     }
                 }
 
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData, false, null, useVoiceCode);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
@@ -1164,7 +1179,6 @@ const dbPlayerMail = {
             tel: phoneNumber,
             createTime: {$gte: smsExpiredDate}
         };
-
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
         return smsProm.then(

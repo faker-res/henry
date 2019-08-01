@@ -4016,7 +4016,8 @@ define(['js/app'], function (myApp) {
             //var selectedStatus = vm.queryPara.attemptNumberList ? [vm.queryPara.attemptNumberList.status] : ["Success", "Fail", "Pending", "Manual"];
             var sendData = {
                 adminId: authService.adminId,
-                platformId: vm.queryPara.attemptNumberRecords.platform,
+                platformId: vm.queryPara && vm.queryPara.attemptNumberRecords && vm.queryPara.attemptNumberRecords.platform &&
+                vm.queryPara.attemptNumberRecords.platform.length > 0 ? vm.queryPara.attemptNumberRecords.platform : vm.allPlatformData.map(x => x._id),
                 type: ["PlayerRegistrationIntention"],
                 startDate: vm.queryPara.attemptNumberRecords.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.attemptNumberRecords.endTime.data('datetimepicker').getLocalDate(),
@@ -21850,13 +21851,7 @@ define(['js/app'], function (myApp) {
                 }
             );
         }
-        vm.initStep = function () {
-            vm.tempNewNodeName = '';
-            vm.tempNewNodeDepartment = '';
-            vm.tempNewNodeRole = '';
-            vm.expResMsg = '';
-            vm.expShowSubmit = true;
-        }
+
         vm.loadDepartmentRole = function (departmentNode) {
             vm.tempNewNodeDepartment = departmentNode;
             socketService.$socket($scope.AppSocket, 'getDepartment', {_id: departmentNode._id}, success);
@@ -21868,13 +21863,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
         }
-        vm.setSelectedRole = function (roleNode) {
-            if (!vm.tempNewNodeRole) return;
-            vm.tempRoleID = roleNode._id;
-            vm.tempRoleName = roleNode.roleName;
-            console.log("selected department ", vm.tempDepartmentName);
-            console.log("selected role ", vm.tempRoleName);
-        }
+
 
         vm.clearData = function () {
             vm.loadAlldepartment();
@@ -22039,7 +22028,6 @@ define(['js/app'], function (myApp) {
                     label: $translate("DEPARTMENT")
                 },
                 //departmentName: vm.tempNewNodeDepartment.departmentName,
-                //roleName: vm.tempNewNodeRole.roleName,
                 roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label: $translate("ROLE")},
                 inputConnectors: [
                     {

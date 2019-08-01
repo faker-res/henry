@@ -664,11 +664,18 @@ var dbRewardEvent = {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}, playerRetentionRecord).then(
                                         checkRewardData => {
                                             // Check reward apply limit in period
-                                            if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
+                                            if ((rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) || (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP && eventInPeriodCount)) {
                                                 checkRewardData.status = 3;
                                             }
 
-                                            if ((rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP) && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
+                                            if (rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
+                                                // if the status == 3, it has already exceeded the limit of applying; does not need to follow the deposit's status
+                                                if (checkRewardData && checkRewardData.hasOwnProperty('status') && checkRewardData.status != 3){
+                                                    checkRewardData.status = checkRewardData.condition.deposit.status;
+                                                }
+                                            }
+
+                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
 
@@ -684,6 +691,17 @@ var dbRewardEvent = {
                                                 if (rewardEvent.type.name != constRewardType.PLAYER_RANDOM_REWARD_GROUP && checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                     checkRewardData.status = 2;
                                                 }
+                                            }
+
+                                            if (rewardEvent.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
+                                                checkRewardData.condition = checkRewardData.condition? checkRewardData.condition: {};
+                                                if (!playerObj.bankAccount) {
+                                                    checkRewardData.status = 2;
+                                                    checkRewardData.condition.bankInfo = {status: 2}
+                                                } else {
+                                                    checkRewardData.condition.bankInfo = {status: 1}
+                                                }
+
                                             }
 
 

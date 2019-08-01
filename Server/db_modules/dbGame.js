@@ -353,8 +353,10 @@ var dbGame = {
      * @param {array}  gameArr
      */
     syncGameData: function (gameArr) {
+        console.log('MT --checking syncData -1');
         return dbconfig.collection_game.find().then(
             curGames => {
+                console.log('MT --checking syncData -2');
                 var proms = [];
                 //find new and update
                 gameArr.forEach(
@@ -391,7 +393,15 @@ var dbGame = {
 
                 return Q.all(proms);
             }
-        );
+        ).then(
+            data => {
+                console.log('MT --checking syncData -3');
+                return true
+            },
+            error => {
+                return Q.reject({name: "DBError", message: "Sync data failed.", error: error});
+            }
+        )
     },
 
     /**

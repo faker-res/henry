@@ -44,7 +44,7 @@
                                 span {{"FrontendConfiguration" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'FrontEndConfiguration', 'Read')" ng-class='{active: vm.platformPageName === "FrontEndConfiguration2"}' ng-click="vm.loadTab('FrontEndConfiguration2');")
                                 span {{"FrontEndConfiguration2" | translate}}
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')" ng-class='{active: vm.platformPageName === "PromoCode"}' ng-click="vm.loadTab('RegistrationUrlConfig');")
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')" ng-class='{active: vm.platformPageName === "RegistrationUrlConfig"}' ng-click="vm.loadTab('RegistrationUrlConfig');")
                                 span {{"RegistrationUrlConfig" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Proposal', 'Read')" ng-class='{active: vm.platformPageName === "Proposal"}' ng-click="vm.loadTab('Proposal');")
                                 span {{"PROPOSAL_PROCESS" | translate}}
@@ -492,6 +492,9 @@
                 h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
                 #groupSmsLogQuery.block-query.well
+                    div(style="width:200px")
+                        label {{'PRODUCT_NAME'| translate}}
+                        select.form-control(ng-model='vm.smsLog.query.platformList', ng-options='v.id as v.text for v in vm.platformList', multiple, bsp, data-actions-box='true')
                     div
                         label {{"RESULT" | translate}}
                         select.form-control(ng-model='vm.smsLog.query.status')

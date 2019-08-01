@@ -89,9 +89,9 @@ define([], function () {
                   }
                   else if (data.registrationInterface == 3 || data.registrationInterface == 4){
                       data.registrationInterface$ = "H5"
-                  }
+                  }// 包壳APP：5 & 6 considered under H5 upon Echo's request
                   else if (data.registrationInterface == 5 || data.registrationInterface == 6){
-                      data.registrationInterface$ = "APP"
+                      data.registrationInterface$ = "H5"
                   }
               }
               else{
@@ -379,6 +379,10 @@ define([], function () {
             if (!date) return null;
             return new Date(date.setHours(0, 0, 0, 0));
         }
+        this.setThisDayEndTime = function (date) {
+            if (!date) return null;
+            return new Date(date.setHours(23, 59, 59, 999));
+        }
         this.getTodayStartTime = function () {
             let todayDate = new Date();
             return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
@@ -545,6 +549,32 @@ define([], function () {
             // }
             return $(result);
         }
+        this.createDatePickerWithoutTime = function (id, option) {
+            //create UI component 
+            let result;
+            option = option || {language: 'en', format: 'yyyy/MM/dd', endDate: new Date()}
+            let $id = $(id);
+            let comp_i = $('<i>', {
+                class: "fa fa-calendar",
+                "data-time-icon": "fa fa-clock-o",
+                "data-date-icon": "fa fa-calendar"
+            })
+            let comp_span = $('<span>', {class: "add-on"}).append(comp_i);
+            let comp_input = $('<input>', {
+                // style: 'width:calc(100% - 15px)',
+                "data-format": "yyyy/MM/dd HH:mm:ss PP",
+                type: 'text'
+            })
+            let comp = $('<div>', {class: "input-append form-control"}).append(comp_input).append(comp_span);
+            if ($id) {
+                if ($id.data("datetimepicker")) {
+                    $id.data("datetimepicker").destroy()
+                }
+                $id.html(comp);
+                result = $id.datetimepicker(option)
+            }
+            return $(result);
+        }
         this.clearDatePickerDate = function (id) {
             let $id = $(id);
             $id.find('.input-append input').val('');
@@ -592,7 +622,19 @@ define([], function () {
                 }
             }
             return result;
-        }
+        };
+
+        this.checkExceedPromoCodeMaxRewardAmount = function (type, rowData, maxRewardAmount) {
+            if (type && (type == 1 || type == 2) && rowData && rowData.hasOwnProperty('amount') && maxRewardAmount && rowData.amount > maxRewardAmount){
+                return true
+            }
+            else if ( type && type == 3 && rowData && rowData.hasOwnProperty('maxRewardAmount') && maxRewardAmount && rowData.maxRewardAmount > maxRewardAmount){
+                return true
+            }
+            else {
+                return false
+            }
+        };
 
         this.getDifferenceBetweenTwoDays = function (startTime, endTime) {
 

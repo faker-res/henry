@@ -594,6 +594,14 @@ define(['js/app'], function (myApp) {
                 6: "IOS APP",
             };
 
+            vm.allTopUpTypeList = {
+                1: 'TOPUPMANUAL',
+                2: 'TOPUPONLINE',
+                3: 'TOPUPALIPAY',
+                4: 'TOPUPWECHAT',
+                5: 'CommonTopUp'
+            };
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -679,6 +687,9 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformFilterByPlatform = function (platformObjId) {
                 vm.showPlatformDetailTab(null);
+                if (vm.platformPageName == 'platformSetting'){
+                    vm.rewardTabClicked(null, platformObjId);
+                }
                 let findPlatform = vm.allPlatformData.filter(e => e._id.toString() === platformObjId.toString());
                 if (findPlatform && findPlatform.length > 0) {
                     vm.showPlatform = {};
@@ -2860,6 +2871,12 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.bankAccount) {
                     playerQuery.bankAccount = vm.sendMultiMessage.bankAccount;
                 }
+                if (vm.sendMultiMessage.phoneLocation) {
+                    playerQuery.phoneLocation = vm.sendMultiMessage.phoneLocation;
+                }
+                if (vm.sendMultiMessage.ipLocation) {
+                    playerQuery.ipLocation = vm.sendMultiMessage.ipLocation;
+                }
                 if (vm.sendMultiMessage && vm.sendMultiMessage.loginTimesValue != null && vm.sendMultiMessage.loginTimesOperator) {
                     let loginTimesValue = vm.sendMultiMessage.loginTimesValue;
                     let loginTimesValueTwo = vm.sendMultiMessage.loginTimesValueTwo;
@@ -2940,6 +2957,8 @@ define(['js/app'], function (myApp) {
                                     item.platform$ = matchedPlatformData[0].name;
                                 }
                             }
+                            item.phoneLocation$ = (item.phoneProvince && item.phoneCity) ? item.phoneProvince + " " + item.phoneCity : "";
+                            item.ipLocation$ = (item.province && item.city) ? item.province + " " + item.city : "";
                             return item;
                         }), size, newSearch);
                         vm.sendMultiMessage.totalCount = size;
@@ -3063,6 +3082,7 @@ define(['js/app'], function (myApp) {
                     purpose: vm.smsRecordQuery.purpose,
                     accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
+                    useVoiceCode: vm.smsRecordQuery.sendType,
                     type: 'registration',
                     status: 'all',
                     tel: vm.smsRecordQuery.phoneNumber || '',
@@ -3103,6 +3123,8 @@ define(['js/app'], function (myApp) {
                                 item.platform$ = matchedPlatformData[0].name;
                             }
                         }
+                        item.useVoiceCode$ = item.useVoiceCode? $translate("VOICE"): $translate("MESSAGE(SMS)");
+
                         return item;
                     }), size, newSearch);
 
@@ -3135,6 +3157,7 @@ define(['js/app'], function (myApp) {
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
                         {'title': $translate('Type'), data: 'purpose$'},
+                        {'title': $translate('SEND_BY'), data: 'useVoiceCode$'},
                         {
                             'title': $translate('DEVICE'),
                             data: 'inputDevice',
@@ -3327,6 +3350,8 @@ define(['js/app'], function (myApp) {
                                 return data;
                             }
                         },
+                        {'title': $translate('PHONE_LOCATION'), data: 'phoneLocation$'},
+                        {'title': $translate('IP_LOCATION'), data: 'ipLocation$'},
                         {
                             title: '<div><input type="checkbox" class="toggleCheckAll"> </div>', advSearch:false, orderable: false,// $translate('All'), data: "playerId", "sClass": "",
                             render: function (data, type, row) {
@@ -13185,51 +13210,59 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.updatePlayerFeedback = function () {
-                let platform = getSelectedPlatform();
-                let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
-                let resultName = vm.allPlayerFeedbackResults.filter(item => {
-                    return item.key == vm.playerFeedback.result;
-                });
-                resultName = resultName.length > 0 ? resultName[0].value : "";
-                let sendData = {
-                    playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                    platform: vm.isOneSelectedPlayer().platform || platformObjId,
-                    createTime: Date.now(),
-                    adminId: authService.adminId,
-                    content: vm.playerFeedback.content,
-                    result: vm.playerFeedback.result,
-                    resultName: resultName,
-                    topic: vm.playerFeedback.topic
-                };
-                console.log('add feedback', sendData);
-                socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
-                    console.log('feedbackadded', data);
-                    vm.playerFeedback = {};
-                    // vm.getPlatformPlayersData();
+            vm.updatePlayerFeedback = function (isConfirm = false) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("ADD_FEEDBACK");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.updatePlayerFeedback(true);
+                    $('#modalYesNo').modal();
+                } else {
+                    let platform = getSelectedPlatform();
+                    let platformObjId = platform && platform._id ? platform._id : vm.selectedPlatform.id;
+                    let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                        return item.key == vm.playerFeedback.result;
+                    });
+                    resultName = resultName.length > 0 ? resultName[0].value : "";
+                    let sendData = {
+                        playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
+                        platform: vm.isOneSelectedPlayer().platform || platformObjId,
+                        createTime: Date.now(),
+                        adminId: authService.adminId,
+                        content: vm.playerFeedback.content,
+                        result: vm.playerFeedback.result,
+                        resultName: resultName,
+                        topic: vm.playerFeedback.topic
+                    };
+                    console.log('add feedback', sendData);
+                    socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
+                        console.log('feedbackadded', data);
+                        vm.playerFeedback = {};
+                        // vm.getPlatformPlayersData();
 
-                    let rowData = vm.playerTableClickedRow.data();
-                    rowData.feedbackTimes++;
-                    vm.playerTableClickedRow.data(rowData).draw();
+                        let rowData = vm.playerTableClickedRow.data();
+                        rowData.feedbackTimes++;
+                        vm.playerTableClickedRow.data(rowData).draw();
 
-                    if (vm.platformPageName == 'Feedback') {
-                        if (vm.playerFeedbackSearchType = 'one') {
-                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                                vm.curPlayerFeedbackDetail = data;
+                        if (vm.platformPageName == 'Feedback') {
+                            if (vm.playerFeedbackSearchType = 'one') {
+                                vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                    vm.curPlayerFeedbackDetail = data;
 
-                                vm.curPlayerFeedbackDetail.forEach(item => {
-                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    vm.curPlayerFeedbackDetail.forEach(item => {
+                                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                    });
+
+                                    $scope.$evalAsync();
                                 });
-
-                                $scope.$evalAsync();
-                            });
+                            }
+                            else {
+                                vm.submitPlayerFeedbackQuery();
+                            }
                         }
-                        else {
-                            vm.submitPlayerFeedbackQuery();
-                        }
-                    }
-                    $scope.safeApply();
-                });
+                        $scope.safeApply();
+                    });
+                }
             };
 
             vm.initBulkAddPlayerFeedback = () => {
@@ -13903,6 +13936,26 @@ define(['js/app'], function (myApp) {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
 
+                if (vm.smsLog.type == "multi") {
+                    requestData.platform = vm.smsLog && vm.smsLog.query && vm.smsLog.query.platformList && vm.smsLog.query.platformList.length > 0 ?
+                        vm.smsLog.query.platformList : vm.platformList.map(item => item.id);
+
+                    if (requestData.platform && requestData.platform.length > 0) {
+                        let tempPlatformId = [];
+                        requestData.platform.forEach(item => {
+                            let index = vm.platformList.findIndex(x => x && x.id && item && (x.id.toString() === item.toString()));
+
+                            if (index > -1) {
+                                tempPlatformId.push(vm.platformList[index].data && vm.platformList[index].data.platformId);
+                            }
+                        })
+
+                        if (tempPlatformId && tempPlatformId.length > 0) {
+                            requestData.platformId = tempPlatformId;
+                        }
+                    }
+                }
+
                 console.log("searchSMSLog requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
                     $scope.$evalAsync(() => {
@@ -13915,6 +13968,13 @@ define(['js/app'], function (myApp) {
                             } else {
                                 item.status$ = $translate(item.status);
                             }
+                            item.platform$ = "";
+                            if(item && item.platform && vm.platformList && vm.platformList.length){
+                                let platformObjId = item.platform;
+                                let filteredPlatform = vm.platformList.filter(a => a.id.toString() === platformObjId.toString());
+                                item.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].text ? filteredPlatform[0].text : "";
+                            }
+
                             return item;
                         });
                         vm.smsLog.totalCount = result.data.size;
@@ -13967,6 +14027,7 @@ define(['js/app'], function (myApp) {
                       {targets: '_all', defaultContent: ' ', bSortable: false}
                   ],
                   columns: [
+                      {'title': $translate('PRODUCT_NAME'), data: 'platform$'},
                       {'title': $translate('date'), data: 'createTime$'},
                       {'title': $translate('ADMIN'), sClass: "wordWrap realNameCell", data: 'adminName'},
                       {'title': $translate('Recipient'), data: 'recipientName'},
@@ -16535,10 +16596,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if(vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0){
-                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
-                }
-
                 if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
@@ -16548,6 +16605,7 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
+
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
                 }
@@ -16567,32 +16625,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
-
-                // if (vm.playerFeedbackQuery.filterFeedback) {
-                //     let lastFeedbackTimeExist = {
-                //         lastFeedbackTime: null
-                //     };
-                //     let lastFeedbackTime = {
-                //         lastFeedbackTime: {
-                //             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                //         }
-                //     };
-                //
-                //     sendQueryOr.push(lastFeedbackTimeExist);
-                //     sendQueryOr.push(lastFeedbackTime);
-                //
-                //     if (sendQuery.hasOwnProperty("$or")) {
-                //         if (sendQuery.$and) {
-                //             sendQuery.$and.push({$or: sendQuery.$or});
-                //             sendQuery.$and.push({$or: sendQueryOr});
-                //         } else {
-                //             sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
-                //         }
-                //         delete sendQuery.$or;
-                //     } else {
-                //         sendQuery["$or"] = sendQueryOr;
-                //     }
-                // }
 
                 if (vm.playerFeedbackQuery.callPermission == 'true') {
                     sendQuery['permission.phoneCallFeedback'] = {$ne: false};
@@ -17038,6 +17070,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.submitPlayerFeedbackQuery(isNewSearch, currentTimeBoolean);
                 }
+                vm.backupPlayerFeedbackQuery = Object.assign({}, vm.playerFeedbackQuery);
             };
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
@@ -17064,35 +17097,324 @@ define(['js/app'], function (myApp) {
                 vm.exportPlayerFilter = JSON.parse(JSON.stringify(vm.playerFeedbackQuery))
                 let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
+                let sendQuery = {platform: vm.playerFeedbackQuery.selectedPlatform};
+                let sendQueryOr = [];
+
+                if (vm.playerFeedbackQuery.playerType && vm.playerFeedbackQuery.playerType != null) {
+                    sendQuery.playerType = vm.playerFeedbackQuery.playerType;
+                }
+
+                if (vm.playerFeedbackQuery.playerLevel !== "all") {
+                    sendQuery.playerLevel = vm.playerFeedbackQuery.playerLevel;
+                }
+
+                if (vm.playerFeedbackQuery.credibilityRemarks && vm.playerFeedbackQuery.credibilityRemarks.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarks.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarks.forEach(remark => {
+                            if(remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                    } else {
+                        sendQuery.credibilityRemarks = {$in: vm.playerFeedbackQuery.credibilityRemarks};
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.credibilityRemarksFilter && vm.playerFeedbackQuery.credibilityRemarksFilter.length > 0) {
+                    let tempArr = [];
+                    if (vm.playerFeedbackQuery.credibilityRemarksFilter.includes("")) {
+                        vm.playerFeedbackQuery.credibilityRemarksFilter.forEach(remark => {
+                            if (remark != "") {
+                                tempArr.push(remark);
+                            }
+                        });
+                        sendQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                    } else {
+                        if (sendQuery.credibilityRemarks && sendQuery.credibilityRemarks.$in) {
+                            sendQuery.$and = [{credibilityRemarks: {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter}}];
+                        }
+                        else {
+                            sendQuery.credibilityRemarks = {$nin: vm.playerFeedbackQuery.credibilityRemarksFilter};
+                        }
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.lastAccess === "range") {
+                    sendQuery.lastAccessTime = {
+                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessFormal)),
+                        $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.lastAccessLatter)),
+                    };
+                } else {
+                    let range = vm.playerFeedbackQuery.lastAccess.split("-");
+                    sendQuery.lastAccessTime = {
+                        $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[0])))
+                    };
+                    if (range[1]) {
+                        sendQuery.lastAccessTime["$gte"] = utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), parseInt(range[1])));
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                    sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedback) {
+                    let lastFeedbackTimeExist = {
+                        lastFeedbackTime: null
+                    };
+                    let lastFeedbackTime = {
+                        lastFeedbackTime: {
+                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                        }
+                    };
+                    sendQueryOr.push(lastFeedbackTimeExist);
+                    sendQueryOr.push(lastFeedbackTime);
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
+                    if (sendQuery.hasOwnProperty("$or")) {
+                        if (sendQuery.$and) {
+                            sendQuery.$and.push({$or: sendQuery.$or});
+                            sendQuery.$and.push({$or: sendQueryOr});
+                        } else {
+                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                        }
+                        delete sendQuery.$or;
+                    } else {
+                        sendQuery["$or"] = sendQueryOr;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.callPermission == 'true') {
+                    sendQuery['permission.phoneCallFeedback'] = {$ne: false};
+                } else if (vm.playerFeedbackQuery.callPermission == 'false') {
+                    sendQuery['permission.phoneCallFeedback'] = false;
+                }
+
+                if (vm.playerFeedbackQuery.depositCountOperator && vm.playerFeedbackQuery.depositCountFormal != null) {
+                    switch (vm.playerFeedbackQuery.depositCountOperator) {
+                        case ">=":
+                            sendQuery.topUpTimes = {
+                                $gte: vm.playerFeedbackQuery.depositCountFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.topUpTimes = vm.playerFeedbackQuery.depositCountFormal;
+                            break;
+                        case "<=":
+                            sendQuery.topUpTimes = {
+                                $lte: vm.playerFeedbackQuery.depositCountFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.depositCountLatter != null) {
+                                sendQuery.topUpTimes = {
+                                    $lte: vm.playerFeedbackQuery.depositCountLatter,
+                                    $gte: vm.playerFeedbackQuery.depositCountFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+
+                if (vm.playerFeedbackQuery.playerValueOperator && vm.playerFeedbackQuery.playerValueFormal != null) {
+                    switch (vm.playerFeedbackQuery.playerValueOperator) {
+                        case ">=":
+                            sendQuery.valueScore = {
+                                $gte: vm.playerFeedbackQuery.playerValueFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.valueScore = vm.playerFeedbackQuery.playerValueFormal;
+                            break;
+                        case "<=":
+                            sendQuery.valueScore = {
+                                $lte: vm.playerFeedbackQuery.playerValueFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.playerValueLatter != null) {
+                                sendQuery.valueScore = {
+                                    $lte: vm.playerFeedbackQuery.playerValueLatter,
+                                    $gte: vm.playerFeedbackQuery.playerValueFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
+                    switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
+                        case ">=":
+                            sendQuery.consumptionTimes = {
+                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
+                            break;
+                        case "<=":
+                            sendQuery.consumptionTimes = {
+                                $lte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
+                                sendQuery.consumptionTimes = {
+                                    $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
+                                    $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
+                    switch (vm.playerFeedbackQuery.bonusAmountOperator) {
+                        case ">=":
+                            sendQuery.bonusAmountSum = {
+                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
+                            break;
+                        case "<=":
+                            sendQuery.bonusAmountSum = {
+                                $lte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
+                                sendQuery.bonusAmountSum = {
+                                    $lte: vm.playerFeedbackQuery.bonusAmountLatter,
+                                    $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
+                    switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
+                        case ">=":
+                            sendQuery.withdrawTimes = {
+                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
+                            break;
+                        case "<=":
+                            sendQuery.withdrawTimes = {
+                                $lte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
+                                sendQuery.withdrawTimes = {
+                                    $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
+                                    $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
+                    switch (vm.playerFeedbackQuery.topUpSumOperator) {
+                        case ">=":
+                            sendQuery.topUpSum = {
+                                $gte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                            break;
+                        case "=":
+                            sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
+                            break;
+                        case "<=":
+                            sendQuery.topUpSum = {
+                                $lte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                            break;
+                        case "range":
+                            if (vm.playerFeedbackQuery.topUpSumLatter != null) {
+                                sendQuery.topUpSum = {
+                                    $lte: vm.playerFeedbackQuery.topUpSumLatter,
+                                    $gte: vm.playerFeedbackQuery.topUpSumFormal
+                                };
+                            }
+                            break;
+                    }
+                }
+
+                if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
+                    sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
+                }
+
+                if (vm.playerFeedbackQuery.isNewSystem === "old") {
+                    sendQuery.isNewSystem = {$ne: true};
+                } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
+                    sendQuery.isNewSystem = true;
+                }
+                if (startTime && endTime) {
+                    sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
+                }
+
+                let admins = [];
+
+                if (vm.playerFeedbackQuery.departments) {
+                    if (vm.playerFeedbackQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && (vm.playerFeedbackQuery.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f._id != "") {
+                                        admins.push(f._id)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
+                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
+                    sendQuery.csOfficer = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
+                }
 
                 $('#platformFeedbackSpin').show();
-                console.log('sendQuery', vm.playerFeedbackQuery);
-                vm.exportQuery = vm.getPlayerFeedbackQuery();
+                console.log('sendQuery', sendQuery);
+                vm.exportQuery = sendQuery;
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
                     vm.feedbackPlayersPara.index = 1;
                     vm.playerFeedbackQuery.index = 0;
                 }
-                let isMany = {
-                                limit: vm.playerFeedbackQuery.limit,
-                                sortCol: vm.playerFeedbackQuery.sortCol,
-                                searchType: vm.playerFeedbackSearchType
-                            };
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
-                    query: vm.playerFeedbackQuery,
-                    index: vm.playerFeedbackQuery.index,
-                    //new block
-                    isMany: isMany,
-                    startTime: startTime,
-                    endTime: endTime
-                    //new Block
-                }, function (data) {
-                    $scope.$evalAsync(() => {
-                        console.log('_getPlayerFeedbackQuery', data);
-                        if(vm.playerFeedbackSearchType === "one"){
-                            console.log('_getSinglePlayerFeedbackQuery', data);
-                            vm.drawSinglePlayerFeedback(data);
-                        }else{
+                if (vm.playerFeedbackSearchType == "one") {
+                    socketService.$socket($scope.AppSocket, 'getSinglePlayerFeedbackQuery', {
+                        query: sendQuery,
+                        index: vm.feedbackPlayersPara.index - 1
+                    }, function (data) {
+                        console.log('_getSinglePlayerFeedbackQuery', data);
+                        vm.drawSinglePlayerFeedback(data);
+                    });
+                }
+                else {
+                    socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                        query: sendQuery,
+                        index: vm.playerFeedbackQuery.index,
+                        limit: vm.playerFeedbackQuery.limit,
+                        sortCol: vm.playerFeedbackQuery.sortCol
+                    }, function (data) {
+                        $scope.$evalAsync(() => {
+                            console.log('_getPlayerFeedbackQuery', data);
                             let playerList = data.data.data;
                             console.log(playerList);
                             // setTableData(vm.playerFeedbackTable, playerList);
@@ -17104,9 +17426,9 @@ define(['js/app'], function (myApp) {
                             vm.feedbackPlayersPara.total = vm.playerFeedbackQuery.total;
                             $('#platformFeedbackSpin').hide();
                             // $scope.safeApply();
-                        }
+                        });
                     });
-                });
+                }
                 vm.playerCredibilityComment = [];
             };
             vm.drawExtendedFeedbackTable = function (data) {
@@ -17341,42 +17663,53 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
-            vm.addPlayerFeedback = function (data) {
-                let resultName = vm.allPlayerFeedbackResults.filter(item => {
-                    return item.key == data.result;
-                });
-                resultName = resultName.length > 0 ? resultName[0].value : "";
-                let sendData = {
-                    playerId: data.playerId,
-                    platform: data.platform,
-                    createTime: Date.now(),
-                    adminId: authService.adminId,
-                    content: data.content,
-                    result: data.result,
-                    resultName: resultName,
-                    topic: data.topic
-                };
-                console.log('sendData', sendData);
-                socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
-                    vm.addFeedback.content = "";
-                    vm.addFeedback.result = "";
-                    if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
-                        return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
-                    }
-                    if (vm.playerFeedbackSearchType = 'one') {
-                        vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
-                            vm.curPlayerFeedbackDetail = data;
+            vm.addPlayerFeedback = function (data, isConfirm = false) {
 
-                            vm.curPlayerFeedbackDetail.forEach(item => {
-                                item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("ADD_FEEDBACK");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.addPlayerFeedback(data, true);
+                    $('#modalYesNo').modal();
+
+                } else {
+                    
+                    let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                        return item.key == data.result;
+                    });
+                    resultName = resultName.length > 0 ? resultName[0].value : "";
+                    let sendData = {
+                        playerId: data.playerId,
+                        platform: data.platform,
+                        createTime: Date.now(),
+                        adminId: authService.adminId,
+                        content: data.content,
+                        result: data.result,
+                        resultName: resultName,
+                        topic: data.topic
+                    };
+                    console.log('sendData', sendData);
+                    socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                        vm.addFeedback.content = "";
+                        vm.addFeedback.result = "";
+                        if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
+                            return vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
+                        }
+                        if (vm.playerFeedbackSearchType = 'one') {
+                            vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {
+                                vm.curPlayerFeedbackDetail = data;
+
+                                vm.curPlayerFeedbackDetail.forEach(item => {
+                                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                                });
+
+                                $scope.safeApply();
                             });
-
-                            $scope.safeApply();
-                        });
-                    } else {
-                        vm.submitPlayerFeedbackQuery();
-                    }
-                });
+                        } else {
+                            vm.submitPlayerFeedbackQuery();
+                        }
+                    });
+                }
             };
 
             vm.toggleCallOutMissionStatus = function() {
@@ -17670,7 +18003,7 @@ define(['js/app'], function (myApp) {
                 },100);
             };
 
-            vm.initPlayerFeedback = function () {
+            vm.initPlayerFeedback = function (searchFieldReset) {
                 console.log("initPlayerFeedback");
                 vm.hasFeedbackPlatformChange = true;
                 vm.playerFeedbackSearchType = "many";
@@ -17741,6 +18074,9 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     });
+                    if (vm.backupPlayerFeedbackQuery) {
+                        vm.playerFeedbackQuery = Object.assign(vm.playerFeedbackQuery, vm.backupPlayerFeedbackQuery)
+                    }
                     vm.getCtiData();
                     $('select#selectCredibilityRemarkFeedback').multipleSelect('refresh');
                     $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
@@ -24458,6 +24794,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitor':
                         vm.getMonitorBasic(platformObjId);
+                        utilService.actionAfterLoaded('#monitorTable .spicker', function () {
+                            vm.refreshSPicker();
+                        });
                         break;
                     case 'playerValue':
                         vm.getPlayerValueBasic(platformObjId);
@@ -24502,6 +24841,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting(platformObjId);
+                        break;
+                    case 'emailAuditConfig':
+                        vm.getEmailAuditConfig(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
@@ -24915,7 +25257,170 @@ define(['js/app'], function (myApp) {
                         // vm.loadOpenPromoCodeTemplate();
                         vm.endLoadWeekDay();
                         break;
+                    case 'maxRewardAmountSetting':
+                        vm.filterMaxRewardAmountSettingPlatform = '';
+                        vm.maxRewardAmountSettingInEdit = false;
+                        vm.newMaxRewardAmountSetting = {};
+                        vm.maxRewardAmountSettingData = [];
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        break;
 
+                }
+            };
+
+            vm.initRoleByDepartment = function (departmentObjId) {
+                vm.roleList =[];
+                if (departmentObjId && vm.departmentList && vm.departmentList.length){
+                    let selectedDepartment = vm.departmentList.filter(
+                        p => {
+                              if (p && p._id && p._id.toString() == departmentObjId.toString()){
+                                    return p;
+                              }
+                          })
+                    if (selectedDepartment && selectedDepartment.length && selectedDepartment[0] && selectedDepartment[0].roles && selectedDepartment[0].roles.length){
+                        selectedDepartment[0].roles.forEach(
+                            role => {
+                                if (role && role._id){
+                                    vm.roleList.push(role);
+                                }
+                            }
+                        )
+                  }
+                $scope.$evalAsync();
+              }
+            };
+
+            vm.getMaxRewardAmountSetting = async function (platformObjId) {
+                if (authService && authService.adminId && authService.roleData && authService.roleData.length && authService.department && authService.department.length && platformObjId){
+                    let involvedDepartmentList = [];
+                    let involvedRoleList = [];
+                    authService.department.forEach( d => {
+                        if (d && d._id){
+                            involvedDepartmentList.push(d._id);
+                        }
+                    });
+                    authService.roleData.forEach( r => {
+                        if (r && r._id) {
+                            involvedRoleList.push(r._id)
+                        }
+                    });
+
+                    let query = {
+                        roleList: involvedRoleList,
+                        departmentList: involvedDepartmentList,
+                        platformObjId: platformObjId
+                    };
+                    let data = await $scope.$socketPromise('getMaxRewardAmountSettingByAdmin', query);
+
+                    if (data && data.data && data.data.hasOwnProperty('maxRewardAmount')) {
+                        vm.maxRewardAmount =  data.data.maxRewardAmount;
+                    }
+                    else{
+                        vm.maxRewardAmount = null;
+                    }
+                    $scope.$evalAsync();
+                }
+            };
+
+            vm.checkRewardAmountLimitByAdmin = async function (currentRewardAmount) {
+                if (authService && authService.roleData && authService.roleData[0] && authService.roleData[0]._id && authService.roleData[0].departments && authService.roleData[0].departments.length){
+                    vm.disableGeneratePromoCode = false;
+
+                    if (vm.maxRewardAmount && currentRewardAmount){
+                        if (currentRewardAmount > vm.maxRewardAmount) {
+                            vm.disableGeneratePromoCode = true;
+                            socketService.showErrorMessage($translate("The reward amount you entered has beyond your given authority. The max reward amount you can set is:") + " " +  vm.maxRewardAmount);
+                            $scope.$evalAsync();
+                        }
+                    }
+                }
+            };
+
+            vm.initLoadingMaxRewardSetting = async function (platformObjId) {
+                if (platformObjId){
+                    vm.allRoleList =[];
+                    let departmentList = [];
+                    let maxRewardAmountSetting = [];
+
+                    let retData = await Promise.all([$scope.$socketPromise('getDepartmentByPlatform', {platformObjId: platformObjId}), $scope.$socketPromise('loadMaxRewardAmountSetting', {platformObjId: platformObjId})])
+
+                    if (retData && retData.length){
+                        departmentList = retData[0];
+                        maxRewardAmountSetting = retData[1];
+                    };
+
+                    if (departmentList && departmentList.data && departmentList.data.length){
+                        vm.departmentList = departmentList.data;
+                        vm.departmentList.forEach(
+                            department => {
+                                if (department && department.roles && department.roles.length){
+                                    department.roles.forEach(
+                                        role => {
+                                            if (role && role._id){
+                                                vm.allRoleList.push(role);
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+                    if (maxRewardAmountSetting && maxRewardAmountSetting.data && maxRewardAmountSetting.data.length){
+                        vm.maxRewardAmountSettingData = maxRewardAmountSetting.data;
+                    }
+                    else{
+                       vm.maxRewardAmountSettingData = [];
+                    }
+
+                    $scope.$evalAsync();
+                }
+            };
+
+            vm.updateMaxRewardAmountCollection = function (type, dataList, rowData, index) {
+                if (type == 'add') {
+                    dataList.push(rowData);
+
+                } else if (type == 'remove' && typeof index == 'number') {
+
+                    if (dataList && dataList[index]) {
+                        if (dataList[index]._id && vm.deletedMaxRewardAmountSettingList){
+                            vm.deletedMaxRewardAmountSettingList.push(dataList[index]._id);
+                            dataList.splice(index, 1);
+                        }
+                        else{
+                            dataList.splice(index, 1);
+                        }
+                    }
+                }
+            };
+
+            vm.updateMaxRewardAmountSetting = async function () {
+                if (vm.filterMaxRewardAmountSettingPlatform && ((vm.maxRewardAmountSettingData && vm.maxRewardAmountSettingData.length) || (vm.deletedMaxRewardAmountSettingList && vm.deletedMaxRewardAmountSettingList.length))){
+                    let objectData = {
+                        platformObjId: vm.filterMaxRewardAmountSettingPlatform,
+                        updateData: vm.maxRewardAmountSettingData,
+                        deletedData: vm.deletedMaxRewardAmountSettingList
+                    };
+
+                    let updateData = await $scope.$socketPromise('updateMaxRewardAmountSetting', objectData);
+
+                    if (updateData && updateData.success){
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        vm.loadMaxRewardAmountSetting(vm.filterMaxRewardAmountSettingPlatform);
+                    }
+
+                }
+            };
+
+            vm.loadMaxRewardAmountSetting = async function (platformObjId) {
+                if (platformObjId){
+                    let loadData = await $scope.$socketPromise('loadMaxRewardAmountSetting', {platformObjId: platformObjId});
+
+                    if (loadData && loadData.data && loadData.data.length){
+                        vm.maxRewardAmountSettingData = loadData.data;
+                        vm.deletedMaxRewardAmountSettingList = [];
+                        $scope.$evalAsync();
+                    }
                 }
             };
 
@@ -24951,17 +25456,24 @@ define(['js/app'], function (myApp) {
                             pc: {},
                         };
                         vm.urlConfigShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
                             vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, true);
                         }
                         else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                             vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform);
                         }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.skinSettingShowMessage = '';
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        if (vm.selectedFrontEndSettingTab == 'partnerSkinManagement'){
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
+                        }
+                        else{
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        }
                         break;
                     case 'rewardSetting':
                         vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
@@ -25006,10 +25518,15 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'skinManagement':
+                    case 'partnerSkinManagement':
                         vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
+                        vm.isPartnerForSkinManagement = false;
+                        if (choice == 'partnerSkinManagement'){
+                            vm.isPartnerForSkinManagement = true;
+                        }
                         break;
                     case 'rewardSetting':
                         vm.filterFrontEndSettingPlatform = null;
@@ -25350,7 +25867,7 @@ define(['js/app'], function (myApp) {
             };
 
             //#region Frontend Configuration - Skin Management
-            vm.saveFrontEndSkinSetting = function () {
+            vm.saveFrontEndSkinSetting = function (isPartner) {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
                     device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
@@ -25358,42 +25875,85 @@ define(['js/app'], function (myApp) {
                     url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
                 };
 
-                return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
-                    console.log("saveSkinSetting success:", data);
-                    vm.newFrontEndSkinSetting = {};
-                    vm.skinSettingShowMessage = "SUCCESS";
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('saveSkinSetting error: ', err);
-                    vm.skinSettingShowMessage = "FAIL";
-                });
+                if (isPartner){
+                    return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
+                        console.log("savePartnerSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('savePartnerSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
+                        console.log("saveSkinSetting success:", data);
+                        vm.newFrontEndSkinSetting = {};
+                        vm.skinSettingShowMessage = "SUCCESS";
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('saveSkinSetting error: ', err);
+                        vm.skinSettingShowMessage = "FAIL";
+                    });
+                }
+
             };
 
-            vm.getFrontEndSkinSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
-                    console.log('getSkinSetting', data.data);
-                    if (data && data.data) {
-                        vm.frontEndSkinSetting = data.data.map(item => {
-                            item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+            vm.getFrontEndSkinSetting = function (platformObjId, isPartner) {
+                if (isPartner){
+                    socketService.$socket($scope.AppSocket, 'getPartnerSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getPartnerSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
 
-                            return item;
-                        });
-                    }
-                    $scope.$evalAsync();
-                }, function (err) {
-                    console.error('getSkinSetting error: ', err);
-                }, true);
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getPartnerSkinSetting error: ', err);
+                    }, true);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getSkinSetting', {platformObjId: platformObjId}, function (data) {
+                        console.log('getSkinSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndSkinSetting = data.data.map(item => {
+                                item.name$ = item && item.device && item.name ? $scope.frontEndSettingDevice[item.device] + ' - ' + item.name : item.name;
+
+                                return item;
+                            });
+                        }
+                        $scope.$evalAsync();
+                    }, function (err) {
+                        console.error('getSkinSetting error: ', err);
+                    }, true);
+                }
             };
 
-            vm.removeFrontEndSkinSetting = function (objId) {
-                return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
-                    console.log("removeSkinSetting success:", data);
-                    vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
-                    $scope.$evalAsync();
-                }, err => {
-                    console.error('removeSkinSetting error: ', err);
-                });
+            vm.removeFrontEndSkinSetting = function (objId, isPartner) {
+                if (isPartner){
+                    return $scope.$socketPromise('removePartnerSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removePartnerSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removePartnerSkinSetting error: ', err);
+                    });
+                }
+                else{
+                    return $scope.$socketPromise('removeSkinSetting', {skinSettingObjId: objId}).then(data => {
+                        console.log("removeSkinSetting success:", data);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
+                        $scope.$evalAsync();
+                    }, err => {
+                        console.error('removeSkinSetting error: ', err);
+                    });
+                }
             }
             //#endregion
 
@@ -25752,6 +26312,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
+                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -26453,6 +27014,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
+
+                vm.allOpen = rewardPointsEvent.status === true
+                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -26485,8 +27049,27 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category, platform: vm.selectedPlatform.id}).then((data) => {
-                    vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
+                let sendQuery = {};
+                let rewardPointId = [];
+                if(rewardPointsEvent.length && rewardPointsEvent.length > 0){
+                    rewardPointsEvent.forEach(rewardPoint => {
+                        rewardPointId.push(rewardPoint._id);
+
+                        sendQuery = {
+                            _id: rewardPointId,
+                            category: rewardPoint.category,
+                            platform: vm.selectedPlatform.id
+                        }
+                    });
+                }else {
+                    sendQuery = {
+                        _id: rewardPointsEvent._id,
+                        category: rewardPointsEvent.category,
+                        platform: vm.selectedPlatform.id
+                    }
+                }
+                $scope.$socketPromise('deleteRewardPointsEventById', sendQuery).then((data) => {
+                    vm.getRewardPointsEventByCategory(sendQuery.category);
                     $scope.safeApply();
                 });
             };
@@ -26545,7 +27128,38 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventSetDisable(x, vm.rewardPointsEvent[x], true, true);
                 }
                 vm.rewardPointsEventUpdateAll = false;
-            }
+            };
+
+            vm.closeAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = false;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.allOpen = false;
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.openAllRewardPointsEvent = () => {
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    rewardPointsEvent.status = true;
+                });
+
+                for (let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
+                }
+                vm.allOpen = true;
+                vm.rewardPointsEventUpdateAll = false;
+            };
+
+            vm.deleteAllRewardPointsEvent = () => {
+                vm.deletingRewardPointsEvent = [];
+                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
+                    vm.deletingRewardPointsEvent.push(rewardPointsEvent);
+                });
+            };
 
             vm.rewardPointsEventReset = (idx) => {
                 console.log(vm.rewardPointsEventOld[idx]);
@@ -26956,6 +27570,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadPromoCodeTemplate = function (platformObjId) {
+                vm.disableGeneratePromoCode = false;
                 vm.getPlatformProviderGroup(platformObjId);
                 vm.promoCodeTemplateData = [];
                 let sendData = {
@@ -26983,6 +27598,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.loadOpenPromoCodeTemplate = function (platformObjId) {
+                vm.disableGeneratePromoCode = false;
                 vm.getPlatformProviderGroup(platformObjId);
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.id,
@@ -27182,7 +27798,13 @@ define(['js/app'], function (myApp) {
                     col.splice(index, 1);
                 }
             };
+
             vm.generatePromoCodeAsync= function(obj, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 let prom = new Promise((resolve, reject) => {
                     let result = vm.generatePromoCode(obj, index, data, type, channel);
                     resolve(result);
@@ -27190,8 +27812,14 @@ define(['js/app'], function (myApp) {
                 prom.then(() => {
                     $scope.$evalAsync();
                 })
-            }
+            };
+
             vm.generatePromoCode = function (col, index, data, type, channel) {
+                let isExceededMaxRewardAmount = utilService.checkExceedPromoCodeMaxRewardAmount(type, data, vm.maxRewardAmount);
+                if (isExceededMaxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -30956,6 +31584,10 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerPasswordMinLength = platformData.playerPasswordMinLength;
                         vm.platformBasic.prefix = platformData.prefix;
                         vm.platformBasic.samePhoneNumberRegisterCount = platformData.samePhoneNumberRegisterCount;
+                        vm.platformBasic.updateBankCardDepositCount = platformData.updateBankCardDepositCount;
+                        vm.platformBasic.updateBankCardDepositCountCheck = platformData.updateBankCardDepositCountCheck;
+                        vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
+                        vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
@@ -30985,6 +31617,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.playerIPRegionLimit = platformData.playerIPRegionLimit;
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isEbet4 = platformData.isEbet4;
+                        vm.platformBasic.useVoiceCode = platformData.useVoiceCode;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -31381,6 +32014,50 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getEmailAuditConfig = async (platformObjId) => {
+                console.log('here')
+                vm.editAuditConfig = vm.editAuditConfig || {};
+                vm.auditCreditChangeSetting = vm.auditCreditChangeSetting || {};
+                vm.auditManualRewardSetting = vm.auditManualRewardSetting || {};
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAuditCreditChangeSetting', sendData, function (data) {
+                    console.log('getAuditCreditChangeSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditCreditChangeSetting = {};
+                        if (data && data.data) {
+                            vm.auditCreditChangeSetting = data.data;
+                        }
+                        if (!vm.auditCreditChangeSetting.recipient) {
+                            vm.auditCreditChangeSetting.recipient = [];
+                        }
+                        if (!vm.auditCreditChangeSetting.reviewer) {
+                            vm.auditCreditChangeSetting.reviewer = [];
+                        }
+                    });
+                });
+
+                socketService.$socket($scope.AppSocket, 'getAuditManualRewardSetting', sendData, function (data) {
+                    console.log('getAuditManualRewardSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditManualRewardSetting = {};
+                        if (data && data.data) {
+                            vm.auditManualRewardSetting = data.data;
+                        }
+                        if (!vm.auditManualRewardSetting.recipient) {
+                            vm.auditManualRewardSetting.recipient = [];
+                        }
+                        if (!vm.auditManualRewardSetting.reviewer) {
+                            vm.auditManualRewardSetting.reviewer = [];
+                        }
+                    });
+                });
+
+
+            };
+
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
                 vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
@@ -31597,6 +32274,15 @@ define(['js/app'], function (myApp) {
                         vm.monitorBasic.monitorPlayerUseSound = platformData.monitorPlayerUseSound;
                         vm.monitorBasic.monitorMerchantSoundChoice = platformData.monitorMerchantSoundChoice;
                         vm.monitorBasic.monitorPlayerSoundChoice = platformData.monitorPlayerSoundChoice;
+                        vm.monitorBasic.monitorTopUpAmount = platformData.monitorTopUpAmount;
+                        vm.monitorBasic.monitorTopUpAmountUseSound = platformData.monitorTopUpAmountUseSound;
+                        vm.monitorBasic.monitorTopUpAmountSoundChoice = platformData.monitorTopUpAmountSoundChoice;
+                        vm.monitorBasic.monitorMerchantCountTopUpType = platformData.monitorMerchantCountTopUpType;
+                        vm.monitorBasic.monitorPlayerCountTopUpType = platformData.monitorPlayerCountTopUpType;
+                        vm.monitorBasic.monitorTopUpAmountTopUpType = platformData.monitorTopUpAmountTopUpType;
+                        vm.monitorBasic.monitorMerchantCountTime = platformData.monitorMerchantCountTime;
+                        vm.monitorBasic.monitorPlayerCountTime = platformData.monitorPlayerCountTime;
+                        vm.monitorBasic.monitorTopUpAmountTime = platformData.monitorTopUpAmountTime;
                         vm.monitorBasic.monitorTopUpCount = platformData.monitorTopUpCount;
                         vm.monitorBasic.monitorCommonTopUpCount = platformData.monitorCommonTopUpCount;
                         vm.monitorBasic.monitorTopUpNotify = platformData.monitorTopUpNotify;
@@ -32497,7 +33183,8 @@ define(['js/app'], function (myApp) {
 
                 let sendData = {
                     platformObjId: vm.filterPromoCodeTemplatePlatform || vm.selectedPlatform.id,
-                    promoCodeTemplate: vm.promoCodeTemplateData
+                    promoCodeTemplate: vm.promoCodeTemplateData,
+                    maxRewardAmount: vm.maxRewardAmount
                 };
                 console.log('sendData', sendData);
 
@@ -32557,6 +33244,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformObjId: vm.filterOpenPromoCodeTemplatePlatform || vm.selectedPlatform.id,
                     openPromoCodeTemplate: vm.openPromoCodeTemplateSetting,
+                    maxRewardAmount: vm.maxRewardAmount
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateOpenPromoCodeTemplate', sendData, function (data) {
@@ -32587,6 +33275,14 @@ define(['js/app'], function (myApp) {
                 if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
+
+                if (data && type && (type == 1 || type == 2) && data.hasOwnProperty('amount') && vm.maxRewardAmount && data.amount > vm.maxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+                else if (data && type && type == 3 && data.hasOwnProperty('maxRewardAmount') && vm.maxRewardAmount && data.maxRewardAmount > vm.maxRewardAmount){
+                    return socketService.showErrorMessage($translate('The reward amount you entered has beyond your given authority. The max reward amount you can set is:') + " " + vm.maxRewardAmount);
+                }
+
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type, "openPromoCode");
@@ -32716,6 +33412,38 @@ define(['js/app'], function (myApp) {
                })
             };
 
+            vm.initRecipientModal = function (setting) {
+                vm.curAuditSetting = setting;
+                vm.auditRecipientList = {};
+                vm.auditReviewerList = {};
+
+                let uniqueAdminList = [...new Set(vm.adminList.map(item => item._id))];
+                for (let i = 0; i < uniqueAdminList.length; i++) {
+                    let adminObjId = uniqueAdminList[i];
+
+                    vm.auditRecipientList[i] = Boolean(
+                        adminObjId
+                        && vm[setting]
+                        && vm[setting].recipient
+                        && vm[setting].recipient.length
+                        && vm[setting].recipient.indexOf(String(adminObjId)) > -1
+                    );
+
+                    vm.auditReviewerList[i] = Boolean(
+                        adminObjId
+                        && vm[setting]
+                        && vm[setting].reviewer
+                        && vm[setting].reviewer.length
+                        && vm[setting].reviewer.indexOf(String(adminObjId)) > -1
+                    );
+
+                    $('#auditSettingRow' + i).removeAttr('style');
+                    if (vm.auditReviewerList[i]) {
+                        $('#auditSettingRow' + i).css('background-color', 'pink');
+                    }
+                }
+            };
+
             vm.getLargeWithdrawIsRecipient = function (adminObjId) {
                 // largeWithdrawalSetting
                 let isRecipient = false;
@@ -32755,6 +33483,25 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.setEmailAuditRecipient = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm[vm.curAuditSetting].recipient.indexOf(String(adminObjId)) < 0) {
+                        vm[vm.curAuditSetting].recipient.push(String(adminObjId));
+                    }
+                } else {
+                    let indexRecipient = vm[vm.curAuditSetting].recipient.indexOf(String(adminObjId));
+                    if (indexRecipient > -1) {
+                        vm[vm.curAuditSetting].recipient.splice(indexRecipient, 1);
+                        let indexReviewer = vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId));
+                        if (indexReviewer > -1) {
+                            $('#auditSettingRow' + index).removeAttr('style');
+                            vm[vm.curAuditSetting].reviewer.splice(indexReviewer, 1);
+                            vm.auditReviewerList[index] = false;
+                        }
+                    }
+                }
+            };
+
             vm.setLargeWithdrawReviewer = function (adminObjId, isAdd, index) {
                 if (isAdd) {
                     if (vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) < 0) {
@@ -32766,6 +33513,21 @@ define(['js/app'], function (myApp) {
                     if (indexReviewer > -1) {
                         vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
                         $('#largeWithdrawRow' + index).removeAttr('style');
+                    }
+                }
+            };
+
+            vm.setEmailAuditReviewer = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId)) < 0) {
+                        vm[vm.curAuditSetting].reviewer.push(String(adminObjId));
+                        $('#auditSettingRow' + index).css('background-color', 'pink');
+                    }
+                } else {
+                    let indexReviewer = vm[vm.curAuditSetting].reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        vm[vm.curAuditSetting].reviewer.splice(indexReviewer, 1);
+                        $('#auditSettingRow' + index).removeAttr('style');
                     }
                 }
             };
@@ -32782,6 +33544,55 @@ define(['js/app'], function (myApp) {
                     console.log("updateLargeWithdrawalRecipient complete", data)
                 });
             }
+
+            function getAuditSettingSocket(setting) {
+                switch(setting) {
+                    case 'auditCreditChangeSetting':
+                        return 'setAuditCreditChangeSetting';
+                        break;
+                    case 'auditManualRewardSetting':
+                        return 'setAuditManualRewardSetting';
+                        break;
+                    default:
+                        console.log('current audit setting not found');
+                        return;
+                }
+            }
+
+            vm.updateEmailAuditReviewSetting = async function () {
+                console.log('setting', vm.curAuditSetting, vm[vm.curAuditSetting]);
+                let updateSocket = getAuditSettingSocket(vm.curAuditSetting);
+
+                if (!updateSocket) {
+                    return;
+                }
+
+                let result = await $scope.$socketPromise(updateSocket, {
+                    platformObjId: vm.filterConfigPlatform,
+                    recipient: vm[vm.curAuditSetting].recipient,
+                    reviewer: vm[vm.curAuditSetting].reviewer
+                });
+
+                vm.configTabClicked("emailAuditConfig");
+            };
+
+            vm.updateEmailAuditSetting = async function (settingName) {
+                console.log('setting', settingName, vm[settingName]);
+                let updateSocket = getAuditSettingSocket(settingName);
+
+                if (!updateSocket) {
+                    return;
+                }
+
+                let result = await $scope.$socketPromise(updateSocket, {
+                    platformObjId: vm.filterConfigPlatform,
+                    minimumAuditAmount: vm[settingName].minimumAuditAmount,
+                    emailNameExtension: vm[settingName].emailNameExtension,
+                    domain: vm[settingName].domain
+                });
+
+                vm.configTabClicked("emailAuditConfig");
+            };
 
             vm.initModalLargeWithdrawalPartner = function () {
                 vm.largeWithdrawPartnerCheckReviewer = {};
@@ -33034,6 +33845,10 @@ define(['js/app'], function (myApp) {
                         requireSMSCodeForBankRegistrationAtFirstTime: srcData.requireSMSCodeForBankRegistrationAtFirstTime,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        updateBankCardDepositCount: srcData.updateBankCardDepositCount,
+                        updateBankCardDepositCountCheck: srcData.updateBankCardDepositCountCheck,
+                        updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
+                        updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
@@ -33071,6 +33886,7 @@ define(['js/app'], function (myApp) {
                         playerIPRegisterLimit: srcData.playerIPRegisterLimit,
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         isEbet4: srcData.isEbet4,
+                        useVoiceCode: srcData.useVoiceCode,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
@@ -33469,6 +34285,15 @@ define(['js/app'], function (myApp) {
                         monitorPlayerUseSound: srcData.monitorPlayerUseSound,
                         monitorMerchantSoundChoice: srcData.monitorMerchantSoundChoice,
                         monitorPlayerSoundChoice: srcData.monitorPlayerSoundChoice,
+                        monitorTopUpAmount: srcData.monitorTopUpAmount,
+                        monitorTopUpAmountUseSound: srcData.monitorTopUpAmountUseSound,
+                        monitorTopUpAmountSoundChoice: srcData.monitorTopUpAmountSoundChoice,
+                        monitorMerchantCountTopUpType: srcData.monitorMerchantCountTopUpType,
+                        monitorPlayerCountTopUpType: srcData.monitorPlayerCountTopUpType,
+                        monitorTopUpAmountTopUpType: srcData.monitorTopUpAmountTopUpType,
+                        monitorMerchantCountTime: srcData.monitorMerchantCountTime,
+                        monitorPlayerCountTime: srcData.monitorPlayerCountTime,
+                        monitorTopUpAmountTime: srcData.monitorTopUpAmountTime,
                         monitorTopUpCount: srcData.monitorTopUpCount,
                         monitorCommonTopUpCount: srcData.monitorCommonTopUpCount,
                         monitorTopUpNotify: srcData.monitorTopUpNotify,
@@ -33814,6 +34639,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAdminNameByDepartment = function (departmentId, assignTarget) {
+                console.warn('getAdminNameByDepartment', departmentId)
                 if (!departmentId) {
                     $scope.$evalAsync(() =>{
                         if(assignTarget){
@@ -34464,6 +35290,7 @@ define(['js/app'], function (myApp) {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
                 vm.tempNewNodeRole = '';
+                vm.tempTriggerAmount = 0;
                 vm.expResMsg = '';
                 vm.expShowSubmit = true;
             }
@@ -34482,6 +35309,7 @@ define(['js/app'], function (myApp) {
                 if (!vm.tempNewNodeRole) return;
                 vm.tempRoleID = roleNode._id;
                 vm.tempRoleName = roleNode.roleName;
+                vm.tempEditTriggerAmount = roleNode.triggerAmount;
                 console.log("selected department ", vm.tempDepartmentName);
                 console.log("selected role ", vm.tempRoleName);
             }
@@ -34516,11 +35344,14 @@ define(['js/app'], function (myApp) {
                     vm.tempAllRoles = data.data.roles;
                     $.each(vm.tempAllRoles, function (i, v) {
                         if (v.roleName == vm.tempNodeRoleName) {
+                            vm.tempEditRoleID = v._id;
                             vm.tempEditRoleName = v.roleName;
                             $scope.safeApply();
                             return true;
                         }
                     })
+
+                    vm.tempEditTriggerAmount = vm.tempNodeTriggerAmount;
                     $scope.safeApply();
                 }
             }
@@ -34536,15 +35367,17 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateProposalStepData = function () {
-                var updateNode = {
+                let updateNode = {
                     name: vm.tempNodeName,
                     id: vm.curNodeID,
                     departmentData: {id: vm.tempEditDepartID, name: vm.tempEditDepartName},
-                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName}
-                }
+                    roleData: {id: vm.tempEditRoleID, name: vm.tempEditRoleName},
+                    triggerAmount: vm.tempEditTriggerAmount
+                };
                 vm.chartViewModel.updateNode(vm.curNodeID, updateNode);
                 vm.tempNodeDepartmentName = vm.tempEditDepartName;
                 vm.tempNodeRoleName = vm.tempEditRoleName;
+                vm.tempNodeTriggerAmount = vm.tempEditTriggerAmount;
                 socketService.setProposalNodeData();
                 $scope.safeApply();
             }
@@ -34629,12 +35462,6 @@ define(['js/app'], function (myApp) {
             // Add a new node to the chart.
             //
             vm.addNewNode = function () {
-                //todo
-                //var nodeName = prompt("Enter a node name:", "New node");
-                //if (!nodeName) {
-                //    return;
-                //}
-
                 //
                 // Template for a new node.
                 //
@@ -34651,6 +35478,7 @@ define(['js/app'], function (myApp) {
                     //departmentName: vm.tempNewNodeDepartment.departmentName,
                     //roleName: vm.tempNewNodeRole.roleName,
                     roleData: {id: vm.tempRoleID, name: vm.tempRoleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: vm.tempTriggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -34730,6 +35558,11 @@ define(['js/app'], function (myApp) {
                                 department: node.departmentData.id,
                                 role: node.roleData.id
                             };
+
+                            if (node.triggerAmount && node.triggerAmount.value) {
+                                steps[node.id].triggerAmount = node.triggerAmount.value;
+                            }
+
                             usedRoleId.push(node.roleData.id);
                         }
                         else {
@@ -34882,6 +35715,7 @@ define(['js/app'], function (myApp) {
                         label: $translate("DEPARTMENT")
                     },
                     roleData: {id: data.role._id, name: data.role.roleName, label: $translate("ROLE")},
+                    triggerAmount: {label: $translate("Trigger amount"), value: data.triggerAmount},
                     inputConnectors: [
                         {
                             name: "X"
@@ -35448,6 +36282,7 @@ define(['js/app'], function (myApp) {
                         vm.tempNodeDepartmentID = newValue.departmentData.id;
                         vm.tempNodeRoleName = newValue.roleData.name;
                         vm.tempNodeRoleID = newValue.roleData.id;
+                        vm.tempNodeTriggerAmount = newValue.triggerAmount.value;
                         $scope.safeApply();
                     }
                 });
@@ -39084,8 +39919,6 @@ define(['js/app'], function (myApp) {
                 $('#platformFeedbackSpin').show();
                 let sendQuery = {};
                 let selectedPlayers = [];
-                let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
-                let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 sendQuery.platformObjId = vm.playerFeedbackQuery.selectedPlatform;
                 sendQuery.adminObjId = authService.adminId;

@@ -79,7 +79,7 @@ var proposalProcess = {
      * Create a new proposalProcess with type
      * @param {json} data - The data of the proposalProcess. Refer to proposalProcess schema.
      */
-    createProposalProcessWithTypeId: function (id) {
+    createProposalProcessWithTypeId: function (id, propAmount) {
         var deferred = Q.defer();
         var processTypeId = null;
         var firstStepType = null;
@@ -120,9 +120,17 @@ var proposalProcess = {
                             department: stepTypeData[i].department,
                             role: stepTypeData[i].role
                         };
-                        proms.push(dbProposalProcessStep.createProposalProcessStep(step));
+
+                        if (!stepTypeData[i].triggerAmount || (propAmount >= stepTypeData[i].triggerAmount)) {
+                            proms.push(dbProposalProcessStep.createProposalProcessStep(step));
+                        }
                     }
-                    return Q.all(proms);
+
+                    if (proms.length) {
+                        return Promise.all(proms);
+                    } else {
+                        deferred.resolve(constSystemParam.PROPOSAL_NO_STEP);
+                    }
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't get steps for proposal process"});
@@ -196,12 +204,12 @@ var proposalProcess = {
      * Create a new proposalProcess with type
      * @param {json} data - The data of the proposalProcess. Refer to proposalProcess schema.
      */
-    createProposalProcessWithType: function (platformId, typeName) {
+    createProposalProcessWithType: function (platformId, typeName, propAmount) {
         var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId: platformId, name: typeName}).then(
             function (data) {
                 if (data) {
-                    return proposalProcess.createProposalProcessWithTypeId(data._id);
+                    return proposalProcess.createProposalProcessWithTypeId(data._id, propAmount);
                 }
                 else {
                     deferred.reject({name: "DBError", message: "Cant find proposal process type name: " + typeName});

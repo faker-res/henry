@@ -1856,7 +1856,7 @@ define(['js/app'], function (myApp) {
                                 return data.creator.name;
                             } else {
                                 var creator = $translate('System');
-                                if (data && data.data && data.data.creator.name) {
+                                if (data && data.data && data.data.creator && data.data.creator.name) {
                                     creator += "(" + data.data.creator.name + ")";
                                 }
                                 return creator;
