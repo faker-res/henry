@@ -26,6 +26,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Invalid token": "令牌无效",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "Multiple binding detected. Please contact CS.": "银行信息重复绑定，请联系客服，谢谢！",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",

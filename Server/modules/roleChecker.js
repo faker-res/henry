@@ -484,6 +484,7 @@ var roleChecker = {
                 blacklistIpConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 largeWithdrawalSetting: ['updateLargeWithdrawalSetting', 'updateLargeWithdrawalPartnerSetting'],
+                emailAuditConfig: ['setAuditCreditChangeSetting', 'setAuditManualRewardSetting'],
                 platformFeeEstimateSetting: ['updatePlatformFeeEstimateSetting'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
@@ -596,6 +597,12 @@ var roleChecker = {
                 createProduct: [],
                 monitoringSystem: [],
             },
+            "EmailAudit": {
+                "auditCreditChangeRecipient": [],
+                "auditCreditChangeAuditor": [],
+                "auditManualRewardRecipient": [],
+                "auditManualRewardAuditor": [],
+            },
         },
         Report: {
             General: {
@@ -652,7 +659,7 @@ var roleChecker = {
             },
             Proposal: {
                 "Force Pairing": ['forcePairingWithReferenceNumber']
-            }
+            },
         },
         Operation: {
             Proposal: {

@@ -13455,10 +13455,13 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 data: sendData,
-                platformId: vm.selectedPlatform.id
+                platformId: vm.isOneSelectedPlayer().platform
             }, function (data) {
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                if (data.data && data.data.data && data.data.data.duplicateBankAccountName) {
+                    socketService.showConfirmMessage($translate("Multiple binding detected."), 10000);
                 }
                 vm.getPlatformPlayersData();
                 console.log('playerpayment', data);
@@ -13519,7 +13522,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createUpdatePlayerBankInfoProposal', {
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     data: sendData,
-                    platformId: vm.selectedPlatform.id
+                    platformId: vm.isOneSelectedPlayer().platform
                 }, function (data) {
                     if (data.data && data.data.stepInfo) {
                         socketService.showProposalStepInfo(data.data.stepInfo, $translate);
