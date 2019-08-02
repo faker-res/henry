@@ -17110,15 +17110,10 @@ define(['js/app'], function (myApp) {
                     vm.playerFeedbackQuery.index = 0;
                 }
                 let isMany = {
-                    limit: vm.playerFeedbackQuery.limit,
-                    sortCol: vm.playerFeedbackQuery.sortCol,
-                    searchType: vm.playerFeedbackSearchType
-                };
-
-                if (vm.playerFeedbackQuery.filterFeedbackTopic.length === vm.playerFeedbackTopic.length) {
-                    vm.playerFeedbackQuery.filterFeedbackTopic = [];
-                }
-
+                                limit: vm.playerFeedbackQuery.limit,
+                                sortCol: vm.playerFeedbackQuery.sortCol,
+                                searchType: vm.playerFeedbackSearchType
+                            };
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
                     query: vm.playerFeedbackQuery,
                     index: vm.playerFeedbackQuery.index,
