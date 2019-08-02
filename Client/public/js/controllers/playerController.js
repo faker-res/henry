@@ -13460,6 +13460,9 @@ define(['js/app'], function (myApp) {
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
                 }
+                if (data.data && data.data.data && data.data.data.duplicateBankAccountName) {
+                    socketService.showConfirmMessage($translate("Multiple binding detected."), 10000);
+                }
                 vm.getPlatformPlayersData();
                 console.log('playerpayment', data);
             }, null, true);

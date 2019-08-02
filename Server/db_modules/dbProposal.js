@@ -410,7 +410,7 @@ var proposal = {
 
         return Promise.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
-            data => {
+            async data => {
                 if (data && data[0] && data[1]) {
                     proposalTypeData = data[0];
                     proposalData.type = data[0]._id;
@@ -501,14 +501,13 @@ var proposal = {
                     if (data[2]) {
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
-                            if(data[2].level){
+                            if (data[2].level) {
                                 proposalData.data.proposalPartnerLevel = data[2].level.name;
                                 proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                             }
-                        }
-                        else {
+                        } else {
                             proposalData.data.playerName = data[2].name;
-                            if( data[2].playerLevel ){
+                            if (data[2].playerLevel) {
                                 proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                                 proposalData.data.playerLevelName = data[2].playerLevel.name;
                                 proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -535,166 +534,154 @@ var proposal = {
                         proposalData.status = constProposalStatus.CSPENDING;
                     }
 
-                    if(proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)){
+                    if (proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)) {
                         proposalData.data.realNameAfterEdit = proposalData.data.realName;
 
-                        if(proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME){
+                        if (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME) {
                             proposalData.data.playerId = data[2].playerId;
-                        }else if(proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME){
+                        } else if (proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME) {
                             proposalData.data.partnerId = data[2].partnerId;
                         }
                     }
 
                     proposalData.data.realNameBeforeEdit = data[2] && data[2].realName ? data[2].realName : "";
 
-                    return dbconfig.collection_proposal.findOne(queryObj).lean().then(
-                        pendingProposal => {
-                            pendingProposalData = pendingProposal;
+                    let pendingProposalData = await dbconfig.collection_proposal.findOne(queryObj).lean();
 
-                            // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
-                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
-                                && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
-                            ) {
-                                return dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean().then(
-                                    platformData => {
-                                        if (!platformData) {
-                                            return Promise.reject({name: "DataError", message: "Cannot find platform"});
-                                        }
+                    // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
+                    if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
+                        && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
+                        && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
+                    ) {
+                        let platformData = await dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean();
 
-                                        // if checking required
-                                        if (
-                                            platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime
-                                            && proposalData.hasOwnProperty('creator')
-                                            && proposalData.creator.type === 'player'
-                                        ) {
-                                            return dbconfig.collection_proposal.find({
-                                                type: proposalTypeData._id,
-                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                                'data.platformId': proposalData.data.platformId,
-                                                'data.playerId': proposalData.data.playerId,
-                                                'data.playerName': proposalData.data.playerName
-                                            }).lean().then(
-                                                bankProposal => {
-                                                    // checking only applies for 2nd bank proposal, 1st time is add new bank
-                                                    if (bankProposal && bankProposal.length === 1) {
-                                                        bankProposal = bankProposal[0];
-                                                        return dbconfig.collection_players.findOne({
-                                                            _id: {$ne: bankProposal.data._id}, // exclude this player
-                                                            platform: bankProposal.data.platformId,
-                                                            realName: bankProposal.data.bankAccountName
-                                                        }).lean().then(
-                                                            player => {
-                                                                if (player) {
-                                                                    return Promise.reject({
-                                                                        name: "DataError",
-                                                                        message: "银行信息重复绑定，请联系客服，谢谢！"
-                                                                    });
-                                                                }
-                                                            }
-                                                        );
-                                                    }
-                                                }
-                                            );
-                                        }
-                                    
-                                })
-                            }
+                        if (!platformData) {
+                            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                        }
 
-                            // for player update bank info, check if first time bound to the bank info
-                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
-                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+                        // if checking required
+                        if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime) {
+                            let bankProposal = await dbconfig.collection_proposal.find({
+                                type: proposalTypeData._id,
+                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                'data.platformId': proposalData.data.platformId,
+                                'data.playerId': proposalData.data.playerId,
+                                'data.playerName': proposalData.data.playerName
+                            }).lean();
 
-                                return dbconfig.collection_proposal.findOne({
-                                    type: proposalTypeData._id,
-                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                    'data.platformId': proposalData.data.platformId,
-                                    'data.playerId': proposalData.data.playerId,
-                                    'data.playerName': proposalData.data.playerName
-                                }).lean().then(bankInfoProposal => {
-                                    if (!bankInfoProposal) {
-                                        return {isFirstBankInfo: true};
-                                    }
-                                });
+                            // checking only applies for 2nd bank proposal, 1st time is add new bank
+                            if (bankProposal && bankProposal.length === 1) {
+                                console.log('ccc', proposalData.data.bankAccountName);
+                                bankProposal = bankProposal[0];
 
-                            } else if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePartner"
-                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId) {
+                                let player = await dbconfig.collection_players.findOne({
+                                    _id: {$ne: bankProposal.data._id}, // exclude this player
+                                    platform: bankProposal.data.platformId,
+                                    realName: proposalData.data.bankAccountName
+                                }).lean();
 
-                                return dbconfig.collection_proposal.findOne({
-                                    type: proposalTypeData._id,
-                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                    'data.platformId': proposalData.data.platformId,
-                                    'data.partnerId': proposalData.data.partnerId,
-                                    'data.partnerName': proposalData.data.partnerName
-                                }).lean().then(bankInfoProposal => {
-                                    if (!bankInfoProposal) {
-                                        return {isFirstBankInfo: true};
-                                    }
-                                });
-
+                                if (player) {
+                                    proposalData.data.duplicateBankAccountName = true;
+                                }
                             }
                         }
-                    ).then(
-                        bankInfoProposal => {
-                            // add remark if first time bound to the bank info
-                            if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
-                                proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
-                            }
+                    }
 
-                            //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposalData
-                                && data[0].name != constProposalType.PLAYER_TOP_UP
-                                //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
-                                && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
-                                && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
-                                && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
-                                && data[0].name != constProposalType.PLAYER_LEVEL_UP
-                                && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
-                                && data[0].name != constProposalType.PLAYER_FKP_TOP_UP
-                                && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
-                                && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
-                                && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
-                                && data[0].name !== constProposalType.AUCTION_REWARD_PROMOTION
-                                && data[0].name !== constProposalType.AUCTION_REAL_PRIZE
-                                && data[0].name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
-                            ) {
-                                return Promise.reject({
-                                    name: "DBError",
-                                    message: "Player or partner already has a pending proposal for this type"
-                                });
-                            }
-                            else {
-                                if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
-                                    return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
-                                        platformData => {
-                                            if (!platformData) {
-                                                return Promise.reject({name: "DataError", message: "Cannot find platform"});
-                                            }
+                    // for player update bank info, check if first time bound to the bank info
+                    if (
+                        proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
+                        && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
+                        && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
+                    ) {
 
-                                            if (platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
-                                                && platformData.financialSettlement.hasOwnProperty("minFinancialPointsDisableWithdrawal") && proposalData.data.hasOwnProperty("amount")) {
-                                                if ((platformData.financialPoints - proposalData.data.amount) < platformData.financialSettlement.minFinancialPointsDisableWithdrawal) {
-                                                    bExecute = false;
-                                                    proposalData.status = constProposalStatus.PENDING;
-                                                    proposalData.data.remark = proposalData.data.remark? proposalData.data.remark + ", " + localization.localization.translate("Insuficient financial points"): localization.localization.translate("Insuficient financial points");
-                                                }
-                                            }
-                                            var proposalProm = proposal.createProposal(proposalData);
-                                            var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                            return Promise.all([proposalProm, platProm, data[0].expirationDuration]);
-                                        }
-                                    );
-                                } else {
-                                    var proposalProm = proposal.createProposal(proposalData);
-                                    var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
-                                    return Promise.all([proposalProm, platProm, data[0].expirationDuration]);
+                        return dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.playerId': proposalData.data.playerId,
+                            'data.playerName': proposalData.data.playerName
+                        }).lean().then(bankInfoProposal => {
+                            if (!bankInfoProposal) {
+                                return {isFirstBankInfo: true};
+                            }
+                        });
+
+                    } else if (
+                        proposalData && proposalData.data && proposalData.mainType
+                        && proposalData.mainType == "UpdatePartner" && proposalTypeData._id
+                        && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
+                        && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId
+                    ) {
+                        return dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.partnerId': proposalData.data.partnerId,
+                            'data.partnerName': proposalData.data.partnerName
+                        }).lean().then(bankInfoProposal => {
+                            if (!bankInfoProposal) {
+                                return {isFirstBankInfo: true};
+                            }
+                        });
+                    }
+                }
+            }
+        ).then(
+            bankInfoProposal => {
+                // add remark if first time bound to the bank info
+                if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
+                    proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                }
+
+                //for online top up and player consumption return, there can be multiple pending proposals
+                if (pendingProposalData
+                    && proposalTypeData.name != constProposalType.PLAYER_TOP_UP
+                    //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
+                    && proposalTypeData.name != constProposalType.PLAYER_REGISTRATION_INTENTION
+                    && proposalTypeData.name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
+                    && proposalTypeData.name != constProposalType.PLAYER_LEVEL_MIGRATION
+                    && proposalTypeData.name != constProposalType.PLAYER_LEVEL_UP
+                    && proposalTypeData.name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                    && proposalTypeData.name != constProposalType.PLAYER_FKP_TOP_UP
+                    && proposalTypeData.name !== constProposalType.PLAYER_COMMON_TOP_UP
+                    && proposalTypeData.name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
+                    && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
+                    && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
+                ) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Player or partner already has a pending proposal for this type"
+                    });
+                }
+                else {
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
+                        return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
+                            platformData => {
+                                if (!platformData) {
+                                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
                                 }
 
+                                if (platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
+                                    && platformData.financialSettlement.hasOwnProperty("minFinancialPointsDisableWithdrawal") && proposalData.data.hasOwnProperty("amount")) {
+                                    if ((platformData.financialPoints - proposalData.data.amount) < platformData.financialSettlement.minFinancialPointsDisableWithdrawal) {
+                                        bExecute = false;
+                                        proposalData.status = constProposalStatus.PENDING;
+                                        proposalData.data.remark = proposalData.data.remark? proposalData.data.remark + ", " + localization.localization.translate("Insuficient financial points"): localization.localization.translate("Insuficient financial points");
+                                    }
+                                }
+                                var proposalProm = proposal.createProposal(proposalData);
+                                var platProm = dbconfig.collection_platform.findOne({_id: proposalTypeData.platformId});
+                                return Promise.all([proposalProm, platProm, proposalTypeData.expirationDuration]);
                             }
-                        }
-                    );
+                        );
+                    } else {
+                        var proposalProm = proposal.createProposal(proposalData);
+                        var platProm = dbconfig.collection_platform.findOne({_id: proposalTypeData.platformId});
+                        return Promise.all([proposalProm, platProm, proposalTypeData.expirationDuration]);
+                    }
+
                 }
             }
         ).then(

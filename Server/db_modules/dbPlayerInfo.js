@@ -3771,7 +3771,8 @@ let dbPlayerInfo = {
                         proposal => {
                             return {
                                 isFirstBankInfo: !Boolean(proposal.length),
-                                propCount: proposal.length
+                                propCount: proposal.length,
+                                props: proposal
                             }
 
                         }
@@ -3793,7 +3794,7 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            data => {
+            async data => {
                 if (!data){
                     return Promise.reject({
                         name: "DataError",
@@ -3812,12 +3813,22 @@ let dbPlayerInfo = {
                         updateData.realName = updateData.bankAccountName;
                     }
                 } else {
-                    if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime && data && data[3] && data[3].propCount === 1) {
-                        return Promise.reject({
-                            name: "DataError",
-                            code: constServerCode.INVALID_DATA,
-                            message: "Multiple binding detected. Please contact CS."
-                        });
+                    if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime
+                        && data && data[3] && data[3].propCount === 1 && data[3].props && data[3].props.length
+                    ) {
+                        let player = await dbconfig.collection_players.findOne({
+                            _id: {$ne: data[3].props[0].data._id}, // exclude this player
+                            platform: data[3].props[0].data.platformId,
+                            realName: updateData.bankAccountName
+                        }).lean();
+
+                        if (player) {
+                            return Promise.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Multiple binding detected. Please contact CS."
+                            });
+                        }
                     };
 
                     if (playerObj.bankAccountName) {
