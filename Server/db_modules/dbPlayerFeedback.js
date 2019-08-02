@@ -691,7 +691,6 @@ var dbPlayerFeedback = {
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
         let isBothFilter = false;
-
         if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
             isBothFilter = true;
             let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
