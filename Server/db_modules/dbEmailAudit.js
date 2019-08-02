@@ -229,7 +229,7 @@ let dbEmailAudit = {
         let adminName = proposal.creator && proposal.creator.name || "";
         let adminObjId = proposal.creator && proposal.creator.id || "";
         let proposalId = proposal && proposal.proposalId;
-        let comment = proposal.remark || "";
+        let comment = proposalData.remark || "";
         let platformObjId = proposalData.platformId || "";
         let platformProm = platformObjId ? dbconfig.collection_platform.findOne({_id: platformObjId}, {name: 1}).lean() : Promise.resolve({name: ""});
 
@@ -359,7 +359,7 @@ function generateAuditDecisionLink(host, proposalId, adminObjId, str) {
 
 // audit credit change
 async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
-    let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.rewardAmount, emailContents.playerName);
+    let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject);
 
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
@@ -401,9 +401,9 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
     return emailResult;
 }
 
-function getAuditCreditChangeEmailSubject (emailTitle, date, rewardAmount, playerName) {
+function getAuditCreditChangeEmailSubject (emailTitle, date, updateAmount, playerName) {
     let formattedDate = dbutility.getLocalTimeString(date , "YYYY/MM/DD");
-    let formattedAmount = dbutility.noRoundTwoDecimalPlaces(rewardAmount);
+    let formattedAmount = dbutility.noRoundTwoDecimalPlaces(updateAmount);
     return `${emailTitle} -- 额度加减（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
 }
 
@@ -465,7 +465,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
 
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">备注</td>
-        <td style="border: solid 1px black; padding: 3px">${contents.comment}</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.remark}</td>
     </tr>`;
 
 
