@@ -4626,6 +4626,7 @@ var dbPlatform = {
                                 bodyJson = JSON.parse(String(bodyJson));
                             } catch (e) {
                                 console.error(e);
+                                console.error('bodyJson parse failure', bodyJson);
                             }
                             console.log('callBackToUser API json:', bodyJson, bodyJson.code, bodyJson.msg);
                             if (bodyJson && bodyJson.code == "0") {
