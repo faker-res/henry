@@ -19,6 +19,7 @@ let consumptionReturnEvent = {
      * start weekly consumption return event check for platform
      */
     checkPlatformWeeklyConsumptionReturnEvent: function (platformId, selectedEvent, adminId, adminName) {
+
         console.log("#xima, checkPlatformWeeklyConsumptionReturnEvent1");
         if (selectedEvent && selectedEvent.length > 0) {
             let promArr = [];
@@ -37,7 +38,7 @@ let consumptionReturnEvent = {
                     //todo::add rate range check here later
                     if (eventData && eventData.param && eventData.param.ratio && eventData.executeProposal) {
                         //get all the players has top up for more than min amount yesterday
-                        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod);
+                        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturn(platformId, eventData, eventData.executeProposal, eventData.settlementPeriod, adminId, adminName);
                     }
                     else {
                         //platform doesn't have this reward event
