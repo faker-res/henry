@@ -105,15 +105,6 @@ let dbEmailAudit = {
     },
 
     async sendAuditCreditChangeRewardEmail(proposal) {
-        // player name
-        // real name
-        // player level
-        // creditBeforeChange
-        // changed credit
-        // admin name (and obj id for other stuff)
-        // remarks
-        // proposalId
-        // platform name
         console.log('proposal', proposal)
         if (!proposal || !proposal.data) {
             return;
@@ -146,7 +137,7 @@ let dbEmailAudit = {
             createTime,
         };
 
-        let setting = await getAuditCreditChangeSetting(platform._id);
+        let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
 
         if (!setting) {
             return Promise.reject({message: "Please setup audit credit change setting"});
@@ -221,17 +212,7 @@ let dbEmailAudit = {
     },
 
     async sendAuditManualRewardEmail(proposal) {
-        // player name,
-        // real name,
-        // reward amount
-        // provider group
-        // consumption required
-        // use consumption (bool)
-        // admin name
-        // proposalId
-        // comment
-        // platform name
-        console.log('proposal', JSON.stringify(proposal, null, 2));
+        console.log('sendAuditManualRewardEmail', 'h1')
 
         if (!proposal || !proposal.data) {
             return Promise.reject({message: "Proposal not found"});
@@ -256,6 +237,7 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
+        console.log('sendAuditManualRewardEmail', 'h2')
 
         let emailContents = {
             playerName,
@@ -271,7 +253,8 @@ let dbEmailAudit = {
             createTime,
         };
 
-        let setting = await getAuditManualRewardSetting(platformObjId);
+        let setting = await dbEmailAudit.getAuditManualRewardSetting(platformObjId);
+        console.log('sendAuditManualRewardEmail', 'h3')
 
         if (!setting) {
             return Promise.reject({message: "Please setup audit manual reward setting."});
@@ -293,11 +276,14 @@ let dbEmailAudit = {
         let allRecipientEmail = recipients.map(recipient => {
             return recipient.email;
         });
+        console.log('sendAuditManualRewardEmail', 'h4')
 
         let proms = [];
 
         for (let i = 0; i < recipients.length; i++) {
             let recipient = recipients[i];
+
+            console.log('sendAuditManualRewardEmail recipient', recipient)
 
             let isReviewer = Boolean(auditors && auditors.length && auditors.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
@@ -307,6 +293,7 @@ let dbEmailAudit = {
             });
             proms.push(prom);
         }
+        console.log('sendAuditManualRewardEmail', 'h5')
 
         Promise.all(proms).catch(errorUtils.reportError);
     },
@@ -317,7 +304,7 @@ let dbEmailAudit = {
 function generateAuditDecisionLink(host, proposalId, adminObjId, str) {
     // hash = "largeWithdrawal" + proposalId + adminObjId + "approve"/"reject"
     let hashContentRaw = str + "Snsoft" + proposalId + adminObjId;
-    let rawLink = `http://${host}/auditProposal/${str}?`;
+    let rawLink = `http://${host}/audit/${str}?`;
     rawLink += "proposalId=" + proposalId;
     rawLink += "&adminObjId=" + adminObjId;
 

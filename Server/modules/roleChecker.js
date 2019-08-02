@@ -594,6 +594,12 @@ var roleChecker = {
                 createProduct: [],
                 monitoringSystem: [],
             },
+            "EmailAudit": {
+                "auditCreditChangeRecipient": [],
+                "auditCreditChangeAuditor": [],
+                "auditManualRewardRecipient": [],
+                "auditManualRewardAuditor": [],
+            },
         },
         Report: {
             General: {
@@ -650,12 +656,6 @@ var roleChecker = {
             },
             Proposal: {
                 "Force Pairing": ['forcePairingWithReferenceNumber']
-            },
-            EmailAudit: {
-                "auditCreditChangeRecipient": [],
-                "auditCreditChangeAuditor": [],
-                "auditManualRewardRecipient": [],
-                "auditManualRewardAuditor": [],
             },
         },
         Operation: {
