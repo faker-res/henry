@@ -7,6 +7,7 @@ var encrypt = require('./../modules/encrypt');
 var dbConfig = require('./../modules/dbproperties');
 var dbAdminInfo = require('./../db_modules/dbAdminInfo');
 var dbLargeWithdrawal = require('./../db_modules/dbLargeWithdrawal');
+const dbEmailAudit = require('./../db_modules/dbEmailAudit');
 var env = require('./../config/env');
 var jwtSecret = env.config().socketSecret;
 var memCache = require('memory-cache');
@@ -420,6 +421,46 @@ router.get('/auditPartnerLargeWithdrawalProposal', function (req, res, next) {
             res.send({success: false});
         }
     });
+});
+
+router.get('/audit/:auditType', function (req, res, next) {
+    // hash
+
+    let proposalId = req.query.proposalId;
+    let adminObjId = req.query.adminObjId;
+    let decision = req.query.decision;
+    let hash = req.query.hash;
+    let auditType = req.params.auditType;
+
+    if (decision != "approve" && decision != "reject" || !hash) {
+        res.send({success: false});
+        return;
+    }
+
+    let hashedContent = auditType + "Snsoft" + proposalId + adminObjId + decision;
+    console.log(`email audit ${auditType} ${decision} ${proposalId} received`);
+
+    bcrypt.compare(hashedContent, hash, function (err, isMatch) {
+        if (err) {
+            res.send({success: false});
+        } else if (isMatch) {
+            // what happened when success
+            dbEmailAudit.emailAudit(proposalId, adminObjId, decision, true, true).then(
+                data => {
+                    res.send({success: true, data});
+                    console.log(`email audit ${auditType} ${decision} ${proposalId} succeeded`);
+                },
+                error => {
+                    res.send({success: false, error})
+                    console.log(`email audit ${auditType} ${decision} ${proposalId} failed`, JSON.stringify(error));
+                }
+            );
+        } else {
+            console.log(`email audit ${auditType} ${decision} ${proposalId} hash matching failed, ip:`, req.headers['x-forwarded-for'] || req.connection.remoteAddress, "req.query:", req.query);
+            res.send({success: false});
+        }
+    });
+
 });
 
 

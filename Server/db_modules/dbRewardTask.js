@@ -25,6 +25,7 @@ var cpmsAPI = require("../externalAPI/cpmsAPI");
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
+const dbEmailAudit = require('../db_modules/dbEmailAudit');
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
@@ -39,8 +40,8 @@ const dbRewardTask = {
      * @param adminId
      * @param adminName
      */
-    manualCreateReward: (rewardData, adminId, adminName) => {
-        return dbProposal.createProposalWithTypeNameWithProcessInfo(
+    manualCreateReward: async (rewardData, adminId, adminName) => {
+        let proposal = await dbProposal.createProposalWithTypeNameWithProcessInfo(
             rewardData.platformId,
             constProposalType.ADD_PLAYER_REWARD_TASK,
             {
@@ -52,6 +53,12 @@ const dbRewardTask = {
                 data: rewardData
             }
         );
+
+        if (rewardData && rewardData.eventCode === "manualReward") {
+            dbEmailAudit.sendAuditManualRewardEmail(proposal);
+        }
+
+        return proposal;
     },
 
     /**
