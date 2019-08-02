@@ -34215,7 +34215,7 @@ define(['js/app'], function (myApp) {
                         partnerPrefix: srcData.partnerPrefix,
                         partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
-                        partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
+                        partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
