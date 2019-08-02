@@ -6919,6 +6919,7 @@ define(['js/app'], function (myApp) {
                 platformList: newproposalQuery.platformList ? newproposalQuery.platformList : [],
                 status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
+                remark: newproposalQuery.remark,
                 index: isExport ? 0 : (newSearch ? 0 : (newproposalQuery.index || 0)),
                 limit: isExport ? 10000 : newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol,

@@ -26,6 +26,7 @@ var simplifiedChinese = {
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",
     "Authentification Failed": "身份验证失败",
+    "Multiple binding detected. Please contact CS.": "银行信息重复绑定，请联系客服，谢谢！",
     "Editing name (Auto)": "修改姓名 （自动）",
     "Edit bank card (Auto)": "修改银行卡 （自动）",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",

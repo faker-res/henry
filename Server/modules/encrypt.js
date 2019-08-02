@@ -522,6 +522,10 @@ var encrypt = {
                         query.$or.push({"data.partnerName": data.relatedAccount});
                 }
             }
+
+            if (data.remark) {
+                query["data.remark"] = data.remark;
+            }
         }
         return query;
     },
