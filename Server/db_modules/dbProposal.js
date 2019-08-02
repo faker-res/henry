@@ -656,7 +656,7 @@ var proposal = {
                 }
                 else {
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
-                        return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
+                        return dbconfig.collection_platform.findOne({_id: proposalTypeData.platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
                             platformData => {
                                 if (!platformData) {
                                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
