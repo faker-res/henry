@@ -632,8 +632,6 @@ var dbPlayerFeedback = {
 
         let searchQuery = await dbPlayerFeedback.getFeedbackSearchQuery(query, index, isMany,startTime, endTime);
         console.log('Search Query', searchQuery);
-        console.log('Search Query feedback time', searchQuery);
-        console.log('Search Query and', searchQuery.$and);
         let playerResult;
         let players;
         let count;
@@ -696,12 +694,11 @@ var dbPlayerFeedback = {
         if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
             isBothFilter = true;
             let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
-            console.log('Create Time', feedbackTimes);
-            console.log('First Query', sendQuery);
             let filteredPlayer = await dbconfig.collection_playerFeedback.find({
                 createTime: {$gte: new Date(feedbackTimes)},
                 platform: query.selectedPlatform,
-                topic: query.filterFeedbackTopic,}).lean();
+                topic: query.filterFeedbackTopic,
+            }).lean();
             let filteredUniquePlayersObjId = [];
             console.log('Filter Feedback', filteredPlayer);
             for(i =0; i < filteredPlayer.length; i++){
@@ -787,8 +784,10 @@ var dbPlayerFeedback = {
                     $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
                 }
             };
-            sendQueryOr.push(lastFeedbackTimeExist);
-            sendQueryOr.push(lastFeedbackTime);
+            if(isBothFilter === false) {
+                sendQueryOr.push(lastFeedbackTimeExist);
+                sendQueryOr.push(lastFeedbackTime);
+            }
         }
 
         if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 || query.filterFeedback) {
