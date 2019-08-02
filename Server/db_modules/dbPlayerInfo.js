@@ -3816,7 +3816,7 @@ let dbPlayerInfo = {
                         return Promise.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
-                            message: "The name has been registered, please change a new bank card or contact our cs."
+                            message: "Multiple binding detected. Please contact CS."
                         });
                     };
 
