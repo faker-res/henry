@@ -3733,9 +3733,7 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 platformObjId = playerData.platform;
 
-                platformData = await dbconfig.collection_platform.findOne({
-                    _id: platformObjId
-                }).lean();
+                platformData = await dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
 
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", true);
             }
@@ -3829,7 +3827,7 @@ let dbPlayerInfo = {
                                 message: "Multiple binding detected. Please contact CS."
                             });
                         }
-                    };
+                    }
 
                     if (playerObj.bankAccountName) {
                         delete updateData.bankAccountName;
