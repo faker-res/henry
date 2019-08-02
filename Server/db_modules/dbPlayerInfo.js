@@ -3819,7 +3819,7 @@ let dbPlayerInfo = {
                         let player = await dbconfig.collection_players.findOne({
                             _id: {$ne: data[3].props[0].data._id}, // exclude this player
                             platform: data[3].props[0].data.platformId,
-                            realName: updateData.bankAccountName
+                            realName: updateData.bankAccountName || playerObj.realName
                         }).lean();
 
                         if (player) {
