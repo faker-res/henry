@@ -5183,7 +5183,7 @@ let dbPartner = {
     },
 
     isExceedPhoneNumberValidToRegister: function (query, count) {
-        return dbconfig.collection_partner.findOne(query).count().then(
+        return dbconfig.collection_partner.find(query).count().then(
             partnerDataCount => {
                 if (partnerDataCount > count) {
                     return {isPhoneNumberValid: false};
