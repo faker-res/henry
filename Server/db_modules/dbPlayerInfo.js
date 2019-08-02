@@ -10967,16 +10967,14 @@ let dbPlayerInfo = {
                                 //     }
                                 // ).lean();
 
-                                let topUpProm = dbconfig.collection_proposal.find(
+                                let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                     {
-                                        mainType: constProposalMainType.PlayerTopUp,
-                                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                        "data.platformId": ObjectId(playerObj.platform),
+                                        platformId: ObjectId(playerObj.platform),
                                         createTime: {
                                             $gte: new Date(platformPeriodTime.startTime),
                                             $lt: new Date(platformPeriodTime.endTime)
                                         },
-                                        "data.playerObjId": ObjectId(playerObj._id)
+                                        playerId: ObjectId(playerObj._id)
                                     }
                                 ).lean();
 
@@ -11384,16 +11382,14 @@ let dbPlayerInfo = {
                                 platformPeriodTime = dbUtil.getLastMonthSGTime();
                             }
 
-                            let topUpProm = dbconfig.collection_proposal.find(
+                            let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                 {
-                                    mainType: constProposalMainType.PlayerTopUp,
-                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    "data.platformId": ObjectId(playerObj.platform),
+                                    platformId: ObjectId(playerObj.platform),
                                     createTime: {
                                         $gte: new Date(platformPeriodTime.startTime),
                                         $lt: new Date(platformPeriodTime.endTime)
                                     },
-                                    "data.playerObjId": ObjectId(playerObj._id)
+                                    playerId: ObjectId(playerObj._id)
                                 }
                             ).lean();
 
@@ -27434,11 +27430,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
                     recordSum += queryRecord[c][queryAmountField];
                 }
             } else {
-                if (bTopUp) {
-                    recordSum += queryRecord[c]["data"][queryAmountField];
-                } else {
-                    recordSum += queryRecord[c][queryAmountField];
-                }
+                recordSum += queryRecord[c][queryAmountField];
             }
         }
     }
