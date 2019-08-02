@@ -759,7 +759,10 @@ var dbPlayerFeedback = {
                 $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.lastAccessLatter)),
             };
         } else {
-            let range = query.lastAccess.split("-");
+            let range;
+            if(query.lastAccess){
+                range = query.lastAccess.split("-");
+            }
             sendQuery.lastAccessTime = {
                 $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
             };
@@ -768,10 +771,9 @@ var dbPlayerFeedback = {
             }
         }
 
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0) {
-            if(isBothFilter === false){
-                sendQuery.lastFeedbackTopic = {$nin: query.filterFeedbackTopic};
-            }
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && isBothFilter === false) {
+            sendQuery.lastFeedbackTopic = {$nin: query.filterFeedbackTopic};
+
         }
 
         //original block
@@ -790,7 +792,7 @@ var dbPlayerFeedback = {
             }
         }
 
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 || query.filterFeedback) {
+        if((query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0) || query.filterFeedback){
             if (sendQuery.hasOwnProperty("$or")) {
                 if (sendQuery.$and) {
                     sendQuery.$and.push({$or: sendQuery.$or});
