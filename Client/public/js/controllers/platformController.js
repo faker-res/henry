@@ -31585,6 +31585,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
                         vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
+                        vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime = platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
                         vm.platformBasic.showAllowSamePhoneNumberToRegister = platformData.allowSamePhoneNumberToRegister;
@@ -33846,6 +33847,7 @@ define(['js/app'], function (myApp) {
                         updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
                         updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
+                        checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
