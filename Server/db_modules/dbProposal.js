@@ -46,6 +46,7 @@ const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
+const dbEmailAudit = require('./../db_modules/dbEmailAudit');
 let rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
 const RESTUtils = require("../modules/RESTUtils");
@@ -9335,7 +9336,17 @@ var proposal = {
                 }
             }
         );
-    }
+    },
+
+    createUpdatePlayerCreditProposal: async (platformId, typeName, data) => {
+        let proposalData = await proposal.checkUpdateCreditProposal(platformId, typeName, data);
+
+        dbEmailAudit.sendAuditCreditChangeRewardEmail(proposalData).catch(err => {
+            console.log('sendAuditCreditChangeRewardEmail fail', err);
+        });
+
+        return proposalData;
+    },
 };
 
 /*
