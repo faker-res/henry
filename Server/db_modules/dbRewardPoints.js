@@ -2430,6 +2430,7 @@ function updateTopupProgressCount(progress, event, todayTopupAmount) {
     if (event.target && ((event.target.dailyTopupAmount &&
         todayTopupAmount >= event.target.dailyTopupAmount) || (event.target.singleTopupAmount && todayTopupAmount >= event.target.singleTopupAmount)) && progress.count >= event.consecutiveCount) {
         progress.isApplicable = true;
+        progressUpdated = true;
     }
     return progressUpdated;
 }
