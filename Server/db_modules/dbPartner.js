@@ -3186,7 +3186,7 @@ let dbPartner = {
                 if (data.partnerName) {
 
                     //partnerQuery.partnerName = data.partnerName;
-                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName}).then(
+                    return dbconfig.collection_partner.findOne({partnerName: data.partnerName, platform: platformObjId}).then(
                         partner => {
                             if (partner) {
                                 playerQuery.partner = partner._id;
