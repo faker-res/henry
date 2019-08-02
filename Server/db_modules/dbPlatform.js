@@ -4606,6 +4606,7 @@ var dbPlatform = {
                     };
                     request.get(link, options, (err, res, body) => {
                         if (err) {
+                            console.log('callBackToUser TelephoneApplication link:', link, '| err:', err, "| res:", res);
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
                             let newLog = {
