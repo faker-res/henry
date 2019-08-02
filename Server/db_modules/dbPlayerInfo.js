@@ -3708,11 +3708,12 @@ let dbPlayerInfo = {
         let depositAmount = 0;
         let depositCount = 0;
         let isfirstTimeRegistration = false;
+        let platformData;
 
         console.log('updatePlayerPayment updateData:', updateData);
 
         return dbconfig.collection_players.findOne(query).lean().then(
-            playerData => {
+            async playerData => {
                 if (!playerData) {
                     return Promise.reject({
                         name: "DataError",
@@ -3731,6 +3732,10 @@ let dbPlayerInfo = {
 
                 playerObj = playerData;
                 platformObjId = playerData.platform;
+
+                platformData = await dbconfig.collection_platform.findOne({
+                    _id: platformObjId
+                }).lean();
 
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", true);
             }
@@ -3762,11 +3767,13 @@ let dbPlayerInfo = {
                         'data.playerId': playerObj.playerId,
                     };
 
-                    let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                    let firstBankInfoProm = dbPropUtil.getProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                         proposal => {
-                            if (!proposal) {
-                                return {isFirstBankInfo: true};
+                            return {
+                                isFirstBankInfo: !Boolean(proposal.length),
+                                propCount: proposal.length
                             }
+
                         }
                     );
 
@@ -3805,6 +3812,14 @@ let dbPlayerInfo = {
                         updateData.realName = updateData.bankAccountName;
                     }
                 } else {
+                    if (platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime && data && data[3] && data[3].propCount === 1) {
+                        return Promise.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "The name has been registered, please change a new bank card or contact our cs."
+                        });
+                    };
+
                     if (playerObj.bankAccountName) {
                         delete updateData.bankAccountName;
                     }
@@ -3842,13 +3857,6 @@ let dbPlayerInfo = {
                 // }
                 updateData.bankAccountType = 2;
 
-                return dbconfig.collection_platform.findOne({
-                    _id: playerObj.platform
-                })
-
-            }
-        ).then(
-            platformData => {
                 if (platformData) {
                     let isDepositConditionFulfill = true;
                     if (platformData.updateBankCardDepositCountCheck && platformData.updateBankCardDepositCount > depositCount) {
