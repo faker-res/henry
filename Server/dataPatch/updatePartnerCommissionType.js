@@ -20,7 +20,7 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().
                 if (partner && partner._id) {
                     console.log('update partner commission index', i, partner.partnerName);
                     i++;
-                    dbconfig.collection_partner.update({_id: partner._id}, {$set: {commissionType: constPartnerCommissionType.WEEKLY_BONUS_AMOUNT}}).then(
+                    dbconfig.collection_partner.update({_id: partner._id, platform: partner.platform}, {$set: {commissionType: constPartnerCommissionType.WEEKLY_BONUS_AMOUNT}}).then(
                         data => {
                             console.log("data", partner.partnerName, data)
                         }
