@@ -18,11 +18,11 @@ dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().
         dbconfig.collection_partner.find({platform: platform._id, parent: null}).cursor().eachAsync(
             partner => {
                 if (partner && partner._id) {
-                    console.log('update partner commission index', i, partner.partnerName);
+                    console.log('update partner commission index', i, partner.partnerName, partner.commissionType);
                     i++;
-                    dbconfig.collection_partner.update({_id: partner._id, platform: partner.platform}, {$set: {commissionType: constPartnerCommissionType.WEEKLY_BONUS_AMOUNT}}).then(
+                    dbconfig.collection_partner.findOneAndUpdate({_id: partner._id, platform: partner.platform}, {$set: {commissionType: constPartnerCommissionType.WEEKLY_BONUS_AMOUNT}}).lean().then(
                         data => {
-                            console.log("data", partner.partnerName, data)
+                            console.log("data", partner.partnerName, data.commissionType);
                         }
                     ).catch(err => {
                         console.error(err)
