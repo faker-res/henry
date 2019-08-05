@@ -991,23 +991,23 @@ var dbPlayerFeedback = {
 
         let admins = [];
 
-        if (query.departments) {
-            if (query.roles) {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && (query.roles.indexOf(e._id) >= 0)) {
-                        e.users.map(f => admins.push(f._id))
+        let department = await dbconfig.collection_department.find({
+            departmentName: query.departments
+        }).lean();
+
+        if (department) {
+            if(query.roles){
+                department.roles.map(role =>{
+                    if(role._id !== "" && (query.roles.indexOf(role._id) >= 0)){
+                        role.users.map(user => admins.push(user._id));
                     }
                 })
-            } else {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && e.users && e.users.length) {
-                        e.users.map(f => {
-                            if (f._id != "") {
-                                admins.push(f._id)
-                            }
-                        })
+            }else{
+                department.roles.map(role => {
+                    if(role._id !== "" && role.users && role.users.length){
+                        role.map(user => admins.push(user._id));
                     }
-                })
+                });
             }
         }
 
