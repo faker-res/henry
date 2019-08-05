@@ -244,7 +244,7 @@ var dbFrontEndSetting = {
 
     getFrontEndGameSetting: (platformObjId) => {
         if (platformObjId){
-            return dbConfig.collection_frontEndGameSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+            return dbConfig.collection_frontEndGameSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
         }
     },
 

@@ -25369,9 +25369,7 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync(() => {
                             console.log('saveFrontEndGameSetting', data.data);
                             if (data && data.data) {
-                                vm.clearAllDropArea();
                                 vm.frontEndDeletedList = [];
-                                vm.frontEndGameSettingData = data.data;
                                 $('#gameSettingModal').modal('hide');
                                 vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
                             }
@@ -25435,14 +25433,16 @@ define(['js/app'], function (myApp) {
                 }
                 else{
                     if (eventObjId){
-                        let index = vm.gameSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        let index = vm.gameSettingData.findIndex( p => {
+                            if (p && p._id){
+                                return p._id.toString() == eventObjId.toString()
+                            }
+                        });
                         if (index != -1){
                             vm.newFrontEndGameSetting = _.clone(vm.gameSettingData[index]);
                         }
                     }
                 }
-                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
-                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 $('#gameSettingModal').modal();
             };
 
