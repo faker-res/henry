@@ -6160,6 +6160,9 @@ var dbPlatform = {
                         code = code.trim();
                     }
                     switch (code) {
+                        case 'game':
+                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            break;
                         case 'recommendation':
                             prom = getFrontEndSettingType1(platformObjId, clientType, code);
                             break;
@@ -6345,6 +6348,9 @@ var dbPlatform = {
             }
             else if (code == "partnerSkin"){
                 prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
+            }
+            else if (code == "game"){
+                prom = dbconfig.collection_frontEndGameSetting.find(query).lean()
             }
 
             return prom.then(
