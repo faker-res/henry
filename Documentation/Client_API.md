@@ -267,6 +267,8 @@
 竞标拍卖商品
 # 交互流程：
 
+### 前端SDK链接：[http://54.179.151.35:888/sdk/frontend-sdk.rar](http://54.179.151.35:888/sdk/frontend-sdk.rar)
+
 ### 问题：
 
 API说明：

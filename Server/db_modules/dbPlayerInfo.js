@@ -5962,7 +5962,7 @@ let dbPlayerInfo = {
 
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        sortObj = sortObj || {registrationTime: -1};
+        sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
         let advancedQuery = {};
@@ -6080,54 +6080,67 @@ let dbPlayerInfo = {
             platform => {
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
+                let playerProm = Promise.resolve(false);
 
-                return dbconfig.collection_players
-                    .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                        players => {
-                            let calculatePlayerValueProms = [];
-                            let updatePlayerCredibilityRemarksProm = [];
-                            for (let i = 0; i < players.length; i++) {
-                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                                calculatePlayerValueProms.push(calculateProm);
+                if (data.name) {
+                    playerProm = dbconfig.collection_players.findOne(advancedQuery, {similarPlayers: 0}).lean();
+                }
 
-                                if (players[i].isTestPlayer) {
-                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
-                                }
-
-                                let uniqueCredibilityRemarks = [];
-                                if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
-                                    // filter out duplicate credibility remarks
-                                    uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
-                                        arr = arr.map(remark => {
-                                            remark = remark ? remark.toString() : "";
-                                            return remark;
-                                        });
-                                        elem = elem ? elem.toString() : "";
-                                        return arr.indexOf(elem) === pos;
-                                    });
-
-                                    uniqueCredibilityRemarks.forEach(string => {
-                                        return ObjectId(string);
-                                    });
-
-                                    // if found duplicate credibility remarks, update with no duplicates
-                                    if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
-                                        updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
-                                            {
-                                                _id: players[i]._id,
-                                                platform: players[i].platform
-                                            },
-                                            {
-                                                credibilityRemarks: uniqueCredibilityRemarks
-                                            }
-                                        ).exec().catch(errorUtils.reportError));
-                                    }
-                                }
-                            }
-                            return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                return playerProm.then(
+                    singlePlayerData => {
+                        if (data && data.name && singlePlayerData && singlePlayerData._id) {
+                            advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                         }
-                    )
+
+                        return dbconfig.collection_players
+                            .find(advancedQuery, {similarPlayers: 0})
+                            .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
+                                players => {
+                                    let calculatePlayerValueProms = [];
+                                    let updatePlayerCredibilityRemarksProm = [];
+                                    for (let i = 0; i < players.length; i++) {
+                                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                        calculatePlayerValueProms.push(calculateProm);
+
+                                        if (players[i].isTestPlayer) {
+                                            isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                        }
+
+                                        let uniqueCredibilityRemarks = [];
+                                        if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
+                                            // filter out duplicate credibility remarks
+                                            uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
+                                                arr = arr.map(remark => {
+                                                    remark = remark ? remark.toString() : "";
+                                                    return remark;
+                                                });
+                                                elem = elem ? elem.toString() : "";
+                                                return arr.indexOf(elem) === pos;
+                                            });
+
+                                            uniqueCredibilityRemarks.forEach(string => {
+                                                return ObjectId(string);
+                                            });
+
+                                            // if found duplicate credibility remarks, update with no duplicates
+                                            if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
+                                                updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
+                                                    {
+                                                        _id: players[i]._id,
+                                                        platform: players[i].platform
+                                                    },
+                                                    {
+                                                        credibilityRemarks: uniqueCredibilityRemarks
+                                                    }
+                                                ).exec().catch(errorUtils.reportError));
+                                            }
+                                        }
+                                    }
+                                    return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                                }
+                            )
+                    }
+                )
             }
         ).then(
             () => {
@@ -6226,7 +6239,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data, orPhoneCondition, orIpCondition]}).count();
+                    .find(advancedQuery).count();
 
                 return Promise.all([a, b]);
             }
@@ -6235,10 +6248,6 @@ let dbPlayerInfo = {
                 let playerData;
                 dataSize = data[1];
                 let credibilityRemarksList = data && data[2] ? data[2] : [];
-                console.log('dataSize===', dataSize);
-                console.log('data.length===', data.length);
-                console.log('data[0]===', data[0]);
-                console.log('data[0].length===', data[0].length);
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
