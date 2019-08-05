@@ -137,7 +137,7 @@ var proposal = {
                     pendingProposal => {
                         //for online top up and player consumption return, there can be multiple pending proposals
                         if (pendingProposal) {
-                            return Q.reject({
+                            return Promise.reject({
                                 name: "DBError",
                                 message: "Player or partner already has a pending proposal for this type"
                             });
