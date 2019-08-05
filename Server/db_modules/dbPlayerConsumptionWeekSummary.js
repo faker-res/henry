@@ -193,11 +193,10 @@ var dbPlayerConsumptionWeekSummary = {
 
     },
 
-    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds,adminName, adminId , bRequest, userAgent, isForceApply) {
+    checkPlatformWeeklyConsumptionReturnForPlayers: function (platformId, eventData, proposalTypeId, startTime, endTime, playerIds, adminName, adminId , bRequest, userAgent, isForceApply) {
         let isLessThanEnoughReward = false;
         let processedSummaries = [];
         let promArr = [];
-
         if (playerIds && playerIds.length) {
             // Loop through players
             playerIds.forEach(player => {
@@ -443,8 +442,9 @@ var dbPlayerConsumptionWeekSummary = {
                                         proposalData.data.winAmount = lastConsumptionDetail.bonusAmount;
                                         proposalData.data.winTimes = lastConsumptionDetail.winRatio;
                                     }
+
                                     if (adminId && adminName) {
-                                        proposalData.data.creator = {
+                                        proposalData.creator = {
                                             name: adminName,
                                             type: 'admin',
                                             id: adminId
@@ -452,7 +452,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     } else if (bRequest) {
                                         // if userAgent is null, inputDevice should be H5 player or partner
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
-                                        proposalData.data.creator = {
+                                        proposalData.creator = {
                                             type: 'player',
                                             name: playerData.name,
                                             id: playerData.playerId

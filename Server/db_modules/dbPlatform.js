@@ -4668,6 +4668,7 @@ var dbPlatform = {
                     };
                     request.get(link, options, (err, res, body) => {
                         if (err) {
+                            console.log('callBackToUser TelephoneApplication link:', link, '| err:', err, "| res:", res);
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
                             let newLog = {
@@ -4687,6 +4688,7 @@ var dbPlatform = {
                                 bodyJson = JSON.parse(String(bodyJson));
                             } catch (e) {
                                 console.error(e);
+                                console.error('bodyJson parse failure', bodyJson);
                             }
                             console.log('callBackToUser API json:', bodyJson, bodyJson.code, bodyJson.msg);
                             if (bodyJson && bodyJson.code == "0") {
