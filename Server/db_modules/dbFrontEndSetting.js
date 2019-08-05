@@ -375,6 +375,26 @@ var dbFrontEndSetting = {
             return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: carouselObjId}, updateQuery).lean();
         }
     },
+
+    savePopUpInFirstPageSetting: async (data) => {
+        if (data){
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndPopUpSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data, {new: true}).lean();
+            }
+            else{
+                let record = new dbConfig.collection_frontEndPopUpSetting(data);
+                return record.save();
+            }
+        }
+    },
 };
 
 module.exports = dbFrontEndSetting;

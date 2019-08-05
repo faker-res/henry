@@ -578,6 +578,7 @@ var roleChecker = {
             "FrontEndConfiguration": {
                 Read: [],
                 popularRecommendation: [],
+                firstPageSetting: [],
                 rewardPointClarification: [],
                 carouselConfiguration: ['getCarouselSetting', 'saveCarouselSetting', 'updateCarouselSetting'],
                 urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],

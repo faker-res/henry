@@ -4019,7 +4019,10 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).populate({
+                path: "pc.popUpList",
+                model: dbconfig.collection_frontEndPopUpSetting
+            }).sort({displayOrder: 1}).lean();
         }
 
         return prom;
@@ -6220,6 +6223,9 @@ var dbPlatform = {
                 }).populate({
                     path: "app.rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "pc.popUpList",
+                    model: dbconfig.collection_frontEndPopUpSetting
                 }).sort({displayOrder: 1}).lean()
             }
             else if (code == "reward"){
@@ -6394,6 +6400,15 @@ var dbPlatform = {
                 }
                 if (setting[holder].gameCode){
                     setting.gameCode = setting[holder].gameCode;
+                }
+                if (setting[holder].popUpList && setting[holder].popUpList.length){
+                    setting.popUpList =  setting[holder].popUpList;
+                }
+                if (setting[holder].requiredToLogIn){
+                    setting.requiredToLogIn =  setting[holder].requiredToLogIn;
+                }
+                if (setting[holder].stopPopUp){
+                    setting.stopPopUp =  setting[holder].stopPopUp;
                 }
 
                 //for pageSetting

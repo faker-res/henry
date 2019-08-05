@@ -55,7 +55,7 @@ style.
 .row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
-            span {{"POPULAR_RECOMMENDATION" | translate}}
+            span {{"FIRST_PAGE_SETTING" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardPointClarification"}', ng-click='vm.frontEndSettingTabClicked("rewardPointClarification")')
             span {{"REWARD_POINT_CLARIFICATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "carouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("carouselConfiguration")')
@@ -92,7 +92,7 @@ style.
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
                 // Tab - popular recommendation
-                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "firstPageSetting")')
                     include frontEndConfiguration-popularRecommendation
 
                 // Tab - reward point briefing
@@ -487,6 +487,30 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.pc.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"STOP POP-UP IN NAVIGATION BAR"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.pc.stopPopUp")
+                            .full-width-input-block
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th(style="width: 15%") {{"ACTION_BUTTON" | translate}}
+                                            th(style="width: 85%;") PC {{"POP-UP IMAGE"|translate}}
+                                    tbody
+                                        tr(ng-show="vm.popularRecommendationSetting.pc && (!vm.popularRecommendationSetting.pc.popUpList || vm.popularRecommendationSetting.pc.popUpList.length == 0)")
+                                            td(colspan=4)
+                                                i.fa.fa-plus(ng-click='vm.addNewPopUpInFirstPageSetting(true)')
+                                        tr(ng-repeat= 'item in vm.popularRecommendationSetting.pc.popUpList track by $index')
+                                            td
+                                                i.fa.fa-minus(style="margin-left: 10px; margin-right: 10px", ng-click='vm.removePopUpList(vm.popularRecommendationSetting.pc.popUpList, $index)')
+                                                i.fa.fa-plus(style="margin-left: 10px; margin-right: 10px" ng-click='vm.addNewPopUpInFirstPageSetting(true)')
+                                                i.fa.fa-edit(style="margin-left: 10px; margin-right: 10px" ng-click='vm.addNewPopUpInFirstPageSetting(false, item && item._id ? item._id: null)')
+                                            td(style="text-overflow: ellipsis;") {{item.imageUrl}}
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -519,6 +543,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.h5.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -551,6 +579,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.app.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -827,4 +859,60 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitCarouselSettings()') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#frontEndCarouselUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+
+#popUpInFirstPageSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Pop-up Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"POP-UP IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.newPopUpInFirstPageSetting, null , vm.newPopUpInFirstPageSetting.onClickAction)")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popUpPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.newPopUpInFirstPageSetting.requiredToLogIn")
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'Pop-up Image Preview' | translate}}
+                                img#popUpImage.frontendPopUpmagePreview(src="")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopUpInFirstPageSetting(vm.newPopUpInFirstPageSetting)') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#popUpInFirstPageSettingUploader.collapse
                     i.fa.fa-spinner.fa-spin
