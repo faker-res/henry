@@ -6405,7 +6405,7 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             vm.selectedAllForbidRewardEvent = false;
-                            if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                            if (vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
                                 vm.selectedAllForbidRewardEvent = true;
                             }
                             $scope.safeApply();
@@ -6454,7 +6454,6 @@ define(['js/app'], function (myApp) {
                                 let sendData = {
                                     _id: rowData._id,
                                     forbidRewardEvents: forbidRewardEvents,
-                                    forbidPromoCode: vm.forbidPromoCode,
                                     forbidLevelUpReward: vm.forbidLevelUpReward,
                                     forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                     adminName: authService.adminName
@@ -23650,10 +23649,6 @@ define(['js/app'], function (myApp) {
 
         //region forbidReward
         vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
-            if (playerObj && playerObj.forbidPromoCode) {
-                forbidReward.push("优惠代码");
-            }
-
             if (playerObj && playerObj.forbidLevelUpReward) {
                 forbidReward.push("系统升级优惠");
             }
