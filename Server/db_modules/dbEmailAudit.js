@@ -415,7 +415,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
     let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
 
 
-    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%">手工优惠详情</div>`;
+    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
 
     html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
 
@@ -465,7 +465,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
 
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">备注</td>
-        <td style="border: solid 1px black; padding: 3px">${contents.remark}</td>
+        <td style="border: solid 1px black; padding: 3px; word-wrap: break-word; white-space: normal;">${contents.remark}</td>
     </tr>`;
 
 
@@ -539,7 +539,7 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle) {
     let emailSubject = emailTitle+ " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
 
 
-    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%">手工优惠详情</div>`;
+    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
 
     html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
 
@@ -591,7 +591,7 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle) {
 
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">备注</td>
-        <td style="border: solid 1px black; padding: 3px">${contents.comment}</td>
+        <td style="border: solid 1px black; padding: 3px; word-wrap: break-word; white-space: normal;">${contents.comment}</td>
     </tr>`;
 
 
