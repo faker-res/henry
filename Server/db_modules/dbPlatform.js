@@ -1094,6 +1094,10 @@ var dbPlatform = {
                                     let key = "sameLineProviders." + platformId;
                                     let setObj = {};
                                     setObj[key] = providers;
+                                    console.log('provider===', provider);
+                                    console.log('key===', key);
+                                    console.log('setObj===', setObj);
+                                    console.log('setObj[key]===', setObj[key]);
 
                                     proms.push(
                                         dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
