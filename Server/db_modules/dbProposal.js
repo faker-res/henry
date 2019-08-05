@@ -627,7 +627,8 @@ var proposal = {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
                 } else if (
                     proposalData && proposalData.data && proposalData.mainType
-                    && (proposalData.mainType === "UpdatePlayer" || proposalData.mainType === "UpdatePartner")
+                    && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO)
+                    || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO))
                 ) {
                     proposalData.data.remark = localization.localization.translate("Amend Bank Info");
                 }
