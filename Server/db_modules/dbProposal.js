@@ -122,14 +122,14 @@ var proposal = {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.partnerObjId": proposalData.data.partnerObjId
+                        "data.partnerObjId": ObjectId(proposalData.data.partnerObjId)
                     }
                 }
                 else {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.playerObjId": proposalData.data.playerObjId
+                        "data.playerObjId": ObjectId(proposalData.data.playerObjId)
                     }
                 }
 
@@ -141,6 +141,8 @@ var proposal = {
                                 name: "DBError",
                                 message: "Player or partner already has a pending proposal for this type"
                             });
+                        } else {
+                            console.log('MT --checking no pending proposal');
                         }
                     }
                 )
@@ -162,6 +164,7 @@ var proposal = {
         ).then(
             proposalData => {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && !proposalData.isPartner) {
+                    console.log('MT --checking creditChangeLog running', proposalData.data.playerObjId);
                     dbconfig.collection_creditChangeLog.findOne({
                         playerId: proposalData.data.playerObjId,
                         operationType: /*"editPlayerCredit:Deduction"*/"UpdatePlayerCredit",
