@@ -8620,7 +8620,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -8905,7 +8905,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -8918,7 +8918,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataPartner,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
