@@ -5223,7 +5223,7 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                "order": vm.playerTableQuery.aaSorting,
                 columns: [
                     {
                         title: $translate('PRODUCT_NAME'),
@@ -22728,9 +22728,9 @@ define(['js/app'], function (myApp) {
                 $('#playerDataTable').on('order.dt', function (event, a, b) {
                     // console.log(event, a, b);
                     if (!a.aaSorting[0]) return;
-                    var sortCol = a.aaSorting[0][0];
-                    var sortDire = a.aaSorting[0][1];
-                    var sortKey = a.aoColumns[sortCol].data;
+                    let sortCol = 8; //registrationTime
+                    let sortDire = 'desc';
+                    let sortKey = a.aoColumns[sortCol].data;
                     // vm.playerTableQuery.aaSorting = a.aaSorting;
 
                     if (sortKey) {
