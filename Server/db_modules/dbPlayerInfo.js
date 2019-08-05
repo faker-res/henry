@@ -5962,7 +5962,7 @@ let dbPlayerInfo = {
 
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        sortObj = sortObj || {registrationTime: -1};
+        sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
         let advancedQuery = {};
