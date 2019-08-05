@@ -6235,10 +6235,6 @@ let dbPlayerInfo = {
                 let playerData;
                 dataSize = data[1];
                 let credibilityRemarksList = data && data[2] ? data[2] : [];
-                console.log('dataSize===', dataSize);
-                console.log('data.length===', data.length);
-                console.log('data[0]===', data[0]);
-                console.log('data[0].length===', data[0].length);
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {

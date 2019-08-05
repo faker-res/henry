@@ -164,10 +164,14 @@ let dbEmailAudit = {
 
         for (let i = 0; i < recipients.length; i++) {
             let recipient = recipients[i];
+            if (!recipient) {
+                continue;
+            }
+            console.log('sendAuditCreditChangeRewardEmail recipient', recipient);
 
             let isReviewer = Boolean(auditors && auditors.length && auditors.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
-            let prom = sendAuditCreditChangeEmail(emailContents, setting.emailNameExtension, setting.domain, adminObjId, isReviewer, setting.domain, allRecipientEmail).catch(err => {
+            let prom = sendAuditCreditChangeEmail(emailContents, setting.emailNameExtension, setting.domain, recipient._id, isReviewer, setting.domain, allRecipientEmail).catch(err => {
                 console.log('send AuditManualReward email fail', String(recipient._id), err);
                 return errorUtils.reportError(err)
             });
@@ -212,8 +216,6 @@ let dbEmailAudit = {
     },
 
     async sendAuditManualRewardEmail(proposal) {
-        console.log('sendAuditManualRewardEmail', 'h1')
-
         if (!proposal || !proposal.data) {
             return Promise.reject({message: "Proposal not found"});
         }
@@ -237,7 +239,6 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
-        console.log('sendAuditManualRewardEmail', 'h2')
 
         let emailContents = {
             playerName,
@@ -254,7 +255,6 @@ let dbEmailAudit = {
         };
 
         let setting = await dbEmailAudit.getAuditManualRewardSetting(platformObjId);
-        console.log('sendAuditManualRewardEmail', 'h3')
 
         if (!setting) {
             return Promise.reject({message: "Please setup audit manual reward setting."});
@@ -276,24 +276,24 @@ let dbEmailAudit = {
         let allRecipientEmail = recipients.map(recipient => {
             return recipient.email;
         });
-        console.log('sendAuditManualRewardEmail', 'h4')
 
         let proms = [];
 
         for (let i = 0; i < recipients.length; i++) {
             let recipient = recipients[i];
 
-            console.log('sendAuditManualRewardEmail recipient', recipient)
+            if (!recipient) {
+                continue;
+            }
 
             let isReviewer = Boolean(auditors && auditors.length && auditors.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
-            let prom = sendAuditManualRewardEmail(emailContents, setting.emailNameExtension, setting.domain, adminObjId, isReviewer, setting.domain, allRecipientEmail).catch(err => {
+            let prom = sendAuditManualRewardEmail(emailContents, setting.emailNameExtension, setting.domain, recipient._id, isReviewer, setting.domain, allRecipientEmail).catch(err => {
                 console.log('send AuditManualReward email fail', String(recipient._id), err);
                 return errorUtils.reportError(err)
             });
             proms.push(prom);
         }
-        console.log('sendAuditManualRewardEmail', 'h5')
 
         Promise.all(proms).catch(errorUtils.reportError);
     },
