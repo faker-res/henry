@@ -1635,7 +1635,9 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                     playerData.phoneType = phoneLocation.sp;
                 }
             }
-
+            if (loginDetails && loginDetails.inputDevice) {
+                playerData.registrationInterface = loginDetails.inputDevice;
+            }
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
         }
     ).then(
