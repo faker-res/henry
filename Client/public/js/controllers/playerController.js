@@ -7153,6 +7153,15 @@ define(['js/app'], function (myApp) {
                 if (item && item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
                     item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
                 }
+                // remove bUsed added to sameLineProviders
+                if (item && item.sameLineProviders) {
+                    for (let i in item.sameLineProviders) {
+                        let len = item.sameLineProviders[i].length;
+                        if (item.sameLineProviders[i] && item.sameLineProviders[i][len-1] === 'bUsed') {
+                            item.sameLineProviders[i].pop();
+                        }
+                    }
+                }
             });
         };
 
