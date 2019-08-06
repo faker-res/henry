@@ -78,7 +78,7 @@ let dbPlayerLevelInfo = {
         return dbconfig.collection_playerLevel.findOneAndRemove({_id: playerLevelObjId});
     },
 
-    startPlatformPlayerLevelSettlement: (platformObjId, upOrDown, adminID, adminName) => {
+    startPlatformPlayerLevelSettlement: (platformObjId, upOrDown, isPlayer, adminID, adminName) => {
         // let lastMonth = dbUtil.getLastMonthSGTime();
         let period = {};
 
@@ -100,7 +100,6 @@ let dbPlayerLevelInfo = {
                 //     period.startTime = moment(period.startTime).add(12, 'hours').toDate();
                 //     period.endTime = moment(period.endTime).add(12, 'hours').toDate();
                 // }
-
                 return dbconfig.collection_playerLevel.find({platform: platformObjId}).sort({value: 1}).lean().then(
                     levels => {
                         let stream = dbconfig.collection_players.find(
@@ -125,7 +124,8 @@ let dbPlayerLevelInfo = {
                                             platformPeriod: platformPeriod,
                                             disableAutoPlayerLevelUpReward: platformData.disableAutoPlayerLevelUpReward,
                                             adminId: adminID,
-                                            adminName: adminName
+                                            adminName: adminName,
+                                            isPlayer: isPlayer
                                         });
                                     }
                                 }
@@ -150,10 +150,10 @@ let dbPlayerLevelInfo = {
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      * @returns {Promise.<boolean>}
      */
-    performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName) => {
+    performPlatformPlayerLevelSettlement: (playerObjIds, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName, isPlayer) => {
         let promsArr = [];
         playerObjIds.map(player => {
-            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName).catch(errorUtils.reportError));
+            promsArr.push(dbPlayerLevelInfo.processPlayerLevelMigration(player, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName,isPlayer).catch(errorUtils.reportError));
         });
 
         return Promise.all(promsArr);
@@ -168,7 +168,7 @@ let dbPlayerLevelInfo = {
      * @param endTime
      * @param {Boolean} upOrDown - True: Level up; False: Level Down
      */
-    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName) => {
+    processPlayerLevelMigration: (playerObjId, platformObjId, levels, startTime, endTime, upOrDown, platformPeriod, disableAutoPlayerLevelUpReward, adminId, adminName, isPlayer) => {
         // let consumptionTime = dbUtil.getLastMonthConsumptionReturnSGTime();
 
         let lvlDownPeriod;
@@ -385,7 +385,7 @@ let dbPlayerLevelInfo = {
                     levelDownObj = previousLevel;
                 }
                 if (levelObjId && String(levelObjId) != String(playerData.playerLevel._id) && ((upOrDown && levelUpObj) || (!upOrDown && levelDownObj))) {
-
+                    console.log('go in 1');
                     let proposalData = {
 
                         levelOldName: oldPlayerLevelName,
@@ -393,8 +393,8 @@ let dbPlayerLevelInfo = {
                         playerObjId: playerData._id,
                         playerName: playerData.name,
                         playerId: playerData.playerId,
-                        platformObjId: playerData.platform,
-                        creator: {type: creatorType, name: creatorName, id: creatorID}
+                        platformObjId: playerData.platform
+                        // creator: {type: creatorType, name: creatorName, id: creatorID}
 
                     };
 
@@ -429,7 +429,18 @@ let dbPlayerLevelInfo = {
                     return promResolve;
 
                     function createProposal (proposal, index, disableAutoPlayerLevelUpReward) {
-                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_MIGRATION, {data: proposal}).then(
+                        let proposalDataObject;
+                        if(isPlayer === true){
+                            proposalDataObject = {data: proposal};
+                        }else{
+                            proposalDataObject = {
+                                creator: {type: creatorType, name: creatorName, id: creatorID},
+                                data:proposal
+                            };
+                        }
+
+                        console.log('Proposal Data Object', proposalDataObject);
+                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_MIGRATION, proposalDataObject).then(
                             createdMigrationProposal => {
                                 if (upOrDown && !disableAutoPlayerLevelUpReward) {
                                     return dbconfig.collection_proposalType.findOne({
@@ -471,7 +482,7 @@ let dbPlayerLevelInfo = {
                                             proposal.requiredUnlockAmount = levelUpObjArr[index].reward.requiredUnlockTimes * levelUpObjArr[index].reward.bonusCredit;
                                         }
 
-                                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});
+                                        return dbProposal.createProposalWithTypeName(playerData.platform, constProposalType.PLAYER_LEVEL_UP, proposalDataObject);
                                     }
                                 }
                             }
@@ -480,6 +491,7 @@ let dbPlayerLevelInfo = {
 
                 } else if (!levelObjId && !upOrDown && !(playerData.permission && playerData.permission.banReward) && !playerData.forbidLevelMaintainReward && playerData.playerLevel && playerData.playerLevel.value > 0
                     && playerData.playerLevel.reward && playerData.playerLevel.reward.bonusCreditLevelDown && !(playerData.permission && playerData.permission.banReward)) { // distribute level maintain reward
+                    console.log('go in 2');
                     if (platformPeriod) {
                         let checkLevelDownPeriod; // period for checking consumption and top up
                         if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
@@ -491,7 +503,7 @@ let dbPlayerLevelInfo = {
                         }
 
                         if (checkLevelDownPeriod) {
-                            checkLevelMaintainReward(playerData, lvlDownPeriod, checkLevelDownPeriod).catch(errorUtils.reportError);
+                            checkLevelMaintainReward(playerData, lvlDownPeriod, checkLevelDownPeriod, isPlayer).catch(errorUtils.reportError);
                         }
                     }
                 }
@@ -500,7 +512,7 @@ let dbPlayerLevelInfo = {
     }
 };
 
-async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod) {
+async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod, isPlayer) {
     let levelMaintainProposalType = dbconfig.collection_proposalType.findOne({
         platformId: playerObj.platform,
         name: constProposalType.PLAYER_LEVEL_MAINTAIN
@@ -592,7 +604,16 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
         }
         proposalData.requiredUnlockAmount = playerObj.playerLevel.reward.requiredUnlockTimesLevelDown * playerObj.playerLevel.reward.bonusCreditLevelDown;
     }
-    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MAINTAIN, {data: proposalData});
+    let proposalDataObject;
+    if(isPlayer === true){
+        proposalDataObject = {data: proposalData};
+    }else{
+        proposalDataObject = {
+            creator: playerObj.creator,
+            data:proposalData
+        };
+    }
+    return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_MAINTAIN, proposalDataObject);
 }
 
 

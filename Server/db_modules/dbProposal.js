@@ -547,11 +547,12 @@ var proposal = {
 
                     proposalData.data.realNameBeforeEdit = data[2] && data[2].realName ? data[2].realName : "";
 
-                    let pendingProposalData = await dbconfig.collection_proposal.findOne(queryObj).lean();
+                    pendingProposalData = await dbconfig.collection_proposal.findOne(queryObj).lean();
 
-                    // for player update bank info, if required to check duplicate bank account name when edit bank card for second time
-                    if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
-                        && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
+                    // for player update bank info, check if first time bound to the bank info
+                    if (
+                        proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
+                        && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
                         && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
                     ) {
                         let platformData = await dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean();
@@ -586,14 +587,6 @@ var proposal = {
                                 }
                             }
                         }
-                    }
-
-                    // for player update bank info, check if first time bound to the bank info
-                    if (
-                        proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
-                        && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
-                        && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
-                    ) {
 
                         return dbconfig.collection_proposal.findOne({
                             type: proposalTypeData._id,
@@ -632,6 +625,12 @@ var proposal = {
                 // add remark if first time bound to the bank info
                 if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                } else if (
+                    proposalData && proposalData.data && proposalData.mainType
+                    && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO)
+                    || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO))
+                ) {
+                    proposalData.data.remark = localization.localization.translate("Amend Bank Info");
                 }
 
                 //for online top up and player consumption return, there can be multiple pending proposals
@@ -658,7 +657,7 @@ var proposal = {
                 }
                 else {
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
-                        return dbconfig.collection_platform.findOne({_id: data[0].platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
+                        return dbconfig.collection_platform.findOne({_id: proposalTypeData.platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
                             platformData => {
                                 if (!platformData) {
                                     return Promise.reject({name: "DataError", message: "Cannot find platform"});

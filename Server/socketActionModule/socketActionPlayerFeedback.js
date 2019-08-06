@@ -74,7 +74,8 @@ function socketActionPlayerFeedback(socketIO, socket) {
         getPlayerFeedbackQuery: function getPlayerFeedbackQuery(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackQuery, [data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            console.log('Socket data', data);
+            socketUtil.emitter(self.socket, dbPlayerFeedback.getPlayerFeedbackQuery, [data.query, data.index, data.isMany, data.startTime, data.endTime], actionName, isValidData);
         },
         getOnePlayerSimpleDetail: function getOnePlayerSimpleDetail(data) {
             let actionName = arguments.callee.name;
