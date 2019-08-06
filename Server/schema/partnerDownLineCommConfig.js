@@ -27,6 +27,7 @@ let partnerDownLineCommConfigSchema = new Schema({
 });
 
 partnerDownLineCommConfigSchema.index({platform: 1, provider: 1, commissionType: 1, partner: 1});
+partnerDownLineCommConfigSchema.index({partner: 1, commissionType: 1});
 
 module.exports = partnerDownLineCommConfigSchema;
 

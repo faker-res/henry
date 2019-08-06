@@ -9,7 +9,7 @@ let partnerDefDownLineCommConfigSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     //game provider group _id
     provider: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
-    // If exists, this setting is customized for this partner
+    // If exists, this setting is customized for this partner (this refer to parent object id)
     partner: {type: Schema.ObjectId, ref: 'partner'},
     //commission type
     commissionType: {type: String},

@@ -120,14 +120,14 @@ var proposal = {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.partnerObjId": proposalData.data.partnerObjId
+                        "data.partnerObjId": ObjectId(proposalData.data.partnerObjId)
                     }
                 }
                 else {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.playerObjId": proposalData.data.playerObjId
+                        "data.playerObjId": ObjectId(proposalData.data.playerObjId)
                     }
                 }
 
@@ -135,10 +135,12 @@ var proposal = {
                     pendingProposal => {
                         //for online top up and player consumption return, there can be multiple pending proposals
                         if (pendingProposal) {
-                            return Q.reject({
+                            return Promise.reject({
                                 name: "DBError",
                                 message: "Player or partner already has a pending proposal for this type"
                             });
+                        } else {
+                            console.log('MT --checking no pending proposal');
                         }
                     }
                 )
@@ -160,6 +162,7 @@ var proposal = {
         ).then(
             proposalData => {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && !proposalData.isPartner) {
+                    console.log('MT --checking creditChangeLog running', proposalData.data.playerObjId);
                     dbconfig.collection_creditChangeLog.findOne({
                         playerId: proposalData.data.playerObjId,
                         operationType: /*"editPlayerCredit:Deduction"*/"UpdatePlayerCredit",
@@ -1263,11 +1266,17 @@ var proposal = {
     },
 
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        let proposalTypeName;
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
+            path: "type",
+            model: dbconfig.collection_proposalType,
+            select: "name"
+        }).lean().then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
                     || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
                         || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                    proposalTypeName = proposalData.type && proposalData.type.name || "";
                     return proposalData;
                 }
                 else {
@@ -1296,6 +1305,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
+                    // if (proposalTypeName == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                    //     dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
+                    // }
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL || status == constProposalStatus.CANCEL) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark, Boolean(status == constProposalStatus.CANCEL));
