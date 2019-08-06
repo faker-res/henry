@@ -990,27 +990,42 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        let department = await dbconfig.collection_department.find({
+            _id: {$in: query.departments}
+        }).lean();
 
-        if (query.departments) {
-            if (query.roles) {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && (query.roles.indexOf(e._id) >= 0)) {
-                        e.users.map(f => admins.push(f._id))
+        console.log('department', department);
+        if (department && department.length > 0) {
+            if(query.roles){
+
+                for(i = 0; i < department.length; i++){
+                    if(department[i].roles._id !== "" && (query.roles.indexOf(department[i].roles._id) >= 0)){
+                        for(j = 0; j < department[i].users.length; j++){
+                            admins.push(department[i].users[j]);
+                        }
                     }
-                })
-            } else {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && e.users && e.users.length) {
-                        e.users.map(f => {
-                            if (f._id != "") {
-                                admins.push(f._id)
-                            }
-                        })
+                }
+
+                // department.roles.map(role =>{
+                //     if(role._id !== "" && (query.roles.indexOf(role._id) >= 0)){
+                //         department.users.map(user => admins.push(user._id));
+                //     }
+                // })
+            }else{
+                for(i = 0; i < department.length; i++){
+                    if(department[i].roles._id !== "" && department[i].users && department[i].users.length){
+                        for(j = 0; j < department[i].users.length; j++){
+                            admins.push(department[i].users[j]);
+                        }
                     }
-                })
+                }
+                // department.roles.map(role => {
+                //     if(role._id !== "" && role.users && role.users.length){
+                //         department.map(user => admins.push(user._id));
+                //     }
+                // });
             }
         }
-
         if ( (query.admins && query.admins.length > 0) || admins.length) {
             sendQuery.csOfficer = query.admins && query.admins.length > 0 ? query.admins : admins;
         }
@@ -1039,7 +1054,7 @@ var dbPlayerFeedback = {
         if (sendQuery.csOfficer && sendQuery.csOfficer.length) {
             let noneCSOfficerQuery = {}, csOfficerArr = [];
 
-            query.csOfficer.forEach(item => {
+            sendQuery.csOfficer.forEach(item => {
                 if (item == "") {
                     noneCSOfficerQuery = {csOfficer: {$exists: false}};
                 } else {

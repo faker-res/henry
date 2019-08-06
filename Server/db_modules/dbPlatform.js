@@ -1094,6 +1094,10 @@ var dbPlatform = {
                                     let key = "sameLineProviders." + platformId;
                                     let setObj = {};
                                     setObj[key] = providers;
+                                    console.log('provider===', provider);
+                                    console.log('key===', key);
+                                    console.log('setObj===', setObj);
+                                    console.log('setObj[key]===', setObj[key]);
 
                                     proms.push(
                                         dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
@@ -1838,7 +1842,7 @@ var dbPlatform = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 100,
+                                batchSize: 60, //100
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "checkPlayerLevelDownForPlayers", {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
@@ -4688,7 +4692,7 @@ var dbPlatform = {
                                 bodyJson = JSON.parse(String(bodyJson));
                             } catch (e) {
                                 console.error(e);
-                                console.error('bodyJson parse failure', bodyJson);
+                                console.error('bodyJson parse failure', link, bodyJson);
                             }
                             console.log('callBackToUser API json:', bodyJson, bodyJson.code, bodyJson.msg);
                             if (bodyJson && bodyJson.code == "0") {
