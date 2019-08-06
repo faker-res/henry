@@ -8769,13 +8769,19 @@ var proposal = {
 
         if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }else if(query.platformIds && query.platformIds.length > 0){
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }else{
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }
 
         return credibilityRemarkProm.then(
@@ -8785,7 +8791,7 @@ var proposal = {
                     credibilityRemarkList.forEach(
                         credibilityRemark => {
                             if(credibilityRemark){
-                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, startDate, endDate));
+                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, credibilityRemark.platform._id, credibilityRemark.platform.name, startDate, endDate));
                             }
                         }
                     )
@@ -8814,10 +8820,12 @@ var proposal = {
         );
     },
 
-    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_playerCredibilityRemark.find({_id: credibilityRemarkObjId}).lean().then(playerCredibilityRemark => {
-            return dbconfig.collection_players.find({platform: playerCredibilityRemark.platform, credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean();
-        }).then(
+    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, credibilityPlatform, credibilityPlatformName, startDate, endDate){
+        if (!credibilityPlatform) {
+            return;
+        }
+
+        return dbconfig.collection_players.find({platform: credibilityPlatform, credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8836,7 +8844,7 @@ var proposal = {
                         },
                         {
                             $group: {
-                                _id: "$providerId",
+                                _id: {providerId: "$providerId", platformId: "$platformId"},
                                 totalValidConsumption: {"$sum": "$validAmount"}
                             }
                         }
@@ -8850,8 +8858,8 @@ var proposal = {
 
                     playerConsumptionSummary.forEach(
                         playerConsumption => {
-                            if(playerConsumption && playerConsumption._id){
-                                providerProm.push(proposal.getProviderName(playerConsumption._id, playerConsumption.totalValidConsumption));
+                            if(playerConsumption && playerConsumption._id && playerConsumption._id.providerId){
+                                providerProm.push(proposal.getProviderName(playerConsumption._id.providerId, playerConsumption.totalValidConsumption));
                             }
                         }
                     )
@@ -8861,7 +8869,7 @@ var proposal = {
             }
         ).then(
             providerDetails => {
-                let returnedObj = {credibilityRemark: credibilityRemarkName};
+                let returnedObj = {credibilityRemark: credibilityRemarkName, platformName: credibilityPlatformName};
                 let totalValidConsumptionByCredibilityRemark = 0;
                 console.log("LH Check providerConsumption Report 1------------------", providerDetails);
                 if(providerDetails && providerDetails.length > 0){
