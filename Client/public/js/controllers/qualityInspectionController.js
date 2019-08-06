@@ -133,6 +133,19 @@ define(['js/app'], function (myApp) {
                 APP_NATIVE_PARTNER: 8
             };
 
+            vm.audioRecordPlatformMap = {
+                80089990033: "VR",
+                80089990034: "R8",
+                80089990031: "新得利02",
+                80089990021: "新得利01",
+                80089990027: "金世豪",
+                80089990023: "金佰利02",
+                80089990029: "金佰利01",
+                80089990024: "易游",
+                80089990022: "haomen",
+                80089990020: "Xbet"
+            };
+
             vm.inspectionWechatReport = {};
             vm.showDeviceTable = false;
 
@@ -4066,9 +4079,12 @@ define(['js/app'], function (myApp) {
                         let index = vm.allCsList.findIndex(p => p.callerId == item.agent_num)
                         if (index != -1){
                             item.adminName = vm.allCsList[index].adminName;
-                            item.platformName = vm.allCsList[index].platformName;
                             item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
                         }
+                        if(item.call_type == 1 && item.caller_num) {
+                            item.platformName = vm.audioRecordPlatformMap[item.caller_num];
+                        }
+                        item.platformName = item.platformName || "";
                         return item;
                     });
                     vm.audioRecordSearching.size = data.data.size;
@@ -4084,10 +4100,6 @@ define(['js/app'], function (myApp) {
                     ],
 
                     columns: [
-                        // {
-                        //     title: $translate('PRODUCT_NAME'),
-                        //     data: "platformName",
-                        // },
                         {
                             title: 'FPMS' + $translate('CS Account'),
                             data: "adminName",
@@ -4095,6 +4107,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('Caller ID'),
                             data: "agent_num",
+                        },
+                        {
+                            title: $translate('PRODUCT_NAME'),
+                            data: "platformName",
                         },
                         {
                             title: $translate('Start date'),
