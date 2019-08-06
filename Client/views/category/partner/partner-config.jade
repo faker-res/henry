@@ -10,7 +10,7 @@
                 ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "validActive"}', ng-click='vm.configTabClicked("validActive")')
                         span {{"VALID_ACTIVE" | translate}}
-                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission")')
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerCommission"}', ng-click='vm.configTabClicked("partnerCommission"); vm.commissionSettingTab = "DAILY_CONSUMPTION"')
                         span {{"Partner Commission" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerBasic"}', ng-click='vm.configTabClicked("partnerBasic")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerBasic')" )
                         span {{"Partner Basic" | translate}}
@@ -22,6 +22,8 @@
                         span {{"PartnerDisplay" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerAdvert"}', ng-click='vm.configTabClicked("partnerAdvert")', ng-if="checkViewPermission('Partner', 'Config', 'PartnerAdvertisement')")
                         span {{"PartnerAdvertisement" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerPosterAds"}', ng-click='vm.configTabClicked("partnerPosterAds")', ng-if="checkViewPermission('Partner', 'Config', 'partnerPosterAds')")
+                        span {{"partnerPosterAds" | translate}}
 
 
     .col-md-9(style="padding-left:0;padding-right:15px")
@@ -45,3 +47,5 @@
                     include ./setting/partner-setting-display
                 div(ng-if='vm.selectedConfigTab=="partnerAdvert"')
                     include ./setting/partner-setting-advert
+                div(ng-if='vm.selectedConfigTab=="partnerPosterAds"')
+                    include ./setting/partner-setting-poster-advertisement

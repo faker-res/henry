@@ -6000,8 +6000,8 @@ let dbPlayerInfo = {
             return dbconfig.collection_rewardTaskGroup.find({
                 platformId: thisPlayer.platform,
                 playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
-            }).then(
+                status: constRewardTaskStatus.STARTED
+            }).lean().then(
                 rewardGroupData => {
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
@@ -6214,19 +6214,16 @@ let dbPlayerInfo = {
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
-
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
@@ -14440,6 +14437,10 @@ let dbPlayerInfo = {
                         else {
                             console.log('dbLargeWithdrawal', dbLargeWithdrawal)
                         }
+                    }
+
+                    if (proposalData && proposalData.type && proposalData.type.name == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                        dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
                     }
 
                     if (!bSuccess) {

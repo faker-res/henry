@@ -50,6 +50,8 @@ var partnerSchema = new Schema({
     totalPlayerDownline: {type:Number, min: 0, default: 0},
     //sum of settled commission
     totalSettledCommission: {type:Number, min: 0, default: 0},
+    //sum of withdraw
+    totalWithdrawalAmt: {type:Number, min: 0, default: 0},
     //no of valid players introduced by the partner till the date
     validPlayers: {type:Number, min: 0, default: 0},
     //no of active players introduced by the partner till the date

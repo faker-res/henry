@@ -770,6 +770,18 @@ var dbLogger = {
                     }
                     adminActionRecordData.error =  commissionMode;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
+                }else if(logAction == 'resetAllPartnerCustomizedCommissionRate' && adminActionRecordData.data[0] && adminActionRecordData.data[1]) {
+                    let commissionMode;
+                    for (let key in constPartnerCommissionType) {
+                        if (adminActionRecordData.data[1] && constPartnerCommissionType[key] == adminActionRecordData.data[1]) {
+                            commissionMode = localization.localization.translate(key);
+                            break;
+                        }
+                    }
+                    let errorText = adminActionRecordData.data[2]? "客制化多级代理参数： ": "客制化代理参数： ";
+                    errorText += commissionMode
+                    adminActionRecordData.error =  errorText;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
                 }
 
 
