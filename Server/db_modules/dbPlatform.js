@@ -2808,6 +2808,70 @@ var dbPlatform = {
         );
     },
 
+    getPartnerPosterAdsList: function (platformObjId, targetDevice) {
+        return dbconfig.collection_partnerPosterAdsConfig.find(
+            {
+                platform: platformObjId,
+                targetDevice: targetDevice
+            }
+        ).sort({orderNo: 1}).lean();
+    },
+
+    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice) {
+        let saveObj = {
+            platform: platformObjId,
+            orderNo: orderNo,
+            targetDevice: targetDevice,
+            title: title,
+            posterImage: posterImage,
+            showInRealServer: showInRealServer
+        }
+
+        return dbconfig.collection_partnerPosterAdsConfig(saveObj).save();
+    },
+
+    deletePartnerPosterAdsRecord: function (platformObjId, posterAdsObjId) {
+        return dbconfig.collection_partnerPosterAdsConfig.remove({_id: posterAdsObjId, platform: platformObjId});
+    },
+
+    updatePartnerPosterAds: function (dataArr) {
+        let promArr = [];
+        dataArr.map(
+            posterAds => {
+                if (!(posterAds._id && posterAds.platform && posterAds.hasOwnProperty("orderNo") && posterAds.targetDevice && posterAds.title && posterAds.posterImage)) {
+                    return;
+                }
+
+                let query = {
+                    _id: posterAds._id,
+                    platform: posterAds.platform
+                }
+
+                let updateData = {
+                    orderNo: posterAds.orderNo,
+                    title: posterAds.title,
+                    posterImage: posterAds.posterImage,
+                    showInRealServer: posterAds.showInRealServer? true: false
+                }
+
+                let updateProm = dbconfig.collection_partnerPosterAdsConfig.update(query, updateData);
+                promArr.push(updateProm);
+            }
+        )
+
+        return Promise.all(promArr);
+    },
+
+    updatePartnerPosterAdsStatus: function (platformObjId, posterAdsObjId, status) {
+        let query = {
+            platform: platformObjId,
+            _id: posterAdsObjId,
+            status: status ? status : 0
+        }
+        let updateStatus = status ? 0 : 1;
+        return dbconfig.collection_partnerPosterAdsConfig.update(query, {status: updateStatus});
+    },
+
     //Partner Advertisement
     getPartnerAdvertisementList: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
@@ -3361,6 +3425,11 @@ var dbPlatform = {
                                 }
                             }
                         })
+
+                        if (subject == 'partner') {
+                            return appendPartnerConfig(platformData._id, returnedObj);
+                        }
+
                         return returnedObj;
                     }
                 }
@@ -4191,23 +4260,14 @@ var dbPlatform = {
             isSkipped: false
         }
 
-        return dbconfig.collection_partnerCommSettLog.findOne(query).then(
+        return dbconfig.collection_partnerCommSettLog.findOne(query).lean().then(
             result => {
-                if (result) {
-                    return {
-                        settMode: settMode,
-                        startTime: startTime,
-                        endTime: endTime,
-                        isPreview: true
-                    }
-                } else {
-                    return {
-                        settMode: settMode,
-                        startTime: startTime,
-                        endTime: endTime,
-                        isPreview: false
-                    }
-                }
+                return {
+                    settMode: settMode,
+                    startTime: startTime,
+                    endTime: endTime,
+                    isPreview: Boolean(result)
+                };
             }
         )
     },
@@ -4222,9 +4282,9 @@ var dbPlatform = {
             endTime = previousCycle.endTime;
         }
 
-        return dbconfig.collection_partner.find({platform: platformObjId, commissionType: settMode}).count().then(
+        return dbPartner.getPartnerCountByCommissionType(platformObjId, settMode).then(
             partnerCount => {
-                if (partnerCount && partnerCount > 0) {
+                if (partnerCount && partnerCount.totalPartner) {
                     calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip, multiVer).catch(errorUtils.reportError);
 
                     return dbconfig.collection_partnerCommSettLog.update({
@@ -4234,7 +4294,9 @@ var dbPlatform = {
                         endTime: endTime
                     }, {
                         isSettled: isSkip,
-                        isSkipped: isSkip
+                        isSkipped: isSkip,
+                        totalPartnerCount: partnerCount.totalPartner,
+                        totalValidPartnerCount: partnerCount.totalValidPartner || 0,
                     }, {
                         upsert: true,
                         new: true
@@ -7392,6 +7454,30 @@ function getFinancialSettlementPointFromPMSAndSendEmail(tempPlatforms, paymentSy
     //         }
     //     }
     // );
+}
+
+async function appendPartnerConfig(platformObjId, returnObj) {
+    let activeConfig = await dbconfig.collection_activeConfig.findOne({platform: platformObjId}, {
+        validPlayerTopUpTimes: 1,
+        validPlayerTopUpAmount: 1,
+        validPlayerConsumptionTimes: 1,
+        validPlayerConsumptionAmount: 1,
+        validPlayerValue: 1,
+        dailyActivePlayerTopUpTimes: 1,
+        dailyActivePlayerTopUpAmount: 1,
+        dailyActivePlayerConsumptionTimes: 1,
+        dailyActivePlayerConsumptionAmount: 1,
+        dailyActivePlayerValue: 1,
+        weeklyActivePlayerTopUpTimes: 1,
+        weeklyActivePlayerTopUpAmount: 1,
+        weeklyActivePlayerConsumptionTimes: 1,
+        weeklyActivePlayerConsumptionAmount: 1,
+        weeklyActivePlayerValue: 1,
+        _id: 0
+    }).lean() || {};
+
+    returnObj.activeConfig = activeConfig;
+    return returnObj;
 }
 
 var proto = dbPlatformFunc.prototype;

@@ -12,12 +12,12 @@ div(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'lar
                 td
                     text(style='color:red') {{"large amount withdrawal (x): date--username--current withdrawal amount" | translate}} &nbsp
                     input(type='text' ng-model='vm.largeWithdrawalPartnerSetting.emailNameExtension', ng-disabled='!vm.configTableEdit')
-            tr
+            //tr
                 td {{'RECIPIENT_SELECT' | translate}}
                 td
                     text(ng-if='!vm.configTableEdit') {{"Please tick website's recipient" | translate}}
                     a(data-toggle="modal", data-target='#modalLargeWithdrawalPartnerRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawalPartner()') {{"Please tick website's recipient" | translate}}
-            tr
+            //tr
                 td {{'The person who have the right to execute proposal' | translate}}
                 td
                     text(ng-if='!vm.configTableEdit') {{"Please tick website's reviewer" | translate}}

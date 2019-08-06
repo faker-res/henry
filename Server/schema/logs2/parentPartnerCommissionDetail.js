@@ -34,8 +34,16 @@ let parentPartnerCommissionDetail = new Schema({
     topUpFeeRate: {type: Number, default: 0},
 
     withdrawalFeeRate: {type: Number, default: 0},
+
+    totalReward: {type: Number, default: 0},
+
+    totalTopUp: {type: Number, default: 0},
+
+    totalWithdrawal: {type: Number, default: 0},
     // commCalc startTime to determine which batch it is
     startTime: {type: Date},
+
+    activeCount: {type: Number, default: 0},
 
 });
 
