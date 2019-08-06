@@ -3,6 +3,7 @@
 const dbutility = require('./../modules/dbutility');
 const request = require('request');
 const dbconfig = require('./../modules/dbproperties');
+const env = require('../config/env').config();
 
 let dbCtiCallOut = {
     getCtiUrls: function getCtiUrls (platformId, ctiUrl) {
@@ -303,6 +304,12 @@ let dbCtiCallOut = {
 
             let nextTriedTimes = triedTimes + 1;
             let url = urls[triedTimes];
+
+            // change url from tel400 tel to cs.tel400.me on cstest environment
+            if (env.mode === 'development') {
+                url = url.replace(/tel400/g, 'cs.tel400');
+                console.log('check callCtiApiWithRetry cstest url ===> ', url);
+            }
 
             let link = url + path;
 
