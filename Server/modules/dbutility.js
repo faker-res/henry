@@ -132,7 +132,7 @@ var dbUtility = {
 
                     return Promise.reject({
                         name: "DataError",
-                        message: data
+                        message: "Voice code failed to send, please contact customer service"
                     });
                 }
                 return data;
@@ -141,7 +141,7 @@ var dbUtility = {
                 console.log("send voice code failed",err)
                 return Promise.reject({
                     name: "DataError",
-                    message: err
+                    message: "Voice code failed to send, please contact customer service"
                 });
             }
         )
