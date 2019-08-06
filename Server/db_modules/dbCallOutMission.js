@@ -11,6 +11,7 @@ const errorUtils = require("./../modules/errorUtils");
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const env = require('../config/env').config();
 
 let dbCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
@@ -740,6 +741,12 @@ function callCtiApiWithRetry (platformId, path, param, ctiUrl) {
 
         let nextTriedTimes = triedTimes + 1;
         let url = urls[triedTimes];
+
+        // change url from tel400 tel to cs.tel400.me on cstest environment
+        if (env.mode === 'development') {
+            url = url.replace(/tel400/g, 'cs.tel400');
+            console.log('check callCtiApiWithRetry(Mission) cstest url ===> ', url);
+        }
 
         let link = url + path;
 

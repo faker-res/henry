@@ -3,6 +3,7 @@
  */
 var encrypt = require('./../modules/encrypt');
 var dbPartner = require('./../db_modules/dbPartner');
+var dbPlatform = require('./../db_modules/dbPlatform');
 var dbPartnerLevel = require('./../db_modules/dbPartnerLevel');
 var dbPartnerLevelConfig = require('./../db_modules/dbPartnerLevelConfig');
 var socketUtil = require('./../modules/socketutility');
@@ -14,6 +15,7 @@ var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPer
 var constPartnerStatus = require('./../const/constPartnerStatus');
 var dbApiLog = require('./../db_modules/dbApiLog');
 var dbPlayerMail = require('../db_modules/dbPlayerMail');
+const dbPartnerPoster = require('../db_modules/dbPartnerPoster');
 
 
 var mongoose = require('mongoose');
@@ -181,7 +183,7 @@ function socketActionPartner(socketIO, socket) {
          */
         getPartnersByPlatform: function getPartnersByPlatform(data) {
             var actionName = arguments.callee.name
-            var isValidData = Boolean(data && data.platform);
+            var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPartner.getPartnersByPlatform, [data.platform], actionName, isValidData);
         },
 
@@ -474,7 +476,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }, data.commissionType], actionName, isValidData);
+            }, data.commissionType, data.isMultiLevel, data.isUpdateChild], actionName, isValidData);
         },
 
         updateAllCustomizeCommissionRate: function updateAllCustomizeCommissionRate (data) {
@@ -484,7 +486,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.isMultiLevel, data.isUpdateChild], actionName, isValidData);
         },
 
         resetAllCustomizedCommissionRate: function resetAllCustomizedCommissionRate (data) {
@@ -494,7 +496,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.isMultiLevel], actionName, isValidData);
         },
 
         getPartnerCommissionLog: function getPartnerCommissionLog (data) {
@@ -575,10 +577,28 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getTotalSettledCommission, [data.data], actionName, isValidData);
         },
 
+        getReferralPlayerCount: function getReferralPlayerCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getReferralPlayerCount, [data.partnerObjId], actionName, isValidData);
+        },
+
+        getPlayerByNameWithoutParent: function getPlayerByNameWithoutParent (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerName && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPlayerByNameWithoutParent, [data.playerName, data.platformObjId], actionName, isValidData);
+        },
+
         getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);
+            let isValidData = Boolean(data.platformObjId && (data.partnerName || data.commissionType) && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.platformObjId, data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
+        },
+
+        getPartnerProfitReport: function getPartnerProfitReport (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.platformObjIdList && data.platformObjIdList.length && data.registerStartTime && data.registerEndTime && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerProfitReport, [data.platformObjIdList, data.partnerName, data.registerStartTime, data.registerEndTime, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
         },
 
         getChildrenDetails: function getChildrenDetails (data) {
@@ -608,7 +628,7 @@ function socketActionPartner(socketIO, socket) {
         settlePastCommission: function settlePastCommission (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.pastX && data.platformObjId && data.partnerName);
-            socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.settlePastCommission, [data.partnerName, data.platformObjId, data.pastX, adminInfo, data.isNew], actionName, isValidData);
         },
 
         transferPartnerCreditToPlayer: function transferPartnerCreditToPlayer (data) {
@@ -629,6 +649,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.checkChildPartnerNameValidity, [data.platform, data.partnerName, data.partnerObjId], actionName, isValidData);
         },
 
+        testqrposter: function testqrposter (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.posterUrl && data.data);
+            socketUtil.emitter(self.socket, dbPartnerPoster.bindQrDataToPoster, [data.posterUrl, data.data, data.partnerObjId], actionName, isValidData);
+        },
+
         /**
          * get downline player by entered player name or blank
          * @param {json} data - It has to contain the query fields such as  bankAccount , partnerName, partnerId, level
@@ -647,7 +673,13 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getPartnerPermissionLog, [ObjectId(data.platform), ObjectId(data.partnerObjId), data.createTime], actionName, isValidData);
-        }
+        },
+
+        getPartnerCountByCommissionType: function getPartnerCountByCommissionType(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.commissionType);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerCountByCommissionType, [data.platformObjId, data.commissionType], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
