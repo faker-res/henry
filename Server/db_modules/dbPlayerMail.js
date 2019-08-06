@@ -348,6 +348,12 @@ const dbPlayerMail = {
             retErr => {
                 dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
                 errorUtils.reportError(retErr);
+                if (isUseVoiceCode) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Voice code failed to send, please contact customer service"
+                    });
+                }
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
         );
@@ -653,27 +659,30 @@ const dbPlayerMail = {
                     if (checkPhoneByMinute && checkPhoneByMinute._id) {
                         if (!checkPhoneByMinute.countLtLimit) {
                             smsLimitDetected = true;
+                            let msg = isUseVoiceCode? "The verification limit has been reached (1/minute), please try again later": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
-                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                                message: localization.localization.translate(msg)
                             })
                         }
                     }
                     if (checkPhoneByHour && checkPhoneByHour._id) {
                         if (!checkPhoneByHour.countLtLimit) {
                             smsLimitDetected = true;
+                            let msg = isUseVoiceCode? "The verification limit has been reached (5/hour), please try again later": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
-                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                                message: localization.localization.translate(msg)
                             })
                         }
                     }
                     if (checkPhoneByDay && checkPhoneByDay._id) {
                         if (!checkPhoneByDay.countLtLimit) {
                             smsLimitDetected = true;
+                            let msg = isUseVoiceCode? "The verification limit has been reached today, please try again tomorrow": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
-                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                                message: localization.localization.translate(msg)
                             })
                         }
                     }
