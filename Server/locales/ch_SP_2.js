@@ -69,6 +69,9 @@ var simplifiedChinese = {
     "endedRewardEventGroup*": "已结束优惠组*",
     "Invalid commission class": "无效佣金分类",
     "Partner down line does not exists": "代理下线不存在",
+    "The verification limit has been reached (5/hour), please try again later": "已达到验证上限（5次/小时）,请稍后再试",
+    "The verification limit has been reached (1/minute), please try again later": "已达到验证上限（1次/分钟）,请稍后再试",
+    "The verification limit has been reached today, please try again tomorrow": "已达到今日验证上限，请明日再试",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
