@@ -5962,7 +5962,7 @@ let dbPlayerInfo = {
 
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        sortObj = sortObj || {registrationTime: -1};
+        sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
         let advancedQuery = {};
@@ -6000,8 +6000,8 @@ let dbPlayerInfo = {
             return dbconfig.collection_rewardTaskGroup.find({
                 platformId: thisPlayer.platform,
                 playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
-            }).then(
+                status: constRewardTaskStatus.STARTED
+            }).lean().then(
                 rewardGroupData => {
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
@@ -6214,19 +6214,16 @@ let dbPlayerInfo = {
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
-
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
@@ -6248,10 +6245,6 @@ let dbPlayerInfo = {
                 let playerData;
                 dataSize = data[1];
                 let credibilityRemarksList = data && data[2] ? data[2] : [];
-                console.log('dataSize===', dataSize);
-                console.log('data.length===', data.length);
-                console.log('data[0]===', data[0]);
-                console.log('data[0].length===', data[0].length);
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
@@ -10976,16 +10969,14 @@ let dbPlayerInfo = {
                                 //     }
                                 // ).lean();
 
-                                let topUpProm = dbconfig.collection_proposal.find(
+                                let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                     {
-                                        mainType: constProposalMainType.PlayerTopUp,
-                                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                        "data.platformId": ObjectId(playerObj.platform),
+                                        platformId: ObjectId(playerObj.platform),
                                         createTime: {
                                             $gte: new Date(platformPeriodTime.startTime),
                                             $lt: new Date(platformPeriodTime.endTime)
                                         },
-                                        "data.playerObjId": ObjectId(playerObj._id)
+                                        playerId: ObjectId(playerObj._id)
                                     }
                                 ).lean();
 
@@ -11393,16 +11384,14 @@ let dbPlayerInfo = {
                                 platformPeriodTime = dbUtil.getLastMonthSGTime();
                             }
 
-                            let topUpProm = dbconfig.collection_proposal.find(
+                            let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                 {
-                                    mainType: constProposalMainType.PlayerTopUp,
-                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    "data.platformId": ObjectId(playerObj.platform),
+                                    platformId: ObjectId(playerObj.platform),
                                     createTime: {
                                         $gte: new Date(platformPeriodTime.startTime),
                                         $lt: new Date(platformPeriodTime.endTime)
                                     },
-                                    "data.playerObjId": ObjectId(playerObj._id)
+                                    playerId: ObjectId(playerObj._id)
                                 }
                             ).lean();
 
@@ -14448,6 +14437,10 @@ let dbPlayerInfo = {
                         else {
                             console.log('dbLargeWithdrawal', dbLargeWithdrawal)
                         }
+                    }
+
+                    if (proposalData && proposalData.type && proposalData.type.name == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                        dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
                     }
 
                     if (!bSuccess) {
@@ -23734,6 +23727,8 @@ let dbPlayerInfo = {
                 // return total amount
                 returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
 
+                returnData.localAmount =  totalLockedCredit + parseInt(returnData.credit);
+
                 return returnData;
             });
 
@@ -27413,11 +27408,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
                     recordSum += queryRecord[c][queryAmountField];
                 }
             } else {
-                if (bTopUp) {
-                    recordSum += queryRecord[c]["data"][queryAmountField];
-                } else {
-                    recordSum += queryRecord[c][queryAmountField];
-                }
+                recordSum += queryRecord[c][queryAmountField];
             }
         }
     }

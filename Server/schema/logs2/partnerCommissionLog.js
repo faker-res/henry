@@ -58,8 +58,12 @@ var partnerCommissionLog = new Schema({
     calcTime: {type: Date, default: Date.now},
     // remarks
     remarks: {type: String, default: ""},
+    // is new (urgent use)
+    isNewComm: {type: Boolean},
 });
 
 module.exports = partnerCommissionLog;
 
 partnerCommissionLog.index({platform: 1, commissionType: 1, startTime: 1});
+partnerCommissionLog.index({platform: 1, commissionType: 1, startTime: 1, endTime: 1, partnerName: 1});
+partnerCommissionLog.index({partner: 1, commissionType: 1, startTime: 1});
