@@ -145,12 +145,13 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.frontEndRewardCategory')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.allFrontEndRewardCategory')
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ENTRANCE IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -178,11 +179,30 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.rewardSetting.pc.displayFormat')
+                                        option(value='1') {{ "list" | translate}}
+                                        option(value='2') {{ "threeInARow" | translate}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.pc.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.pc.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.pc.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ENTRANCE IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -210,11 +230,24 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.h5.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -242,6 +275,18 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.app.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
