@@ -1,0 +1,39 @@
+#partnerSettlementQuery.col-md-12.well
+    .search-filters-item
+        label {{"PLATFORM" | translate}}
+        select.form-control(ng-model='vm.partnerSettlementQuery.platformObjId')
+            option(ng-repeat='(i,v) in vm.platformList', value='{{v.id}}') {{v.text}}
+    .search-filters-item
+        label {{"COMMISSION_TYPE"|translate}}
+        select.form-control(ng-model='vm.partnerSettlementQuery.commissionType')
+            option(value='') {{'any' | translate}}
+            option(value='2') {{'WEEKLY_BONUS_AMOUNT' | translate}}
+            option(value='7') {{'DAILY_CONSUMPTION' | translate}}
+
+    .search-filters-item
+        label {{"PARTNER_NAME"|translate}}
+        input.form-control.span.input-sm(type="text", ng-model="vm.partnerSettlementQuery.partnerName")
+    .search-filters-item
+        label {{"CALENDER"|translate}} {{"Start date"|translate}}
+        .startTime
+    .search-filters-item
+        label {{"CALENDER"|translate}} {{"End date"|translate}}
+        .endTime
+    .text-right.widthto100
+        button.btn.btn-success.btn-space(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
+        button.btn.btn-info.btn-space(ng-click="vm.searchPartnerSettlementHistory(true, true)") {{'EXPORT_EXCEL' | translate}}
+        span#partnerSettlementTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+    div.block
+        span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}
+    div
+        .black-annotation {{"Calender legend" | translate}}
+        .blue-annotation.margin-right-5.inline-block *{{"Gray (strikethrough) indicates skipped settlement" | translate}}
+        .blue-annotation.margin-left-5.inline-block *{{"Select date range to show settlement details" | translate}}
+        .blue-annotation *{{"Green indicates executed settlement" | translate}}
+        .blue-annotation *{{"White indicates unexecuted settlement" | translate}}
+.clearfix
+label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+#partnerSettlementTablePage
+table.common-table#partnerSettlementExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")

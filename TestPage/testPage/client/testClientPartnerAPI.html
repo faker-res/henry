@@ -1449,11 +1449,109 @@
     </div>
 </div>
 
+<h3 name="setPartnerCommissionRate"> Create Child Partner (代理给下级代理开户)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Account
+            <input name="account" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input name="password" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input name="phoneNumber" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Commission Rate
+            <input name="commissionRate" type=text>
+        </label>
+    </div>
+
+
+    <p></p>
+    <div>
+        <button id="createDownLinePartner" data-api-name="createDownLinePartner">Get</button>
+    </div>
+</div>
+
+<h3 name="setPartnerCommissionRate"> Set Down Level Commission Rate (设置代理佣金)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Commission Rate
+            <input name="commissionRate" type=text>
+        </label>
+    </div>
+
+
+    <p></p>
+    <div>
+        <button id="setPartnerCommissionRate" data-api-name="setPartnerCommissionRate">Get</button>
+    </div>
+</div>
+
+<h3 name="getPartnerCommissionRate">Get Partner Commission Rate (查询代理佣金设置数据)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Commission Class
+            <input name="commissionClass" type=text>
+        </label>
+    </div>
+
+
+    <p></p>
+    <div>
+        <button id="getPartnerCommissionRate" data-api-name="getPartnerCommissionRate">Get</button>
+    </div>
+</div>
+
 <h3> Get Downline Player Time Sequence (以时间为序查询代理下级会员数据)</h3>
 <div class="test-container">
     <div>
         <label>Platform Id
             <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Partner Id
+            <input type=text name="partnerId">
         </label>
     </div>
     <div>
@@ -1564,6 +1662,16 @@
             <input type="test" name="detailType">
         </label>
     </div>
+    <div>
+        <label>Partner Name
+            <input type="test" name="partnerName">
+        </label>
+    </div>
+    <div>
+        <label>Player Name
+            <input type="test" name="playerName">
+        </label>
+    </div>
     <p></p>
     <div>
         <button id="getPartnerTotalInfo" data-api-name="getPartnerTotalInfo">Get</button>
@@ -1628,6 +1736,56 @@
     <p></p>
     <div>
         <button id="getDownLinePartnerInfo" data-api-name="getDownLinePartnerInfo">Get</button>
+    </div>
+</div>
+
+<h3> Get Partner Commission Info (查询代理佣金数据)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>Period
+            <input name="searchPreviousPeriod" type="number">
+        </label>
+    </div>
+
+    <p></p>
+    <div>
+        <button id="getPartnerCommissionInfo" data-api-name="getPartnerCommissionInfo">Get</button>
+    </div>
+</div>
+
+<h3> Get Partner Poster (代理获取推广二维码和推广海报)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId" type=text>
+        </label>
+    </div>
+    <div>
+        <label>url
+            <input name="url" type="text">
+        </label>
+    </div>
+    <div>
+        <label>device
+            <input name="device" type="number">
+        </label>
+    </div>
+    <div>
+        <label>is production
+            <input name="production" type="number">
+        </label>
+    </div>
+
+    <p></p>
+    <div>
+        <button id="getPartnerPoster" data-api-name="getPartnerPoster">Get</button>
     </div>
 </div>
 

@@ -3,15 +3,19 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
     .col-md-12
         .panel(style="box-shadow: none;")
             .panel-body
+                label.margin-right-5 {{'customizePartnerCommission' | translate}}
+                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='false', ng-checked='!vm.multiLvlSelected')
+                label.margin-right-5 {{'customizeMultiLevelPartnerCommission' | translate}}
+                    input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='true', ng-checked='vm.multiLvlSelected')
                 .padding-all-5
                     .panel.panel-primary
                         .panel-heading.common-left-panel-heading
                             ul.nav.nav-tabs.common-nav-tabs
-                                li.active
-                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_CONSUMPTION');")
+                                li(ng-class='{active: vm.commissionSettingTab == "DAILY_CONSUMPTION" || !vm.commissionSettingTab}')
+                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_CONSUMPTION', null, vm.isMultiLevelCommission);")
                                         text.span {{"DAILY_CONSUMPTION" | translate}}
-                                li
-                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
+                                li(ng-class='{active: vm.commissionSettingTab == "WEEKLY_BONUS_AMOUNT"}')
+                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT', null, vm.isMultiLevelCommission);")
                                         text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
                                 //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
@@ -72,6 +76,7 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
+                                    button.btn.btn-primary.common-button(ng-click='vm.resetAllPartnerCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
                                 br
                                 div(ng-if="vm.updateCommissionRateRequirement")
                                     text {{"Current update will remove the commission customization of relevant partners." | translate}}

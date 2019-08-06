@@ -307,11 +307,14 @@ var roleChecker = {
                 largeWithdrawalSetting: [],
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
+                partnerPosterAds: [],
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],
                 PARTNERPLAYERBOUNS_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: [],
+                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
+                PARTNER_PROFIT_REPORT: ['getPartnerProfitReport'],
             },
             "Settlement": {
                 PREVIEW: [],
