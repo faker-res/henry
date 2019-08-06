@@ -25390,7 +25390,7 @@ define(['js/app'], function (myApp) {
                               vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data;
 
-                              if (vm.allRewardSettingData && vm.rewardSettingData.length){
+                              if (vm.rewardSettingData && vm.rewardSettingData.length){
                                   vm.rewardSettingData.map(
                                       object => {
                                           if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
