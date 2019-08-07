@@ -536,6 +536,7 @@
                                         th {{"Valid Player Count" | translate}}
                                         th {{"Current List Size (Unregistered & Unreclaimed)" | translate}}
                                         th(title='{{"Unexpired phone will be marked as distributed and be reclaimed back to phone list pool" | translate}}') {{"Reclaim Phone List in Advance (Unregistered Phone)" | translate}}
+                                        th(title='{{"Unexpired phone will be marked as distributed and be reclaimed back to phone list pool" | translate}}') {{"Reclaim Unused Phone Number in Advance" | translate}}
                                 tbody
                                     tr(ng-repeat='(i,v) in vm.distributionDetails.data')
                                         td {{v.adminName}}
@@ -549,6 +550,8 @@
                                         td {{v.currentListSize}}
                                         td 
                                             a(ng-show="v.currentListSize" data-toggle="modal", data-target="#modalReclaimTsPhone" ng-click="vm.selectedReclaimAssignee = v.assigneeObjId") {{"EXECUTION" | translate}}
+                                        td
+                                            a(ng-show="v.currentListSize" data-toggle="modal", data-target="#modalReclaimNoUsedTsPhone" ng-click="vm.selectedReclaimAssignee = v.assigneeObjId") {{"EXECUTION" | translate}}
                                     tr(ng-show="vm.distributionDetails.data")
                                         td(style="font-weight:bold;")
                                             span {{"Total Count" | translate}}
@@ -563,6 +566,7 @@
                                         td {{vm.distributionDetails.totalValidPlayer}}
                                         td {{vm.distributionDetails.totalCurrentListSize}}
                                         td
+                                        td
             .modal-footer
 
 #modalReclaimTsPhone.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -570,7 +574,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"提前回收名单（尚未开户的电话）" | translate}}
+                h4.modal-title {{"Reclaim Phone List in Advance (Unregistered Phone)" | translate}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
@@ -578,6 +582,21 @@
                             text {{"All unregister phone number will be reclaim. Are you sure to execute?" | translate}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.reclaimTsPhone()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalReclaimNoUsedTsPhone.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Reclaim Unused Phone Number in Advance" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            text {{"All unused phone number will be reclaim. Are you sure to execute?" | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.reclaimTsPhone(true)") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeleteDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

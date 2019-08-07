@@ -6482,6 +6482,7 @@ define(['js/app'], function (myApp) {
                         query: {
                             _id: {$in: tsPhoneIds}
                         },
+                        isRecycle: true,
                         isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
                         platformObjId: vm.importPlatformForXLS,
                         isFeedbackPhone: vm.showPageName == "OTHER_DEPARTMENT_TS_LIST"
@@ -6923,11 +6924,12 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.reclaimTsPhone = () => {
+        vm.reclaimTsPhone = (isNeverUsed) => {
            let sendData = {
                platformObjId: vm.selectedPlatform.id,
                tsPhoneListObjId: vm.currentPhoneListObjId,
                assignee: vm.selectedReclaimAssignee,
+               isNeverUsed: Boolean(isNeverUsed),
            }
             socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
                 vm.searchDistributionDetails();

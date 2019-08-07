@@ -959,13 +959,18 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
-    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee, isNeverUsed) => {
         let query = {
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
             assignee: assignee,
             registered: false
         }
+
+        if (isNeverUsed) {
+            query.isUsed = false;
+        }
+
         return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
             tsDistributedPhoneData => {
                 if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {
@@ -1179,47 +1184,51 @@ let dbTeleSales = {
 
         if (distributedData && distributedData.length > 0) {
             distributedData.forEach(item => {
-                if(item.assignee._id && !workloadData[item.assignee._id]) {
-                    workloadData[item.assignee._id] = {};
-                }
-                if(item.tsPhoneList != null) {
-                    if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
-                        workloadData[item.assignee._id][item.tsPhoneList._id] = {
-                            adminId: item.assignee._id,
-                            adminName: item.assignee.adminName,
-                            phoneListObjId: item.tsPhoneList._id,
-                            phoneListName: item.tsPhoneList.name,
-                            distributed:0,
-                            fulfilled:0,
-                            success:0,
-                            registered:0
-                        };
+                if(item.assignee != null){
+                    if(item.assignee._id && !workloadData[item.assignee._id]) {
+                        workloadData[item.assignee._id] = {};
                     }
-                    workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
+                    if(item.tsPhoneList != null) {
+                        if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
+                            workloadData[item.assignee._id][item.tsPhoneList._id] = {
+                                adminId: item.assignee._id,
+                                adminName: item.assignee.adminName,
+                                phoneListObjId: item.tsPhoneList._id,
+                                phoneListName: item.tsPhoneList.name,
+                                distributed:0,
+                                fulfilled:0,
+                                success:0,
+                                registered:0
+                            };
+                        }
+                        workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
+                    }
                 }
             });
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
             phoneFeedbackData.forEach(item => {
-                if(item.adminId._id && !workloadData[item.adminId._id]) {
-                    workloadData[item.adminId._id] = {};
-                }
-                if(item.tsPhoneList != null) {
-                    if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
-                        workloadData[item.adminId._id][item.tsPhoneList._id] = {
-                            adminId: item.adminId._id,
-                            adminName: item.adminId.adminName,
-                            phoneListObjId: item.tsPhoneList._id,
-                            phoneListName: item.tsPhoneList.name,
-                            distributed:0,
-                            fulfilled:0,
-                            success:0,
-                            registered:0
-                        };
+                if(item.assignee != null){
+                    if(item.adminId._id && !workloadData[item.adminId._id]) {
+                        workloadData[item.adminId._id] = {};
                     }
-                    workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
-                    if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
-                        workloadData[item.adminId._id][item.tsPhoneList._id].success++;
+                    if(item.tsPhoneList != null) {
+                        if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
+                            workloadData[item.adminId._id][item.tsPhoneList._id] = {
+                                adminId: item.adminId._id,
+                                adminName: item.adminId.adminName,
+                                phoneListObjId: item.tsPhoneList._id,
+                                phoneListName: item.tsPhoneList.name,
+                                distributed:0,
+                                fulfilled:0,
+                                success:0,
+                                registered:0
+                            };
+                        }
+                        workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
+                        if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                            workloadData[item.adminId._id][item.tsPhoneList._id].success++;
+                        }
                     }
                 }
             });
@@ -1227,23 +1236,25 @@ let dbTeleSales = {
 
         if (playerData && playerData.length > 0) {
             playerData.forEach(item => {
-                if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
-                    workloadData[item.csOfficer._id] = {};
-                }
-                if (item.tsPhoneList != null) {
-                    if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
-                        workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
-                            csOfficer: item.csOfficer._id,
-                            adminName: item.csOfficer.adminName,
-                            phoneListObjId: item.tsPhoneList._id,
-                            phoneListName: item.tsPhoneList.name,
-                            distributed: 0,
-                            fulfilled: 0,
-                            success: 0,
-                            registered: 0
-                        };
+                if(item.assignee != null){
+                    if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
+                        workloadData[item.csOfficer._id] = {};
                     }
-                    workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
+                    if (item.tsPhoneList != null) {
+                        if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
+                            workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
+                                csOfficer: item.csOfficer._id,
+                                adminName: item.csOfficer.adminName,
+                                phoneListObjId: item.tsPhoneList._id,
+                                phoneListName: item.tsPhoneList.name,
+                                distributed: 0,
+                                fulfilled: 0,
+                                success: 0,
+                                registered: 0
+                            };
+                        }
+                        workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
+                    }
                 }
             });
         }
@@ -1531,7 +1542,7 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone) {
+    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
         let prom;
         if (isFeedbackPhone) {
             prom = dbconfig.collection_feedbackPhoneTrade.find(query).lean();
@@ -1540,7 +1551,7 @@ let dbTeleSales = {
         }
        return prom.then(
             phoneData => {
-                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone);
+                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle);
             }
        )
     },
@@ -2076,9 +2087,9 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone) {
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
     let proms = [];
-    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId && !isRecycle) {
         tsPhoneData.forEach(
             tsPhone => {
                 if(tsPhone && tsPhone.phoneNumber) {

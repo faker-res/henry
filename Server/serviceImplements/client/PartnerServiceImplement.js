@@ -64,6 +64,7 @@ var PartnerServiceImplement = function () {
                 if (data.phoneNumber){
                     partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
+                conn.isAuth = true;
                 conn.partnerId = partnerData.partnerId;
                 conn.partnerObjId = partnerData._id;
                 var profile = {name: partnerData.name, password: partnerData.password};
