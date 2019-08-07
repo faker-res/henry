@@ -1555,10 +1555,36 @@ define(['js/app'], function (myApp) {
                     case "AuctionSystem":
                         vm.initAuctionSystem();
                         break;
+                    case "UrlShortener":
+                        vm.initUrlShortner();
+                        break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
+
+            vm.initUrlShortner = function () {
+            }
+
+            vm.generateMultiUrls = function() {
+                let urls = vm.splitTextArea(vm.multiUrls);
+                vm.urlData = [
+                    { no:1, url : 'aaa.com', shortUrl: 't.cn/AAcLAKs' },
+                    { no:2, url : 'bbb.com', shortUrl: 't.cn/TAcLAKs' },
+                    { no:3, url : 'ccc.com', shortUrl: 't.cn/LAcLAKs' }
+                ]
+            }
+
+            vm.splitTextArea = function (datas) {
+                let results = [];
+                if (datas) {
+                    let rowData = datas.split('\n')
+                    rowData.forEach(item => {
+                        results.push(item);
+                    })
+                }
+                return results;
+            }
 
             vm.showPlatformDetailModal = function () {
                 //$('#platformDetail').html();
@@ -17387,7 +17413,7 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
 
                 } else {
-                    
+
                     let resultName = vm.allPlayerFeedbackResults.filter(item => {
                         return item.key == data.result;
                     });
@@ -26730,7 +26756,7 @@ define(['js/app'], function (myApp) {
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
                 vm.allOpen = rewardPointsEvent.status === true
-                
+
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }

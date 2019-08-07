@@ -58,6 +58,9 @@
                                 span {{"External User Info" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'groupMessage', 'Read')" ng-class='{active: vm.platformPageName === "PushNotification"}' ng-click="vm.loadTab('PushNotification');")
                                 span {{"Push Notification" | translate}}
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'groupMessage', 'Read')" ng-class='{active: vm.platformPageName === "UrlShortener"}' ng-click="vm.loadTab('UrlShortener');")
+                                span {{"Url Shortener" | translate}}
+
 
                 .padding-all-5
                     div(ng-switch="vm.platformPageName")
@@ -111,6 +114,8 @@
                             include ./platform-frontEndConfiguration2
                         div(ng-switch-when="AuctionSystem")
                             include ./platform-auctionSystem
+                        div(ng-switch-when="UrlShortener")
+                            include ./platform-url-shortener
 
 #dialogFrame.dialog-frame
 #modalEditCritical.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
