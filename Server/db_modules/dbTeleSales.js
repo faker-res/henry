@@ -1542,7 +1542,7 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
+    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone) {
         let prom;
         if (isFeedbackPhone) {
             prom = dbconfig.collection_feedbackPhoneTrade.find(query).lean();
@@ -1551,7 +1551,7 @@ let dbTeleSales = {
         }
        return prom.then(
             phoneData => {
-                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle);
+                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone);
             }
        )
     },
@@ -2087,9 +2087,9 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone) {
     let proms = [];
-    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId && !isRecycle) {
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
         tsPhoneData.forEach(
             tsPhone => {
                 if(tsPhone && tsPhone.phoneNumber) {
