@@ -959,13 +959,18 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
-    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee, isNeverUsed) => {
         let query = {
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
             assignee: assignee,
             registered: false
         }
+
+        if (isNeverUsed) {
+            query.isUsed = false;
+        }
+
         return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
             tsDistributedPhoneData => {
                 if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {

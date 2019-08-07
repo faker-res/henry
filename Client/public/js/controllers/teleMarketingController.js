@@ -6924,11 +6924,12 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.reclaimTsPhone = () => {
+        vm.reclaimTsPhone = (isNeverUsed) => {
            let sendData = {
                platformObjId: vm.selectedPlatform.id,
                tsPhoneListObjId: vm.currentPhoneListObjId,
                assignee: vm.selectedReclaimAssignee,
+               isNeverUsed: Boolean(isNeverUsed),
            }
             socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
                 vm.searchDistributionDetails();
