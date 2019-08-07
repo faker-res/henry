@@ -1255,6 +1255,7 @@ define([], () => {
                 let consumptionUsed = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "CONSUMPTION" : "SITE_LOSE_WIN";
                 let consumptionUsedKey = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "totalConsumption" : "siteBonusAmount";
                 let isValidConsumptionBased = Boolean([5, 7].includes(vm.selectedProposal.data.commissionType));
+                let platformFeeRateMultiplier = vm.selectedProposal.data.isNewComm ? 100 : 1;
 
                 proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name; // 产品名称
                 proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission"); // 提案类型
@@ -1291,7 +1292,7 @@ define([], () => {
                         totalPlatformFee += rawCommission.platformFee;
                         let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
                             + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
-                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate && rawCommission.platformFeeRate * 100 || 0) + "%)";
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate && rawCommission.platformFeeRate * platformFeeRateMultiplier || 0) + "%)";
                         let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
                             + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
