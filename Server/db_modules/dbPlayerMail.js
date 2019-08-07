@@ -348,6 +348,12 @@ const dbPlayerMail = {
             retErr => {
                 dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
                 errorUtils.reportError(retErr);
+                if (isUseVoiceCode) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Voice code failed to send, please contact customer service"
+                    });
+                }
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
         );

@@ -129,7 +129,7 @@ var dbUtility = {
                     //414	参数错误
                     //416	频率控制
                     //500	服务器内部错误
-
+                    console.log("send voice code error",data)
                     return Promise.reject({
                         name: "DataError",
                         message: "Voice code failed to send, please contact customer service"
