@@ -825,7 +825,16 @@ let dbPlayerInfo = {
 
                         // check if the create function initiated by a partner -> yes - check captcha only
                         if (connPartnerId){
-                            return true;
+                            if (bypassSMSVerify){
+                                return true;
+                            }
+                            else{
+                                return Promise.reject({
+                                    name: "ValidationError",
+                                    message: "Invalid image captcha"
+                                })
+                            }
+
                         }
 
                         if (platformObj.requireSMSVerification) {
