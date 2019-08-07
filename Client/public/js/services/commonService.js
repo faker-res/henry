@@ -1277,7 +1277,7 @@ define([], () => {
                         + $translate("RATIO") + ": " + $fixTwoDecimalStr(rawCommission.commissionRate * 100) + "%)";
 
                     let label = `${$translate("[Direct Down Line]")} ${rawCommission.groupName} ${$translate("Commission")}`;
-                    proposalDetail[label] = str; // {提供商组} 佣金
+                    proposalDetail[label] =  str; // {提供商组} 佣金
 
                     if (rawCommission.isCustomCommissionRate) {
                         vm.proposalDetailStyle[label] = customizedStyle;
@@ -1343,7 +1343,6 @@ define([], () => {
 
                 // proposalDetail["[Multi Level] Total Commission"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN"); // 多级代理佣金总计
                 // 【多级代理】
-                vm.selectedProposal.data.tCRawTotal = vm.selectedProposal.data.tCRawTotal || [];
                 vm.selectedProposal.data.tCRawTotal.map(rawCommission => {
                     let str = $fixTwoDecimalStr(rawCommission.amount) + $translate("YEN") + " "
                         + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(isValidConsumptionBased ? rawCommission.totalValidConsumption : -rawCommission.crewProfit) /*+ "/"
@@ -1379,8 +1378,8 @@ define([], () => {
                         }
                     });
 
-                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tCRewardFee || 0) + $translate("YEN") // 需扣除的优惠
-                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCReward || 0) + "/"
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tCRewardFee) + $translate("YEN") // 需扣除的优惠
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCReward) + "/"
                         + $translate("RATIO") + ": " + (vm.selectedProposal.data.childRewardFeeRate || 0) + "%)";
 
                     // if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
@@ -1388,8 +1387,8 @@ define([], () => {
                     //     isCustomized = true;
                     // }
 
-                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcTopUpFee || 0) + $translate("YEN") // 需扣除的总存款手续费
-                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCTopUp || 0) + "/"
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcTopUpFee) + $translate("YEN") // 需扣除的总存款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCTopUp) + "/"
                         + $translate("RATIO") + ": " + (vm.selectedProposal.data.childTopUpFeeRate || 0) + "%)";
 
                     // if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
@@ -1398,8 +1397,8 @@ define([], () => {
                     // }
 
                     `${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`
-                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcWithdrawalFee || 0) + $translate("YEN") // 需扣除的总取款手续费
-                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCWithdrawal || 0) + "/"
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcWithdrawalFee) + $translate("YEN") // 需扣除的总取款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCWithdrawal) + "/"
                         + $translate("RATIO") + ": " + (vm.selectedProposal.data.childWithdrawalFeeRate || 0) + "%)";
 
                     // if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
