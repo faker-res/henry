@@ -608,7 +608,7 @@ var dbGameProvider = {
     getGameProviderByPlatformList: function(platformIdList){
         let providerList = [];
         if(platformIdList && platformIdList.length > 0){
-            return dbconfig.collection_platform.find({_id: {$in: platformIdList}}).then(
+            return dbconfig.collection_platform.find({_id: {$in: platformIdList}}).lean().then(
                 platformDetails => {
                     if(platformDetails && platformDetails.length > 0){
                         platformDetails.forEach(
@@ -630,11 +630,11 @@ var dbGameProvider = {
                         )
                     }
 
-                    return dbconfig.collection_gameProvider.find({_id: {$in: providerList}},{_id: 1, name: 1});
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerList}},{_id: 1, name: 1}).lean();
                 }
             );
         }else{
-            return dbconfig.collection_gameProvider.find({},{_id: 1, name: 1});
+            return dbconfig.collection_gameProvider.find({},{_id: 1, name: 1}).lean();
         }
     },
 
