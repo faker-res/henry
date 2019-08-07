@@ -67,6 +67,7 @@ const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+const dbPartnerCommissionConfig = require("../db_modules/dbPartnerCommissionConfig");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
 const extConfig = require('../config/externalPayment/paymentSystems');
@@ -1494,6 +1495,7 @@ var proposalExecutor = {
                         constShardKeys.collection_partner
                     ).then(
                         function (data) {
+                            dbPartnerCommissionConfig.updateMainPartnerCommissionData(data.parent, data._id, data.platform, data.commissionType);
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -1514,14 +1516,22 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.platformId && proposalData.data.partnerObjId && proposalData.data.updateChildPartnerName) {
                     let childPartnerData = [];
                     let removedChildPartnerArr = [];
+                    let newChildPartnerArr = [];
                     let proms = [];
 
-                    let query = {
-                        partnerName: {$in: proposalData.data.updateChildPartnerName},
-                        platform: proposalData.data.platformId
-                    };
+                    let partnerProm = Promise.resolve();
 
-                    dbconfig.collection_partner.find(query, {_id: 1}).lean().then(childPartner => {
+                    if (proposalData.data.updateChildPartnerName.length) {
+                        let query = {
+                            partnerName: {$in: proposalData.data.updateChildPartnerName},
+                            platform: proposalData.data.platformId
+                        };
+                        partnerProm = dbconfig.collection_partner.find(query, {_id: 1}).lean();
+
+                        newChildPartnerArr = proposalData.data.updateChildPartnerName.filter((x) => proposalData.data.curChildPartnerName.indexOf(x) === -1);
+                    }
+
+                    partnerProm.then(childPartner => {
                         childPartnerData = childPartner ? childPartner : [];
 
                         if (proposalData.data.curChildPartnerName && proposalData.data.curChildPartnerName.length > 0) {
@@ -1580,10 +1590,22 @@ var proposalExecutor = {
                             }
                         }
 
+                        // proms.push(dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr));
+
                         if (proms && proms.length > 0) {
                             Q.all(proms).then(
-                                function (data) {
-                                    deferred.resolve(data);
+                                async function (data) {
+                                    if (proposalData.data.skipCommissionSetting) {
+                                        return deferred.resolve(data);
+                                    }
+                                    return dbPartnerCommissionConfig.assignPartnerMultiLvlComm(proposalData, removedChildPartnerArr, newChildPartnerArr).then(
+                                        () => {
+                                            deferred.resolve(data);
+                                        },
+                                        error => {
+                                            deferred.reject({name: "DBError", message: "Failed to update child partner commission", error: error});
+                                        }
+                                    );
                                 },
                                 function (error) {
                                     deferred.reject({name: "DBError", message: "Failed to update child partner", error: error});
@@ -3937,17 +3959,29 @@ var proposalExecutor = {
                         if (proposalData.data.isPlatformRate) {
                             prom = updatePartnerCommRateConfig(proposalData);
                         } else {
-                            prom = updatePartnerCommissionConfig(proposalData);
+                            if (proposalData.data.isMultiLevel) {
+                                prom = dbPartnerCommissionConfig.updatePartnerMultiLvlCommissionConfig(proposalData);
+                            } else {
+                                prom = updatePartnerCommissionConfig(proposalData);
+                            }
                         }
                     }
 
                     if (proposalData.data.isResetAll) {
-                        prom = resetAllCustomizedCommissionRate(proposalData);
+                        if (proposalData.data.isMultiLevel) {
+                            prom = dbPartnerCommissionConfig.resetPartnerMultiLvlCommissionData(proposalData);
+                        } else {
+                            prom = resetAllCustomizedCommissionRate(proposalData);
+                        }
                     }
 
                     if (proposalData.data.isEditAll) {
                         if (proposalData.data.newConfigArr && proposalData.data.newConfigArr.length > 0) {
-                            prom = updateAllCustomizeCommissionRate(proposalData);
+                            if (proposalData.data.isMultiLevel) {
+                                prom = dbPartnerCommissionConfig.updateAllMultiLvlCustomizeCommissionRate(proposalData);
+                            } else {
+                                prom = updateAllCustomizeCommissionRate(proposalData);
+                            }
                         }
                     }
 
@@ -6282,60 +6316,74 @@ function updatePartnerCommRateConfig (proposalData) {
         platform: proposalData.data.newRate.platform,
         partner: proposalData.data.partnerObjId
     };
+    let collectionName;
+    if (proposalData.data.isMultiLevel) {
+        collectionName = "collection_partnerMainCommRateConfig"
+    } else {
+        collectionName = "collection_partnerCommissionRateConfig"
+    }
     if (proposalData.data.isDelete) {
-        return dbconfig.collection_partnerCommissionRateConfig.findOneAndRemove(qObj);
+        return dbconfig[collectionName].findOneAndRemove(qObj);
     } else {
         proposalData.data.newRate.partner = proposalData.data.partnerObjId;
         delete proposalData.data.newRate._id;
         delete proposalData.data.newRate.__v;
         delete proposalData.data.newRate.isEditing;
-        return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
+        return dbconfig[collectionName].findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
 }
 
 function resetAllCustomizedCommissionRate (proposalData) {
-    let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    if(!proposalData.data || !proposalData.data.partnerObjId) {
+        return;
+    }
+    return dbconfig.collection_partnerCommissionConfig.remove({
         partner: proposalData.data.partnerObjId,
         platform: proposalData.data.platformObjId,
         commissionType: proposalData.data.commissionType
-    }).lean();
-
-    let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
-        partner: { "$exists" : false },
-        platform: proposalData.data.platformObjId,
-        commissionType: proposalData.data.commissionType
-    }).lean();
-
-    return Promise.all([customConfigProm, defaultConfigProm]).then(
-        data => {
-            let customConfig = data[0];
-            let defaultConfig = data[1];
-
-            if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
-                defaultConfig.forEach(dConfig => {
-                    if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
-                        customConfig.forEach(cConfig => {
-                            if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
-                                if (dConfig.provider.toString() === cConfig.provider.toString()) {
-                                    //custom config will be removed
-                                    dbconfig.collection_partnerCommissionConfig.remove({
-                                        partner: proposalData.data.partnerObjId,
-                                        platform: proposalData.data.platformObjId,
-                                        commissionType: proposalData.data.commissionType,
-                                        provider: cConfig.provider,
-                                    }).exec();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-            return data;
-        },
-        error => {
-            return error;
-        }
-    );
+    });
+    // let customConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    //     partner: proposalData.data.partnerObjId,
+    //     platform: proposalData.data.platformObjId,
+    //     commissionType: proposalData.data.commissionType
+    // }).lean();
+    //
+    // let defaultConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+    //     partner: { "$exists" : false },
+    //     platform: proposalData.data.platformObjId,
+    //     commissionType: proposalData.data.commissionType
+    // }).lean();
+    //
+    // return Promise.all([customConfigProm, defaultConfigProm]).then(
+    //     data => {
+    //         let customConfig = data[0];
+    //         let defaultConfig = data[1];
+    //
+    //         if (defaultConfig && customConfig && defaultConfig.length > 0 && customConfig.length > 0) {
+    //             defaultConfig.forEach(dConfig => {
+    //                 if (dConfig && dConfig.commissionSetting && dConfig.commissionSetting.length > 0) {
+    //                     customConfig.forEach(cConfig => {
+    //                         if (cConfig && cConfig.commissionSetting && cConfig.commissionSetting.length > 0) {
+    //                             if (String(dConfig.provider) === String(cConfig.provider)) {
+    //                                 //custom config will be removed
+    //                                 dbconfig.collection_partnerCommissionConfig.remove({
+    //                                     partner: proposalData.data.partnerObjId,
+    //                                     platform: proposalData.data.platformObjId,
+    //                                     commissionType: proposalData.data.commissionType,
+    //                                     provider: cConfig.provider,
+    //                                 }).exec();
+    //                             }
+    //                         }
+    //                     });
+    //                 }
+    //             });
+    //         }
+    //         return data;
+    //     },
+    //     error => {
+    //         return error;
+    //     }
+    // );
 }
 
 function updateAllCustomizeCommissionRate (proposalData) {

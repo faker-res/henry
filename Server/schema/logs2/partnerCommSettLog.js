@@ -14,6 +14,10 @@ let partnerCommSettLog = new Schema({
     isSettled: {type: Boolean, default: false},
     // Is skipped
     isSkipped: {type: Boolean, default: false},
+    // total partner (include disabled permission)
+    totalPartnerCount: {type: Number, default: 0},
+    // total partner (permission not disable only)
+    totalValidPartnerCount: {type: Number, default: 0},
 });
 
 partnerCommSettLog.index({platform: 1, settMode: 1, startTime: 1, endTime: 1});

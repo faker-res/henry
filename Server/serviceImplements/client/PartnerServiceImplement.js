@@ -16,6 +16,9 @@ var queryPhoneLocation = require('cellocate');
 let dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 let dbPlayerPartner = require('./../../db_modules/dbPlayerPartner');
 let dbPlatform = require('./../../db_modules/dbPlatform');
+let dbPartnerCommissionConfig = require('./../../db_modules/dbPartnerCommissionConfig');
+let dbPartnerCommission = require('./../../db_modules/dbPartnerCommission');
+let dbPartnerPoster = require('./../../db_modules/dbPartnerPoster');
 
 var PartnerServiceImplement = function () {
     PartnerService.call(this);
@@ -61,6 +64,7 @@ var PartnerServiceImplement = function () {
                 if (data.phoneNumber){
                     partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
                 }
+                conn.isAuth = true;
                 conn.partnerId = partnerData.partnerId;
                 conn.partnerObjId = partnerData._id;
                 var profile = {name: partnerData.name, password: partnerData.password};
@@ -506,13 +510,13 @@ var PartnerServiceImplement = function () {
     };
 
     this.getDownLinePlayerTimeSequence.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId && data.period && data.sortMode);
+        let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId && data.period);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePlayerTimeSequence, [data.platformId, conn.partnerObjId, data.period, data.sortMode, data.requestPage, data.count], isValidData);
     };
 
     this.getPartnerTotalInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && conn && data.platformId && conn.partnerObjId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTotalInfo, [data.platformId, conn.partnerObjId, data.detailType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTotalInfo, [data.platformId, conn.partnerObjId, data.detailType, data.partnerName, data.playerName], isValidData);
     };
 
     this.getDownLinePlayerInfo.onRequest = function (wsFunc, conn, data) {
@@ -523,6 +527,15 @@ var PartnerServiceImplement = function () {
     this.getDownLinePartnerInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && conn.partnerId && data.period && data.partnerType);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownLinePartnerInfo, [data.platformId, conn.partnerId, data.period, data.partnerType, data.partnerAccount, data.requestPage, data.count, data.sortType, data.sort], isValidData, false, false, true);
+    };
+
+    this.createDownLinePartner.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.account && data.password && data.commissionRate && data.phoneNumber);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate, data.phoneNumber], isValidData);
+    };
+
+    this.getPartnerCommissionInfo.onRequest = function (wsFunc, conn, data) {
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommission.getPartnerCommissionInfoAPI, [conn.partnerId, data.searchPreviousPeriod], true);
     };
 
     this.notifyNewMail.addListener(
@@ -549,6 +562,21 @@ var PartnerServiceImplement = function () {
     this.readMail.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.partnerId && data && data.mailObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.readMail, [conn.partnerId, data.mailObjId], isValidData, false, false, true);
+    };
+
+    this.setPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.partnerId && data.commissionRate);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.setDLPartnerCommissionRateAPI, [conn.partnerId, data.partnerId, data.commissionRate], isValidData);
+    };
+
+    this.getPartnerPoster.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production], isValidData);
+    };
+
+    this.getPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.partnerId && data.platformId && data.commissionClass);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.getPartnerCommissionRate, [conn.partnerObjId, conn.partnerId, data.partnerId, data.platformId, data.commissionClass], isValidData);
     };
 
 };

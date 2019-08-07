@@ -1827,7 +1827,7 @@ define(['js/app'], function (myApp) {
         vm.performPlayerLevelSettlement = function (upOrDown) {
             vm.playerLevelSettlement.status = 'processing';
             socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
-                {platformId: vm.selectedPlatform.id, upOrDown: upOrDown},
+                {platformId: vm.selectedPlatform.id, upOrDown: upOrDown, isPlayer: true},
                 function (data) {
                     console.log('playerLevelSettlement', data);
                     vm.playerLevelSettlement.status = 'completed';
@@ -5223,7 +5223,7 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                "order": vm.playerTableQuery.aaSorting,
                 columns: [
                     {
                         title: $translate('PRODUCT_NAME'),
@@ -8620,7 +8620,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -8905,7 +8905,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -8918,7 +8918,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataPartner,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -11984,14 +11984,14 @@ define(['js/app'], function (myApp) {
 
                                 //here's to check creator is not null
                                 var creator;
-                                if(data.data && data.data.creator){
+                                if(data && data.creator){
 
-                                    if(data.data.creator.type === "admin"){
-                                        creator = data.data.creator.name;
+                                    if(data.creator.type === "admin"){
+                                        creator = data.creator.name;
 
-                                    }else if(data.data.creator.type === "player"){
+                                    }else if(data.creator.type === "player"){
                                         creator = $translate('System');
-                                        creator += "(" + data.data.creator.name + ")";
+                                        creator += "(" + data.creator.name + ")";
                                     }
 
                                 }else{
@@ -13459,6 +13459,9 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 if (data.data && data.data.stepInfo) {
                     socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                if (data.data && data.data.data && data.data.data.duplicateBankAccountName) {
+                    socketService.showConfirmMessage($translate("Multiple binding detected."), 10000);
                 }
                 vm.getPlatformPlayersData();
                 console.log('playerpayment', data);
@@ -22725,9 +22728,9 @@ define(['js/app'], function (myApp) {
                 $('#playerDataTable').on('order.dt', function (event, a, b) {
                     // console.log(event, a, b);
                     if (!a.aaSorting[0]) return;
-                    var sortCol = a.aaSorting[0][0];
-                    var sortDire = a.aaSorting[0][1];
-                    var sortKey = a.aoColumns[sortCol].data;
+                    let sortCol = 8; //registrationTime
+                    let sortDire = 'desc';
+                    let sortKey = a.aoColumns[sortCol].data;
                     // vm.playerTableQuery.aaSorting = a.aaSorting;
 
                     if (sortKey) {

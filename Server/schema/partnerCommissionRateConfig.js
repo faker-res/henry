@@ -9,11 +9,16 @@ let partnerCommissionRateConfigSchema = new Schema({
     // Rates
     rateAfterRebatePromo: {type: String},
     rateAfterRebatePlatform: {type: String},
-    rateAfterRebateGameProviderGroup: [],
+    rateAfterRebateGameProviderGroup: [], // if customize provider, isCustom: true
     rateAfterRebateTotalDeposit: {type: String},
     rateAfterRebateTotalWithdrawal: {type: String},
     // parent partner commission rate
-    parentCommissionRate: {type: String}
+    parentCommissionRate: {type: String},
+    // is particular field customize - for partner customize only
+    rateAfterRebatePromoCustom: {type: Boolean, default: false},
+    rateAfterRebatePlatformCustom: {type: Boolean, default: false},
+    rateAfterRebateTotalDepositCustom: {type: Boolean, default: false},
+    rateAfterRebateTotalWithdrawalCustom: {type: Boolean, default: false},
 });
 
 partnerCommissionRateConfigSchema.index({platform: 1, partner: 1});
