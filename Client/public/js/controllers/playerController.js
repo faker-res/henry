@@ -5186,8 +5186,8 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove decimal places, no rounding
-                        rowData.validCredit = Math.floor(rowData.validCredit);
-                        rowData.lockedCredit = Math.floor(rowData.lockedCredit);
+                        // rowData.validCredit = Math.floor(rowData.validCredit);
+                        // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
                             table.row.add(rowData);
@@ -6005,9 +6005,9 @@ define(['js/app'], function (myApp) {
                                             vm.anyLobbyTargetConsumption = group.targetConsumption;
                                             vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
                                         }
-                                        if (group.rewardAmt) {
-                                            group.rewardAmt = Math.floor(group.rewardAmt);
-                                        }
+                                        // if (group.rewardAmt) {
+                                        //     group.rewardAmt = Math.floor(group.rewardAmt);
+                                        // }
                                         return group;
                                     });
                                     vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
