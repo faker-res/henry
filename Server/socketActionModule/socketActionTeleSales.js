@@ -197,7 +197,7 @@ function socketActionTeleSales(socketIO, socket) {
         reclaimTsPhone: function reclaimTsPhone(data){
         var actionName = arguments.callee.name;
         var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignee);
-        socketUtil.emitter(self.socket, dbTeleSales.reclaimTsPhone, [data.platformObjId, data.tsPhoneListObjId, data.assignee], actionName, isValidData);
+        socketUtil.emitter(self.socket, dbTeleSales.reclaimTsPhone, [data.platformObjId, data.tsPhoneListObjId, data.assignee, data.isNeverUsed], actionName, isValidData);
     },
 
         getDistributionDetails: function getDistributionDetails(data){
