@@ -3297,12 +3297,12 @@ define(['js/app'], function (myApp) {
 
             vm.reportSearchTimeStart = new Date().getTime();
             socketService.$socket($scope.AppSocket, 'getProviderConsumptionReport', sendObj, function (data) {
-                $('#providerConsumptionReportTableSpin').hide();
-                findReportSearchTime();
-                vm.providerConsumptionQuery.totalCount = data.data.size || 0;
-                vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport, data.data.gameProviderDetail);
-
-                $scope.$evalAsync();
+                $scope.$evalAsync(() => {
+                    $('#providerConsumptionReportTableSpin').hide();
+                    findReportSearchTime();
+                    vm.providerConsumptionQuery.totalCount = data.data.size || 0;
+                    vm.drawProviderConsumptionReport(data.data.data, data.data.size, {}, newSearch, isExport, data.data.gameProviderDetail);
+                });
             }, function (err) {
                 $('#providerConsumptionReportTableSpin').hide();
                 console.log(err);
@@ -3310,7 +3310,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawProviderConsumptionReport = function (data, size, summary, newSearch, isExport, providerList) {
-            let columns = [{title: "", data: "credibilityRemark"}];
+            let columns = [
+                {title: "", data: "credibilityRemark"},
+                {title: $translate("PRODUCT_NAME"), data: "platformName"}
+            ];
 
             //create table columns
             if(providerList && providerList.length > 0){
@@ -3346,6 +3349,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: columns,
+                "destroy": true,
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
@@ -3358,7 +3362,7 @@ define(['js/app'], function (myApp) {
                 $('#providerConsumptionReportExcelTable_wrapper').hide();
                 vm.exportToExcel("providerConsumptionReportExcelTable", "PROVIDER_CONSUMPTION_REPORT");
             }else {
-                utilService.createDatatableWithFooter('#providerConsumptionReportTable', tableOptions, {});
+                vm.providerConsumptionQuery.table = utilService.createDatatableWithFooter('#providerConsumptionReportTable', tableOptions, {});
                 vm.providerConsumptionQuery.pageObj.init({maxCount: size}, newSearch);
 
                 $('#providerConsumptionReportTable').off('order.dt');
@@ -10318,10 +10322,33 @@ define(['js/app'], function (myApp) {
 
         vm.changePlayerCredibility = function () {
             if(vm.providerConsumptionQuery.platform){
+                $scope.$evalAsync(() => {
+                    if (vm.providerConsumptionQuery && vm.providerConsumptionQuery.table) {
+                        delete vm.providerConsumptionQuery.table;
+                        $('#providerConsumptionReportTable').DataTable().destroy().draw();
+                        $('#providerConsumptionReportTable').prop('innerHTML', "");
+                        vm.providerConsumptionQuery.totalCount = 0;
+                        vm.reportSearchTime = 0;
+                        vm.commonInitTime(vm.providerConsumptionQuery, '#providerConsumptionQuery');
+                        vm.providerConsumptionQuery.pageObj = utilService.createPageForPagingTable("#providerConsumptionReportTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "providerConsumptionQuery", vm.searchProviderConsumptionReport)
+                        });
+                    }
+                })
+
+
                 socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.providerConsumptionQuery.platform}, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data){
-                            vm.playerCredibilityRemark =  data.data;
+                            vm.playerCredibilityRemark = data.data.map(item => {
+                                item.platform$ = "";
+                                if(item && item.platform && vm.platformList && vm.platformList.length){
+                                    let filteredPlatform = vm.platformList.filter(a => a && a._id && (a._id.toString() === item.platform.toString()));
+                                    item.platform$ = filteredPlatform && filteredPlatform[0] && filteredPlatform[0].name ? filteredPlatform[0].name : "";
+                                }
+
+                                return item;
+                            });
                         }
                     });
                 });

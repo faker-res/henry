@@ -722,7 +722,8 @@ var proposalExecutor = {
                     ).then(
                         function (data) {
                             if (proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
-                                checkIsPlayerBindToPartner(proposalData.data._id, proposalData.data.platformId);
+                                let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
+                                checkIsPlayerBindToPartner(proposalData.data._id, platformObjId);
                             }
                             deferred.resolve(data);
                         },
