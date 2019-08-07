@@ -1088,6 +1088,18 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdmin, [ObjectId(data.platformObjId), data.roleList, data.departmentList], actionName, isValidData);
         },
 
+        updateReferralConfig: function updateReferralConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateReferralConfig, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        getReferralConfig: function getReferralConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getReferralConfig, [data.platform], actionName, isValidData);
+        },
+
     };
     socketActionPlatform.actions = this.actions;
 }

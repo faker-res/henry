@@ -24503,6 +24503,9 @@ define(['js/app'], function (myApp) {
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
                         break;
+                    case 'referral':
+                        vm.getReferralConfig(platformObjId);
+                        break;
                     case 'autoApproval':
                         vm.getAutoApprovalBasic(platformObjId);
                         break;
@@ -31847,6 +31850,25 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getReferralConfig = function (platformObjId) {
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getReferralConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getReferralConfig--', data.data);
+                        let referralConfigData = data.data;
+                        vm.referralConfig = {};
+                        if (referralConfigData) {
+                            vm.referralConfig.enableUseReferralPlayerId = referralConfigData.enableUseReferralPlayerId;
+                            vm.referralConfig.referralPeriod = referralConfigData.referralPeriod;
+                            vm.referralConfig.referralLimit = referralConfigData.referralLimit;
+                        }
+
+                    });
+                })
+            };
+
             vm.getBonusBasic = (platformObjId) => {
                 vm.getAllPlayerLevels(platformObjId).done(
                     function (data) {
@@ -32426,6 +32448,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
+                        break;
+                    case 'referral':
+                        updateReferralConfig(vm.referralConfig);
                         break;
                     case 'autoApproval':
                         updateAutoApprovalConfig(vm.autoApprovalBasic);
@@ -33948,6 +33973,21 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateReferralConfig(srcData) {
+                let sendData = {
+                    query: {platform: vm.filterConfigPlatform},
+                    updateData: {
+                        enableUseReferralPlayerId: srcData.enableUseReferralPlayerId,
+                        referralPeriod: srcData.referralPeriod,
+                        referralLimit: srcData.referralLimit
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateReferralConfig', sendData, function (data) {
                     loadPlatformData({loadAll: false});
                 });
             }
