@@ -5965,6 +5965,7 @@ let dbPlayerInfo = {
         }
 
         if (data && data.phoneNumber) {
+            console.log("walaohaha", rsaCrypto.encrypt(data.phoneNumber))
             data.phoneNumber = {
                 $in: [
                     rsaCrypto.encrypt(data.phoneNumber),
@@ -5974,6 +5975,7 @@ let dbPlayerInfo = {
                 ]
             };
         }
+        // console.log("walaohaha", rsaCrypto.encrypt(data.phoneNumber))
 
         function getRewardData(thisPlayer) {
             return dbconfig.collection_rewardTask.find({
