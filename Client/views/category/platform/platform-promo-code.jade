@@ -38,7 +38,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
+                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.refreshPromoCodeTemplate();vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
                     .text-center(ng-if='!vm.filterCreatePromoCodePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-show='vm.filterCreatePromoCodePlatform')
