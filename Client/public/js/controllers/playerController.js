@@ -5659,7 +5659,7 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
+                                if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') /*|| $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')*/) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5',
                                         'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),

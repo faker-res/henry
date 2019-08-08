@@ -959,13 +959,18 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
-    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee, isNeverUsed) => {
         let query = {
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
             assignee: assignee,
             registered: false
         }
+
+        if (isNeverUsed) {
+            query.isUsed = false;
+        }
+
         return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
             tsDistributedPhoneData => {
                 if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {
@@ -1537,7 +1542,7 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone) {
+    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
         let prom;
         if (isFeedbackPhone) {
             prom = dbconfig.collection_feedbackPhoneTrade.find(query).lean();
@@ -1546,7 +1551,7 @@ let dbTeleSales = {
         }
        return prom.then(
             phoneData => {
-                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone);
+                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle);
             }
        )
     },
@@ -1795,10 +1800,19 @@ let dbTeleSales = {
                 return [];
             }
 
-            return dbconfig.collection_players.find({tsPhoneList: tsPhoneList._id, platform: tsPhoneList.platform}, {name: 1, registrationTime:1, csOfficer: 1})
-                .sort({registrationTime: -1})
-                .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
-                .lean();
+            return dbconfig.collection_players.find({
+                $or: [
+                    {tsPhoneList: tsPhoneList._id},
+                    {relTsPhoneList: tsPhoneList._id}
+                ],
+                platform: tsPhoneList.platform
+            }, {
+                name: 1,
+                registrationTime:1,
+                csOfficer: 1
+            }).sort({registrationTime: -1})
+            .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
+            .lean();
         });
     },
 
@@ -2082,9 +2096,9 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone) {
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
     let proms = [];
-    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId && !isRecycle) {
         tsPhoneData.forEach(
             tsPhone => {
                 if(tsPhone && tsPhone.phoneNumber) {

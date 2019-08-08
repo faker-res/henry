@@ -677,7 +677,7 @@
                             .inlineBlk.pull-right
                                 button.btn.btn-primary.common-button.excluded(ng-click='vm.getRandomRewardDetail()') {{'DETAILS' | translate }}
                             .inlineBlk.pull-right
-                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id', ng-disabled="!vm.isPlayerAllowedPromoCode") {{'SAVE' | translate }}
+                                button.btn.btn-primary.common-button.excluded(ng-click='vm.saveRandomRewards()', ng-if='vm.showReward._id && checkViewPermission("Platform", "Reward", "Add")', ng-disabled="!vm.isPlayerAllowedPromoCode") {{'SAVE' | translate }}
                             .inlineBlk.pull-right
                                 div.text-success {{ vm.saveRandomRewardMsg }}
                             //.panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
@@ -693,7 +693,7 @@
                                         tr(ng-repeat="v in vm.activeRandomRewards")
                                             td(ng-show='v.status=="1"')
                                                 // delete this random reward item , temporary set status = 3,
-                                                i.fa.fa-minus(ng-click='v.status="3"')
+                                                i.fa.fa-minus(ng-click='v.status="3"' ng-show='checkViewPermission("Platform", "Reward", "Add")')
                                             td(ng-show='v.status=="1"')
                                                 input(type='string', ng-model='v.playerName', ng-change='v.isEdit = true')
                                             td(ng-show='v.status=="1"')
@@ -703,7 +703,7 @@
 
                                         tr(ng-repeat="(i,v) in vm.assignRandomRewards")
                                             td
-                                                i.fa.fa-plus(ng-show="vm.isPlayerAllowedPromoCode", ng-click='vm.addRandowRewardItem()')
+                                                i.fa.fa-plus(ng-show='vm.isPlayerAllowedPromoCode && checkViewPermission("Platform", "Reward", "Add")', ng-click='vm.addRandowRewardItem()')
                                             td
                                                 input.excluded(type='string', ng-model='v.playerName')
                                             td
