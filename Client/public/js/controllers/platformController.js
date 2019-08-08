@@ -17388,7 +17388,7 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
 
                 } else {
-                    
+
                     let resultName = vm.allPlayerFeedbackResults.filter(item => {
                         return item.key == data.result;
                     });
@@ -32224,7 +32224,17 @@ define(['js/app'], function (myApp) {
                 setTimeout(()=>{$('select#selectGameProvider').multipleSelect('refresh')},100);
             };
 
+            vm.refreshPromoCodeTemplate = () => {
+                vm.newPromoCode1 = [];
+                vm.newPromoCode2 = [];
+                vm.newPromoCode3 = [];
+                vm.promoCodeNewRow(vm.newPromoCode1, 1);
+                vm.promoCodeNewRow(vm.newPromoCode2, 2);
+                vm.promoCodeNewRow(vm.newPromoCode3, 3);
+            }
+
             vm.getPlatformProviderGroup = (platformObjId) => {
+
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.data._id
                 }
