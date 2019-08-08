@@ -28782,7 +28782,7 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         //     }
         // );
 
-        proms.push(prom);
+        proms.push(prom());
     });
 
     return Promise.all(proms).then(
