@@ -3787,6 +3787,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerListRecords = data.data.data;
                 vm.newPlayerRecords.totalCount = data.data.size;
                 vm.newPlayerRecords.loading = false;
+                vm.newPlayerRecordsSuccessOrManualList = [];
                 $('#getNewPlayerListSpin').hide();
                 console.log('new player list record', data);
 
@@ -3800,9 +3801,11 @@ define(['js/app'], function (myApp) {
                         //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                         if (record.status) {
                             if (record.status == vm.constProposalStatus.SUCCESS) {
+                                vm.newPlayerRecordsSuccessOrManualList.push(record.data.name);
                                 record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else if (record.status == vm.constProposalStatus.MANUAL) {
+                                vm.newPlayerRecordsSuccessOrManualList.push(record.data.name);
                                 //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
@@ -20216,7 +20219,15 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual") {
+            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
+            // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
+            if (vm.newPlayerProposal.status === "Pending" && vm.newPlayerRecordsSuccessOrManualList.includes(vm.newPlayerProposal.name)) {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
                     vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
