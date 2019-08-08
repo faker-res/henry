@@ -25422,36 +25422,7 @@ define(['js/app'], function (myApp) {
                         }
 
                     }
-
-                    //     if (index != -1 && popUpObjId && vm.frontEndPopularRecommendationData[index] && vm.frontEndPopularRecommendationData[index].pc && vm.frontEndPopularRecommendationData[index].pc.popUpList && && vm.frontEndPopularRecommendationData[index].pc.popUpList.length) {
-                    //
-                    //         vm.newPopUpInFirstPageSetting =
-                    //     }
-                    //
-                    //         if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
-                    //             $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
-                    //         }
-                    //         if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
-                    //             $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
-                    //         }
-                    //         if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
-                    //             $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
-                    //         }
-                    //
-                    //         if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
-                    //             vm.popularRecommendationSetting.pc = {};
-                    //         }
-                    //         if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
-                    //             vm.popularRecommendationSetting.h5 = {};
-                    //         }
-                    //         if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
-                    //             vm.popularRecommendationSetting.app = {};
-                    //         }
-                    //
-                    // }
                 }
-                // let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
-                // vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
 
                 // vm.refreshSPicker();
 
