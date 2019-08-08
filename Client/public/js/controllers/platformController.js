@@ -125,13 +125,14 @@ define(['js/app'], function (myApp) {
                 "topupCondition": 1
             };
 
+            //定义特别节日模式
             vm.festivalRewardType = {
-                "festivalType1": 1,
-                "festivalType2": 2,
-                "festivalType3": 3,
-                "birthday1": 4,
-                "birthday2": 5,
-                "birthday3": 6
+                "festivalType1": 1, //特别节日（可自定义）- 现金奖励
+                "festivalType2": 2, //特别节日（可自定义）- 存送金奖励
+                "festivalType3": 3, //特别节日（可自定义）- 周期内累积总投注额（已申请过不扣除）
+                "birthday1": 4, //会员生日 - 现金奖励
+                "birthday2": 5, //会员生日 - 存送金奖励
+                "birthday3": 6 //会员生日 - 周期内累积总投注额（已申请过不扣除）
             }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
