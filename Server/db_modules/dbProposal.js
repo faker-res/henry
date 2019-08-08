@@ -120,14 +120,14 @@ var proposal = {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.partnerObjId": proposalData.data.partnerObjId
+                        "data.partnerObjId": ObjectId(proposalData.data.partnerObjId)
                     }
                 }
                 else {
                     queryObj = {
                         type: proposalType._id,
                         status: constProposalStatus.PENDING,
-                        "data.playerObjId": proposalData.data.playerObjId
+                        "data.playerObjId": ObjectId(proposalData.data.playerObjId)
                     }
                 }
 
@@ -135,10 +135,12 @@ var proposal = {
                     pendingProposal => {
                         //for online top up and player consumption return, there can be multiple pending proposals
                         if (pendingProposal) {
-                            return Q.reject({
+                            return Promise.reject({
                                 name: "DBError",
                                 message: "Player or partner already has a pending proposal for this type"
                             });
+                        } else {
+                            console.log('MT --checking no pending proposal');
                         }
                     }
                 )
@@ -160,6 +162,7 @@ var proposal = {
         ).then(
             proposalData => {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && !proposalData.isPartner) {
+                    console.log('MT --checking creditChangeLog running', proposalData.data.playerObjId);
                     dbconfig.collection_creditChangeLog.findOne({
                         playerId: proposalData.data.playerObjId,
                         operationType: /*"editPlayerCredit:Deduction"*/"UpdatePlayerCredit",
@@ -627,7 +630,8 @@ var proposal = {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
                 } else if (
                     proposalData && proposalData.data && proposalData.mainType
-                    && (proposalData.mainType === "UpdatePlayer" || proposalData.mainType === "UpdatePartner")
+                    && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO)
+                    || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO))
                 ) {
                     proposalData.data.remark = localization.localization.translate("Amend Bank Info");
                 }
@@ -1262,11 +1266,17 @@ var proposal = {
     },
 
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        let proposalTypeName;
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
+            path: "type",
+            model: dbconfig.collection_proposalType,
+            select: "name"
+        }).lean().then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
                     || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
                         || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                    proposalTypeName = proposalData.type && proposalData.type.name || "";
                     return proposalData;
                 }
                 else {
@@ -1295,6 +1305,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
+                    // if (proposalTypeName == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                    //     dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
+                    // }
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, true);
                 } else if (status == constProposalStatus.FAIL || status == constProposalStatus.CANCEL) {
                     return dbPlayerInfo.updatePlayerBonusProposal(proposalId, false, remark, Boolean(status == constProposalStatus.CANCEL));
@@ -3661,7 +3674,16 @@ var proposal = {
         };
 
         if (reqData.inputDevice) {
-            reqData.inputDevice = Number(reqData.inputDevice);
+            if(reqData.inputDevice == 6){
+                reqData.inputDevice = {$in: [6, '6', 8, '8']};
+                queryData.inputDevice = {$in: [6, '6', 8, '8']};
+            } else if (reqData.inputDevice == 5) {
+                reqData.inputDevice = {$in: [5, '5', 7, '7']};
+                queryData.inputDevice = {$in: [5, '5', 7, '7']};
+            } else {
+                reqData.inputDevice = Number(reqData.inputDevice);
+                queryData.inputDevice = Number(queryData.inputDevice);
+            }
         }
 
         if (reqData.status) {
@@ -8756,13 +8778,19 @@ var proposal = {
 
         if(query.creditibilityRemarkList && query.creditibilityRemarkList.length > 0) {
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({_id: {$in: query.creditibilityRemarkList}}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }else if(query.platformIds && query.platformIds.length > 0){
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({platform: {$in: query.platformIds}}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }else{
             totalCredibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).count();
-            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1}).sort(sortCol).skip(index).limit(limit).lean();
+            credibilityRemarkProm = dbconfig.collection_playerCredibilityRemark.find({}, {_id: 1, name: 1, platform: 1})
+                .populate({path: "platform", model: dbconfig.collection_platform, select: '_id name'})
+                .sort(sortCol).skip(index).limit(limit).lean();
         }
 
         return credibilityRemarkProm.then(
@@ -8772,7 +8800,7 @@ var proposal = {
                     credibilityRemarkList.forEach(
                         credibilityRemark => {
                             if(credibilityRemark){
-                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, startDate, endDate));
+                                consumptionSummaryProm.push(proposal.calculateTotalValidConsumptionByProvider(credibilityRemark._id, credibilityRemark.name, credibilityRemark.platform._id, credibilityRemark.platform.name, startDate, endDate));
                             }
                         }
                     )
@@ -8801,10 +8829,12 @@ var proposal = {
         );
     },
 
-    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, startDate, endDate){
-        return dbconfig.collection_playerCredibilityRemark.find({_id: credibilityRemarkObjId}).lean().then(playerCredibilityRemark => {
-            return dbconfig.collection_players.find({platform: playerCredibilityRemark.platform, credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean();
-        }).then(
+    calculateTotalValidConsumptionByProvider: function(credibilityRemarkObjId, credibilityRemarkName, credibilityPlatform, credibilityPlatformName, startDate, endDate){
+        if (!credibilityPlatform) {
+            return;
+        }
+
+        return dbconfig.collection_players.find({platform: credibilityPlatform, credibilityRemarks: {$in: [credibilityRemarkObjId]}}, {_id: 1}).lean().then(
             playerList => {
                 if(playerList && playerList.length > 0){
                     let playerObjIds = playerList.map(playerIdObj => ObjectId(playerIdObj._id));
@@ -8823,7 +8853,7 @@ var proposal = {
                         },
                         {
                             $group: {
-                                _id: "$providerId",
+                                _id: {providerId: "$providerId", platformId: "$platformId"},
                                 totalValidConsumption: {"$sum": "$validAmount"}
                             }
                         }
@@ -8837,8 +8867,8 @@ var proposal = {
 
                     playerConsumptionSummary.forEach(
                         playerConsumption => {
-                            if(playerConsumption && playerConsumption._id){
-                                providerProm.push(proposal.getProviderName(playerConsumption._id, playerConsumption.totalValidConsumption));
+                            if(playerConsumption && playerConsumption._id && playerConsumption._id.providerId){
+                                providerProm.push(proposal.getProviderName(playerConsumption._id.providerId, playerConsumption.totalValidConsumption));
                             }
                         }
                     )
@@ -8848,7 +8878,7 @@ var proposal = {
             }
         ).then(
             providerDetails => {
-                let returnedObj = {credibilityRemark: credibilityRemarkName};
+                let returnedObj = {credibilityRemark: credibilityRemarkName, platformName: credibilityPlatformName};
                 let totalValidConsumptionByCredibilityRemark = 0;
                 console.log("LH Check providerConsumption Report 1------------------", providerDetails);
                 if(providerDetails && providerDetails.length > 0){

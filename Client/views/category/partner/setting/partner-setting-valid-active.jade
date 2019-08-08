@@ -228,10 +228,11 @@ div.margin-top-5(ng-if='vm.platformInSetting')
                             text(ng-if='!vm.configTableBulkEdit') {{vm.bulkActiveConfig.validPlayerValue}}
                             input(ng-if='vm.configTableBulkEdit', type='number', min='0' , ng-model='vm.bulkActiveConfig.validPlayerValue')
 
-    div
+    div(style="position: absolute; height: 500px;")
         .pull-left
             label(ng-if='vm.configTableBulkEdit') {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
                 select#productName.form-control(ng-model='vm.bulkActiveConfigPlatforms', ng-options='v._id as v.name for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+    div
         .pull-right
             button.btn.btn-primary.common-button(ng-if="!vm.configTableBulkEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableBulkEdit=!vm.configTableBulkEdit;vm.resetBulkActiveConfig()')
                 text {{'EDIT' | translate}}

@@ -825,16 +825,7 @@ let dbPlayerInfo = {
 
                         // check if the create function initiated by a partner -> yes - check captcha only
                         if (connPartnerId){
-                            if (bypassSMSVerify){
-                                return true;
-                            }
-                            else{
-                                return Promise.reject({
-                                    name: "ValidationError",
-                                    message: "Invalid image captcha"
-                                })
-                            }
-
+                            return true;
                         }
 
                         if (platformObj.requireSMSVerification) {
@@ -5962,7 +5953,7 @@ let dbPlayerInfo = {
 
     getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
-        sortObj = sortObj || {registrationTime: -1};
+        sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
         let advancedQuery = {};
@@ -6000,8 +5991,8 @@ let dbPlayerInfo = {
             return dbconfig.collection_rewardTaskGroup.find({
                 platformId: thisPlayer.platform,
                 playerId: thisPlayer._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
-            }).then(
+                status: constRewardTaskStatus.STARTED
+            }).lean().then(
                 rewardGroupData => {
                     thisPlayer.rewardGroupInfo = rewardGroupData;
                     thisPlayer.lockedCredit = rewardGroupData.reduce(
@@ -6080,54 +6071,67 @@ let dbPlayerInfo = {
             platform => {
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
+                let playerProm = Promise.resolve(false);
 
-                return dbconfig.collection_players
-                    .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                        players => {
-                            let calculatePlayerValueProms = [];
-                            let updatePlayerCredibilityRemarksProm = [];
-                            for (let i = 0; i < players.length; i++) {
-                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                                calculatePlayerValueProms.push(calculateProm);
+                if (data.name) {
+                    playerProm = dbconfig.collection_players.findOne(advancedQuery, {similarPlayers: 0}).lean();
+                }
 
-                                if (players[i].isTestPlayer) {
-                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
-                                }
-
-                                let uniqueCredibilityRemarks = [];
-                                if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
-                                    // filter out duplicate credibility remarks
-                                    uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
-                                        arr = arr.map(remark => {
-                                            remark = remark ? remark.toString() : "";
-                                            return remark;
-                                        });
-                                        elem = elem ? elem.toString() : "";
-                                        return arr.indexOf(elem) === pos;
-                                    });
-
-                                    uniqueCredibilityRemarks.forEach(string => {
-                                        return ObjectId(string);
-                                    });
-
-                                    // if found duplicate credibility remarks, update with no duplicates
-                                    if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
-                                        updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
-                                            {
-                                                _id: players[i]._id,
-                                                platform: players[i].platform
-                                            },
-                                            {
-                                                credibilityRemarks: uniqueCredibilityRemarks
-                                            }
-                                        ).exec().catch(errorUtils.reportError));
-                                    }
-                                }
-                            }
-                            return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                return playerProm.then(
+                    singlePlayerData => {
+                        if (data && data.name && singlePlayerData && singlePlayerData._id) {
+                            advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                         }
-                    )
+
+                        return dbconfig.collection_players
+                            .find(advancedQuery, {similarPlayers: 0})
+                            .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
+                                players => {
+                                    let calculatePlayerValueProms = [];
+                                    let updatePlayerCredibilityRemarksProm = [];
+                                    for (let i = 0; i < players.length; i++) {
+                                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                        calculatePlayerValueProms.push(calculateProm);
+
+                                        if (players[i].isTestPlayer) {
+                                            isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                        }
+
+                                        let uniqueCredibilityRemarks = [];
+                                        if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
+                                            // filter out duplicate credibility remarks
+                                            uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
+                                                arr = arr.map(remark => {
+                                                    remark = remark ? remark.toString() : "";
+                                                    return remark;
+                                                });
+                                                elem = elem ? elem.toString() : "";
+                                                return arr.indexOf(elem) === pos;
+                                            });
+
+                                            uniqueCredibilityRemarks.forEach(string => {
+                                                return ObjectId(string);
+                                            });
+
+                                            // if found duplicate credibility remarks, update with no duplicates
+                                            if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
+                                                updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
+                                                    {
+                                                        _id: players[i]._id,
+                                                        platform: players[i].platform
+                                                    },
+                                                    {
+                                                        credibilityRemarks: uniqueCredibilityRemarks
+                                                    }
+                                                ).exec().catch(errorUtils.reportError));
+                                            }
+                                        }
+                                    }
+                                    return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                                }
+                            )
+                    }
+                )
             }
         ).then(
             () => {
@@ -6201,19 +6205,16 @@ let dbPlayerInfo = {
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
-
                                     if (fullPhoneNumber) {
                                         dbPlayerInfo.getPagedSimilarPhoneForPlayers(
                                             playerId, platformId, fullPhoneNumber, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (registrationIp && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
                                     }
-
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
                                         dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
@@ -6226,7 +6227,7 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find({platform: platformId, $and: [data, orPhoneCondition, orIpCondition]}).count();
+                    .find(advancedQuery).count();
 
                 return Promise.all([a, b]);
             }
@@ -6235,10 +6236,6 @@ let dbPlayerInfo = {
                 let playerData;
                 dataSize = data[1];
                 let credibilityRemarksList = data && data[2] ? data[2] : [];
-                console.log('dataSize===', dataSize);
-                console.log('data.length===', data.length);
-                console.log('data[0]===', data[0]);
-                console.log('data[0].length===', data[0].length);
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
@@ -10963,16 +10960,14 @@ let dbPlayerInfo = {
                                 //     }
                                 // ).lean();
 
-                                let topUpProm = dbconfig.collection_proposal.find(
+                                let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                     {
-                                        mainType: constProposalMainType.PlayerTopUp,
-                                        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                        "data.platformId": ObjectId(playerObj.platform),
+                                        platformId: ObjectId(playerObj.platform),
                                         createTime: {
                                             $gte: new Date(platformPeriodTime.startTime),
                                             $lt: new Date(platformPeriodTime.endTime)
                                         },
-                                        "data.playerObjId": ObjectId(playerObj._id)
+                                        playerId: ObjectId(playerObj._id)
                                     }
                                 ).lean();
 
@@ -11380,16 +11375,14 @@ let dbPlayerInfo = {
                                 platformPeriodTime = dbUtil.getLastMonthSGTime();
                             }
 
-                            let topUpProm = dbconfig.collection_proposal.find(
+                            let topUpProm = dbconfig.collection_playerTopUpRecord.find(
                                 {
-                                    mainType: constProposalMainType.PlayerTopUp,
-                                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                                    "data.platformId": ObjectId(playerObj.platform),
+                                    platformId: ObjectId(playerObj.platform),
                                     createTime: {
                                         $gte: new Date(platformPeriodTime.startTime),
                                         $lt: new Date(platformPeriodTime.endTime)
                                     },
-                                    "data.playerObjId": ObjectId(playerObj._id)
+                                    playerId: ObjectId(playerObj._id)
                                 }
                             ).lean();
 
@@ -14435,6 +14428,10 @@ let dbPlayerInfo = {
                         else {
                             console.log('dbLargeWithdrawal', dbLargeWithdrawal)
                         }
+                    }
+
+                    if (proposalData && proposalData.type && proposalData.type.name == constProposalType.PARTNER_BONUS && data && data.data && data.data.amount && data.data.partnerObjId) {
+                        dbconfig.collection_partner.update({_id: data.data.partnerObjId},  {$inc: {totalWithdrawalAmt: data.data.amount}}).catch(errorUtils.reportError);
                     }
 
                     if (!bSuccess) {
@@ -18761,6 +18758,8 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
+        console.log('queryStartTime', queryStartTime);
+        console.log('twoDaysAgo', twoDaysAgo);
         if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
@@ -18769,6 +18768,8 @@ let dbPlayerInfo = {
             summaryEndTime = queryEndTime;
 
             // Check startTime is 00
+            console.log('queryStartTime.getHours()', queryStartTime.getHours());
+            console.log('queryStartTime.getMinutes()', queryStartTime.getMinutes());
             if (queryStartTime.getHours() !== 0 || queryStartTime.getMinutes() !== 0) {
                 preSummaryStartTime = queryStartTime;
                 preSummaryEndTime = dbUtility.getDayEndTime(queryStartTime);
@@ -23721,6 +23722,8 @@ let dbPlayerInfo = {
                 // return total amount
                 returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
 
+                returnData.localAmount =  totalLockedCredit + parseInt(returnData.credit);
+
                 return returnData;
             });
 
@@ -27400,11 +27403,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
                     recordSum += queryRecord[c][queryAmountField];
                 }
             } else {
-                if (bTopUp) {
-                    recordSum += queryRecord[c]["data"][queryAmountField];
-                } else {
-                    recordSum += queryRecord[c][queryAmountField];
-                }
+                recordSum += queryRecord[c][queryAmountField];
             }
         }
     }

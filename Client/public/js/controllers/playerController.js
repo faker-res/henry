@@ -5226,7 +5226,7 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                "order": vm.playerTableQuery.aaSorting,
                 columns: [
                     {
                         title: $translate('PRODUCT_NAME'),
@@ -8623,7 +8623,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -8908,7 +8908,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -8921,7 +8921,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataPartner,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -22739,9 +22739,9 @@ define(['js/app'], function (myApp) {
                 $('#playerDataTable').on('order.dt', function (event, a, b) {
                     // console.log(event, a, b);
                     if (!a.aaSorting[0]) return;
-                    var sortCol = a.aaSorting[0][0];
-                    var sortDire = a.aaSorting[0][1];
-                    var sortKey = a.aoColumns[sortCol].data;
+                    let sortCol = 8; //registrationTime
+                    let sortDire = 'desc';
+                    let sortKey = a.aoColumns[sortCol].data;
                     // vm.playerTableQuery.aaSorting = a.aaSorting;
 
                     if (sortKey) {

@@ -16,6 +16,10 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                                         text {{'PARTNERPLAYERBOUNS_REPORT' | translate}}
                                     li.list-group-item(class="{{vm.seleDataType.REAL_TIME_COMMISSION_REPORT}}" ng-click='vm.loadPage("REAL_TIME_COMMISSION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'REAL_TIME_COMMISSION_REPORT')")
                                         text {{'REAL_TIME_COMMISSION_REPORT' | translate}}
+                                    li.list-group-item(class="{{vm.seleDataType.PARTNER_SETTLEMENT_HISTORY_REPORT}}" ng-click='vm.loadPage("PARTNER_SETTLEMENT_HISTORY_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PARTNER_SETTLEMENT_HISTORY_REPORT')")
+                                        text {{'PARTNER_SETTLEMENT_HISTORY_REPORT' | translate}}
+                                    li.list-group-item(class="{{vm.seleDataType.PARTNER_PROFIT_REPORT}}" ng-click='vm.loadPage("PARTNER_PROFIT_REPORT")', ng-if="checkViewPermission('Partner', 'Report', 'PARTNER_PROFIT_REPORT')")
+                                        text {{'PARTNER_PROFIT_REPORT' | translate}}
 
 
     div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
@@ -32,6 +36,10 @@ div(ng-if="checkViewPermission('Partner', 'Report')")
                     include ./partner-player-bonus
                 div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
                     include ./real-time-commission
+                div(ng-if='vm.showPageName=="PARTNER_SETTLEMENT_HISTORY_REPORT"')
+                    include ./partner-settlement-history
+                div(ng-if='vm.showPageName=="PARTNER_PROFIT_REPORT"')
+                    include ./partner-profit
 
 
 link(rel='stylesheet', href='css/analysis.css')

@@ -33933,7 +33933,7 @@ define(['js/app'], function (myApp) {
                         partnerPrefix: srcData.partnerPrefix,
                         partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
-                        partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
+                        partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
@@ -42626,6 +42626,15 @@ define(['js/app'], function (myApp) {
                     $('#frontEndPopUpAdvUploader').hide();
                 });
             };
+
+            vm.checkProposalStepUpdatePermission = () => {
+                let isValid = false;
+                if (authService.checkViewPermission('Platform', 'Proposal', 'Create') || authService.checkViewPermission('Platform', 'Proposal', 'Update')
+                    || authService.checkViewPermission('Platform', 'Proposal', 'Delete')) {
+                    isValid = true;
+                }
+                return isValid;
+            }
 
             function getSelectedPlatform() {
                 let platform = null;

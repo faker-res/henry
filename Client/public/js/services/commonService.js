@@ -259,6 +259,8 @@ define([], () => {
                         let gameProviderGroupNames = {};
 
                         for (let i = 0; i < gameProviderGroup.length; i++) {
+                            delete gameProviderGroup[i].__v;
+                            delete gameProviderGroup[i].__proto__;
                             let providerGroup = gameProviderGroup[i];
                             gameProviderGroupNames[providerGroup._id] = providerGroup.name;
                         }
@@ -536,20 +538,33 @@ define([], () => {
                         }
                     });
 
-                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
-                        grp.showConfig.commissionSetting.forEach(e => {
-                            if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
-                                grp.srcConfig.commissionSetting.forEach(f => {
-                                    if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
-                                        && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
-                                        && e.activePlayerValueFrom === f.activePlayerValueFrom
-                                        && e.activePlayerValueTo === f.activePlayerValueTo
-                                        && Number(e.commissionRate) !== Number(f.commissionRate)
-                                    ) {
-                                        e.isCustomized = true;
-                                    }
-                                });
+                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length == grp.showConfig.commissionSetting.length) {
+                        let originalConfig = grp.srcConfig.commissionSetting;
+                        grp.showConfig.commissionSetting.forEach((e, index) => {
+                            // if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
+                            // grp.srcConfig.commissionSetting.forEach(f => {
+                            // if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
+                            //     && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
+                            //     && e.activePlayerValueFrom === f.activePlayerValueFrom
+                            //     && e.activePlayerValueTo === f.activePlayerValueTo
+                            //     && Number(e.commissionRate) !== Number(f.commissionRate)
+                            // ) {
+                            //     e.isCustomized = true;
+                            // }
+                            if (e.playerConsumptionAmountFrom !== originalConfig[index].playerConsumptionAmountFrom
+                                || e.playerConsumptionAmountTo !== originalConfig[index].playerConsumptionAmountTo
+                                || e.activePlayerValueFrom !== originalConfig[index].activePlayerValueFrom
+                                || e.activePlayerValueTo !== originalConfig[index].activePlayerValueTo
+                            ) {
+                                e.isConfigCustomized = true;
+                                e.isCustomized = true;
                             }
+
+                            if (Number(e.commissionRate) !== Number(originalConfig[index].commissionRate)) {
+                                e.isCustomized = true;
+                            }
+                            // });
+                            // }
 
                             // Change to percentage format
                             // e.commissionRate = parseFloat((e.commissionRate * 100).toFixed(2));
@@ -567,18 +582,29 @@ define([], () => {
                 let custObj = custSett.filter(e => String(e.partner) === String(partnerObjId))[0];
 
                 normalRates.forEach(e => {
-                    if (Number(commSett[e]) !== Number(custObj[e])) {
+                    // if (Number(commSett[e]) !== Number(custObj[e])) {
+                    let cusTomFieldKey = e + "Custom";
+                    if (custObj[cusTomFieldKey]) {
                         custObj.isCustomizedField = custObj.isCustomizedField || [];
                         custObj.isCustomizedField.push(e);
+                    } else {
+                        custObj[e] = commSett[e];
                     }
+                    // }
                 });
 
                 if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length > 0) {
                     commSett.rateAfterRebateGameProviderGroup = commSett.rateAfterRebateGameProviderGroup.map(e => {
-                        custObj.rateAfterRebateGameProviderGroup.forEach(f => {
+                        custObj.rateAfterRebateGameProviderGroup.map(f => {
                             if (String(e.gameProviderGroupId) === String(f.gameProviderGroupId) && Number(e.rate) !== Number(f.rate)) {
-                                f.isCustomized = true;
-                                e = Object.assign({}, e, f);
+                                // f.isCustomized = true;
+                                // e = Object.assign({}, e, f);
+                                if (!f.isCustom) {
+                                    f.rate = e.rate;
+                                } else {
+                                    f.isCustomized = true;
+                                    e = Object.assign({}, e, f);
+                                }
                             }
                         });
 
@@ -1088,12 +1114,13 @@ define([], () => {
                 proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["isMultiLevel"] = vm.selectedProposal.data.isMultiLevel? $translate("true"): $translate("false");
                 if (vm.selectedProposal.data.isEditAll) {
                     proposalDetail["oldRate"] = "";
                     if (vm.selectedProposal.data.oldConfigArr && vm.selectedProposal.data.oldConfigArr.length > 0) {
                         vm.selectedProposal.data.oldConfigArr.forEach(oldConfig => {
-                            if (oldConfig && oldConfig.provider && oldConfig.commissionSetting && oldConfig.commissionSetting.length > 0) {
-                                let providerGroupName = vm.getProviderGroupNameById(oldConfig.provider);
+                            if (oldConfig && oldConfig.hasOwnProperty("provider") && oldConfig.commissionSetting && oldConfig.commissionSetting.length > 0) {
+                                let providerGroupName = oldConfig.provider === null? $translate("default"): vm.getProviderGroupNameById(oldConfig.provider);
                                 let oldRateArr = [];
                                 let oldRateStr = '';
                                 oldConfig.commissionSetting.forEach(commission => {
@@ -1113,8 +1140,8 @@ define([], () => {
                     proposalDetail["newRate"] = "";
                     if (vm.selectedProposal.data.newConfigArr && vm.selectedProposal.data.newConfigArr.length > 0) {
                         vm.selectedProposal.data.newConfigArr.forEach(newConfig => {
-                            if (newConfig && newConfig.provider && newConfig.commissionSetting && newConfig.commissionSetting.length > 0) {
-                                let providerGroupName = vm.getProviderGroupNameById(newConfig.provider);
+                            if (newConfig && newConfig.hasOwnProperty("provider") && newConfig.commissionSetting && newConfig.commissionSetting.length > 0) {
+                                let providerGroupName = newConfig.provider === null? $translate("default"): vm.getProviderGroupNameById(newConfig.provider);
                                 let newRateArr = [];
                                 let newRateStr = '';
                                 newConfig.commissionSetting.forEach(commission => {
@@ -1171,8 +1198,8 @@ define([], () => {
                         proposalDetail["Commission Customization Revert"] = vm.selectedProposal.data.isRevert;
                     }
                     proposalDetail["oldRate"] = "";
-                    if (vm.selectedProposal.data.oldRate.provider && vm.selectedProposal.data.oldRate.commissionSetting && vm.selectedProposal.data.oldRate.commissionSetting.length > 0) {
-                        let providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.oldRate.provider);
+                    if (vm.selectedProposal.data.oldRate.hasOwnProperty("provider") && vm.selectedProposal.data.oldRate.commissionSetting && vm.selectedProposal.data.oldRate.commissionSetting.length > 0) {
+                        let providerGroupName = vm.selectedProposal.data.oldRate.provider === null? $translate("default"): vm.getProviderGroupNameById(vm.selectedProposal.data.oldRate.provider);
                         let oldRateArr = [];
                         let oldRateStr = '';
                         vm.selectedProposal.data.oldRate.commissionSetting.forEach(commission => {
@@ -1188,8 +1215,8 @@ define([], () => {
                         proposalDetail["- " + providerGroupName] = oldRateStr;
                     }
                     proposalDetail["newRate"] = "";
-                    if (vm.selectedProposal.data.newRate.provider && vm.selectedProposal.data.newRate.commissionSetting && vm.selectedProposal.data.newRate.commissionSetting.length > 0) {
-                        let providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.newRate.provider);
+                    if (vm.selectedProposal.data.newRate.hasOwnProperty("provider") && vm.selectedProposal.data.newRate.commissionSetting && vm.selectedProposal.data.newRate.commissionSetting.length > 0) {
+                        let providerGroupName = vm.selectedProposal.data.oldRate.provider === null? $translate("default"): vm.getProviderGroupNameById(vm.selectedProposal.data.newRate.provider);
                         let oldRateArr = [];
                         let oldRateStr = '';
                         vm.selectedProposal.data.newRate.commissionSetting.forEach(commission => {
@@ -1225,18 +1252,23 @@ define([], () => {
                 };
                 let isCustomized = false;
 
-                let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
-                let consumptionUsedKey = vm.selectedProposal.data.commissionType == 5 ? "totalConsumption" : "siteBonusAmount";
+                let consumptionUsed = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "CONSUMPTION" : "SITE_LOSE_WIN";
+                let consumptionUsedKey = [5, 7].includes(vm.selectedProposal.data.commissionType) ? "totalConsumption" : "siteBonusAmount";
+                let isValidConsumptionBased = Boolean([5, 7].includes(vm.selectedProposal.data.commissionType));
+                let platformFeeRateMultiplier = vm.selectedProposal.data.isNewComm ? 100 : 1;
 
-                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
-                proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
-                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
-                proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
-                proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
-                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
-                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status);
-                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name; // 产品名称
+                proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission"); // 提案类型
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId; // 提案号
+                proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime); // 创建时间
+                proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime); // 佣金周期
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName; // 代理账号
+                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId; // 代理ID
+                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.status); // 提案状态
+                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]); // 佣金模式
+
+
+                // proposalDetail["[Direct Down Line] Total Commission"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN"); // 多级代理佣金总计
 
                 vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
@@ -1245,70 +1277,141 @@ define([], () => {
                         + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(-rawCommission.totalConsumption) + "/"
                         + $translate("RATIO") + ": " + $fixTwoDecimalStr(rawCommission.commissionRate * 100) + "%)";
 
-                    proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+                    let label = `${$translate("[Direct Down Line]")} ${rawCommission.groupName} ${$translate("Commission")}`;
+                    proposalDetail[label] = str; // {提供商组} 佣金
 
                     if (rawCommission.isCustomCommissionRate) {
-                        vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                        vm.proposalDetailStyle[label] = customizedStyle;
                         isCustomized = true;
                     }
                 });
 
-                proposalDetail["REQUIRED_PROMO_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+                // proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = ""; // 需扣除的平台费
+                if (!isValidConsumptionBased) {
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        totalPlatformFee += rawCommission.platformFee;
+                        let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate && rawCommission.platformFeeRate * platformFeeRateMultiplier || 0) + "%)";
+                        let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
-                }
+                        let label = `${$translate("[Direct Down Line]")} ${$translate("TOTAL_PLATFORM_FEE")} ${rawCommission.groupName}`;
+                        if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                            proposalDetail[label] = forcedZeroStr;
+                        } else {
+                            proposalDetail[label] = str;
 
-                proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
-                vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                    totalPlatformFee += rawCommission.platformFee;
-                    let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
-                        + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(rawCommission.siteBonusAmount) + "/"
-                        + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
-                    let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
-                        + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
-
-                    if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
-                        proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
-                    } else {
-                        proposalDetail["- " + rawCommission.groupName] =  str;
-
-                        if (rawCommission.isCustomPlatformFeeRate) {
-                            vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                            isCustomized = true;
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle[label] = customizedStyle;
+                                isCustomized = true;
+                            }
                         }
+                    });
+
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalRewardFee) + $translate("YEN") // 需扣除的优惠
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalReward) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo || 0) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
                     }
-                });
 
-                proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUpFee) + $translate("YEN") // 需扣除的总存款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalTopUp) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit || 0) + "%)";
 
-                if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
-                }
+                    if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
+                    }
 
-                proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN")
-                    + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
-                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+                    `${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`
+                    proposalDetail[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawalFee) + $translate("YEN") // 需扣除的总取款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.totalWithdrawal) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig && vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal || 0) + "%)";
 
-                if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
-                    vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
-                    isCustomized = true;
+                    if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        vm.proposalDetailStyle[`${$translate("[Direct Down Line]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = customizedStyle;
+                        isCustomized = true;
+                    }
                 }
 
                 if (isCustomized) {
                     vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
                 }
 
-                let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+                // proposalDetail["[Multi Level] Total Commission"] = $fixTwoDecimalStr(vm.selectedProposal.data.tCNettAmount || 0) + $translate("YEN"); // 多级代理佣金总计
+                // 【多级代理】
+                vm.selectedProposal.data.tCRawTotal = vm.selectedProposal.data.tCRawTotal || [];
+                vm.selectedProposal.data.tCRawTotal.map(rawCommission => {
+                    let str = $fixTwoDecimalStr(rawCommission.amount) + $translate("YEN") + " "
+                        + "(" + $translate(consumptionUsed) + ": " + $fixTwoDecimalStr(isValidConsumptionBased ? rawCommission.totalValidConsumption : -rawCommission.crewProfit) /*+ "/"
+                        + $translate("RATIO") + ": " + $fixTwoDecimalStr(rawCommission.commissionRate * 100) + "%"*/ + ")";
 
-                proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount) + " "
-                    + "(" + $fixTwoDecimalStr(grossCommission) + "-" + $fixTwoDecimalStr(totalFee) + ")";
+                    let label = `${$translate("[Multi Level]")} ${rawCommission.groupName} ${$translate("Commission")}`;
+                    proposalDetail[label] =  str; // {提供商组} 佣金
+
+                    if (rawCommission.isCustomCommissionRate) {
+                        vm.proposalDetailStyle[label] = customizedStyle;
+                        isCustomized = true;
+                    }
+                });
+
+                if (!isValidConsumptionBased) {
+                    vm.selectedProposal.data.tCRawTotal.map(rawCommission => {
+                        let str = $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + $fixTwoDecimalStr(-rawCommission.crewProfit) + "/"
+                            + $translate("RATIO") + ": " + ($fixTwoDecimalStr(rawCommission.platformFeeRate*100)) + "%)";
+                        let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? $fixTwoDecimalStr(rawCommission.platformFee) + $translate("YEN") + " "
+                            + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
+
+                        let label = `${$translate("[Multi Level]")} ${$translate("TOTAL_PLATFORM_FEE")} ${rawCommission.groupName}`;
+                        if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                            proposalDetail[label] = forcedZeroStr;
+                        } else {
+                            proposalDetail[label] = str;
+
+                            if (rawCommission.isCustomPlatformFeeRate) {
+                                vm.proposalDetailStyle[label] = customizedStyle;
+                                isCustomized = true;
+                            }
+                        }
+                    });
+
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tCRewardFee || 0) + $translate("YEN") // 需扣除的优惠
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCReward || 0) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childRewardFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_PROMO_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcTopUpFee || 0) + $translate("YEN") // 需扣除的总存款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCTopUp || 0) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childTopUpFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_DEPOSIT_FEES_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+
+                    `${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`
+                    proposalDetail[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = $fixTwoDecimalStr(vm.selectedProposal.data.tcWithdrawalFee || 0) + $translate("YEN") // 需扣除的总取款手续费
+                        + "(" + $translate("Total") + ": " + $fixTwoDecimalStr(vm.selectedProposal.data.tCWithdrawal || 0) + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.childWithdrawalFeeRate || 0) + "%)";
+
+                    // if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                    //     vm.proposalDetailStyle[`${$translate("[Multi Level]")} ${$translate("REQUIRED_WITHDRAWAL_FEES_DEDUCTION")}`] = customizedStyle;
+                    //     isCustomized = true;
+                    // }
+                }
+
+
+
+                proposalDetail["COMMISSION_TOTAL"] = $fixTwoDecimalStr(vm.selectedProposal.data.amount); // 佣金总结
             }
             // end region
 

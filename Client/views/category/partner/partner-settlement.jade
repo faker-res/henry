@@ -1,6 +1,6 @@
 div(ng-if="!vm.showPreviewOption")
     text.inline-block.margin-right-5 {{'PLATFORM' | translate}}
-    select.inline-block( ng-model="vm.settlePlatform" ng-change="vm.getPlatformInSetting()")
+    select.inline-block( ng-model="vm.settlePlatform" ng-change="vm.getPlatformInSettlement()")
         option(ng-repeat='(i,j) in vm.platformList', value= '{{j.data && j.data.platformId}}') {{j.data && j.data.platformId || ""}} - {{j.text | translate}}
     .btn.btn-primary.margin-left-5(ng-disabled="!vm.settlePlatform" ng-click="vm.showPreviewOption = true; vm.startPlatformPartnerCommissionSettlement();") {{'PREVIEW' | translate}}
 
