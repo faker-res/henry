@@ -18768,6 +18768,8 @@ let dbPlayerInfo = {
             summaryEndTime = queryEndTime;
 
             // Check startTime is 00
+            console.log('queryStartTime.getHours()', queryStartTime.getHours());
+            console.log('queryStartTime.getMinutes()', queryStartTime.getMinutes());
             if (queryStartTime.getHours() !== 0 || queryStartTime.getMinutes() !== 0) {
                 preSummaryStartTime = queryStartTime;
                 preSummaryEndTime = dbUtility.getDayEndTime(queryStartTime);
