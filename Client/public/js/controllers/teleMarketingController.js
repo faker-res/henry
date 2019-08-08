@@ -6482,6 +6482,7 @@ define(['js/app'], function (myApp) {
                         query: {
                             _id: {$in: tsPhoneIds}
                         },
+                        isRecycle: true,
                         isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
                         platformObjId: vm.importPlatformForXLS,
                         isFeedbackPhone: vm.showPageName == "OTHER_DEPARTMENT_TS_LIST"
