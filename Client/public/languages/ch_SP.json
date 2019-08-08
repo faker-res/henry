@@ -4677,6 +4677,8 @@
   "Reclaim Phone List in Advance (Unregistered Phone)": "提前回收名单（尚未开户的电话）",
   "All unregister phone number will be reclaim. Are you sure to execute?": "全部尚未开户的电话将被提前回收，确定执行？",
   "Unexpired phone will be marked as distributed and be reclaimed back to phone list pool": "尚未回收期限的名单，将被该店销员标记已派发过后，提前回收到名单池当中。",
+  "Reclaim Unused Phone Number in Advance": "提前回收未使用的名单",
+  "All unused phone number will be reclaim. Are you sure to execute?": "全部尚未使用的电话将被提前回收，确定执行？",
   "Exclude Recurrence": "去除重复寻还",
   "PRE_DISTRIBUTION": "尚未开始派发",
   "DISTRIBUTING": "派发中",
