@@ -16,9 +16,7 @@ const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const errorUtils = require("../modules/errorUtils.js");
 const rsaCrypto = require("../modules/rsaCrypto");
 const ObjectId = mongoose.Types.ObjectId;
-//Testing Block
-var dbUtility = require('./../modules/dbutility');
-//Tesing Block
+
 var dbPlayerFeedback = {
 
     /**
@@ -630,10 +628,86 @@ var dbPlayerFeedback = {
         });
     },
 
-    getPlayerFeedbackQuery: function (query, index, isMany, startTime, endTime) {
+    getPlayerFeedbackQuery: async function (query, index, isMany, startTime, endTime) {
 
+        let searchQuery = await dbPlayerFeedback.getFeedbackSearchQuery(query, index, isMany,startTime, endTime);
+        console.log('Search Query', searchQuery);
+        let playerResult;
+        let players;
+        let count;
+        if(isMany.searchType === "one"){
+            players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
+                .populate({path: "partner", model: dbconfig.collection_partner})
+                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                .sort(isMany.sortCol).lean().then(
+                    player => {
+                        if(player && player.length >0){
+                            playerResult = player[0];
+                            return dbPlayerInfo.getConsumptionDetailOfPlayers(player[0].platform, player[0].registrationTime, new Date().toISOString(), {}, [player[0]._id]);
+                        }else{
+                            return null;
+                        }
+                    }
+                ).then(
+                    consumptionDetail => {
+                        if(consumptionDetail && playerResult) {
+                            return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
+                        } else {
+                            return playerResult;
+                        }
+                    }
+                );
+
+            count = dbconfig.collection_players.count(searchQuery);
+        }else{
+            players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
+                .populate({path: "partner", model: dbconfig.collection_partner})
+                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                .sort(isMany.sortCol).lean();
+            count = dbconfig.collection_players.find(searchQuery, { _id: 1}).lean();
+        }
+
+        let total;
+        return Q.all([players, count]).then(data => {
+            if(isMany.searchType === "one"){
+                total = data[1];
+            }else{
+                total = data[1].length ? data[1].length : 0;
+                if(data[0] && data[0].length){
+                    console.log('=CallOutMission= callout query result', data[0].length);
+                }
+            }
+            console.log('return data', data);
+            return {
+                data: data[0] ? data[0] : {},
+                index: index,
+                total: total
+            }
+        });
+    },
+
+
+    getFeedbackSearchQuery: async function(query, index, isMany,startTime, endTime){
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
+        let isBothFilter = false;
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+            isBothFilter = true;
+            let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
+            let filteredPlayer = await dbconfig.collection_playerFeedback.find({
+                createTime: {$gte: new Date(feedbackTimes)},
+                platform: query.selectedPlatform,
+                topic: query.filterFeedbackTopic,
+            }).lean();
+            let filteredUniquePlayersObjId = [];
+            console.log('Filter Feedback', filteredPlayer);
+            for(i =0; i < filteredPlayer.length; i++){
+                filteredUniquePlayersObjId.push(filteredPlayer[i].playerId);
+            }
+            sendQuery._id = {$nin: filteredUniquePlayersObjId};
+            console.log('Filter Feedback ID', filteredUniquePlayersObjId);
+            console.log('Filter Sendquery ID', sendQuery);
+        }
 
         if (query.playerType && query.playerType != null) {
             sendQuery.playerType = query.playerType;
@@ -685,7 +759,10 @@ var dbPlayerFeedback = {
                 $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.lastAccessLatter)),
             };
         } else {
-            let range = query.lastAccess.split("-");
+            let range;
+            if(query.lastAccess){
+                range = query.lastAccess.split("-");
+            }
             sendQuery.lastAccessTime = {
                 $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
             };
@@ -694,69 +771,49 @@ var dbPlayerFeedback = {
             }
         }
 
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0) {
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && isBothFilter === false) {
             sendQuery.lastFeedbackTopic = {$nin: query.filterFeedbackTopic};
+
         }
 
-        if(query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+        //original block
+        if (query.filterFeedback) {
             let lastFeedbackTimeExist = {
                 lastFeedbackTime: null
             };
             let lastFeedbackTime = {
                 lastFeedbackTime: {
-                    // $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
-                    $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
+                    $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
                 }
             };
-            sendQueryOr.push(lastFeedbackTimeExist);
-            sendQueryOr.push(lastFeedbackTime);
-            let lastFeedbackTopic = "lastFeedbackTopic";
-            if (sendQuery.hasOwnProperty("$or")) {
-                if (sendQuery.$and) {
-
-                    sendQuery.$and.push({$or: sendQuery.$or});
-                    sendQuery.$and.push({$or: sendQueryOr});
-                    sendQuery.$and.push({lastFeedbackTopic: {$nin: query.filterFeedbackTopic}});
-                } else {
-                    sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}, {lastFeedbackTopic: {$nin: query.filterFeedbackTopic}}];
-                }
-                delete sendQuery.$or;
-            } else {
-                // sendQuery["$or"] = sendQueryOr;
-                sendQuery.$and = [{$or: sendQueryOr}, {lastFeedbackTopic: {$nin: query.filterFeedbackTopic}}];
-            }
-        }else{
-            //original block
-            if (query.filterFeedback) {
-                let lastFeedbackTimeExist = {
-                    lastFeedbackTime: null
-                };
-                let lastFeedbackTime = {
-                    lastFeedbackTime: {
-                        $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
-                        // $gte: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback))
-                    }
-                };
+            if(isBothFilter === false) {
                 sendQueryOr.push(lastFeedbackTimeExist);
                 sendQueryOr.push(lastFeedbackTime);
             }
+        }
 
-            if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 || query.filterFeedback) {
-                if (sendQuery.hasOwnProperty("$or")) {
-                    if (sendQuery.$and) {
-                        sendQuery.$and.push({$or: sendQuery.$or});
-                        sendQuery.$and.push({$or: sendQueryOr});
-                    } else {
-                        sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
-                        // sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
-                    }
-                    delete sendQuery.$or;
+        if((query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0) || query.filterFeedback){
+            if (sendQuery.hasOwnProperty("$or")) {
+                if (sendQuery.$and) {
+                    sendQuery.$and.push({$or: sendQuery.$or});
+                    sendQuery.$and.push({$or: sendQueryOr});
                 } else {
+                    // sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
+                    if(isBothFilter === true){
+                        sendQuery.$and = [{$or: sendQuery.$or}];
+                    }else{
+                        sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
+                    }
+                }
+                delete sendQuery.$or;
+            } else {
+                if(sendQueryOr.length > 0){
                     sendQuery["$or"] = sendQueryOr;
                 }
             }
-            //original block
         }
+        //original block
+
         if (query.callPermission === 'true') {
             sendQuery['permission.phoneCallFeedback'] = {$ne: false};
         } else if (query.callPermission === 'false') {
@@ -933,27 +990,42 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        let department = await dbconfig.collection_department.find({
+            _id: {$in: query.departments}
+        }).lean();
 
-        if (query.departments) {
-            if (query.roles) {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && (query.roles.indexOf(e._id) >= 0)) {
-                        e.users.map(f => admins.push(f._id))
+        console.log('department', department);
+        if (department && department.length > 0) {
+            if(query.roles){
+
+                for(i = 0; i < department.length; i++){
+                    if(department[i].roles._id !== "" && (query.roles.indexOf(department[i].roles._id) >= 0)){
+                        for(j = 0; j < department[i].users.length; j++){
+                            admins.push(department[i].users[j]);
+                        }
                     }
-                })
-            } else {
-                vm.queryRoles.map(e => {
-                    if (e._id != "" && e.users && e.users.length) {
-                        e.users.map(f => {
-                            if (f._id != "") {
-                                admins.push(f._id)
-                            }
-                        })
+                }
+
+                // department.roles.map(role =>{
+                //     if(role._id !== "" && (query.roles.indexOf(role._id) >= 0)){
+                //         department.users.map(user => admins.push(user._id));
+                //     }
+                // })
+            }else{
+                for(i = 0; i < department.length; i++){
+                    if(department[i].roles._id !== "" && department[i].users && department[i].users.length){
+                        for(j = 0; j < department[i].users.length; j++){
+                            admins.push(department[i].users[j]);
+                        }
                     }
-                })
+                }
+                // department.roles.map(role => {
+                //     if(role._id !== "" && role.users && role.users.length){
+                //         department.map(user => admins.push(user._id));
+                //     }
+                // });
             }
         }
-
         if ( (query.admins && query.admins.length > 0) || admins.length) {
             sendQuery.csOfficer = query.admins && query.admins.length > 0 ? query.admins : admins;
         }
@@ -1002,59 +1074,8 @@ var dbPlayerFeedback = {
 
             }
         }
-
-        let playerResult;
-        let players;
-        let count;
-        if(isMany.searchType === "one"){
-            players = dbconfig.collection_players.find(sendQuery).skip(index).limit(isMany.limit)
-                .populate({path: "partner", model: dbconfig.collection_partner})
-                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                .sort(isMany.sortCol).lean().then(
-                    player => {
-                        if(player && player.length >0){
-                            playerResult = player[0];
-                            return dbPlayerInfo.getConsumptionDetailOfPlayers(player[0].platform, player[0].registrationTime, new Date().toISOString(), {}, [player[0]._id]);
-                        }else{
-                            return null;
-                        }
-                    }
-                ).then(
-                    consumptionDetail => {
-                        if(consumptionDetail && playerResult) {
-                            return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
-                        } else {
-                            return playerResult;
-                        }
-                    }
-                );
-
-            count = dbconfig.collection_players.count(sendQuery);
-        }else{
-            players = dbconfig.collection_players.find(sendQuery).skip(index).limit(isMany.limit)
-                .populate({path: "partner", model: dbconfig.collection_partner})
-                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                .sort(isMany.sortCol).lean();
-            count = dbconfig.collection_players.find(sendQuery, { _id: 1}).lean();
-        }
-
-        let total;
-        return Q.all([players, count]).then(data => {
-            if(isMany.searchType === "one"){
-                total = data[1];
-            }else{
-                total = data[1].length ? data[1].length : 0;
-                if(data[0] && data[0].length){
-                    console.log('=CallOutMission= callout query result', data[0].length);
-                }
-            }
-            console.log('return data', data);
-            return {
-                data: data[0] ? data[0] : {},
-                index: index,
-                total: total
-            }
-        });
+        console.log('final query',sendQuery);
+        return sendQuery;
     },
 
     createExportPlayerProposal: function (exportData) {

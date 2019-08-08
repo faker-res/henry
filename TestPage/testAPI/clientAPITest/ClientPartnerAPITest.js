@@ -332,10 +332,51 @@
         this.partnerService.getDownLinePlayerInfo.once(callback);
     };
 
+    proto.createDownLinePartner = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.createDownLinePartner.request(data);
+        this.partnerService.createDownLinePartner.once(callback);
+    };
+
+    proto.setPartnerCommissionRate = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.setPartnerCommissionRate.request(data);
+        this.partnerService.setPartnerCommissionRate.once(callback);
+    };
+
+    proto.getPartnerCommissionRate = function (callback, requestData) {
+        var data = requestData || {};
+
+        if (data && data.commissionRate) {
+            data.commissionRate = JSON.parse(data.commissionRate);
+        }
+
+        this.partnerService.getPartnerCommissionRate.request(data);
+        this.partnerService.getPartnerCommissionRate.once(callback);
+    }
+
     proto.getDownLinePartnerInfo = function (callback, requestData) {
         var data = requestData || {};
         this.partnerService.getDownLinePartnerInfo.request(data);
         this.partnerService.getDownLinePartnerInfo.once(callback);
+    };
+
+
+    proto.getPartnerCommissionInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPartnerCommissionInfo.request(data);
+        this.partnerService.getPartnerCommissionInfo.once(callback);
     };
 
     proto.notifyNewMail = function (callback, requestData) {
@@ -377,6 +418,13 @@
 
         this.partnerService.readMail.request(data);
         this.partnerService.readMail.once(callback);
+    };
+
+    proto.getPartnerPoster = function(callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPartnerPoster.request(data);
+        this.partnerService.getPartnerPoster.once(callback);
     };
 
     if (isNode) {

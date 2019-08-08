@@ -267,6 +267,8 @@
 竞标拍卖商品
 # 交互流程：
 
+### 前端SDK链接：[http://54.179.151.35:888/sdk/frontend-sdk.rar](http://54.179.151.35:888/sdk/frontend-sdk.rar)
+
 ### 问题：
 
 API说明：
@@ -7266,8 +7268,10 @@ API说明：
 	* 操作失败：status--4xx, data-null, errorMessage:””
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
+		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
 		* code:  recommendation - 热门推荐“:
 			* rewardPoint - 积分说明
+			* game - 游戏配置
 			* carousel - 轮播配置
 			* advertisement - 弹窗广告
 			* pageSetting - 网站配置

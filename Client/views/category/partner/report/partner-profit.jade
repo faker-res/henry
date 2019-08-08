@@ -1,0 +1,29 @@
+#partnerProfitQuery.col-md-12.well
+    .search-filters-item
+        label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+        select#productName.form-control(ng-model='vm.partnerProfitQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true')
+    .search-filters-item
+        label {{"PARTNER_NAME"|translate}}
+        input.form-control.span.input-sm(type="text", ng-model="vm.partnerProfitQuery.partnerName")
+    .search-filters-item
+        label {{"REGISTRATION_TIME_START"|translate}}
+        .registerStartTime
+    .search-filters-item
+        label {{"REGISTRATION_TIME_END"|translate}}
+        .registerEndTime
+    .search-filters-item
+        label {{"Start date"|translate}}
+        .startTime
+    .search-filters-item
+        label {{"End date"|translate}}
+        .endTime
+    .text-right.widthto100
+        button.btn.btn-success.btn-space(ng-click='vm.searchPartnerProfitReport(true)') {{'SEARCH' | translate}}
+        button.btn.btn-info.btn-space(ng-click="vm.searchPartnerProfitReport(true, true)") {{'EXPORT_EXCEL' | translate}}
+        span#partnerProfitTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+.clearfix
+label {{"Total" | translate}} {{vm.partnerProfitQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+table.common-table#partnerProfitTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+#partnerProfitTablePage
+table.common-table#partnerProfitExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")

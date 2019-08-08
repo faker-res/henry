@@ -102,6 +102,7 @@ let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
 let frontEndPopUpSettingSchema = require('./../schema/frontEndPopUpSetting');
+let frontEndGameSettingSchema = require('./../schema/frontEndGameSetting');
 let frontEndRewardCategorySchema = require('./../schema/frontEndRewardCategory');
 let frontEndRewardSettingSchema = require('./../schema/frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
@@ -270,6 +271,9 @@ let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFe
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
+let partnerPosterAdsConfigSchema = require('../schema/partnerPosterAdsConfig');
+let partnerPosterAdsConfigModel = db_admin.model('partnerPosterAdsConfig', partnerPosterAdsConfigSchema, 'partnerPosterAdsConfig');
+
 let advertisementPageXBETModel = db_admin.model('advertisementPageXBET', advertisementPageXBETSchema, 'advertisementPageXBET');
 
 let playerMultipleBankDetailInfoModel = db_admin.model('playerMultipleBankDetailInfo', playerMultipleBankDetailInfoSchema, 'playerMultipleBankDetailInfo');
@@ -284,6 +288,7 @@ let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSyst
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
 let frontEndPopUpSettingModel = db_admin.model('frontEndPopUpSetting', frontEndPopUpSettingSchema, 'frontEndPopUpSetting');
+let frontEndGameSettingModel = db_admin.model('frontEndGameSetting', frontEndGameSettingSchema, 'frontEndGameSetting');
 let frontEndRewardCategoryModel = db_admin.model('frontEndRewardCategory', frontEndRewardCategorySchema, 'frontEndRewardCategory');
 let frontEndRewardSettingModel = db_admin.model('frontEndRewardSetting', frontEndRewardSettingSchema, 'frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
@@ -778,6 +783,7 @@ var dbProperties = {
 
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
+    collection_partnerPosterAdsConfig: partnerPosterAdsConfigModel,
 
     collection_advertisementPageXBET: advertisementPageXBETModel,
 
@@ -793,6 +799,7 @@ var dbProperties = {
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
     collection_frontEndPopUpSetting: frontEndPopUpSettingModel,
     collection_frontEndRewardCategory: frontEndRewardCategoryModel,
+    collection_frontEndGameSetting: frontEndGameSettingModel,
     collection_frontEndRewardSetting: frontEndRewardSettingModel,
     collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
     collection_frontEndRewardPointClarification: frontEndRewardPointClarificationModel,

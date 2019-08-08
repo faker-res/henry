@@ -81,7 +81,7 @@ function socketActionProposal(socketIO, socket) {
                 data.data.playerObjId && data.data.hasOwnProperty("updateAmount") &&
                 data.data.hasOwnProperty("curAmount")
             );
-            socketUtil.emitter(self.socket, dbProposal.checkUpdateCreditProposal, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.createUpdatePlayerCreditProposal, [data.platformId, constProposalType.UPDATE_PLAYER_CREDIT, data], actionName, isValidData);
         },
 
         createFixPlayerCreditTransferProposal: function createFixPlayerCreditTransferProposal(data) {

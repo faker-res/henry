@@ -129,10 +129,10 @@ var dbUtility = {
                     //414	参数错误
                     //416	频率控制
                     //500	服务器内部错误
-
+                    console.log("send voice code error",data)
                     return Promise.reject({
                         name: "DataError",
-                        message: data
+                        message: "Voice code failed to send, please contact customer service"
                     });
                 }
                 return data;
@@ -141,7 +141,7 @@ var dbUtility = {
                 console.log("send voice code failed",err)
                 return Promise.reject({
                     name: "DataError",
-                    message: err
+                    message: "Voice code failed to send, please contact customer service"
                 });
             }
         )
@@ -741,19 +741,7 @@ var dbUtility = {
         } : null;
     },
 
-    //Testing Block
-    setLocalDayEndTime: function (date) {
-        if (!date) return null;
-        date.setHours(23, 59, 59, 999);
-        return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
-    },
-    setNDaysAgo: function (inputDate, n) {
-        if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
-            return;
-        }
-        return new Date(inputDate.setDate(inputDate.getDate() - n));
-    },
-    //Testing Block
+
 
     /**
      * @deprecated
@@ -779,7 +767,19 @@ var dbUtility = {
         };
         //return dbUtility.getYesterdaySGTime();
     },
-
+//Testing Block
+    setLocalDayEndTime: function (date) {
+        if (!date) return null;
+        date.setHours(23, 59, 59, 999);
+        return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
+    },
+    setNDaysAgo: function (inputDate, n) {
+        if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
+            return;
+        }
+        return new Date(inputDate.setDate(inputDate.getDate() - n));
+    },
+    //Testing Block
     /**
      * @deprecated
      *
@@ -1319,7 +1319,9 @@ var dbUtility = {
         return  "******" +  str.slice(-6);
     },
     encodePhoneNum: function (str) {
-        str = str || '';
+        if (!str) {
+            return '';
+        }
         return str.substring(0, 3) + "******" + str.slice(-4);
     },
 

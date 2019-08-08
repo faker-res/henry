@@ -307,11 +307,14 @@ var roleChecker = {
                 largeWithdrawalSetting: [],
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
+                partnerPosterAds: [],
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],
                 PARTNERPLAYERBOUNS_REPORT: [],
                 REAL_TIME_COMMISSION_REPORT: [],
+                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
+                PARTNER_PROFIT_REPORT: ['getPartnerProfitReport'],
             },
             "Settlement": {
                 PREVIEW: [],
@@ -481,6 +484,7 @@ var roleChecker = {
                 blacklistIpConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 largeWithdrawalSetting: ['updateLargeWithdrawalSetting', 'updateLargeWithdrawalPartnerSetting'],
+                emailAuditConfig: ['setAuditCreditChangeSetting', 'setAuditManualRewardSetting'],
                 platformFeeEstimateSetting: ['updatePlatformFeeEstimateSetting'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
@@ -585,6 +589,7 @@ var roleChecker = {
                 popUpAdvertisement: [],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
+                gameSetting: [],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },
@@ -593,6 +598,12 @@ var roleChecker = {
                 Create: [],
                 createProduct: [],
                 monitoringSystem: [],
+            },
+            "EmailAudit": {
+                "auditCreditChangeRecipient": [],
+                "auditCreditChangeAuditor": [],
+                "auditManualRewardRecipient": [],
+                "auditManualRewardAuditor": [],
             },
         },
         Report: {
@@ -650,7 +661,7 @@ var roleChecker = {
             },
             Proposal: {
                 "Force Pairing": ['forcePairingWithReferenceNumber']
-            }
+            },
         },
         Operation: {
             Proposal: {

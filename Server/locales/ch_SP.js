@@ -32,6 +32,8 @@ var simplifiedChinese = {
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
     "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
+    "Multiple binding detected. Please contact CS.": "银行信息重复绑定，请联系客服，谢谢！",
+    "Amend Bank Info": "修改银行卡",
     "Exceeded available application quantity": "超过申请次数",
     "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
@@ -61,6 +63,12 @@ var simplifiedChinese = {
     "This game has been added before": "该游戏已经收藏",
     "defaultRewardEventGroup*": "默认组别*",
     "endedRewardEventGroup*": "已结束优惠组*",
+    "Invalid commission class": "无效佣金分类",
+    "Partner down line does not exists": "代理下线不存在",
+    "Voice code failed to send, please contact customer service": "语音验证发送失败，请联系客服",
+    "The verification limit has been reached (5/hour), please try again later": "已达到验证上限（5次/小时）,请稍后再试",
+    "The verification limit has been reached (1/minute), please try again later": "已达到验证上限（1次/分钟）,请稍后再试",
+    "The verification limit has been reached today, please try again tomorrow": "已达到今日验证上限，请明日再试",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "Reset password failed": "找回密码失败",
@@ -581,7 +589,18 @@ var simplifiedChinese = {
     "Your topup dont satisty the requirement": "您的存款不满足此条件",
     "Your consumption dont satisfy the requirement": "你的投注不满足此条件",
     "Duplicate device detected. This device has been created by an account and a phone number.": "该设备已创建账号，已绑定手机号，无法重复注册。",
-    "Payment is not available, please contact customer service": "支付维护中，请联系客服"
+    "Payment is not available, please contact customer service": "支付维护中，请联系客服",
+    "Commission Rate content unknown": "佣金比例格式错误",
+    "Child partner not found.": "此下级代理不存在",
+    "Parent rate error. Please contact CS.": "您的佣金比例有问题，详情请联系客服谘询。",
+    "You must at least take 1% commission from your lower level partner to earn money.": "必须最少抽取1%佣金。请降低下级佣金让其低于您的佣金最少1%。",
+    "Your lower level partner have to at least take 1% commission, the rate inserted is too low for that based on their current commission setting.": "下级必须最少抽取1%佣金。请提高下级可抽取的佣金，详情请联系客服谘询。",
+    "There is no relevant commission to update": "没有需要修改的佣金比例。",
+    "Minimum commission rate must be 1%": "最低佣金1%",
+    "Partner can only update child commission once a week.": "每个下级代理佣金比例每周最多只能编辑一次。",
+    "No relevant poster found. Please contact CS": "没有相关海报，请联系客服。",
+    "Down line player not found": "找不到该下线玩家，请检查名字是否正确。",
+
     //todo::add missing messages here
 
     /*

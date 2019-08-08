@@ -474,12 +474,17 @@
                 "getDownLinePlayerTimeSequence",
                 "getPartnerTotalInfo",
                 "getDownLinePlayerInfo",
+                "createDownLinePartner",
+                "setPartnerCommissionRate",
+                "getPartnerCommissionRate",
                 "getDownLinePartnerInfo",
+                "getPartnerCommissionInfo",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
                 "deleteMail",
-                "readMail"
+                "readMail",
+                "getPartnerPoster",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

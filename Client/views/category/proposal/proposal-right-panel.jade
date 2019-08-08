@@ -5,12 +5,12 @@
         .row
             .col-sm-10(style='padding-right:10px')
                 flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
-                .pull-left
+                .pull-left(ng-if='vm.checkProposalStepUpdatePermission()')
                     button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalAddProposalNode', title='Add a new node to the chart', ng-click='vm.initStep();')
                         | {{'ADD' | translate}}{{'STEP' | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.deleteSelected()', ng-disabled='vm.chartViewModel.getSelectedNodes().length == 0 && vm.chartViewModel.getSelectedConnections().length == 0', title='Delete selected nodes and connections')
                         | {{'DELETE_SELECTED' | translate}}
-                .pull-right
+                .pull-right(ng-if='vm.checkProposalStepUpdatePermission()')
                     button.btn.btn-primary.common-button(ng-disabled='!vm.proposalChanged',ng-click='vm.saveProcess();vm.proposalChanged=false;')  {{'SAVE_PROCESS' | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.resetProcess();vm.proposalChanged=false;')  {{'RESET_PROCESS' | translate}}
 

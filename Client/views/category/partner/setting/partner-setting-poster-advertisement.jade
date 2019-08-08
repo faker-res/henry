@@ -1,0 +1,121 @@
+include ./partner-setting-platform-select
+#partnerAdvertisementPanel.panel-body(style="background-color: white;" ng-if='vm.platformInSetting')
+    #partnerAdvertisementRecords.adminLogQueryDiv
+        .inlineBlk
+            label(for="posterAdsWeb") {{"WEB" | translate}}
+            input#posterAdsWeb(type="radio" ng-model="vm.partnerPosterAdsWebDevice" ng-value="true" ng-change="vm.getPartnerPosterAdsList();vm.resetPartnerAddPosterAdsTable()" ng-checked="vm.partnerPosterAdsWebDevice")
+            label(for="posterAdsH5") {{"H5" | translate}}
+            input#posterAdsH5(type="radio" ng-model="vm.partnerPosterAdsWebDevice" ng-value="false" ng-change="vm.getPartnerPosterAdsList();vm.resetPartnerAddPosterAdsTable()" ng-checked="!vm.partnerPosterAdsWebDevice")
+
+    .row(style="overflow:scroll; max-height: 250px;padding-left:2px;padding-right:2px;")
+        table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white;')
+            thead
+                tr
+                    th {{'order' | translate}}
+                    th {{'BANNER TITLE' | translate}}
+                    th {{'DISPLAY_PICTURE' | translate}}
+                    th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
+                    th {{'ACTION_BUTTON' | translate}}
+            tbody
+                tr(ng-repeat="a in vm.displayPartnerPosterAdsList" ng-class='{grayRow: a.status==0 && vm.disablePosterAdsInput}')
+                    td
+                        input(type='number' , ng-model='a.orderNo', style="width: 50px;", ng-disabled="vm.disablePosterAdsInput" )
+                    td
+                        table(style="font-size: 10px; width: 100%")
+                            tbody
+                                tr(ng-repeat="(i,v) in a.title")
+                                    td
+                                        input(type="text" style="width: 150px;" ng-model="v.name", ng-disabled="vm.disablePosterAdsInput")
+                                    td(ng-if="!vm.disablePosterAdsInput")
+                                        i.fa.fa-minus(ng-click='a.title.splice($index,1)')
+                                tr(ng-if="!vm.disablePosterAdsInput")
+                                    td
+                                        input(type="text" ng-model="vm.partnerPosterAdsGroup.bannerTitle" style="width: 150px;")
+                                    td
+                                        i.fa.fa-plus(ng-click='a.title.push({name: vm.partnerPosterAdsGroup.bannerTitle});vm.partnerPosterAdsGroup.bannerTitle = ""' )
+                    td
+                        table(style="font-size: 10px; width: 100%")
+                            tbody
+                                tr
+                                    td(colspan=2)
+                                        div(style="width: 100%; height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ a.posterImage.url }})'}")
+                                tr
+                                    td
+                                        label {{'SOURCE' | translate}}
+                                    td
+                                        input(ng-if="!vm.disablePosterAdsInput" type='text' , ng-model='a.posterImage.url', style="margin-bottom: 2px;")
+                                        a(ng-if="vm.disablePosterAdsInput" href='{{a.posterImage.url}}', title='{{a.posterImage.url}}', target='_blank') {{a.posterImage.urlDisplay | translate}}
+                                tr
+                                    td
+                                        label {{'HYPERLINK' | translate}}
+                                    td
+                                        input(ng-if="!vm.disablePosterAdsInput" type='text' ,ng-model='a.posterImage.hyperLink', style="margin-bottom: 2px;")
+                                        a(ng-if="vm.disablePosterAdsInput" href='{{a.posterImage.hyperLink}}', title='{{a.posterImage.hyperLink}}', target='_blank') {{a.posterImage.hyperLinkDisplay | translate}}
+                    td
+                        input(type="checkbox" ng-model="a.showInRealServer", ng-disabled="vm.disablePosterAdsInput")
+                    td(ng-if='!vm.disablePosterAdsInput')
+                        div(style="display: inline-grid;font-size: 10px;")
+                            button.common-button.btn.btn-info(ng-click="vm.updatePartnerPosterAds();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.getPartnerPosterAdsList();vm.disablePosterAdsInput=true;" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+                    td(ng-if='vm.disablePosterAdsInput')
+                        div(style="display: inline-grid; font-size: 10px;")
+                            button.common-button.btn.btn-info(ng-click="vm.disablePosterAdsInput=false" style="width: auto; background-color: #5bc0de") {{'EDIT' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.deletePartnerPosterAdsRecord(a._id,$index);" style="width: auto; background-color: #5bc0de") {{'DELETE' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.updatePartnerPosterAdsStatus(a._id,0);vm.getPartnerPosterAdsList()" ng-if="a.status == 0; " style="width: auto; background-color: #5bc0de") {{'Open' | translate}}
+                            button.common-button.btn.btn-info(ng-click="vm.updatePartnerPosterAdsStatus(a._id,1);vm.getPartnerPosterAdsList()" ng-if="a.status == 1; " style="width: auto; background-color: #5bc0de") {{'CLOSE' | translate}}
+
+
+    .well(style="margin-top: 50px; background-color: white;" )
+        .row(style="text-align: right; margin-bottom: 10px;" ng-if="!vm.addNewPartnerPosterAds")
+            button.common-button.btn.btn-info(ng-click="vm.getPartnerPosterAdsNextOrderNo();vm.addNewPartnerPosterAds=true" style="width: auto; background-color: #5bc0de") {{'ADD' | translate}}
+        .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPartnerPosterAds")
+            label {{"Add new advertisement" | translate}}
+        .row(style="overflow-x: scroll; max-height: 250px;" ng-if="vm.addNewPartnerPosterAds")
+            table.common-table.playerLvlTable(style='width:auto; min-width:99.9%; background-color: white' )
+                thead
+                    tr
+                        th {{'order' | translate}}
+                        th {{'BANNER TITLE' | translate}}
+                        th {{'DISPLAY_PICTURE' | translate}}
+                        th {{'IS_SHOW_PRODUCTION_SERVER' | translate}}
+                        th {{'ACTION_BUTTON' | translate}}
+                tbody
+                    tr
+                        td
+                            input(type='number' , ng-model='vm.partnerPosterAdsGroup.orderNo', style="width: 50px;" )
+                        td
+                            table(style="font-size: 10px; width: 100%")
+                                tbody
+                                    tr(ng-repeat="(i,v) in vm.partnerPosterAdsTitle")
+                                        td
+                                            input(type="text" style="width: 150px;" ng-model="v.name")
+                                        td
+                                            i.fa.fa-minus(ng-click='vm.partnerPosterAdsTitle.splice($index,1)')
+                                    tr
+                                        td
+                                            input(type="text" ng-model="vm.partnerPosterAdsGroup.title" style="width: 150px;")
+                                        td
+                                            i.fa.fa-plus(ng-click='vm.partnerPosterAdsTitle.push({name: vm.partnerPosterAdsGroup.title});vm.partnerPosterAdsGroup.title = ""'  )
+                        td
+                            table(style="font-size: 10px; width: 100%")
+                                tbody
+                                    tr
+                                        td(colspan=2)
+                                            div(style="width: 100%; height: 80px; background-size: cover; background-repeat: no-repeat;" ng-style="{'background-image': 'url({{ vm.partnerPosterAdsGroup.posterUrl }})'}")
+                                    tr
+                                        td
+                                            label {{'SOURCE' | translate}}
+                                        td
+                                            input(type='text' , ng-model='vm.partnerPosterAdsGroup.posterUrl', style="margin-bottom: 2px;")
+                                    tr
+                                        td
+                                            label {{'HYPERLINK' | translate}}
+                                        td
+                                            input(type='text' , ng-model='vm.partnerPosterAdsGroup.posterHyperLink', style="margin-bottom: 2px;")
+                        td
+                            input(type='checkbox' , ng-model='vm.partnerPosterAdsGroup.showInRealServer')
+                        td
+                            div(style="display: inline-grid; font-size: 10px;")
+                                button.common-button.btn.btn-info(ng-click="vm.addNewPartnerPosterAdsRecord();" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+                                button.common-button.btn.btn-info(ng-click="vm.resetPartnerAddPosterAdsTable();" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+

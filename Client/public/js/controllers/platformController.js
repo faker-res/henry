@@ -44,6 +44,12 @@ define(['js/app'], function (myApp) {
                 "Bottom_Banner": 3,
             };
 
+            vm.displayFormat = {
+                "backgroundDisplay": 1,
+                "theeInARow": 2,
+                "fiveInARow": 3,
+            };
+
             vm.frontEndSettingOnClickAction = {
                 "openNewPage": 1,
                 "activityDetail": 2,
@@ -125,13 +131,14 @@ define(['js/app'], function (myApp) {
                 "topupCondition": 1
             };
 
+            //定义特别节日模式
             vm.festivalRewardType = {
-                "festivalType1": 1,
-                "festivalType2": 2,
-                "festivalType3": 3,
-                "birthday1": 4,
-                "birthday2": 5,
-                "birthday3": 6
+                "festivalType1": 1, //特别节日（可自定义）- 现金奖励
+                "festivalType2": 2, //特别节日（可自定义）- 存送金奖励
+                "festivalType3": 3, //特别节日（可自定义）- 周期内累积总投注额（已申请过不扣除）
+                "birthday1": 4, //会员生日 - 现金奖励
+                "birthday2": 5, //会员生日 - 存送金奖励
+                "birthday3": 6 //会员生日 - 周期内累积总投注额（已申请过不扣除）
             }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
@@ -2539,7 +2546,7 @@ define(['js/app'], function (myApp) {
                 let adminName = authService.adminName;
                 vm.playerLevelSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPlayerLevelSettlement',
-                    {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown},
+                    {platformId: vm.filterPlatformSettingsPlatform, upOrDown: upOrDown, isPlayer: false},
                     function (data) {
                         console.log('playerLevelSettlement', data);
                         vm.playerLevelSettlement.status = 'completed';
@@ -12390,14 +12397,14 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     //here's to check creator is not null
                                     var creator;
-                                    if(data.data && data.data.creator){
+                                    if(data && data.creator){
 
-                                        if(data.data.creator.type === "admin"){
-                                            creator = data.data.creator.name;
+                                        if(data.creator.type === "admin"){
+                                            creator = data.creator.name;
 
-                                        }else if(data.data.creator.type === "player"){
+                                        }else if(data.creator.type === "player"){
                                             creator = $translate('System');
-                                            creator += "(" + data.data.creator.name + ")";
+                                            creator += "(" + data.creator.name + ")";
                                         }
 
                                     }else{
@@ -16600,87 +16607,34 @@ define(['js/app'], function (myApp) {
                     sendQuery.lastFeedbackTopic = {$nin: vm.playerFeedbackQuery.filterFeedbackTopic};
                 }
 
-                if(vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 && vm.playerFeedbackQuery.filterFeedback){
+                if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
                     };
                     let lastFeedbackTime = {
                         lastFeedbackTime: {
-                            $gte: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
+                            $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
-                    let lastFeedbackTopic = "lastFeedbackTopic";
+                }
+
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
-
                             sendQuery.$and.push({$or: sendQuery.$or});
                             sendQuery.$and.push({$or: sendQueryOr});
-                            sendQuery.$and.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
                         } else {
-                            sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
+                            sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
                         }
                         delete sendQuery.$or;
                     } else {
-                        sendQuery.$and = [{$or: sendQueryOr}, {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}}];
-                    }
-                }else{
-
-                    if (vm.playerFeedbackQuery.filterFeedback) {
-                        let lastFeedbackTimeExist = {
-                            lastFeedbackTime: null
-                        };
-                        let lastFeedbackTime = {
-                            lastFeedbackTime: {
-                                $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                            }
-                        };
-                        sendQueryOr.push(lastFeedbackTimeExist);
-                        sendQueryOr.push(lastFeedbackTime);
-                    }
-
-                    if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
-                        if (sendQuery.hasOwnProperty("$or")) {
-                            if (sendQuery.$and) {
-                                sendQuery.$and.push({$or: sendQuery.$or});
-                                sendQuery.$and.push({$or: sendQueryOr});
-                            } else {
-                                sendQuery.$and = sendQueryOr.length > 0 ? [{$or: sendQuery.$or}, {$or: sendQueryOr}] : [{$or: sendQuery.$or}];
-                            }
-                            delete sendQuery.$or;
-                        } else {
+                        if(sendQueryOr.length > 0){
                             sendQuery["$or"] = sendQueryOr;
                         }
                     }
-
                 }
-
-                // if (vm.playerFeedbackQuery.filterFeedback) {
-                //     let lastFeedbackTimeExist = {
-                //         lastFeedbackTime: null
-                //     };
-                //     let lastFeedbackTime = {
-                //         lastFeedbackTime: {
-                //             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
-                //         }
-                //     };
-                //
-                //     sendQueryOr.push(lastFeedbackTimeExist);
-                //     sendQueryOr.push(lastFeedbackTime);
-                //
-                //     if (sendQuery.hasOwnProperty("$or")) {
-                //         if (sendQuery.$and) {
-                //             sendQuery.$and.push({$or: sendQuery.$or});
-                //             sendQuery.$and.push({$or: sendQueryOr});
-                //         } else {
-                //             sendQuery.$and = [{$or: sendQuery.$or}, {$or: sendQueryOr}];
-                //         }
-                //         delete sendQuery.$or;
-                //     } else {
-                //         sendQuery["$or"] = sendQueryOr;
-                //     }
-                // }
 
                 if (vm.playerFeedbackQuery.callPermission == 'true') {
                     sendQuery['permission.phoneCallFeedback'] = {$ne: false};
@@ -17440,7 +17394,7 @@ define(['js/app'], function (myApp) {
                     $('#modalYesNo').modal();
 
                 } else {
-                    
+
                     let resultName = vm.allPlayerFeedbackResults.filter(item => {
                         return item.key == data.result;
                     });
@@ -25246,6 +25200,9 @@ define(['js/app'], function (myApp) {
                         vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                         vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'gameSetting':
+                        vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25296,6 +25253,11 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'rewardSetting':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'gameSetting':
+                        vm.frontEndDeletedList = [];
+                        vm.newFrontEndGameSetting = {};
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                 }
@@ -25514,6 +25476,167 @@ define(['js/app'], function (myApp) {
                     collection.splice(index, 1)
                 }
                 return collection;
+            };
+
+            vm.sortDragAndDropArray = function (collection) {
+                let updatedData = [];
+                if (collection && collection.length) {
+                    let arr1 = $('.fronendConfigScrollDiv .droppable-area1').sortable('toArray');
+                    let arr2 = $('.fronendConfigScrollDiv .droppable-area2').sortable('toArray');
+                    let arr3 = $('.fronendConfigScrollDiv .droppable-area3').sortable('toArray');
+                    arr1.forEach(
+                        (v, i) => {
+                            if (v) {
+                                let index = collection.findIndex(p => {
+                                    if (p && p._id) {
+                                        return p._id.toString() == v.toString()
+                                    }
+                                });
+                                if (index != -1) {
+                                    let selectedItem = Object.assign({},collection[index]);
+                                    selectedItem.device = 1;
+                                    selectedItem.displayOrder = i + 1;
+                                    updatedData.push(selectedItem);
+                                }
+                            }
+                        }
+                    );
+
+                    arr2.forEach(
+                        (v, i) => {
+                            if (v) {
+                                let index = collection.findIndex(p => {
+                                    if (p && p._id) {
+                                        return p._id.toString() == v.toString()
+                                    }
+                                });
+                                if (index != -1) {
+                                    let selectedItem = Object.assign({}, collection[index]);
+                                    selectedItem.device = 2;
+                                    selectedItem.displayOrder = i + 1;
+                                    updatedData.push(selectedItem);
+                                }
+                            }
+                        }
+                    );
+
+                    arr3.forEach(
+                        (v, i) => {
+                            if (v) {
+                                let index = collection.findIndex(p => {
+                                    if (p && p._id) {
+                                        return p._id.toString() == v.toString()
+                                    }
+                                });
+                                if (index != -1) {
+                                    let selectedItem = Object.assign({}, collection[index]);
+                                    selectedItem.device = 4;
+                                    selectedItem.displayOrder = i + 1;
+                                    updatedData.push(selectedItem);
+                                }
+                            }
+                        }
+                    );
+                };
+                return updatedData;
+            };
+
+            vm.updateFrontEndGameSetting = function () {
+                let updateData = vm.sortDragAndDropArray(vm.frontEndGameSettingData);
+                return $scope.$socketPromise('updateFrontEndGameSetting', {dataList: updateData, deletedList: vm.frontEndDeletedList}).then(
+                    (data) => {
+                        $scope.$evalAsync( () => {
+                            console.log('updateFrontEndGameSetting is done', data);
+                            vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    }
+                );
+            };
+
+            vm.submitGameSetting = function (gameSettingObj){
+                if (gameSettingObj && vm.filterFrontEndSettingPlatform){
+                    gameSettingObj.platformObjId = vm.filterFrontEndSettingPlatform;
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndGameSetting', {gameSettingObj: gameSettingObj}, function (data) {
+                        $scope.$evalAsync(() => {
+                            console.log('saveFrontEndGameSetting', data.data);
+                            if (data && data.data) {
+                                vm.frontEndDeletedList = [];
+                                $('#gameSettingModal').modal('hide');
+                                vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
+                            }
+                        })
+                    }, function (err) {
+                        console.error('saveFrontEndGameSetting error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.editGameSetting = function (gameSettingObjId){
+              if (gameSettingObjId) {
+                  socketService.$socket($scope.AppSocket, 'getFrontEndGameSettingByObjId', {gameSettingObjId: gameSettingObjId}, function (data) {
+                      $scope.$evalAsync(() => {
+                          console.log('getFrontEndGameSettingByObjId', data.data);
+                          if (data && data.data) {
+                              vm.newFrontEndGameSetting = data.data;
+                              if (vm.newFrontEndGameSetting && vm.newFrontEndGameSetting.hasOwnProperty('device')){
+                                  vm.newFrontEndGameSetting.device = vm.newFrontEndGameSetting.device.toString();
+                              }
+                              if (vm.newFrontEndGameSetting && vm.newFrontEndGameSetting.hasOwnProperty('displayFormat')){
+                                  vm.newFrontEndGameSetting.displayFormat = vm.newFrontEndGameSetting.displayFormat.toString();
+                              }
+                              $('#gameSettingModal').modal();
+                          }
+                      })
+                  }, function (err) {
+                      console.error('getFrontEndGameSettingByObjId error: ', err);
+                  }, true);
+
+              }
+            };
+
+            vm.loadGameSetting = function (platformObjId){
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getFrontEndGameSetting', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync(() => {
+                            console.log('getFrontEndGameSetting', data.data);
+                            if (data && data.data) {
+                                vm.clearAllDropArea();
+                                vm.frontEndDeletedList = [];
+                                vm.frontEndGameSettingData = data.data;
+
+                                utilService.actionAfterLoaded('#gameSettingSaveButton', function () {
+                                    document.querySelectorAll(".col-md-4.fronendConfigDiv.gameSetting > ul > li").forEach(item => {item.parentElement.removeChild(item)});
+                                    $(".gameSetting .droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                                        connectWith: ".connected-sortable"
+                                    }).disableSelection();
+                                })
+                            }
+                        })
+                    }, function (err) {
+                        console.error('getFrontEndGameSetting error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.addNewGameSetting = function (isNew, eventObjId) {
+                if (isNew){
+                    vm.newFrontEndGameSetting = {};
+                }
+                else{
+                    if (eventObjId){
+                        let index = vm.gameSettingData.findIndex( p => {
+                            if (p && p._id){
+                                return p._id.toString() == eventObjId.toString()
+                            }
+                        });
+                        if (index != -1){
+                            vm.newFrontEndGameSetting = _.clone(vm.gameSettingData[index]);
+                        }
+                    }
+                }
+                $('#gameSettingModal').modal();
             };
 
             vm.loadPopularRecommendationSetting = function (platformObjId) {
@@ -31548,6 +31671,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.updateBankCardDepositAmount = platformData.updateBankCardDepositAmount;
                         vm.platformBasic.updateBankCardDepositAmountCheck = platformData.updateBankCardDepositAmountCheck;
                         vm.platformBasic.sameBankAccountCount = platformData.sameBankAccountCount;
+                        vm.platformBasic.checkDuplicateBankAccountNameIfEditBankCardSecondTime = platformData.checkDuplicateBankAccountNameIfEditBankCardSecondTime;
                         vm.platformBasic.showMinTopupAmount = platformData.minTopUpAmount;
                         vm.platformBasic.showAllowSameRealNameToRegister = platformData.allowSameRealNameToRegister;
                         vm.platformBasic.showAllowSamePhoneNumberToRegister = platformData.allowSamePhoneNumberToRegister;
@@ -32467,7 +32591,17 @@ define(['js/app'], function (myApp) {
                 setTimeout(()=>{$('select#selectGameProvider').multipleSelect('refresh')},100);
             };
 
+            vm.refreshPromoCodeTemplate = () => {
+                vm.newPromoCode1 = [];
+                vm.newPromoCode2 = [];
+                vm.newPromoCode3 = [];
+                vm.promoCodeNewRow(vm.newPromoCode1, 1);
+                vm.promoCodeNewRow(vm.newPromoCode2, 2);
+                vm.promoCodeNewRow(vm.newPromoCode3, 3);
+            }
+
             vm.getPlatformProviderGroup = (platformObjId) => {
+
                 let sendData = {
                     platformObjId: platformObjId || vm.selectedPlatform.data._id
                 }
@@ -33809,6 +33943,7 @@ define(['js/app'], function (myApp) {
                         updateBankCardDepositAmount: srcData.updateBankCardDepositAmount,
                         updateBankCardDepositAmountCheck: srcData.updateBankCardDepositAmountCheck,
                         sameBankAccountCount: srcData.sameBankAccountCount,
+                        checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
@@ -34176,7 +34311,7 @@ define(['js/app'], function (myApp) {
                         partnerPrefix: srcData.partnerPrefix,
                         partnerCreatePlayerPrefix: srcData.partnerCreatePlayerPrefix,
                         partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
-                        partnerSamePhoneNumberRegisterCount: srcData.partnerAllowSamePhoneNumberToRegister,
+                        partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
                         partnerAllowSameRealNameToRegister: srcData.partnerAllowSameRealNameToRegister,
                         partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
                         partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
@@ -39878,8 +40013,6 @@ define(['js/app'], function (myApp) {
                 $('#platformFeedbackSpin').show();
                 let sendQuery = {};
                 let selectedPlayers = [];
-                let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
-                let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 sendQuery.platformObjId = vm.playerFeedbackQuery.selectedPlatform;
                 sendQuery.adminObjId = authService.adminId;
@@ -42908,6 +43041,15 @@ define(['js/app'], function (myApp) {
                     $('#frontEndPopUpAdvUploader').hide();
                 });
             };
+
+            vm.checkProposalStepUpdatePermission = () => {
+                let isValid = false;
+                if (authService.checkViewPermission('Platform', 'Proposal', 'Create') || authService.checkViewPermission('Platform', 'Proposal', 'Update')
+                    || authService.checkViewPermission('Platform', 'Proposal', 'Delete')) {
+                    isValid = true;
+                }
+                return isValid;
+            }
 
             function getSelectedPlatform() {
                 let platform = null;

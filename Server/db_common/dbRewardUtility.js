@@ -907,8 +907,17 @@ const dbRewardUtility = {
 
         let orArray = [{'data.playerObjId': playerData._id}];
 
-        if (eventData.condition.checkSameIP && playerData.loginIps) {
-            orArray.push({'data.lastLoginIp': {$in: playerData.loginIps}})
+        let ipArray = [];
+        if(eventData.condition.checkSameIP){
+            if (playerData.loginIps) {
+                ipArray = playerData.loginIps;
+            }
+            if(playerData.lastLoginIp){
+                ipArray.push(playerData.lastLoginIp);
+            }
+            if(ipArray.length > 0){
+                orArray.push({'data.lastLoginIp': {$in: ipArray}});
+            }
         }
         if (eventData.condition.checkSamePhoneNumber && playerData.phoneNumber) {
             orArray.push({'data.phoneNumber': playerData.phoneNumber})
@@ -941,7 +950,7 @@ const dbRewardUtility = {
                 // check playerId
                 if (countReward && countReward.length) {
                     for (let i = 0; i < countReward.length; i++) {
-                        if (eventData.condition.checkSameIP && playerData.loginIps && playerData.loginIps.length && playerData.loginIps.includes(countReward[i].data.lastLoginIp)) {
+                        if (eventData.condition.checkSameIP && ipArray.includes(countReward[i].data.lastLoginIp)) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
