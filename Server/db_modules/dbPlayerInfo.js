@@ -18758,6 +18758,8 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
+        console.log('queryStartTime', queryStartTime);
+        console.log('twoDaysAgo', twoDaysAgo);
         if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
