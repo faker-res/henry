@@ -42,8 +42,11 @@ var dbFrontEndSetting = {
         }
     },
 
-    saveFrontEndRewardCategory: (platformObjId, categoryName) => {
-        if (platformObjId && categoryName){
+    saveFrontEndRewardCategory: (platformObjId, categoryName, categoryObjId) => {
+        if (categoryObjId && categoryName){
+            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObjId)}, {categoryName: categoryName}, {new: true}).lean();
+        }
+        else if (platformObjId && categoryName){
             let dataObj ={
                 platformObjId: ObjectId(platformObjId),
                 categoryName: categoryName

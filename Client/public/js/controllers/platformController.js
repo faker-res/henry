@@ -25538,7 +25538,17 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 vm.frontEndRewardCategory = data.data;
+                                vm.allFrontEndRewardCategory = data.data;
+                                vm.displayCategory= [];
+                                vm.allFrontEndRewardCategory.forEach(
+                                    p => {
+                                        if (p && p._id){
+                                            vm.displayCategory.push(p._id);
+                                        }
+                                    }
+                                )
                                 vm.newRewardCategory = null;
+                                vm.refreshSPicker();
                             }
                         })
                     }, function (err) {
@@ -25554,6 +25564,24 @@ define(['js/app'], function (myApp) {
                           console.log('getFrontEndRewardSetting', data.data);
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
+                              vm.allRewardSettingData = data.data;
+
+                              if (vm.rewardSettingData && vm.rewardSettingData.length){
+                                  vm.rewardSettingData.map(
+                                      object => {
+                                          if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
+                                              object.pc.displayFormat = object.pc.displayFormat.toString();
+                                          }
+                                          else if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
+                                              object.h5.displayFormat = object.h5.displayFormat.toString();
+                                          }
+                                          else if (object && object.app && object.app.hasOwnProperty('displayFormat')){
+                                              object.app.displayFormat = object.app.displayFormat.toString();
+                                          }
+                                          return object;
+                                      }
+                                  )
+                              }
                           }
 
                           let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
@@ -25568,6 +25596,52 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.filterDisplayCategory = function (rewardCategoryObjIdList){
+                if (rewardCategoryObjIdList && rewardCategoryObjIdList.length) {
+                    vm.frontEndRewardCategory = vm.allFrontEndRewardCategory.filter(p => {
+                        return p && p._id && rewardCategoryObjIdList.map(p => p.toString()).includes(p._id.toString())
+                    });
+                    vm.rewardSettingData = vm.allRewardSettingData.filter(p => {
+                        return p && p.categoryObjId && rewardCategoryObjIdList.map(p => p.toString()).includes(p.categoryObjId.toString())
+                    });
+
+                    $scope.$evalAsync();
+                };
+            };
+
+            vm.editRewardCategory = function (categoryObjId) {
+                if (categoryObjId && vm.allFrontEndRewardCategory && vm.allFrontEndRewardCategory.length){
+                     let temp = vm.frontEndRewardCategory.filter( p => {
+                        return p && p._id && p._id.toString() == categoryObjId.toString();
+                    })
+
+                    if (temp && temp.length) {
+                        vm.newRewardCategoryData = Object.assign({}, temp[0]);
+                        $('#rewardCategoryModal').modal();
+                    };
+
+                }
+            };
+
+            vm.updateRewardCategory = function (updateObj) {
+                if (updateObj && updateObj._id && updateObj.categoryName){
+                    let categoryName = updateObj.categoryName;
+                    let categoryObjId = updateObj._id;
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, categoryObjId: categoryObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('saveFrontEndRewardCategory', data.data);
+                            $('#rewardCategoryModal').modal('hide');
+                            if (data && data.data) {
+                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                            }
+                        })
+                    }, function (err) {
+                        console.error('saveFrontEndRewardCategory error: ', err);
+                    }, true);
+                }
             };
 
             vm.addNewRewardSetting = function (isNew, eventObjId) {
@@ -25655,7 +25729,7 @@ define(['js/app'], function (myApp) {
                     return data;
                 };
                 // we will save the collection changer before create another new item.
-                await vm.updateRewardSetting();
+                // await vm.updateRewardSetting();
                 let promArr = [
                     "rewardPcImage",
                     "rewardPcNewPage",
