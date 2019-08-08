@@ -1800,10 +1800,19 @@ let dbTeleSales = {
                 return [];
             }
 
-            return dbconfig.collection_players.find({tsPhoneList: tsPhoneList._id, platform: tsPhoneList.platform}, {name: 1, registrationTime:1, csOfficer: 1})
-                .sort({registrationTime: -1})
-                .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
-                .lean();
+            return dbconfig.collection_players.find({
+                $or: [
+                    {tsPhoneList: tsPhoneList._id},
+                    {relTsPhoneList: tsPhoneList._id}
+                ],
+                platform: tsPhoneList.platform
+            }, {
+                name: 1,
+                registrationTime:1,
+                csOfficer: 1
+            }).sort({registrationTime: -1})
+            .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
+            .lean();
         });
     },
 
