@@ -23049,7 +23049,7 @@ let dbPlayerInfo = {
         // generate ts phone import record
         dbconfig.collection_tsPhoneImportRecord({
             platform: saveObj.platform,
-            tsPhoneList: tsList._id,
+            tsPhoneList: tsPhoneList._id,
             description: saveObj.description,
             adminName: adminName,
             admin: adminId
@@ -23058,7 +23058,7 @@ let dbPlayerInfo = {
             errorUtils.reportError(err);
         });
 
-        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
+        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsPhoneList._id, saveObj.isCheckWhiteListAndRecycleBin);
 
         let promArr = [];
         for (let i = 0; i < filteredPhones.length; i++) {
