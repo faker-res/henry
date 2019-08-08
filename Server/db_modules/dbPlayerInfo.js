@@ -1045,22 +1045,25 @@ let dbPlayerInfo = {
 
                     // /* new reqeust from Yuki: the csOfficer is only binded by domain */
                     let checkTsPhone = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId);
+                    if (/*inputData && !inputData.tsPhone && */inputData.phoneNumber) {
+                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId, inputData.tsPhone);
                     }
                     return checkTsPhone.then(
                         tsPhoneData => {
                             if (tsPhoneData) {
+                                inputData.relTsPhoneList = tsPhoneData.relevantList || [];
                                 // inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
                                 // inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneData.tsPhone;
-                                }
-                                if (tsPhoneData.tsPhoneList) {
-                                    inputData.tsPhoneList = tsPhoneData.tsPhoneList;
-                                }
-                                if (tsPhoneData.assignee) {
-                                    inputData.tsAssignee = tsPhoneData.assignee;
+                                if (inputData && !inputData.tsPhone) {
+                                    if (tsPhoneData.tsPhone) {
+                                        inputData.tsPhone = tsPhoneData.tsPhone;
+                                    }
+                                    if (tsPhoneData.tsPhoneList) {
+                                        inputData.tsPhoneList = tsPhoneData.tsPhoneList;
+                                    }
+                                    if (tsPhoneData.assignee) {
+                                        inputData.tsAssignee = tsPhoneData.assignee;
+                                    }
                                 }
 
                             }
@@ -28585,87 +28588,106 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkIsTelesales(phoneNumber, platformObjId, adminId) {
-    let latestTsPhone;
+async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjId) {
+    let relevantList = [];
     let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean().then(
-        tsPhoneData => {
-            if (tsPhoneData && tsPhoneData.length) {
-                latestTsPhone  = tsPhoneData[tsPhoneData.length - 1];
-                tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
+    let tsPhoneData = await dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean();
+    if (!tsPhoneData || !tsPhoneData.length) {
+        return false;
+    }
 
-                if (tsPhoneData && tsPhoneData.length) {
-                    tsPhoneData.forEach(
-                        tsPhone => {
-                            dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
-                            let tsPhoneListUpdate = {
-                                totalPhone: -1
-                            }
-                            if (tsPhone.isUsed) {
-                                tsPhoneListUpdate.totalUsed = -1;
-                            }
-                            if (tsPhone.isSucceedBefore) {
-                                tsPhoneListUpdate.totalSuccess = -1;
-                            }
-                            dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
-                            dbconfig.collection_tsDistributedPhone.findOneAndRemove({
-                                tsPhone: tsPhone._id,
-                                tsPhoneList: tsPhone.tsPhoneList,
-                                endTime: {$gte: new Date()},
-                                registered: false
-                            }).lean().then(
-                                removedTsDistributedPhone => {
-                                    if (removedTsDistributedPhone) {
-                                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
-                                        if (removedTsDistributedPhone.tsDistributedPhoneList) {
-                                            let distributedPhoneListUpdate = {
-                                                phoneCount: -1
-                                            }
-
-                                            if (removedTsDistributedPhone.isUsed) {
-                                                distributedPhoneListUpdate.phoneUsed = -1;
-                                            }
-                                            if (removedTsDistributedPhone.isSucceedBefore) {
-                                                distributedPhoneListUpdate.successfulCount = -1;
-                                            }
-
-                                            dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    )
-                }
-            }
-
-            if (latestTsPhone && latestTsPhone._id && latestTsPhone.tsPhoneList) {
-                return dbconfig.collection_tsDistributedPhone.findOne({
-                    tsPhone: latestTsPhone._id,
-                    tsPhoneList: latestTsPhone.tsPhoneList,
-                    endTime: {$gte: new Date()},
-                    registered: false
-                }).lean().then(
-                    tsDistributedPhone => {
-                        let returnData = {};
-                        if (tsDistributedPhone) {
-                            returnData.tsPhone = tsDistributedPhone.tsPhone;
-                            returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
-                            returnData.assignee = tsDistributedPhone.assignee;
-                        } else {
-                            returnData.tsPhone = latestTsPhone._id;
-                            returnData.tsPhoneList = latestTsPhone.tsPhoneList;
-                            returnData.assignee = adminId;
-                        }
-                        return returnData;
-                    }
-                );
-            } else {
-                return null;
-            }
-
+    let selectedTsPhone = tsPhoneData[tsPhoneData.length - 1];
+    if (tsPhoneObjId) {
+        tsPhoneObjId = tsPhoneObjId._id || tsPhoneObjId;
+        let foundTsPhone = tsPhoneData.find((tsPhone) => {
+            return String(tsPhone._id) === String(tsPhoneObjId);
+        })
+        if (foundTsPhone) {
+            selectedTsPhone = foundTsPhone;
         }
-    );
+    }
+    let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
+
+    tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
+
+    for (let i = 0; i < tsPhoneData.length; i++) {
+        let tsPhone = tsPhoneData[i];
+        if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
+            continue;
+        }
+
+        let relevantListExisted = relevantList.find(tsPhoneListObjId => {
+            return String(tsPhoneListObjId) === String(tsPhone.tsPhoneList);
+        });
+        if (!relevantListExisted) {
+            relevantList.push(tsPhone.tsPhoneList);
+        }
+
+        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+        let tsPhoneListUpdate = {
+            totalPhone: -1
+        }
+        if (tsPhone.isUsed) {
+            tsPhoneListUpdate.totalUsed = -1;
+        }
+        if (tsPhone.isSucceedBefore) {
+            tsPhoneListUpdate.totalSuccess = -1;
+        }
+
+        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+
+        dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+            tsPhone: tsPhone._id,
+            tsPhoneList: tsPhone.tsPhoneList,
+            endTime: {$gte: new Date()},
+            registered: false
+        }).lean().then(
+            removedTsDistributedPhone => {
+                if (!removedTsDistributedPhone) {
+                    return;
+                }
+                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                    let distributedPhoneListUpdate = {
+                        phoneCount: -1
+                    };
+
+                    if (removedTsDistributedPhone.isUsed) {
+                        distributedPhoneListUpdate.phoneUsed = -1;
+                    }
+                    if (removedTsDistributedPhone.isSucceedBefore) {
+                        distributedPhoneListUpdate.successfulCount = -1;
+                    }
+
+                    dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                }
+
+            }
+        ).catch(errorUtils.reportError);
+    }
+
+    if (!(selectedTsPhone && selectedTsPhone._id && selectedTsPhone.tsPhoneList)) {
+        return null;
+    }
+
+    let tsDistributedPhone = await dbconfig.collection_tsDistributedPhone.findOne({
+        tsPhone: selectedTsPhone._id,
+        tsPhoneList: selectedTsPhone.tsPhoneList,
+        endTime: {$gte: new Date()},
+        registered: false
+    }).lean();
+
+    let returnData = {relevantList};
+    if (tsDistributedPhone) {
+        returnData.tsPhone = tsDistributedPhone.tsPhone;
+        returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
+        returnData.assignee = tsDistributedPhone.assignee;
+    } else {
+        returnData.tsPhone = selectedTsPhone._id;
+        returnData.tsPhoneList = selectedTsPhone.tsPhoneList;
+        returnData.assignee = adminId;
+    }
+    return returnData;
 }
 
 function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
