@@ -18766,9 +18766,7 @@ let dbPlayerInfo = {
             summaryEndTime = queryEndTime;
 
             // Check startTime is 00
-            console.log('queryStartTime.getHours()', queryStartTime.getHours());
-            console.log('queryStartTime.getMinutes()', queryStartTime.getMinutes());
-            if (queryStartTime.getHours() !== 16 || queryStartTime.getMinutes() !== 0) {
+            if (queryStartTime.getHours() !== 0 || queryStartTime.getMinutes() !== 0) {
                 preSummaryStartTime = queryStartTime;
                 preSummaryEndTime = dbUtility.getDayEndTime(queryStartTime);
 
@@ -18788,7 +18786,7 @@ let dbPlayerInfo = {
             }
 
             // Check if endTime is 00
-            if (queryEndTime.getHours() !== 16 || queryEndTime.getMinutes() !== 0) {
+            if (queryEndTime.getHours() !== 0 || queryEndTime.getMinutes() !== 0) {
                 // endTime is not 00
                 // Check if endTime is more than two days ago
                 if (queryEndTime.getTime() > twoDaysAgo) {
