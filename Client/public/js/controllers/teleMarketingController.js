@@ -5786,7 +5786,7 @@ define(['js/app'], function (myApp) {
         vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission, platformId) {
             vm.loadingTelePlayerSendingSMSTable = true;
             let sendQuery = {
-                platform: platformId,
+                platform: platformId ? platformId : vm.teleMarketingOverview.platformObjId,
                 dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
                 index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
                 limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,
