@@ -5628,9 +5628,17 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlayerDepositTrackingMonthlyDetails = function(playerId) {
+            //new block here
+            let startTime = vm.depositTrackingQuery.loginStartTime.data('datetimepicker').getLocalDate();
+            let endTime = vm.depositTrackingQuery.loginEndTime.data('datetimepicker').getLocalDate();
+            //new block here
+
             let sendData = {
                 platform: vm.depositTrackingQuery.platformId,
-                playerId: playerId
+                playerId: playerId,
+                //new block
+                startTime: startTime,
+                endTime: endTime
             };
 
             socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingMonthlyDetails', sendData, function (data) {
