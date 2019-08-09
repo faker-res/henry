@@ -640,6 +640,9 @@ let parentPartnerCommissionDetailModel = dbLogs2.model('parentPartnerCommissionD
 let playerRegisterIPSchema = require('./../schema/logs2/playerRegisterIP');
 let playerRegisterIPModel = dbLogs2.model('playerRegisterIP', playerRegisterIPSchema, 'playerRegisterIP');
 
+let referralLogSchema = require('./../schema/logs2/referralLog');
+let referralLogModel = dbLogs2.model('referralLog', referralLogSchema, 'referralLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -928,6 +931,7 @@ var dbProperties = {
     collection_parentPartnerCommissionDetail: parentPartnerCommissionDetailModel,
 
     collection_playerRegisterIP: playerRegisterIPModel,
+    collection_referralLog: referralLogModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

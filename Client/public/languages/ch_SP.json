@@ -5885,5 +5885,8 @@
   "Referral Period": "被推荐人周期",
   "Referral Limit": "被推荐人数限制",
   "Referral Period Daily/Weekly/Monthly/Yearly/No Interval": "被推荐人周期 日/周/月/年/无周期",
-  "The total number of referees is limited during the period. (The minimum value is mandatory)": "周期内被推荐人总数量限制，（优惠开启后最小值强制为1）"
+  "The total number of referees is limited during the period. (The minimum value is mandatory)": "周期内被推荐人总数量限制，最小值强制为1",
+  "Referral ID": "邀请码",
+  "Referral URL": "邀请码链接",
+  "Hit Referral Limit": "已达到该推荐人绑定上限"
 }

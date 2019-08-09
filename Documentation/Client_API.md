@@ -491,8 +491,10 @@ API说明：
   - captcha：图片验证码，代理上线开下线用，将不用smsCode
   - sourceUrl：注册来源（跳转域名）
   - deviceId: 设备号
-  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx}
-  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+  - referralId: 邀请码(推荐人的玩家ID)
+  - referralUrl: 邀请码链接
+  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit:}
+  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
 <div id='获取验证码'></div>
 

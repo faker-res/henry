@@ -706,6 +706,9 @@ let dbPlayerInfo = {
         let platformId = null;
         let platformData = null;
         let playerData = null;
+        let referralLog = {};
+        let isHitReferralLimit = false;
+        let isEnableUseReferralPlayerId = false;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -935,29 +938,190 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
+                        // if (inputData.referral || inputData.referralName) {
+                        //     let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
+                        //     let referralProm = dbconfig.collection_players.findOne({
+                        //         name: referralName,
+                        //         platform: platformObjId
+                        //     }).then(
+                        //         data => {
+                        //             if (data) {
+                        //                 inputData.referral = data._id;
+                        //                 return inputData;
+                        //             }
+                        //             else {
+                        //                 // If user key in invalid referral during register, we will not proceed
+                        //                 return Q.reject({
+                        //                     status: constServerCode.INVALID_REFERRAL,
+                        //                     name: "DataError",
+                        //                     message: "Invalid referral"
+                        //                 });
+                        //             }
+                        //         }
+                        //     );
+                        //     proms.push(referralProm);
+                        // }
+
                         if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                            let referralProm = dbconfig.collection_players.findOne({
-                                name: referralName,
-                                platform: platformObjId
-                            }).then(
-                                data => {
-                                    if (data) {
-                                        inputData.referral = data._id;
-                                        return inputData;
+
+                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
+                                referralConfig => {
+                                    if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                        isEnableUseReferralPlayerId = true;
                                     }
-                                    else {
-                                        // If user key in invalid referral during register, we will not proceed
-                                        return Q.reject({
-                                            status: constServerCode.INVALID_REFERRAL,
-                                            name: "DataError",
-                                            message: "Invalid referral"
-                                        });
+
+                                    return dbconfig.collection_players.findOne({
+                                        name: referralName,
+                                        platform: platformObjId
+                                    }).populate({path: "platform", model: dbconfig.collection_platform}).then(
+                                        data => {
+                                            if (data) {
+                                                inputData.referral = data._id;
+
+                                                if (isEnableUseReferralPlayerId) {
+                                                    if (!inputData.isFromBackstage) {
+                                                        let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                        let logQuery = {
+                                                            platform: platformObjId,
+                                                            referral: data._id
+                                                        }
+
+                                                        if (configIntervalTime) {
+                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        }
+
+                                                        return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                                            countReferee => {
+                                                                let referralLimit = 0;
+
+                                                                referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                                                if (countReferee <= referralLimit) {
+                                                                    referralLog = {
+                                                                        platform: platformObjId,
+                                                                        referral: data._id,
+                                                                    };
+
+                                                                    return inputData;
+                                                                } else {
+                                                                    isEnableUseReferralPlayerId = false;
+                                                                    isHitReferralLimit = true;
+                                                                    delete inputData.referral;
+                                                                    delete inputData.referralId;
+                                                                    delete inputData.referralUrl;
+
+                                                                    return inputData;
+                                                                }
+                                                            }
+                                                        );
+                                                    } else {
+                                                        referralLog = {
+                                                            platform: platformObjId,
+                                                            referral: data._id,
+                                                        };
+
+                                                        if (!inputData.referralId && !inputData.referralUrl) {
+                                                            inputData.referralId = data.playerId;
+
+                                                            if (data.platform && data.platform.playerInvitationUrlList && data.platform.playerInvitationUrlList.length > 0
+                                                                && data.platform.playerInvitationUrlList[0] && data.platform.playerInvitationUrlList[0].content) {
+                                                                inputData.referralUrl = data.platform.playerInvitationUrlList[0].content + '/' + data.playerId;
+                                                            }
+
+                                                            return inputData;
+                                                        }
+                                                    }
+                                                }
+
+                                                return inputData;
+                                            }
+                                            else {
+                                                // If user key in invalid referral during register, we will not proceed
+                                                return Q.reject({
+                                                    status: constServerCode.INVALID_REFERRAL,
+                                                    name: "DataError",
+                                                    message: "Invalid referral"
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
+                            )
+
+                            proms.push(referralProm);
+                        }
+
+                        if (!inputData.referral && inputData.referralId) {
+                            let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
+                                referralConfig => {
+                                    if (referralConfig) {
+
+                                        if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+
+                                            return dbconfig.collection_players.findOne({
+                                                playerId: inputData.referralId,
+                                                platform: platformObjId
+                                            }).then(referrerData => {
+                                                if (referrerData) {
+                                                    let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                    let logQuery = {
+                                                        platform: platformObjId,
+                                                        referral: referrerData._id
+                                                    }
+
+                                                    if (configIntervalTime) {
+                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                    }
+
+                                                    return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                                        countReferee => {
+                                                            let referralLimit = 0;
+
+                                                            referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                                            if (countReferee <= referralLimit) {
+                                                                inputData.referral = referrerData._id;
+
+                                                                isEnableUseReferralPlayerId = true;
+                                                                referralLog = {
+                                                                    platform: platformObjId,
+                                                                    referral: referrerData._id,
+                                                                };
+
+                                                                return inputData;
+                                                            } else {
+                                                                isHitReferralLimit = true;
+                                                                delete inputData.referralId;
+                                                                delete inputData.referralUrl;
+
+                                                                return inputData;
+                                                            }
+
+                                                            return inputData;
+                                                        }
+                                                    );
+                                                } else {
+                                                    // If user key in invalid referral during register, we will not proceed
+                                                    return Q.reject({
+                                                        status: constServerCode.INVALID_REFERRAL,
+                                                        name: "DataError",
+                                                        message: "Invalid referral"
+                                                    });
+                                                }
+                                            })
+                                        } else {
+                                            delete inputData.referralId;
+                                            delete inputData.referralUrl;
+
+                                            return inputData;
+                                        }
                                     }
                                 }
                             );
-                            proms.push(referralProm);
+                            proms.push(checkReferralLimit);
                         }
+
                         if (inputData.partnerName) {
                             delete inputData.referral;
                             let partnerProm = dbconfig.collection_partner.findOne({
@@ -1067,6 +1231,7 @@ let dbPlayerInfo = {
                                 }
 
                             }
+
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                         }
                     )
@@ -1075,6 +1240,13 @@ let dbPlayerInfo = {
                 data => {
                     if (data) {
                         // dbPlayerInfo.createPlayerLoginRecord(data);
+                        if (isEnableUseReferralPlayerId) {
+                            referralLog.playerObjId = data._id
+
+                            let newRecord = new dbconfig.collection_referralLog(referralLog);
+                            newRecord.save().catch(errorUtils.reportError);
+                        }
+
                         let newPlayerData = data;
 
                         newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
@@ -1112,6 +1284,10 @@ let dbPlayerInfo = {
                             pdata.partnerId = inputData.partnerId;
                             pdata.partnerName = inputData.partnerName;
                             playerData = pdata;
+
+                            if (isHitReferralLimit) {
+                                playerData.isHitReferralLimit = isHitReferralLimit;
+                            }
                         }
                     )
             ).then(
@@ -1144,7 +1320,15 @@ let dbPlayerInfo = {
                         // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
                         // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
                         console.log('MT --checking createPlayerRewardPointsRecord', playerData.platform, playerData._id)
-                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false);
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false).then(
+                            data => {
+                                if (data && isHitReferralLimit) {
+                                    data.isHitReferralLimit = isHitReferralLimit;
+                                }
+
+                                return data;
+                            }
+                        );
                     }
                     if (data && platformData.isEbet4) {
                         // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
@@ -2724,6 +2908,66 @@ let dbPlayerInfo = {
                     }
                 }
             );
+    },
+
+    getReferralPlayerInfo: function (query) {
+        return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return false;
+                }
+
+                let returnData = {
+                    _id: playerData._id,
+                    name: playerData.name,
+                    platformId: playerData.platform.platformId,
+                    platform: playerData.platform._id,
+                    validCredit: playerData.validCredit,
+                    realName: playerData.realName
+                };
+
+                return dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+                    referralConfig => {
+                        if (referralConfig) {
+                            let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                            let logQuery = {
+                                platform: playerData.platform._id,
+                                referral: playerData._id
+                            }
+
+                            if (configIntervalTime) {
+                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                            }
+
+                            return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                countReferee => {
+                                    let referralLimit = 0;
+
+                                    if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
+                                        referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                        if (countReferee > referralLimit) {
+                                            returnData.isHitReferralLimit = true;
+
+                                            return returnData;
+                                        }
+                                    }
+
+                                    returnData.isHitReferralLimit = false;
+
+                                    return returnData;
+                                }
+                            );
+                        }
+
+                        returnData.isHitReferralLimit = false;
+
+                        return returnData;
+                    }
+                );
+            }
+        );
     },
 
     getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
@@ -29272,6 +29516,30 @@ function checkPlayerIsBlacklistIp(player) {
             }
         )
     }
+}
+
+function getReferralConfigIntervalTime(period) {
+    let intervalTime;
+
+    switch (period) {
+        case "1":
+            intervalTime = dbUtility.getTodaySGTime();
+            break;
+        case "2":
+            intervalTime = dbUtility.getCurrentWeekSGTime();
+            break;
+        case "3":
+            intervalTime = dbUtility.getCurrentMonthSGTIme();
+            break;
+        case "4":
+            intervalTime = dbUtility.getYearlySGTIme() ;
+            break;
+        default:
+            // No interval time. Will return undefined
+            break;
+    }
+
+    return intervalTime;
 }
 
 var proto = dbPlayerInfoFunc.prototype;
