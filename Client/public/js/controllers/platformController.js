@@ -1568,6 +1568,14 @@ define(['js/app'], function (myApp) {
 
             vm.generateMultiUrls = function() {
                 let urls = vm.splitTextArea(vm.multiUrls);
+                let appKey = '2849184197';
+                let url = urls[0];
+                let allUrl = ['http://www.yahoo.com', 'http://www.baidu.com', 'http://www.alibaba.com']
+                let host = $location.protocol() + "://" + $location.host() + ":9000";// + $location.port() + "/platform";
+                $.post(host+'/urlShortener', {'kkk': allUrl},
+                function(data){
+                    console.log(data);
+                })
                 vm.urlData = [
                     { no:1, url : 'aaa.com', shortUrl: 't.cn/AAcLAKs' },
                     { no:2, url : 'bbb.com', shortUrl: 't.cn/TAcLAKs' },

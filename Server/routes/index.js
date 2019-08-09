@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken');
 var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcrypt');
+var request = require('request');
 
 var encrypt = require('./../modules/encrypt');
 var dbConfig = require('./../modules/dbproperties');
@@ -345,6 +346,26 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             res.json({success: false, error: {name: "UnexpectedError", message: String(err)}});
         }
     );
+});
+
+router.post('/urlShortener', function (req, res, next) {
+
+    let appKey = '2849184197';
+    let urls = ['http://www.yahoo.com', 'http://www.baidu.com', 'http://www.sina.com'];
+    let proms = [];
+    console.log(urls);
+    urls.forEach(url =>{
+        let uri = 'https://api.weibo.com/2/short_url/shorten.json?source='+appKey+'&url_long='+ url;
+        let prom = request(uri, function (error, response, body){})
+        proms.push(prom);
+    })
+
+    return Promise.all(proms).then(
+        data=> {
+            console.log(data);
+            res.json({success: true, data:data});
+        }
+    )
 });
 
 router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
