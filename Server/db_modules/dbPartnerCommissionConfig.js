@@ -13,9 +13,9 @@ const dbPartnerCommission = require('./../db_modules/dbPartnerCommission');
 const constProposalStatus = require('./../const/constProposalStatus');
 
 const dbPartnerCommissionConfig = {
-    getPlatformPartnerCommConfig: (platformObjId) => {
+    getPlatformPartnerCommConfig: (platformObjId, commissionType) => {
         console.log('platformObjId', platformObjId);
-        return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId}).lean().then(
+        return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId, commissionType: commissionType}).lean().then(
             data => {
                 return data;
             }

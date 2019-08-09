@@ -7268,7 +7268,7 @@ let dbPartner = {
         }
 
         if (partnerObj && partnerObj.length) {
-            let commRateConfigs = await dbconfig.collection_partnerCommissionRateConfig.find({platform: {$in: platformObjIdList}/*, $or: [{partner: null}, {partner: {$in: partnerObj.map(partner=> partner._id)}}]*/}).lean();
+            let commRateConfigs = await dbconfig.collection_partnerMainCommRateConfig.find({platform: {$in: platformObjIdList}/*, $or: [{partner: null}, {partner: {$in: partnerObj.map(partner=> partner._id)}}]*/}).lean();
             let commRatePlatform = {};
             let commRatePartner = {};
             if (commRateConfigs && commRateConfigs.length) {
