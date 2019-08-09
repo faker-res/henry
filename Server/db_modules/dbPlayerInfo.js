@@ -18922,6 +18922,7 @@ let dbPlayerInfo = {
                                         );
                                     }
                                 }
+
                             }
                         }
                     )
@@ -20444,9 +20445,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId) {
-        let startDate = new Date(1970, 1, 1);
-        let today = new Date(); // track for whole life time until now
+    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId, startTime, endTime) {
+        // let startDate = new Date(1970, 1, 1);
+        // let today = new Date(); // track for whole life time until now
+        let startDate = new Date(startTime);
+        let today = new Date(endTime);
         let consumptionProm = [];
         let topUpProm = [];
         let bonusProm = [];
@@ -20485,7 +20488,7 @@ let dbPlayerInfo = {
                 month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
-
+        console.log('create time', startDate + " : " + today);
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -21871,7 +21874,7 @@ let dbPlayerInfo = {
                 model: dbconfig.collection_playerCredibilityRemark,
                 select: "_id name"
             }).lean();
-
+            console.log('player data', playerData);
             if (!playerData) {
                 return "";
             }
@@ -22192,14 +22195,11 @@ let dbPlayerInfo = {
                                         result.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
                                         result.onlineTopUpFeeDetail.push(detailObj);
                                     }
-                                }
-                                else if (e._id.typeId.toString() === manualTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === manualTopUpTypeId) {
                                     result.manualTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === weChatTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === weChatTopUpTypeId) {
                                     result.weChatTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
                                     result.aliPayTopUpAmount = e.amount;
                                 }
 
