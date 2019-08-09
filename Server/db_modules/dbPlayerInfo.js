@@ -28645,7 +28645,7 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
                 if (!removedTsDistributedPhone) {
                     return;
                 }
-                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
                 if (removedTsDistributedPhone.tsDistributedPhoneList) {
                     let distributedPhoneListUpdate = {
                         registrationCount: 1
