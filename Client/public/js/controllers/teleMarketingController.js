@@ -2261,7 +2261,7 @@ define(['js/app'], function (myApp) {
                                 vm.getDecompositionListCount(vm.importPlatformForXLS);
                             }
                             if (isFeedbackPhoneTrade) {
-                                vm.getfeedbackPhoneListCount();
+                                vm.getfeedbackPhoneListCount(vm.importPlatformForXLS);
                                 vm.searchFeedbackPhoneQuery(true);
                             }
                         } else {
