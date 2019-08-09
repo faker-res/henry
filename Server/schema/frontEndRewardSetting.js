@@ -32,6 +32,14 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // displayFormat 1： 列表； 2： 平铺3项1列；
+        displayFormat: {type: Number},
+        // display order number including of all the pc, h5, app category
+        orderNumber: {type: Number, index: true},
+        // is required to log in or not
+        requiredToLogIn: {type: Boolean},
+        // showing application button or not
+        showApplyButton: {type: Boolean},
     },
     h5: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -48,6 +56,12 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // display order number including of all the pc, h5, app category
+        orderNumber: {type: Number, index: true},
+        // is required to log in or not
+        requiredToLogIn: {type: Boolean},
+        // showing application button or not
+        showApplyButton: {type: Boolean},
     },
     app: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -64,6 +78,12 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // display order number including of all the pc, h5, app category
+        orderNumber: {type: Number, index: true},
+        // is required to log in or not
+        requiredToLogIn: {type: Boolean},
+        // showing application button or not
+        showApplyButton: {type: Boolean},
     },
 });
 
