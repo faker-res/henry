@@ -4188,7 +4188,6 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
-        updateData.forbidPromoCode = disablePromoCode? true: false;
         updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
