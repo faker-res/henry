@@ -1003,11 +1003,12 @@ define(['js/app'], function (myApp) {
                 status: 'ready'
             };
 
-            let modes = [2, 7];
+            let modes = [2, 7, 4];
             /* flags to disable settlement mode button after submit sucessfully*/
             vm.partnerSettlementSubmitted = {
                 2: false,
                 7: false,
+                4: false,
             };
 
             $scope.$socketPromise("getPlatformPartnerSettLog", {
@@ -7701,7 +7702,8 @@ define(['js/app'], function (myApp) {
             vm.prepareEditPartnerPayment();
             vm.tabClicked(selectedTab);
             vm.partnerValidity = {};
-            vm.isMultiLevelCommission = false;
+            // vm.isMultiLevelCommission = false;
+            vm.isMultiLevelCommission = true;
             await vm.getCommissionRateGameProviderGroup();
             dialogDetails();
 
@@ -7711,7 +7713,8 @@ define(['js/app'], function (myApp) {
                 vm.editPartner.DOB = new Date(vm.editPartner.DOB);
                 vm.selectedCommissionTab(
                     $scope.constPartnerCommissionSettlementType[vm.editPartner.commissionType],
-                    selectedPartner._id
+                    selectedPartner._id,
+                    vm.isMultiLevelCommission
                 );
                 vm.commissionRateConfig = jQuery.extend(true, {}, vm.srcCommissionRateConfig);
                 vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
@@ -12234,7 +12237,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                    vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                     vm.getCommissionRateGameProviderGroup();
                     vm.getPlatformPartnersData();
                     vm.commissionRateEditRow(field, false);
@@ -17224,7 +17227,8 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommission = {};
                     // vm.getCommissionRateGameProviderGroup();
                     vm.commissionSettingTab = vm.commissionSettingTab? vm.commissionSettingTab: "DAILY_CONSUMPTION";
-                    vm.isMultiLevelCommission = false;
+                    // vm.isMultiLevelCommission = false;
+                    vm.isMultiLevelCommission = true;
                     vm.changeSelectedPlatform(vm.platformInSetting._id);
                     // [vm.gameProviderGroup, vm.gameProviderGroupNames] = await commonService.getPlatformProviderGroup($scope, vm.platformInSetting._id).catch(err => Promise.resolve([
                     // [vm.gameProviderGroup, vm.gameProviderGroupNames] = await commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.id).then(
@@ -17346,7 +17350,10 @@ define(['js/app'], function (myApp) {
 
             if (isMultiLevel) {
                 socketAction = "getPlatformPartnerCommConfig";
-                sendData = {platformObjId: vm.platformInSetting._id}
+                sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab].toString(),
+                }
             } else {
                 socketAction = "getPartnerCommissionConfigWithGameProviderGroup";
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
