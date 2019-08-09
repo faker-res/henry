@@ -19050,6 +19050,7 @@ let dbPlayerInfo = {
                         (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
+                console.log('returning...');
                 return returnedObj;
             }
         );
