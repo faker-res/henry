@@ -2258,10 +2258,10 @@ define(['js/app'], function (myApp) {
                             }
                             if (isPhoneTrade) {
                                 vm.searchDecomposedNewPhoneQuery(true)
-                                vm.getDecompositionListCount();
+                                vm.getDecompositionListCount(vm.importPlatformForXLS);
                             }
                             if (isFeedbackPhoneTrade) {
-                                vm.getfeedbackPhoneListCount();
+                                vm.getfeedbackPhoneListCount(vm.importPlatformForXLS);
                                 vm.searchFeedbackPhoneQuery(true);
                             }
                         } else {

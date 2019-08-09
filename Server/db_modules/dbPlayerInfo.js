@@ -4188,7 +4188,6 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
-        updateData.forbidPromoCode = disablePromoCode? true: false;
         updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
@@ -18829,7 +18828,7 @@ let dbPlayerInfo = {
         console.log('postSummaryStartTime', postSummaryStartTime);
         console.log('postSummaryEndTime', postSummaryEndTime);
 
-        if (summaryEndTime && summaryEndTime) {
+        if (summaryStartTime && summaryEndTime) {
             getSummaryProm = getSummaryData();
         }
 
@@ -18923,6 +18922,7 @@ let dbPlayerInfo = {
                                         );
                                     }
                                 }
+
                             }
                         }
                     )
@@ -19015,6 +19015,7 @@ let dbPlayerInfo = {
                     }
                 }
 
+                console.log('process returnedObj');
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
                     // Filter out players who has 0 topup and 0 bets
@@ -19049,6 +19050,7 @@ let dbPlayerInfo = {
                         (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
+                console.log('returning...', returnedObj);
                 return returnedObj;
             }
         );
@@ -19248,7 +19250,7 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).read("secondaryPreferred");
+                    ).allowDiskUse(true).read("secondaryPreferred");
                 }
             ).then(
                 async playerSummaryData => {
@@ -20445,9 +20447,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId) {
-        let startDate = new Date(1970, 1, 1);
-        let today = new Date(); // track for whole life time until now
+    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId, startTime, endTime) {
+        // let startDate = new Date(1970, 1, 1);
+        // let today = new Date(); // track for whole life time until now
+        let startDate = new Date(startTime);
+        let today = new Date(endTime);
         let consumptionProm = [];
         let topUpProm = [];
         let bonusProm = [];
@@ -20486,7 +20490,7 @@ let dbPlayerInfo = {
                 month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
-
+        console.log('create time', startDate + " : " + today);
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -21872,7 +21876,7 @@ let dbPlayerInfo = {
                 model: dbconfig.collection_playerCredibilityRemark,
                 select: "_id name"
             }).lean();
-
+            console.log('player data', playerData);
             if (!playerData) {
                 return "";
             }
@@ -22193,14 +22197,11 @@ let dbPlayerInfo = {
                                         result.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
                                         result.onlineTopUpFeeDetail.push(detailObj);
                                     }
-                                }
-                                else if (e._id.typeId.toString() === manualTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === manualTopUpTypeId) {
                                     result.manualTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === weChatTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === weChatTopUpTypeId) {
                                     result.weChatTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
                                     result.aliPayTopUpAmount = e.amount;
                                 }
 
@@ -28608,8 +28609,6 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
     }
     let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
 
-    tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
-
     for (let i = 0; i < tsPhoneData.length; i++) {
         let tsPhone = tsPhoneData[i];
         if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
@@ -28649,15 +28648,18 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
                 dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
                 if (removedTsDistributedPhone.tsDistributedPhoneList) {
                     let distributedPhoneListUpdate = {
-                        phoneCount: -1
+                        registrationCount: 1
                     };
-
-                    if (removedTsDistributedPhone.isUsed) {
-                        distributedPhoneListUpdate.phoneUsed = -1;
-                    }
-                    if (removedTsDistributedPhone.isSucceedBefore) {
-                        distributedPhoneListUpdate.successfulCount = -1;
-                    }
+                    // let distributedPhoneListUpdate = {
+                    //     phoneCount: -1
+                    // };
+                    //
+                    // if (removedTsDistributedPhone.isUsed) {
+                    //     distributedPhoneListUpdate.phoneUsed = -1;
+                    // }
+                    // if (removedTsDistributedPhone.isSucceedBefore) {
+                    //     distributedPhoneListUpdate.successfulCount = -1;
+                    // }
 
                     dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
                 }
@@ -28782,7 +28784,7 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         //     }
         // );
 
-        proms.push(prom);
+        proms.push(prom());
     });
 
     return Promise.all(proms).then(
