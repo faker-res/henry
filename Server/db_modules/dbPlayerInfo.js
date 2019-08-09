@@ -28607,8 +28607,6 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
     }
     let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
 
-    tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
-
     for (let i = 0; i < tsPhoneData.length; i++) {
         let tsPhone = tsPhoneData[i];
         if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
