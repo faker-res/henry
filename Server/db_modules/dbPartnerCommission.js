@@ -161,9 +161,9 @@ const dbPartnerCommission = {
                 grossCommission: 0,
                 platformFee: 0,
                 totalParentRate: 0,
-                totalTopUpFee: 0,
-                totalWithdrawalFee: 0,
-                totalRewardFee: 0,
+                totalTopUpFee: totalTopUpFee,
+                totalWithdrawalFee: totalWithdrawalFee,
+                totalRewardFee: totalRewardFee,
                 totalPlatformFee: 0,
                 totalReward: totalReward,
                 totalTopUp: totalTopUp,
@@ -367,22 +367,22 @@ const dbPartnerCommission = {
         if (totalParentGrossCommission + nettCommission > 0) {
             feeMultiplier = math.chain(nettCommission).divide(totalParentGrossCommission + nettCommission).round(8).done();
         }
-        let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(8).done();
-        let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(8).done();
-        let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(8).done();
-
-        for (let j = 0; j < parentChain.length; j++) {
-            let parent = parentChain[j];
-            let objId = String(parent._id);
-
-            let parentFeeMultiplier = 0;
-            if (totalParentGrossCommission + nettCommission > 0) {
-                parentFeeMultiplier = math.chain(parentCommissionDetail[objId].grossCommission).divide(totalParentGrossCommission + nettCommission).round(8).done();
-            }
-            parentCommissionDetail[objId].totalRewardFee = math.chain(totalRewardFee).multiply(parentFeeMultiplier).round(2).done();
-            parentCommissionDetail[objId].totalTopUpFee = math.chain(totalTopUpFee).multiply(parentFeeMultiplier).round(2).done();
-            parentCommissionDetail[objId].totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentFeeMultiplier).round(2).done();
-        }
+        // let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(8).done();
+        // let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(8).done();
+        // let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(8).done();
+        //
+        // for (let j = 0; j < parentChain.length; j++) {
+        //     let parent = parentChain[j];
+        //     let objId = String(parent._id);
+        //
+        //     let parentFeeMultiplier = 0;
+        //     if (totalParentGrossCommission + nettCommission > 0) {
+        //         parentFeeMultiplier = math.chain(parentCommissionDetail[objId].grossCommission).divide(totalParentGrossCommission + nettCommission).round(8).done();
+        //     }
+        //     parentCommissionDetail[objId].totalRewardFee = math.chain(totalRewardFee).multiply(parentFeeMultiplier).round(2).done();
+        //     parentCommissionDetail[objId].totalTopUpFee = math.chain(totalTopUpFee).multiply(parentFeeMultiplier).round(2).done();
+        //     parentCommissionDetail[objId].totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentFeeMultiplier).round(2).done();
+        // }
 
         let returnObj = {
             partner: partner._id,
