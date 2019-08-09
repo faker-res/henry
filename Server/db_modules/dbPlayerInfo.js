@@ -1045,22 +1045,25 @@ let dbPlayerInfo = {
 
                     // /* new reqeust from Yuki: the csOfficer is only binded by domain */
                     let checkTsPhone = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId);
+                    if (/*inputData && !inputData.tsPhone && */inputData.phoneNumber) {
+                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId, inputData.tsPhone);
                     }
                     return checkTsPhone.then(
                         tsPhoneData => {
                             if (tsPhoneData) {
+                                inputData.relTsPhoneList = tsPhoneData.relevantList || [];
                                 // inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
                                 // inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneData.tsPhone;
-                                }
-                                if (tsPhoneData.tsPhoneList) {
-                                    inputData.tsPhoneList = tsPhoneData.tsPhoneList;
-                                }
-                                if (tsPhoneData.assignee) {
-                                    inputData.tsAssignee = tsPhoneData.assignee;
+                                if (inputData && !inputData.tsPhone) {
+                                    if (tsPhoneData.tsPhone) {
+                                        inputData.tsPhone = tsPhoneData.tsPhone;
+                                    }
+                                    if (tsPhoneData.tsPhoneList) {
+                                        inputData.tsPhoneList = tsPhoneData.tsPhoneList;
+                                    }
+                                    if (tsPhoneData.assignee) {
+                                        inputData.tsAssignee = tsPhoneData.assignee;
+                                    }
                                 }
 
                             }
@@ -4185,7 +4188,6 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
-        updateData.forbidPromoCode = disablePromoCode? true: false;
         updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
@@ -18758,8 +18760,6 @@ let dbPlayerInfo = {
 
         // Identify pre and post summary dates (Non - 00 hour)
         // Check if range is less than 1 day
-        console.log('queryStartTime', queryStartTime);
-        console.log('twoDaysAgo', twoDaysAgo);
         if (diffInDays < 1 || (queryStartTime.getTime() > twoDaysAgo.getTime())) {
             postSummaryStartTime = queryStartTime;
             postSummaryEndTime = queryEndTime;
@@ -18768,8 +18768,6 @@ let dbPlayerInfo = {
             summaryEndTime = queryEndTime;
 
             // Check startTime is 00
-            console.log('queryStartTime.getHours()', queryStartTime.getHours());
-            console.log('queryStartTime.getMinutes()', queryStartTime.getMinutes());
             if (queryStartTime.getHours() !== 0 || queryStartTime.getMinutes() !== 0) {
                 preSummaryStartTime = queryStartTime;
                 preSummaryEndTime = dbUtility.getDayEndTime(queryStartTime);
@@ -23036,132 +23034,119 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
+    importTSNewList: async function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
-            return Promise.reject("None of the phone has pass the filter");
+            return Promise.reject({message: "None of the phone has pass the filter"});
         }
 
-        return getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj).then(
-            tsList => {
-                if (!tsList) {
-                    return Promise.reject({message: "tsPhoneList not found"})
-                }
-                tsPhoneList = tsList;
+        tsPhoneList = await getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj);
+        if (!tsPhoneList) {
+            return Promise.reject({message: "tsPhoneList not found"})
+        }
 
-                // generate ts phone import record
-                dbconfig.collection_tsPhoneImportRecord({
-                    platform: saveObj.platform,
-                    tsPhoneList: tsList._id,
-                    description: saveObj.description,
-                    adminName: adminName,
-                    admin: adminId
-                }).save().catch(errorUtils.reportError);
+        // generate ts phone import record
+        dbconfig.collection_tsPhoneImportRecord({
+            platform: saveObj.platform,
+            tsPhoneList: tsPhoneList._id,
+            description: saveObj.description,
+            adminName: adminName,
+            admin: adminId
+        }).save().catch(err => {
+            console.error("add tsPhoneImportRecord failure", err);
+            errorUtils.reportError(err);
+        });
 
-                // if (saveObj.isCheckWhiteListAndRecycleBin) {
-                let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
-                // }
+        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsPhoneList._id, saveObj.isCheckWhiteListAndRecycleBin);
 
-                return filteredPhonesProm;
+        let promArr = [];
+        for (let i = 0; i < filteredPhones.length; i++) {
+            let phone = filteredPhones[i];
+            if (!phone) {
+                continue;
             }
-        ).then(
-            filteredPhones => {
-                let promArr = [];
-                filteredPhones.forEach(phone => {
-                    if (!phone) {
-                        return;
-                    }
-                    let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-                    let phoneLocation = queryPhoneLocation(phone.phoneNumber);
-                    let phoneProvince = phoneLocation && phoneLocation.province || "";
-                    let phoneCity = phoneLocation && phoneLocation.city || "";
+            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
 
-                    let prom = dbconfig.collection_tsPhone({
-                        platform: tsPhoneList.platform,
-                        phoneNumber: encryptedNumber,
-                        playerName: phone.playerName,
-                        realName: phone.realName,
-                        gender: phone.gender,
-                        dob: phone.dob,
-                        wechat: phone.wechat,
-                        qq: phone.qq,
-                        email: phone.email,
-                        remark: phone.remark,
-                        province: phoneProvince,
-                        city: phoneCity,
-                        tsPhoneList: tsPhoneList._id
-                    }).save();
+            isPlayerPhoneExisted(tsPhoneList.platform, phone.phoneNumber, rsaCrypto.encrypt(phone.phoneNumber));
 
-                    if(isImportFeedback && phone._id) {
-                        if (isImportFeedback) {
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_tsPhoneFeedback.update(
-                                        {
-                                            tsPhone: phone._id,
-                                            tsPhoneList: phone.tsPhoneList
-                                        },
-                                        {
-                                            tsPhone: tsPhoneData._id,
-                                            tsPhoneList: tsPhoneList._id
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData;
-                                }
-                            )
-                        }
+            let phoneLocation = queryPhoneLocation(phone.phoneNumber);
+            let phoneProvince = phoneLocation && phoneLocation.province || "";
+            let phoneCity = phoneLocation && phoneLocation.city || "";
+
+            let prom = dbconfig.collection_tsPhone({
+                platform: tsPhoneList.platform,
+                phoneNumber: encryptedNumber,
+                playerName: phone.playerName,
+                realName: phone.realName,
+                gender: phone.gender,
+                dob: phone.dob,
+                wechat: phone.wechat,
+                qq: phone.qq,
+                email: phone.email,
+                remark: phone.remark,
+                province: phoneProvince,
+                city: phoneCity,
+                tsPhoneList: tsPhoneList._id
+            }).save().then(
+                tsPhoneData => {
+                    if (isImportFeedback && phone._id) {
+                        dbconfig.collection_tsPhoneFeedback.update({
+                            tsPhone: phone._id,
+                            tsPhoneList: phone.tsPhoneList
+                        }, {
+                            tsPhone: tsPhoneData._id,
+                            tsPhoneList: tsPhoneList._id
+                        }, {
+                            multi: true
+                        }).catch(err => {
+                            console.error('update tsPhone', err);
+                            return errorUtils.reportError(err);
+                        });
 
                         if (isPhoneTrade) { // ts phone trade
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_tsPhoneTrade.update(
-                                        {
-                                            sourceTsPhone: phone._id,
-                                            sourceTsPhoneList: phone.tsPhoneList
-                                        },
-                                        {
-                                            targetTsPhone: tsPhoneData._id,
-                                            targetTsPhoneList: tsPhoneList._id
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData
-                                }
-                            )
+                            dbconfig.collection_tsPhoneTrade.update({
+                                sourceTsPhone: phone._id,
+                                sourceTsPhoneList: phone.tsPhoneList
+                            }, {
+                                targetTsPhone: tsPhoneData._id,
+                                targetTsPhoneList: tsPhoneList._id
+                            }, {
+                                multi: true
+                            }).catch(err => {
+                                console.error('update targetTsPhone', err);
+                                return errorUtils.reportError(err);
+                            });
                         }
 
                         if (isFeedbackPhoneTrade) { // from feedback
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_feedbackPhoneTrade.update(
-                                        {
-                                            _id: phone._id
-                                        },
-                                        {
-                                            isImportedPhoneList: true
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData
-                                }
-                            )
+                            dbconfig.collection_feedbackPhoneTrade.update({
+                                _id: phone._id
+                            }, {
+                                isImportedPhoneList: true
+                            }, {
+                                multi: true
+                            }).catch(err => {
+                                console.error('update isImportedPhoneList', err);
+                                return errorUtils.reportError(err);
+                            });
                         }
                     }
 
-
-                    promArr.push(prom);
-                });
-
-                return Promise.all(promArr);
-            }
-        ).then(
-            () => {
-                recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
-                if (targetTsPhoneListId) {
-                    return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().then(
-                        () => {
-                            return true;
-                        }
-                    );
+                    return tsPhoneData;
                 }
-                return true;
-            }
-        );
+            );
+            promArr.push(prom);
+        }
+
+        await Promise.all(promArr);
+
+        recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
+
+        if (targetTsPhoneListId) {
+            await dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean();
+        }
+
+        return true;
     },
 
     filterDxPhoneExist: function (dxMission, phoneArr) {
@@ -28602,87 +28587,104 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkIsTelesales(phoneNumber, platformObjId, adminId) {
-    let latestTsPhone;
+async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjId) {
+    let relevantList = [];
     let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean().then(
-        tsPhoneData => {
-            if (tsPhoneData && tsPhoneData.length) {
-                latestTsPhone  = tsPhoneData[tsPhoneData.length - 1];
-                tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
+    let tsPhoneData = await dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean();
+    if (!tsPhoneData || !tsPhoneData.length) {
+        return false;
+    }
 
-                if (tsPhoneData && tsPhoneData.length) {
-                    tsPhoneData.forEach(
-                        tsPhone => {
-                            dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
-                            let tsPhoneListUpdate = {
-                                totalPhone: -1
-                            }
-                            if (tsPhone.isUsed) {
-                                tsPhoneListUpdate.totalUsed = -1;
-                            }
-                            if (tsPhone.isSucceedBefore) {
-                                tsPhoneListUpdate.totalSuccess = -1;
-                            }
-                            dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
-                            dbconfig.collection_tsDistributedPhone.findOneAndRemove({
-                                tsPhone: tsPhone._id,
-                                tsPhoneList: tsPhone.tsPhoneList,
-                                endTime: {$gte: new Date()},
-                                registered: false
-                            }).lean().then(
-                                removedTsDistributedPhone => {
-                                    if (removedTsDistributedPhone) {
-                                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
-                                        if (removedTsDistributedPhone.tsDistributedPhoneList) {
-                                            let distributedPhoneListUpdate = {
-                                                phoneCount: -1
-                                            }
-
-                                            if (removedTsDistributedPhone.isUsed) {
-                                                distributedPhoneListUpdate.phoneUsed = -1;
-                                            }
-                                            if (removedTsDistributedPhone.isSucceedBefore) {
-                                                distributedPhoneListUpdate.successfulCount = -1;
-                                            }
-
-                                            dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    )
-                }
-            }
-
-            if (latestTsPhone && latestTsPhone._id && latestTsPhone.tsPhoneList) {
-                return dbconfig.collection_tsDistributedPhone.findOne({
-                    tsPhone: latestTsPhone._id,
-                    tsPhoneList: latestTsPhone.tsPhoneList,
-                    endTime: {$gte: new Date()},
-                    registered: false
-                }).lean().then(
-                    tsDistributedPhone => {
-                        let returnData = {};
-                        if (tsDistributedPhone) {
-                            returnData.tsPhone = tsDistributedPhone.tsPhone;
-                            returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
-                            returnData.assignee = tsDistributedPhone.assignee;
-                        } else {
-                            returnData.tsPhone = latestTsPhone._id;
-                            returnData.tsPhoneList = latestTsPhone.tsPhoneList;
-                            returnData.assignee = adminId;
-                        }
-                        return returnData;
-                    }
-                );
-            } else {
-                return null;
-            }
-
+    let selectedTsPhone = tsPhoneData[tsPhoneData.length - 1];
+    if (tsPhoneObjId) {
+        tsPhoneObjId = tsPhoneObjId._id || tsPhoneObjId;
+        let foundTsPhone = tsPhoneData.find((tsPhone) => {
+            return String(tsPhone._id) === String(tsPhoneObjId);
+        })
+        if (foundTsPhone) {
+            selectedTsPhone = foundTsPhone;
         }
-    );
+    }
+    let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
+
+    for (let i = 0; i < tsPhoneData.length; i++) {
+        let tsPhone = tsPhoneData[i];
+        if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
+            continue;
+        }
+
+        let relevantListExisted = relevantList.find(tsPhoneListObjId => {
+            return String(tsPhoneListObjId) === String(tsPhone.tsPhoneList);
+        });
+        if (!relevantListExisted) {
+            relevantList.push(tsPhone.tsPhoneList);
+        }
+
+        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+        let tsPhoneListUpdate = {
+            totalPhone: -1
+        }
+        if (tsPhone.isUsed) {
+            tsPhoneListUpdate.totalUsed = -1;
+        }
+        if (tsPhone.isSucceedBefore) {
+            tsPhoneListUpdate.totalSuccess = -1;
+        }
+
+        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+
+        dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+            tsPhone: tsPhone._id,
+            tsPhoneList: tsPhone.tsPhoneList,
+            endTime: {$gte: new Date()},
+            registered: false
+        }).lean().then(
+            removedTsDistributedPhone => {
+                if (!removedTsDistributedPhone) {
+                    return;
+                }
+                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                    let distributedPhoneListUpdate = {
+                        phoneCount: -1
+                    };
+
+                    if (removedTsDistributedPhone.isUsed) {
+                        distributedPhoneListUpdate.phoneUsed = -1;
+                    }
+                    if (removedTsDistributedPhone.isSucceedBefore) {
+                        distributedPhoneListUpdate.successfulCount = -1;
+                    }
+
+                    dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                }
+
+            }
+        ).catch(errorUtils.reportError);
+    }
+
+    if (!(selectedTsPhone && selectedTsPhone._id && selectedTsPhone.tsPhoneList)) {
+        return null;
+    }
+
+    let tsDistributedPhone = await dbconfig.collection_tsDistributedPhone.findOne({
+        tsPhone: selectedTsPhone._id,
+        tsPhoneList: selectedTsPhone.tsPhoneList,
+        endTime: {$gte: new Date()},
+        registered: false
+    }).lean();
+
+    let returnData = {relevantList};
+    if (tsDistributedPhone) {
+        returnData.tsPhone = tsDistributedPhone.tsPhone;
+        returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
+        returnData.assignee = tsDistributedPhone.assignee;
+    } else {
+        returnData.tsPhone = selectedTsPhone._id;
+        returnData.tsPhoneList = selectedTsPhone.tsPhoneList;
+        returnData.assignee = adminId;
+    }
+    return returnData;
 }
 
 function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
@@ -28740,24 +28742,44 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
-    let proms = []
+    let existedPhoneNumbers = [];
+    let proms = [];
     phones.map(phone => {
+        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
+            return;
+        }
+        existedPhoneNumbers.push(String(phone.phoneNumber));
+
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber
-        }
+        };
 
         if (!isCheckWhiteListAndRecycleBin && tsPhoneList) {
             tsPhoneQuery.tsPhoneList = tsPhoneList;
         }
 
-        let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
-            isExist => {
-                return isExist ? false : phone;
-            }
-        );
+        let prom = async () => {
+            let isTsPhoneExist = await dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean();
+            let isPlayerExist = await dbconfig.collection_players.findOne({
+                phoneNumber: {$in: [phone.encryptedNumber, rsaCrypto.oldEncrypt(phone.phoneNumber)]},
+                platform: platformObjId,
+                isRealPlayer: true,
+                "permission.forbidPlayerFromLogin": {$ne: true},
+            }, {
+                _id: 1
+            }).lean();
 
-        proms.push(prom);
+            return isTsPhoneExist || isPlayerExist ? false : phone;
+        };
+
+        // let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
+        //     isExist => {
+        //         return isExist ? false : phone;
+        //     }
+        // );
+
+        proms.push(prom());
     });
 
     return Promise.all(proms).then(
@@ -29127,6 +29149,10 @@ function checkSimilarIpForPlayerCredibilityRemarks (player) {
             }
         );
     }
+}
+
+function isPlayerPhoneExisted(platformObjId, phoneNumber, encryptedPhoneNumber) {
+
 }
 
 function checkPlayerIsBlacklistIp(player) {

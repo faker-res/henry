@@ -62,10 +62,15 @@ style.
             span {{"CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popUpAdvertisement"}', ng-click='vm.frontEndSettingTabClicked("popUpAdvertisement")')
             span {{"POP_UP_ADVERTISEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
+            span {{"SKIN_MANAGEMENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
             span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardSetting"}', ng-click='vm.frontEndSettingTabClicked("rewardSetting")')
             span {{"REWARD_SETTING" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "gameSetting"}', ng-click='vm.frontEndSettingTabClicked("gameSetting")')
+            span {{"GAME_SETTING" | translate}}
+
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerCarouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerCarouselConfiguration")')
             span {{"PARTNER_CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerUrlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerUrlConfiguration")')
@@ -119,6 +124,10 @@ style.
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardSetting")')
                     include frontEndConfiguration-rewardSetting
 
+                // Tab - Game Setting
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="gameSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "gameSetting")')
+                    include frontEndConfiguration-gameSetting
+
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerCarouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
                     include frontEndConfiguration-carousel
 
@@ -127,6 +136,38 @@ style.
 
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerSkinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "partnerSkinManagement")')
                     include frontEndConfiguration-skinManagement
+
+#gameSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Game Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-12
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newFrontEndGameSetting.device')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"TITLE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newFrontEndGameSetting.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newFrontEndGameSetting.displayFormat')
+                                        option(ng-repeat='(i,v) in vm.displayFormat', value='{{v}}') {{ i | translate}}
+
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitGameSetting(vm.newFrontEndGameSetting)') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#frontEndGameSettingUploader.collapse
+                    i.fa.fa-spinner.fa-spin
 
 #rewardSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -145,12 +186,13 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.frontEndRewardCategory')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.allFrontEndRewardCategory')
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ENTRANCE IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -178,11 +220,30 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.rewardSetting.pc.displayFormat')
+                                        option(value='1') {{ "list" | translate}}
+                                        option(value='2') {{ "threeInARow" | translate}}
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.pc.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.pc.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.pc.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ENTRANCE IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -210,11 +271,24 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.h5.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -242,6 +316,18 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.app.orderNumber")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.showApplyButton")
 
                             div.frontendConfigSeperator
                             .full-width-input-block

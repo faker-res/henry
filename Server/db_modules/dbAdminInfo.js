@@ -629,7 +629,14 @@ var dbAdminInfo = {
         request(url, function (error, response, body) {
             let bodyJSON = {};
             if( body && typeof body == "string"){
-                bodyJSON = JSON.parse( body.replace(/'/g, '"') );
+                bodyJSON = body.replace(/'/g, '"');
+
+                try {
+                    bodyJSON = JSON.parse(String(bodyJSON));
+                } catch (e) {
+                    console.error(e);
+                    console.error('bodyJson parse failure', bodyJSON);
+                }
             }
             if( error ){
                 console.log("callTell400 error", url, error);
