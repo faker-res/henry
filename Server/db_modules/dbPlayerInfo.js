@@ -19015,7 +19015,6 @@ let dbPlayerInfo = {
                     }
                 }
 
-                console.log('process returnedObj');
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
                     // Filter out players who has 0 topup and 0 bets
@@ -19050,7 +19049,6 @@ let dbPlayerInfo = {
                         (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
-                console.log('returning...', returnedObj);
                 return returnedObj;
             }
         );
