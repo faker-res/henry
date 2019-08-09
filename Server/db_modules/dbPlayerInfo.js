@@ -4188,7 +4188,6 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
-        updateData.forbidPromoCode = disablePromoCode? true: false;
         updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
@@ -23049,7 +23048,7 @@ let dbPlayerInfo = {
         // generate ts phone import record
         dbconfig.collection_tsPhoneImportRecord({
             platform: saveObj.platform,
-            tsPhoneList: tsList._id,
+            tsPhoneList: tsPhoneList._id,
             description: saveObj.description,
             adminName: adminName,
             admin: adminId
@@ -23058,7 +23057,7 @@ let dbPlayerInfo = {
             errorUtils.reportError(err);
         });
 
-        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
+        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsPhoneList._id, saveObj.isCheckWhiteListAndRecycleBin);
 
         let promArr = [];
         for (let i = 0; i < filteredPhones.length; i++) {
@@ -28608,8 +28607,6 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
     }
     let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
 
-    tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
-
     for (let i = 0; i < tsPhoneData.length; i++) {
         let tsPhone = tsPhoneData[i];
         if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
@@ -28745,8 +28742,14 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
+    let existedPhoneNumbers = [];
     let proms = [];
     phones.map(phone => {
+        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
+            return;
+        }
+        existedPhoneNumbers.push(String(phone.phoneNumber));
+
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber
@@ -28776,7 +28779,7 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         //     }
         // );
 
-        proms.push(prom);
+        proms.push(prom());
     });
 
     return Promise.all(proms).then(

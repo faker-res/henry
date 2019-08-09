@@ -32,7 +32,7 @@
                     text {{"Add Event"|translate}}
                     img.img-create
     .col-sm-10
-        .panel.panel-primary(ng-if='vm.showReward || vm.platformRewardShowEdit()')
+        .panel.panel-primary(ng-if=' (vm.showReward && vm.showReward._id) || checkViewPermission("Platform", "Reward", "Add") || vm.platformRewardShowEdit()')
             .panel-heading.panel-heading-sm
                 label {{"REWARD"|translate}}
             .panel-body(ng-if='vm.platformRewardPageName')
