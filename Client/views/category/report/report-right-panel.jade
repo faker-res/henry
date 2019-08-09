@@ -2378,7 +2378,7 @@
                     select.form-control.spicker(ng-model='vm.providerConsumptionQuery.platform', ng-options="a._id as a.name  for a in vm.platformList", ng-change="vm.changePlayerCredibility()", multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label.control-label  {{'CREDIBILITY' | translate}}
-                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.credibility', ng-options="a._id as a.name  for a in vm.playerCredibilityRemark", multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.providerConsumptionQuery.credibility', ng-options="a._id as a.name group by a.platform$ for a in vm.playerCredibilityRemark", multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"Start date"|translate}}
                     .startTime

@@ -288,6 +288,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.conversationDefinition = vm.conversationDefinition || {};
+            platformData.conversationDefinition = platformData.conversationDefinition || {};
             vm.conversationDefinition.totalSec = platformData.conversationDefinition.totalSec;
             vm.conversationDefinition.askingSentence = platformData.conversationDefinition.askingSentence;
             vm.conversationDefinition.replyingSentence = platformData.conversationDefinition.replyingSentence;
@@ -2257,7 +2258,7 @@ define(['js/app'], function (myApp) {
                             }
                             if (isPhoneTrade) {
                                 vm.searchDecomposedNewPhoneQuery(true)
-                                vm.getDecompositionListCount();
+                                vm.getDecompositionListCount(vm.importPlatformForXLS);
                             }
                             if (isFeedbackPhoneTrade) {
                                 vm.getfeedbackPhoneListCount();
@@ -5786,7 +5787,7 @@ define(['js/app'], function (myApp) {
         vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission, platformId) {
             vm.loadingTelePlayerSendingSMSTable = true;
             let sendQuery = {
-                platform: platformId,
+                platform: platformId ? platformId : vm.teleMarketingOverview.platformObjId,
                 dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
                 index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
                 limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,

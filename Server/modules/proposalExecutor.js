@@ -722,7 +722,8 @@ var proposalExecutor = {
                     ).then(
                         function (data) {
                             if (proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
-                                checkIsPlayerBindToPartner(proposalData.data._id, proposalData.data.platformId);
+                                let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
+                                checkIsPlayerBindToPartner(proposalData.data._id, platformObjId);
                             }
                             deferred.resolve(data);
                         },
@@ -3114,8 +3115,8 @@ var proposalExecutor = {
                                 let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
                                 let taskData = {
                                     playerId: proposalData.data.playerObjId,
-                                    type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
-                                    rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
+                                    type: constRewardType.PLAYER_FESTIVAL_REWARD_GROUP,
+                                    rewardType: constRewardType.PLAYER_FESTIVAL_REWARD_GROUP,
                                     platformId: proposalData.data.platformId,
                                     requiredUnlockAmount: proposalData.data.spendingAmount,
                                     currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
@@ -3154,6 +3155,8 @@ var proposalExecutor = {
                                     }
                                 )
                             }
+
+                            return createRTGProm;
                         })
 
                     }
