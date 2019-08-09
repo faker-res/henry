@@ -66,6 +66,7 @@ const constProposalType = {
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
     BACCARAT_REWARD_GROUP: "BaccaratRewardGroup",
     PLAYER_FESTIVAL_REWARD_GROUP: "PlayerFestivalRewardGroup",
+    REFERRAL_REWARD_GROUP: "Referral_Reward_Group",
     // Topup
     PLAYER_COMMON_TOP_UP: "PlayerCommonTopUp",
     PLAYER_MANUAL_TOP_UP: "ManualPlayerTopUp",
