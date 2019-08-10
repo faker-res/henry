@@ -459,6 +459,7 @@ const dbPartnerCommission = {
                 return false;
             }
 
+            await dbconfig.collection_commCalcParent.remove({commCalc: ObjectId(commCalc._id)}).catch(errorUtils.reportError);
             for (let parentObjId in parentPartnerCommissionDetail) {
                 if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
                     let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
@@ -471,6 +472,7 @@ const dbPartnerCommission = {
                 }
             }
 
+            await dbconfig.collection_commCalcPlayer.remove({commCalc: ObjectId(commCalc._id)}).catch(errorUtils.reportError);
             for (let j = 0; j < downLinesRawCommissionDetail.length; j++) {
                 let playerCalc = downLinesRawCommissionDetail[j];
                 playerCalc.commCalc = commCalc._id;
@@ -662,82 +664,72 @@ const dbPartnerCommission = {
         return Promise.all(proms);
     },
 
-    generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
+    generatePartnerCommissionLog: async function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog, parentPartnerCommissionDetail;
-        return dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime)
-            .then(
-                commissionDetail => {
-                    if (commissionDetail.disableCommissionSettlement) {
-                        return undefined;
-                    }
-                    downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
-                    parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail || {};
+        let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime);
+        if (commissionDetail.disableCommissionSettlement) {
+            return undefined;
+        }
 
-                    delete commissionDetail.downLinesRawCommissionDetail;
-                    delete commissionDetail.parentPartnerCommissionDetail;
-                    if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
-                        commissionDetail.rawCommissions.map(rawCommission => {
-                            if (rawCommission && rawCommission.crewProfitDetail) {
-                                delete rawCommission.crewProfitDetail;
-                            }
-                        });
-                    }
+        downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
+        parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail || {};
 
-                    return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                        partner: ObjectId(commissionDetail.partner),
-                        platform: ObjectId(commissionDetail.platform),
-                        startTime: new Date(startTime),
-                        endTime: new Date(endTime),
-                        commissionType: Number(commissionType),
-                    }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
-                        return Promise.reject(err);
-                    })
+        delete commissionDetail.downLinesRawCommissionDetail;
+        delete commissionDetail.parentPartnerCommissionDetail;
+        if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
+            commissionDetail.rawCommissions.map(rawCommission => {
+                if (rawCommission && rawCommission.crewProfitDetail) {
+                    delete rawCommission.crewProfitDetail;
                 }
-            ).then(
-                partnerCommissionLogData => {
-                    if (!partnerCommissionLogData) {
-                        return undefined;
-                    }
-                    updatePastThreeRecord(partnerCommissionLogData).catch(errorUtils.reportError);
-                    partnerCommissionLog = partnerCommissionLogData;
+            });
+        }
 
-                    let proms = [];
-                    downLinesRawCommissionDetails.map(detail => {
-                        detail.platform = partnerCommissionLog.platform;
-                        detail.partnerCommissionLog = partnerCommissionLog._id;
+        let partnerCommissionLogData = await dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+            partner: ObjectId(commissionDetail.partner),
+            platform: ObjectId(commissionDetail.platform),
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            commissionType: Number(commissionType),
+        }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
+            return Promise.reject(err);
+        });
 
-                        let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: ObjectId(detail.platform), partnerCommissionLog: ObjectId(detail.partnerCommissionLog), name: String(detail.name)}, detail, {upsert: true, new: true}).catch(err => {
-                            console.error('downLinesRawCommissionDetail died with param:', detail, err);
-                            errorUtils.reportError(err);
-                        });
-                        proms.push(prom);
-                    });
+        if (!partnerCommissionLogData) {
+            return undefined;
+        }
+        updatePastThreeRecord(partnerCommissionLogData).catch(errorUtils.reportError);
+        partnerCommissionLog = partnerCommissionLogData;
 
-                    for (let parentObjId in parentPartnerCommissionDetail) {
-                        if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
-                            let params = parentPartnerCommissionDetail[parentObjId];
-                            params.partnerCommissionLog = partnerCommissionLog._id;
+        let proms = [];
 
-                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(partnerCommissionLog.partner), startTime: new Date(partnerCommissionLog.startTime)}, params, {upsert: true, new: true}).lean().catch(err => {
-                                console.log("parentPartnerCommissionDetail died with param:", params, err);
-                                return errorUtils.reportError(err);
-                            });
-                            proms.push(prom);
-                        }
-                    }
+        await dbconfig.collection_downLinesRawCommissionDetail.remove({partnerCommissionLog: ObjectId(partnerCommissionLog._id)}).catch(errorUtils.reportError);
+        downLinesRawCommissionDetails.map(detail => {
+            detail.platform = partnerCommissionLog.platform;
+            detail.partnerCommissionLog = partnerCommissionLog._id;
 
-                    return Promise.all(proms);
-                }
-            ).then(
-                downLinesRawCommissionDetail => {
-                    if (!downLinesRawCommissionDetail) {
-                        return undefined;
-                    }
+            let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: ObjectId(detail.platform), partnerCommissionLog: ObjectId(detail.partnerCommissionLog), name: String(detail.name)}, detail, {upsert: true, new: true}).catch(err => {
+                console.error('downLinesRawCommissionDetail died with param:', detail, err);
+                errorUtils.reportError(err);
+            });
+            proms.push(prom);
+        });
 
-                    partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
-                    return partnerCommissionLog;
-                }
-            );
+        await dbconfig.collection_parentPartnerCommissionDetail.remove({partnerCommissionLog: ObjectId(partnerCommissionLog._id)}).catch(errorUtils.reportError);
+        for (let parentObjId in parentPartnerCommissionDetail) {
+            if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
+                let params = parentPartnerCommissionDetail[parentObjId];
+                params.partnerCommissionLog = partnerCommissionLog._id;
+
+                let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(partnerCommissionLog.partner), startTime: new Date(partnerCommissionLog.startTime)}, params, {upsert: true, new: true}).lean().catch(err => {
+                    console.log("parentPartnerCommissionDetail died with param:", params, err);
+                    return errorUtils.reportError(err);
+                });
+                proms.push(prom);
+            }
+        }
+
+        partnerCommissionLog.downLinesRawCommissionDetail = await Promise.all(proms);
+        return partnerCommissionLog;
     },
 
     getChildPartnerDownLineDetails: (objId, isReport) => {
