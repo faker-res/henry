@@ -16738,7 +16738,7 @@ define(['js/app'], function (myApp) {
 
         vm.checkPartnerCommissionType = function () {
             let isValid = false;
-            let validCommissionTypes = [vm.constPartnerCommisionType.DAILY_CONSUMPTION, vm.constPartnerCommisionType.WEEKLY_BONUS_AMOUNT]
+            let validCommissionTypes = [vm.constPartnerCommisionType.DAILY_CONSUMPTION, vm.constPartnerCommisionType.WEEKLY_BONUS_AMOUNT, vm.constPartnerCommisionType.MONTHLY_BONUS_AMOUNT]
             if (vm.selectedSinglePartner && vm.selectedSinglePartner.commissionType && validCommissionTypes.includes(vm.selectedSinglePartner.commissionType)) {
                 isValid = true;
             }
