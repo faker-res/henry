@@ -23066,9 +23066,6 @@ let dbPlayerInfo = {
                 continue;
             }
             let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-
-            isPlayerPhoneExisted(tsPhoneList.platform, phone.phoneNumber, rsaCrypto.encrypt(phone.phoneNumber));
-
             let phoneLocation = queryPhoneLocation(phone.phoneNumber);
             let phoneProvince = phoneLocation && phoneLocation.province || "";
             let phoneCity = phoneLocation && phoneLocation.city || "";
@@ -28570,8 +28567,8 @@ function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneLi
                     message: "List with same name exist"
                 })
             }
-
-            return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+            return null;
+            // return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
         }
     );
 }
@@ -29163,10 +29160,6 @@ function checkSimilarIpForPlayerCredibilityRemarks (player) {
             }
         );
     }
-}
-
-function isPlayerPhoneExisted(platformObjId, phoneNumber, encryptedPhoneNumber) {
-
 }
 
 function checkPlayerIsBlacklistIp(player) {
