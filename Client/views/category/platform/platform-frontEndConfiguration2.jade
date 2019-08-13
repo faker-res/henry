@@ -369,6 +369,18 @@ style.
 
                             div.frontendConfigSeperator
                             .full-width-input-block
+                                label(style="width: 30%;") PC {{"ADVERTISEMENT POSITION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.position")
+                                        option(value="topLeft") {{"topLeft" | translate}}
+                                        option(value="bottomLeft") {{"bottomLeft" | translate}}
+                                        option(value="topRight") {{"topRight" | translate}}
+                                        option(value="bottomRight") {{"bottomRight" | translate}}
+                                        option(value="bottomRight") {{"bottomRight" | translate}}
+                                        option(value="center") {{"center" | translate}}
+                                        option(value="rightSideLabel") {{"rightSideLabel" | translate}}
+
+                            .full-width-input-block
                                 label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input#popUpAdvPcImageFile(type="file")
@@ -398,8 +410,20 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.pc.requiredToLogIn")
 
                             div.frontendConfigSeperator
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ADVERTISEMENT POSITION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.position")
+                                        option(value="center") {{"center" | translate}}
+                                        option(value="top") {{"topLeft" | translate}}
+                                        option(value="shortcutPopUp") {{"shortcutPopUp" | translate}}
+
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -430,6 +454,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.h5.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -462,6 +490,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.app.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
