@@ -573,6 +573,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.pageHeight")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -581,6 +585,7 @@ style.
                                 label(style="width: 30%;") PC {{"STOP POP-UP IN NAVIGATION BAR"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.pc.stopPopUp")
+
                             .full-width-input-block
                                 table.simple-table
                                     thead
@@ -629,6 +634,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.pageHeight")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -665,6 +674,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.pageHeight")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")

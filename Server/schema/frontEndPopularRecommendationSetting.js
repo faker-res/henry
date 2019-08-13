@@ -26,6 +26,8 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
         // has to log in or not
         requiredToLogIn: {type: Boolean, index: true},
         // stop pop-up in navigation bar
@@ -48,6 +50,8 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
         // has to log in or not
         requiredToLogIn: {type: Boolean, index: true},
     },
@@ -66,6 +70,8 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
         // has to log in or not
         requiredToLogIn: {type: Boolean, index: true},
     },

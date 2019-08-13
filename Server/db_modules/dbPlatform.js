@@ -6274,11 +6274,9 @@ var dbPlatform = {
         );
 
         function getFrontEndSettingType1 (platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1);
-            if (query){
-                query.isVisible = true;
-            }
-            else{
+            let query = querySetUp(platformObjId, clientType, 1, code);
+
+            if (!query){
                 return [];
             }
 
@@ -6378,6 +6376,9 @@ var dbPlatform = {
                                 }
                             }
                         )
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                            return restructureDataFormat (settingList, code)
+                        }
                         return settingList
                     } else {
                         return []
@@ -6561,6 +6562,10 @@ var dbPlatform = {
                 status: 1,
             };
 
+            if (code && (code == 'recommendation' || code == 'carousel' || code == 'advertisement' || code == 'reward')){
+                query.isVisible = true;
+            }
+
             if (setUpType == 1){
                 if (clientType == 1){
                     query.pc = {$exists: true};
@@ -6583,6 +6588,47 @@ var dbPlatform = {
             }
 
             return query;
+        }
+
+        function restructureDataFormat (settingList, code) {
+            if (settingList && settingList.length && code && code == "recommendation") {
+                let navList = [];
+                let bodyList = [];
+                let bottomList = [];
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.hasOwnProperty('category')) {
+                            switch (p.category) {
+                                case 1:
+                                    navList.push(p);
+                                    break;
+                                case 2:
+                                    bodyList.push(p);
+                                    break;
+                                case 3:
+                                    bottomList.push(p);
+                                    break;
+                            }
+                        }
+                    }
+                )
+                return {navList: navList, bodyList: bodyList, bottomList: bottomList}
+            }
+            else if (settingList && settingList.length && code && code == "reward") {
+                let objList = {};
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
+                            if (objList && !objList[p.categoryObjId.categoryName]){
+                                objList[p.categoryObjId.categoryName] = [];
+                            }
+                            objList[p.categoryObjId.categoryName].push(p);
+                        }
+                    }
+                )
+                return objList
+            }
+            return settingList
         }
     },
 
