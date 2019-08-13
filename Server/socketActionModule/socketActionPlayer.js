@@ -1329,7 +1329,9 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.playerId);
             let platform = ObjectId(data.platform);
             let playerId = ObjectId(data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId], actionName, isValidData);
+            let startTime = data.startTime;
+            let endTime = data.endTime;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId, startTime, endTime], actionName, isValidData);
         },
 
         getPlayerDepositTrackingDailyDetails: function getPlayerDepositTrackingDailyDetails(data) {

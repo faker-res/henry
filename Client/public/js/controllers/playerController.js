@@ -5186,8 +5186,8 @@ define(['js/app'], function (myApp) {
                         }
 
                         // remove decimal places, no rounding
-                        rowData.validCredit = Math.floor(rowData.validCredit);
-                        rowData.lockedCredit = Math.floor(rowData.lockedCredit);
+                        // rowData.validCredit = Math.floor(rowData.validCredit);
+                        // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
                             table.row.add(rowData);
@@ -6005,9 +6005,9 @@ define(['js/app'], function (myApp) {
                                             vm.anyLobbyTargetConsumption = group.targetConsumption;
                                             vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
                                         }
-                                        if (group.rewardAmt) {
-                                            group.rewardAmt = Math.floor(group.rewardAmt);
-                                        }
+                                        // if (group.rewardAmt) {
+                                        //     group.rewardAmt = Math.floor(group.rewardAmt);
+                                        // }
                                         return group;
                                     });
                                     vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
@@ -6405,7 +6405,7 @@ define(['js/app'], function (myApp) {
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             vm.selectedAllForbidRewardEvent = false;
-                            if (vm.forbidPromoCode && vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
+                            if (vm.forbidLevelUpReward && vm.forbidLevelMaintainReward && vm.allRewardEvent && vm.forbidRewardEventPopover && vm.forbidRewardEventPopover.forbidRewardEvents && (vm.allRewardEvent.length === vm.forbidRewardEventPopover.forbidRewardEvents.length)) {
                                 vm.selectedAllForbidRewardEvent = true;
                             }
                             $scope.safeApply();
@@ -6454,7 +6454,6 @@ define(['js/app'], function (myApp) {
                                 let sendData = {
                                     _id: rowData._id,
                                     forbidRewardEvents: forbidRewardEvents,
-                                    forbidPromoCode: vm.forbidPromoCode,
                                     forbidLevelUpReward: vm.forbidLevelUpReward,
                                     forbidLevelMaintainReward: vm.forbidLevelMaintainReward,
                                     adminName: authService.adminName
@@ -7152,6 +7151,15 @@ define(['js/app'], function (myApp) {
             vm.platformProviderList.forEach(item => {
                 if (item && item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
                     item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                }
+                // remove bUsed added to sameLineProviders
+                if (item && item.sameLineProviders) {
+                    for (let i in item.sameLineProviders) {
+                        let len = item.sameLineProviders[i].length;
+                        if (item.sameLineProviders[i] && item.sameLineProviders[i][len-1] === 'bUsed') {
+                            item.sameLineProviders[i].pop();
+                        }
+                    }
                 }
             });
         };
@@ -23650,10 +23658,6 @@ define(['js/app'], function (myApp) {
 
         //region forbidReward
         vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
-            if (playerObj && playerObj.forbidPromoCode) {
-                forbidReward.push("优惠代码");
-            }
-
             if (playerObj && playerObj.forbidLevelUpReward) {
                 forbidReward.push("系统升级优惠");
             }
