@@ -1,19 +1,9 @@
-style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
-
 .row
     .col-md-12
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"UrlShortener" | translate}}
             .panel-body.common-right-sub-panel-body
-
-
-                //select.form-control(ng-model="vm.batchSettingSelectedPlatform" ng-options="v._id as v.name$ for v in vm.allPlatformData" ng-change="vm.initBatchPermit();")
-                    option(value="") {{"NO_PLATFORM_MESSAGE" | translate}}
-
                 textarea.form-control(ng-model="vm.multiUrls", placeholder="...", rows="8")
                 {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
                 button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') 开始生成

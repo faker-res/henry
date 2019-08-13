@@ -362,7 +362,7 @@ function getUrlShortner(url){
 
 router.post('/urlShortener', function (req, res, next) {
 
-    let weiboAppKey = '2849184197';
+    let weiboAppKey = env.weiboAppKey;
     let urls = req.body['urls[]'];
     if (typeof req.body['urls[]'] == 'string') {
         urls = [req.body['urls[]']];
@@ -377,7 +377,6 @@ router.post('/urlShortener', function (req, res, next) {
     return Promise.all(proms).then(
         data=> {
             let result = [];
-            console.log(data);
             data.forEach( (item, index) => {
                 try {
                      item = JSON.parse(item);

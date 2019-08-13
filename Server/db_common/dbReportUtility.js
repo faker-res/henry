@@ -45,7 +45,6 @@ let bankTypeList = [];
 const dbReportUtility = {
     generateExcelFile: (reportName, outputResult) => {
         let wb = XLSX.utils.book_new();
-        console.log('***', outputResult);
         wb.Props = {
             Title: "Top Up Report",
             Subject: "Test",
@@ -61,7 +60,6 @@ const dbReportUtility = {
         function processResult (reportName, outputResult) {
             if (outputResult && outputResult.length) {
                 return outputResult.map(res => {
-                    console.log(res)
                     switch (reportName) {
                         case "TopupReport":
                             return {

@@ -1556,21 +1556,16 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                     case "UrlShortener":
-                        vm.initUrlShortner();
                         break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
-            vm.initUrlShortner = function () {
-            }
-
             vm.generateMultiUrls = function() {
                 vm.urlData = [];
                 let urls = vm.splitTextArea(vm.multiUrls);
                 urls = urls.map(item => { return item.trim() });
-                console.log(urls);
                 let sendData = { "urls": urls }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
                 $.post(host+'/urlShortener', sendData, function(data){
@@ -1584,7 +1579,6 @@ define(['js/app'], function (myApp) {
                 let sendData = { "urls": [ url ] }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
                 $.post(host+'/urlShortener', sendData, function(data){
-                    console.log(data);
                     $scope.$evalAsync(() => {
                         data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
                         vm.urlData.filter(item => {
@@ -1597,11 +1591,9 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-
             vm.exportShortUrlToExcel = function () {
                 socketService.$socket($scope.AppSocket, 'exportShortUrlToExcel', {data: vm.urlData}, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log(data);
                         window.saveAs(new Blob([data.data]), "shortUrl.csv");
                     })
                 });
