@@ -43,7 +43,7 @@ define(['js/app'], function (myApp) {
                 "gameRecommendation": 2,
                 "bottomBanner": 3,
             };
-            
+
             vm.displayFormat = {
                 "backgroundDisplay": 1,
                 "theeInARow": 2,
@@ -26980,7 +26980,7 @@ define(['js/app'], function (myApp) {
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
                 vm.allOpen = rewardPointsEvent.status === true
-                
+
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -27854,7 +27854,8 @@ define(['js/app'], function (myApp) {
                                     }
 
                                     if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                        let filterCreatePromoCodePlatformData = vm.getCurrentPlatform(vm.filterCreatePromoCodePlatform);
+                                        sendData.isProviderGroup = Boolean(filterCreatePromoCodePlatformData.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
                                         sendData.playerName = sendData.playerName.trim();
@@ -27890,6 +27891,15 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
+            vm.getCurrentPlatform = function (id) {
+                let result;
+                result = vm.platformList.filter(item => {
+                    return item.id == id;
+                })
+                result = result && result[0] ? result[0] : null;
+                return result;
+            }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
