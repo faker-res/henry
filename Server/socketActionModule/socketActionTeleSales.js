@@ -272,7 +272,7 @@ function socketActionTeleSales(socketIO, socket) {
         getTsPhone: function getTsPhone(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query, data.isTSNewList, data.platformObjId, data.isFeedbackPhone], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query, data.isTSNewList, data.platformObjId, data.isFeedbackPhone, data.isRecycle], actionName, isValidData);
         },
 
         dailyTradeTsPhone: function dailyTradeTsPhone(data) {

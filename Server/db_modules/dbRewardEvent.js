@@ -1872,7 +1872,7 @@ var dbRewardEvent = {
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), forbidRewardProm]).then(
-            data => {
+            async data => {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
@@ -2236,6 +2236,14 @@ var dbRewardEvent = {
                                         returnData.condition.device.status = matchMobileDevice ? 2 : 1;
                                     }
                                 }
+
+                                // check phone number or bank card has been binded or not
+                                let PhoneNumberAndBankCardStatus = await dbRewardUtil.checkPhoneNumberAndBankCard(eventData, playerData);
+
+                                if (typeof PhoneNumberAndBankCardStatus == 'boolean' && !PhoneNumberAndBankCardStatus){
+                                    returnData.condition.deposit.status = 0;
+                                }
+
                             } else {
                                 returnData.condition.deposit.status = 2;
                                 correctTopUpType = false;

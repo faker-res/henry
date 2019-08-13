@@ -185,6 +185,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList, data.isPartner], actionName, isValidData);
         },
+
+        savePopUpInFirstPageSetting: function savePopUpInFirstPageSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePopUpInFirstPageSetting, [data], actionName, isValidData);
+        },
     };
     socketActionFrontEndSetting.actions = this.actions;
 }

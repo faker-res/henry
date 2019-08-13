@@ -39,9 +39,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.popularRecommendationCategory = {
-                "firstPagePopularRecommendation": 1,
-                "gameRecommendation": 2,
-                "bottomBanner": 3,
+                "Navigation_Bar": 1,
+                "Body": 2,
+                "Bottom_Banner": 3,
             };
 
             vm.displayFormat = {
@@ -9371,7 +9371,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
+                    vm.editPlayer.DOB = vm.editPlayer.DOB? new Date(vm.editPlayer.DOB): null;
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -9432,7 +9432,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPlayer: function () {
 
                                 // this ng-model has to be in date object
-                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                if (this.playerBeingEdited.DOB) {
+                                    this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                }
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
@@ -25268,7 +25270,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                            connectWith: ".connected-sortable",
+                            // connectWith: ".connected-sortable",
                         }).disableSelection()
                         $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
@@ -25284,6 +25286,169 @@ define(['js/app'], function (myApp) {
                         })
                     });
                 })
+            };
+
+            vm.convertOnClickActionToDisplay = function (onClickActionInt){
+                if (vm.frontEndSettingOnClickAction && onClickActionInt){
+                    for (let keyName in Object.keys(vm.frontEndSettingOnClickAction)){
+                        if (vm.frontEndSettingOnClickAction(keyName) == onClickActionInt){
+                            return $translate(keyName);
+                        }
+                    }
+                }
+                else{
+                    return null;
+                }
+            };
+
+            vm.submitPopUpInFirstPageSetting = function(settingObj) {
+                if (settingObj){
+                    vm.isFinishedUploadedToFTPServer = true;
+                    $('#popUpInFirstPageSettingUploader').show();
+
+                    let promArr = [
+                        "popUpImage",
+                        "popUpNewPage",
+                        "popUpPageDetail",
+                    ];
+
+                    let prom = Promise.resolve();
+                    promArr.forEach(
+                        item => {
+                            prom = prom.then(()=>{return vm.uploadToFtp(item, vm.popUpImageFile, vm.popUpImageUrl).then(removeFromList)});
+                        }
+                    );
+
+                    return prom.then(
+                        () => {
+                            console.log("vm.popUpImageUrl", vm.popUpImageUrl);
+                            settingObj.platformObjId = vm.filterFrontEndSettingPlatform;
+                            if (vm.popUpImageUrl){
+                                if (vm.popUpImageUrl.popUpImage){
+                                    settingObj.imageUrl = vm.popUpImageUrl.popUpImage
+                                }
+                                if (vm.popUpImageUrl.popUpNewPage){
+                                    settingObj.newPageUrl = vm.popUpImageUrl.popUpNewPage
+                                }
+                                if (vm.popUpImageUrl.popUpPageDetail){
+                                    settingObj.activityUrl = vm.popUpImageUrl.popUpPageDetail
+                                }
+
+                                if (vm.isFinishedUploadedToFTPServer) {
+                                    socketService.$socket($scope.AppSocket, 'savePopUpInFirstPageSetting', settingObj, function (data) {
+                                        console.log("savePopUpInFirstPageSetting ret", data);
+                                        // stop the uploading loader
+                                        $('#popUpInFirstPageSettingUploader').hide();
+                                        // close the modal
+                                        $('#popUpInFirstPageSettingModal').modal('hide');
+                                        // append the pop-up setting to the general list
+                                        if (data && data.data && data.data._id && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc){
+                                            if (vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList instanceof Array){
+                                                let index = vm.popularRecommendationSetting.pc.popUpList.findIndex( p => {
+                                                    if (p && p._id){
+                                                        return p._id.toString() ==  data.data._id.toString()
+                                                    }
+                                                });
+
+                                                if (index != -1){
+                                                    vm.popularRecommendationSetting.pc.popUpList[index] = data.data;
+                                                }
+                                                else{
+                                                    vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                }
+
+                                            }
+                                            else{
+                                                vm.popularRecommendationSetting.pc.popUpList = [];
+                                                vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                            }
+                                        }
+
+                                        $scope.$evalAsync();
+                                    }, function (err) {
+                                        console.log("savePopUpInFirstPageSetting err", err);
+                                    });
+                                }
+                                else {
+                                    $('#popUpInFirstPageSettingUploader').hide();
+                                }
+                            }
+                        }
+                    ).catch(err=>{
+                        console.log("err", err);
+                        $('#popUpInFirstPageSettingUploader').hide();
+                    })
+                }
+
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.popUpImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+            };
+
+            vm.addNewPopUpInFirstPageSetting = function(isNew, popUpObjId) {
+                // //reset
+                document.querySelector('#popUpImageFile').value = "";
+                document.querySelector('#popUpNewPageFile').value = "";
+                document.querySelector('#popUpPageDetailFile').value = "";
+
+                $('#popUpImage').attr("src","");
+
+                vm.popUpImageFile = {};
+                vm.popUpImageUrl = {};
+
+                if (isNew){
+                    vm.newPopUpInFirstPageSetting = {};
+                }
+                else{
+                    if (popUpObjId && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length) {
+
+                        let temp = vm.popularRecommendationSetting.pc.popUpList.filter (p => {
+                            if (p && p._id){
+                                return p._id.toString() == popUpObjId.toString()
+                            }
+                        });
+                        if (temp && temp.length) {
+                            vm.newPopUpInFirstPageSetting = temp[0];
+                        }
+                        else {
+                            vm.newPopUpInFirstPageSetting = {};
+                        }
+
+                        if( vm.newPopUpInFirstPageSetting && vm.newPopUpInFirstPageSetting.imageUrl) {
+                            $('#popUpImage').attr("src",vm.newPopUpInFirstPageSetting.imageUrl);
+                        }
+
+                    }
+                }
+
+                // vm.refreshSPicker();
+
+                let pageSettingPopup = $('#popUpInFirstPageSettingModal');
+                pageSettingPopup.modal();
+                // solving the scolling issue for the inner pop up after the outer pop up has closed
+                pageSettingPopup.off('hidden.bs.modal');
+                pageSettingPopup.on('hidden.bs.modal', function (event) {
+                    if ($('.modal.in').length > 0) {
+                        $("body").addClass('modal-open');
+                    }
+                    $scope.$evalAsync();
+                });
+
+                $("#popUpImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpImage", vm.popUpImageFile);});
+                $("#popUpNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpNewPage", vm.popUpImageFile);});
+                $("#popUpPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpPageDetail", vm.popUpImageFile);});
+            };
+
+            vm.removePopUpList = function (collection, index) {
+                if (collection && collection.length){
+                    collection.splice(index, 1)
+                }
+                return collection;
             };
 
             vm.sortDragAndDropArray = function (collection) {
@@ -26276,7 +26441,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
-                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -26979,8 +27143,6 @@ define(['js/app'], function (myApp) {
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
-                vm.allOpen = rewardPointsEvent.status === true
-
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -27009,6 +27171,12 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
                     vm.endLoadWeekDay();
+                });
+            };
+
+            vm.updateAllRewardPointsEventStatus = (ids, status) => {
+                $scope.$socketPromise('updateAllRewardPointsEventStatus', {_id: ids, status: status}).then((data) => {
+                    $scope.safeApply();
                 });
             };
 
@@ -27094,28 +27262,19 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventUpdateAll = false;
             };
 
-            vm.closeAllRewardPointsEvent = () => {
+            vm.allRewardPointsEventStatus = (isAllOpen) => {
+                let ids = [];
                 vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = false;
+                    ids.push(rewardPointsEvent._id);
+
+                    if(isAllOpen){
+                        rewardPointsEvent.status = true;
+                        vm.updateAllRewardPointsEventStatus(ids, true);
+                    }else{
+                        rewardPointsEvent.status = false;
+                        vm.updateAllRewardPointsEventStatus(ids, false);
+                    }
                 });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = false;
-                vm.rewardPointsEventUpdateAll = false;
-            };
-
-            vm.openAllRewardPointsEvent = () => {
-                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = true;
-                });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = true;
-                vm.rewardPointsEventUpdateAll = false;
             };
 
             vm.deleteAllRewardPointsEvent = () => {
@@ -42292,10 +42451,22 @@ define(['js/app'], function (myApp) {
 
             vm.resetOnClickSetting = function (holder, type, actionId) {
                 let tempImageUrl = null;
+                let tempRequiredToLogIn = null;
+                let tempStopPopUp = null;
+                let tempPopUpList = null;
                 if (type && actionId) {
                     if (holder && holder[type]) {
                         if (holder[type] && holder[type].imageUrl) {
                             tempImageUrl = holder[type].imageUrl
+                        }
+                        if (holder[type] && holder[type].requiredToLogIn) {
+                            tempRequiredToLogIn = holder[type].requiredToLogIn
+                        }
+                        if (holder[type] && holder[type].stopPopUp) {
+                            tempStopPopUp = holder[type].stopPopUp
+                        }
+                        if (holder[type] && holder[type].popUpList) {
+                            tempPopUpList = Object.assign([], holder[type].popUpList)
                         }
                         switch (actionId) {
                             case 1:
@@ -42324,10 +42495,28 @@ define(['js/app'], function (myApp) {
                                 break;
                         }
 
-                        holder[type].imageUrl = tempImageUrl
+                        holder[type].imageUrl = tempImageUrl;
+                        if (tempRequiredToLogIn){
+                            holder[type].requiredToLogIn = tempRequiredToLogIn;
+                        }
+                        if (tempStopPopUp){
+                            holder[type].stopPopUp = tempStopPopUp;
+                        }
+                        if (tempPopUpList){
+                            holder[type].popUpList = tempPopUpList;
+                        }
+
+                        holder[type].imageUrl = tempImageUrl;
+                        holder[type].imageUrl = tempImageUrl;
                     }
                 }
                 else{
+                    if (holder['newPageUrl']){
+                        holder['newPageUrl'] = null;
+                    }
+                    if (holder['activityUrl']){
+                        holder['activityUrl'] = null;
+                    }
                     if (holder['newPageDetail']){
                         holder['newPageDetail'] = null;
                     }
@@ -42412,6 +42601,14 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popularRecommendationImageUrl.appPageDetail){
                                 vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
+                            }
+
+                            if (vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length){
+                                vm.popularRecommendationSetting.pc.popUpList = vm.popularRecommendationSetting.pc.popUpList.map(p => {
+                                    if (p && p._id){
+                                        return p._id
+                                    }
+                                })
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
@@ -42512,7 +42709,6 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
                             vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
-                            resolve();
                         })
                     }, function (err) {
                         console.log('err', err);
