@@ -28621,16 +28621,23 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
             relevantList.push(tsPhone.tsPhoneList);
         }
 
-        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+        dbconfig.collection_tsPhone.update({
+            _id: tsPhone._id
+        }, {
+            registered: true
+        }).catch(errorUtils.reportError);
         let tsPhoneListUpdate = {
-            totalPhone: -1
+            totalRegistration: 1
+        };
+        if (!tsPhone.isUsed) {
+            tsPhoneListUpdate.totalUsed = 1;
         }
-        if (tsPhone.isUsed) {
-            tsPhoneListUpdate.totalUsed = -1;
-        }
-        if (tsPhone.isSucceedBefore) {
-            tsPhoneListUpdate.totalSuccess = -1;
-        }
+        // if (tsPhone.isUsed) {
+        //     tsPhoneListUpdate.totalUsed = -1;
+        // }
+        // if (tsPhone.isSucceedBefore) {
+        //     tsPhoneListUpdate.totalSuccess = -1;
+        // }
 
         dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
 
@@ -28641,14 +28648,18 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
             registered: false
         }).lean().then(
             removedTsDistributedPhone => {
-                if (!removedTsDistributedPhone) {
-                    return;
-                }
-                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
-                if (removedTsDistributedPhone.tsDistributedPhoneList) {
-                    let distributedPhoneListUpdate = {
-                        registrationCount: 1
-                    };
+                // if (!removedTsDistributedPhone) {
+                //     return;
+                // }
+                // dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
+                // if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                //     let distributedPhoneListUpdate = {
+                //         registrationCount: 1
+                //     };
+                //     if (!removedTsDistributedPhone.isUsed) {
+                //         distributedPhoneListUpdate.phoneUsed = 1;
+                //     }
+
                     // let distributedPhoneListUpdate = {
                     //     phoneCount: -1
                     // };
@@ -28660,8 +28671,8 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
                     //     distributedPhoneListUpdate.successfulCount = -1;
                     // }
 
-                    dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
-                }
+                //     dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                // }
 
             }
         ).catch(errorUtils.reportError);
