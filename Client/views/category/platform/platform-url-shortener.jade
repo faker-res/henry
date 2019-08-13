@@ -14,8 +14,8 @@ style.
                 //select.form-control(ng-model="vm.batchSettingSelectedPlatform" ng-options="v._id as v.name$ for v in vm.allPlatformData" ng-change="vm.initBatchPermit();")
                     option(value="") {{"NO_PLATFORM_MESSAGE" | translate}}
 
-                textarea.form-control(ng-model="vm.multiUrls", placeholder="...", rows="8", maxlength="100")
-                *批量输入域名， 每行输入一个，最多支持XX个域名批量生成(自动过滤重复域名)
+                textarea.form-control(ng-model="vm.multiUrls", placeholder="...", rows="8")
+                {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
                 button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') 开始生成
 
                 table.simple-table#bulkCreditClearOutTable(style="width:100%")
@@ -26,55 +26,9 @@ style.
                             th {{'防红短网址' | translate}}
                     tbody
                         tr(ng-repeat='(i,v) in vm.urlData')
-                            td {{i + 1}}
+                            td {{v.no}}
                             td {{v.url_long}}
-                            td {{v.url_short}}
-
-                table.simple-table#bulkCreditClearOutTable(style="width:100%" ng-show="vm.bulkCreditClearOutTriggered")
-                    thead
-                        tr
-                            th {{'Display Order' | translate}}
-                            th {{'Player Name' | translate}}
-                            th {{'Total Credit (Game Provider)' | translate}}
-                            th {{'Total Credit (Local)' | translate}}
-                            th {{'Totalsum' | translate}}
-                            th {{'Clear Out Status' | translate}}
-                            th {{'UpdatePlayerCredit' | translate}} ({{'Proposal No.' | translate}})
-                            th {{'ACTION_BUTTON' | translate}}
-                    tbody
-                        tr(ng-repeat='(i,v) in vm.bulkCreditClearOut.data')
-                            td {{i+1}}
-                            td {{v.playerName}}
-                            td
-                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.gameProviderTotalCredit}}
-                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.gameProviderTotalCredit.toFixed(2)}}
-                            td
-                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.localTotalCredit}}
-                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.localTotalCredit.toFixed(2)}}
-                            td
-                                text(ng-show="!v.actionable && v.status != 'SUCCESS'") {{v.totalCredit}}
-                                text(ng-show="v.actionable || v.status == 'SUCCESS'") {{v.totalCredit.toFixed(2)}}
-                            td {{v.status | translate}}
-                            td
-                                text(ng-show="v.status != 'SUCCESS'") -
-                                text(ng-show="v.status == 'SUCCESS'") {{v.updateAmount}}{{"YEN" | translate}} ({{v.proposalId}})
-                            td
-                                div(style="display:inline-block")
-                                    text(ng-show="vm.bulkCreditClearOut.initiating || !v.actionable") {{"Single Clear Out" | translate}}
-                                    a(ng-click="vm.singleCreditClearOut(i)" ng-hide="vm.bulkCreditClearOut.initiating || !v.actionable") {{"Single Clear Out" | translate}}
-                                    span &nbsp;&nbsp;/&nbsp;&nbsp;
-                                div(style="display:inline-block")
-                                    text(ng-show="vm.bulkCreditClearOut.initiating") {{"Remove From List" | translate}}
-                                    a(ng-click="vm.removePlayerFromCreditClearOutList(i)" ng-hide="vm.bulkCreditClearOut.initiating") {{"Remove From List" | translate}}
-                                div(style="display:inline-block")
-                                    span &nbsp;&nbsp;/&nbsp;&nbsp;
-                                    text(ng-show="vm.bulkCreditClearOut.initiating") {{"Refresh Credit" | translate}}
-                                    a(ng-click="vm.refreshPlayerCreditInCreditClearOutList(i)" ng-hide="vm.bulkCreditClearOut.initiating") {{"Refresh Credit" | translate}}
-                div(style="text-align:right; margin-top:20px;" ng-show="vm.bulkCreditClearOutTriggered")
-                    button.btn.btn-success.common-button#filterAndSortClearOutListButton(ng-click="vm.filterAndSortBulkCreditClearOutList()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Remove Empty Credit and Sort" | translate}}
-                    button.btn.btn-primary.common-button#startClearOutButton(ng-click="vm.startBulkCreditClearOut()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Start Clear Out" | translate}}
-                    button.btn.btn-danger.common-button#cancelClearOutButton(ng-click="vm.cancelBulkCreditClearOut()" ng-disabled="vm.bulkCreditClearOut.initiating") {{"Cancel Clear Out" | translate}}
-                .well(ng-show='vm.batchPermitModifySucc')
-                    label.text-success {{'SUCCESS' | translate}}
-                .well(ng-if='vm.errorListMsg')
-                    label.text-danger {{vm.errorListMsg}} {{'Update' | translate}}{{'FAIL' | translate}}
+                            td(ng-if="!v.url_short")
+                                a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") 重新获取
+                            td(ng-click="vm.generateSingleUrl(v.url_long, v.no)", ng-if="v.url_short") {{v.url_short}}
+                button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') 汇出EXCEL

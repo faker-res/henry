@@ -21420,7 +21420,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    
+
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;
@@ -25775,6 +25775,11 @@ let dbPlayerInfo = {
                 return {total: totalCount, data: playerData};
             }
         );
+    },
+
+    exportShortUrlToExcel: (data) => {
+        console.log('exportShortUrlToExcel',data);
+        return dbReportUtil.generateExcelFile("ShortUrl", data);
     },
 
     checkIPArea: function (playerObjId) {

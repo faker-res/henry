@@ -5842,6 +5842,8 @@
   "Daily Max Total Apply Count":  "日领取上限次数",
   "Daily Max Total Reset Time":  "上限次数刷新时间 (格式 20:00)",
   "Applied Count": "已领取数量",
+  "Url Shortener": "生成防红短链",
+  "*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)": "*批量输入域名， 每行输入一个，最多支持XX个域名批量生成(自动过滤重复域名)",
   "Sync": "同步",
   "Sync Withdrawal": "同步提款提案",
   "Wechat Version": "微信版本",
