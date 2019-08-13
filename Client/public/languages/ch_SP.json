@@ -1148,6 +1148,7 @@
   "IN": "入",
   "OUT": "出",
   "CLOSE": "关闭",
+  "Script_Description":"文本说明",
   "EDIT_PROVIDER": "编辑提供商",
   "DELETE_PROVIDER": "删除提供商",
   "Email is invalid": "电子邮件无效",
