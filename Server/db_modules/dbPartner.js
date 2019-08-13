@@ -484,7 +484,7 @@ let dbPartner = {
             function (data) {
                 data.commissionHeapCycleStart = "";
                 data.commissionHeapCycleEnd = "";
-                if (data.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || data.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                if (data.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || data.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT  || data.commissionType == constPartnerCommissionType.MONTHLY_BONUS_AMOUNT) {
                     let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(data.commissionType, new Date());
                     data.commissionHeapCycleStart = currentPeriod.startTime;
                     data.commissionHeapCycleEnd = currentPeriod.endTime;
@@ -716,7 +716,7 @@ let dbPartner = {
 
                     apiData.commissionHeapCycleStart = "";
                     apiData.commissionHeapCycleEnd = "";
-                    if (apiData.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || apiData.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                    if (apiData.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || apiData.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT || apiData.commissionType == constPartnerCommissionType.MONTHLY_BONUS_AMOUNT) {
                         let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(apiData.commissionType, new Date());
                         apiData.commissionHeapCycleStart = currentPeriod.startTime;
                         apiData.commissionHeapCycleEnd = currentPeriod.endTime;
@@ -1675,7 +1675,7 @@ let dbPartner = {
 
                                             res.commissionHeapCycleStart = "";
                                             res.commissionHeapCycleEnd = "";
-                                            if (res.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || res.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT ) {
+                                            if (res.commissionType == constPartnerCommissionType.DAILY_CONSUMPTION || res.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT || res.commissionType == constPartnerCommissionType.MONTHLY_BONUS_AMOUNT) {
                                                 let currentPeriod = dbPartnerCommission.getTargetCommissionPeriod(res.commissionType, new Date());
                                                 res.commissionHeapCycleStart = currentPeriod.startTime;
                                                 res.commissionHeapCycleEnd = currentPeriod.endTime;
