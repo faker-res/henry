@@ -19259,7 +19259,6 @@ let dbPlayerInfo = {
                     }
                 }
 
-                console.log('process returnedObj');
                 // Slice array to input page amount
                 if (returnedObj && returnedObj.data && returnedObj.data.length) {
                     // Filter out players who has 0 topup and 0 bets
@@ -19294,7 +19293,6 @@ let dbPlayerInfo = {
                         (-returnedObj.total.consumptionBonusAmount / returnedObj.total.validConsumptionAmount) * 100;
                 }
 
-                console.log('returning...', returnedObj);
                 return returnedObj;
             }
         );
@@ -19494,7 +19492,7 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).allowDiskUse(true).read("secondaryPreferred");
+                    ).read("secondaryPreferred");
                 }
             ).then(
                 async playerSummaryData => {
@@ -21198,8 +21196,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    amount:1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -21218,8 +21223,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    'data.playerObjId': 1,
+                    'data.amount': 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$data.playerObjId' },
                     totalAmount: {$sum: "$data.amount"},
                     count: {$sum: 1}
                 }
@@ -21243,8 +21255,16 @@ let dbPlayerInfo = {
                 $match: matchConsumObj
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1,
+                    validAmount: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                     providerInfo : {$first: "$providerId"}
@@ -21268,8 +21288,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: {format: "%Y-%m-%d", date: "$localTime"}}, playerId: '$playerId' },
                     providerInfo : {$first: "$providerId"}
                 }
             }
@@ -28866,16 +28893,23 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
             relevantList.push(tsPhone.tsPhoneList);
         }
 
-        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+        dbconfig.collection_tsPhone.update({
+            _id: tsPhone._id
+        }, {
+            registered: true
+        }).catch(errorUtils.reportError);
         let tsPhoneListUpdate = {
-            totalPhone: -1
+            totalRegistration: 1
+        };
+        if (!tsPhone.isUsed) {
+            tsPhoneListUpdate.totalUsed = 1;
         }
-        if (tsPhone.isUsed) {
-            tsPhoneListUpdate.totalUsed = -1;
-        }
-        if (tsPhone.isSucceedBefore) {
-            tsPhoneListUpdate.totalSuccess = -1;
-        }
+        // if (tsPhone.isUsed) {
+        //     tsPhoneListUpdate.totalUsed = -1;
+        // }
+        // if (tsPhone.isSucceedBefore) {
+        //     tsPhoneListUpdate.totalSuccess = -1;
+        // }
 
         dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
 
@@ -28886,14 +28920,18 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
             registered: false
         }).lean().then(
             removedTsDistributedPhone => {
-                if (!removedTsDistributedPhone) {
-                    return;
-                }
-                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
-                if (removedTsDistributedPhone.tsDistributedPhoneList) {
-                    let distributedPhoneListUpdate = {
-                        registrationCount: 1
-                    };
+                // if (!removedTsDistributedPhone) {
+                //     return;
+                // }
+                // dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
+                // if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                //     let distributedPhoneListUpdate = {
+                //         registrationCount: 1
+                //     };
+                //     if (!removedTsDistributedPhone.isUsed) {
+                //         distributedPhoneListUpdate.phoneUsed = 1;
+                //     }
+
                     // let distributedPhoneListUpdate = {
                     //     phoneCount: -1
                     // };
@@ -28905,8 +28943,8 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
                     //     distributedPhoneListUpdate.successfulCount = -1;
                     // }
 
-                    dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
-                }
+                //     dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                // }
 
             }
         ).catch(errorUtils.reportError);
@@ -28991,8 +29029,14 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
+    let existedPhoneNumbers = [];
     let proms = [];
     phones.map(phone => {
+        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
+            return;
+        }
+        existedPhoneNumbers.push(String(phone.phoneNumber));
+
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber

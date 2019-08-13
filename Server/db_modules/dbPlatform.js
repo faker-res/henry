@@ -4092,7 +4092,10 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).populate({
+                path: "pc.popUpList",
+                model: dbconfig.collection_frontEndPopUpSetting
+            }).sort({displayOrder: 1}).lean();
         }
 
         return prom;
@@ -6271,11 +6274,9 @@ var dbPlatform = {
         );
 
         function getFrontEndSettingType1 (platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1);
-            if (query){
-                query.isVisible = true;
-            }
-            else{
+            let query = querySetUp(platformObjId, clientType, 1, code);
+
+            if (!query){
                 return [];
             }
 
@@ -6291,6 +6292,9 @@ var dbPlatform = {
                 }).populate({
                     path: "app.rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "pc.popUpList",
+                    model: dbconfig.collection_frontEndPopUpSetting
                 }).sort({displayOrder: 1}).lean()
             }
             else if (code == "reward"){
@@ -6372,6 +6376,14 @@ var dbPlatform = {
                                 }
                             }
                         )
+
+                        // return object type as requested by Reynold
+                        if (code && (code == "pageSetting" || code == "partnerPageSetting") && settingList && settingList.length){
+                            settingList = settingList[0];
+                        }
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                            return restructureDataFormat (settingList, code)
+                        }
                         return settingList
                     } else {
                         return []
@@ -6442,74 +6454,102 @@ var dbPlatform = {
 
         function settingCleanUp (setting, holder) {
             if (setting[holder]){
-                if (setting[holder].hasOwnProperty('onClickAction')) {
-                    setting.onClickAction = setting[holder].onClickAction;
-                }
-                if (setting[holder].imageUrl){
-                    setting.imageUrl = setting[holder].imageUrl;
-                }
-                if (setting[holder].newPageDetail){
-                    setting.newPageDetail = setting[holder].newPageDetail;
-                }
-                if (setting[holder].newPageUrl){
-                    setting.newPageUrl = setting[holder].newPageUrl;
-                }
-                if (setting[holder].activityDetail){
-                    setting.activityDetail = setting[holder].activityDetail;
-                }
-                if (setting[holder].activityUrl){
-                    setting.activityUrl = setting[holder].activityUrl;
-                }
-                if (setting[holder].rewardEventObjId){
-                    setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
-                }
-                if (setting[holder].route){
-                    setting.route = setting[holder].route;
-                }
-                if (setting[holder].gameCode){
-                    setting.gameCode = setting[holder].gameCode;
-                }
 
-                //for pageSetting
-                if (setting[holder].hasOwnProperty('skin')) {
-                    setting.skin = setting[holder].skin;
-                }
-                if (setting[holder].htmlTextColor){
-                    setting.htmlTextColor = setting[holder].htmlTextColor;
-                }
-                if (setting[holder].textColor1){
-                    setting.textColor1 = setting[holder].textColor1;
-                }
-                if (setting[holder].textColor2){
-                    setting.textColor2 = setting[holder].textColor2;
-                }
-                if (setting[holder].mainNavTextColor){
-                    setting.mainNavTextColor = setting[holder].mainNavTextColor;
-                }
-                if (setting[holder].mainNavActiveTextColor){
-                    setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
-                }
-                if (setting[holder].mainNavActiveBorderColor){
-                    setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
-                }
-                if (setting[holder].navTextColor){
-                    setting.navTextColor = setting[holder].navTextColor;
-                }
-                if (setting[holder].navActiveTextColor){
-                    setting.navActiveTextColor = setting[holder].navActiveTextColor;
-                }
-                if (setting[holder].formBgColor){
-                    setting.formBgColor = setting[holder].formBgColor;
-                }
-                if (setting[holder].formLabelTextColor){
-                    setting.formLabelTextColor = setting[holder].formLabelTextColor;
-                }
-                if (setting[holder].formInputTextColor){
-                    setting.formInputTextColor = setting[holder].formInputTextColor;
-                }
-                if (setting[holder].formBorderBottomColor){
-                    setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
-                }
+                Object.keys(setting[holder]).forEach(
+                    key => {
+                        if (setting[holder][key]){
+                            setting[key] = setting[holder][key];
+                        }
+                    }
+                )
+
+                //
+                // if (setting[holder].hasOwnProperty('onClickAction')) {
+                //     setting.onClickAction = setting[holder].onClickAction;
+                // }
+                // if (setting[holder].imageUrl){
+                //     setting.imageUrl = setting[holder].imageUrl;
+                // }
+                // if (setting[holder].newPageDetail){
+                //     setting.newPageDetail = setting[holder].newPageDetail;
+                // }
+                // if (setting[holder].newPageUrl){
+                //     setting.newPageUrl = setting[holder].newPageUrl;
+                // }
+                // if (setting[holder].activityDetail){
+                //     setting.activityDetail = setting[holder].activityDetail;
+                // }
+                // if (setting[holder].activityUrl){
+                //     setting.activityUrl = setting[holder].activityUrl;
+                // }
+                // if (setting[holder].rewardEventObjId){
+                //     setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
+                // }
+                // if (setting[holder].route){
+                //     setting.route = setting[holder].route;
+                // }
+                // if (setting[holder].gameCode){
+                //     setting.gameCode = setting[holder].gameCode;
+                // }
+                //
+                // //for pageSetting
+                // if (setting[holder].hasOwnProperty('skin')) {
+                //     setting.skin = setting[holder].skin;
+                // }
+                // if (setting[holder].htmlTextColor){
+                //     setting.htmlTextColor = setting[holder].htmlTextColor;
+                // }
+                // if (setting[holder].textColor1){
+                //     setting.textColor1 = setting[holder].textColor1;
+                // }
+                // if (setting[holder].textColor2){
+                //     setting.textColor2 = setting[holder].textColor2;
+                // }
+                // if (setting[holder].mainNavTextColor){
+                //     setting.mainNavTextColor = setting[holder].mainNavTextColor;
+                // }
+                // if (setting[holder].mainNavActiveTextColor){
+                //     setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
+                // }
+                // if (setting[holder].mainNavActiveBorderColor){
+                //     setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
+                // }
+                // if (setting[holder].navTextColor){
+                //     setting.navTextColor = setting[holder].navTextColor;
+                // }
+                // if (setting[holder].navActiveTextColor){
+                //     setting.navActiveTextColor = setting[holder].navActiveTextColor;
+                // }
+                // if (setting[holder].formBgColor){
+                //     setting.formBgColor = setting[holder].formBgColor;
+                // }
+                // if (setting[holder].formLabelTextColor){
+                //     setting.formLabelTextColor = setting[holder].formLabelTextColor;
+                // }
+                // if (setting[holder].formInputTextColor){
+                //     setting.formInputTextColor = setting[holder].formInputTextColor;
+                // }
+                // if (setting[holder].formBorderBottomColor){
+                //     setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
+                // }
+                // if (setting[holder].formHoverBottomFrameColor){
+                //     setting.formHoverBottomFrameColor = setting[holder].formHoverBottomFrameColor;
+                // }
+                // if (setting[holder].formHoverColor){
+                //     setting.formHoverColor = setting[holder].formHoverColor;
+                // }
+                // if (setting[holder].popUpListFrameColor){
+                //     setting.popUpListFrameColor = setting[holder].popUpListFrameColor;
+                // }
+                // if (setting[holder].popUpListKeyInColor){
+                //     setting.popUpListKeyInColor = setting[holder].popUpListKeyInColor;
+                // }
+                // if (setting[holder].popUpListLabelColor){
+                //     setting.popUpListLabelColor = setting[holder].popUpListLabelColor;
+                // }
+                // if (setting[holder].popUpListBgColor){
+                //     setting.popUpListBgColor = setting[holder].popUpListBgColor;
+                // }
             }
             if (setting.pc) {
                 delete setting.pc;
@@ -6546,6 +6586,10 @@ var dbPlatform = {
                 status: 1,
             };
 
+            if (code && (code == 'recommendation' || code == 'carousel' || code == 'advertisement' || code == 'reward')){
+                query.isVisible = true;
+            }
+
             if (setUpType == 1){
                 if (clientType == 1){
                     query.pc = {$exists: true};
@@ -6568,6 +6612,47 @@ var dbPlatform = {
             }
 
             return query;
+        }
+
+        function restructureDataFormat (settingList, code) {
+            if (settingList && settingList.length && code && code == "recommendation") {
+                let navList = [];
+                let bodyList = [];
+                let bottomList = [];
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.hasOwnProperty('category')) {
+                            switch (p.category) {
+                                case 1:
+                                    navList.push(p);
+                                    break;
+                                case 2:
+                                    bodyList.push(p);
+                                    break;
+                                case 3:
+                                    bottomList.push(p);
+                                    break;
+                            }
+                        }
+                    }
+                )
+                return {navList: navList, bodyList: bodyList, bottomList: bottomList}
+            }
+            else if (settingList && settingList.length && code && code == "reward") {
+                let objList = {};
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
+                            if (objList && !objList[p.categoryObjId.categoryName]){
+                                objList[p.categoryObjId.categoryName] = [];
+                            }
+                            objList[p.categoryObjId.categoryName].push(p);
+                        }
+                    }
+                )
+                return objList
+            }
+            return settingList
         }
     },
 

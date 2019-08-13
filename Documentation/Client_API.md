@@ -7272,6 +7272,7 @@ API说明：
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
+		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干 
 		* code:  recommendation - 热门推荐“:
 			* rewardPoint - 积分说明
 			* game - 游戏配置

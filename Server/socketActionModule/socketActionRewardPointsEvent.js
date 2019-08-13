@@ -24,6 +24,12 @@ function socketActionRewardPointsEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardPointsEvent.updateRewardPointsEvent, [data.rewardPointsEvent], actionName, isValidData);
         },
 
+        updateAllRewardPointsEventStatus: function updateAllRewardPointsEventStatus(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbRewardPointsEvent.updateAllRewardPointsEventStatus, [data._id, data.status], actionName, isValidData);
+        },
+
         getRewardPointsEvent: function getRewardPointsEvent (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
