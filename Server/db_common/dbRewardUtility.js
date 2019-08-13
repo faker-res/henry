@@ -433,15 +433,20 @@ const dbRewardUtility = {
     },
 
     checkPhoneNumberAndBankCard: (eventData, playerData) => {
-        if (playerData && eventData && eventData.condition && eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
-            return false;
+        let result = true;
+        if (playerData && eventData && eventData.condition) {
+            if (eventData.condition.requiredPhoneNumber && eventData.condition.requiredBankCard && (!Boolean(playerData.phoneNumber) || !Boolean(playerData.bankAccount))){
+                result = false;
+            }
+            else if(eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)){
+                result = false;
+            }
+            else if(eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)){
+                result = false;
+            }
         }
 
-        if (playerData && eventData && eventData.condition && eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
-            return false
-        }
-
-        return true
+        return result
     },
 
     checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
