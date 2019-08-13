@@ -433,11 +433,11 @@ const dbRewardUtility = {
     },
 
     checkPhoneNumberAndBankCard: (eventData, playerData) => {
-        if (eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
+        if (playerData && eventData && eventData.condition && eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
             return false;
         }
 
-        if (eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
+        if (playerData && eventData && eventData.condition && eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
             return false
         }
 
