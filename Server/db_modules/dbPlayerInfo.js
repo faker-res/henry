@@ -19248,7 +19248,7 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).allowDiskUse(true).read("secondaryPreferred");
+                    ).read("secondaryPreferred");
                 }
             ).then(
                 async playerSummaryData => {
