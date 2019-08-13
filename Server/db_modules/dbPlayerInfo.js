@@ -20952,8 +20952,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    amount:1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -20972,8 +20979,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    'data.playerObjId': 1,
+                    'data.amount': 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$data.playerObjId' },
                     totalAmount: {$sum: "$data.amount"},
                     count: {$sum: 1}
                 }
@@ -20997,8 +21011,16 @@ let dbPlayerInfo = {
                 $match: matchConsumObj
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1,
+                    validAmount: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                     providerInfo : {$first: "$providerId"}
@@ -21022,8 +21044,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: {format: "%Y-%m-%d", date: "$localTime"}}, playerId: '$playerId' },
                     providerInfo : {$first: "$providerId"}
                 }
             }

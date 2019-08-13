@@ -26439,7 +26439,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
-                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -27142,8 +27141,6 @@ define(['js/app'], function (myApp) {
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
-                vm.allOpen = rewardPointsEvent.status === true
-                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -27172,6 +27169,12 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
                     vm.endLoadWeekDay();
+                });
+            };
+
+            vm.updateAllRewardPointsEventStatus = (ids, status) => {
+                $scope.$socketPromise('updateAllRewardPointsEventStatus', {_id: ids, status: status}).then((data) => {
+                    $scope.safeApply();
                 });
             };
 
@@ -27257,28 +27260,19 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventUpdateAll = false;
             };
 
-            vm.closeAllRewardPointsEvent = () => {
+            vm.allRewardPointsEventStatus = (isAllOpen) => {
+                let ids = [];
                 vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = false;
+                    ids.push(rewardPointsEvent._id);
+
+                    if(isAllOpen){
+                        rewardPointsEvent.status = true;
+                        vm.updateAllRewardPointsEventStatus(ids, true);
+                    }else{
+                        rewardPointsEvent.status = false;
+                        vm.updateAllRewardPointsEventStatus(ids, false);
+                    }
                 });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = false;
-                vm.rewardPointsEventUpdateAll = false;
-            };
-
-            vm.openAllRewardPointsEvent = () => {
-                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = true;
-                });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = true;
-                vm.rewardPointsEventUpdateAll = false;
             };
 
             vm.deleteAllRewardPointsEvent = () => {
