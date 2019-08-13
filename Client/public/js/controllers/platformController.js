@@ -9371,7 +9371,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
+                    vm.editPlayer.DOB = vm.editPlayer.DOB? new Date(vm.editPlayer.DOB): null;
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -9432,7 +9432,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPlayer: function () {
 
                                 // this ng-model has to be in date object
-                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                if (this.playerBeingEdited.DOB) {
+                                    this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                }
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
