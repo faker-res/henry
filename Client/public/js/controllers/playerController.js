@@ -8888,7 +8888,6 @@ define(['js/app'], function (myApp) {
                     updateData.remark += $translate("REFERRAL");
                 }
                 if (updateData.DOB) {
-                    console.log("walaohere", updateData.DOB)
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
