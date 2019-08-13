@@ -432,6 +432,18 @@ const dbRewardUtility = {
         );
     },
 
+    checkPhoneNumberAndBankCard: (eventData, playerData) => {
+        if (eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)) {
+            return false;
+        }
+
+        if (eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)) {
+            return false
+        }
+
+        return true
+    },
+
     checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
         let intervalTime = null;
 
