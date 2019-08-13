@@ -325,16 +325,21 @@ let dbPlatformAutoFeedback = {
 
                     if (feedback.filterCredibilityRemarks && feedback.filterCredibilityRemarks.length > 0) {
                         let tempArr = [];
+                        let orRemarkQuery = [];
                         if (feedback.filterCredibilityRemarks.includes("")) {
                             feedback.filterCredibilityRemarks.forEach(remark => {
                                 if (remark != "") {
                                     tempArr.push(remark);
                                 }
                             });
-                            playerQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                            orRemarkQuery = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                            addMultipleOr(orRemarkQuery);
+                            // playerQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
                         } else {
                             if (playerQuery.credibilityRemarks && playerQuery.credibilityRemarks.$in) {
-                                playerQuery.$and = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
+                                orRemarkQuery = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
+                                addMultipleOr(orRemarkQuery);
+                                // playerQuery.$and = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
                             }
                             else {
                                 playerQuery.credibilityRemarks = {$nin: feedback.filterCredibilityRemarks};
