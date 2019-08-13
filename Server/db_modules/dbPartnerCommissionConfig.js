@@ -383,7 +383,7 @@ const dbPartnerCommissionConfig = {
 
     resetAllPartnerCustomizedCommissionRate: async function (platformObjId, commissionType, isMultiLevelCommission) {
         if (isMultiLevelCommission) {
-            let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId}, {parent: 1}).lean();
+            let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId, commissionType: commissionType}, {parent: 1}).lean();
 
             if (!(partnerObj && partnerObj.length)) {
                 return;

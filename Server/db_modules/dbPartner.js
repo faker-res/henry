@@ -7520,7 +7520,7 @@ let dbPartner = {
 
             partnerObj.map(
                 partner => {
-                    if (partner && partner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && partnerDataObj[partner._id]) {
+                    if (partner && (partner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT || partner.commissionType == constPartnerCommissionType.MONTHLY_BONUS_AMOUNT) && partnerDataObj[partner._id]) {
                         let chosenCommRate;
                         if (commRatePlatform[partner.platform]) {
                             chosenCommRate = commRatePlatform[partner.platform];
