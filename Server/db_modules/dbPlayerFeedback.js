@@ -1162,6 +1162,9 @@ var dbPlayerFeedback = {
         let existedPlayerCheckProm = [];
         for (let i = 0; i < players.length; i++) {
             let player = players[i];
+            if (!player.phoneNumber) {
+                continue;
+            }
             let prom = dbconfig.collection_players.findOne({
                 phoneNumber: {$in: [player.phoneNumber, rsaCrypto.encrypt(player.phoneNumber)]},
                 platform: targetPlatformId
