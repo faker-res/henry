@@ -26,9 +26,9 @@ style.
                             th {{'防红短网址' | translate}}
                     tbody
                         tr(ng-repeat='(i,v) in vm.urlData')
-                            td {{v.no}}
-                            td {{v.url}}
-                            td {{v.shortUrl}}
+                            td {{i + 1}}
+                            td {{v.url_long}}
+                            td {{v.url_short}}
 
                 table.simple-table#bulkCreditClearOutTable(style="width:100%" ng-show="vm.bulkCreditClearOutTriggered")
                     thead

@@ -348,25 +348,72 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
     );
 });
 
+function getUrlShortner(url){
+    return new Promise((resolve, reject) => {
+        // resolve({name:'111'})
+        return request(url, function (error, response, body){
+            let result = '';
+            if (response && response.body) {
+                result = response.body;
+            }
+            resolve(result);
+        })
+    })
+}
+
 router.post('/urlShortener', function (req, res, next) {
 
-    let appKey = '2849184197';
-    let urls = ['http://www.yahoo.com', 'http://www.baidu.com', 'http://www.sina.com'];
+    let weiboAppKey = '2849184197';
+    console.log(req.body);
+    // for (var key in req.body) {
+    //     console.log(key);
+    //     if (req.body.hasOwnProperty(key)) {
+    //     let value = req.body[key];
+    //     console.log( `value for ${key} is ${value}` )
+    //     }
+    // }
+    let urls = (req.body.kkk) ? JSON.parse(req.body.kkk) : null;
+    // console.log(platformId);
+    console.log(urls)
+    // let urls = ['http://www.sina.com', 'http://www.baidu.com', 'http://www.aol.com'];
     let proms = [];
-    console.log(urls);
+
+    // let uri = 'https://api.weibo.com/2/short_url/shorten.json?source='+weiboAppKey+'&url_long='+ urls[0];
+    // let result = await getUrlShortner(uri);
+    return
     urls.forEach(url =>{
-        let uri = 'https://api.weibo.com/2/short_url/shorten.json?source='+appKey+'&url_long='+ url;
-        let prom = request(uri, function (error, response, body){})
+        let uri = 'https://api.weibo.com/2/short_url/shorten.json?source='+weiboAppKey+'&url_long='+ url;
+        let prom = getUrlShortner(uri);
+
+        console.log(prom)
         proms.push(prom);
     })
 
     return Promise.all(proms).then(
         data=> {
+            let result = [];
             console.log(data);
-            res.json({success: true, data:data});
+            data.forEach(item => {
+                console.log('firstin', item)
+                try {
+                     item = JSON.parse(item);
+                     item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                     // item = JSON.stringify(item);
+                     // console.log('second', item)
+                     result.push(item);
+                }
+                 catch(err) {
+                     console.log('JSON INVALID',item);
+                     result.push({});
+                }
+            })
+            console.log(result);
+            res.json({success: true, data: result});
         }
     )
 });
+
+
 
 router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
     // hash = "largeWithdrawal" + propopsalId + adminObjId + "approve"/"reject"
