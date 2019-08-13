@@ -28567,8 +28567,8 @@ function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneLi
                     message: "List with same name exist"
                 })
             }
-            return null;
-            // return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+
+            return dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
         }
     );
 }
