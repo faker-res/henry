@@ -28889,18 +28889,21 @@ async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjI
                 if (!removedTsDistributedPhone) {
                     return;
                 }
-                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
                 if (removedTsDistributedPhone.tsDistributedPhoneList) {
                     let distributedPhoneListUpdate = {
-                        phoneCount: -1
+                        registrationCount: 1
                     };
-
-                    if (removedTsDistributedPhone.isUsed) {
-                        distributedPhoneListUpdate.phoneUsed = -1;
-                    }
-                    if (removedTsDistributedPhone.isSucceedBefore) {
-                        distributedPhoneListUpdate.successfulCount = -1;
-                    }
+                    // let distributedPhoneListUpdate = {
+                    //     phoneCount: -1
+                    // };
+                    //
+                    // if (removedTsDistributedPhone.isUsed) {
+                    //     distributedPhoneListUpdate.phoneUsed = -1;
+                    // }
+                    // if (removedTsDistributedPhone.isSucceedBefore) {
+                    //     distributedPhoneListUpdate.successfulCount = -1;
+                    // }
 
                     dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
                 }
@@ -28988,14 +28991,8 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
-    let existedPhoneNumbers = [];
     let proms = [];
     phones.map(phone => {
-        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
-            return;
-        }
-        existedPhoneNumbers.push(String(phone.phoneNumber));
-
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber
