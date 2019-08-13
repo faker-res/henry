@@ -28747,14 +28747,8 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
-    let existedPhoneNumbers = [];
     let proms = [];
     phones.map(phone => {
-        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
-            return;
-        }
-        existedPhoneNumbers.push(String(phone.phoneNumber));
-
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber
