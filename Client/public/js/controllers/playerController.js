@@ -826,18 +826,18 @@ define(['js/app'], function (myApp) {
             getProposalTypeByPlatformId(vm.selectedPlatform.id);
 
             // Zero dependencies variable
-            [vm.rewardList, vm.promoTypeList, /*vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,*/
-             /*vm.allProviders,*/ vm.allRewardEvent, vm.rewardEventGroup, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
+            [vm.rewardList, vm.promoTypeList, vm.allAlipaysAcc, vm.allWechatpaysAcc, vm.allBankTypeList,
+             vm.allProviders, vm.allRewardEvent, vm.rewardEventGroup, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
              vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
-            /* [vm.allGameTypesList, vm.allGameTypes],*/ vm.allRewardTypes, /*[vm.allGameProviders, vm.gameProvidersList],*/
-                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate/*, vm.allActiveBankTypeList*/
+             [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes, [vm.allGameProviders, vm.gameProvidersList],
+                vm.credibilityRemarks, vm.platformRewardtype, vm.allPlayerLvl, vm.smsTemplate, vm.allActiveBankTypeList
             ] = await Promise.all([
                 commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                // commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                // commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
-                // commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
-                // commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllAlipaysByAlipayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getAllWechatpaysByWechatpayGroup($scope, $translate, vm.selectedPlatform.data.platformId).catch(err => Promise.resolve([])),
+                commonService.getBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({})),
+                commonService.getPlatformProvider($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getRewardEventsGroupByPlatform($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllRewardPointsEvent($scope).catch(err => Promise.resolve([])),
@@ -846,19 +846,19 @@ define(['js/app'], function (myApp) {
                 commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
                 commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([])),
-                // commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
+                commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                 commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
-                // commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
+                commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getCredibilityRemarks($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                 commonService.getPlatformRewardProposal($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerLevels($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
-                // commonService.getActiveBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({}))
+                commonService.getActiveBankTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve({}))
             ]);
 
             // 1st dependencies variable
             const preValue1 = await Promise.all([
-                // commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
+                commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
             ]);
 
             vm.bankCards = preValue1[0];
