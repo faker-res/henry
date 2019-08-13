@@ -1,12 +1,12 @@
 div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
     div(style="display: inline;")
-        label {{'Setting For Popular Recommendation' | translate}}
+        label {{'Setting For First Page' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.addNewPopularRecommendationSetting(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 div.col-md-4.fronendConfigDiv
-    span(style='font-weight: bold;') {{'First_Page_Popular_Recommendation' | translate}}
+    span(style='font-weight: bold;') {{'Navigation_Bar' | translate}}
     ul.connected-sortable.droppable-area1
         li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1", ng-dblclick="vm.editPopularRecommendationSetting(one._id)", id="{{one._id}}")
             img(ng-src="{{one.pc.imageUrl}}" width="100%" height="80px")
@@ -17,7 +17,7 @@ div.col-md-4.fronendConfigDiv
                     span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
-    span(style='font-weight: bold;') {{'Recommended_Game' | translate}}
+    span(style='font-weight: bold;') {{'Body' | translate}}
     ul.connected-sortable.droppable-area2
         li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2", ng-dblclick="vm.editPopularRecommendationSetting(two._id)" id="{{two._id}}")
             img(ng-src="{{two.pc.imageUrl}}" width="100%" height="80px")
