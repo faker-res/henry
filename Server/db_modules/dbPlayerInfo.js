@@ -17211,12 +17211,18 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
                         constRewardType.PLAYER_RETENTION_REWARD_GROUP,
                         constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP,
+                        constRewardType.REFERRAL_REWARD_GROUP,
                     ];
 
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
+
+                    if (rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
+                        //get latest top up of referral
+                        lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({playerId: playerInfo._id}).sort({createTime: -1});
+                    }
 
                     pendingCount = dbRewardUtil.getPendingRewardTaskCount({
                         mainType: 'Reward',
@@ -17334,6 +17340,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                 case constRewardType.BACCARAT_REWARD_GROUP:
                                 case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                                case constRewardType.REFERRAL_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({

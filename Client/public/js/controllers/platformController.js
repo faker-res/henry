@@ -256,6 +256,7 @@ define(['js/app'], function (myApp) {
                 PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
                 PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
                 PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+                REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
                 PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
                 PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
                 PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
@@ -21956,183 +21957,183 @@ define(['js/app'], function (myApp) {
                     }
 
                     console.log('platformID', vm.filterRewardPlatform);
-                    if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
-                        console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
-                            $scope.$evalAsync(() => {
-                                vm.allPlayerLevels = data.data;
+                    if (vm.showRewardTypeData) {
+                        if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
+                            console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allPlayerLevels = data.data;
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        } else if (vm.showRewardTypeData.name == "GameProviderReward") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "FirstTopUp") {
+                            // vm.rewardParams.games = vm.rewardParams.games || [];
+                            // vm.rewardParams = {};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.firstTopUp = {providerTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
                             })
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    } else if (vm.showRewardTypeData.name == "GameProviderReward") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "FirstTopUp") {
-                        // vm.rewardParams.games = vm.rewardParams.games || [];
-                        // vm.rewardParams = {};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-
-                        vm.firstTopUp = {providerTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                        vm.firstTopUp = {providerTick: {}};
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            vm.firstTopUp = {providerTick: {}};
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+                        } else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            });
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}};
+
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+
+                            // JSON sorts the reward param properties into alphabetical order
+                            // But for the UI display, we would prefer to specify our own order
+                            let rewardType = vm.showRewardTypeData;
+                            if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
+                                //console.log("Reordering:", rewardType.params.params.reward.data);
+                                let preferredOrder = {
+                                    minPlayerLevel: 1,
+                                    maxPlayerCredit: 1,
+                                    minConsumptionAmount: 1,
+                                    minTopUpRecordAmount: 1,
+                                    rewardAmount: 1,
+                                    rewardPercentage: 1,
+                                    maxRewardAmount: 1,
+                                    spendingTimes: 1
+                                };
+                                rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
+                                //console.log("Reordered: ", rewardType.params.params.reward.data);
+                            } else {
+                                console.warn("Could not reorder:", rewardType);
                             }
-                        })
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        });
+                        } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-
-                        vm.playerTopUpReturn = {providerTick: {}};
-
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
+                        } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        // JSON sorts the reward param properties into alphabetical order
-                        // But for the UI display, we would prefer to specify our own order
-                        let rewardType = vm.showRewardTypeData;
-                        if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
-                            //console.log("Reordering:", rewardType.params.params.reward.data);
-                            let preferredOrder = {
-                                minPlayerLevel: 1,
-                                maxPlayerCredit: 1,
-                                minConsumptionAmount: 1,
-                                minTopUpRecordAmount: 1,
-                                rewardAmount: 1,
-                                rewardPercentage: 1,
-                                maxRewardAmount: 1,
-                                spendingTimes: 1
-                            };
-                            rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
-                            //console.log("Reordered: ", rewardType.params.params.reward.data);
-                        } else {
-                            console.warn("Could not reorder:", rewardType);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+                        } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                            vm.assignRandomRewards = [{playerName: '', rewardName: ''}];
+                            //get the random reward still available
+                            if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                                vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                            } else {
+                                vm.activeRandomRewards = [];
+                            }
+
                         }
-                    } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
-                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
-                        //get the random reward still available
-                        if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
-                            vm.getRandomRewardDetail('1', 'activeRandomRewards');
-                        } else {
-                            vm.activeRandomRewards = [];
-                        }
-
                     }
 
                     if (onCreationForm) {
@@ -22218,6 +22219,18 @@ define(['js/app'], function (myApp) {
                             }
                             if (tempInterval && tempInterval[5]) {
                                 tempInterval[5] = undefined;
+                            }
+                            vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'ReferralRewardGroup' && el == "interval"
+                            && vm.rewardMainCondition[index]) {
+                            let tempInterval = JSON.parse(JSON.stringify(vm.rewardMainCondition[index].options));
+                            if (tempInterval && tempInterval[3]) {
+                                tempInterval[3] = undefined;
+                            }
+                            if (tempInterval && tempInterval[6]) {
+                                tempInterval[6] = undefined;
                             }
                             vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
                         }

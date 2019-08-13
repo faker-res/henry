@@ -140,6 +140,7 @@ define(['js/app'], function (myApp) {
             PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
             PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
             PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+            REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
             PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
             PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
             PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
