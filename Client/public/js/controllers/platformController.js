@@ -33741,6 +33741,7 @@ define(['js/app'], function (myApp) {
 
             function updatePartnerLevelConfig() {
                 delete vm.partnerLevelConfigEdit._id;
+                delete vm.partnerLevelConfigEdit.__v;
                 var sendData = {
                     query: {platform: vm.filterConfigPlatform},
                     updateData: vm.partnerLevelConfigEdit
