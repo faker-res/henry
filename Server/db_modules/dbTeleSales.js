@@ -959,13 +959,18 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
-    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee, isNeverUsed) => {
         let query = {
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
             assignee: assignee,
             registered: false
         }
+
+        if (isNeverUsed) {
+            query.isUsed = false;
+        }
+
         return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
             tsDistributedPhoneData => {
                 if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {
@@ -1129,7 +1134,7 @@ let dbTeleSales = {
         });
 
         let platform = await dbconfig.collection_platform.findOne({_id : platformObjId}).lean();
-        if(platform && platform.definitionOfAnsweredPhone) {
+        if (platform && platform.definitionOfAnsweredPhone) {
             definitionOfAnsweredPhone = platform.definitionOfAnsweredPhone;
         }
         let distributedPhoneQuery = {
@@ -1146,12 +1151,12 @@ let dbTeleSales = {
             tsPhoneList: {$ne: null},
             csOfficer: {$ne: null},
         };
-        if(phoneListObjIds.length > 0) {
+        if (phoneListObjIds.length > 0) {
             distributedPhoneQuery.tsPhoneList = {$in: phoneListObjIds};
             phoneFeedbackQuery.tsPhoneList = {$in: phoneListObjIds};
             playerQuery.tsPhoneList = {$in: phoneListObjIds};
         }
-        if(adminObjIds.length > 0) {
+        if (adminObjIds.length > 0) {
             distributedPhoneQuery.assignee = {$in: adminObjIds};
             phoneFeedbackQuery.adminId = {$in: adminObjIds};
             playerQuery.csOfficer = {$in: adminObjIds};
@@ -1162,11 +1167,13 @@ let dbTeleSales = {
         }).populate({
             path: "assignee", model: dbconfig.collection_admin
         }).lean();
+
         let phoneFeedbackProm = dbconfig.collection_tsPhoneFeedback.find(phoneFeedbackQuery).populate({
             path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
         }).populate({
             path: "adminId", model: dbconfig.collection_admin
         }).lean();
+
         let playerProm = dbconfig.collection_players.find(playerQuery, {tsPhoneList: 1, csOfficer: 1}).populate({
             path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
         }).populate({
@@ -1179,12 +1186,12 @@ let dbTeleSales = {
 
         if (distributedData && distributedData.length > 0) {
             distributedData.forEach(item => {
-                if(item.assignee != null){
-                    if(item.assignee._id && !workloadData[item.assignee._id]) {
+                if (item.assignee != null){
+                    if (item.assignee._id && !workloadData[item.assignee._id]) {
                         workloadData[item.assignee._id] = {};
                     }
-                    if(item.tsPhoneList != null) {
-                        if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
+                    if (item.tsPhoneList != null) {
+                        if (item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
                             workloadData[item.assignee._id][item.tsPhoneList._id] = {
                                 adminId: item.assignee._id,
                                 adminName: item.assignee.adminName,
@@ -1203,12 +1210,12 @@ let dbTeleSales = {
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
             phoneFeedbackData.forEach(item => {
-                if(item.assignee != null){
-                    if(item.adminId._id && !workloadData[item.adminId._id]) {
+                if (item.adminId != null){
+                    if (item.adminId._id && !workloadData[item.adminId._id]) {
                         workloadData[item.adminId._id] = {};
                     }
-                    if(item.tsPhoneList != null) {
-                        if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
+                    if (item.tsPhoneList != null) {
+                        if (item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
                             workloadData[item.adminId._id][item.tsPhoneList._id] = {
                                 adminId: item.adminId._id,
                                 adminName: item.adminId.adminName,
@@ -1221,7 +1228,7 @@ let dbTeleSales = {
                             };
                         }
                         workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
-                        if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                        if (definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
                             workloadData[item.adminId._id][item.tsPhoneList._id].success++;
                         }
                     }
@@ -1231,7 +1238,7 @@ let dbTeleSales = {
 
         if (playerData && playerData.length > 0) {
             playerData.forEach(item => {
-                if(item.assignee != null){
+                if (item.csOfficer != null){
                     if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
                         workloadData[item.csOfficer._id] = {};
                     }
@@ -1537,7 +1544,7 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone) {
+    getTsPhone: function (query, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
         let prom;
         if (isFeedbackPhone) {
             prom = dbconfig.collection_feedbackPhoneTrade.find(query).lean();
@@ -1546,7 +1553,7 @@ let dbTeleSales = {
         }
        return prom.then(
             phoneData => {
-                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone);
+                return getNonDuplicateTsPhone(phoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle);
             }
        )
     },
@@ -1795,10 +1802,19 @@ let dbTeleSales = {
                 return [];
             }
 
-            return dbconfig.collection_players.find({tsPhoneList: tsPhoneList._id, platform: tsPhoneList.platform}, {name: 1, registrationTime:1, csOfficer: 1})
-                .sort({registrationTime: -1})
-                .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
-                .lean();
+            return dbconfig.collection_players.find({
+                $or: [
+                    {tsPhoneList: tsPhoneList._id},
+                    {relTsPhoneList: tsPhoneList._id}
+                ],
+                platform: tsPhoneList.platform
+            }, {
+                name: 1,
+                registrationTime:1,
+                csOfficer: 1
+            }).sort({registrationTime: -1})
+            .populate({path: 'csOfficer', select: 'adminName', model: dbconfig.collection_admin})
+            .lean();
         });
     },
 
@@ -2082,9 +2098,9 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone) {
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedbackPhone, isRecycle) {
     let proms = [];
-    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId && !isRecycle) {
         tsPhoneData.forEach(
             tsPhone => {
                 if(tsPhone && tsPhone.phoneNumber) {

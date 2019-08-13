@@ -29,8 +29,8 @@ function socketActionPartnerCommission(socketIO, socket) {
     this.actions = {
         getPlatformPartnerCommConfig: function getPlatformPartnerCommConfig (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPlatformPartnerCommConfig, [data.platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.commissionType);
+            socketUtil.emitter(self.socket, dbPartnerCommissionConfig.getPlatformPartnerCommConfig, [data.platformObjId, data.commissionType], actionName, isValidData);
         },
 
         updatePlatformPartnerCommConfig: function updatePlatformPartnerCommConfig (data) {

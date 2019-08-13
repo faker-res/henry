@@ -3,9 +3,9 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
     .col-md-12
         .panel(style="box-shadow: none;")
             .panel-body
-                label.margin-right-5 {{'customizePartnerCommission' | translate}}
+                //label.margin-right-5 {{'customizePartnerCommission' | translate}}
                     input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='false', ng-checked='!vm.multiLvlSelected')
-                label.margin-right-5 {{'customizeMultiLevelPartnerCommission' | translate}}
+                //label.margin-right-5 {{'customizeMultiLevelPartnerCommission' | translate}}
                     input.pull-left.margin-right-5(type='radio', ng-model='vm.isMultiLevelCommission', ng-click='vm.selectedCommissionTab(vm.commissionSettingTab, null, vm.isMultiLevelCommission);vm.getCommissionRateGameProviderGroup();', ng-value='true', ng-checked='vm.multiLvlSelected')
                 .padding-all-5
                     .panel.panel-primary
@@ -17,6 +17,9 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                                 li(ng-class='{active: vm.commissionSettingTab == "WEEKLY_BONUS_AMOUNT"}')
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT', null, vm.isMultiLevelCommission);")
                                         text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
+                                li(ng-class='{active: vm.commissionSettingTab == "MONTHLY_BONUS_AMOUNT"}')
+                                    a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('MONTHLY_BONUS_AMOUNT', null, vm.isMultiLevelCommission);")
+                                        text.span {{"MONTHLY_BONUS_AMOUNT" | translate}}
                                 //li
                                     a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
                                         text.span {{"BIWEEKLY_BONUS_AMOUNT" | translate}}

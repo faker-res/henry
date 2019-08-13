@@ -65,29 +65,29 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.textColor2")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavTextColor" | translate}}
+    label {{ "popUpListBgColor" | translate}}
     div.inline-block
-        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavTextColor")
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.popUpListBgColor")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveTextColor" | translate}}
+    label {{ "popUpListLabelColor" | translate}}
     div.inline-block
-        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavActiveTextColor")
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.popUpListLabelColor")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveBorderColor" | translate}}
+    label {{ "popUpListKeyInColor" | translate}}
     div.inline-block
-        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.mainNavActiveBorderColor")
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.popUpListKeyInColor")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navTextColor" | translate}}
+    label {{ "popUpListFrameColor" | translate}}
     div.inline-block
-        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.navTextColor")
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.popUpListFrameColor")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navActiveTextColor" | translate}}
+    label {{ "formHoverColor" | translate}}
     div.inline-block
-        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.navActiveTextColor")
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formHoverColor")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBgColor" | translate}}
@@ -108,6 +108,11 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "formBorderBottomColor" | translate}}
     div.inline-block
         input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formBorderBottomColor")
+
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{ "formHoverBottomFrameColor" | translate}}
+    div.inline-block
+        input(type="color" value="#ff0000" ng-model="vm.frontEndUrlConfig.pc.formHoverBottomFrameColor")
 
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")

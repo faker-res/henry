@@ -38,7 +38,7 @@
                             .well.col-xs-12
                                 .search-filters-item
                                     label {{'PRODUCT_NAME' | translate}}
-                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
+                                    select.form-control(ng-model='vm.filterCreatePromoCodePlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.refreshPromoCodeTemplate();vm.getPlatformProviderGroup(vm.filterCreatePromoCodePlatform); vm.loadPromoCodeTypes(vm.filterCreatePromoCodePlatform); vm.getAllPromoCodeUserGroup(vm.filterCreatePromoCodePlatform); vm.getMaxRewardAmountSetting(vm.filterCreatePromoCodePlatform);')
                     .text-center(ng-if='!vm.filterCreatePromoCodePlatform')
                         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
                     .row(ng-show='vm.filterCreatePromoCodePlatform')
@@ -102,7 +102,7 @@
                                             //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                                 option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                                 option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}', ng-init="$last") {{prov.name}}
-                                            select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
+                                            select.form-control(ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                         td
@@ -195,7 +195,7 @@
                                             //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                                 option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                                 option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
-                                            select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
+                                            select.form-control(ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                         td
@@ -293,7 +293,7 @@
                                             //select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                                 option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                                 option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
-                                            select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
+                                            select.form-control(ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                                 option(style="display: inline-block" value='') {{"ANY_LOBBY" | translate}}
                                                 option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}') {{v.name}}
                                         td
