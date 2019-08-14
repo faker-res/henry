@@ -45,7 +45,6 @@ let bankTypeList = [];
 const dbReportUtility = {
     generateExcelFile: (reportName, outputResult) => {
         let wb = XLSX.utils.book_new();
-
         wb.Props = {
             Title: "Top Up Report",
             Subject: "Test",
@@ -124,6 +123,14 @@ const dbReportUtility = {
                                 "输赢金额": res.consumptionBonusAmount,
                                 "在线充值费用": res.totalOnlineTopUpFee
                             }
+                            break;
+                        case "ShortUrl":
+                            return {
+                                "序号":res.no,
+                                "原网址": res.url_long,
+                                "防红短网址": res.url_short
+                            }
+                            break;
                     }
                 })
             } else {
