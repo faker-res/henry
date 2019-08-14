@@ -13,9 +13,9 @@ const dbPartnerCommission = require('./../db_modules/dbPartnerCommission');
 const constProposalStatus = require('./../const/constProposalStatus');
 
 const dbPartnerCommissionConfig = {
-    getPlatformPartnerCommConfig: (platformObjId) => {
+    getPlatformPartnerCommConfig: (platformObjId, commissionType) => {
         console.log('platformObjId', platformObjId);
-        return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId}).lean().then(
+        return dbconfig.collection_platformPartnerCommConfig.find({platform: platformObjId, commissionType: commissionType}).lean().then(
             data => {
                 return data;
             }
@@ -383,7 +383,7 @@ const dbPartnerCommissionConfig = {
 
     resetAllPartnerCustomizedCommissionRate: async function (platformObjId, commissionType, isMultiLevelCommission) {
         if (isMultiLevelCommission) {
-            let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId}, {parent: 1}).lean();
+            let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId, commissionType: commissionType}, {parent: 1}).lean();
 
             if (!(partnerObj && partnerObj.length)) {
                 return;

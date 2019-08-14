@@ -28029,7 +28029,8 @@ define(['js/app'], function (myApp) {
                                     }
 
                                     if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                        let filterCreatePromoCodePlatformData = vm.getCurrentPlatform(vm.filterCreatePromoCodePlatform);
+                                        sendData.isProviderGroup = Boolean(filterCreatePromoCodePlatformData.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
                                         sendData.playerName = sendData.playerName.trim();
@@ -28065,6 +28066,15 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
+            vm.getCurrentPlatform = function (id) {
+                let result;
+                result = vm.platformList.filter(item => {
+                    return item.id == id;
+                })
+                result = result && result[0] ? result[0] : null;
+                return result;
+            }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
@@ -33938,6 +33948,7 @@ define(['js/app'], function (myApp) {
 
             function updatePartnerLevelConfig() {
                 delete vm.partnerLevelConfigEdit._id;
+                delete vm.partnerLevelConfigEdit.__v;
                 var sendData = {
                     query: {platform: vm.filterConfigPlatform},
                     updateData: vm.partnerLevelConfigEdit
