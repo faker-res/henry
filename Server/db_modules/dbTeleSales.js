@@ -2103,7 +2103,8 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
     if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
         tsPhoneData.forEach(
             tsPhone => {
-                if(tsPhone && tsPhone.phoneNumber) {
+                if (tsPhone && tsPhone.phoneNumber) {
+                    let phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
                     let prom;
                     if (isFeedbackPhone) {
                         prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
@@ -2116,7 +2117,15 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
                                 return false;
                             } else {
                                 // tsPhone.phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
-                                return tsPhone;
+                                return checkPhoneNumberInPlayer(phoneNumber, platformObjId).then(
+                                    player => {
+                                        if (player) {
+                                            return false;
+                                        } else {
+                                            return tsPhone;
+                                        }
+                                    }
+                                );
                             }
                         }
                     );
@@ -2125,7 +2134,26 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
                 }
             });
     } else {
-        proms = tsPhoneData && tsPhoneData.length? tsPhoneData: [];
+        if (tsPhoneData && tsPhoneData.length) {
+            tsPhoneData.forEach(
+                tsPhone => {
+                    if (tsPhone && tsPhone.phoneNumber) {
+                        let phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                        let prom = checkPhoneNumberInPlayer(phoneNumber, platformObjId).then(
+                            player => {
+                                if (player) {
+                                    return false;
+                                } else {
+                                    return tsPhone;
+                                }
+                            }
+                        );
+                        proms.push(prom);
+                    }
+                })
+        } else {
+            proms = Promise.resolve([]);
+        }
     }
 
     return Promise.all(proms).then(
@@ -2141,6 +2169,15 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
             return output;
         }
     );
+}
+
+function checkPhoneNumberInPlayer(phoneNumber, platformObjId) {
+    return dbconfig.collection_players.findOne({
+        phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
+        platform: platformObjId,
+        isRealPlayer: true,
+        "permission.forbidPlayerFromLogin": {$ne: true},
+    }, {_id: 1}).lean();
 }
 
 function excludeTelNum(data){
