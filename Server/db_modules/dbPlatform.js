@@ -6220,47 +6220,51 @@ var dbPlatform = {
                 message: "ClientType is not available"
             })
         }
+        let cdnText = null;
+        let partnerCdnText = null;
         let prom = Promise.resolve([]);
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1, playerRouteSetting: 1, partnerRouteSetting: 1}).lean().then(
             platform => {
                 if (platform && platform._id){
                     let platformObjId = platform._id;
+                    cdnText = platform.playerRouteSetting || null;
+                    partnerCdnText = platform.partnerRouteSetting || null;
                     if (code){
                         code = code.trim();
                     }
                     switch (code) {
                         case 'game':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'recommendation':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'reward':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'advertisement':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'rewardPoint':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'carousel':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerCarousel':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
                             break;
                         case 'pageSetting':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
                             break;
                         case 'skin':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerSkin':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
                             break;
                         default:
                             prom = Promise.reject({
@@ -6273,7 +6277,7 @@ var dbPlatform = {
             }
         );
 
-        function getFrontEndSettingType1 (platformObjId, clientType, code) {
+        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 1, code);
 
             if (!query){
@@ -6382,9 +6386,11 @@ var dbPlatform = {
                             settingList = settingList[0];
                         }
                         if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
-                            return restructureDataFormat (settingList, code)
+                            settingList = restructureDataFormat (settingList, code)
                         }
-                        return settingList
+
+                        // check the url and prepend with cdn if there is no keyword of http, https
+                        return checkUrlForCDNPrepend (cdn, settingList);
                     } else {
                         return []
                     }
@@ -6392,7 +6398,7 @@ var dbPlatform = {
             );
         }
 
-        function getFrontEndSettingType2 (platformObjId, clientType, code) {
+        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 2, code);
             if (!query) {
                 return [];
@@ -6441,7 +6447,7 @@ var dbPlatform = {
                                    delete setting.rewardEventObjId;
                                }
 
-                               return setting
+                               return checkUrlForCDNPrepend (cdnText, setting)
                             }
                         )
                         return settingList
@@ -6453,8 +6459,7 @@ var dbPlatform = {
         }
 
         function settingCleanUp (setting, holder) {
-            if (setting[holder]){
-
+            if (setting && setting[holder]){
                 Object.keys(setting[holder]).forEach(
                     key => {
                         if (setting[holder][key]){
@@ -6577,7 +6582,8 @@ var dbPlatform = {
             if (setting.hasOwnProperty('horizontalScreenStyleFileUrl')){
                 delete setting.horizontalScreenStyleFileUrl;
             }
-            return setting
+
+            return checkUrlForCDNPrepend (cdnText, setting)
         }
 
         function querySetUp (platformObjId, clientType, setUpType, code) {
@@ -6640,6 +6646,7 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && code == "reward") {
                 let objList = {};
+                let arrayList = [];
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
@@ -6650,9 +6657,58 @@ var dbPlatform = {
                         }
                     }
                 )
-                return objList
+
+                Object.keys(objList).forEach(key => {
+                    arrayList.push({name: key, list: objList[key]})
+                })
+
+                return arrayList
             }
             return settingList
+        }
+
+        function checkUrlForCDNPrepend (cdn, setting) {
+            if (setting && cdn){
+                setting = checkUrlItem (cdn, setting);
+                if (setting.popUpList && setting.popUpList.length){
+                    setting.popUpList.map(p => {
+                        if (p && p._id){
+                            return checkUrlItem (cdn, p);
+                        }
+                    })
+                }
+                if (setting.skin){
+                    setting.skin = checkUrlItem (cdn, setting.skin);
+                }
+            }
+
+            return setting
+        }
+
+        function checkUrlItem (cdnText, setting) {
+            if (setting && cdnText) {
+                if (setting.imageUrl && (setting.imageUrl.indexOf('http') == -1 && setting.imageUrl.indexOf('https') == -1)) {
+                    setting.imageUrl = cdnText + setting.imageUrl;
+                }
+                if (setting.newPageUrl && (setting.newPageUrl.indexOf('http') == -1 && setting.newPageUrl.indexOf('https') == -1)) {
+                    setting.newPageUrl = cdnText + setting.newPageUrl;
+                }
+
+                if (setting.activityUrl && (setting.activityUrl.indexOf('http') == -1 && setting.activityUrl.indexOf('https') == -1)) {
+                    setting.activityUrl = cdnText + setting.activityUrl;
+                }
+                if (setting.route && (setting.route.indexOf('http') == -1 && setting.route.indexOf('https') == -1)) {
+                    setting.route = cdnText + setting.route;
+                }
+                if (setting.selectedNavImage && (setting.selectedNavImage.indexOf('http') == -1 && setting.selectedNavImage.indexOf('https') == -1)) {
+                    setting.selectedNavImage = cdnText + setting.selectedNavImage;
+                }
+                if (setting.url && (setting.url.indexOf('http') == -1 && setting.url.indexOf('https') == -1)) {
+                    setting.url = cdnText + setting.url;
+                }
+
+                return setting
+            }
         }
     },
 

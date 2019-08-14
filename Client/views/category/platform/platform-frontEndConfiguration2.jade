@@ -578,6 +578,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -609,6 +610,10 @@ style.
                                 label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.selectedNavImage")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -639,6 +644,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -670,6 +676,10 @@ style.
                                 label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.selectedNavImage")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -679,6 +689,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -710,6 +721,10 @@ style.
                                 label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.selectedNavImage")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
