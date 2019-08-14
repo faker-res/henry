@@ -5910,5 +5910,19 @@
   "Registration End Date": "注册结束时间",
   "Apply Reward Start Date": "优惠领取开始时间",
   "Apply Reward End Date": "优惠领取结束时间",
-  "Top Up Pending N Minute(s) After Submit": "提交后（X）分钟仍未成功"
+  "Top Up Pending N Minute(s) After Submit": "提交后（X）分钟仍未成功",
+  "Referral Setting": "推荐人奖励",
+  "referral": "推荐人奖励",
+  "Enable Use Referral Player Id": "是否启用推荐人账号",
+  "Referral Period": "被推荐人周期",
+  "Referral Limit": "被推荐人数限制",
+  "Referral Period Daily/Weekly/Monthly/Yearly/No Interval": "被推荐人周期 日/周/月/年/无周期",
+  "The total number of referees is limited during the period. (The minimum value is mandatory)": "周期内被推荐人总数量限制，最小值强制为1",
+  "Referral ID": "邀请码",
+  "Referral URL": "邀请码链接",
+  "Hit Referral Limit": "已达到该推荐人绑定上限",
+  "Player Valid Consumption": "被推荐人有效投注额",
+  "Referral Reward Ratio": "推荐人返利金额（优惠比例）",
+  "Reward Amount Limit": "优惠金额上限",
+  "ReferralRewardGroup": "推荐人优惠（组）"
 }

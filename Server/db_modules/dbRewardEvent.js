@@ -558,6 +558,7 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                     case constRewardType.BACCARAT_REWARD_GROUP:
                     case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                    case constRewardType.REFERRAL_REWARD_GROUP:
                         if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition && !rewardEvent.condition.hasOwnProperty('definePlayerLoginMode')){
                             return Promise.reject({
                                 name: "DataError",
@@ -1871,6 +1872,216 @@ var dbRewardEvent = {
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
 
+        if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
+            let playerValidConsumption = selectedRewardParam[0].playerValidConsumption;
+
+            let getPlayerValidConsumptionProm = dbConfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+                config => {
+                    if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                        let configIntervalTime = dbUtility.getReferralConfigIntervalTime(config.referralPeriod);
+
+                        let referralQuery = {
+                            platform: playerData.platform._id,
+                            referral: playerData._id,
+                        }
+
+                        if (configIntervalTime) {
+                            referralQuery.createTime = {$gte: configIntervalTime.startTime, $lte: configIntervalTime.endTime};
+                        }
+
+                        return dbConfig.collection_referralLog.find(referralQuery).lean().then(
+                            referees => {
+                                if (referees && referees.length > 0) {
+                                    let refereeObjIds = referees.map(item => item && item.playerObjId);
+
+                                    let latestApplyQuery = {
+                                        'data.playerObjId': playerData._id,
+                                        'data.platformObjId': playerData.platform._id,
+                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+                                    }
+
+                                    let consumptionQuery = {
+                                        platformId: playerData.platform._id,
+                                        playerId: {$in: refereeObjIds},
+                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+                                    };
+
+                                    if (intervalTime) {
+                                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                        latestApplyQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                    }
+
+                                    return dbConfig.collection_proposal.findOne(latestApplyQuery).sort({createTime: -1}).lean().then(
+                                        latestApplyData => {
+                                            if (latestApplyData && latestApplyData.createTime) {
+                                                consumptionQuery.createTime = {$gt: latestApplyData.createTime, $lte: intervalTime.endTime};
+                                            }
+
+                                            return dbConfig.collection_playerConsumptionRecord.aggregate([{
+                                                $match: consumptionQuery
+                                            }, {
+                                                $group: {
+                                                    _id: "$playerId",
+                                                    validAmount: {$sum: "$validAmount"}
+                                                }
+                                            }]).then(
+                                                playerConsumption => {
+                                                    let totalValidConsumption = 0;
+                                                    if (playerConsumption && playerConsumption.length > 0) {
+                                                        playerConsumption.forEach(player => {
+                                                            if (player && player.validAmount && (player.validAmount >= playerValidConsumption)) {
+                                                                totalValidConsumption += player.validAmount;
+                                                            }
+                                                        })
+                                                    }
+
+                                                    return totalValidConsumption;
+                                                }
+                                            );
+                                        }
+                                    )
+
+                                } else {
+                                    return Promise.reject({
+                                        name: "DataError",
+                                        message: "This referrer has no valid referee player within this period"
+                                    })
+                                }
+                            }
+                        );
+                    } else {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Referral reward program is off"
+                        })
+                    }
+                }
+            )
+
+            let referralRewardQuery = {
+                platformId: playerData.platform._id,
+                playerId: playerData._id,
+                createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+            };
+
+            // check during this period interval
+            if (intervalTime) {
+                referralRewardQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
+
+            // check reward apply limit in period
+            let countInRewardInterval = dbconfig.collection_proposal.aggregate(
+                {
+                    $match: {
+                        "createTime": referralRewardQuery.createTime,
+                        "data.eventId": eventData._id,
+                        "status": constProposalStatus.APPROVED,
+                        "data.playerObjId": playerData._id
+                    }
+                },
+                {
+                    $project: {
+                        createTime: 1,
+                        status: 1,
+                        'data.playerObjId': 1,
+                        'data.eventId': 1,
+                        'data.lastLoginIp': 1,
+                        'data.phoneNumber': 1,
+                        'data.deviceId': 1,
+                        _id: 0
+                    }
+                }
+            ).then(
+                countReward => { // display approved proposal data during this event period
+                    let resultArr = [];
+                    let sameIPAddressResult;
+                    let samePhoneNumResult;
+                    let sameMobileDeviceResult;
+                    let sameIPAddress = 0;
+                    let samePhoneNum = 0;
+                    let sameMobileDevice = 0;
+
+                    if (eventData.condition.checkSameIP) {
+                        returnData.condition.ip.status = 1;
+                    }
+                    // check IP address
+                    if (playerData.lastLoginIp !== '' && eventData.condition.checkSameIP) {
+                        // execute if IP is not empty
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same IP address  has already received this reward
+                            if (playerData.lastLoginIp === countReward[i].data.lastLoginIp) {
+                                sameIPAddress++;
+                            }
+                        }
+
+                        if (sameIPAddress >= 1) {
+                            sameIPAddressResult = 0; //fail
+                        } else {
+                            sameIPAddressResult = 1;
+                        }
+                        resultArr.push(sameIPAddressResult);
+                    } else {
+                        // if last login IP is empty, skip IP checking, player register from backend, new player never login
+                        sameIPAddressResult = 1;
+                        resultArr.push(sameIPAddressResult);
+                    }
+
+                    // check phone number
+                    if (eventData.condition.checkSamePhoneNumber) {
+                        returnData.condition.telephone.status = 1;
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same phone number has already received this reward
+                            if (playerData.phoneNumber === countReward[i].data.phoneNumber) {
+                                samePhoneNum++;
+                            }
+                        }
+
+                        if (samePhoneNum >= 1) {
+                            samePhoneNumResult = 0; //fail
+                        } else {
+                            samePhoneNumResult = 1;
+                        }
+                        resultArr.push(samePhoneNumResult);
+                    } else {
+                        samePhoneNumResult = 1;
+                        resultArr.push(samePhoneNumResult);
+                    }
+
+                    // check mobile device
+                    if (eventData.condition.checkSameDeviceId) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same mobile device has already received this reward
+                            if (playerData.deviceId === countReward[i].data.deviceId) {
+                                sameMobileDevice++;
+                            }
+                        }
+
+                        if (sameMobileDevice >= 1) {
+                            sameMobileDeviceResult = 0; //fail
+                        } else {
+                            sameMobileDeviceResult = 1;
+                        }
+                        resultArr.push(sameMobileDeviceResult);
+                    } else {
+                        sameMobileDeviceResult = 1;
+                        resultArr.push(sameMobileDeviceResult);
+                    }
+
+                    return resultArr;
+                }
+            );
+
+            // check sms verification
+            if (eventData.condition.needSMSVerification) {
+                returnData.condition.SMSCode.status = 1;
+            }
+
+            promArr.push(getPlayerValidConsumptionProm);
+            promArr.push(countInRewardInterval);
+
+            forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
+        }
+
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), forbidRewardProm]).then(
             async data => {
                 let topupInPeriodData = data[0];
@@ -2734,6 +2945,54 @@ var dbRewardEvent = {
                         console.log('MT --checking applyRewardSum', applyRewardSum);
                         returnData.result = festivalData;
 
+                        break;
+
+                    case constRewardType.REFERRAL_REWARD_GROUP:
+                        console.log('rewardSpecificData', rewardSpecificData);
+                        selectedRewardParam = selectedRewardParam[0];
+
+                        if (!forbidRewardData) {
+                            returnData.status = 2;
+                            returnData.condition.reward.status = 2;
+                        }
+
+                        let matchIPAddress = rewardSpecificData[1][0];
+                        let matchPhoneNum = rewardSpecificData[1][1];
+                        let matchMobileDevice = rewardSpecificData[1][2];
+
+                        if (!matchIPAddress) {
+                            returnData.condition.ip.status = 2;
+                        }
+
+                        if (!matchPhoneNum) {
+                            returnData.condition.telephone.status = 2;
+                        }
+
+                        if (!matchMobileDevice) {
+                            returnData.condition.telephone.status = 2;
+                        }
+
+                        if (selectedRewardParam.playerValidConsumption) {
+                            let totalValidConsumption = rewardSpecificData[0];
+
+                            if (totalValidConsumption >= selectedRewardParam.playerValidConsumption) {
+                                rewardAmount = totalValidConsumption * (selectedRewardParam.rewardPercentage || 0);
+                                if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
+                                    rewardAmount = selectedRewardParam.maxRewardAmount;
+                                }
+                                rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
+                                returnData.result.rewardAmount = rewardAmount;
+                            } else {
+                                returnData.status = 2;
+                            }
+                        }
+                        else {
+                            return Q.reject({
+                                status: constServerCode.INVALID_PARAM,
+                                name: "DataError",
+                                message: "Minimum Valid Consumption cannot be empty. Please check reward condition."
+                            });
+                        }
                         break;
 
                     default:

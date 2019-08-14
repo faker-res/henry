@@ -164,6 +164,11 @@ var PlatformServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLockedLobbyConfig, [data.platformId], isValidData, null, null, true);
     };
 
+    this.getPlatformReferralConfig.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getPlatformReferralConfig, [data.platformId], isValidData, null, null, true);
+    };
+
     this.saveFrontEndData.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && data.token && data.page && data.data && typeof data.data == "string");
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.saveFrontEndData, [data.platformId, data.token, data.page, data.data], isValidData, null, null, true);
