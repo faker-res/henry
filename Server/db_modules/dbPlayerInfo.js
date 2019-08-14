@@ -2780,6 +2780,10 @@ let dbPlayerInfo = {
             path: "rewardPointsObjId",
             model: dbconfig.collection_rewardPoints
         }).lean().then(
+            playerData => {
+                return getReferralIdAndUrl(playerData);
+            }
+        ).then(
             function (data) {
                 // data.fullPhoneNumber = data.phoneNumber;
                 if (data.phoneNumber) {
