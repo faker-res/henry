@@ -981,7 +981,7 @@ let dbPlayerInfo = {
 
                                                 if (isEnableUseReferralPlayerId) {
                                                     if (!inputData.isFromBackstage) {
-                                                        let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                        let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
                                                         let logQuery = {
                                                             platform: platformObjId,
                                                             referral: data._id
@@ -1064,7 +1064,7 @@ let dbPlayerInfo = {
                                                 platform: platformObjId
                                             }).then(referrerData => {
                                                 if (referrerData) {
-                                                    let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                    let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
                                                     let logQuery = {
                                                         platform: platformObjId,
                                                         referral: referrerData._id
@@ -2930,7 +2930,7 @@ let dbPlayerInfo = {
                 return dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                     referralConfig => {
                         if (referralConfig) {
-                            let configIntervalTime = getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                            let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
                             let logQuery = {
                                 platform: playerData.platform._id,
                                 referral: playerData._id
@@ -29564,30 +29564,6 @@ function checkPlayerIsBlacklistIp(player) {
             }
         )
     }
-}
-
-function getReferralConfigIntervalTime(period) {
-    let intervalTime;
-
-    switch (period) {
-        case "1":
-            intervalTime = dbUtility.getTodaySGTime();
-            break;
-        case "2":
-            intervalTime = dbUtility.getCurrentWeekSGTime();
-            break;
-        case "3":
-            intervalTime = dbUtility.getCurrentMonthSGTIme();
-            break;
-        case "4":
-            intervalTime = dbUtility.getYearlySGTIme() ;
-            break;
-        default:
-            // No interval time. Will return undefined
-            break;
-    }
-
-    return intervalTime;
 }
 
 var proto = dbPlayerInfoFunc.prototype;

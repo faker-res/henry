@@ -1875,63 +1875,88 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
             let playerValidConsumption = selectedRewardParam[0].playerValidConsumption;
 
-            let latestApplyQuery = {
-                'data.playerObjId': playerData._id,
-                'data.platformObjId': playerData.platform._id,
-                createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
-            }
+            let getPlayerValidConsumptionProm = dbConfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+                config => {
+                    if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                        let configIntervalTime = dbUtility.getReferralConfigIntervalTime(config.referralPeriod);
 
-            if (intervalTime) {
-                latestApplyQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-            }
-
-            let getPlayerValidConsumptionProm = dbconfig.collection_referralLog.find({platform: playerData.platform._id, referral: playerData._id}).lean().then(
-                referees => {
-                    if (referees && referees.length > 0) {
-                        let refereeObjIds = referees.map(item => item && item.playerObjId);
-
-                        let consumptionQuery = {
-                            platformId: playerData.platform._id,
-                            playerId: {$in: refereeObjIds},
-                            createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
-                        };
-
-                        if (intervalTime) {
-                            consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        let referralQuery = {
+                            platform: playerData.platform._id,
+                            referral: playerData._id,
                         }
 
-                        return dbconfig.collection_proposal.findOne(latestApplyQuery).sort({createTime: -1}).lean().then(
-                            latestApplyData => {
-                                if (latestApplyData && latestApplyData.createTime) {
-                                    consumptionQuery.createTime = {$gt: latestApplyData.createTime, $lte: intervalTime.endTime};
-                                }
+                        if (configIntervalTime) {
+                            referralQuery.createTime = {$gte: configIntervalTime.startTime, $lte: configIntervalTime.endTime};
+                        }
 
-                                return dbconfig.collection_playerConsumptionRecord.aggregate([{
-                                    $match: consumptionQuery
-                                }, {
-                                    $group: {
-                                        _id: "$playerId",
-                                        validAmount: {$sum: "$validAmount"}
+                        return dbConfig.collection_referralLog.find(referralQuery).lean().then(
+                            referees => {
+                                if (referees && referees.length > 0) {
+                                    let refereeObjIds = referees.map(item => item && item.playerObjId);
+
+                                    let latestApplyQuery = {
+                                        'data.playerObjId': playerData._id,
+                                        'data.platformObjId': playerData.platform._id,
+                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
                                     }
-                                }]).then(
-                                    playerConsumption => {
-                                        let totalValidConsumption = 0;
-                                        if (playerConsumption && playerConsumption.length > 0) {
-                                            playerConsumption.forEach(player => {
-                                                if (player && player.validAmount && (player.validAmount >= playerValidConsumption)) {
-                                                    totalValidConsumption += player.validAmount;
+
+                                    let consumptionQuery = {
+                                        platformId: playerData.platform._id,
+                                        playerId: {$in: refereeObjIds},
+                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+                                    };
+
+                                    if (intervalTime) {
+                                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                        latestApplyQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                    }
+
+                                    return dbConfig.collection_proposal.findOne(latestApplyQuery).sort({createTime: -1}).lean().then(
+                                        latestApplyData => {
+                                            if (latestApplyData && latestApplyData.createTime) {
+                                                consumptionQuery.createTime = {$gt: latestApplyData.createTime, $lte: intervalTime.endTime};
+                                            }
+
+                                            return dbConfig.collection_playerConsumptionRecord.aggregate([{
+                                                $match: consumptionQuery
+                                            }, {
+                                                $group: {
+                                                    _id: "$playerId",
+                                                    validAmount: {$sum: "$validAmount"}
                                                 }
-                                            })
-                                        }
+                                            }]).then(
+                                                playerConsumption => {
+                                                    let totalValidConsumption = 0;
+                                                    if (playerConsumption && playerConsumption.length > 0) {
+                                                        playerConsumption.forEach(player => {
+                                                            if (player && player.validAmount && (player.validAmount >= playerValidConsumption)) {
+                                                                totalValidConsumption += player.validAmount;
+                                                            }
+                                                        })
+                                                    }
 
-                                        return totalValidConsumption;
-                                    }
-                                );
+                                                    return totalValidConsumption;
+                                                }
+                                            );
+                                        }
+                                    )
+
+                                } else {
+                                    return Promise.reject({
+                                        name: "DataError",
+                                        message: "This referrer has no valid referee player within this period"
+                                    })
+                                }
                             }
-                        )
+                        );
+                    } else {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Referral reward program is off"
+                        })
                     }
                 }
-            );
+            )
 
             let referralRewardQuery = {
                 platformId: playerData.platform._id,
