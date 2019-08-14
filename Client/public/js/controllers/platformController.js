@@ -1576,8 +1576,10 @@ define(['js/app'], function (myApp) {
                 urls = urls.map(item => { return item.trim() });
                 let sendData = { "urls": urls }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
                 $.post(host+'/urlShortener', sendData, function(data){
                     $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
                         vm.urlData = data.data ? data.data : [];
                     })
                 })
@@ -1586,8 +1588,10 @@ define(['js/app'], function (myApp) {
             vm.generateSingleUrl = function(url, no) {
                 let sendData = { "urls": [ url ] }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
                 $.post(host+'/urlShortener', sendData, function(data){
                     $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
                         data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
                         vm.urlData.filter(item => {
                             if (item.no == no && data) {

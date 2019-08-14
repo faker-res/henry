@@ -7,6 +7,8 @@
                 textarea.form-control(ng-model="vm.multiUrls", placeholder="...", rows="8")
                 {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
                 button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') 开始生成
+                span#urlShortenerSpin.collapse
+                    i.fa.fa-spinner.fa-spin
 
                 table.simple-table#bulkCreditClearOutTable(style="width:100%")
                     thead
