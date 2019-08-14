@@ -47,7 +47,7 @@ var DXMissionServiceImplement = function () {
         var lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
 
-        console.log('DEBUG submitDXCode forwardedIp', forwardedIp);
+        console.log('DEBUG submitDXCode forwardedIp', forwardedIp, data && data.code);
 
         if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
@@ -67,7 +67,7 @@ var DXMissionServiceImplement = function () {
         }
         var deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
-        console.log('DEBUG submitDXCode deviceData', deviceData);
+        console.log('DEBUG submitDXCode deviceData', deviceData, data && data.code);
 
         if (data.domain) {
             data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
