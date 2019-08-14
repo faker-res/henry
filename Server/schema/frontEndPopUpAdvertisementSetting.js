@@ -22,6 +22,10 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // required to log in or not
+        requiredToLogIn: {type: Boolean},
+        // position of the pop up
+        position: {type: String},
     },
     h5: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -38,6 +42,10 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // required to log in or not
+        requiredToLogIn: {type: Boolean},
+        // position of the pop up
+        position: {type: String},
     },
     app: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -54,6 +62,8 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // required to log in or not
+        requiredToLogIn: {type: Boolean},
     },
     // 1: web; 2: iOS APP; 3: Android APP; 4: H5
     visibleOnDevice: [{

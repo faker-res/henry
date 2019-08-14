@@ -288,6 +288,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.conversationDefinition = vm.conversationDefinition || {};
+            platformData.conversationDefinition = platformData.conversationDefinition || {};
             vm.conversationDefinition.totalSec = platformData.conversationDefinition.totalSec;
             vm.conversationDefinition.askingSentence = platformData.conversationDefinition.askingSentence;
             vm.conversationDefinition.replyingSentence = platformData.conversationDefinition.replyingSentence;
@@ -2257,10 +2258,10 @@ define(['js/app'], function (myApp) {
                             }
                             if (isPhoneTrade) {
                                 vm.searchDecomposedNewPhoneQuery(true)
-                                vm.getDecompositionListCount();
+                                vm.getDecompositionListCount(vm.importPlatformForXLS);
                             }
                             if (isFeedbackPhoneTrade) {
-                                vm.getfeedbackPhoneListCount();
+                                vm.getfeedbackPhoneListCount(vm.importPlatformForXLS);
                                 vm.searchFeedbackPhoneQuery(true);
                             }
                         } else {
@@ -8553,6 +8554,11 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawFeedbackPhoneTable = function (newSearch, data, size) {
+            data.forEach(item => {
+                item.createTime$ = vm.dateReformat(item.createTime);
+                item.lastAccessTime$ = vm.dateReformat(item.lastAccessTime);
+            });
+
             console.log("drawFeedbackPhoneTable", data);
             let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
                 data: data,
@@ -8583,7 +8589,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('ORIGIN_DEPARTMENT'), data: "sourcePlatform.name"
                     },
                     {
-                        title: $translate('Trade Time'), data: 'createTime'
+                        title: $translate('Trade Time'), data: 'createTime$'
                     },
                     {
                         title: $translate('TELEPHONE'), data: "encodedPhoneNumber",
@@ -8592,7 +8598,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('LAST_LOGIN_TIME'), data: "lastAccessTime"
+                        title: $translate('LAST_LOGIN_TIME'), data: "lastAccessTime$"
                     },
                     {
                         title: $translate('TOP_UP_TIMES'), data: "topUpTimes"

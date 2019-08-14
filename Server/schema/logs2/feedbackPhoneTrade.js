@@ -33,4 +33,4 @@ let feedbackPhoneTradeSchema = new Schema({
 
 module.exports = feedbackPhoneTradeSchema;
 
-feedbackPhoneTradeSchema.index({sourcePlatform: 1, targetPlatform: 1, playerName: 1}, {unique: true});
+feedbackPhoneTradeSchema.index({sourcePlatform: 1, targetPlatform: 1, playerName: 1});

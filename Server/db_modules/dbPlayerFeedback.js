@@ -1099,107 +1099,110 @@ var dbPlayerFeedback = {
             .populate({path: "adminId", model: dbconfig.collection_admin}).exec();
     },
 
-    getExportedData: function (proposalId) {
-        let proposal = {};
-        let players, originPlatform, targetPlatform;
-
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId})
+    getExportedData: async function (proposalId) {
+        let proposal = await dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType})
-            .lean().then(
-                proposal => {
-                    if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA) {
-                        return Promise.reject({
-                            code: constServerCode.INVALID_PROPOSAL,
-                            message: "Cannot find proposal"
-                        });
-                    }
+            .lean();
+        if (!proposal || !proposal.type || proposal.type.name !== constProposalType.BULK_EXPORT_PLAYERS_DATA) {
+            return Promise.reject({
+                code: constServerCode.INVALID_PROPOSAL,
+                message: "Cannot find proposal"
+            });
+        }
 
-                    if (proposal.expirationTime < new Date()) {
-                        return Promise.reject({
-                            code: constServerCode.SESSION_EXPIRED,
-                            message: "Current request is expired"
-                        });
-                    }
+        if (proposal.expirationTime < new Date()) {
+            return Promise.reject({
+                code: constServerCode.SESSION_EXPIRED,
+                message: "Current request is expired"
+            });
+        }
 
 
-                    return dbconfig.collection_proposal.findOneAndUpdate({
-                        _id: proposal._id,
-                        createTime: proposal.createTime
-                    }, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
+        proposal = await dbconfig.collection_proposal.findOneAndUpdate({
+            _id: proposal._id,
+            createTime: proposal.createTime
+        }, {$set: {status: constProposalStatus.SUCCESS}}, {new: true}).lean();
+
+        if (!proposal) {
+            return Promise.reject({
+                code: constServerCode.CONCURRENT_DETECTED,
+                message: "Concurrent issue detected"
+            });
+        }
+
+        let originPlatformProm = Promise.resolve();
+        if (proposal.data && proposal.data.platformId) {
+            originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
+        }
+
+        let targetPlatformProm = Promise.resolve();
+        if (proposal.data && proposal.data.targetExportPlatform) {
+            targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
+        }
+
+        let playersProm = searchPlayerFromExportProposal(proposal);
+
+        let [players, originPlatform, targetPlatform] = await Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
+
+        players = players || [];
+
+        let proms = [];
+
+        // use findOne to search again to get non encoded phone number
+        players.map(player => {
+            let prom = dbconfig.collection_players.findOne({_id: player._id}).lean();
+            proms.push(prom);
+        });
+
+        players = await Promise.all(proms);
+        players = players || [];
+
+        let targetPlatformId = targetPlatform && targetPlatform._id;
+
+        let existedPlayerCheckProm = [];
+        for (let i = 0; i < players.length; i++) {
+            let player = players[i];
+            if (!player.phoneNumber) {
+                continue;
+            }
+            let prom = dbconfig.collection_players.findOne({
+                phoneNumber: {$in: [player.phoneNumber, rsaCrypto.encrypt(player.phoneNumber)]},
+                platform: targetPlatformId
+            }, {
+                _id: 1
+            }).lean().then(
+                existed => {
+                    player.existed = Boolean(existed);
+                    return player;
                 }
-            ).then(
-                proposalRecord => {
-                    if (!proposalRecord) {
-                        return Promise.reject({
-                            code: constServerCode.CONCURRENT_DETECTED,
-                            message: "Concurrent issue detected"
-                        });
-                    }
+            );
+            existedPlayerCheckProm.push(prom)
+        }
 
-                    proposal = proposalRecord;
+        players = await Promise.all(existedPlayerCheckProm);
 
-                    let originPlatformProm = Promise.resolve();
-                    if (proposal.data && proposal.data.platformId) {
-                        originPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.platformId}, {platformId: 1}).lean();
-                    }
-
-                    let targetPlatformProm = Promise.resolve();
-                    if (proposal.data && proposal.data.targetExportPlatform) {
-                        targetPlatformProm = dbconfig.collection_platform.findOne({_id: proposal.data.targetExportPlatform}, {platformId: 1}).lean();
-                    }
-
-                    let playersProm = searchPlayerFromExportProposal(proposal);
-
-                    return Promise.all([playersProm, originPlatformProm, targetPlatformProm]);
-                }
-            ).then(
-                data => {
-                    players = data[0];
-                    originPlatform = data[1];
-                    targetPlatform = data[2];
-
-                    players = players || [];
-
-                    let proms = [];
-
-                    // use findOne to search again to get non encoded phone number
-                    players.map(player => {
-                        let prom = dbconfig.collection_players.findOne({_id: player._id}).lean();
-                        proms.push(prom);
-                    });
-
-                    return Promise.all(proms);
-                }
-            ).then(
-                playersData => {
-                    players = playersData;
-                    players = players || [];
-
-                    let targetPlatformId = targetPlatform && targetPlatform._id;
-
-                    players.map(player => {
-                        let playerData = {
-                            playerName: player.name,
-                            realName: player.realName,
-                            gender: player.gender? "Male": "Female",
-                            DOB: player.DOB,
-                            encodedPhoneNumber: dbutility.encodePhoneNum(dbutility.decryptPhoneNumber(player.phoneNumber)),
-                            phoneNumber: rsaCrypto.encrypt(player.phoneNumber),
-                            wechat: player.wechat,
-                            qq: player.qq,
-                            email: player.email,
-                            remark: player.remark,
-                            sourcePlatform: player.platform,
-                            targetPlatform: targetPlatformId,
-                            topUpTimes: player.topUpTimes,
-                            lastAccessTime: player.lastAccessTime,
-                        };
-
-                        dbconfig.collection_feedbackPhoneTrade(playerData).save().catch(errorUtils.reportError);
-                    });
-
-                }
-            )
+        players.map(player => {
+            if (player.existed) {
+                return;
+            }
+            let playerData = {
+                playerName: player.name,
+                realName: player.realName,
+                gender: player.gender? "Male": "Female",
+                DOB: player.DOB,
+                encodedPhoneNumber: dbutility.encodePhoneNum(dbutility.decryptPhoneNumber(player.phoneNumber)),
+                phoneNumber: rsaCrypto.encrypt(player.phoneNumber),
+                wechat: player.wechat,
+                qq: player.qq,
+                email: player.email,
+                remark: player.remark,
+                sourcePlatform: player.platform,
+                targetPlatform: targetPlatformId,
+                topUpTimes: player.topUpTimes,
+                lastAccessTime: player.lastAccessTime,
+            };
+            dbconfig.collection_feedbackPhoneTrade(playerData).save().catch(errorUtils.reportError);
+        });
     }
 };
 

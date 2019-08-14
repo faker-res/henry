@@ -523,6 +523,9 @@ var roleChecker = {
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
             },
+            "UrlShortener": {
+                Read: ['exportShortUrlToExcel']
+            },
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
             },
@@ -582,12 +585,14 @@ var roleChecker = {
             "FrontEndConfiguration": {
                 Read: [],
                 popularRecommendation: [],
+                firstPageSetting: [],
                 rewardPointClarification: [],
                 carouselConfiguration: ['getCarouselSetting', 'saveCarouselSetting', 'updateCarouselSetting'],
                 urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
                 popUpAdvertisement: [],
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
+                gameSetting: [],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },

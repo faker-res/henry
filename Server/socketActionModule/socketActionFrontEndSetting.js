@@ -18,11 +18,39 @@ function socketActionFrontEndSetting(socketIO, socket) {
             socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndPopUpAdvSetting, [data], actionName, isValidData);
         },
 
+        updateFrontEndGameSetting: function updateFrontEndGameSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateFrontEndGameSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
         updatePopUpAdvertisementSetting: function updatePopUpAdvertisementSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.dataList);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.updatePopUpAdvertisementSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
+        getFrontEndGameSettingByObjId: function getFrontEndGameSettingByObjId (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameSettingObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndGameSettingByObjId, [data.gameSettingObjId], actionName, isValidData);
+        },
+
+        saveFrontEndGameSetting: function saveFrontEndGameSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameSettingObj);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndGameSetting, [data.gameSettingObj], actionName, isValidData);
+        },
+
+        getFrontEndGameSetting: function getFrontEndGameSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndGameSetting, [data.platformObjId], actionName, isValidData);
         },
 
         getFrontEndRewardCategory: function getFrontEndRewardCategory (data) {
@@ -43,7 +71,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.categoryName);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName, data.categoryObjId], actionName, isValidData);
         },
 
         updateRewardSetting: function updateRewardSetting (data) {
@@ -156,6 +184,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let isValidData = Boolean(data && data.dataList);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList, data.isPartner], actionName, isValidData);
+        },
+
+        savePopUpInFirstPageSetting: function savePopUpInFirstPageSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePopUpInFirstPageSetting, [data], actionName, isValidData);
         },
     };
     socketActionFrontEndSetting.actions = this.actions;
