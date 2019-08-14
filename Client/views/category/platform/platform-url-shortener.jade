@@ -4,7 +4,7 @@
             .panel-heading.panel-heading-sm
                 label {{"UrlShortener" | translate}}
             .panel-body.common-right-sub-panel-body
-                textarea.form-control(ng-model="vm.multiUrls", placeholder="...", rows="8")
+                textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
                 {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
                 button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') 开始生成
                 span#urlShortenerSpin.collapse
