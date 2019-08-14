@@ -3039,7 +3039,10 @@ var dbRewardEvent = {
                                     if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
                                         rewardAmount = selectedRewardParam.maxRewardAmount;
                                     }
-                                    rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
+                                    let currentAmount = totalRewardAppliedInInterval + rewardAmount;
+                                    if (currentAmount >= selectedRewardParam.maxRewardAmount) {
+                                        rewardAmount = selectedRewardParam.maxRewardAmount - currentAmount;
+                                    }
                                     returnData.result.rewardAmount = rewardAmount;
                                 } else {
                                     returnData.status = 2;
