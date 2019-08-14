@@ -187,6 +187,10 @@ style.
                                 label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.allFrontEndRewardCategory')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"PromoCode"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -329,12 +333,6 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.showApplyButton")
 
-                            div.frontendConfigSeperator
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"PromoCode"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
-
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
                                 label {{'PC Image Preview' | translate}}
@@ -383,6 +381,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -427,6 +426,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -463,6 +463,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -809,14 +810,17 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") VIP {{"PRIVILEGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.vipPrivilegeUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointVipPrivilegeFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REWARD POINT CLARIFICATION"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.rewardPointClarificationUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointClarificationFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VOUCHER CLARIFICATION"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.voucherClarificationUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointVoucherClarificationFile(type="file")
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
