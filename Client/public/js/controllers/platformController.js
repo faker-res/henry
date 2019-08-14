@@ -1572,6 +1572,7 @@ define(['js/app'], function (myApp) {
             vm.generateMultiUrls = function() {
                 vm.urlData = [];
                 let urls = vm.splitTextArea(vm.multiUrls);
+                urls = [...new Set(urls)];
                 urls = urls.map(item => { return item.trim() });
                 let sendData = { "urls": urls }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
