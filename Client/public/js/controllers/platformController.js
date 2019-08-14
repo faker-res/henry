@@ -26086,6 +26086,24 @@ define(['js/app'], function (myApp) {
             }
             //#endregion
 
+            vm.getFrontEndUrlConfigType = function(device, key, el) {
+                vm.curDevice = device;
+                vm.curKey = key;
+
+                let i = $("a[data-target='#modalSkinColor']").index(el.currentTarget);
+
+                vm.skinColor = function (color, c1, c2, degree) {
+                    if(color && c1 == null && c2 == null){
+                        $(".colorDisplay:eq("+ i +")").css({"background-color": color, "background-image": ""});
+
+                    }else if(color == null && c1 && c2 && degree){
+                        $(".colorDisplay:eq("+ i +")").css({"background-image": "linear-gradient(" + degree + "deg," + c1 + "," + c2 + ")", "background-color": ""});
+                        vm.frontEndUrlConfig[vm.curDevice][vm.curKey] = $('.colorDisplay')[i].style.backgroundImage;
+
+                    }
+                };
+            };
+
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function (isPartner) {
                 if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
