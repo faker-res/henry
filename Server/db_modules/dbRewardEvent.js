@@ -1905,7 +1905,8 @@ var dbRewardEvent = {
                                                     'data.platformObjId': playerData.platform._id,
                                                     createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime},
                                                     type: proposalTypeData._id,
-                                                    status: constProposalStatus.APPROVED
+                                                    status: constProposalStatus.APPROVED,
+                                                    "data.eventId": eventData._id,
                                                 }
 
                                                 let consumptionQuery = {
@@ -2093,7 +2094,8 @@ var dbRewardEvent = {
                             'data.platformObjId': playerData.platform._id,
                             createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime},
                             type: proposalTypeData._id,
-                            status: constProposalStatus.APPROVED
+                            status: constProposalStatus.APPROVED,
+                            "data.eventId": eventData._id,
                         }
 
                         if (intervalTime) {
