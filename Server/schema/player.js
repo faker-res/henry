@@ -305,6 +305,10 @@ var playerSchema = new Schema({
     }],
     //referral player
     referral: {type: Schema.ObjectId, index: true},
+    //referral (playerId)
+    referralId: {type: String, index: true},
+    //referral url
+    referralUrl: {type: String},
     //has been used for referral reward
     isReferralReward: {type: Boolean, default: false},
     //if this player is from online registration
@@ -358,6 +362,8 @@ var playerSchema = new Schema({
     tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
     //adminObjId
     tsAssignee: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
+    // relevant tsPhoneList
+    relTsPhoneList: [{type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true}],
     // QnA security question total wrong count - reset when success
     qnaWrongCount: {
         forgotPassword: {type: Number, default: 0},

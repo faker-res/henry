@@ -171,6 +171,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getOnePlayerCardGroup, [data], actionName, isValidData);
         },
 
+        getReferralPlayerInfo: function getReferralPlayerInfo(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id || data.playerId));
+            socketUtil.emitter(self.socket, dbPlayerInfo.getReferralPlayerInfo, [data], actionName, isValidData);
+        },
+
         /**
          * Create player phone number by object id
          * @param {json} data - It has to contain _id
@@ -898,6 +904,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPushNotification, [data.platformObjId], actionName, isValidData);
         },
 
+        exportShortUrlToExcel: function exportShortUrlToExcel(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.exportShortUrlToExcel, [data.data], actionName, isValidData);
+        },
+
         sendSMSToPlayer: function sendSMSToPlayer(data) {
             var actionName = arguments.callee.name;
             var adminObjId = getAdminId();
@@ -1329,7 +1341,9 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.playerId);
             let platform = ObjectId(data.platform);
             let playerId = ObjectId(data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId], actionName, isValidData);
+            let startTime = data.startTime;
+            let endTime = data.endTime;
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId, startTime, endTime], actionName, isValidData);
         },
 
         getPlayerDepositTrackingDailyDetails: function getPlayerDepositTrackingDailyDetails(data) {

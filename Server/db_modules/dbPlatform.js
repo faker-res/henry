@@ -4092,7 +4092,10 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).populate({
+                path: "pc.popUpList",
+                model: dbconfig.collection_frontEndPopUpSetting
+            }).sort({displayOrder: 1}).lean();
         }
 
         return prom;
@@ -6217,44 +6220,51 @@ var dbPlatform = {
                 message: "ClientType is not available"
             })
         }
+        let cdnText = null;
+        let partnerCdnText = null;
         let prom = Promise.resolve([]);
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {platformId: 1, playerRouteSetting: 1, partnerRouteSetting: 1}).lean().then(
             platform => {
                 if (platform && platform._id){
                     let platformObjId = platform._id;
+                    cdnText = platform.playerRouteSetting || null;
+                    partnerCdnText = platform.partnerRouteSetting || null;
                     if (code){
                         code = code.trim();
                     }
                     switch (code) {
+                        case 'game':
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
+                            break;
                         case 'recommendation':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'reward':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'advertisement':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'rewardPoint':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'carousel':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerCarousel':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
                             break;
                         case 'pageSetting':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
-                            prom = getFrontEndSettingType1(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
                             break;
                         case 'skin':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerSkin':
-                            prom = getFrontEndSettingType2(platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
                             break;
                         default:
                             prom = Promise.reject({
@@ -6267,12 +6277,10 @@ var dbPlatform = {
             }
         );
 
-        function getFrontEndSettingType1 (platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1);
-            if (query){
-                query.isVisible = true;
-            }
-            else{
+        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
+            let query = querySetUp(platformObjId, clientType, 1, code);
+
+            if (!query){
                 return [];
             }
 
@@ -6288,6 +6296,9 @@ var dbPlatform = {
                 }).populate({
                     path: "app.rewardEventObjId",
                     model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "pc.popUpList",
+                    model: dbconfig.collection_frontEndPopUpSetting
                 }).sort({displayOrder: 1}).lean()
             }
             else if (code == "reward"){
@@ -6369,7 +6380,17 @@ var dbPlatform = {
                                 }
                             }
                         )
-                        return settingList
+
+                        // return object type as requested by Reynold
+                        if (code && (code == "pageSetting" || code == "partnerPageSetting") && settingList && settingList.length){
+                            settingList = settingList[0];
+                        }
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                            settingList = restructureDataFormat (settingList, code)
+                        }
+
+                        // check the url and prepend with cdn if there is no keyword of http, https
+                        return checkUrlForCDNPrepend (cdn, settingList);
                     } else {
                         return []
                     }
@@ -6377,7 +6398,7 @@ var dbPlatform = {
             );
         }
 
-        function getFrontEndSettingType2 (platformObjId, clientType, code) {
+        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 2, code);
             if (!query) {
                 return [];
@@ -6412,6 +6433,9 @@ var dbPlatform = {
             else if (code == "partnerSkin"){
                 prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
+            else if (code == "game"){
+                prom = dbconfig.collection_frontEndGameSetting.find(query).lean()
+            }
 
             return prom.then(
                 settingList => {
@@ -6423,7 +6447,7 @@ var dbPlatform = {
                                    delete setting.rewardEventObjId;
                                }
 
-                               return setting
+                               return checkUrlForCDNPrepend (cdnText, setting)
                             }
                         )
                         return settingList
@@ -6435,75 +6459,102 @@ var dbPlatform = {
         }
 
         function settingCleanUp (setting, holder) {
-            if (setting[holder]){
-                if (setting[holder].hasOwnProperty('onClickAction')) {
-                    setting.onClickAction = setting[holder].onClickAction;
-                }
-                if (setting[holder].imageUrl){
-                    setting.imageUrl = setting[holder].imageUrl;
-                }
-                if (setting[holder].newPageDetail){
-                    setting.newPageDetail = setting[holder].newPageDetail;
-                }
-                if (setting[holder].newPageUrl){
-                    setting.newPageUrl = setting[holder].newPageUrl;
-                }
-                if (setting[holder].activityDetail){
-                    setting.activityDetail = setting[holder].activityDetail;
-                }
-                if (setting[holder].activityUrl){
-                    setting.activityUrl = setting[holder].activityUrl;
-                }
-                if (setting[holder].rewardEventObjId){
-                    setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
-                }
-                if (setting[holder].route){
-                    setting.route = setting[holder].route;
-                }
-                if (setting[holder].gameCode){
-                    setting.gameCode = setting[holder].gameCode;
-                }
+            if (setting && setting[holder]){
+                Object.keys(setting[holder]).forEach(
+                    key => {
+                        if (setting[holder][key]){
+                            setting[key] = setting[holder][key];
+                        }
+                    }
+                )
 
-                //for pageSetting
-                if (setting[holder].hasOwnProperty('skin')) {
-                    setting.skin = setting[holder].skin;
-                }
-                if (setting[holder].htmlTextColor){
-                    setting.htmlTextColor = setting[holder].htmlTextColor;
-                }
-                if (setting[holder].textColor1){
-                    setting.textColor1 = setting[holder].textColor1;
-                }
-                if (setting[holder].textColor2){
-                    setting.textColor2 = setting[holder].textColor2;
-                }
-                if (setting[holder].mainNavTextColor){
-                    setting.mainNavTextColor = setting[holder].mainNavTextColor;
-                }
-                if (setting[holder].mainNavActiveTextColor){
-                    setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
-                }
-                if (setting[holder].mainNavActiveBorderColor){
-                    setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
-                }
-                if (setting[holder].navTextColor){
-                    setting.navTextColor = setting[holder].navTextColor;
-                }
-                if (setting[holder].navActiveTextColor){
-                    setting.navActiveTextColor = setting[holder].navActiveTextColor;
-                }
-                if (setting[holder].formBgColor){
-                    setting.formBgColor = setting[holder].formBgColor;
-                }
-                if (setting[holder].formLabelTextColor){
-                    setting.formLabelTextColor = setting[holder].formLabelTextColor;
-                }
-                if (setting[holder].formInputTextColor){
-                    setting.formInputTextColor = setting[holder].formInputTextColor;
-                }
-                if (setting[holder].formBorderBottomColor){
-                    setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
-                }
+                //
+                // if (setting[holder].hasOwnProperty('onClickAction')) {
+                //     setting.onClickAction = setting[holder].onClickAction;
+                // }
+                // if (setting[holder].imageUrl){
+                //     setting.imageUrl = setting[holder].imageUrl;
+                // }
+                // if (setting[holder].newPageDetail){
+                //     setting.newPageDetail = setting[holder].newPageDetail;
+                // }
+                // if (setting[holder].newPageUrl){
+                //     setting.newPageUrl = setting[holder].newPageUrl;
+                // }
+                // if (setting[holder].activityDetail){
+                //     setting.activityDetail = setting[holder].activityDetail;
+                // }
+                // if (setting[holder].activityUrl){
+                //     setting.activityUrl = setting[holder].activityUrl;
+                // }
+                // if (setting[holder].rewardEventObjId){
+                //     setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
+                // }
+                // if (setting[holder].route){
+                //     setting.route = setting[holder].route;
+                // }
+                // if (setting[holder].gameCode){
+                //     setting.gameCode = setting[holder].gameCode;
+                // }
+                //
+                // //for pageSetting
+                // if (setting[holder].hasOwnProperty('skin')) {
+                //     setting.skin = setting[holder].skin;
+                // }
+                // if (setting[holder].htmlTextColor){
+                //     setting.htmlTextColor = setting[holder].htmlTextColor;
+                // }
+                // if (setting[holder].textColor1){
+                //     setting.textColor1 = setting[holder].textColor1;
+                // }
+                // if (setting[holder].textColor2){
+                //     setting.textColor2 = setting[holder].textColor2;
+                // }
+                // if (setting[holder].mainNavTextColor){
+                //     setting.mainNavTextColor = setting[holder].mainNavTextColor;
+                // }
+                // if (setting[holder].mainNavActiveTextColor){
+                //     setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
+                // }
+                // if (setting[holder].mainNavActiveBorderColor){
+                //     setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
+                // }
+                // if (setting[holder].navTextColor){
+                //     setting.navTextColor = setting[holder].navTextColor;
+                // }
+                // if (setting[holder].navActiveTextColor){
+                //     setting.navActiveTextColor = setting[holder].navActiveTextColor;
+                // }
+                // if (setting[holder].formBgColor){
+                //     setting.formBgColor = setting[holder].formBgColor;
+                // }
+                // if (setting[holder].formLabelTextColor){
+                //     setting.formLabelTextColor = setting[holder].formLabelTextColor;
+                // }
+                // if (setting[holder].formInputTextColor){
+                //     setting.formInputTextColor = setting[holder].formInputTextColor;
+                // }
+                // if (setting[holder].formBorderBottomColor){
+                //     setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
+                // }
+                // if (setting[holder].formHoverBottomFrameColor){
+                //     setting.formHoverBottomFrameColor = setting[holder].formHoverBottomFrameColor;
+                // }
+                // if (setting[holder].formHoverColor){
+                //     setting.formHoverColor = setting[holder].formHoverColor;
+                // }
+                // if (setting[holder].popUpListFrameColor){
+                //     setting.popUpListFrameColor = setting[holder].popUpListFrameColor;
+                // }
+                // if (setting[holder].popUpListKeyInColor){
+                //     setting.popUpListKeyInColor = setting[holder].popUpListKeyInColor;
+                // }
+                // if (setting[holder].popUpListLabelColor){
+                //     setting.popUpListLabelColor = setting[holder].popUpListLabelColor;
+                // }
+                // if (setting[holder].popUpListBgColor){
+                //     setting.popUpListBgColor = setting[holder].popUpListBgColor;
+                // }
             }
             if (setting.pc) {
                 delete setting.pc;
@@ -6531,7 +6582,8 @@ var dbPlatform = {
             if (setting.hasOwnProperty('horizontalScreenStyleFileUrl')){
                 delete setting.horizontalScreenStyleFileUrl;
             }
-            return setting
+
+            return checkUrlForCDNPrepend (cdnText, setting)
         }
 
         function querySetUp (platformObjId, clientType, setUpType, code) {
@@ -6539,6 +6591,10 @@ var dbPlatform = {
                 platformObjId: ObjectId(platformObjId),
                 status: 1,
             };
+
+            if (code && (code == 'recommendation' || code == 'carousel' || code == 'advertisement' || code == 'reward')){
+                query.isVisible = true;
+            }
 
             if (setUpType == 1){
                 if (clientType == 1){
@@ -6562,6 +6618,97 @@ var dbPlatform = {
             }
 
             return query;
+        }
+
+        function restructureDataFormat (settingList, code) {
+            if (settingList && settingList.length && code && code == "recommendation") {
+                let navList = [];
+                let bodyList = [];
+                let bottomList = [];
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.hasOwnProperty('category')) {
+                            switch (p.category) {
+                                case 1:
+                                    navList.push(p);
+                                    break;
+                                case 2:
+                                    bodyList.push(p);
+                                    break;
+                                case 3:
+                                    bottomList.push(p);
+                                    break;
+                            }
+                        }
+                    }
+                )
+                return {navList: navList, bodyList: bodyList, bottomList: bottomList}
+            }
+            else if (settingList && settingList.length && code && code == "reward") {
+                let objList = {};
+                let arrayList = [];
+                settingList.forEach(
+                    p => {
+                        if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
+                            if (objList && !objList[p.categoryObjId.categoryName]){
+                                objList[p.categoryObjId.categoryName] = [];
+                            }
+                            objList[p.categoryObjId.categoryName].push(p);
+                        }
+                    }
+                )
+
+                Object.keys(objList).forEach(key => {
+                    arrayList.push({name: key, list: objList[key]})
+                })
+
+                return arrayList
+            }
+            return settingList
+        }
+
+        function checkUrlForCDNPrepend (cdn, setting) {
+            if (setting && cdn){
+                setting = checkUrlItem (cdn, setting);
+                if (setting.popUpList && setting.popUpList.length){
+                    setting.popUpList.map(p => {
+                        if (p && p._id){
+                            return checkUrlItem (cdn, p);
+                        }
+                    })
+                }
+                if (setting.skin){
+                    setting.skin = checkUrlItem (cdn, setting.skin);
+                }
+            }
+
+            return setting
+        }
+
+        function checkUrlItem (cdnText, setting) {
+            if (setting && cdnText) {
+                if (setting.imageUrl && (setting.imageUrl.indexOf('http') == -1 && setting.imageUrl.indexOf('https') == -1)) {
+                    setting.imageUrl = cdnText + setting.imageUrl;
+                }
+                if (setting.newPageUrl && (setting.newPageUrl.indexOf('http') == -1 && setting.newPageUrl.indexOf('https') == -1)) {
+                    setting.newPageUrl = cdnText + setting.newPageUrl;
+                }
+
+                if (setting.activityUrl && (setting.activityUrl.indexOf('http') == -1 && setting.activityUrl.indexOf('https') == -1)) {
+                    setting.activityUrl = cdnText + setting.activityUrl;
+                }
+                if (setting.route && (setting.route.indexOf('http') == -1 && setting.route.indexOf('https') == -1)) {
+                    setting.route = cdnText + setting.route;
+                }
+                if (setting.selectedNavImage && (setting.selectedNavImage.indexOf('http') == -1 && setting.selectedNavImage.indexOf('https') == -1)) {
+                    setting.selectedNavImage = cdnText + setting.selectedNavImage;
+                }
+                if (setting.url && (setting.url.indexOf('http') == -1 && setting.url.indexOf('https') == -1)) {
+                    setting.url = cdnText + setting.url;
+                }
+
+                return setting
+            }
         }
     },
 
@@ -7058,6 +7205,39 @@ var dbPlatform = {
             );
         }
 
+    },
+
+    updateReferralConfig: function (query, updateData) {
+        return dbconfig.collection_platformReferralConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformReferralConfig.update(query, updateData, {multi: true});
+                } else {
+                    let newSetting = {
+                        platform: query.platform,
+                        enableUseReferralPlayerId: updateData.enableUseReferralPlayerId,
+                        referralPeriod: updateData.referralPeriod,
+                        referralLimit: updateData.referralLimit
+                    }
+
+                    return dbconfig.collection_platformReferralConfig(newSetting).save();
+                }
+            }
+        )
+    },
+
+    getReferralConfig: function (platformObjId) {
+        return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
+    },
+
+    getPlatformReferralConfig: function (platformId) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_platformReferralConfig.findOne({platform: platformData._id}).lean();
+                }
+            }
+        )
     }
 };
 

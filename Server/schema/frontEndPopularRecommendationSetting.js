@@ -26,6 +26,16 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
+        // 导航选中图
+        selectedNavImage: {type: String},
+        // has to log in or not
+        requiredToLogIn: {type: Boolean, index: true},
+        // stop pop-up in navigation bar
+        stopPopUp: {type: Boolean, index: true},
+        // pop-up data
+        popUpList: [{type: Schema.Types.ObjectId, ref: 'frontEndPopUpSetting'}],
     },
     h5: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -42,6 +52,12 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
+        // 导航选中图
+        selectedNavImage: {type: String},
+        // has to log in or not
+        requiredToLogIn: {type: Boolean, index: true},
     },
     app: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
@@ -58,6 +74,12 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // the height
+        pageHeight: {type: String},
+        // 导航选中图
+        selectedNavImage: {type: String},
+        // has to log in or not
+        requiredToLogIn: {type: Boolean, index: true},
     },
     // 1: web; 2: iOS APP; 3: Android APP; 4: H5
     visibleOnDevice: [{

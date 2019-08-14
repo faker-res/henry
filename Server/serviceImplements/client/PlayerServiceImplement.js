@@ -137,10 +137,17 @@ let PlayerServiceImplement = function () {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 
@@ -1054,7 +1061,7 @@ let PlayerServiceImplement = function () {
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
         if (conn.isAuth && conn.playerId && !data.name) {
-            data.name = conn.playerId;
+            data.playerId = conn.playerId;
         }
 
         var uaString = conn.upgradeReq.headers['user-agent'];

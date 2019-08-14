@@ -432,6 +432,23 @@ const dbRewardUtility = {
         );
     },
 
+    checkPhoneNumberAndBankCard: (eventData, playerData) => {
+        let result = true;
+        if (playerData && eventData && eventData.condition) {
+            if (eventData.condition.requiredPhoneNumber && eventData.condition.requiredBankCard && (!Boolean(playerData.phoneNumber) || !Boolean(playerData.bankAccount))){
+                result = false;
+            }
+            else if(eventData.condition.requiredPhoneNumber && !Boolean(playerData.phoneNumber)){
+                result = false;
+            }
+            else if(eventData.condition.requiredBankCard && !Boolean(playerData.bankAccount)){
+                result = false;
+            }
+        }
+
+        return result
+    },
+
     checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
         let intervalTime = null;
 
@@ -767,7 +784,7 @@ const dbRewardUtility = {
     checkTopupRecordIsDirtyForReward: (eventData, rewardData) => {
         let isUsed = false;
 
-        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+        if (eventData && eventData.type && eventData.type.name && eventData.type.name !== constProposalType.REFERRAL_REWARD_GROUP && rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 rewardData.selectedTopup.usedEvent.map(eventId => {
                     let isOneMatch = false;
@@ -1051,7 +1068,7 @@ const dbRewardUtility = {
         if (
             eventData.condition.allowConsumptionAfterTopUp
             || !rewardData || !rewardData.selectedTopup || !rewardData.lastConsumptionData
-            || isRandomRewardConsumption(eventData)
+            || isRandomRewardConsumption(eventData) || (eventData && eventData.type && eventData.type.name === constProposalType.REFERRAL_REWARD_GROUP)
         ) {
             return;
         }

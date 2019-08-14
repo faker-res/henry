@@ -8,6 +8,7 @@
         select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' ng-change="vm.showRealTimeCommissionSettlementButton = false")
             option(value='7') {{"DAILY_CONSUMPTION" | translate}}
             option(value='2') {{"WEEKLY_BONUS_AMOUNT" | translate}}
+            option(value='4') {{"MONTHLY_BONUS_AMOUNT" | translate}}
     .search-filters-item
         label {{"PARTNER_NAME" | translate}}
         input.form-control(type="text", ng-model="vm.realTimeCommissionQuery.partnerName" ng-change="vm.showRealTimeCommissionSettlementButton = false")

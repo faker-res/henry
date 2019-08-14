@@ -706,6 +706,9 @@ let dbPlayerInfo = {
         let platformId = null;
         let platformData = null;
         let playerData = null;
+        let referralLog = {};
+        let isHitReferralLimit = false;
+        let isEnableUseReferralPlayerId = false;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -935,29 +938,190 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
+                        // if (inputData.referral || inputData.referralName) {
+                        //     let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
+                        //     let referralProm = dbconfig.collection_players.findOne({
+                        //         name: referralName,
+                        //         platform: platformObjId
+                        //     }).then(
+                        //         data => {
+                        //             if (data) {
+                        //                 inputData.referral = data._id;
+                        //                 return inputData;
+                        //             }
+                        //             else {
+                        //                 // If user key in invalid referral during register, we will not proceed
+                        //                 return Q.reject({
+                        //                     status: constServerCode.INVALID_REFERRAL,
+                        //                     name: "DataError",
+                        //                     message: "Invalid referral"
+                        //                 });
+                        //             }
+                        //         }
+                        //     );
+                        //     proms.push(referralProm);
+                        // }
+
                         if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                            let referralProm = dbconfig.collection_players.findOne({
-                                name: referralName,
-                                platform: platformObjId
-                            }).then(
-                                data => {
-                                    if (data) {
-                                        inputData.referral = data._id;
-                                        return inputData;
+
+                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
+                                referralConfig => {
+                                    if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                        isEnableUseReferralPlayerId = true;
                                     }
-                                    else {
-                                        // If user key in invalid referral during register, we will not proceed
-                                        return Q.reject({
-                                            status: constServerCode.INVALID_REFERRAL,
-                                            name: "DataError",
-                                            message: "Invalid referral"
-                                        });
+
+                                    return dbconfig.collection_players.findOne({
+                                        name: referralName,
+                                        platform: platformObjId
+                                    }).populate({path: "platform", model: dbconfig.collection_platform}).then(
+                                        data => {
+                                            if (data) {
+                                                inputData.referral = data._id;
+
+                                                if (isEnableUseReferralPlayerId) {
+                                                    if (!inputData.isFromBackstage) {
+                                                        let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                        let logQuery = {
+                                                            platform: platformObjId,
+                                                            referral: data._id
+                                                        }
+
+                                                        if (configIntervalTime) {
+                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        }
+
+                                                        return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                                            countReferee => {
+                                                                let referralLimit = 0;
+
+                                                                referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                                                if (countReferee <= referralLimit) {
+                                                                    referralLog = {
+                                                                        platform: platformObjId,
+                                                                        referral: data._id,
+                                                                    };
+
+                                                                    return inputData;
+                                                                } else {
+                                                                    isEnableUseReferralPlayerId = false;
+                                                                    isHitReferralLimit = true;
+                                                                    delete inputData.referral;
+                                                                    delete inputData.referralId;
+                                                                    delete inputData.referralUrl;
+
+                                                                    return inputData;
+                                                                }
+                                                            }
+                                                        );
+                                                    } else {
+                                                        referralLog = {
+                                                            platform: platformObjId,
+                                                            referral: data._id,
+                                                        };
+
+                                                        if (!inputData.referralId && !inputData.referralUrl) {
+                                                            inputData.referralId = data.playerId;
+
+                                                            if (data.platform && data.platform.playerInvitationUrlList && data.platform.playerInvitationUrlList.length > 0
+                                                                && data.platform.playerInvitationUrlList[0] && data.platform.playerInvitationUrlList[0].content) {
+                                                                inputData.referralUrl = data.platform.playerInvitationUrlList[0].content + '/' + data.playerId;
+                                                            }
+
+                                                            return inputData;
+                                                        }
+                                                    }
+                                                }
+
+                                                return inputData;
+                                            }
+                                            else {
+                                                // If user key in invalid referral during register, we will not proceed
+                                                return Q.reject({
+                                                    status: constServerCode.INVALID_REFERRAL,
+                                                    name: "DataError",
+                                                    message: "Invalid referral"
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
+                            )
+
+                            proms.push(referralProm);
+                        }
+
+                        if (!inputData.referral && inputData.referralId) {
+                            let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
+                                referralConfig => {
+                                    if (referralConfig) {
+
+                                        if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+
+                                            return dbconfig.collection_players.findOne({
+                                                playerId: inputData.referralId,
+                                                platform: platformObjId
+                                            }).then(referrerData => {
+                                                if (referrerData) {
+                                                    let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                                    let logQuery = {
+                                                        platform: platformObjId,
+                                                        referral: referrerData._id
+                                                    }
+
+                                                    if (configIntervalTime) {
+                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                    }
+
+                                                    return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                                        countReferee => {
+                                                            let referralLimit = 0;
+
+                                                            referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                                            if (countReferee <= referralLimit) {
+                                                                inputData.referral = referrerData._id;
+
+                                                                isEnableUseReferralPlayerId = true;
+                                                                referralLog = {
+                                                                    platform: platformObjId,
+                                                                    referral: referrerData._id,
+                                                                };
+
+                                                                return inputData;
+                                                            } else {
+                                                                isHitReferralLimit = true;
+                                                                delete inputData.referralId;
+                                                                delete inputData.referralUrl;
+
+                                                                return inputData;
+                                                            }
+
+                                                            return inputData;
+                                                        }
+                                                    );
+                                                } else {
+                                                    // If user key in invalid referral during register, we will not proceed
+                                                    return Q.reject({
+                                                        status: constServerCode.INVALID_REFERRAL,
+                                                        name: "DataError",
+                                                        message: "Invalid referral"
+                                                    });
+                                                }
+                                            })
+                                        } else {
+                                            delete inputData.referralId;
+                                            delete inputData.referralUrl;
+
+                                            return inputData;
+                                        }
                                     }
                                 }
                             );
-                            proms.push(referralProm);
+                            proms.push(checkReferralLimit);
                         }
+
                         if (inputData.partnerName) {
                             delete inputData.referral;
                             let partnerProm = dbconfig.collection_partner.findOne({
@@ -1045,25 +1209,29 @@ let dbPlayerInfo = {
 
                     // /* new reqeust from Yuki: the csOfficer is only binded by domain */
                     let checkTsPhone = Promise.resolve();
-                    if (inputData && !inputData.tsPhone && inputData.phoneNumber) {
-                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId);
+                    if (/*inputData && !inputData.tsPhone && */inputData.phoneNumber) {
+                        checkTsPhone = checkIsTelesales(inputData.phoneNumber, platformObjId, adminId, inputData.tsPhone);
                     }
                     return checkTsPhone.then(
                         tsPhoneData => {
                             if (tsPhoneData) {
+                                inputData.relTsPhoneList = tsPhoneData.relevantList || [];
                                 // inputData.accAdmin = tsPhoneFeedbackData.adminId.adminName || "";
                                 // inputData.csOfficer = tsPhoneFeedbackData.adminId._id;
-                                if (tsPhoneData.tsPhone) {
-                                    inputData.tsPhone = tsPhoneData.tsPhone;
-                                }
-                                if (tsPhoneData.tsPhoneList) {
-                                    inputData.tsPhoneList = tsPhoneData.tsPhoneList;
-                                }
-                                if (tsPhoneData.assignee) {
-                                    inputData.tsAssignee = tsPhoneData.assignee;
+                                if (inputData && !inputData.tsPhone) {
+                                    if (tsPhoneData.tsPhone) {
+                                        inputData.tsPhone = tsPhoneData.tsPhone;
+                                    }
+                                    if (tsPhoneData.tsPhoneList) {
+                                        inputData.tsPhoneList = tsPhoneData.tsPhoneList;
+                                    }
+                                    if (tsPhoneData.assignee) {
+                                        inputData.tsAssignee = tsPhoneData.assignee;
+                                    }
                                 }
 
                             }
+
                             return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                         }
                     )
@@ -1072,6 +1240,13 @@ let dbPlayerInfo = {
                 data => {
                     if (data) {
                         // dbPlayerInfo.createPlayerLoginRecord(data);
+                        if (isEnableUseReferralPlayerId) {
+                            referralLog.playerObjId = data._id
+
+                            let newRecord = new dbconfig.collection_referralLog(referralLog);
+                            newRecord.save().catch(errorUtils.reportError);
+                        }
+
                         let newPlayerData = data;
 
                         newPlayerData.password = inputData.password ? inputData.password : (newPlayerData.password || "");
@@ -1109,6 +1284,10 @@ let dbPlayerInfo = {
                             pdata.partnerId = inputData.partnerId;
                             pdata.partnerName = inputData.partnerName;
                             playerData = pdata;
+
+                            if (isHitReferralLimit) {
+                                playerData.isHitReferralLimit = isHitReferralLimit;
+                            }
                         }
                     )
             ).then(
@@ -1141,7 +1320,15 @@ let dbPlayerInfo = {
                         // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
                         // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
                         console.log('MT --checking createPlayerRewardPointsRecord', playerData.platform, playerData._id)
-                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false);
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(playerData.platform, playerData._id, false).then(
+                            data => {
+                                if (data && isHitReferralLimit) {
+                                    data.isHitReferralLimit = isHitReferralLimit;
+                                }
+
+                                return data;
+                            }
+                        );
                     }
                     if (data && platformData.isEbet4) {
                         // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
@@ -2723,6 +2910,66 @@ let dbPlayerInfo = {
             );
     },
 
+    getReferralPlayerInfo: function (query) {
+        return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return false;
+                }
+
+                let returnData = {
+                    _id: playerData._id,
+                    name: playerData.name,
+                    platformId: playerData.platform.platformId,
+                    platform: playerData.platform._id,
+                    validCredit: playerData.validCredit,
+                    realName: playerData.realName
+                };
+
+                return dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+                    referralConfig => {
+                        if (referralConfig) {
+                            let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                            let logQuery = {
+                                platform: playerData.platform._id,
+                                referral: playerData._id
+                            }
+
+                            if (configIntervalTime) {
+                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                            }
+
+                            return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                countReferee => {
+                                    let referralLimit = 0;
+
+                                    if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
+                                        referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                        if (countReferee > referralLimit) {
+                                            returnData.isHitReferralLimit = true;
+
+                                            return returnData;
+                                        }
+                                    }
+
+                                    returnData.isHitReferralLimit = false;
+
+                                    return returnData;
+                                }
+                            );
+                        }
+
+                        returnData.isHitReferralLimit = false;
+
+                        return returnData;
+                    }
+                );
+            }
+        );
+    },
+
     getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
         function getRewardGroupData(thisPlayer) {
             return dbconfig.collection_rewardTaskGroup.find({
@@ -4185,7 +4432,6 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
 
-        updateData.forbidPromoCode = disablePromoCode? true: false;
         updateData.forbidLevelUpReward = forbidLevelUpReward? true: false;
         updateData.forbidLevelMaintainReward = forbidLevelMaintainReward? true: false;
 
@@ -16965,12 +17211,18 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
                         constRewardType.PLAYER_RETENTION_REWARD_GROUP,
                         constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP,
+                        constRewardType.REFERRAL_REWARD_GROUP,
                     ];
 
                     // Check any consumption after topup upon apply reward
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
+
+                    if (rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
+                        //get latest top up of referral
+                        lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({playerId: playerInfo._id}).sort({createTime: -1});
+                    }
 
                     pendingCount = dbRewardUtil.getPendingRewardTaskCount({
                         mainType: 'Reward',
@@ -17088,6 +17340,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                 case constRewardType.BACCARAT_REWARD_GROUP:
                                 case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+                                case constRewardType.REFERRAL_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
@@ -18826,7 +19079,7 @@ let dbPlayerInfo = {
         console.log('postSummaryStartTime', postSummaryStartTime);
         console.log('postSummaryEndTime', postSummaryEndTime);
 
-        if (summaryEndTime && summaryEndTime) {
+        if (summaryStartTime && summaryEndTime) {
             getSummaryProm = getSummaryData();
         }
 
@@ -18920,6 +19173,7 @@ let dbPlayerInfo = {
                                         );
                                     }
                                 }
+
                             }
                         }
                     )
@@ -20442,9 +20696,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId) {
-        let startDate = new Date(1970, 1, 1);
-        let today = new Date(); // track for whole life time until now
+    getPlayerDepositTrackingMonthlyDetails: function (platformObjId, playerObjId, startTime, endTime) {
+        // let startDate = new Date(1970, 1, 1);
+        // let today = new Date(); // track for whole life time until now
+        let startDate = new Date(startTime);
+        let today = new Date(endTime);
         let consumptionProm = [];
         let topUpProm = [];
         let bonusProm = [];
@@ -20483,7 +20739,7 @@ let dbPlayerInfo = {
                 month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
-
+        console.log('create time', startDate + " : " + today);
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: {
@@ -20947,8 +21203,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    amount:1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$amount"},
                     count: {$sum: 1},
                 }
@@ -20967,8 +21230,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    'data.playerObjId': 1,
+                    'data.amount': 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$data.playerObjId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$data.playerObjId' },
                     totalAmount: {$sum: "$data.amount"},
                     count: {$sum: 1}
                 }
@@ -20992,8 +21262,16 @@ let dbPlayerInfo = {
                 $match: matchConsumObj
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1,
+                    validAmount: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$localTime" }}, playerId: '$playerId' },
                     totalAmount: {$sum: "$validAmount"},
                     count: {$sum: 1},
                     providerInfo : {$first: "$providerId"}
@@ -21017,8 +21295,15 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project:{
+                    localTime: {$add: ["$createTime", 8*60*60000]},
+                    playerId: 1,
+                    providerId: 1
+                }
+            },
+            {
                 $group: {
-                    _id: {date: {$dateToString: { format: "%Y-%m-%d", date: "$createTime" }}, playerId: '$playerId' },
+                    _id: {date: {$dateToString: {format: "%Y-%m-%d", date: "$localTime"}}, playerId: '$playerId' },
                     providerInfo : {$first: "$providerId"}
                 }
             }
@@ -21411,7 +21696,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    
+
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;
@@ -21869,7 +22154,7 @@ let dbPlayerInfo = {
                 model: dbconfig.collection_playerCredibilityRemark,
                 select: "_id name"
             }).lean();
-
+            console.log('player data', playerData);
             if (!playerData) {
                 return "";
             }
@@ -22190,14 +22475,11 @@ let dbPlayerInfo = {
                                         result.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
                                         result.onlineTopUpFeeDetail.push(detailObj);
                                     }
-                                }
-                                else if (e._id.typeId.toString() === manualTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === manualTopUpTypeId) {
                                     result.manualTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === weChatTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === weChatTopUpTypeId) {
                                     result.weChatTopUpAmount = e.amount;
-                                }
-                                else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
+                                } else if (e._id.typeId.toString() === aliPayTopUpTypeId) {
                                     result.aliPayTopUpAmount = e.amount;
                                 }
 
@@ -23032,132 +23314,116 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
+    importTSNewList: async function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade, isFeedbackPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
-            return Promise.reject("None of the phone has pass the filter");
+            return Promise.reject({message: "None of the phone has pass the filter"});
         }
 
-        return getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj).then(
-            tsList => {
-                if (!tsList) {
-                    return Promise.reject({message: "tsPhoneList not found"})
-                }
-                tsPhoneList = tsList;
+        tsPhoneList = await getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj);
+        if (!tsPhoneList) {
+            return Promise.reject({message: "tsPhoneList not found"})
+        }
 
-                // generate ts phone import record
-                dbconfig.collection_tsPhoneImportRecord({
-                    platform: saveObj.platform,
-                    tsPhoneList: tsList._id,
-                    description: saveObj.description,
-                    adminName: adminName,
-                    admin: adminId
-                }).save().catch(errorUtils.reportError);
+        // generate ts phone import record
+        dbconfig.collection_tsPhoneImportRecord({
+            platform: saveObj.platform,
+            tsPhoneList: tsPhoneList._id,
+            description: saveObj.description,
+            adminName: adminName,
+            admin: adminId
+        }).save().catch(err => {
+            console.error("add tsPhoneImportRecord failure", err);
+            errorUtils.reportError(err);
+        });
 
-                // if (saveObj.isCheckWhiteListAndRecycleBin) {
-                let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
-                // }
+        let filteredPhones = await filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsPhoneList._id, saveObj.isCheckWhiteListAndRecycleBin);
 
-                return filteredPhonesProm;
+        let promArr = [];
+        for (let i = 0; i < filteredPhones.length; i++) {
+            let phone = filteredPhones[i];
+            if (!phone) {
+                continue;
             }
-        ).then(
-            filteredPhones => {
-                let promArr = [];
-                filteredPhones.forEach(phone => {
-                    if (!phone) {
-                        return;
-                    }
-                    let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-                    let phoneLocation = queryPhoneLocation(phone.phoneNumber);
-                    let phoneProvince = phoneLocation && phoneLocation.province || "";
-                    let phoneCity = phoneLocation && phoneLocation.city || "";
+            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
+            let phoneLocation = queryPhoneLocation(phone.phoneNumber);
+            let phoneProvince = phoneLocation && phoneLocation.province || "";
+            let phoneCity = phoneLocation && phoneLocation.city || "";
 
-                    let prom = dbconfig.collection_tsPhone({
-                        platform: tsPhoneList.platform,
-                        phoneNumber: encryptedNumber,
-                        playerName: phone.playerName,
-                        realName: phone.realName,
-                        gender: phone.gender,
-                        dob: phone.dob,
-                        wechat: phone.wechat,
-                        qq: phone.qq,
-                        email: phone.email,
-                        remark: phone.remark,
-                        province: phoneProvince,
-                        city: phoneCity,
-                        tsPhoneList: tsPhoneList._id
-                    }).save();
-
-                    if(isImportFeedback && phone._id) {
-                        if (isImportFeedback) {
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_tsPhoneFeedback.update(
-                                        {
-                                            tsPhone: phone._id,
-                                            tsPhoneList: phone.tsPhoneList
-                                        },
-                                        {
-                                            tsPhone: tsPhoneData._id,
-                                            tsPhoneList: tsPhoneList._id
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData;
-                                }
-                            )
-                        }
+            let prom = dbconfig.collection_tsPhone({
+                platform: tsPhoneList.platform,
+                phoneNumber: encryptedNumber,
+                playerName: phone.playerName,
+                realName: phone.realName,
+                gender: phone.gender,
+                dob: phone.dob,
+                wechat: phone.wechat,
+                qq: phone.qq,
+                email: phone.email,
+                remark: phone.remark,
+                province: phoneProvince,
+                city: phoneCity,
+                tsPhoneList: tsPhoneList._id
+            }).save().then(
+                tsPhoneData => {
+                    if (isImportFeedback && phone._id) {
+                        dbconfig.collection_tsPhoneFeedback.update({
+                            tsPhone: phone._id,
+                            tsPhoneList: phone.tsPhoneList
+                        }, {
+                            tsPhone: tsPhoneData._id,
+                            tsPhoneList: tsPhoneList._id
+                        }, {
+                            multi: true
+                        }).catch(err => {
+                            console.error('update tsPhone', err);
+                            return errorUtils.reportError(err);
+                        });
 
                         if (isPhoneTrade) { // ts phone trade
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_tsPhoneTrade.update(
-                                        {
-                                            sourceTsPhone: phone._id,
-                                            sourceTsPhoneList: phone.tsPhoneList
-                                        },
-                                        {
-                                            targetTsPhone: tsPhoneData._id,
-                                            targetTsPhoneList: tsPhoneList._id
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData
-                                }
-                            )
+                            dbconfig.collection_tsPhoneTrade.update({
+                                sourceTsPhone: phone._id,
+                                sourceTsPhoneList: phone.tsPhoneList
+                            }, {
+                                targetTsPhone: tsPhoneData._id,
+                                targetTsPhoneList: tsPhoneList._id
+                            }, {
+                                multi: true
+                            }).catch(err => {
+                                console.error('update targetTsPhone', err);
+                                return errorUtils.reportError(err);
+                            });
                         }
 
                         if (isFeedbackPhoneTrade) { // from feedback
-                            prom = prom.then(
-                                tsPhoneData => {
-                                    dbconfig.collection_feedbackPhoneTrade.update(
-                                        {
-                                            _id: phone._id
-                                        },
-                                        {
-                                            isImportedPhoneList: true
-                                        }, {multi: true}).catch(errorUtils.reportError);
-                                    return tsPhoneData
-                                }
-                            )
+                            dbconfig.collection_feedbackPhoneTrade.update({
+                                _id: phone._id
+                            }, {
+                                isImportedPhoneList: true
+                            }, {
+                                multi: true
+                            }).catch(err => {
+                                console.error('update isImportedPhoneList', err);
+                                return errorUtils.reportError(err);
+                            });
                         }
                     }
 
-
-                    promArr.push(prom);
-                });
-
-                return Promise.all(promArr);
-            }
-        ).then(
-            () => {
-                recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
-                if (targetTsPhoneListId) {
-                    return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().then(
-                        () => {
-                            return true;
-                        }
-                    );
+                    return tsPhoneData;
                 }
-                return true;
-            }
-        );
+            );
+            promArr.push(prom);
+        }
+
+        await Promise.all(promArr);
+
+        recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
+
+        if (targetTsPhoneListId) {
+            await dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean();
+        }
+
+        return true;
     },
 
     filterDxPhoneExist: function (dxMission, phoneArr) {
@@ -25768,6 +26034,11 @@ let dbPlayerInfo = {
                 return {total: totalCount, data: playerData};
             }
         );
+    },
+
+    exportShortUrlToExcel: (data) => {
+        console.log('exportShortUrlToExcel',data);
+        return dbReportUtil.generateExcelFile("ShortUrl", data);
     },
 
     checkIPArea: function (playerObjId) {
@@ -28584,7 +28855,7 @@ function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneLi
                 })
             }
 
-            return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+            return dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
         }
     );
 }
@@ -28600,87 +28871,118 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function checkIsTelesales(phoneNumber, platformObjId, adminId) {
-    let latestTsPhone;
+async function checkIsTelesales(phoneNumber, platformObjId, adminId, tsPhoneObjId) {
+    let relevantList = [];
     let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-    return dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean().then(
-        tsPhoneData => {
-            if (tsPhoneData && tsPhoneData.length) {
-                latestTsPhone  = tsPhoneData[tsPhoneData.length - 1];
-                tsPhoneData.length = tsPhoneData.length - 1; // delete old tsPhone if have multiple same phoneNumber in telesales
+    let tsPhoneData = await dbconfig.collection_tsPhone.find({platform: platformObjId, phoneNumber: encryptedPhoneNumber, registered: false}).sort({createTime: 1}).lean();
+    if (!tsPhoneData || !tsPhoneData.length) {
+        return false;
+    }
 
-                if (tsPhoneData && tsPhoneData.length) {
-                    tsPhoneData.forEach(
-                        tsPhone => {
-                            dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
-                            let tsPhoneListUpdate = {
-                                totalPhone: -1
-                            }
-                            if (tsPhone.isUsed) {
-                                tsPhoneListUpdate.totalUsed = -1;
-                            }
-                            if (tsPhone.isSucceedBefore) {
-                                tsPhoneListUpdate.totalSuccess = -1;
-                            }
-                            dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
-                            dbconfig.collection_tsDistributedPhone.findOneAndRemove({
-                                tsPhone: tsPhone._id,
-                                tsPhoneList: tsPhone.tsPhoneList,
-                                endTime: {$gte: new Date()},
-                                registered: false
-                            }).lean().then(
-                                removedTsDistributedPhone => {
-                                    if (removedTsDistributedPhone) {
-                                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
-                                        if (removedTsDistributedPhone.tsDistributedPhoneList) {
-                                            let distributedPhoneListUpdate = {
-                                                phoneCount: -1
-                                            }
-
-                                            if (removedTsDistributedPhone.isUsed) {
-                                                distributedPhoneListUpdate.phoneUsed = -1;
-                                            }
-                                            if (removedTsDistributedPhone.isSucceedBefore) {
-                                                distributedPhoneListUpdate.successfulCount = -1;
-                                            }
-
-                                            dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    )
-                }
-            }
-
-            if (latestTsPhone && latestTsPhone._id && latestTsPhone.tsPhoneList) {
-                return dbconfig.collection_tsDistributedPhone.findOne({
-                    tsPhone: latestTsPhone._id,
-                    tsPhoneList: latestTsPhone.tsPhoneList,
-                    endTime: {$gte: new Date()},
-                    registered: false
-                }).lean().then(
-                    tsDistributedPhone => {
-                        let returnData = {};
-                        if (tsDistributedPhone) {
-                            returnData.tsPhone = tsDistributedPhone.tsPhone;
-                            returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
-                            returnData.assignee = tsDistributedPhone.assignee;
-                        } else {
-                            returnData.tsPhone = latestTsPhone._id;
-                            returnData.tsPhoneList = latestTsPhone.tsPhoneList;
-                            returnData.assignee = adminId;
-                        }
-                        return returnData;
-                    }
-                );
-            } else {
-                return null;
-            }
-
+    let selectedTsPhone = tsPhoneData[tsPhoneData.length - 1];
+    if (tsPhoneObjId) {
+        tsPhoneObjId = tsPhoneObjId._id || tsPhoneObjId;
+        let foundTsPhone = tsPhoneData.find((tsPhone) => {
+            return String(tsPhone._id) === String(tsPhoneObjId);
+        })
+        if (foundTsPhone) {
+            selectedTsPhone = foundTsPhone;
         }
-    );
+    }
+    let selectedTsPhoneObjId = selectedTsPhone && selectedTsPhone._id ? selectedTsPhone._id : null;
+
+    for (let i = 0; i < tsPhoneData.length; i++) {
+        let tsPhone = tsPhoneData[i];
+        if (!tsPhone || String(tsPhone._id) === String(selectedTsPhoneObjId)) {
+            continue;
+        }
+
+        let relevantListExisted = relevantList.find(tsPhoneListObjId => {
+            return String(tsPhoneListObjId) === String(tsPhone.tsPhoneList);
+        });
+        if (!relevantListExisted) {
+            relevantList.push(tsPhone.tsPhoneList);
+        }
+
+        dbconfig.collection_tsPhone.update({
+            _id: tsPhone._id
+        }, {
+            registered: true
+        }).catch(errorUtils.reportError);
+        let tsPhoneListUpdate = {
+            totalRegistration: 1
+        };
+        if (!tsPhone.isUsed) {
+            tsPhoneListUpdate.totalUsed = 1;
+        }
+        // if (tsPhone.isUsed) {
+        //     tsPhoneListUpdate.totalUsed = -1;
+        // }
+        // if (tsPhone.isSucceedBefore) {
+        //     tsPhoneListUpdate.totalSuccess = -1;
+        // }
+
+        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+
+        dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+            tsPhone: tsPhone._id,
+            tsPhoneList: tsPhone.tsPhoneList,
+            endTime: {$gte: new Date()},
+            registered: false
+        }).lean().then(
+            removedTsDistributedPhone => {
+                // if (!removedTsDistributedPhone) {
+                //     return;
+                // }
+                // dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalRegistration: 1}}).catch(errorUtils.reportError);
+                // if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                //     let distributedPhoneListUpdate = {
+                //         registrationCount: 1
+                //     };
+                //     if (!removedTsDistributedPhone.isUsed) {
+                //         distributedPhoneListUpdate.phoneUsed = 1;
+                //     }
+
+                    // let distributedPhoneListUpdate = {
+                    //     phoneCount: -1
+                    // };
+                    //
+                    // if (removedTsDistributedPhone.isUsed) {
+                    //     distributedPhoneListUpdate.phoneUsed = -1;
+                    // }
+                    // if (removedTsDistributedPhone.isSucceedBefore) {
+                    //     distributedPhoneListUpdate.successfulCount = -1;
+                    // }
+
+                //     dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                // }
+
+            }
+        ).catch(errorUtils.reportError);
+    }
+
+    if (!(selectedTsPhone && selectedTsPhone._id && selectedTsPhone.tsPhoneList)) {
+        return null;
+    }
+
+    let tsDistributedPhone = await dbconfig.collection_tsDistributedPhone.findOne({
+        tsPhone: selectedTsPhone._id,
+        tsPhoneList: selectedTsPhone.tsPhoneList,
+        endTime: {$gte: new Date()},
+        registered: false
+    }).lean();
+
+    let returnData = {relevantList};
+    if (tsDistributedPhone) {
+        returnData.tsPhone = tsDistributedPhone.tsPhone;
+        returnData.tsPhoneList = tsDistributedPhone.tsPhoneList;
+        returnData.assignee = tsDistributedPhone.assignee;
+    } else {
+        returnData.tsPhone = selectedTsPhone._id;
+        returnData.tsPhoneList = selectedTsPhone.tsPhoneList;
+        returnData.assignee = adminId;
+    }
+    return returnData;
 }
 
 function checkTelesalesPhone(encryptedPhoneNumber, platformObjId) {
@@ -28738,24 +29040,44 @@ function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckW
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
-    let proms = []
+    let existedPhoneNumbers = [];
+    let proms = [];
     phones.map(phone => {
+        if (!phone.phoneNumber || existedPhoneNumbers.includes(String(phone.phoneNumber))) {
+            return;
+        }
+        existedPhoneNumbers.push(String(phone.phoneNumber));
+
         let tsPhoneQuery = {
             platform: platformObjId,
             phoneNumber: phone.encryptedNumber
-        }
+        };
 
         if (!isCheckWhiteListAndRecycleBin && tsPhoneList) {
             tsPhoneQuery.tsPhoneList = tsPhoneList;
         }
 
-        let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
-            isExist => {
-                return isExist ? false : phone;
-            }
-        );
+        let prom = async () => {
+            let isTsPhoneExist = await dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean();
+            let isPlayerExist = await dbconfig.collection_players.findOne({
+                phoneNumber: {$in: [phone.encryptedNumber, rsaCrypto.oldEncrypt(phone.phoneNumber)]},
+                platform: platformObjId,
+                isRealPlayer: true,
+                "permission.forbidPlayerFromLogin": {$ne: true},
+            }, {
+                _id: 1
+            }).lean();
 
-        proms.push(prom);
+            return isTsPhoneExist || isPlayerExist ? false : phone;
+        };
+
+        // let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
+        //     isExist => {
+        //         return isExist ? false : phone;
+        //     }
+        // );
+
+        proms.push(prom());
     });
 
     return Promise.all(proms).then(

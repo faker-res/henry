@@ -7,7 +7,6 @@ var encrypt = require('./../modules/encrypt');
 const request = require('request');
 var Q = require("q");
 const ObjectId = mongoose.Types.ObjectId;
-const env = require('../config/env').config();
 
 var dbAdminInfo = {
 
@@ -627,17 +626,17 @@ var dbAdminInfo = {
 
     callTell400: function(url){
         var deferred = Q.defer();
-
-        // change url from tel400 tel to cs.tel400.me on cstest environment
-        if (env.mode === 'development') {
-            url = url.replace(/tel400/g, 'cs.tel400');
-            console.log('check callTell400 cstest url ===> ', url);
-        }
-
         request(url, function (error, response, body) {
             let bodyJSON = {};
             if( body && typeof body == "string"){
-                bodyJSON = JSON.parse( body.replace(/'/g, '"') );
+                bodyJSON = body.replace(/'/g, '"');
+
+                try {
+                    bodyJSON = JSON.parse(String(bodyJSON));
+                } catch (e) {
+                    console.error(e);
+                    console.error('bodyJson parse failure', bodyJSON);
+                }
             }
             if( error ){
                 console.log("callTell400 error", url, error);
