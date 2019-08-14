@@ -21696,7 +21696,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    
+
         getDXNewPlayerReport: function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : null;
         index = index ? index : 0;
@@ -23346,9 +23346,6 @@ let dbPlayerInfo = {
                 continue;
             }
             let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-
-            isPlayerPhoneExisted(tsPhoneList.platform, phone.phoneNumber, rsaCrypto.encrypt(phone.phoneNumber));
-
             let phoneLocation = queryPhoneLocation(phone.phoneNumber);
             let phoneProvince = phoneLocation && phoneLocation.province || "";
             let phoneCity = phoneLocation && phoneLocation.city || "";
@@ -26035,6 +26032,11 @@ let dbPlayerInfo = {
                 return {total: totalCount, data: playerData};
             }
         );
+    },
+
+    exportShortUrlToExcel: (data) => {
+        console.log('exportShortUrlToExcel',data);
+        return dbReportUtil.generateExcelFile("ShortUrl", data);
     },
 
     checkIPArea: function (playerObjId) {
@@ -28851,7 +28853,7 @@ function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneLi
                 })
             }
 
-            return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+            return dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
         }
     );
 }
@@ -29443,10 +29445,6 @@ function checkSimilarIpForPlayerCredibilityRemarks (player) {
             }
         );
     }
-}
-
-function isPlayerPhoneExisted(platformObjId, phoneNumber, encryptedPhoneNumber) {
-
 }
 
 function checkPlayerIsBlacklistIp(player) {

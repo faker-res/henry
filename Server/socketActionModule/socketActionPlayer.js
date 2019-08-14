@@ -904,6 +904,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPushNotification, [data.platformObjId], actionName, isValidData);
         },
 
+        exportShortUrlToExcel: function exportShortUrlToExcel(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.exportShortUrlToExcel, [data.data], actionName, isValidData);
+        },
+
         sendSMSToPlayer: function sendSMSToPlayer(data) {
             var actionName = arguments.callee.name;
             var adminObjId = getAdminId();

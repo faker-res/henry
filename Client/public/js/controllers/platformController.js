@@ -1563,10 +1563,65 @@ define(['js/app'], function (myApp) {
                     case "AuctionSystem":
                         vm.initAuctionSystem();
                         break;
+                    case "UrlShortener":
+                        break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
+
+            vm.generateMultiUrls = function() {
+                vm.urlData = [];
+                let urls = vm.splitTextArea(vm.multiUrls);
+                urls = [...new Set(urls)];
+                urls = urls.map(item => { return item.trim() });
+                let sendData = { "urls": urls }
+                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
+                $.post(host+'/urlShortener', sendData, function(data){
+                    $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
+                        vm.urlData = data.data ? data.data : [];
+                    })
+                })
+            }
+
+            vm.generateSingleUrl = function(url, no) {
+                let sendData = { "urls": [ url ] }
+                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
+                $.post(host+'/urlShortener', sendData, function(data){
+                    $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
+                        data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
+                        vm.urlData.filter(item => {
+                            if (item.no == no && data) {
+                                item.url_short = data.url_short;
+                                return item;
+                            }
+                        });
+                    });
+                })
+            }
+
+            vm.exportShortUrlToExcel = function () {
+                socketService.$socket($scope.AppSocket, 'exportShortUrlToExcel', {data: vm.urlData}, function (data) {
+                    $scope.$evalAsync(() => {
+                        window.saveAs(new Blob([data.data]), "shortUrl.csv");
+                    })
+                });
+            }
+
+            vm.splitTextArea = function (datas) {
+                let results = [];
+                if (datas) {
+                    let rowData = datas.split('\n')
+                    rowData.forEach(item => {
+                        results.push(item);
+                    })
+                }
+                return results;
+            }
 
             vm.showPlatformDetailModal = function () {
                 //$('#platformDetail').html();

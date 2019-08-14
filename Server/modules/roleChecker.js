@@ -524,6 +524,9 @@ var roleChecker = {
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
             },
+            "UrlShortener": {
+                Read: ['exportShortUrlToExcel']
+            },
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
             },
