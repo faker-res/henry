@@ -6,21 +6,21 @@
             .panel-body.common-right-sub-panel-body
                 textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
                 {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
-                button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') 开始生成
+                button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') {{'Convert Url' | translate}}
                 span#urlShortenerSpin.collapse
                     i.fa.fa-spinner.fa-spin
 
                 table.simple-table#bulkCreditClearOutTable(style="width:100%")
                     thead
                         tr
-                            th {{'序号' | translate}}
-                            th {{'原网址' | translate}}
-                            th {{'防红短网址' | translate}}
+                            th {{'Seq No' | translate}}
+                            th {{'Original Url' | translate}}
+                            th {{'ShortenerUrl' | translate}}
                     tbody
                         tr(ng-repeat='(i,v) in vm.urlData')
                             td {{v.no}}
                             td {{v.url_long}}
                             td(ng-if="!v.url_short")
-                                a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") 重新获取
+                                a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") {{'Retrieve Again' | translate}}
                             td(ng-click="vm.generateSingleUrl(v.url_long, v.no)", ng-if="v.url_short") {{v.url_short}}
-                button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') 汇出EXCEL
+                button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') {{'EXPORT_EXCEL' | translate}}
