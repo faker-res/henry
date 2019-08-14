@@ -1975,6 +1975,30 @@ var dbUtility = {
         return clientType;
     },
 
+    getReferralConfigIntervalTime: (period) => {
+        let intervalTime;
+
+        switch (period) {
+            case "1":
+                intervalTime = dbUtility.getTodaySGTime();
+                break;
+            case "2":
+                intervalTime = dbUtility.getCurrentWeekSGTime();
+                break;
+            case "3":
+                intervalTime = dbUtility.getCurrentMonthSGTIme();
+                break;
+            case "4":
+                intervalTime = dbUtility.getYearlySGTIme() ;
+                break;
+            default:
+                // No interval time. Will return undefined
+                break;
+        }
+
+        return intervalTime;
+    },
+
     queryPhoneLocation: (phoneNumber) => {
         let retObj = {};
         let queryRes = queryPhoneLocationFromPackage(phoneNumber);

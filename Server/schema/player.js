@@ -305,6 +305,10 @@ var playerSchema = new Schema({
     }],
     //referral player
     referral: {type: Schema.ObjectId, index: true},
+    //referral (playerId)
+    referralId: {type: String, index: true},
+    //referral url
+    referralUrl: {type: String},
     //has been used for referral reward
     isReferralReward: {type: Boolean, default: false},
     //if this player is from online registration

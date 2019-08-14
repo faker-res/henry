@@ -7205,6 +7205,39 @@ var dbPlatform = {
             );
         }
 
+    },
+
+    updateReferralConfig: function (query, updateData) {
+        return dbconfig.collection_platformReferralConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformReferralConfig.update(query, updateData, {multi: true});
+                } else {
+                    let newSetting = {
+                        platform: query.platform,
+                        enableUseReferralPlayerId: updateData.enableUseReferralPlayerId,
+                        referralPeriod: updateData.referralPeriod,
+                        referralLimit: updateData.referralLimit
+                    }
+
+                    return dbconfig.collection_platformReferralConfig(newSetting).save();
+                }
+            }
+        )
+    },
+
+    getReferralConfig: function (platformObjId) {
+        return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
+    },
+
+    getPlatformReferralConfig: function (platformId) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_platformReferralConfig.findOne({platform: platformData._id}).lean();
+                }
+            }
+        )
     }
 };
 

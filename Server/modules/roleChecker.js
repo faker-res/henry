@@ -505,6 +505,7 @@ var roleChecker = {
                 CanAuditLargeWithdrawal: [],
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
+                referral: ['updateReferralConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -522,6 +523,9 @@ var roleChecker = {
                 Read: ['sendSMStoNumber','getDepartmentDetailsByPlatformObjId'],
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
+            },
+            "UrlShortener": {
+                Read: ['exportShortUrlToExcel']
             },
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
