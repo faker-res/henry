@@ -42,8 +42,11 @@ var dbFrontEndSetting = {
         }
     },
 
-    saveFrontEndRewardCategory: (platformObjId, categoryName) => {
-        if (platformObjId && categoryName){
+    saveFrontEndRewardCategory: (platformObjId, categoryName, categoryObjId) => {
+        if (categoryObjId && categoryName){
+            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObjId)}, {categoryName: categoryName}, {new: true}).lean();
+        }
+        else if (platformObjId && categoryName){
             let dataObj ={
                 platformObjId: ObjectId(platformObjId),
                 categoryName: categoryName
@@ -179,6 +182,73 @@ var dbFrontEndSetting = {
         }
 
         return Promise.all(prom);
+    },
+
+    updateFrontEndGameSetting: (dataList, deletedList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            device: data.device,
+                            displayOrder: data.displayOrder || 1,
+                        };
+                        prom.push(getAndUpdateGameSetting (ObjectId(data._id), updateQuery))
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateGameSetting (ObjectId(data), updateQuery))
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdateGameSetting (eventObjectId, updateQuery) {
+            return dbConfig.collection_frontEndGameSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
+    },
+
+    getFrontEndGameSettingByObjId: (gameSettingObjId) => {
+        if (gameSettingObjId){
+            return dbConfig.collection_frontEndGameSetting.findOne({_id: ObjectId(gameSettingObjId)}).lean();
+        }
+    },
+
+    saveFrontEndGameSetting: (gameSettingObj) => {
+        if (gameSettingObj && gameSettingObj._id){
+            let dataObjId = gameSettingObj._id;
+            delete gameSettingObj._id;
+
+            if (gameSettingObj.hasOwnProperty('__v')){
+                delete gameSettingObj.__v;
+            }
+            return dbConfig.collection_frontEndGameSetting.findOneAndUpdate(
+                {_id: dataObjId},
+                gameSettingObj,
+                {new: true});
+        }
+        else{
+            let record = new dbConfig.collection_frontEndGameSetting(gameSettingObj);
+            return record.save();
+        }
+    },
+
+    getFrontEndGameSetting: (platformObjId) => {
+        if (platformObjId){
+            return dbConfig.collection_frontEndGameSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
     },
 
     getFrontEndPopUpAdvertisementSetting: (platformObjId) => {
@@ -373,6 +443,26 @@ var dbFrontEndSetting = {
 
         function getAndUpdatePartnerCarouselSetting (carouselObjId, updateQuery) {
             return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: carouselObjId}, updateQuery).lean();
+        }
+    },
+
+    savePopUpInFirstPageSetting: async (data) => {
+        if (data){
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndPopUpSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data, {new: true}).lean();
+            }
+            else{
+                let record = new dbConfig.collection_frontEndPopUpSetting(data);
+                return record.save();
+            }
         }
     },
 };

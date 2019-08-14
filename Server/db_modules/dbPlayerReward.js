@@ -8529,6 +8529,15 @@ let dbPlayerReward = {
                             if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
                                 console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
                                 proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
+                                if (selectedRewardParam && selectedRewardParam.spendingTimes) {
+                                    selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
+                                    spendingAmount = proposalData.data.rewardAmount * selectedRewardParam.spendingTimes;
+                                    proposalData.data.spendingAmount = spendingAmount;
+                                }
+                                if (lastTopUpData && lastTopUpData.amount) {
+                                    proposalData.data.applyAmount = lastTopUpData.amount;
+                                    proposalData.data.actualAmount = lastTopUpData.amount;
+                                }
                             }
 
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;

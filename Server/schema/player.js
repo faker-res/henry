@@ -358,6 +358,8 @@ var playerSchema = new Schema({
     tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
     //adminObjId
     tsAssignee: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
+    // relevant tsPhoneList
+    relTsPhoneList: [{type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true}],
     // QnA security question total wrong count - reset when success
     qnaWrongCount: {
         forgotPassword: {type: Number, default: 0},

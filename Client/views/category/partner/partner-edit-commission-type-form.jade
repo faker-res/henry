@@ -4,7 +4,7 @@ form(name="form_edit_partner_commission_type", novalidate)
             thead
                 tr
                     th {{'PARTNER_NAME' | translate}}
-                    th {{'bonusAmount1' | translate}}
+                    th(colspan=2)  {{'bonusAmount1' | translate}}
                     th {{'Spent Amount' | translate}}
                     th {{'CLOSED_COMMISSION' | translate}}
             tbody
@@ -18,14 +18,14 @@ form(name="form_edit_partner_commission_type", novalidate)
                         label.radio-inline {{'WEEKLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
+                        label.radio-inline {{'MONTHLY_BONUS_AMOUNT' | translate}}
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="switchCommissionTab('MONTHLY_BONUS_AMOUNT', newPartner.commissionType);")
+                    td
                         label.radio-inline {{'DAILY_CONSUMPTION' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='7' ng-click="switchCommissionTab('DAILY_CONSUMPTION', newPartner.commissionType);")
                     //td
                         label.radio-inline {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="switchCommissionTab('BIWEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
-                    //td
-                        label.radio-inline {{'MONTHLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="switchCommissionTab('MONTHLY_BONUS_AMOUNT', newPartner.commissionType);")
                     //td
                         label.radio-inline {{'WEEKLY_CONSUMPTION' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="switchCommissionTab('WEEKLY_CONSUMPTION', newPartner.commissionType);")
@@ -37,10 +37,10 @@ form(name="form_edit_partner_commission_type", novalidate)
     .panel.panel-primary(ng-if="newPartner.commissionType == vmm.selectedSinglePartner.commissionType")
         .panel-heading.common-left-panel-heading
             ul.nav.nav-tabs.common-nav-tabs
-                li.active
+                //li.active
                     a.common-tab(data-toggle="tab", ng-click="switchCommissionTab(vmm.commissionSettingTab, newPartner.commissionType);getCommissionRateGameProviderGroup()")
                         text.span {{"Customize commission rate" | translate}}
-                li
+                li.active
                     a.common-tab(data-toggle="tab", ng-click="switchCommissionTab(vmm.commissionSettingTab, newPartner.commissionType, true);getCommissionRateGameProviderGroup()")
                         text.span {{"customizeMultiLevelPartnerCommission" | translate}}
         .panel-body.common-right-panel-body
