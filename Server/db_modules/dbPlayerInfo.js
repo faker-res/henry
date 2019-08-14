@@ -997,7 +997,7 @@ let dbPlayerInfo = {
 
                                                                 referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                                                if (countReferee <= referralLimit) {
+                                                                if (countReferee < referralLimit) {
                                                                     referralLog = {
                                                                         platform: platformObjId,
                                                                         referral: data._id,
@@ -1021,16 +1021,7 @@ let dbPlayerInfo = {
                                                             referral: data._id,
                                                         };
 
-                                                        if (!inputData.referralId && !inputData.referralUrl) {
-                                                            inputData.referralId = data.playerId;
-
-                                                            if (data.platform && data.platform.playerInvitationUrlList && data.platform.playerInvitationUrlList.length > 0
-                                                                && data.platform.playerInvitationUrlList[0] && data.platform.playerInvitationUrlList[0].content) {
-                                                                inputData.referralUrl = data.platform.playerInvitationUrlList[0].content + '/' + data.playerId;
-                                                            }
-
-                                                            return inputData;
-                                                        }
+                                                        return inputData;
                                                     }
                                                 }
 
@@ -1080,7 +1071,7 @@ let dbPlayerInfo = {
 
                                                             referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                                            if (countReferee <= referralLimit) {
+                                                            if (countReferee < referralLimit) {
                                                                 inputData.referral = referrerData._id;
 
                                                                 isEnableUseReferralPlayerId = true;
@@ -2947,7 +2938,7 @@ let dbPlayerInfo = {
                                     if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
                                         referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                        if (countReferee > referralLimit) {
+                                        if (countReferee >= referralLimit) {
                                             returnData.isHitReferralLimit = true;
 
                                             return returnData;
@@ -3062,6 +3053,10 @@ let dbPlayerInfo = {
                     }
 
                     return playerData;
+                }
+            ).then(
+                playerData => {
+                    return getReferralIdAndUrl(playerData);
                 }
             )
     },
@@ -6471,6 +6466,22 @@ let dbPlayerInfo = {
                             }
                             return Promise.all(players)
                         }
+                    ).then(
+                        playerData => {
+                            let players = [];
+                            for (let ind in playerData) {
+                                if (playerData[ind]) {
+                                    let newInfo;
+
+                                    newInfo = getReferralIdAndUrl(playerData[ind]);
+
+                                    let prom1 = Promise.resolve(newInfo);
+                                    players.push(prom1);
+                                }
+                            }
+
+                            return Promise.all(players)
+                        }
                     );
                 var b = dbconfig.collection_players
                     .find(advancedQuery).count();
@@ -6481,7 +6492,6 @@ let dbPlayerInfo = {
             data => {
                 let playerData;
                 dataSize = data[1];
-                let credibilityRemarksList = data && data[2] ? data[2] : [];
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
@@ -29564,6 +29574,22 @@ function checkPlayerIsBlacklistIp(player) {
             }
         )
     }
+}
+
+function getReferralIdAndUrl(thisPlayer) {
+    return dbconfig.collection_platformReferralConfig.findOne({platform: thisPlayer.platform})
+        .populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            config => {
+                if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                    if (config.platform && config.platform.playerInvitationUrlList && config.platform.playerInvitationUrlList.length > 0
+                        && config.platform.playerInvitationUrlList[0] && config.platform.playerInvitationUrlList[0].content) {
+                        thisPlayer.referralUrl = config.platform.playerInvitationUrlList[0].content + '/' + thisPlayer.playerId;
+                        thisPlayer.referralId = thisPlayer.playerId;
+                    }
+                }
+                return thisPlayer;
+            }
+        )
 }
 
 var proto = dbPlayerInfoFunc.prototype;
