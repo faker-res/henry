@@ -23943,7 +23943,7 @@ let dbPlayerInfo = {
                                 list: listData,
                             });
 
-                            totalLockedCredit += parseInt(rewardTaskGroup[i].rewardAmt) || 0;
+                            totalLockedCredit += parseFloat(rewardTaskGroup[i].rewardAmt) || 0;
                         }
                     }
                 }
@@ -23996,9 +23996,11 @@ let dbPlayerInfo = {
                 console.log('TYPE3===', typeof returnData.credit);
 
                 // return total amount
-                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
+                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit);
+                returnData.finalAmount =  returnData.finalAmount.toFixed(2);
 
-                returnData.localAmount =  totalLockedCredit + parseInt(returnData.credit);
+                returnData.localAmount =  totalLockedCredit + parseFloat(returnData.credit);
+                returnData.localAmount =  returnData.localAmount.toFixed(2);
 
                 return returnData;
             });
