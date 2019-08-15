@@ -7219,7 +7219,7 @@ let dbPartner = {
             return Promise.reject({name: "DataError", message: "Invalid data"});
         }
         index = index || 0;
-        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        limit = Math.min(5000, limit);
         sortCol = sortCol || {};
 
         let isDownline = false;
