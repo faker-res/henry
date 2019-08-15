@@ -105,7 +105,7 @@ let dbPartnerPoster = {
 
         let completePosterBuffer = await sharp(posterBuffer)
             .composite([
-                {input: qrBuffer, top: 47, left: 127},
+                {input: qrBuffer, top: 470, left: 127},
                 {input: textBuffer, top: 604, left: 29}
             ])
             .png()
