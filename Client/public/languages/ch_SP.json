@@ -5885,6 +5885,9 @@
   "Add Partner Carousel": "添加代理轮播",
   "Other Reward Report": "其他优惠报表",
   "OtherRewardReport": "其他优惠报表",
+  "Referral Reward Report": "推荐人报表",
+  "ReferralRewardReport": "推荐人报表",
+  "Referral Name is Mandatory": "推荐人账号必填",
   "No Reward Task": "无优惠任务",
   "Player(s) are not of selected platform": "账号所属平台错误",
   "Platform Selection": "选择导入产品",
@@ -5937,5 +5940,6 @@
   "Player Valid Consumption": "被推荐人有效投注额",
   "Referral Reward Ratio": "推荐人返利金额（优惠比例）",
   "Reward Amount Limit": "优惠金额上限",
-  "ReferralRewardGroup": "推荐人优惠（组）"
+  "ReferralRewardGroup": "推荐人优惠（组）",
+  "Referral Reward Amount": "推荐返利金额"
 }
