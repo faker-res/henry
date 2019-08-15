@@ -2983,13 +2983,20 @@ var proposal = {
             });
     },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
+    getPlayerProposalsForPlatformId: async function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, adminId, attemptNo = 0, unlockSizeLimit = false ) {//need
         platformId = Array.isArray(platformId) || !platformId ? platformId : [platformId];
+        console.log('First Platform', platformId + " : " + adminId);
 
         let proposalTypeQuery = {};
 
         if(platformId && platformId.length){
             proposalTypeQuery.platformId = {$in: platformId};
+        }else{
+            platformId = await dbconfig.collection_department.distinct("platforms",{
+                users: adminId
+            }).lean();
+            proposalTypeQuery.platformId = {$in: platformId};
+            console.log('Fine query Platform', proposalTypeQuery.platformId);
         }
 
         //check proposal without process
@@ -3527,7 +3534,7 @@ var proposal = {
             data.map(d => {
                 phoneNumber = d.phoneNumber
 
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, null, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
