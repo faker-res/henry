@@ -39,11 +39,11 @@ define(['js/app'], function (myApp) {
             };
 
             vm.popularRecommendationCategory = {
-                "firstPagePopularRecommendation": 1,
-                "gameRecommendation": 2,
-                "bottomBanner": 3,
+                "Navigation_Bar": 1,
+                "Body": 2,
+                "Bottom_Banner": 3,
             };
-            
+
             vm.displayFormat = {
                 "backgroundDisplay": 1,
                 "theeInARow": 2,
@@ -256,6 +256,7 @@ define(['js/app'], function (myApp) {
                 PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
                 PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
                 PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+                REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
                 PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
                 PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
                 PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
@@ -1562,10 +1563,82 @@ define(['js/app'], function (myApp) {
                     case "AuctionSystem":
                         vm.initAuctionSystem();
                         break;
+                    case "UrlShortener":
+                        break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
+
+            function getPreventBlockUrl () {
+                let result;
+                if (vm.choosePreventUrlType) {
+                    result = vm.preventUrlByPreset;
+                } else {
+                    result = vm.keyOwnPreventUrl;
+                }
+                return result;
+            }
+
+            vm.generateMultiUrls = function() {
+                // get the url by existing two options, or keyin by user.
+                let preventBlockUrl = getPreventBlockUrl();
+                vm.urlData = [];
+                let urls = vm.splitTextArea(vm.multiUrls);
+                urls = [...new Set(urls)];
+                urls = urls.map(item => {
+                    if (preventBlockUrl) {
+                        item = preventBlockUrl + item;
+                    }
+                    return item.trim();
+                });
+                let sendData = { "urls": urls }
+                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
+                $.post(host+'/urlShortener', sendData, function(data){
+                    $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
+                        vm.urlData = data.data ? data.data : [];
+                    })
+                })
+            }
+
+            vm.generateSingleUrl = function(url, no) {
+                let sendData = { "urls": [ url ] }
+                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                $('#urlShortenerSpin').show();
+                $.post(host+'/urlShortener', sendData, function(data){
+                    $scope.$evalAsync(() => {
+                        $('#urlShortenerSpin').hide();
+                        data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
+                        vm.urlData.filter(item => {
+                            if (item.no == no && data) {
+                                item.url_short = data.url_short;
+                                return item;
+                            }
+                        });
+                    });
+                })
+            }
+
+            vm.exportShortUrlToExcel = function () {
+                socketService.$socket($scope.AppSocket, 'exportShortUrlToExcel', {data: vm.urlData}, function (data) {
+                    $scope.$evalAsync(() => {
+                        window.saveAs(new Blob([data.data]), "shortUrl.csv");
+                    })
+                });
+            }
+
+            vm.splitTextArea = function (datas) {
+                let results = [];
+                if (datas) {
+                    let rowData = datas.split('\n')
+                    rowData.forEach(item => {
+                        results.push(item);
+                    })
+                }
+                return results;
+            }
 
             vm.showPlatformDetailModal = function () {
                 //$('#platformDetail').html();
@@ -9371,7 +9444,7 @@ define(['js/app'], function (myApp) {
                 function dialogDetails() {
                     let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                     let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                    vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
+                    vm.editPlayer.DOB = vm.editPlayer.DOB? new Date(vm.editPlayer.DOB): null;
                     let allPartner = vm.partnerIdObj;
                     let allPlayerLevel = vm.allPlayerLvl;
 
@@ -9432,7 +9505,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPlayer: function () {
 
                                 // this ng-model has to be in date object
-                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                if (this.playerBeingEdited.DOB) {
+                                    this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                                }
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                             },
                             checkPlayerNameValidity: function (a, b, c) {
@@ -21954,183 +22029,183 @@ define(['js/app'], function (myApp) {
                     }
 
                     console.log('platformID', vm.filterRewardPlatform);
-                    if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
-                        console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
-                            $scope.$evalAsync(() => {
-                                vm.allPlayerLevels = data.data;
+                    if (vm.showRewardTypeData) {
+                        if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
+                            console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allPlayerLevels = data.data;
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        } else if (vm.showRewardTypeData.name == "GameProviderReward") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "FirstTopUp") {
+                            // vm.rewardParams.games = vm.rewardParams.games || [];
+                            // vm.rewardParams = {};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.firstTopUp = {providerTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
                             })
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    } else if (vm.showRewardTypeData.name == "GameProviderReward") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "FirstTopUp") {
-                        // vm.rewardParams.games = vm.rewardParams.games || [];
-                        // vm.rewardParams = {};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-
-                        vm.firstTopUp = {providerTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                        vm.firstTopUp = {providerTick: {}};
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            vm.firstTopUp = {providerTick: {}};
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+                        } else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            });
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}};
+
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+
+                            // JSON sorts the reward param properties into alphabetical order
+                            // But for the UI display, we would prefer to specify our own order
+                            let rewardType = vm.showRewardTypeData;
+                            if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
+                                //console.log("Reordering:", rewardType.params.params.reward.data);
+                                let preferredOrder = {
+                                    minPlayerLevel: 1,
+                                    maxPlayerCredit: 1,
+                                    minConsumptionAmount: 1,
+                                    minTopUpRecordAmount: 1,
+                                    rewardAmount: 1,
+                                    rewardPercentage: 1,
+                                    maxRewardAmount: 1,
+                                    spendingTimes: 1
+                                };
+                                rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
+                                //console.log("Reordered: ", rewardType.params.params.reward.data);
+                            } else {
+                                console.warn("Could not reorder:", rewardType);
                             }
-                        })
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        });
+                        } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-
-                        vm.playerTopUpReturn = {providerTick: {}};
-
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
+                        } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        // JSON sorts the reward param properties into alphabetical order
-                        // But for the UI display, we would prefer to specify our own order
-                        let rewardType = vm.showRewardTypeData;
-                        if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
-                            //console.log("Reordering:", rewardType.params.params.reward.data);
-                            let preferredOrder = {
-                                minPlayerLevel: 1,
-                                maxPlayerCredit: 1,
-                                minConsumptionAmount: 1,
-                                minTopUpRecordAmount: 1,
-                                rewardAmount: 1,
-                                rewardPercentage: 1,
-                                maxRewardAmount: 1,
-                                spendingTimes: 1
-                            };
-                            rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
-                            //console.log("Reordered: ", rewardType.params.params.reward.data);
-                        } else {
-                            console.warn("Could not reorder:", rewardType);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+                        } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                            vm.assignRandomRewards = [{playerName: '', rewardName: ''}];
+                            //get the random reward still available
+                            if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                                vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                            } else {
+                                vm.activeRandomRewards = [];
+                            }
+
                         }
-                    } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
-                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
-                        //get the random reward still available
-                        if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
-                            vm.getRandomRewardDetail('1', 'activeRandomRewards');
-                        } else {
-                            vm.activeRandomRewards = [];
-                        }
-
                     }
 
                     if (onCreationForm) {
@@ -22216,6 +22291,18 @@ define(['js/app'], function (myApp) {
                             }
                             if (tempInterval && tempInterval[5]) {
                                 tempInterval[5] = undefined;
+                            }
+                            vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'ReferralRewardGroup' && el == "interval"
+                            && vm.rewardMainCondition[index]) {
+                            let tempInterval = JSON.parse(JSON.stringify(vm.rewardMainCondition[index].options));
+                            if (tempInterval && tempInterval[3]) {
+                                tempInterval[3] = undefined;
+                            }
+                            if (tempInterval && tempInterval[6]) {
+                                tempInterval[6] = undefined;
                             }
                             vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
                         }
@@ -24510,6 +24597,9 @@ define(['js/app'], function (myApp) {
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
                         break;
+                    case 'referral':
+                        vm.getReferralConfig(platformObjId);
+                        break;
                     case 'autoApproval':
                         vm.getAutoApprovalBasic(platformObjId);
                         break;
@@ -25206,6 +25296,9 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'scriptDescription':
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25263,6 +25356,9 @@ define(['js/app'], function (myApp) {
                         vm.newFrontEndGameSetting = {};
                         vm.filterFrontEndSettingPlatform = null;
                         break;
+                    case 'scriptDescription':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
                 }
             };
 
@@ -25271,7 +25367,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedFrontEndSettingTab = "popularRecommendation";
                     utilService.actionAfterLoaded('#testSave', function () {
                         $(".droppable-area1, .droppable-area2, .droppable-area3").sortable({
-                            connectWith: ".connected-sortable",
+                            // connectWith: ".connected-sortable",
                         }).disableSelection()
                         $('.droppable-area1').on('click', '.draggable-item .btn-delete', function(event){
                             let id = $(event.currentTarget).attr('id');
@@ -25287,6 +25383,169 @@ define(['js/app'], function (myApp) {
                         })
                     });
                 })
+            };
+
+            vm.convertOnClickActionToDisplay = function (onClickActionInt){
+                if (vm.frontEndSettingOnClickAction && onClickActionInt){
+                    for (let keyName in Object.keys(vm.frontEndSettingOnClickAction)){
+                        if (vm.frontEndSettingOnClickAction(keyName) == onClickActionInt){
+                            return $translate(keyName);
+                        }
+                    }
+                }
+                else{
+                    return null;
+                }
+            };
+
+            vm.submitPopUpInFirstPageSetting = function(settingObj) {
+                if (settingObj){
+                    vm.isFinishedUploadedToFTPServer = true;
+                    $('#popUpInFirstPageSettingUploader').show();
+
+                    let promArr = [
+                        "popUpImage",
+                        "popUpNewPage",
+                        "popUpPageDetail",
+                    ];
+
+                    let prom = Promise.resolve();
+                    promArr.forEach(
+                        item => {
+                            prom = prom.then(()=>{return vm.uploadToFtp(item, vm.popUpImageFile, vm.popUpImageUrl).then(removeFromList)});
+                        }
+                    );
+
+                    return prom.then(
+                        () => {
+                            console.log("vm.popUpImageUrl", vm.popUpImageUrl);
+                            settingObj.platformObjId = vm.filterFrontEndSettingPlatform;
+                            if (vm.popUpImageUrl){
+                                if (vm.popUpImageUrl.popUpImage){
+                                    settingObj.imageUrl = vm.popUpImageUrl.popUpImage
+                                }
+                                if (vm.popUpImageUrl.popUpNewPage){
+                                    settingObj.newPageUrl = vm.popUpImageUrl.popUpNewPage
+                                }
+                                if (vm.popUpImageUrl.popUpPageDetail){
+                                    settingObj.activityUrl = vm.popUpImageUrl.popUpPageDetail
+                                }
+
+                                if (vm.isFinishedUploadedToFTPServer) {
+                                    socketService.$socket($scope.AppSocket, 'savePopUpInFirstPageSetting', settingObj, function (data) {
+                                        console.log("savePopUpInFirstPageSetting ret", data);
+                                        // stop the uploading loader
+                                        $('#popUpInFirstPageSettingUploader').hide();
+                                        // close the modal
+                                        $('#popUpInFirstPageSettingModal').modal('hide');
+                                        // append the pop-up setting to the general list
+                                        if (data && data.data && data.data._id && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc){
+                                            if (vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList instanceof Array){
+                                                let index = vm.popularRecommendationSetting.pc.popUpList.findIndex( p => {
+                                                    if (p && p._id){
+                                                        return p._id.toString() ==  data.data._id.toString()
+                                                    }
+                                                });
+
+                                                if (index != -1){
+                                                    vm.popularRecommendationSetting.pc.popUpList[index] = data.data;
+                                                }
+                                                else{
+                                                    vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                }
+
+                                            }
+                                            else{
+                                                vm.popularRecommendationSetting.pc.popUpList = [];
+                                                vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                            }
+                                        }
+
+                                        $scope.$evalAsync();
+                                    }, function (err) {
+                                        console.log("savePopUpInFirstPageSetting err", err);
+                                    });
+                                }
+                                else {
+                                    $('#popUpInFirstPageSettingUploader').hide();
+                                }
+                            }
+                        }
+                    ).catch(err=>{
+                        console.log("err", err);
+                        $('#popUpInFirstPageSettingUploader').hide();
+                    })
+                }
+
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.popUpImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+            };
+
+            vm.addNewPopUpInFirstPageSetting = function(isNew, popUpObjId) {
+                // //reset
+                document.querySelector('#popUpImageFile').value = "";
+                document.querySelector('#popUpNewPageFile').value = "";
+                document.querySelector('#popUpPageDetailFile').value = "";
+
+                $('#popUpImage').attr("src","");
+
+                vm.popUpImageFile = {};
+                vm.popUpImageUrl = {};
+
+                if (isNew){
+                    vm.newPopUpInFirstPageSetting = {};
+                }
+                else{
+                    if (popUpObjId && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length) {
+
+                        let temp = vm.popularRecommendationSetting.pc.popUpList.filter (p => {
+                            if (p && p._id){
+                                return p._id.toString() == popUpObjId.toString()
+                            }
+                        });
+                        if (temp && temp.length) {
+                            vm.newPopUpInFirstPageSetting = temp[0];
+                        }
+                        else {
+                            vm.newPopUpInFirstPageSetting = {};
+                        }
+
+                        if( vm.newPopUpInFirstPageSetting && vm.newPopUpInFirstPageSetting.imageUrl) {
+                            $('#popUpImage').attr("src",vm.newPopUpInFirstPageSetting.imageUrl);
+                        }
+
+                    }
+                }
+
+                // vm.refreshSPicker();
+
+                let pageSettingPopup = $('#popUpInFirstPageSettingModal');
+                pageSettingPopup.modal();
+                // solving the scolling issue for the inner pop up after the outer pop up has closed
+                pageSettingPopup.off('hidden.bs.modal');
+                pageSettingPopup.on('hidden.bs.modal', function (event) {
+                    if ($('.modal.in').length > 0) {
+                        $("body").addClass('modal-open');
+                    }
+                    $scope.$evalAsync();
+                });
+
+                $("#popUpImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpImage", vm.popUpImageFile);});
+                $("#popUpNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpNewPage", vm.popUpImageFile);});
+                $("#popUpPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpPageDetail", vm.popUpImageFile);});
+            };
+
+            vm.removePopUpList = function (collection, index) {
+                if (collection && collection.length){
+                    collection.splice(index, 1)
+                }
+                return collection;
             };
 
             vm.sortDragAndDropArray = function (collection) {
@@ -25520,6 +25779,29 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     });
+
+                    let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                    if (ownArr && ownArr.length){
+                        ownArr.forEach((v, i) => {
+                            if (v){
+                                // try to get from the updated list to update the orderNumber
+                                let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    updateSetting[index].orderNumber = i + 1;
+                                }
+                                else{
+                                    // if cant find the record from the updated list, get it from the original data
+                                    let index = vm.allRewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                    if (index != -1){
+                                        let selectSetting = vm.allRewardSettingData[index];
+                                        selectSetting.orderNumber = i + 1;
+                                        updateSetting.push(selectSetting);
+                                    }
+                                }
+                            }
+                        });
+                    }
                     console.log("arr", arr);
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
@@ -25591,7 +25873,8 @@ define(['js/app'], function (myApp) {
                           utilService.actionAfterLoaded('#' + tempId, function () {
                               $(".droppable-area").sortable({
                                   connectWith: ".connected-sortable"
-                              })
+                              });
+                              $(".ownDragDrop").sortable({});
                           });
                       })
                     }, function (err) {
@@ -25599,6 +25882,16 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.enableSortableCategoryChange = function () {
+                let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                utilService.actionAfterLoaded('#' + tempId, function () {
+                    $(".droppable-area").sortable({
+                        connectWith: ".connected-sortable"
+                    });
+                    $(".ownDragDrop").sortable({});
+                });
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
@@ -25923,6 +26216,24 @@ define(['js/app'], function (myApp) {
                 }
             }
             //#endregion
+
+            vm.getFrontEndUrlConfigType = function(device, key, el) {
+                vm.curDevice = device;
+                vm.curKey = key;
+
+                let i = $("a[data-target='#modalSkinColor']").index(el.currentTarget);
+
+                vm.skinColor = function (color, c1, c2, degree) {
+                    if(color && c1 == null && c2 == null){
+                        $(".colorDisplay:eq("+ i +")").css({"background-color": color, "background-image": ""});
+
+                    }else if(color == null && c1 && c2 && degree){
+                        $(".colorDisplay:eq("+ i +")").css({"background-image": "linear-gradient(" + degree + "deg," + c1 + "," + c2 + ")", "background-color": ""});
+                        vm.frontEndUrlConfig[vm.curDevice][vm.curKey] = $('.colorDisplay')[i].style.backgroundImage;
+
+                    }
+                };
+            };
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function (isPartner) {
@@ -26279,7 +26590,6 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 vm.rewardPointsEventUpdateAll = false;
-                vm.allOpen = true;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -26982,8 +27292,6 @@ define(['js/app'], function (myApp) {
 
             vm.updateRewardPointsEvent = (idx, rewardPointsEvent) => {
 
-                vm.allOpen = rewardPointsEvent.status === true
-                
                 if (rewardPointsEvent.target && !rewardPointsEvent.target.bankType) {
                     delete rewardPointsEvent.target.bankType;
                 }
@@ -27012,6 +27320,12 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
                     vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
                     vm.endLoadWeekDay();
+                });
+            };
+
+            vm.updateAllRewardPointsEventStatus = (ids, status) => {
+                $scope.$socketPromise('updateAllRewardPointsEventStatus', {_id: ids, status: status}).then((data) => {
+                    $scope.safeApply();
                 });
             };
 
@@ -27097,28 +27411,19 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEventUpdateAll = false;
             };
 
-            vm.closeAllRewardPointsEvent = () => {
+            vm.allRewardPointsEventStatus = (isAllOpen) => {
+                let ids = [];
                 vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = false;
+                    ids.push(rewardPointsEvent._id);
+
+                    if(isAllOpen){
+                        rewardPointsEvent.status = true;
+                        vm.updateAllRewardPointsEventStatus(ids, true);
+                    }else{
+                        rewardPointsEvent.status = false;
+                        vm.updateAllRewardPointsEventStatus(ids, false);
+                    }
                 });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = false;
-                vm.rewardPointsEventUpdateAll = false;
-            };
-
-            vm.openAllRewardPointsEvent = () => {
-                vm.rewardPointsEvent.forEach(rewardPointsEvent => {
-                    rewardPointsEvent.status = true;
-                });
-
-                for (let x in vm.rewardPointsEvent) {
-                    vm.updateRewardPointsEvent(x, vm.rewardPointsEvent[x]);
-                }
-                vm.allOpen = true;
-                vm.rewardPointsEventUpdateAll = false;
             };
 
             vm.deleteAllRewardPointsEvent = () => {
@@ -27857,7 +28162,8 @@ define(['js/app'], function (myApp) {
                                     }
 
                                     if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                        let filterCreatePromoCodePlatformData = vm.getCurrentPlatform(vm.filterCreatePromoCodePlatform);
+                                        sendData.isProviderGroup = Boolean(filterCreatePromoCodePlatformData.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
                                         sendData.playerName = sendData.playerName.trim();
@@ -27893,6 +28199,15 @@ define(['js/app'], function (myApp) {
                     }
                 }
             };
+
+            vm.getCurrentPlatform = function (id) {
+                let result;
+                result = vm.platformList.filter(item => {
+                    return item.id == id;
+                })
+                result = result && result[0] ? result[0] : null;
+                return result;
+            }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
@@ -32135,6 +32450,25 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.getReferralConfig = function (platformObjId) {
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getReferralConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getReferralConfig--', data.data);
+                        let referralConfigData = data.data;
+                        vm.referralConfig = {};
+                        if (referralConfigData) {
+                            vm.referralConfig.enableUseReferralPlayerId = referralConfigData.enableUseReferralPlayerId;
+                            vm.referralConfig.referralPeriod = referralConfigData.referralPeriod;
+                            vm.referralConfig.referralLimit = referralConfigData.referralLimit;
+                        }
+
+                    });
+                })
+            };
+
             vm.getBonusBasic = (platformObjId) => {
                 vm.getAllPlayerLevels(platformObjId).done(
                     function (data) {
@@ -32724,6 +33058,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
+                        break;
+                    case 'referral':
+                        updateReferralConfig(vm.referralConfig);
                         break;
                     case 'autoApproval':
                         updateAutoApprovalConfig(vm.autoApprovalBasic);
@@ -33779,6 +34116,7 @@ define(['js/app'], function (myApp) {
 
             function updatePartnerLevelConfig() {
                 delete vm.partnerLevelConfigEdit._id;
+                delete vm.partnerLevelConfigEdit.__v;
                 var sendData = {
                     query: {platform: vm.filterConfigPlatform},
                     updateData: vm.partnerLevelConfigEdit
@@ -34246,6 +34584,21 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateReferralConfig(srcData) {
+                let sendData = {
+                    query: {platform: vm.filterConfigPlatform},
+                    updateData: {
+                        enableUseReferralPlayerId: srcData.enableUseReferralPlayerId,
+                        referralPeriod: srcData.referralPeriod,
+                        referralLimit: srcData.referralLimit
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateReferralConfig', sendData, function (data) {
                     loadPlatformData({loadAll: false});
                 });
             }
@@ -42320,10 +42673,22 @@ define(['js/app'], function (myApp) {
 
             vm.resetOnClickSetting = function (holder, type, actionId) {
                 let tempImageUrl = null;
+                let tempRequiredToLogIn = null;
+                let tempStopPopUp = null;
+                let tempPopUpList = null;
                 if (type && actionId) {
                     if (holder && holder[type]) {
                         if (holder[type] && holder[type].imageUrl) {
                             tempImageUrl = holder[type].imageUrl
+                        }
+                        if (holder[type] && holder[type].requiredToLogIn) {
+                            tempRequiredToLogIn = holder[type].requiredToLogIn
+                        }
+                        if (holder[type] && holder[type].stopPopUp) {
+                            tempStopPopUp = holder[type].stopPopUp
+                        }
+                        if (holder[type] && holder[type].popUpList) {
+                            tempPopUpList = Object.assign([], holder[type].popUpList)
                         }
                         switch (actionId) {
                             case 1:
@@ -42352,10 +42717,28 @@ define(['js/app'], function (myApp) {
                                 break;
                         }
 
-                        holder[type].imageUrl = tempImageUrl
+                        holder[type].imageUrl = tempImageUrl;
+                        if (tempRequiredToLogIn){
+                            holder[type].requiredToLogIn = tempRequiredToLogIn;
+                        }
+                        if (tempStopPopUp){
+                            holder[type].stopPopUp = tempStopPopUp;
+                        }
+                        if (tempPopUpList){
+                            holder[type].popUpList = tempPopUpList;
+                        }
+
+                        holder[type].imageUrl = tempImageUrl;
+                        holder[type].imageUrl = tempImageUrl;
                     }
                 }
                 else{
+                    if (holder['newPageUrl']){
+                        holder['newPageUrl'] = null;
+                    }
+                    if (holder['activityUrl']){
+                        holder['activityUrl'] = null;
+                    }
                     if (holder['newPageDetail']){
                         holder['newPageDetail'] = null;
                     }
@@ -42440,6 +42823,14 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popularRecommendationImageUrl.appPageDetail){
                                 vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
+                            }
+
+                            if (vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length){
+                                vm.popularRecommendationSetting.pc.popUpList = vm.popularRecommendationSetting.pc.popUpList.map(p => {
+                                    if (p && p._id){
+                                        return p._id
+                                    }
+                                })
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
@@ -42540,7 +42931,6 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
                             vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
-                            resolve();
                         })
                     }, function (err) {
                         console.log('err', err);
@@ -42923,6 +43313,71 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.loadScriptSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndScriptSetting', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndScriptSetting', data.data);
+                        if (data && data.data) {
+                            vm.scriptSettingData = data.data;
+                        }
+                    })
+
+                }, function (err) {
+                    console.error('getFrontEndScriptSetting error: ', err);
+                }, true);
+            };
+
+            vm.scriptSetting = function (noModal, isDelete, eventObjectId, isVisible) {
+                vm.scriptsData = {};
+                if (eventObjectId){
+                    let index = vm.scriptSettingData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    vm.scriptsData._id = vm.scriptSettingData[index]._id
+
+                    if (noModal) {
+                        if(isDelete){
+                            vm.scriptsData.status = 2;
+                        }else{
+                            vm.scriptsData.isVisible = isVisible;
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                            console.log("saveFrontEndScriptSetting", data);
+                        }, function (err) {
+                            console.log("saveFrontEndScriptSetting err", err);
+                        });
+
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+
+                    }else {
+                        $('#scriptDescriptionModal').modal();
+
+                        if (index != -1) {
+                            vm.scriptsData.title = vm.scriptSettingData[index].title;
+                            vm.scriptsData.instructions = vm.scriptSettingData[index].instructions;
+                        }
+                    }
+                }else{
+                    $('#scriptDescriptionModal').modal();
+
+                }
+            };
+
+            vm.submitScriptSetting = () => {
+                $('#scriptDescriptionLoader').show();
+                vm.scriptsData.platformObjId = vm.filterFrontEndSettingPlatform;
+
+                socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                    console.log("saveFrontEndScriptSetting", data);
+                    $('#scriptDescriptionLoader').hide();
+                    $('#scriptDescriptionModal').modal('hide');
+
+                }, function (err) {
+                    console.log("saveFrontEndScriptSetting err", err);
+                });
+
+                vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
             };
 
             vm.checkProposalStepUpdatePermission = () => {

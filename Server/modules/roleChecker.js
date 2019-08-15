@@ -506,6 +506,7 @@ var roleChecker = {
                 CanAuditLargeWithdrawal: [],
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
+                referral: ['updateReferralConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -523,6 +524,9 @@ var roleChecker = {
                 Read: ['sendSMStoNumber','getDepartmentDetailsByPlatformObjId'],
                 SMSSendLog: ['searchSMSLog'],
                 SendGroupMessage: []
+            },
+            "UrlShortener": {
+                Read: ['exportShortUrlToExcel']
             },
             "vertificationSMS": {
                 Read: ['vertificationSMSQuery']
@@ -583,6 +587,7 @@ var roleChecker = {
             "FrontEndConfiguration": {
                 Read: [],
                 popularRecommendation: [],
+                firstPageSetting: [],
                 rewardPointClarification: [],
                 carouselConfiguration: ['getCarouselSetting', 'saveCarouselSetting', 'updateCarouselSetting'],
                 urlConfiguration: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
@@ -590,6 +595,7 @@ var roleChecker = {
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
                 gameSetting: [],
+                scriptDescription:[],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },

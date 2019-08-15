@@ -41,6 +41,7 @@ const constRewardType = {
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
     PLAYER_FESTIVAL_REWARD_GROUP: "PlayerFestivalRewardGroup",
     BACCARAT_REWARD_GROUP: "BaccaratRewardGroup",
+    REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
 };
 
 module.exports = constRewardType;

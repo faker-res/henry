@@ -238,6 +238,7 @@
 		16. [前端保存数据接口](#前端保存数据接口)
 		17. [前端获取数据接口](#前端获取数据接口)
 		18. [获取前端設置数据接口](#获取前端設置数据接口)
+		19. [获取平台推荐人奖励設置](#获取平台推荐人奖励設置)
 	13. [奖励点数](#奖励点数：)
 		1. [获取积分排名列表](#获取积分排名列表)
 		2. [获取登入积分信息](#获取登入积分信息)
@@ -490,8 +491,10 @@ API说明：
   - captcha：图片验证码，代理上线开下线用，将不用smsCode
   - sourceUrl：注册来源（跳转域名）
   - deviceId: 设备号
-  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx}
-  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+  - referralId: 邀请码(推荐人的玩家ID)
+  - referralUrl: 邀请码链接
+  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit:}
+  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
 <div id='获取验证码'></div>
 
@@ -7269,6 +7272,7 @@ API说明：
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
+		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干 
 		* code:  recommendation - 热门推荐“:
 			* rewardPoint - 积分说明
 			* game - 游戏配置
@@ -7276,10 +7280,38 @@ API说明：
 			* advertisement - 弹窗广告
 			* pageSetting - 网站配置
 			* skin - 皮肤管理
-			* reward - 优惠配置
+			* reward - 优惠配置 (新增全部分类组: 排序号 orderNumber)
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
+					
+<div id='获取平台推荐人奖励設置'></div>
+
+* **19. 获取平台推荐人奖励設置**
+	* name: getPlatformReferralConfig
+	* service:platform
+	* 请求内容：
+		* ```
+			{
+				platformId: 1, //平台ID - 必填
+			}
+	* 响应内容：
+        * ```
+            {  
+                "status": 200,
+                "data": {
+                    "_id": "5d4a6bd27404de0c73e90de6",
+                    "platform": "5732dad105710cf94b5cfaaa",
+                    "referralPeriod": "4", //被推荐人周期
+                    "referralLimit": 50, //被推荐人数限制
+                    "enableUseReferralPlayerId": true, //是否启用推荐人账号
+                    "__v": 0
+                  }
+            }
+	* 操作失败：status--4xx, data-null, errorMessage:””
+	* 特注：
+		* enableUseReferralPlayerId： true - 开始启用; false - 未启用
+		* referralPeriod:  1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
 
 <!--文档没有华语名称，因此暂时命名“奖励点数”-->
 # 奖励点数：

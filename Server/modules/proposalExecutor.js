@@ -324,6 +324,7 @@ var proposalExecutor = {
             this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
             this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
             this.executions.executePlayerFestivalRewardGroup.des = 'Player Festival Reward';
+            this.executions.executeReferralRewardGroup.des = "Referral Reward Group Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -382,6 +383,7 @@ var proposalExecutor = {
             this.rejections.rejectDxReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
             this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
+            this.rejections.rejectReferralRewardGroup.des = "Reject Referral Reward Group Reward";
             this.rejections.rejectPlayerRandomRewardGroup.des = "Reject Player Random Reward Group Reward";
             this.rejections.rejectPlayerConsecutiveRewardGroup.des = "Reject Player Consecutive Group Reward";
             this.rejections.rejectPlayerLoseReturnRewardGroup.des = "Reject Player Lose Return Group Reward";
@@ -905,6 +907,25 @@ var proposalExecutor = {
                                         );
                                     }
                                 }
+
+                                if (playerUpdate && playerUpdate.referral) {
+                                    let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: data.platform}).then(
+                                        config => {
+                                            if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                                                let referralLog = {
+                                                    referral: playerUpdate.referral,
+                                                    playerObjId: data._id,
+                                                    platform: data.platform
+                                                }
+
+                                                return new dbconfig.collection_referralLog(referralLog).save();
+                                            }
+                                        }
+                                    )
+
+                                    proms.push(referralProm);
+                                }
+
                                 return Q.all(proms);
                             }
                             else {
@@ -3098,6 +3119,62 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
                 }
             },
+
+            executeReferralRewardGroup: function (proposalData, deferred) {
+                console.log('executeReferralRewardGroup');
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.REFERRAL_REWARD_GROUP,
+                        rewardType: constRewardType.REFERRAL_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        applyAmount: proposalData.data.applyAmount,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    let deferred1 = Q.defer();
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.REFERRAL_REWARD_GROUP, proposalData);
+                    deferred1.promise.then(
+                        data => {
+                            console.log("executeReferralRewardGroup deferred1.promise.then data", data);
+                            let updateData = {$set: {}};
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                updateData.$set["permission.applyBonus"] = false;
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            ).then(
+                                playerData => {
+                                    if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
+                            ).then(
+                                () => {
+                                    deferred.resolve(data);
+                                },
+                                deferred.reject
+                            );
+                        },
+                        deferred.reject
+                    );
+                } else {
+                    deferred.reject({name: "DataError", message: "Incorrect referral reward group proposal data"});
+                }
+            },
+
             executePlayerFestivalRewardGroup: function (proposalData) {
                 console.log('MT --executePlayerFestivalRewardGroup', proposalData);
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.hasOwnProperty('rewardType')) {
@@ -5218,6 +5295,10 @@ var proposalExecutor = {
                 }
 
                 refundProm.then(() => proposalExecutor.cleanUsedTopUpRecords(proposalData).then(deferred.resolve, deferred.reject));
+            },
+
+            rejectReferralRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             rejectPlayerFestivalRewardGroup: function (proposalData, deferred) {

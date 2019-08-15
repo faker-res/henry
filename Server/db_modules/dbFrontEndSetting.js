@@ -4,6 +4,26 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
 
+
+    saveFrontEndScriptSetting: (data) => {
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndScriptDescription.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndScriptDescription(data);
+                return record.save();
+            }
+        }
+    },
+
     saveFrontEndPopUpAdvSetting: (data) => {
         if (data) {
             if (data._id) {
@@ -66,6 +86,7 @@ var dbFrontEndSetting = {
                             categoryObjId: data.categoryObjId,
                             isVisible: data.isVisible,
                             displayOrder: data.displayOrder || 1,
+                            orderNumber: data.orderNumber || 1,
                         };
                         prom.push(getAndUpdateRewardSetting (ObjectId(data._id), updateQuery))
                     }
@@ -260,6 +281,15 @@ var dbFrontEndSetting = {
         return prom;
     },
 
+    getFrontEndScriptSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
     saveSkinSetting: (data) => {
         let newSetting = {
             platformObjId: ObjectId(data.platform),
@@ -443,6 +473,26 @@ var dbFrontEndSetting = {
 
         function getAndUpdatePartnerCarouselSetting (carouselObjId, updateQuery) {
             return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: carouselObjId}, updateQuery).lean();
+        }
+    },
+
+    savePopUpInFirstPageSetting: async (data) => {
+        if (data){
+            if (data._id){
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if(data.hasOwnProperty("__v")){
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndPopUpSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data, {new: true}).lean();
+            }
+            else{
+                let record = new dbConfig.collection_frontEndPopUpSetting(data);
+                return record.save();
+            }
         }
     },
 };
