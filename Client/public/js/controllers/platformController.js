@@ -1569,11 +1569,28 @@ define(['js/app'], function (myApp) {
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
+            function getPreventBlockUrl () {
+                let result;
+                if (vm.choosePreventUrlType) {
+                    result = vm.preventUrlByPreset;
+                } else {
+                    result = vm.keyOwnPreventUrl;
+                }
+                return result;
+            }
+
             vm.generateMultiUrls = function() {
+                // get the url by existing two options, or keyin by user.
+                let preventBlockUrl = getPreventBlockUrl();
                 vm.urlData = [];
                 let urls = vm.splitTextArea(vm.multiUrls);
                 urls = [...new Set(urls)];
-                urls = urls.map(item => { return item.trim() });
+                urls = urls.map(item => {
+                    if (preventBlockUrl) {
+                        item = preventBlockUrl + item;
+                    }
+                    return item.trim();
+                });
                 let sendData = { "urls": urls }
                 let host = $location.protocol() + "://" + $location.host() + ":9000";
                 $('#urlShortenerSpin').show();
