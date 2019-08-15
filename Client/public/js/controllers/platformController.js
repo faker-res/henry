@@ -25753,6 +25753,29 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     });
+
+                    let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                    if (ownArr && ownArr.length){
+                        ownArr.forEach((v, i) => {
+                            if (v){
+                                // try to get from the updated list to update the orderNumber
+                                let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    updateSetting[index].orderNumber = i + 1;
+                                }
+                                else{
+                                    // if cant find the record from the updated list, get it from the original data
+                                    let index = vm.allRewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                    if (index != -1){
+                                        let selectSetting = vm.allRewardSettingData[index];
+                                        selectSetting.orderNumber = i + 1;
+                                        updateSetting.push(selectSetting);
+                                    }
+                                }
+                            }
+                        });
+                    }
                     console.log("arr", arr);
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
@@ -25824,7 +25847,8 @@ define(['js/app'], function (myApp) {
                           utilService.actionAfterLoaded('#' + tempId, function () {
                               $(".droppable-area").sortable({
                                   connectWith: ".connected-sortable"
-                              })
+                              });
+                              $(".ownDragDrop").sortable({});
                           });
                       })
                     }, function (err) {
@@ -25832,6 +25856,16 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.enableSortableCategoryChange = function () {
+                let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                utilService.actionAfterLoaded('#' + tempId, function () {
+                    $(".droppable-area").sortable({
+                        connectWith: ".connected-sortable"
+                    });
+                    $(".ownDragDrop").sortable({});
+                });
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
