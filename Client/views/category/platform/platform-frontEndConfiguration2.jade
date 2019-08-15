@@ -70,7 +70,8 @@ style.
             span {{"REWARD_SETTING" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "gameSetting"}', ng-click='vm.frontEndSettingTabClicked("gameSetting")')
             span {{"GAME_SETTING" | translate}}
-
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "scriptDescription"}', ng-click='vm.frontEndSettingTabClicked("scriptDescription")')
+            span {{"SCRIPT_DESCRIPTION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerCarouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerCarouselConfiguration")')
             span {{"PARTNER_CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerUrlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerUrlConfiguration")')
@@ -127,6 +128,9 @@ style.
                 // Tab - Game Setting
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="gameSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "gameSetting")')
                     include frontEndConfiguration-gameSetting
+
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="scriptDescription" && vm.filterFrontEndSettingPlatform ')
+                    include frontEndConfiguration-scriptDescription
 
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerCarouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
                     include frontEndConfiguration-carousel
@@ -1065,4 +1069,27 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopUpInFirstPageSetting(vm.newPopUpInFirstPageSetting)') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#popUpInFirstPageSettingUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+#scriptDescriptionModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog.modal-medium
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"NEW_SCRIPT_DESCRIPTION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .full-width-input-block
+                            label {{"Title_Of_Setting"|translate}}
+                            div.inline-block(style="width: 60%;")
+                                input.form-control.inline-block(ng-model="vm.scriptsData.title")
+                        .full-width-input-block
+                            label {{"Withdrawal_Instructions"|translate}}
+                            div.inline-block(style="width: 60%;")
+                                textarea.form-control.inline-block(rows="5", ng-model="vm.scriptsData.instructions")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click="vm.submitScriptSetting()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#scriptDescriptionLoader.collapse
                     i.fa.fa-spinner.fa-spin
