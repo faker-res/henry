@@ -1052,6 +1052,7 @@ var dbRewardEvent = {
         let showRewardPeriod = {};
         let intervalRewardSum = 0, intervalConsumptionSum = 0, intervalTopupSum = 0, intervalBonusSum = 0, playerCreditLogSum = 0;
         let ignoreTopUpBdirtyEvent = eventData && eventData.condition && eventData.condition.ignoreAllTopUpDirtyCheckForReward || {};
+        let referralRewardDetails = [];
 
         let matchPlayerId = false;
         let matchIPAddress = false;
@@ -1931,12 +1932,14 @@ var dbRewardEvent = {
                                                         }, {
                                                             $group: {
                                                                 _id: "$playerId",
-                                                                validAmount: {$sum: "$validAmount"}
+                                                                validAmount: {$sum: "$validAmount"},
+                                                                createTime: {$last: "$createTime"}
                                                             }
                                                         }]).then(
                                                             playerConsumption => {
                                                                 let totalValidConsumption = 0;
                                                                 if (playerConsumption && playerConsumption.length > 0) {
+                                                                    playerConsumption.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime());
                                                                     playerConsumption.forEach(player => {
                                                                         if (player && player.validAmount) {
                                                                             totalValidConsumption += player.validAmount;
@@ -1944,7 +1947,7 @@ var dbRewardEvent = {
                                                                     })
                                                                 }
 
-                                                                return totalValidConsumption;
+                                                                return [totalValidConsumption, playerConsumption];
                                                             }
                                                         );
                                                     }
@@ -3032,16 +3035,34 @@ var dbRewardEvent = {
                             returnData.status = 2;
                         } else {
                             if (selectedRewardParam.playerValidConsumption) {
-                                let totalValidConsumption = rewardSpecificData[0];
+                                let totalValidConsumption = rewardSpecificData[0][0];
+                                let consumptionPlayers = rewardSpecificData[0][1];
 
                                 if (totalValidConsumption >= selectedRewardParam.playerValidConsumption) {
+                                    consumptionPlayers.forEach(player => {
+                                        if (player && (parseFloat(player.validAmount) > 0)) {
+                                            let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
+                                            referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
+                                        }
+                                    });
+
                                     rewardAmount = totalValidConsumption * (selectedRewardParam.rewardPercentage || 0);
                                     if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
                                         rewardAmount = selectedRewardParam.maxRewardAmount;
                                     }
                                     let currentAmount = totalRewardAppliedInInterval + rewardAmount;
                                     if (currentAmount >= selectedRewardParam.maxRewardAmount) {
-                                        rewardAmount = selectedRewardParam.maxRewardAmount - currentAmount;
+                                        rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
+                                        let usedAmount = 0;
+                                        referralRewardDetails.forEach(item => {
+                                            if (rewardAmount >= item.rewardAmount) {
+                                                item.actualRewardAmount = item.rewardAmount - usedAmount;
+                                                usedAmount += item.rewardAmount;
+                                            } else {
+                                                item.actualRewardAmount = rewardAmount - usedAmount;
+                                                usedAmount += rewardAmount;
+                                            }
+                                        });
                                     }
                                     returnData.result.rewardAmount = rewardAmount;
                                 } else {

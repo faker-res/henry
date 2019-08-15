@@ -5,7 +5,7 @@ let referralLog = new Schema({
     // platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     // referral
-    referral: {type: Schema.ObjectId, ref: 'platform', index: true},
+    referral: {type: Schema.ObjectId, ref: 'player', index: true},
     // player
     playerObjId: {type: Schema.ObjectId, ref: 'player', index: true},
     // Date time added

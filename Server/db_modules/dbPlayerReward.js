@@ -5919,6 +5919,7 @@ let dbPlayerReward = {
         let isAnyRewardLeft;
         let forbidRewardProm = Promise.resolve(true);
         let lastTopUpData;
+        let referralRewardDetails = [];
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -6946,8 +6947,6 @@ let dbPlayerReward = {
 
         if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
             if (selectedRewardParam && selectedRewardParam[0] && selectedRewardParam[0].playerValidConsumption) {
-                let playerValidConsumption = selectedRewardParam[0].playerValidConsumption;
-
                 let getPlayerValidConsumptionProm = dbConfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                     config => {
                         if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
@@ -7004,20 +7003,23 @@ let dbPlayerReward = {
                                                             }, {
                                                                 $group: {
                                                                     _id: "$playerId",
-                                                                    validAmount: {$sum: "$validAmount"}
+                                                                    validAmount: {$sum: "$validAmount"},
+                                                                    createTime: {$last: "$createTime"}
                                                                 }
                                                             }]).then(
                                                                 playerConsumption => {
                                                                     let totalValidConsumption = 0;
+
                                                                     if (playerConsumption && playerConsumption.length > 0) {
+                                                                        playerConsumption.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime());
                                                                         playerConsumption.forEach(player => {
-                                                                            if (player && player.validAmount) {
+                                                                            if (player) {
                                                                                 totalValidConsumption += player.validAmount;
                                                                             }
                                                                         })
                                                                     }
 
-                                                                    return totalValidConsumption;
+                                                                    return [totalValidConsumption, playerConsumption];
                                                                 }
                                                             );
                                                         }
@@ -8278,7 +8280,8 @@ let dbPlayerReward = {
                         break;
 
                     case constRewardType.REFERRAL_REWARD_GROUP:
-                        let totalValidConsumption = rewardSpecificData[0];
+                        let totalValidConsumption = rewardSpecificData[0][0];
+                        let consumptionPlayers = rewardSpecificData[0][1]
                         let totalRewardAppliedInInterval = rewardSpecificData[1];
                         let selectedReward = selectedRewardParam[0];
                         let playerValidConsumption = selectedReward && selectedReward.playerValidConsumption;
@@ -8309,14 +8312,33 @@ let dbPlayerReward = {
                         }
 
                         if (totalValidConsumption >= playerValidConsumption) {
+                            consumptionPlayers.forEach(player => {
+                                if (player && player.validAmount && (parseFloat(player.validAmount) > 0)) {
+                                    let splitRewardAmount = player.validAmount * selectedReward.rewardPercentage;
+                                    referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
+                                }
+                            });
+
                             rewardAmount = totalValidConsumption * selectedReward.rewardPercentage;
                             if (selectedReward && selectedReward.maxRewardAmount && (rewardAmount > selectedReward.maxRewardAmount)) {
                                 rewardAmount = selectedReward.maxRewardAmount;
                             }
+
                             let currentAmount = totalRewardAppliedInInterval + rewardAmount;
                             if (currentAmount >= selectedReward.maxRewardAmount) {
-                                rewardAmount = selectedReward.maxRewardAmount - currentAmount;
+                                rewardAmount = selectedReward.maxRewardAmount - totalRewardAppliedInInterval;
+                                let usedAmount = 0;
+                                referralRewardDetails.forEach(item => {
+                                    if (rewardAmount >= item.rewardAmount) {
+                                        item.actualRewardAmount = item.rewardAmount - usedAmount;
+                                        usedAmount += item.rewardAmount;
+                                    } else {
+                                        item.actualRewardAmount = rewardAmount - usedAmount;
+                                        usedAmount += rewardAmount;
+                                    }
+                                });
                             }
+
                             selectedReward.spendingTimes = selectedReward.spendingTimes || 1;
                             spendingAmount = rewardAmount * selectedReward.spendingTimes;
                         } else {
@@ -8817,6 +8839,11 @@ let dbPlayerReward = {
                                 proposalData.data.winAmount = baccaratConsumptionRecord.bonusAmount;
                                 proposalData.data.winResult = [baccaratConsumptionRecord.hostResult, baccaratConsumptionRecord.playerResult];
                             }
+                        }
+
+                        if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
+                            proposalData.data.referralRewardDetails = referralRewardDetails;
+                            proposalData.data.intervalType = eventData.condition && eventData.condition.interval;
                         }
 
                         if (!(eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && rewardAmount == 0)) {
