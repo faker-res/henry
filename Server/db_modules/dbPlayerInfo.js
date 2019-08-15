@@ -23997,10 +23997,10 @@ let dbPlayerInfo = {
 
                 // return total amount
                 returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit);
-                returnData.finalAmount =  returnData.finalAmount.toFixed(2);
+                returnData.finalAmount =  parseFloat((returnData.finalAmount).toFixed(2));
 
                 returnData.localAmount =  totalLockedCredit + parseFloat(returnData.credit);
-                returnData.localAmount =  returnData.localAmount.toFixed(2);
+                returnData.localAmount =  parseFloat((returnData.localAmount).toFixed(2));
 
                 return returnData;
             });

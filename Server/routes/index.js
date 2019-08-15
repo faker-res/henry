@@ -389,8 +389,11 @@ router.post('/urlShortener', function (req, res, next) {
                      result.push({no: index + 1 , url_long: urls[index]});
                 }
             })
-            console.log('MT --checking urlShortener',result);
+            console.log('MT --checking urlShortener', result);
             res.json({success: true, data: result});
+        },
+        err => {
+            console.log(err);
         }
     )
 });
