@@ -6646,6 +6646,7 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && code == "reward") {
                 let objList = {};
+                let allObjList = {name: "全部", list: []};
                 let arrayList = [];
                 settingList.forEach(
                     p => {
@@ -6654,6 +6655,9 @@ var dbPlatform = {
                                 objList[p.categoryObjId.categoryName] = [];
                             }
                             objList[p.categoryObjId.categoryName].push(p);
+                            if (allObjList && allObjList.list){
+                                allObjList.list.push(p);
+                            }
                         }
                     }
                 )
@@ -6661,6 +6665,17 @@ var dbPlatform = {
                 Object.keys(objList).forEach(key => {
                     arrayList.push({name: key, list: objList[key]})
                 })
+
+                if (arrayList && allObjList){
+                    // sort allObjList based on orderNumber
+                    if (allObjList && allObjList.list && allObjList.list.length){
+                        allObjList.list.sort(function (a, b) {
+                            return a.orderNumber > b.orderNumber;
+                        });
+                    }
+                    arrayList.push(allObjList);
+
+                }
 
                 return arrayList
             }
