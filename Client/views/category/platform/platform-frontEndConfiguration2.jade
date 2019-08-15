@@ -129,7 +129,7 @@ style.
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="gameSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "gameSetting")')
                     include frontEndConfiguration-gameSetting
 
-                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="scriptDescription" && vm.filterFrontEndSettingPlatform ')
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="scriptDescription" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "scriptDescription")')
                     include frontEndConfiguration-scriptDescription
 
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerCarouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
