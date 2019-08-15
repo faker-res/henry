@@ -5241,6 +5241,8 @@ let dbPlayerInfo = {
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: topupRecordData.platformId,
+                                    playerObjId: topupRecordData.playerId,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -6939,6 +6941,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -7662,6 +7666,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
