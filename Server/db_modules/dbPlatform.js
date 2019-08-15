@@ -6646,6 +6646,7 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && code == "reward") {
                 let objList = {};
+                let allObjList = {name: "全部", list: []};
                 let arrayList = [];
                 settingList.forEach(
                     p => {
@@ -6654,6 +6655,9 @@ var dbPlatform = {
                                 objList[p.categoryObjId.categoryName] = [];
                             }
                             objList[p.categoryObjId.categoryName].push(p);
+                            if (allObjList && allObjList.list){
+                                allObjList.list.push(p);
+                            }
                         }
                     }
                 )
@@ -6661,6 +6665,21 @@ var dbPlatform = {
                 Object.keys(objList).forEach(key => {
                     arrayList.push({name: key, list: objList[key]})
                 })
+
+                if (arrayList && allObjList){
+                    // sort allObjList based on orderNumber
+                    if (allObjList && allObjList.list && allObjList.list.length){
+                        allObjList.list.sort(function (a, b) {
+                            if (a.orderNumber < b.orderNumber) {
+                                return -1;
+                            }
+                            if (a.orderNumber > b.orderNumber) {
+                                return 1;
+                            }
+                        });
+                    }
+                    arrayList.push(allObjList);
+                }
 
                 return arrayList
             }
@@ -6697,14 +6716,23 @@ var dbPlatform = {
                 if (setting.activityUrl && (setting.activityUrl.indexOf('http') == -1 && setting.activityUrl.indexOf('https') == -1)) {
                     setting.activityUrl = cdnText + setting.activityUrl;
                 }
-                if (setting.route && (setting.route.indexOf('http') == -1 && setting.route.indexOf('https') == -1)) {
-                    setting.route = cdnText + setting.route;
-                }
                 if (setting.selectedNavImage && (setting.selectedNavImage.indexOf('http') == -1 && setting.selectedNavImage.indexOf('https') == -1)) {
                     setting.selectedNavImage = cdnText + setting.selectedNavImage;
                 }
                 if (setting.url && (setting.url.indexOf('http') == -1 && setting.url.indexOf('https') == -1)) {
                     setting.url = cdnText + setting.url;
+                }
+
+                if (setting.vipPrivilegeUrl && (setting.vipPrivilegeUrl.indexOf('http') == -1 && setting.vipPrivilegeUrl.indexOf('https') == -1)) {
+                    setting.vipPrivilegeUrl = cdnText + setting.vipPrivilegeUrl;
+                }
+
+                if (setting.rewardPointClarificationUrl && (setting.rewardPointClarificationUrl.indexOf('http') == -1 && setting.rewardPointClarificationUrl.indexOf('https') == -1)) {
+                    setting.rewardPointClarificationUrl = cdnText + setting.rewardPointClarificationUrl;
+                }
+
+                if (setting.voucherClarificationUrl && (setting.voucherClarificationUrl.indexOf('http') == -1 && setting.voucherClarificationUrl.indexOf('https') == -1)) {
+                    setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
                 }
 
                 return setting

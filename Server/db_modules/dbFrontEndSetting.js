@@ -66,6 +66,7 @@ var dbFrontEndSetting = {
                             categoryObjId: data.categoryObjId,
                             isVisible: data.isVisible,
                             displayOrder: data.displayOrder || 1,
+                            orderNumber: data.orderNumber || 1,
                         };
                         prom.push(getAndUpdateRewardSetting (ObjectId(data._id), updateQuery))
                     }

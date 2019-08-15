@@ -7280,12 +7280,12 @@ API说明：
 			* advertisement - 弹窗广告
 			* pageSetting - 网站配置
 			* skin - 皮肤管理
-			* reward - 优惠配置
+			* reward - 优惠配置 (新增全部分类组: 排序号 orderNumber)
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
 					
-<div id='获取前端設置数据接口'></div>
+<div id='获取平台推荐人奖励設置'></div>
 
 * **19. 获取平台推荐人奖励設置**
 	* name: getPlatformReferralConfig

@@ -15,6 +15,8 @@ var frontEndRewardSettingSchema = new Schema({
     isVisible: {type: Boolean, default: true},
     // display order based on individual category
     displayOrder: {type: Number, index: true},
+    // display order number including of all the category
+    orderNumber: {type: Number, index: true},
     // promo code
     promoCode: {type: String},
     pc: {
@@ -34,8 +36,6 @@ var frontEndRewardSettingSchema = new Schema({
         gameCode: {type: String},
         // displayFormat 1： 列表； 2： 平铺3项1列；
         displayFormat: {type: Number},
-        // display order number including of all the pc, h5, app category
-        orderNumber: {type: Number, index: true},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
@@ -56,8 +56,6 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
-        // display order number including of all the pc, h5, app category
-        orderNumber: {type: Number, index: true},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
@@ -78,8 +76,6 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
-        // display order number including of all the pc, h5, app category
-        orderNumber: {type: Number, index: true},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
