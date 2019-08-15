@@ -86,7 +86,7 @@ let dbEmailNotification = {
             }
             if(includeOperationTime) {
                 contentCh += `<span>操作时间: ${dbUtil.getLocalTime(new Date)}</span><br/>`;
-                contentEn += `<span>Operation Date Time: ${dbUtil.getLocalTime(new Date)}</span>`;
+                contentEn += `<span>Operation Date Time: ${dbUtil.getLocalTime(new Date)}</span><br/>`;
             }
             if(includeProposalStepName) {
                 contentCh += `<span>提案流程名称: ${translate(processName)}</span><br/>`;
