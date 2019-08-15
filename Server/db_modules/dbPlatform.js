@@ -6670,11 +6670,15 @@ var dbPlatform = {
                     // sort allObjList based on orderNumber
                     if (allObjList && allObjList.list && allObjList.list.length){
                         allObjList.list.sort(function (a, b) {
-                            return a.orderNumber > b.orderNumber;
+                            if (a.orderNumber < b.orderNumber) {
+                                return -1;
+                            }
+                            if (a.orderNumber > b.orderNumber) {
+                                return 1;
+                            }
                         });
                     }
                     arrayList.push(allObjList);
-
                 }
 
                 return arrayList
