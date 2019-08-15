@@ -8034,7 +8034,7 @@ let dbPlayerReward = {
                         // filter out the valid rewards
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
-                        console.log("checking applyRewardTimes", [playerData.name, applyRewardTimes])；
+                        console.log("checking applyRewardTimes", [playerData.name, applyRewardTimes])
                         console.log("pre-checking");
                         if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false) {
