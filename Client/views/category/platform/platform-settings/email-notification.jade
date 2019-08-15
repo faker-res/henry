@@ -1,0 +1,100 @@
+h4(style='text-align:center;font-weight:bold') {{"Edit Proposal Step" | translate}}
+table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+    thead
+        tr
+            th {{'TITLE' | translate}}
+            th {{'VALUE' | translate}}
+    tbody
+        tr
+            td {{'Turn On / Off' | translate}}
+            td
+                input(ng-model='vm.emailNotificationConfig.doNotify' type='checkbox' ng-disabled='!vm.editEmailNotificationConfig')
+        tr
+            td {{'DEFAULT_EMAIL_NAME' | translate}}
+            td
+                input.inline-block(type='text' ng-model='vm.emailNotificationConfig.emailPrefix', ng-disabled='!vm.editEmailNotificationConfig')
+                text(style='color:red') {{"Edit (XX) proposal step: Admin ID -- Date" | translate}}
+
+br
+br
+table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+    thead
+        tr
+            th {{'Execution Log Section' | translate}}
+            th {{'SELECT' | translate}}
+            th {{'TITLE' | translate}}
+            th {{'DEFINITION' | translate}}
+    tbody
+        tr
+            td(rowspan=4, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
+            td
+                input(type='checkbox' ng-model='vm.emailNotificationConfig.includeAdminName', ng-disabled='!vm.editEmailNotificationConfig')
+            td
+                text {{'Admin ID' | translate}}
+            td
+                text {{'Admin ID used to execute the operation' | translate}}
+        tr
+            td
+                input(type='checkbox' ng-model='vm.emailNotificationConfig.includeOperationTime', ng-disabled='!vm.editEmailNotificationConfig')
+            td
+                text {{'Execution Time' | translate}}
+            td
+                text
+        tr
+            td
+                input(type='checkbox' ng-model='vm.emailNotificationConfig.includeProposalStepName', ng-disabled='!vm.editEmailNotificationConfig')
+            td
+                text {{'Proposal Step Name' | translate}}
+            td
+                text {{'Edited proposal step name' | translate}}
+        tr
+            td
+                input(type='checkbox' ng-model='vm.emailNotificationConfig.includePlatformName', ng-disabled='!vm.editEmailNotificationConfig')
+            td
+                text {{'PLATFORM' | translate}}
+            td
+                text {{'Platform which the edited proposal belongs to' | translate}}
+
+div.margin-top-5
+    button.btn.btn-primary.common-button(ng-if="!vm.editEmailNotificationConfig && checkViewPermission('Platform', 'Config', 'emailNotificationConfig')", ng-click='vm.editEmailNotificationConfig=!vm.editEmailNotificationConfig')
+        text {{'EDIT' | translate}}
+        img.img-edit
+    button.btn.btn-danger.common-button(ng-if='vm.editEmailNotificationConfig', ng-click='vm.editEmailNotificationConfig=!vm.editEmailNotificationConfig;vm.configTabClicked("emailNotificationConfig")') {{"CANCEL" | translate}}
+    button.btn.btn-primary.common-button(ng-if='vm.editEmailNotificationConfig', ng-click='vm.editEmailNotificationConfig=!vm.editEmailNotificationConfig;vm.updateEmailNotificationConfig("emailNotificationConfig")') {{"CONFIRM" | translate}}
+
+//
+//#modalRecipientSelection.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//    .modal-dialog(style="width:80%")
+//        .modal-content
+//            .modal-header
+//                a.fa.fa-times.close(type='button', data-dismiss='modal')
+//                h4.modal-title {{'Recipient and executor setting' | translate}}
+//            .modal-body
+//                table.simple-table(style='max-width:100%')
+//                    thead
+//                        tr
+//                            th {{'RECIPIENT' | translate}}
+//                            th {{'USER_NAME' | translate}}
+//                            th {{'EMAIL' | translate}}
+//                            th {{'DEPARTMENT' | translate}}
+//                            th {{'ROLE' | translate}}
+//                            th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
+//                    tbody
+//                        tr(ng-repeat='(i,admin) in vm.adminList | unique: "_id"' ng-attr-id="{{ 'auditSettingRow' + i }}")
+//                            td
+//                                input(type='checkbox' ng-model='vm.auditRecipientList[i]' ng-click='vm.setEmailAuditRecipient(admin._id, vm.auditRecipientList[i], i)')
+//                            td
+//                                text {{admin.adminName}}
+//                            td
+//                                text {{admin.email}}
+//                            td
+//                                text {{admin.departmentName | translate}}
+//                            td
+//                                text {{vm.getAdminRoleNameString(admin.roleName) | translate}}
+//                            td
+//                                input(ng-if='vm.auditRecipientList[i]' type='checkbox' ng-model='vm.auditReviewerList[i]' ng-click='vm.setEmailAuditReviewer(admin._id, vm.largeWithdrawCheckReviewer[i], i)')
+//                                text(ng-if='!vm.auditRecipientList[i]') {{"-"}}
+//
+//            .modal-footer
+//                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.updateEmailAuditReviewSetting()') {{"CONFIRM" | translate}}
+//                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("emailAuditConfig")') {{"CLOSE" | translate}}

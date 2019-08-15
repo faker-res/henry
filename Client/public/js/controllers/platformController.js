@@ -24566,6 +24566,9 @@ define(['js/app'], function (myApp) {
                     case 'emailAuditConfig':
                         vm.getEmailAuditConfig(platformObjId);
                         break;
+                    case 'emailNotificationConfig':
+                        vm.getEmailNotificationConfig(platformObjId);
+                        break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
                         break;
@@ -32022,6 +32025,41 @@ define(['js/app'], function (myApp) {
 
 
             };
+
+            vm.getEmailNotificationConfig = async (platformObjId) => {
+                vm.editEmailNotificationConfig = vm.editEmailNotificationConfig || false;
+                vm.emailNotificationConfig = vm.emailNotificationConfig || {};
+
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getEmailNotificationConfig', sendData, function (data) {
+                    console.log('getEmailNotificationConfig', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.emailNotificationConfig = {};
+                        if (data && data.data) {
+                            vm.emailNotificationConfig = data.data;
+                        }
+                    });
+                });
+            };
+            vm.updateEmailNotificationConfig = async function () {
+                console.log('updateEmailNotificationConfig', vm.emailNotificationConfig);
+
+                let result = await $scope.$socketPromise('updateEmailNotificationConfig', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.emailNotificationConfig.doNotify || false,
+                    emailPrefix: vm.emailNotificationConfig.emailPrefix || "",
+                    includeAdminName: vm.emailNotificationConfig.includeAdminName || false,
+                    includeOperationTime: vm.emailNotificationConfig.includeOperationTime || false,
+                    includeProposalStepName: vm.emailNotificationConfig.includeProposalStepName || false,
+                    includePlatformName: vm.emailNotificationConfig.includePlatformName || false
+                });
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
