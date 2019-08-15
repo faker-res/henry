@@ -4,6 +4,26 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
 
+
+    saveFrontEndScriptSetting: (data) => {
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndScriptDescription.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndScriptDescription(data);
+                return record.save();
+            }
+        }
+    },
+
     saveFrontEndPopUpAdvSetting: (data) => {
         if (data) {
             if (data._id) {
@@ -256,6 +276,15 @@ var dbFrontEndSetting = {
         let prom =  Promise.resolve();
         if (platformObjId){
             prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
+    getFrontEndScriptSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
         }
 
         return prom;
