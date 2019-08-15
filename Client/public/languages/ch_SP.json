@@ -1080,6 +1080,7 @@
   "partnerPosterAds": "代理推广海报配置",
   "DISPLAY_PICTURE": "展示示意图",
   "Image size must be 750*1334": "图片尺寸不符合 750*1334",
+  "Image size must be 375*667": "图片尺寸不符合 375*667",
   "Failed to load image": "图片加载失败",
   "cancelBonus": "取消提款",
   "applyReward": "申请优惠",
