@@ -8313,6 +8313,10 @@ let dbPlayerReward = {
                             if (selectedReward && selectedReward.maxRewardAmount && (rewardAmount > selectedReward.maxRewardAmount)) {
                                 rewardAmount = selectedReward.maxRewardAmount;
                             }
+                            let currentAmount = totalRewardAppliedInInterval + rewardAmount;
+                            if (currentAmount >= selectedReward.maxRewardAmount) {
+                                rewardAmount = selectedReward.maxRewardAmount - currentAmount;
+                            }
                             selectedReward.spendingTimes = selectedReward.spendingTimes || 1;
                             spendingAmount = rewardAmount * selectedReward.spendingTimes;
                         } else {
