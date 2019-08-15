@@ -5887,7 +5887,7 @@
   "Redirect Url": "防紅网址",
   "alternative...ex:": "自定义,例：",
   "Please Select Redirect Url": "请选择防紅网址",
-  "*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)": "*批量输入域名， 每行输入一个，最多支持XX个域名批量生成(自动过滤重复域名)",
+  "*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)": "*批量输入域名， 每行输入一个 (自动过滤重复域名)",
   "Seq No": "序号",
   "Original Url": "原网址",
   "ShortenerUrl": "防红短网址",
