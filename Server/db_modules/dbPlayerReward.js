@@ -8047,6 +8047,7 @@ let dbPlayerReward = {
                         }
                         // check if the player has been pre-set
                         else if (presetList && presetList.randomReward){
+                            console.log('check presetList', presetList);
                             let temp = selectedRewardParam.filter( p => p.id == presetList.randomReward && Number.isFinite(p.possibility))
                             selectedReward = temp && temp.length ? temp[0] : null;
                             if (selectedReward){
@@ -8059,6 +8060,7 @@ let dbPlayerReward = {
 
                         }
 
+                        console.log('check selectedReward', selectedReward);
                         // check if the obtained pre-set reward is promoCode and if the player is forbidden from applying promo code
                         if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
                             selectedReward = null;

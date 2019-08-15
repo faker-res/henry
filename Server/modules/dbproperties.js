@@ -113,6 +113,7 @@ let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfigurati
 let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionSchema = require('./../schema/frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingSchema = require('./../schema/promoCodeMaxRewardAmountSetting');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
@@ -302,6 +303,7 @@ let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', f
 let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionModel = db_admin.model('frontEndScriptDescription', frontEndScriptDescriptionSchema, 'frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingModel = db_admin.model('promoCodeMaxRewardAmountSetting', promoCodeMaxRewardAmountSettingSchema, 'promoCodeMaxRewardAmountSetting');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
@@ -816,6 +818,7 @@ var dbProperties = {
     collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
+    collection_frontEndScriptDescription: frontEndScriptDescriptionModel,
     collection_promoCodeMaxRewardAmountSetting: promoCodeMaxRewardAmountSettingModel,
 
     collection_auctionSystem: auctionSystemModel,

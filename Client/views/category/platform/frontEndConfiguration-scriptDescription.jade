@@ -1,0 +1,22 @@
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div(style="display: inline;")
+        label {{'ADD_SCRIPT_DESCRIPTION' | translate}}
+        br
+        label.text-danger {{'Note: can be inter-switchable between CS Test and Production' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.scriptSetting(false, false)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+
+div.fronendConfigDiv.popUpAdvModal(style="height: 60vh; min-height: 500px;")
+    div.fronendConfigScrollDiv
+        ul.connected-sortable.droppable-area1
+            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="item in vm.scriptSettingData", ng-dblclick="vm.scriptSetting(false, false, item._id)")
+                span {{item.title}}
+                .tab-btngroup
+                    button.btn.btn-primary(ng-if="item.isVisible" ng-click="vm.scriptSetting(true, false, item._id, false)") on
+                    button.btn.btn-success(ng-if="!item.isVisible", ng-click="vm.scriptSetting(true, false, item._id, true)") off
+                    button.btn.btn-danger.btn-delete(ng-click="vm.scriptSetting(true, true, item._id)")
+                        span.fa.fa-trash-o
+
+//div.text-right(style="position: absolute; bottom: 0; right: 0;")
+//    button.btn-danger.btn.btn-space(ng-click="vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+//    button#popUpAdvSaveButton.btn-primary.btn(ng-click="vm.updatePopUpAdvertisementSetting()") {{'SAVE' | translate}}
