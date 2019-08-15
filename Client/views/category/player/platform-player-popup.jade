@@ -71,6 +71,23 @@
                                 button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'ResetPassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.initResetPlayerPasswordModal()', data-target='#modalPlayerPasswordReset') {{"EDIT_WEBSITE_PASS" | translate}}
 
                         div.col-xs-12
+                            .col-sm-offset-1.col-sm-3
+                                .col-sm-5
+                                    label {{"Referral ID" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.referralId || 'NONE' | translate}}
+                            .col-sm-3
+                                .col-sm-5
+                                    label {{"Referral URL" | translate}}
+                                .col-sm-7
+                                    text {{vm.selectedSinglePlayer.referralUrl || 'NONE' | translate}}
+
+                            .col-sm-3
+
+                            .col-sm-2
+                                button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
+
+                        //div.col-xs-12
                             .col-sm-offset-10.col-sm-2
                                 button.btn.btn-primary.vertical-button-group(ng-if="checkViewPermission('Player', 'Player', 'ModifyGamePassword')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareModifyPlayerGamePassword()' data-target='#modalModifyGamePassword') {{"EDIT_PROVIDER_PASS" | translate}}
 

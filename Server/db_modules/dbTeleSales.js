@@ -2105,12 +2105,12 @@ function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId, isFeedb
             tsPhone => {
                 if (tsPhone && tsPhone.phoneNumber) {
                     let phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
-                    let prom;
-                    if (isFeedbackPhone) {
-                        prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
-                    } else {
-                        prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
-                    }
+                    // let prom;
+                    // if (isFeedbackPhone) {
+                    //     prom = dbconfig.collection_feedbackPhoneTrade.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
+                    // } else {
+                    let prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber, platform: platformObjId}, {phoneNumber: 1}).lean();
+                    // }
                     prom = prom.then(
                         isExist => {
                             if (isExist) {
