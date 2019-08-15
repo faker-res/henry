@@ -16218,7 +16218,7 @@ define(['js/app'], function (myApp) {
                 let posterImage = new Image();
                 posterImage.onload = function() {
                     isLoaded = true;
-                    if (posterImage.width != 750 && posterImage.height != 1334) {
+                    if (posterImage.width != 375 && posterImage.height != 667) {
                         let errorMsg = $translate("Image size must be 750*1334");
                         if (orderNo || orderNo === 0) {
                             errorMsg += (" " + orderNo);
