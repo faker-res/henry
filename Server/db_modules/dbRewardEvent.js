@@ -1875,10 +1875,10 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
             let playerValidConsumption = selectedRewardParam[0].playerValidConsumption;
 
-            let getPlayerValidConsumptionProm = dbConfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+            let getPlayerValidConsumptionProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                 config => {
                     if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
-                        let configIntervalTime = dbUtility.getReferralConfigIntervalTime(config.referralPeriod);
+                        let configIntervalTime = dbUtil.getReferralConfigIntervalTime(config.referralPeriod);
 
                         let referralQuery = {
                             platform: playerData.platform._id,
@@ -1889,55 +1889,67 @@ var dbRewardEvent = {
                             referralQuery.createTime = {$gte: configIntervalTime.startTime, $lte: configIntervalTime.endTime};
                         }
 
-                        return dbConfig.collection_referralLog.find(referralQuery).lean().then(
+                        return dbconfig.collection_referralLog.find(referralQuery).lean().then(
                             referees => {
                                 if (referees && referees.length > 0) {
                                     let refereeObjIds = referees.map(item => item && item.playerObjId);
 
-                                    let latestApplyQuery = {
-                                        'data.playerObjId': playerData._id,
-                                        'data.platformObjId': playerData.platform._id,
-                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
-                                    }
-
-                                    let consumptionQuery = {
+                                    return dbconfig.collection_proposalType.findOne({
                                         platformId: playerData.platform._id,
-                                        playerId: {$in: refereeObjIds},
-                                        createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
-                                    };
-
-                                    if (intervalTime) {
-                                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                                        latestApplyQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                                    }
-
-                                    return dbConfig.collection_proposal.findOne(latestApplyQuery).sort({createTime: -1}).lean().then(
-                                        latestApplyData => {
-                                            if (latestApplyData && latestApplyData.createTime) {
-                                                consumptionQuery.createTime = {$gt: latestApplyData.createTime, $lte: intervalTime.endTime};
-                                            }
-
-                                            return dbConfig.collection_playerConsumptionRecord.aggregate([{
-                                                $match: consumptionQuery
-                                            }, {
-                                                $group: {
-                                                    _id: "$playerId",
-                                                    validAmount: {$sum: "$validAmount"}
+                                        name: constProposalType.REFERRAL_REWARD_GROUP
+                                    }).then(
+                                        proposalTypeData => {
+                                            if (proposalTypeData && proposalTypeData._id) {
+                                                let latestApplyQuery = {
+                                                    'data.playerObjId': playerData._id,
+                                                    'data.platformObjId': playerData.platform._id,
+                                                    createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime},
+                                                    type: proposalTypeData._id,
+                                                    status: constProposalStatus.APPROVED,
+                                                    "data.eventId": eventData._id,
                                                 }
-                                            }]).then(
-                                                playerConsumption => {
-                                                    let totalValidConsumption = 0;
-                                                    if (playerConsumption && playerConsumption.length > 0) {
-                                                        playerConsumption.forEach(player => {
-                                                            if (player && player.validAmount && (player.validAmount >= playerValidConsumption)) {
-                                                                totalValidConsumption += player.validAmount;
+
+                                                let consumptionQuery = {
+                                                    platformId: playerData.platform._id,
+                                                    playerId: {$in: refereeObjIds},
+                                                    createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime}
+                                                };
+
+                                                if (intervalTime) {
+                                                    consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                                    latestApplyQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                                                }
+
+                                                return dbconfig.collection_proposal.findOne(latestApplyQuery).sort({createTime: -1}).lean().then(
+                                                    latestApplyData => {
+                                                        if (latestApplyData && latestApplyData.createTime) {
+                                                            consumptionQuery.createTime = {$gt: latestApplyData.createTime, $lte: intervalTime.endTime};
+                                                        }
+
+                                                        return dbconfig.collection_playerConsumptionRecord.aggregate([{
+                                                            $match: consumptionQuery
+                                                        }, {
+                                                            $group: {
+                                                                _id: "$playerId",
+                                                                validAmount: {$sum: "$validAmount"}
                                                             }
-                                                        })
-                                                    }
+                                                        }]).then(
+                                                            playerConsumption => {
+                                                                let totalValidConsumption = 0;
+                                                                if (playerConsumption && playerConsumption.length > 0) {
+                                                                    playerConsumption.forEach(player => {
+                                                                        if (player && player.validAmount) {
+                                                                            totalValidConsumption += player.validAmount;
+                                                                        }
+                                                                    })
+                                                                }
 
-                                                    return totalValidConsumption;
-                                                }
-                                            );
+                                                                return totalValidConsumption;
+                                                            }
+                                                        );
+                                                    }
+                                                )
+                                            }
                                         }
                                     )
 
@@ -2071,6 +2083,47 @@ var dbRewardEvent = {
                 }
             );
 
+            let getAppliedRewardInIntervalProm = dbconfig.collection_proposalType.findOne({
+                platformId: playerData.platform._id,
+                name: constProposalType.REFERRAL_REWARD_GROUP
+            }).then(
+                proposalTypeData => {
+                    if (proposalTypeData && proposalTypeData._id) {
+                        let appliedQuery = {
+                            'data.playerObjId': playerData._id,
+                            'data.platformObjId': playerData.platform._id,
+                            createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime},
+                            type: proposalTypeData._id,
+                            status: constProposalStatus.APPROVED,
+                            "data.eventId": eventData._id,
+                        }
+
+                        if (intervalTime) {
+                            appliedQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        }
+
+                        return dbconfig.collection_proposal.aggregate([{
+                            $match: appliedQuery
+                        }, {
+                            $group: {
+                                _id: null,
+                                amount: {$sum: "$data.rewardAmount"}
+                            }
+                        }]).then(
+                            appliedReward => {
+                                let totalAppliedRewardAmount = 0;
+
+                                if (appliedReward && appliedReward[0] && appliedReward[0].amount) {
+                                    totalAppliedRewardAmount = appliedReward[0].amount;
+                                }
+
+                                return totalAppliedRewardAmount;
+                            }
+                        );
+
+                    }
+                });
+
             // check sms verification
             if (eventData.condition.needSMSVerification) {
                 returnData.condition.SMSCode.status = 1;
@@ -2078,6 +2131,7 @@ var dbRewardEvent = {
 
             promArr.push(getPlayerValidConsumptionProm);
             promArr.push(countInRewardInterval);
+            promArr.push(getAppliedRewardInIntervalProm);
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
@@ -2960,6 +3014,8 @@ var dbRewardEvent = {
                         let matchPhoneNum = rewardSpecificData[1][1];
                         let matchMobileDevice = rewardSpecificData[1][2];
 
+                        let totalRewardAppliedInInterval = rewardSpecificData[2];
+
                         if (!matchIPAddress) {
                             returnData.condition.ip.status = 2;
                         }
@@ -2972,26 +3028,33 @@ var dbRewardEvent = {
                             returnData.condition.telephone.status = 2;
                         }
 
-                        if (selectedRewardParam.playerValidConsumption) {
-                            let totalValidConsumption = rewardSpecificData[0];
+                        if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (totalRewardAppliedInInterval >= selectedRewardParam.maxRewardAmount)) {
+                            returnData.status = 2;
+                        } else {
+                            if (selectedRewardParam.playerValidConsumption) {
+                                let totalValidConsumption = rewardSpecificData[0];
 
-                            if (totalValidConsumption >= selectedRewardParam.playerValidConsumption) {
-                                rewardAmount = totalValidConsumption * (selectedRewardParam.rewardPercentage || 0);
-                                if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
-                                    rewardAmount = selectedRewardParam.maxRewardAmount;
+                                if (totalValidConsumption >= selectedRewardParam.playerValidConsumption) {
+                                    rewardAmount = totalValidConsumption * (selectedRewardParam.rewardPercentage || 0);
+                                    if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
+                                        rewardAmount = selectedRewardParam.maxRewardAmount;
+                                    }
+                                    let currentAmount = totalRewardAppliedInInterval + rewardAmount;
+                                    if (currentAmount >= selectedRewardParam.maxRewardAmount) {
+                                        rewardAmount = selectedRewardParam.maxRewardAmount - currentAmount;
+                                    }
+                                    returnData.result.rewardAmount = rewardAmount;
+                                } else {
+                                    returnData.status = 2;
                                 }
-                                rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
-                                returnData.result.rewardAmount = rewardAmount;
-                            } else {
-                                returnData.status = 2;
                             }
-                        }
-                        else {
-                            return Q.reject({
-                                status: constServerCode.INVALID_PARAM,
-                                name: "DataError",
-                                message: "Minimum Valid Consumption cannot be empty. Please check reward condition."
-                            });
+                            else {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_PARAM,
+                                    name: "DataError",
+                                    message: "Minimum Valid Consumption cannot be empty. Please check reward condition."
+                                });
+                            }
                         }
                         break;
 

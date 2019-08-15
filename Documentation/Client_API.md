@@ -7285,7 +7285,7 @@ API说明：
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
 					
-<div id='获取前端設置数据接口'></div>
+<div id='获取平台推荐人奖励設置'></div>
 
 * **19. 获取平台推荐人奖励設置**
 	* name: getPlatformReferralConfig
