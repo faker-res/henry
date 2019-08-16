@@ -85,7 +85,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.categoryName);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName, data.categoryObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName, data.categoryObjId, data.displayFormat], actionName, isValidData);
         },
 
         updateRewardSetting: function updateRewardSetting (data) {

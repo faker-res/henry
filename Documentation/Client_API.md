@@ -7281,6 +7281,8 @@ API说明：
 			* pageSetting - 网站配置
 			* skin - 皮肤管理
 			* reward - 优惠配置 (新增全部分类组: 排序号 orderNumber)
+			* description - 文本说明
+			* registrationGuidance - 注册引导
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理

@@ -6467,94 +6467,6 @@ var dbPlatform = {
                         }
                     }
                 )
-
-                //
-                // if (setting[holder].hasOwnProperty('onClickAction')) {
-                //     setting.onClickAction = setting[holder].onClickAction;
-                // }
-                // if (setting[holder].imageUrl){
-                //     setting.imageUrl = setting[holder].imageUrl;
-                // }
-                // if (setting[holder].newPageDetail){
-                //     setting.newPageDetail = setting[holder].newPageDetail;
-                // }
-                // if (setting[holder].newPageUrl){
-                //     setting.newPageUrl = setting[holder].newPageUrl;
-                // }
-                // if (setting[holder].activityDetail){
-                //     setting.activityDetail = setting[holder].activityDetail;
-                // }
-                // if (setting[holder].activityUrl){
-                //     setting.activityUrl = setting[holder].activityUrl;
-                // }
-                // if (setting[holder].rewardEventObjId){
-                //     setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
-                // }
-                // if (setting[holder].route){
-                //     setting.route = setting[holder].route;
-                // }
-                // if (setting[holder].gameCode){
-                //     setting.gameCode = setting[holder].gameCode;
-                // }
-                //
-                // //for pageSetting
-                // if (setting[holder].hasOwnProperty('skin')) {
-                //     setting.skin = setting[holder].skin;
-                // }
-                // if (setting[holder].htmlTextColor){
-                //     setting.htmlTextColor = setting[holder].htmlTextColor;
-                // }
-                // if (setting[holder].textColor1){
-                //     setting.textColor1 = setting[holder].textColor1;
-                // }
-                // if (setting[holder].textColor2){
-                //     setting.textColor2 = setting[holder].textColor2;
-                // }
-                // if (setting[holder].mainNavTextColor){
-                //     setting.mainNavTextColor = setting[holder].mainNavTextColor;
-                // }
-                // if (setting[holder].mainNavActiveTextColor){
-                //     setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
-                // }
-                // if (setting[holder].mainNavActiveBorderColor){
-                //     setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
-                // }
-                // if (setting[holder].navTextColor){
-                //     setting.navTextColor = setting[holder].navTextColor;
-                // }
-                // if (setting[holder].navActiveTextColor){
-                //     setting.navActiveTextColor = setting[holder].navActiveTextColor;
-                // }
-                // if (setting[holder].formBgColor){
-                //     setting.formBgColor = setting[holder].formBgColor;
-                // }
-                // if (setting[holder].formLabelTextColor){
-                //     setting.formLabelTextColor = setting[holder].formLabelTextColor;
-                // }
-                // if (setting[holder].formInputTextColor){
-                //     setting.formInputTextColor = setting[holder].formInputTextColor;
-                // }
-                // if (setting[holder].formBorderBottomColor){
-                //     setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
-                // }
-                // if (setting[holder].formHoverBottomFrameColor){
-                //     setting.formHoverBottomFrameColor = setting[holder].formHoverBottomFrameColor;
-                // }
-                // if (setting[holder].formHoverColor){
-                //     setting.formHoverColor = setting[holder].formHoverColor;
-                // }
-                // if (setting[holder].popUpListFrameColor){
-                //     setting.popUpListFrameColor = setting[holder].popUpListFrameColor;
-                // }
-                // if (setting[holder].popUpListKeyInColor){
-                //     setting.popUpListKeyInColor = setting[holder].popUpListKeyInColor;
-                // }
-                // if (setting[holder].popUpListLabelColor){
-                //     setting.popUpListLabelColor = setting[holder].popUpListLabelColor;
-                // }
-                // if (setting[holder].popUpListBgColor){
-                //     setting.popUpListBgColor = setting[holder].popUpListBgColor;
-                // }
             }
             if (setting.pc) {
                 delete setting.pc;
@@ -6620,7 +6532,7 @@ var dbPlatform = {
             return query;
         }
 
-        function restructureDataFormat (settingList, code) {
+        async function restructureDataFormat (settingList, code) {
             if (settingList && settingList.length && code && code == "recommendation") {
                 let navList = [];
                 let bodyList = [];
@@ -6648,6 +6560,11 @@ var dbPlatform = {
                 let objList = {};
                 let allObjList = {name: "全部", list: []};
                 let arrayList = [];
+
+                let defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                if (defaultCategory && defaultCategory.displayFormat){
+                    allObjList.displayFormat = defaultCategory.displayFormat;
+                }
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
@@ -6661,10 +6578,6 @@ var dbPlatform = {
                         }
                     }
                 )
-
-                Object.keys(objList).forEach(key => {
-                    arrayList.push({name: key, list: objList[key]})
-                })
 
                 if (arrayList && allObjList){
                     // sort allObjList based on orderNumber
@@ -6680,6 +6593,11 @@ var dbPlatform = {
                     }
                     arrayList.push(allObjList);
                 }
+
+                Object.keys(objList).forEach(key => {
+                    let tempDisplayFormat = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.displayFormat ? objList[key][0].categoryObjId.displayFormat : null;
+                    arrayList.push({name: key, displayFormat: tempDisplayFormat, list: objList[key]})
+                })
 
                 return arrayList
             }
