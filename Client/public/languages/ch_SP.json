@@ -686,6 +686,8 @@
   "BankDetail": "银行资料",
   "Admin": "后台权限",
   "ALL": "所有",
+  "scriptDescription": "文本说明",
+  "SCRIPT DESCRIPTION": "文本说明",
   "ALL CATEGORY": "全部分类",
   "Department": "部门",
   "User": "用户",

@@ -6214,7 +6214,7 @@ var dbPlatform = {
     },
 
     getFrontEndConfig: function (platformId, code, clientType) {
-        if (clientType && (clientType != 1 && clientType != 2 && clientType != 4)){
+        if (code != 'description' && (!clientType || (clientType && clientType != 1 && clientType != 2 && clientType != 4))){
             return Promise.reject({
                 name: "DataError",
                 message: "ClientType is not available"
@@ -6256,6 +6256,9 @@ var dbPlatform = {
                             break;
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            break;
+                        case 'description':
+                            prom = dbconfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1, isVisible: 1}).lean();
                             break;
                         case 'partnerPageSetting':
                             prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
