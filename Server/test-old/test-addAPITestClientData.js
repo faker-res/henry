@@ -17,7 +17,7 @@ var testGameTypes = require("../test/testGameTypes");
 
 var mongoose = require('mongoose');
 var Q = require("q");
-var dataGenerator = require("./../test_modules/dataGenerator.js");
+var dataGenerator = require("../test_modules/dataGenerator.js");
 var commonTestFun = require('../test_modules/commonTestFunc');
 
 describe("Create test API client data", function () {
