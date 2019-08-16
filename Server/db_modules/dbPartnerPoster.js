@@ -90,6 +90,9 @@ let dbPartnerPoster = {
         let posterBuffer = await rp.get({
             url: posterUsed.posterImage.url,
             encoding: null
+        }).catch(err => {
+            console.log('posterUsed.posterImage.url', posterUsed.posterImage.url);
+            console.error('posterBuffer err', err);
         });
 
         console.log('getPartnerPoster 4', new Date())
