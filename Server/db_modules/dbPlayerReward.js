@@ -8045,7 +8045,6 @@ let dbPlayerReward = {
                         }
                         // check if the player has been pre-set
                         else if (presetList && presetList.randomReward){
-                            console.log('check presetList', presetList);
                             let temp = selectedRewardParam.filter( p => p.id == presetList.randomReward && Number.isFinite(p.possibility))
                             selectedReward = temp && temp.length ? temp[0] : null;
                             if (selectedReward){
