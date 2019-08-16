@@ -3013,9 +3013,9 @@ var dbRewardEvent = {
                             returnData.condition.reward.status = 2;
                         }
 
-                        let matchIPAddress = rewardSpecificData[1][0];
-                        let matchPhoneNum = rewardSpecificData[1][1];
-                        let matchMobileDevice = rewardSpecificData[1][2];
+                        matchIPAddress = rewardSpecificData[1][0];
+                        matchPhoneNum = rewardSpecificData[1][1];
+                        matchMobileDevice = rewardSpecificData[1][2];
 
                         let totalRewardAppliedInInterval = rewardSpecificData[2];
 

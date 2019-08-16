@@ -8286,12 +8286,12 @@ let dbPlayerReward = {
                         let totalValidConsumption = rewardSpecificData[0][0];
                         let consumptionPlayers = rewardSpecificData[0][1]
                         let totalRewardAppliedInInterval = rewardSpecificData[1];
-                        selectedRewardParam = selectedRewardParam[0];
-                        let playerValidConsumption = selectedReward && selectedRewardParam.playerValidConsumption;
+                        selectedReward = selectedRewardParam[0];
+                        let playerValidConsumption = selectedReward && selectedReward.playerValidConsumption;
                         selectedTopUp = rewardData.selectedTopup;
                         let correctTopUpType = getCorrectTopUpType(eventData, selectedTopUp);
 
-                        if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (totalRewardAppliedInInterval >= selectedRewardParam.maxRewardAmount)) {
+                        if (selectedReward && selectedReward.maxRewardAmount && (totalRewardAppliedInInterval >= selectedReward.maxRewardAmount)) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
@@ -8317,19 +8317,19 @@ let dbPlayerReward = {
                         if (totalValidConsumption >= playerValidConsumption) {
                             consumptionPlayers.forEach(player => {
                                 if (player && player.validAmount && (parseFloat(player.validAmount) > 0)) {
-                                    let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
+                                    let splitRewardAmount = player.validAmount * selectedReward.rewardPercentage;
                                     referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
                                 }
                             });
 
-                            rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
-                            if (selectedReward && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
+                            rewardAmount = totalValidConsumption * selectedReward.rewardPercentage;
+                            if (selectedReward && selectedReward.maxRewardAmount && (rewardAmount > selectedReward.maxRewardAmount)) {
                                 rewardAmount = selectedReward.maxRewardAmount;
                             }
 
                             let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                            if (currentAmount >= selectedRewardParam.maxRewardAmount) {
-                                rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
+                            if (currentAmount >= selectedReward.maxRewardAmount) {
+                                rewardAmount = selectedReward.maxRewardAmount - totalRewardAppliedInInterval;
                                 let usedAmount = 0;
                                 referralRewardDetails.forEach(item => {
                                     if (rewardAmount >= item.rewardAmount) {
@@ -8342,8 +8342,8 @@ let dbPlayerReward = {
                                 });
                             }
 
-                            selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
-                            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+                            selectedReward.spendingTimes = selectedReward.spendingTimes || 1;
+                            spendingAmount = rewardAmount * selectedReward.spendingTimes;
                         } else {
                             return Q.reject({
                                 name: "DataError",
