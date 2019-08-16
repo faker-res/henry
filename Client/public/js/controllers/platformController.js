@@ -25293,6 +25293,9 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'scriptDescription':
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25348,6 +25351,9 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'scriptDescription':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                 }
@@ -43309,6 +43315,71 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.loadScriptSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndScriptSetting', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndScriptSetting', data.data);
+                        if (data && data.data) {
+                            vm.scriptSettingData = data.data;
+                        }
+                    })
+
+                }, function (err) {
+                    console.error('getFrontEndScriptSetting error: ', err);
+                }, true);
+            };
+
+            vm.scriptSetting = function (noModal, isDelete, eventObjectId, isVisible) {
+                vm.scriptsData = {};
+                if (eventObjectId){
+                    let index = vm.scriptSettingData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    vm.scriptsData._id = vm.scriptSettingData[index]._id
+
+                    if (noModal) {
+                        if(isDelete){
+                            vm.scriptsData.status = 2;
+                        }else{
+                            vm.scriptsData.isVisible = isVisible;
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                            console.log("saveFrontEndScriptSetting", data);
+                        }, function (err) {
+                            console.log("saveFrontEndScriptSetting err", err);
+                        });
+
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+
+                    }else {
+                        $('#scriptDescriptionModal').modal();
+
+                        if (index != -1) {
+                            vm.scriptsData.title = vm.scriptSettingData[index].title;
+                            vm.scriptsData.instructions = vm.scriptSettingData[index].instructions;
+                        }
+                    }
+                }else{
+                    $('#scriptDescriptionModal').modal();
+
+                }
+            };
+
+            vm.submitScriptSetting = () => {
+                $('#scriptDescriptionLoader').show();
+                vm.scriptsData.platformObjId = vm.filterFrontEndSettingPlatform;
+
+                socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                    console.log("saveFrontEndScriptSetting", data);
+                    $('#scriptDescriptionLoader').hide();
+                    $('#scriptDescriptionModal').modal('hide');
+
+                }, function (err) {
+                    console.log("saveFrontEndScriptSetting err", err);
+                });
+
+                vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
             };
 
             vm.checkProposalStepUpdatePermission = () => {

@@ -8035,6 +8035,7 @@ let dbPlayerReward = {
                         selectedRewardParam = selectedRewardParam.filter( p => Number.isFinite(p.possibility));
                         // check if the player is first time and if there is pre-set reward for first time player
                         console.log("checking applyRewardTimes", [playerData.name, applyRewardTimes])
+                        console.log("pre-checking");
                         if (applyRewardTimes == 0 && eventData.condition && eventData.condition.defaultRewardTypeInTheFirstTime && eventData.condition.defaultRewardTypeInTheFirstTime != 0){
                             if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false) {
                                 selectedRewardParam = selectedRewardParam.filter( p => p.rewardType != 2 && p.rewardType != 3 && p.rewardType != 4 && Number.isFinite(p.possibility))
@@ -8045,6 +8046,7 @@ let dbPlayerReward = {
                         }
                         // check if the player has been pre-set
                         else if (presetList && presetList.randomReward){
+                            console.log('check presetList', presetList);
                             let temp = selectedRewardParam.filter( p => p.id == presetList.randomReward && Number.isFinite(p.possibility))
                             selectedReward = temp && temp.length ? temp[0] : null;
                             if (selectedReward){
@@ -8057,6 +8059,7 @@ let dbPlayerReward = {
 
                         }
 
+                        console.log('check selectedReward', selectedReward);
                         // check if the obtained pre-set reward is promoCode and if the player is forbidden from applying promo code
                         if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
                             selectedReward = null;
@@ -8280,7 +8283,7 @@ let dbPlayerReward = {
                     case constRewardType.REFERRAL_REWARD_GROUP:
                         let totalValidConsumption = rewardSpecificData[0];
                         let totalRewardAppliedInInterval = rewardSpecificData[1];
-                        let selectedReward = selectedRewardParam[0];
+                        selectedReward = selectedRewardParam[0];
                         let playerValidConsumption = selectedReward && selectedReward.playerValidConsumption;
                         selectedTopUp = rewardData.selectedTopup;
                         let correctTopUpType = getCorrectTopUpType(eventData, selectedTopUp);

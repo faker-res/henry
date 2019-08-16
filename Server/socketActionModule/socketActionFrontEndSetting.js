@@ -11,6 +11,20 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        saveFrontEndScriptSetting: function saveFrontEndScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndScriptSetting, [data], actionName, isValidData);
+        },
+
+        getFrontEndScriptSetting: function getFrontEndScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndScriptSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         saveFrontEndPopUpAdvSetting: function saveFrontEndPopUpAdvSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
