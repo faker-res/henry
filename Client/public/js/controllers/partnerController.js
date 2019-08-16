@@ -1169,6 +1169,11 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.selectedSettlePartnerCommPrev.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
+                        if (vm.selectedSettlePartnerCommPrev.totalPartnerCount) {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = vm.selectedSettlePartnerCommPrev.totalPartnerCount - (vm.selectedSettlePartnerCommPrev.totalValidPartnerCount || 0);
+                        } else {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = 0
+                        }
                         vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
