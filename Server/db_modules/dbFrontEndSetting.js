@@ -42,14 +42,15 @@ var dbFrontEndSetting = {
         }
     },
 
-    saveFrontEndRewardCategory: (platformObjId, categoryName, categoryObjId) => {
+    saveFrontEndRewardCategory: (platformObjId, categoryName, categoryObjId, displayFormat) => {
         if (categoryObjId && categoryName){
-            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObjId)}, {categoryName: categoryName}, {new: true}).lean();
+            return dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObjId)}, {categoryName: categoryName, displayFormat: displayFormat}, {new: true}).lean();
         }
         else if (platformObjId && categoryName){
             let dataObj ={
                 platformObjId: ObjectId(platformObjId),
-                categoryName: categoryName
+                categoryName: categoryName,
+                displayFormat: displayFormat
             }
             let record = new dbConfig.collection_frontEndRewardCategory(dataObj);
             return record.save();

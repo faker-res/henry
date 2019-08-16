@@ -225,12 +225,6 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
                             .full-width-input-block
-                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control(ng-model='vm.rewardSetting.pc.displayFormat')
-                                        option(value='1') {{ "list" | translate}}
-                                        option(value='2') {{ "threeInARow" | translate}}
-                            .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.pc.requiredToLogIn")
