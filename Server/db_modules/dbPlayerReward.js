@@ -8283,7 +8283,7 @@ let dbPlayerReward = {
                     case constRewardType.REFERRAL_REWARD_GROUP:
                         let totalValidConsumption = rewardSpecificData[0];
                         let totalRewardAppliedInInterval = rewardSpecificData[1];
-                        selectedReward = selectedRewardParam[0];
+                        let selectedReward = selectedRewardParam[0];
                         let playerValidConsumption = selectedReward && selectedReward.playerValidConsumption;
                         selectedTopUp = rewardData.selectedTopup;
                         let correctTopUpType = getCorrectTopUpType(eventData, selectedTopUp);
