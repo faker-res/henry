@@ -8057,7 +8057,6 @@ let dbPlayerReward = {
 
                         }
 
-                        console.log('check selectedReward', selectedReward);
                         // check if the obtained pre-set reward is promoCode and if the player is forbidden from applying promo code
                         if (eventData.condition && eventData.condition.isNotEntitledWhenForbidPromoCode && selectedReward && selectedReward.templateObjId && playerData && playerData.permission && playerData.permission.hasOwnProperty("allowPromoCode") && playerData.permission.allowPromoCode === false){
                             selectedReward = null;
