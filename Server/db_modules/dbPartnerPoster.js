@@ -14,7 +14,7 @@ const dbconfig = require("./../modules/dbproperties");
 canvas.registerFont(resolve(__dirname, "../assets/font/SourceHanSerifSC-Regular.otf"), {family: "Han Serif SC"});
 
 let dbPartnerPoster = {
-    getTextCanvas (text, width = 317, height = 50, font = '12px "Han Serif SC"', style = "white") {
+    getTextCanvas (text, width = 634, height = 100, font = '25px "Han Serif SC"', style = "white") {
         let textCanvas = canvas.createCanvas(width, height);
         let ctx = textCanvas.getContext("2d");
         ctx.textAlign = "center";
@@ -100,7 +100,7 @@ let dbPartnerPoster = {
         let textCanvas = dbPartnerPoster.getTextCanvas(`专属链接：${url}`);
         let textBuffer = textCanvas.toBuffer();
 
-        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 120);
+        let qrCanvas = await dbPartnerPoster.getQrInCanvas(url, 240);
         let qrBuffer = qrCanvas.toBuffer();
         let qrB64 = qrCanvas.toDataURL();
 
@@ -108,8 +108,8 @@ let dbPartnerPoster = {
 
         let completePosterBuffer = await sharp(posterBuffer)
             .composite([
-                {input: qrBuffer, top: 470, left: 127},
-                {input: textBuffer, top: 604, left: 29}
+                {input: qrBuffer, top: 941, left: 254},
+                {input: textBuffer, top: 1209, left: 58}
             ])
             .png()
             .toBuffer();
