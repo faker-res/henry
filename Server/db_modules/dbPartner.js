@@ -41,7 +41,7 @@ let moment = require('moment-timezone');
 const math = require('mathjs');
 
 let env = require('../config/env').config();
-
+var request = require('request');
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
@@ -2667,7 +2667,7 @@ let dbPartner = {
                                 errorMessage: "Partner does not have valid payment information"
                             });
                         }
-                    
+
                         if ((parseFloat(partner.credits).toFixed(2)) < parseFloat(amount)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -9428,6 +9428,99 @@ let dbPartner = {
         );
     },
 
+    urlShortener: (data) => {
+
+            let weiboAppKey = env.weiboAppKey;
+            let urls = data.urls;
+            let proms = [];
+            urls.forEach(url =>{
+                let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let prom = getUrlShortner(uri);
+                proms.push(prom);
+            })
+
+            return Promise.all(proms).then(
+                data=> {
+                    let result = [];
+                    data.forEach( (item, index) => {
+                        try {
+                             item = JSON.parse(item);
+                             item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                             item.no = index + 1;
+                             result.push(item);
+                        }
+                         catch(err) {
+                             console.log('MT --checking JSON INVALID', item);
+                             result.push({no: index + 1 , url_long: urls[index]});
+                        }
+                    })
+                    console.log('MT --checking urlShortener', result);
+                    return result
+                },
+                err => {
+                    console.log(err);
+                }
+            )
+    },
+    getPromoShortUrl: (data) => {
+        // display the partner short url or generate new one
+        let fullUrl = data.url;
+        let partnerNo = fullUrl.split('/');
+        let urlExist = false;
+        let result;
+        if( partnerNo && partnerNo.length > 1) {
+            partnerNo = partnerNo && partnerNo[partnerNo.length - 1] ? partnerNo[partnerNo.length - 1] : null;
+        }
+        let preventBlockUrl;
+
+        return dbconfig.collection_preventBlockUrl.find().lean().then(
+            preventBlocks => {
+                // random pick one of preventBlock urls
+                preventBlockUrl = preventBlocks[Math.floor(Math.random() * preventBlocks.length)];
+                return dbconfig.collection_partner.findOne({partnerId: partnerNo}).lean()
+            }
+        )
+        .then(
+            partner => {
+                if (!partner) {
+                    return Promise.reject({message: "Partner not found."});
+                }
+                // if promote short url is there , then direct return it
+                if (partner.shortUrl) {
+                    urlExist = true;
+                    return { shortUrl: partner.shortUrl, partnerName: partner.partnerName };
+                };
+                // if not exist generate new weibo short link
+                let randomUrl = preventBlockUrl.url + data.url;
+                console.log('MT --checking randomUrl', randomUrl);
+                let sendData = {urls: [randomUrl]};
+                return dbPartner.urlShortener(sendData);
+            }
+        )
+        .then(
+            (urlData) => {
+                if (!urlData) {
+                    return Promise.reject({message: "ShortenerUrl failed."});
+                }
+                if (urlExist) {
+                    return { shortUrl: urlData.shortUrl, partnerName: urlData.partnerName };
+                }
+                urlData = urlData && urlData[0] ? urlData[0]: null;
+                console.log('checking MT --update shortUrl', partnerNo, urlData);
+                return dbconfig.collection_partner.findOneAndUpdate({partnerId: partnerNo}, {shortUrl: urlData.url_short}, {new: true}).lean()
+            }
+        )
+        .then(
+            partner => {
+                if (!partner || !partner.shortUrl) {
+                    return Promise.reject({message: "Update shortenerUrl failed."});
+                }
+                result = { 'shortUrl': partner.shortUrl, 'partnerName': partner.partnerName };
+                return result;
+            }
+        )
+    },
+
     deleteMail: (partnerId, mailObjId) => {
         return dbconfig.collection_playerMail.findOne({_id: mailObjId}).populate(
             {path: "recipientId", model: dbconfig.collection_partner}
@@ -14099,6 +14192,18 @@ function getPartnerAllCommissionAmount (platformObjId, partnerObjId, currentWith
             );
         }
     ).catch(errorUtils.reportError);
+}
+
+function getUrlShortner(url){
+    return new Promise((resolve, reject) => {
+        return request(url, function (error, response, body){
+            let result = '';
+            if (body) {
+                result = body;
+            }
+            resolve(result);
+        })
+    })
 }
 
 function getAllChildrenPartners (partnerObjId, holder, count) {

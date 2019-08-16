@@ -175,6 +175,8 @@ var partnerSchema = new Schema({
     //social media info
     qq: {type: String},
     wechat: {type: String},
+    // short url for promote
+    shortUrl: {type: String},
     // commission type
     commissionType: {type: Number, default: 0}
 });

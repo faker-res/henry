@@ -4,42 +4,69 @@
             .panel-heading.panel-heading-sm
                 label {{"UrlShortener" | translate}}
             .panel-body.common-right-sub-panel-body
-                label
-                    {{'Redirect Url' | translate}}
-                table
-                    tr
-                        td(ng-init="vm.choosePreventUrlType=true", width="5%")
-                            input.form-control(type="radio", ng-model="vm.choosePreventUrlType", ng-value="true")
-                        td(width="50%")
-                            div
+                div.col-md-12
+                    button.btn.btn-primary.common-button(ng-click="vm.showPreventBlockUrlSetting=false;vm.showGeneratePreventBlockUrlPage=true") {{"UrlShortener" | translate}}
+                    button.btn.btn-primary.common-button(ng-click="vm.showGeneratePreventBlockUrlPage=false;vm.showPreventBlockUrlSetting=true;") {{"UrlShortener Setting" | translate}}
+                div(ng-if="vm.showPreventBlockUrlSetting")
+                    table.simple-table(style="width:100%")
+                        thead
+                            tr
+                                th {{no}}
+                                th {{"UrlShortener" | translate}}
+                                th
+                        tbody
+                            tr(ng-repeat="(i,v) in vm.allPreventBlockUrls")
+                                td
+                                    {{i + 1}}
+                                td
+                                    {{v.url}}
+                                td
+                                    button.btn.btn-danger.common-button(ng-click="vm.deletePreventBlockUrl(v.url)") {{ 'Delete' | translate }}
+                                tr
+                                    td
+                                    td
+                                        input.form-control(type="text", ng-model="vm.newPreventBlockUrl")
+                                    td
+                                        button.btn.btn-primary.common-button(ng-click="vm.savePreventBlockUrl()") {{ 'ADD' | translate }}
 
-                                select.form-control(ng-model="vm.preventUrlByPreset", ng-click="vm.choosePreventUrlType=true")
-                                    option(value="") {{'Please Select Redirect Url' | translate}}
-                                    option(value="https://www.579832.com/") https://www.579832.com/
-                                    option(value="https://www.573595.com/") https://www.573595.com/
-                    tr
-                        td(width="5%")
-                            input.form-control(type="radio", ng-model="vm.choosePreventUrlType", CHECKED, ng-value="false")
-                        td(width="50%")
-                            input.form-control(type="text", ng-model="vm.keyOwnPreventUrl", placeholder='{{"alternative...ex:" | translate}}' + "https://www.579832.com/", ng-click="vm.choosePreventUrlType=false", width="40%")
                 br
-                textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
-                {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
-                button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') {{'Convert Url' | translate}}
-                span#urlShortenerSpin.collapse
-                    i.fa.fa-spinner.fa-spin
-
-                table.simple-table(style="width:100%")
-                    thead
+                br
+                div(ng-if="vm.showGeneratePreventBlockUrlPage")
+                    label
+                        {{'Redirect Url' | translate}}
+                    table
                         tr
-                            th {{'Seq No' | translate}}
-                            th {{'Original Url' | translate}}
-                            th {{'ShortenerUrl' | translate}}
-                    tbody
-                        tr(ng-repeat='(i,v) in vm.urlData')
-                            td {{v.no}}
-                            td {{v.url_long}}
-                            td(ng-if="!v.url_short")
-                                a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") {{'Retrieve Again' | translate}}
-                            td(ng-click="vm.generateSingleUrl(v.url_long, v.no)", ng-if="v.url_short") {{v.url_short}}
-                button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') {{'EXPORT_EXCEL' | translate}}
+                            td(ng-init="vm.choosePreventUrlType=true", width="5%")
+                                input.form-control(type="radio", ng-model="vm.choosePreventUrlType", ng-value="true")
+                            td(width="50%")
+                                div
+                                    select.form-control(ng-model="vm.preventUrlByPreset", ng-click="vm.choosePreventUrlType=true")
+                                        option(value="") {{'Please Select Redirect Url' | translate}}
+                                        option(ng-repeat="(i,v) in vm.allPreventBlockUrls" ng-value="v.url") {{v.url}}
+
+                        tr
+                            td(width="5%")
+                                input.form-control(type="radio", ng-model="vm.choosePreventUrlType", CHECKED, ng-value="false")
+                            td(width="50%")
+                                input.form-control(type="text", ng-model="vm.keyOwnPreventUrl", placeholder='{{"alternative...ex:" | translate}}' + "https://www.579832.com/", ng-click="vm.choosePreventUrlType=false", width="40%")
+                    br
+                    textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
+                    {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
+                    button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') {{'Convert Url' | translate}}
+                    span#urlShortenerSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+
+                    table.simple-table(style="width:100%")
+                        thead
+                            tr
+                                th {{'Seq No' | translate}}
+                                th {{'Original Url' | translate}}
+                                th {{'ShortenerUrl' | translate}}
+                        tbody
+                            tr(ng-repeat='(i,v) in vm.urlData')
+                                td {{v.no}}
+                                td {{v.url_long}}
+                                td(ng-if="!v.url_short")
+                                    a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") {{'Retrieve Again' | translate}}
+                                td(ng-click="vm.generateSingleUrl(v.url_long, v.no)", ng-if="v.url_short") {{v.url_short}}
+                    button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') {{'EXPORT_EXCEL' | translate}}

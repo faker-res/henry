@@ -1563,6 +1563,9 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                     case "UrlShortener":
+                        vm.getAllPreventBlockUrl();
+                        vm.showGeneratePreventBlockUrlPage = true;
+                        vm.showPreventBlockUrlSetting = false;
                         break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
@@ -1591,22 +1594,21 @@ define(['js/app'], function (myApp) {
                     }
                     return item.trim();
                 });
-                let sendData = { "urls": urls }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                let sendData = { "urls": urls };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         vm.urlData = data.data ? data.data : [];
                     })
-                })
+                });
             }
 
             vm.generateSingleUrl = function(url, no) {
-                let sendData = { "urls": [ url ] }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
@@ -1616,8 +1618,43 @@ define(['js/app'], function (myApp) {
                                 return item;
                             }
                         });
-                    });
-                })
+                    })
+                });
+            }
+
+            vm.savePreventBlockUrl = function () {
+                let sendData = {'url': vm.newPreventBlockUrl};
+                socketService.$socket($scope.AppSocket, 'savePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+            vm.deletePreventBlockUrl = function (url) {
+                let sendData = {'url': url};
+                socketService.$socket($scope.AppSocket, 'deletePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+            vm.getAllPreventBlockUrl = function () {
+                socketService.$socket($scope.AppSocket, 'getAllPreventBlockUrl', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        data = data && data.data ? data.data : [];
+                        vm.allPreventBlockUrls = data;
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
             }
 
             vm.exportShortUrlToExcel = function () {
