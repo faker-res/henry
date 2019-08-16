@@ -180,7 +180,7 @@ var PlatformServiceImplement = function () {
     };
 
     this.getFrontEndConfig.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data.platformId && data.code && data.clientType);
+        let isValidData = Boolean(data.platformId && data.code);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndConfig, [data.platformId, data.code, data.clientType], isValidData, null, null, true);
     };
 

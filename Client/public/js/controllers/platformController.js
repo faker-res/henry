@@ -43322,6 +43322,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndScriptSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.scriptSettingData = data.data;
                         }
                     })
@@ -43365,6 +43366,18 @@ define(['js/app'], function (myApp) {
 
                 }
             };
+
+            vm.updateScriptSetting = () => {
+                socketService.$socket($scope.AppSocket, 'updateScriptSetting', {dataList: vm.scriptSettingData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateScriptSetting is done', data);
+                            vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            },
 
             vm.submitScriptSetting = () => {
                 $('#scriptDescriptionLoader').show();

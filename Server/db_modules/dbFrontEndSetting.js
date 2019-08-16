@@ -4,6 +4,42 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
 
+    updateScriptSetting: (dataList, deletedList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            title: data.title || null,
+                            instructions: data.instructions || null,
+                            isVisible: data.isVisible
+                        };
+                        prom.push(getAndUpdateScriptSetting (ObjectId(data._id), updateQuery))
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateScriptSetting (ObjectId(data), updateQuery))
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdateScriptSetting (eventObjectId, updateQuery) {
+            return dbConfig.collection_frontEndScriptDescription.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
+    },
 
     saveFrontEndScriptSetting: (data) => {
         if (data) {
@@ -285,7 +321,7 @@ var dbFrontEndSetting = {
     getFrontEndScriptSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbConfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbConfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
         }
 
         return prom;

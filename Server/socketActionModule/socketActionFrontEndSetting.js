@@ -11,6 +11,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        updateScriptSetting: function  updateScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateScriptSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
         saveFrontEndScriptSetting: function saveFrontEndScriptSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
