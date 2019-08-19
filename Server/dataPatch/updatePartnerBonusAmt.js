@@ -21,7 +21,7 @@ dbconfig.collection_platform.find({}, {_id: 1}).lean().cursor().eachAsync(
             return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
         }
 
-        dbconfig.collection_partner.find({platform: platform._id, parent: null}).cursor().eachAsync(
+        dbconfig.collection_partner.find({platform: platform._id}).cursor().eachAsync(
             partner => {
 
                 dbconfig.collection_proposal.aggregate([
