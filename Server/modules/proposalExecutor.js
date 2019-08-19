@@ -819,7 +819,8 @@ var proposalExecutor = {
                             sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             if (proposalData.data.playerObjId && proposalData.data.platformId && proposalData.data.updateData.phoneNumber) {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
-                                checkSimilarPhoneForPlayers(proposalData.data.playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
+                                let playerObjId = proposalData.data.playerObjId._id || proposalData.data.playerObjId;
+                                checkSimilarPhoneForPlayers(playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
                             }
                             deferred.resolve(data);
                         },

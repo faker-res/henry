@@ -832,8 +832,7 @@ var proposal = {
             .then(
                 proposalData => {
                     if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name == constProposalType.UPDATE_PLAYER_PHONE
-                        && proposalData.data && proposalData.data.updateData && Object.keys(proposalData.data.updateData)[0]
-                        && Object.keys(proposalData.data.updateData)[0] == 'phoneNumber' && proposalData.status && proposalData.status != constProposalStatus.PENDING) {
+                        && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.phoneNumber && proposalData.status && proposalData.status != constProposalStatus.PENDING) {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
