@@ -104,6 +104,8 @@ let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPo
 let frontEndPopUpSettingSchema = require('./../schema/frontEndPopUpSetting');
 let frontEndGameSettingSchema = require('./../schema/frontEndGameSetting');
 let frontEndRewardCategorySchema = require('./../schema/frontEndRewardCategory');
+let frontEndRegistrationGuidanceCategorySchema = require('./../schema/frontEndRegistrationGuidanceCategory');
+let frontEndRegistrationGuidanceSettingSchema = require('./../schema/frontEndRegistrationGuidanceSetting');
 let frontEndRewardSettingSchema = require('./../schema/frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
@@ -294,6 +296,8 @@ let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularR
 let frontEndPopUpSettingModel = db_admin.model('frontEndPopUpSetting', frontEndPopUpSettingSchema, 'frontEndPopUpSetting');
 let frontEndGameSettingModel = db_admin.model('frontEndGameSetting', frontEndGameSettingSchema, 'frontEndGameSetting');
 let frontEndRewardCategoryModel = db_admin.model('frontEndRewardCategory', frontEndRewardCategorySchema, 'frontEndRewardCategory');
+let frontEndRegistrationGuidanceCategoryModel = db_admin.model('frontEndRegistrationGuidanceCategory', frontEndRegistrationGuidanceCategorySchema, 'frontEndRegistrationGuidanceCategory');
+let frontEndRegistrationGuidanceSettingModel = db_admin.model('frontEndRegistrationGuidanceSetting', frontEndRegistrationGuidanceSettingSchema, 'frontEndRegistrationGuidanceSetting');
 let frontEndRewardSettingModel = db_admin.model('frontEndRewardSetting', frontEndRewardSettingSchema, 'frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
@@ -808,6 +812,8 @@ var dbProperties = {
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
     collection_frontEndPopUpSetting: frontEndPopUpSettingModel,
     collection_frontEndRewardCategory: frontEndRewardCategoryModel,
+    collection_frontEndRegistrationGuidanceCategory: frontEndRegistrationGuidanceCategoryModel,
+    collection_frontEndRegistrationGuidanceSetting: frontEndRegistrationGuidanceSettingModel,
     collection_frontEndGameSetting: frontEndGameSettingModel,
     collection_frontEndRewardSetting: frontEndRewardSettingModel,
     collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
