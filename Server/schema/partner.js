@@ -176,7 +176,7 @@ var partnerSchema = new Schema({
     qq: {type: String},
     wechat: {type: String},
     // short url for promote
-    shortUrl: {type: String},
+    shortUrl: {type: JSON},
     // commission type
     commissionType: {type: Number, default: 0}
 });

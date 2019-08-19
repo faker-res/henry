@@ -9465,11 +9465,14 @@ let dbPartner = {
     getPromoShortUrl: (data) => {
         // display the partner short url or generate new one
         let fullUrl = data.url;
-        let partnerNo = fullUrl.split('/');
+        let urlArr = fullUrl.split('/');
         let urlExist = false;
         let result;
-        if( partnerNo && partnerNo.length > 1) {
-            partnerNo = partnerNo && partnerNo[partnerNo.length - 1] ? partnerNo[partnerNo.length - 1] : null;
+        let partnerData;
+        let partnerNo;
+        let urlPost;
+        if( urlArr && urlArr.length > 1) {
+            partnerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
         }
         let preventBlockUrl;
 
@@ -9485,10 +9488,13 @@ let dbPartner = {
                 if (!partner) {
                     return Promise.reject({message: "Partner not found."});
                 }
+                partnerData = partner;
+                urlArr.pop();
+                urlPost = urlArr.join('/');
                 // if promote short url is there , then direct return it
-                if (partner.shortUrl) {
+                if (partnerData.shortUrl && partnerData.shortUrl[urlPost]) {
                     urlExist = true;
-                    return { shortUrl: partner.shortUrl, partnerName: partner.partnerName };
+                    return { shortUrl: partnerData.shortUrl, partnerName: partnerData.partnerName };
                 };
                 // if not exist generate new weibo short link
                 let randomUrl = preventBlockUrl.url + data.url;
@@ -9503,11 +9509,16 @@ let dbPartner = {
                     return Promise.reject({message: "ShortenerUrl failed."});
                 }
                 if (urlExist) {
-                    return { shortUrl: urlData.shortUrl, partnerName: urlData.partnerName };
+                    return { shortUrl: partnerData.shortUrl, partnerName: urlData.partnerName };
                 }
                 urlData = urlData && urlData[0] ? urlData[0]: null;
                 console.log('checking MT --update shortUrl', partnerNo, urlData);
-                return dbconfig.collection_partner.findOneAndUpdate({partnerId: partnerNo}, {shortUrl: urlData.url_short}, {new: true}).lean()
+
+                if (!partnerData.shortUrl) {
+                    partnerData.shortUrl = {};
+                }
+                partnerData.shortUrl[urlPost] = urlData.url_short || '';
+                return dbconfig.collection_partner.findOneAndUpdate({partnerId: partnerNo}, {shortUrl: partnerData.shortUrl}, {new: true}).lean()
             }
         )
         .then(
@@ -9515,7 +9526,8 @@ let dbPartner = {
                 if (!partner || !partner.shortUrl) {
                     return Promise.reject({message: "Update shortenerUrl failed."});
                 }
-                result = { 'shortUrl': partner.shortUrl, 'partnerName': partner.partnerName };
+                let shortUrl = partner.shortUrl[urlPost];
+                result = { 'shortUrl': shortUrl, 'partnerName': partner.partnerName };
                 return result;
             }
         )
