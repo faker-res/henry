@@ -6580,7 +6580,7 @@ API说明：
     * 请求内容
         * ```
             {
-                url: “4”, // 代理网址： 例 www.xindeli666.com/123
+                url: “www.xindeli666.com/123”, // 代理网址
             }
     * 响应内容：
         * ```
@@ -7306,7 +7306,7 @@ API说明：
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
-					
+
 <div id='获取平台推荐人奖励設置'></div>
 
 * **19. 获取平台推荐人奖励設置**
