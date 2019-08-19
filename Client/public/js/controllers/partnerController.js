@@ -6827,8 +6827,11 @@ define(['js/app'], function (myApp) {
         };
         vm.initPermissionPartner = function (partnerObjId) {
             vm.permissionPartner = {};
-            vm.permissionPartner = vm.partners.find(p => String(p._id) === partnerObjId);
-
+            let tempPartner = vm.partners.find(p => String(p._id) === partnerObjId);
+            if (tempPartner) {
+                vm.permissionPartner = JSON.parse(JSON.stringify(tempPartner));
+            }
+            
             if (vm.permissionPartner && vm.permissionPartner.permission) {
                 vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
                 vm.permissionPartner.permission.disableCommSettlement = !vm.permissionPartner.permission.disableCommSettlement;
