@@ -10,6 +10,12 @@ let referralLog = new Schema({
     playerObjId: {type: Schema.ObjectId, ref: 'player', index: true},
     // Date time added
     createTime: {type: Date, default: Date.now, index: true},
+    // referral period
+    referralPeriod: {type: String, index: true},
+    // bind referral valid end time
+    validEndTime: {type: Date, default: null, index: true},
+    // bind referral status
+    isValid: {type: Boolean, default: true, index: true},
 });
 
 module.exports = referralLog;
