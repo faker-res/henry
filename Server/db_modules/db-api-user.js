@@ -9,9 +9,9 @@ var dbPlayerApiUser = {
     },
     /**
      * Create an api user
-     * @param {json} apiUserData - The data of the apiUser. Refer to apiUser schema.
+     * @param {{password: string, name: string}} apiUserData - The data of the apiUser. Refer to apiUser schema.
      */
-    addApiUser: function(apiUserData){
+    addApiUser: function(apiUserData) {
         var apiUser = new dbConfig.collection_apiUser(apiUserData);
         return apiUser.save();
     },

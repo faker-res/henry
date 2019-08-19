@@ -152,7 +152,8 @@
                 "getFrontEndData",
                 "sendFileFTP",
                 "updateRSAKeys",
-                "getFrontEndConfig"
+                "getFrontEndConfig",
+                "getPlatformReferralConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

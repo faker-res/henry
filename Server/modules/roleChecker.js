@@ -505,6 +505,7 @@ var roleChecker = {
                 CanAuditLargeWithdrawal: [],
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
+                referral: ['updateReferralConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -593,6 +594,7 @@ var roleChecker = {
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
                 gameSetting: [],
+                scriptDescription:[],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },

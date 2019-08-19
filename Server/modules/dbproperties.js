@@ -113,6 +113,7 @@ let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfigurati
 let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionSchema = require('./../schema/frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingSchema = require('./../schema/promoCodeMaxRewardAmountSetting');
 let preventBlockUrlSchema = require('./../schema/preventBlockUrl');
 /////////////////////////Schema models/////////////////////////////////////
@@ -216,6 +217,9 @@ let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 let activeConfigSchema = require('./../schema/activeConfig');
 let activeConfigModel = db_admin.model('activeConfig', activeConfigSchema, 'activeConfig');
 
+let platformReferralConfigSchema = require('./../schema/platformReferralConfig');
+let platformReferralConfigModel = db_admin.model('platformReferralConfig', platformReferralConfigSchema, 'platformReferralConfig');
+
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
@@ -300,6 +304,7 @@ let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', f
 let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionModel = db_admin.model('frontEndScriptDescription', frontEndScriptDescriptionSchema, 'frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingModel = db_admin.model('promoCodeMaxRewardAmountSetting', promoCodeMaxRewardAmountSettingSchema, 'promoCodeMaxRewardAmountSetting');
 let preventBlockUrlModel = db_admin.model('preventBlockUrl', preventBlockUrlSchema, 'preventBlockUrl');
 
@@ -642,6 +647,9 @@ let parentPartnerCommissionDetailModel = dbLogs2.model('parentPartnerCommissionD
 let playerRegisterIPSchema = require('./../schema/logs2/playerRegisterIP');
 let playerRegisterIPModel = dbLogs2.model('playerRegisterIP', playerRegisterIPSchema, 'playerRegisterIP');
 
+let referralLogSchema = require('./../schema/logs2/referralLog');
+let referralLogModel = dbLogs2.model('referralLog', referralLogSchema, 'referralLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -752,6 +760,7 @@ var dbProperties = {
 
     collection_keywordFilter: keywordFilterModel,
     collection_activeConfig: activeConfigModel,
+    collection_platformReferralConfig: platformReferralConfigModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
@@ -812,6 +821,7 @@ var dbProperties = {
     collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
+    collection_frontEndScriptDescription: frontEndScriptDescriptionModel,
     collection_promoCodeMaxRewardAmountSetting: promoCodeMaxRewardAmountSettingModel,
     collection_preventBlockUrl: preventBlockUrlModel,
 
@@ -931,6 +941,7 @@ var dbProperties = {
     collection_parentPartnerCommissionDetail: parentPartnerCommissionDetailModel,
 
     collection_playerRegisterIP: playerRegisterIPModel,
+    collection_referralLog: referralLogModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
