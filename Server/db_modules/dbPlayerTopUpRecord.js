@@ -3150,17 +3150,33 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             data => {
-                return dbconfig.collection_proposal.findOneAndUpdate({
-                    createTime: proposal.createTime,
-                    _id: proposal._id
-                }, {
-                    status: constProposalStatus.PENDING,
-                    "data.validTime": new Date(proposal.data.validTime.getTime() + 60 * delayTime * 1000)
-                }, {new: true})
-            }
-        ).then(
-            data => {
-                return {proposalId: proposalId, delayTime: delayTime, newValidTime: data.data.validTime}
+                if (data) {
+                    return dbconfig.collection_proposal.findOne({_id: proposal._id}).then(
+                        proposalData => {
+                            if (proposalData && proposalData._id) {
+                                let newDelayTime = new Date(proposalData.data.validTime.getTime() + 60 * delayTime * 1000);
+                                let updateData = {
+                                    "data.validTime": newDelayTime
+                                }
+
+                                if (proposalData && proposalData.status === constProposalStatus.EXPIRED) {
+                                    updateData.status = constProposalStatus.PENDING;
+                                }
+
+                                return dbconfig.collection_proposal.update(
+                                    {
+                                        _id: proposalData._id
+                                    }, updateData).exec().then(
+                                        data => {
+                                            if (data && data.ok) {
+                                                return {proposalId: proposalId, delayTime: delayTime, newValidTime: newDelayTime};
+                                            }
+                                        }
+                                    );
+                            }
+                        }
+                    );
+                }
             }
         );
     },
