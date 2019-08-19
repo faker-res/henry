@@ -709,6 +709,7 @@ let dbPlayerInfo = {
         let referralLog = {};
         let isHitReferralLimit = false;
         let isEnableUseReferralPlayerId = false;
+        let referralInterval;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -968,6 +969,7 @@ let dbPlayerInfo = {
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
                                 referralConfig => {
                                     if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                        referralInterval = referralConfig.referralPeriod || '5';
                                         isEnableUseReferralPlayerId = true;
                                     }
 
@@ -1001,6 +1003,7 @@ let dbPlayerInfo = {
                                                                     referralLog = {
                                                                         platform: platformObjId,
                                                                         referral: data._id,
+                                                                        referralPeriod: referralInterval
                                                                     };
 
                                                                     return inputData;
@@ -1019,6 +1022,7 @@ let dbPlayerInfo = {
                                                         referralLog = {
                                                             platform: platformObjId,
                                                             referral: data._id,
+                                                            referralPeriod: referralInterval
                                                         };
 
                                                         return inputData;
@@ -1049,6 +1053,7 @@ let dbPlayerInfo = {
                                     if (referralConfig) {
 
                                         if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                            referralInterval = referralConfig.referralPeriod || '5';
 
                                             return dbconfig.collection_players.findOne({
                                                 playerId: inputData.referralId,
@@ -1078,6 +1083,7 @@ let dbPlayerInfo = {
                                                                 referralLog = {
                                                                     platform: platformObjId,
                                                                     referral: referrerData._id,
+                                                                    referralPeriod: referralInterval
                                                                 };
 
                                                                 return inputData;
@@ -1232,7 +1238,18 @@ let dbPlayerInfo = {
                     if (data) {
                         // dbPlayerInfo.createPlayerLoginRecord(data);
                         if (isEnableUseReferralPlayerId) {
-                            referralLog.playerObjId = data._id
+                            let bindReferralTime = (data && data.registrationTime) || new Date();
+
+                            referralLog.playerObjId = data._id;
+                            referralLog.createTime = new Date(bindReferralTime);
+
+                            if (referralInterval) {
+                                let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
+
+                                if (referralIntervalTime) {
+                                    referralLog.validEndTime = referralIntervalTime.endTime;
+                                }
+                            }
 
                             let newRecord = new dbconfig.collection_referralLog(referralLog);
                             newRecord.save().catch(errorUtils.reportError);
@@ -5241,6 +5258,8 @@ let dbPlayerInfo = {
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: topupRecordData.platformId,
+                                    playerObjId: topupRecordData.playerId,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -6939,6 +6958,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -7662,6 +7683,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -27051,6 +27074,40 @@ let dbPlayerInfo = {
                         return res;
                     }
                 );
+            }
+        )
+    },
+
+    executeAutoUnbindReferral: () => {
+        let updateProm = [];
+        let now = new Date();
+
+        return dbconfig.collection_referralLog.find({validEndTime: {$lt: now}, isValid: {$exists: true, $eq: true, $ne: null}}).then(
+            referrals => {
+                if (referrals && referrals.length > 0) {
+                    referrals.forEach(
+                        referral => {
+                            if (referral && referral.playerObjId) {
+                                let updatePlayerProm = dbconfig.collection_players.findOneAndUpdate({
+                                    _id: ObjectId(referral.playerObjId),
+                                    platform: referral.platform
+                                }, {
+                                    referral: null
+                                });
+
+                                let updateReferralLogProm = dbconfig.collection_referralLog.findOneAndUpdate({
+                                    _id: referral._id,
+                                    platform: referral.platform
+                                }, {
+                                    isValid: Boolean(false)
+                                });
+
+                                updateProm.push(Promise.all([updatePlayerProm, updateReferralLogProm]))
+                            }
+                        }
+                    );
+                    return Promise.all(updateProm);
+                }
             }
         )
     }

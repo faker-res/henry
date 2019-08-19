@@ -1168,7 +1168,7 @@ define(['js/app'], function (myApp) {
 
             drawReportQuery(choice, isReset);
 
-            if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
+            if (vm.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
                 vm.rewardProposalQuery = vm.rewardProposalQuery || {};
                 vm.rewardProposalQuery.totalCount = 0;
                 vm.reportSearchTime = 0;
@@ -11020,6 +11020,18 @@ define(['js/app'], function (myApp) {
                         vm.searchPlayerDomainReport(true);
                     });
                     break;
+                case "ReferralRewardReport":
+                    vm.referralRewardQuery = {};
+                    vm.referralRewardQuery.totalCount = 0;
+                    vm.reportSearchTime = 0;
+
+                    utilService.actionAfterLoaded("#referralRewardReportTablePage", function () {
+                        vm.commonInitTime(vm.referralRewardQuery, '#referralRewardQuery');
+                        vm.referralRewardQuery.pageObj = utilService.createPageForPagingTable("#referralRewardReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "referralRewardQuery", vm.searchReferralRewardReport)
+                        });
+                    });
+                    break;
                 case "RewardReport":
                     vm.rewardTypeName = 'ALL';
                     vm.currentRewardCode = 'ALL';
@@ -12165,6 +12177,211 @@ define(['js/app'], function (myApp) {
             });
         };
         //endregion
+
+        //#region Referral Reward Report
+        vm.searchReferralRewardReport = function (newSearch, isExport = false) {
+            if (!vm.referralRewardQuery || !vm.referralRewardQuery.platformObjId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
+
+            if (!vm.referralRewardQuery.referralName) {
+                return socketService.showErrorMessage($translate('Referral Name is Mandatory'));
+            }
+
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#loadingReferralRewardReportTableSpin').show();
+
+            let sendquery = {
+                platformObjId: vm.referralRewardQuery.platformObjId,
+                query: {
+                    start: vm.referralRewardQuery.startTime.data('datetimepicker').getLocalDate(),
+                    end: vm.referralRewardQuery.endTime.data('datetimepicker').getLocalDate(),
+                    referralName: vm.referralRewardQuery.referralName,
+                    topUpTimesOperator: vm.referralRewardQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.referralRewardQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.referralRewardQuery.topUpTimesValueTwo,
+                },
+                index: isExport ? 0 : (newSearch ? 0 : (vm.referralRewardQuery.index || 0)),
+                limit: isExport ? 10000 : (vm.referralRewardQuery.limit || 10000),
+                sortCol: vm.referralRewardQuery.sortCol || {registrationTime: -1},
+                isExport: isExport
+            };
+
+            console.log('sendquery', sendquery);
+
+            socketService.$socket($scope.AppSocket, 'getReferralRewardReport', sendquery, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('getReferralRewardReport data', data);
+                    findReportSearchTime();
+                    vm.referralRewardQuery.totalCount = data.data.size;
+                    $('#loadingReferralRewardReportTableSpin').hide();
+                    vm.drawReferralRewardReport(
+                        data.data.data.map(item => {
+                            item.platform$ = vm.platformList.filter(platform => platform._id.toString() === vm.referralRewardQuery.platformObjId.toString())[0].name;
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                            item.referralRewardAmount$ = item.referralRewardAmount ? parseFloat(item.referralRewardAmount).toFixed(2) : 0;
+
+                            item.providerArr = [];
+                            for (var key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.profit$ = 0;
+                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
+
+                            return item;
+                        }), data.data.size, {}, newSearch, isExport);
+                    $scope.$evalAsync();
+                });
+            });
+
+        };
+
+        vm.drawReferralRewardReport = function (data, size, summary, newSearch, isExport) {
+            let tableOptions = {
+                data: data,
+                "order": vm.referralRewardQuery.aaSorting,
+                aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [1], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'referralRewardAmount', 'aTargets': [9], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandReferralRewardReport sumText",
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: 'sumFloat alignRight'},
+                    {
+                        title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                        data: "consumptionReturnAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'),
+                        data: "validConsumptionAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'),
+                        data: "consumptionBonusAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'referrralRewardReportProfit alignRight'},
+                    {
+                        title: $translate('Referral Reward Amount'),
+                        data: "referralRewardAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                ],
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
+                // "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                let referralRewardTbl = utilService.createDatatableWithFooter('#referralRewardReportExcelTable', tableOptions, {}, true);
+                $('#referralRewardReportExcelTable_wrapper').hide();
+                vm.exportToExcel("referralRewardReportExcelTable", "ReferralRewardReport");
+            }else {
+                let referralRewardTbl = utilService.createDatatableWithFooter('#referralRewardReportTable', tableOptions, {}, true);
+                utilService.setDataTablePageInput('referralRewardReportTable', referralRewardTbl, $translate);
+                vm.referralRewardQuery.pageObj.init({maxCount: size}, newSearch);
+                $('#referralRewardReportTable tbody').off('click', 'td.expandReferralRewardReport');
+                $('#referralRewardReportTable tbody').on('click', 'td.expandReferralRewardReport', function () {
+                    var tr = $(this).closest('tr');
+                    var row = referralRewardTbl.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        var data = row.data();
+                        console.log('content', data);
+                        var id = 'referralrewardtable' + data._id;
+                        row.child(vm.createInnerTable(id)).show();
+                        vm[id] = {};
+                        vm.allGame = [];
+                        var gameId = [];
+                        if (data.gameDetail) {
+                            for (let n = 0; n < data.gameDetail.length; n++) {
+                                gameId[n] = data.gameDetail[n].gameId;
+                            }
+
+                            vm.getGameByIds(gameId).then(
+                                function () {
+                                    for (let i = 0; i < data.gameDetail.length; i++) {
+                                        data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                        for (let j = 0; j < vm.allGame.length; j++){
+                                            if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()){
+                                                data.gameDetail[i].name = vm.allGame[j].name;
+                                            }
+                                        }
+                                    }
+                                    vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.referralRewardQuery);
+                                }
+                            )
+                        }
+
+                        tr.addClass('shown');
+                    }
+                });
+                $('#referralRewardReportTable').off('order.dt');
+                $('#referralRewardReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'referralRewardQuery', vm.searchReferralRewardReport);
+                });
+                $('#referralRewardReportTable').resize();
+            }
+        }
+        //#endregion
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

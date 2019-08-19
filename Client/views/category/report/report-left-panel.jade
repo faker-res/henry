@@ -85,6 +85,8 @@
                             //li.list-group-item.text-danger(ng-if='vm.rewardList.length==0') {{"NONE" | translate}} {{"Reward task" | translate}}
                             li.list-group-item(class="{{vm.seleDataType.OtherRewardReport}}", ng-click='vm.initOtherRewardReport("OtherRewardReport")')
                                 text {{"Other Reward Report" | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.ReferralRewardReport}}", ng-click='vm.loadPage("ReferralRewardReport")')
+                                text {{"Referral Reward Report" | translate}}
                             //li.list-group-item(class="{{vm.seleDataType.PLAYER_CONSUMPTION_RETURN_REPORT}}" ng-click='vm.loadPage("PLAYER_CONSUMPTION_RETURN_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'PlayerConsumption')")
                             //    text {{'PLAYER_CONSUMPTION_RETURN_REPORT' | translate}}
                             //li.list-group-item(class="{{vm.seleDataType.FULL_ATTENDANCE_REPORT}}" ng-click='vm.loadPage("FULL_ATTENDANCE_REPORT")', ng-if="checkViewPermission('Report', 'Reward', 'FullAttendance')")
