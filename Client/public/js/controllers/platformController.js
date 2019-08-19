@@ -28082,7 +28082,7 @@ define(['js/app'], function (myApp) {
                 let index = collection.length - 1;
                 let id = '#expDate' + type + '-' + index;
 
-                setTimeout(() => {
+                return new Promise(resolve => setTimeout(() => {
                     collection[index].expirationTime = utilService.createDatePicker(id, {
                         language: 'en',
                         format: 'yyyy/MM/dd hh:mm:ss',
@@ -28093,8 +28093,8 @@ define(['js/app'], function (myApp) {
                     }
                     vm.checkPlayerName(collection[index], tableId, index);
                     $scope.$evalAsync();
-                    return collection;
-                }, 500);
+                    return resolve(collection);
+                }, 500));
             };
             vm.cancelPromoCode = function (col, index) {
               $scope.$evalAsync(()=>{
@@ -28138,7 +28138,7 @@ define(['js/app'], function (myApp) {
                         let playerArr = sendData.playerName.split(/\r?\n/);
                         let p = Promise.resolve();
 
-                        playerArr.forEach((el, ind) => {
+                        playerArr.forEach(el => {
                             let newData = Object.assign({}, sendData);
                             newData.playerName = el;
                             newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
@@ -28249,7 +28249,7 @@ define(['js/app'], function (myApp) {
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
                 let p = Promise.resolve();
 
-                col.forEach((elem, index, arr) => {
+                col.forEach((elem, index) => {
                     if (!elem.code) {
                         p = p.then(function () {
                             if (skipCheck && !elem.error) {
