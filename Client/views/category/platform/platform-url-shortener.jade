@@ -21,11 +21,14 @@
                                 td
                                     {{v.url}}
                                 td
-                                    button.btn.btn-danger.common-button(ng-click="vm.deletePreventBlockUrl(v.url)") {{ 'Delete' | translate }}
+                                    button.btn.btn-danger.common-button(ng-click="vm.deletePreventBlockUrlConfirm(null, v.url)") {{ 'Delete' | translate }}
                                 tr
                                     td
                                     td
-                                        input.form-control(type="text", ng-model="vm.newPreventBlockUrl")
+                                        div
+                                            input.form-control(type="text", ng-model="vm.newPreventBlockUrl", placeholder="{{'ex...' | translate}} https://www.579832.com/")
+                                        div.colorRed
+                                            *{{'Please enter the url end with backslash, ex:' | translate}} https://www.579832.com/
                                     td
                                         button.btn.btn-primary.common-button(ng-click="vm.savePreventBlockUrl()") {{ 'ADD' | translate }}
 
@@ -52,6 +55,7 @@
                     br
                     textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
                     {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
+                    br
                     button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') {{'Convert Url' | translate}}
                     span#urlShortenerSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -69,4 +73,5 @@
                                 td(ng-if="!v.url_short")
                                     a(ng-click="vm.generateSingleUrl(v.url_long, v.no)") {{'Retrieve Again' | translate}}
                                 td(ng-click="vm.generateSingleUrl(v.url_long, v.no)", ng-if="v.url_short") {{v.url_short}}
+                    br
                     button.btn.btn-primary.common-button(ng-click='vm.exportShortUrlToExcel()') {{'EXPORT_EXCEL' | translate}}

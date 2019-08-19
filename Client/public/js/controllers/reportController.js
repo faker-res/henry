@@ -285,7 +285,9 @@ define(['js/app'], function (myApp) {
         'updateGame',
         'createDxMission',
         'comparePhoneNum',
-        'resetAllPartnerCustomizedCommissionRate'];
+        'resetAllPartnerCustomizedCommissionRate',
+        'savePreventBlockUrl',
+        'deletePreventBlockUrl'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
@@ -4467,7 +4469,7 @@ define(['js/app'], function (myApp) {
                     // if (!item.sourceUrl) {
                     //     item.registrationAgent$ = "Backstage";
                     // }
-                    
+
                     if (item && item.guestDeviceId) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
@@ -11884,6 +11886,10 @@ define(['js/app'], function (myApp) {
 
                     {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
                     {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
+
+                    {group: "Redirect Url", text: "savePreventBlockUrl", action: "savePreventBlockUrl"},
+                    {group: "Redirect Url", text: "deletePreventBlockUrl", action: "deletePreventBlockUrl"},
+
                 ];
                 utilService.actionAfterLoaded("#actionLogTablePage", function () {
                     vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');

@@ -1634,6 +1634,22 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+
+            vm.deletePreventBlockUrlConfirm = function (isConfirm = false, url) {
+
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Delete Prevent Block Url");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.deletePreventBlockUrl(url);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    vm.deletePreventBlockUrl(url)
+                }
+
+            }
+
             vm.deletePreventBlockUrl = function (url) {
                 let sendData = {'url': url};
                 socketService.$socket($scope.AppSocket, 'deletePreventBlockUrl', sendData, function (data) {
