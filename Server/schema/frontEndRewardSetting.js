@@ -34,8 +34,6 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
-        // displayFormat 1： 列表； 2： 平铺3项1列；
-        displayFormat: {type: Number},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not

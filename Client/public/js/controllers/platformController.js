@@ -25724,17 +25724,20 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
-            vm.addRewardCategory = function (categoryName) {
+            vm.addRewardCategory = function (categoryName, displayFormat) {
                 if (categoryName && vm.filterFrontEndSettingPlatform){
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, displayFormat: displayFormat}, function (data) {
                         $scope.$evalAsync( () => {
                             console.log('saveFrontEndRewardCategory', data.data);
+                            vm.isDefaultRewardCategory = false;
+                            $('#rewardCategoryModal').modal('hide');
                             if (data && data.data) {
                                 vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                                 vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                             }
                         })
                     }, function (err) {
+                        vm.isDefaultRewardCategory = false;
                         console.error('saveFrontEndRewardCategory error: ', err);
                     }, true);
                 }
@@ -25822,8 +25825,12 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
-                                vm.frontEndRewardCategory = data.data;
-                                vm.allFrontEndRewardCategory = data.data;
+                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+
+                                vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.frontEndRewardCategory = tempAll;
+                                vm.allFrontEndRewardCategory = tempAll;
                                 vm.displayCategory= [];
                                 vm.allFrontEndRewardCategory.forEach(
                                     p => {
@@ -25907,7 +25914,7 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.editRewardCategory = function (categoryObjId) {
+            vm.editRewardCategory = function (categoryObjId, isNew, isDefault) {
                 if (categoryObjId && vm.allFrontEndRewardCategory && vm.allFrontEndRewardCategory.length){
                      let temp = vm.frontEndRewardCategory.filter( p => {
                         return p && p._id && p._id.toString() == categoryObjId.toString();
@@ -25915,28 +25922,61 @@ define(['js/app'], function (myApp) {
 
                     if (temp && temp.length) {
                         vm.newRewardCategoryData = Object.assign({}, temp[0]);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
                         $('#rewardCategoryModal').modal();
                     };
-
+                }
+                else if (isNew){
+                    vm.isNewRewardCategory = true;
+                    vm.newRewardCategoryData = {};
+                    $('#rewardCategoryModal').modal();
+                }
+                else if (isDefault){
+                    vm.isDefaultRewardCategory = true;
+                    if (vm.frontEndRewardDefaultCategory && vm.frontEndRewardDefaultCategory._id){
+                        vm.newRewardCategoryData = Object.assign({}, vm.frontEndRewardDefaultCategory);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRewardCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#rewardCategoryModal').modal();
                 }
             };
 
             vm.updateRewardCategory = function (updateObj) {
-                if (updateObj && updateObj._id && updateObj.categoryName){
-                    let categoryName = updateObj.categoryName;
-                    let categoryObjId = updateObj._id;
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, categoryObjId: categoryObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('saveFrontEndRewardCategory', data.data);
-                            $('#rewardCategoryModal').modal('hide');
-                            if (data && data.data) {
-                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                            }
-                        })
-                    }, function (err) {
-                        console.error('saveFrontEndRewardCategory error: ', err);
-                    }, true);
+                if (updateObj){
+                    if (updateObj._id && updateObj.categoryName) {
+                        let categoryName = updateObj.categoryName;
+                        let categoryObjId = updateObj._id;
+                        let displayFormat = updateObj.displayFormat || null;
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {
+                            platformObjId: vm.filterFrontEndSettingPlatform,
+                            categoryName: categoryName,
+                            categoryObjId: categoryObjId,
+                            displayFormat: displayFormat
+                        }, function (data) {
+                            $scope.$evalAsync(() => {
+                                console.log('saveFrontEndRewardCategory', data.data);
+                                $('#rewardCategoryModal').modal('hide');
+                                vm.isDefaultRewardCategory = false;
+                                if (data && data.data) {
+                                    vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRewardCategory = false;
+                            console.error('saveFrontEndRewardCategory error: ', err);
+                        }, true);
+                    }
+                    else if (updateObj.categoryName){
+                        vm.addRewardCategory(updateObj.categoryName, updateObj.displayFormat);
+                    }
                 }
             };
 
@@ -43320,6 +43360,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync( () => {
                         console.log('getFrontEndScriptSetting', data.data);
                         if (data && data.data) {
+                            vm.frontEndDeletedList = [];
                             vm.scriptSettingData = data.data;
                         }
                     })
@@ -43363,6 +43404,18 @@ define(['js/app'], function (myApp) {
 
                 }
             };
+
+            vm.updateScriptSetting = () => {
+                socketService.$socket($scope.AppSocket, 'updateScriptSetting', {dataList: vm.scriptSettingData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateScriptSetting is done', data);
+                            vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            },
 
             vm.submitScriptSetting = () => {
                 $('#scriptDescriptionLoader').show();
