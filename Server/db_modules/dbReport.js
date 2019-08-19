@@ -223,7 +223,12 @@ let dbReport = {
                 if (referrerData && referrerData._id) {
                     referrerRecord = referrerData;
 
-                    return dbconfig.collection_referralLog.find({referral: referrerData._id}).lean().then(
+                    let referralQuery = {
+                        referral: referrerData._id,
+                        isValid: {$exists: true, $eq: true, $ne: null}
+                    };
+
+                    return dbconfig.collection_referralLog.find(referralQuery).lean().then(
                         referees => {
                             if (referees && referees.length > 0) {
                                 let playerObjIds = referees.map(item => item && item.playerObjId);
@@ -525,6 +530,11 @@ let dbReport = {
                                         }
                                     }
                                 );
+                            } else {
+                                return {
+                                    data: [],
+                                    size: 0
+                                };
                             }
                         }
                     )

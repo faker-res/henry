@@ -12225,7 +12225,7 @@ define(['js/app'], function (myApp) {
                             item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                             item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                             item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                            item.referralRewardAmount$ = parseFloat(item.referralRewardAmount).toFixed(2);
+                            item.referralRewardAmount$ = item.referralRewardAmount ? parseFloat(item.referralRewardAmount).toFixed(2) : 0;
 
                             item.providerArr = [];
                             for (var key in item.providerDetail) {
@@ -12326,7 +12326,7 @@ define(['js/app'], function (myApp) {
 
             if(isExport){
                 let referralRewardTbl = utilService.createDatatableWithFooter('#referralRewardReportExcelTable', tableOptions, {}, true);
-                $('#referralRewardReportExcelTablee_wrapper').hide();
+                $('#referralRewardReportExcelTable_wrapper').hide();
                 vm.exportToExcel("referralRewardReportExcelTable", "ReferralRewardReport");
             }else {
                 let referralRewardTbl = utilService.createDatatableWithFooter('#referralRewardReportTable', tableOptions, {}, true);
