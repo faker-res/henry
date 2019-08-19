@@ -1,95 +1,79 @@
-var should = require('should');
-var dbPaymentChannel = require('../db_modules/dbPaymentChannel');
-var dbPlatform = require('../db_modules/dbPlatform');
-var dbApiUser = require('../db_modules/db-api-user');
+let dbPaymentChannel = require('../db_modules/dbPaymentChannel');
+let dbApiUser = require('../db_modules/db-api-user');
 
-var testGameTypes = require("../test/testGameTypes");
+describe('Create test API client data', function() {
+    // todo::should clear old test api data???
 
-var mongoose = require('mongoose');
-var Q = require("q");
+    let testChannelName = 'testClientPaymentChannel';
+    let apiUserName = 'testApiUser';
 
-describe("Create test API client data", function () {
-
-    //todo::should clear old test api data???
-
-    var testChannelName = "testClientPaymentChannel";
-    var apiUserName = "testApiUser";
-    var testChannelId = null;
-
-    it('delete old API payment test data', function (done) {
+    it('delete old API payment test data', function(done) {
         dbPaymentChannel.getPaymentChannel({name: testChannelName}).then(
-            function (data) {
+            function(data) {
                 if (data && data.channelId) {
                     dbPaymentChannel.deletePaymentChannel(data.channelId).then(
-                        function (data) {
+                        function(data) {
                             done();
-                        }, function (error) {
+                        }, function(error) {
                             console.log(error);
                         }
                     );
-                }
-                else {
+                } else {
                     done();
                 }
             }
         );
-
     });
 
-    it('create test payment channel', function (done) {
-        var channelData = {
+    it('create test payment channel', function(done) {
+        let channelData = {
             name: testChannelName,
-            code: "testCode",
-            key: "testKey",
-            status: "1",
-            des: "test payment channel"
+            code: 'testCode',
+            key: 'testKey',
+            status: '1',
+            des: 'test payment channel',
         };
         dbPaymentChannel.createPaymentChannel(channelData).then(
-            function (data) {
+            function(data) {
                 if (data && data.channelId) {
-                    testChannelId = data.channelId;
                     done();
                 }
             },
-            function(error){
+            function(error) {
                 console.log(error);
             }
         );
     });
 
-
-    it('delete old API user test data', function (done) {
+    it('delete old API user test data', function(done) {
         dbApiUser.getApiUserInfo({name: apiUserName}).then(
-            function (data) {
+            function(data) {
                 if (data && data._id) {
                     dbApiUser.deleteApiUser(data._id).then(
-                        function (data) {
+                        function(data) {
                             done();
                         },
-                        function (error) {
+                        function(error) {
                         }
                     );
-                }
-                else {
+                } else {
                     done();
                 }
             }
         );
-
     });
 
     it('Should create a new api user', function (done) {
-        var apiUserData = {
-            name: "testApiUser",
-            password: "123"
+        let apiUserData = {
+            name: 'testApiUser',
+            password: '123',
         };
         dbApiUser.addApiUser(apiUserData).then(
-            function (data) {
+            function(data) {
                 if (data && data._id) {
                     done();
                 }
             }
         );
     });
-
 });

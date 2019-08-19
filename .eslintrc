@@ -1,13 +1,20 @@
 {
-//  "parserOptions": {
-//    "ecmaVersion": 6
-////    "sourceType": "module",
-////    "ecmaFeatures": {
-////      "jsx": true
-////    }
-//  },
+  "parserOptions": {
+    "ecmaVersion": 6
+//    "sourceType": "module",
+//    "ecmaFeatures": {
+//      "jsx": true
+//    }
+  },
   "extends": ["eslint:recommended", "google"],
   "rules": {
     // Additional, per-project rules...
+    "no-console": "off"
+  },
+  "env": {
+    "amd": true,
+    "commonjs": true,
+    "node": true,
+    "mocha": true
   }
 }

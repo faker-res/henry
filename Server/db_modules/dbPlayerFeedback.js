@@ -1167,7 +1167,9 @@ var dbPlayerFeedback = {
             }
             let prom = dbconfig.collection_players.findOne({
                 phoneNumber: {$in: [player.phoneNumber, rsaCrypto.encrypt(player.phoneNumber)]},
-                platform: targetPlatformId
+                platform: targetPlatformId,
+                isRealPlayer: true,
+                "permission.forbidPlayerFromLogin": {$ne: true},
             }, {
                 _id: 1
             }).lean().then(

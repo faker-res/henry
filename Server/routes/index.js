@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken');
 var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcrypt');
+var request = require('request');
 
 var encrypt = require('./../modules/encrypt');
 var dbConfig = require('./../modules/dbproperties');
@@ -345,6 +346,56 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             res.json({success: false, error: {name: "UnexpectedError", message: String(err)}});
         }
     );
+});
+
+function getUrlShortner(url){
+    return new Promise((resolve, reject) => {
+        return request(url, function (error, response, body){
+            let result = '';
+            if (body) {
+                result = body;
+            }
+            resolve(result);
+        })
+    })
+}
+
+router.post('/urlShortener', function (req, res, next) {
+
+    let weiboAppKey = env.weiboAppKey;
+    let urls = req.body['urls[]'];
+    if (typeof req.body['urls[]'] == 'string') {
+        urls = [req.body['urls[]']];
+    }
+    let proms = [];
+    urls.forEach(url =>{
+        let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+        let prom = getUrlShortner(uri);
+        proms.push(prom);
+    })
+
+    return Promise.all(proms).then(
+        data=> {
+            let result = [];
+            data.forEach( (item, index) => {
+                try {
+                     item = JSON.parse(item);
+                     item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                     item.no = index + 1;
+                     result.push(item);
+                }
+                 catch(err) {
+                     console.log('MT --checking JSON INVALID', item);
+                     result.push({no: index + 1 , url_long: urls[index]});
+                }
+            })
+            console.log('MT --checking urlShortener', result);
+            res.json({success: true, data: result});
+        },
+        err => {
+            console.log(err);
+        }
+    )
 });
 
 router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
