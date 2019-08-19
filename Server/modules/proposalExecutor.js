@@ -912,10 +912,22 @@ var proposalExecutor = {
                                     let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: data.platform}).then(
                                         config => {
                                             if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                                                let bindReferralTime = (data && data.registrationTime) || new Date();
+
                                                 let referralLog = {
                                                     referral: playerUpdate.referral,
                                                     playerObjId: data._id,
-                                                    platform: data.platform
+                                                    platform: data.platform,
+                                                    createTime: new Date(bindReferralTime),
+                                                    referralPeriod: config.referralPeriod || '5'
+                                                };
+
+                                                if (config.referralPeriod) {
+                                                    let referralIntervalTime = dbUtil.getReferralConfigIntervalTime(config.referralPeriod, new Date(bindReferralTime));
+
+                                                    if (referralIntervalTime) {
+                                                        referralLog.validEndTime = referralIntervalTime.endTime;
+                                                    }
                                                 }
 
                                                 return new dbconfig.collection_referralLog(referralLog).save();
