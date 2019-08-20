@@ -19,7 +19,7 @@ var constProposalType = require('./../const/constProposalType');
 
 var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 var commonTestFun = require('../test_modules/commonTestFunc');
 
 var Q = require("q");
