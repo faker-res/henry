@@ -53,7 +53,7 @@
                                     a(data-toggle="modal", data-target='#modalTopUpFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'topUpDetail')") {{v.totalTopUpFee| number : 2}}
                                 td
                                     a(data-toggle="modal", data-target='#modalWithdrawalFeeTable', ng-click="vm.partnerCommVar.partner=i; vm.calculatePartnerDLTotalDetail(v.downLinesRawCommissionDetail,'withdrawalDetail')") {{v.totalWithdrawalFee| number : 2}}
-                                td {{v.grossCommission + v.childSummary.grossCommission| number : 2}}
+                                td {{ (v.isNewComm ? v.grossCommission + v.childSummary.grossCommission : v.nettCommission) || 0 | number : 2}}
                                 //td {{v.parentPartnerCommissionDetail.totalParentCommissionFee || 0}}
                                 td {{v.partnerCredit| number : 2}}
                                 td

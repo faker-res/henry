@@ -55,7 +55,7 @@ style.
 .row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
-            span {{"POPULAR_RECOMMENDATION" | translate}}
+            span {{"FIRST_PAGE_SETTING" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardPointClarification"}', ng-click='vm.frontEndSettingTabClicked("rewardPointClarification")')
             span {{"REWARD_POINT_CLARIFICATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "carouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("carouselConfiguration")')
@@ -70,7 +70,8 @@ style.
             span {{"REWARD_SETTING" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "gameSetting"}', ng-click='vm.frontEndSettingTabClicked("gameSetting")')
             span {{"GAME_SETTING" | translate}}
-
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "scriptDescription"}', ng-click='vm.frontEndSettingTabClicked("scriptDescription")')
+            span {{"SCRIPT_DESCRIPTION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerCarouselConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerCarouselConfiguration")')
             span {{"PARTNER_CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerUrlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerUrlConfiguration")')
@@ -97,7 +98,7 @@ style.
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
                 // Tab - popular recommendation
-                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "popularRecommendation")')
+                .col-md-12(ng-show='vm.selectedFrontEndSettingTab == "popularRecommendation" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "firstPageSetting")')
                     include frontEndConfiguration-popularRecommendation
 
                 // Tab - reward point briefing
@@ -127,6 +128,9 @@ style.
                 // Tab - Game Setting
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="gameSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "gameSetting")')
                     include frontEndConfiguration-gameSetting
+
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="scriptDescription" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "scriptDescription")')
+                    include frontEndConfiguration-scriptDescription
 
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerCarouselConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "carouselConfiguration")')
                     include frontEndConfiguration-carousel
@@ -187,6 +191,10 @@ style.
                                 label(style="width: 30%;") {{"ACTIVITY CATEGORY"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.rewardSetting.categoryObjId", ng-options='v._id as v.categoryName | translate for v in vm.allFrontEndRewardCategory')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"PromoCode"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -220,16 +228,6 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control(ng-model='vm.rewardSetting.pc.displayFormat')
-                                        option(value='1') {{ "list" | translate}}
-                                        option(value='2') {{ "threeInARow" | translate}}
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.pc.orderNumber")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -272,10 +270,6 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
                             .full-width-input-block
-                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.h5.orderNumber")
-                            .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.requiredToLogIn")
@@ -317,10 +311,6 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
                             .full-width-input-block
-                                label(style="width: 30%;") {{"DISPLAY ORDER (WHOLE)"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min=0, ng-model="vm.rewardSetting.app.orderNumber")
-                            .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.requiredToLogIn")
@@ -328,12 +318,6 @@ style.
                                 label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.app.showApplyButton")
-
-                            div.frontendConfigSeperator
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"PromoCode"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
 
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
@@ -369,8 +353,21 @@ style.
 
                             div.frontendConfigSeperator
                             .full-width-input-block
+                                label(style="width: 30%;") PC {{"ADVERTISEMENT POSITION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.position")
+                                        option(value="topLeft") {{"topLeft" | translate}}
+                                        option(value="bottomLeft") {{"bottomLeft" | translate}}
+                                        option(value="topRight") {{"topRight" | translate}}
+                                        option(value="bottomRight") {{"bottomRight" | translate}}
+                                        option(value="bottomRight") {{"bottomRight" | translate}}
+                                        option(value="center") {{"center" | translate}}
+                                        option(value="rightSideLabel") {{"rightSideLabel" | translate}}
+
+                            .full-width-input-block
                                 label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -398,11 +395,24 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.pc.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
+                                label(style="width: 30%;") H5 {{"ADVERTISEMENT POSITION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.position")
+                                        option(value="center") {{"center" | translate}}
+                                        option(value="top") {{"topLeft" | translate}}
+                                        option(value="shortcutPopUp") {{"shortcutPopUp" | translate}}
+
+                            .full-width-input-block
                                 label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -430,11 +440,16 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.h5.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popUpAdvAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -462,6 +477,10 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.app.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -546,6 +565,7 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationPcImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
@@ -573,11 +593,45 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.pc.selectedNavImage")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.pc.requiredToLogIn")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"STOP POP-UP IN NAVIGATION BAR"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.pc.stopPopUp")
+
+                            .full-width-input-block
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th(style="width: 15%") {{"ACTION_BUTTON" | translate}}
+                                            th(style="width: 85%;") PC {{"POP-UP IMAGE"|translate}}
+                                    tbody
+                                        tr(ng-show="vm.popularRecommendationSetting.pc && (!vm.popularRecommendationSetting.pc.popUpList || vm.popularRecommendationSetting.pc.popUpList.length == 0)")
+                                            td(colspan=4)
+                                                i.fa.fa-plus(ng-click='vm.addNewPopUpInFirstPageSetting(true)')
+                                        tr(ng-repeat= 'item in vm.popularRecommendationSetting.pc.popUpList track by $index')
+                                            td
+                                                i.fa.fa-minus(style="margin-left: 10px; margin-right: 10px", ng-click='vm.removePopUpList(vm.popularRecommendationSetting.pc.popUpList, $index)')
+                                                i.fa.fa-plus(style="margin-left: 10px; margin-right: 10px" ng-click='vm.addNewPopUpInFirstPageSetting(true)')
+                                                i.fa.fa-edit(style="margin-left: 10px; margin-right: 10px" ng-click='vm.addNewPopUpInFirstPageSetting(false, item && item._id ? item._id: null)')
+                                            td(style="text-overflow: ellipsis;") {{item.imageUrl}}
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationH5ImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
@@ -605,11 +659,24 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.h5.selectedNavImage")
+                            .full-width-input-block
+                                label(style="width: 30%;") H5 {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.h5.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"IMAGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#popularRecommendationAppImageFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
@@ -637,6 +704,18 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 2")
+                                label(style="width: 30%;") {{"PAGE HEIGHT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.pageHeight")
+                            .full-width-input-block(ng-if="vm.popularRecommendationSetting && vm.popularRecommendationSetting.category && vm.popularRecommendationSetting.category == 1")
+                                label(style="width: 30%;") {{"SELECTED NAVIGATION IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.popularRecommendationSetting.app.selectedNavImage")
+                            .full-width-input-block
+                                label(style="width: 30%;") APP {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.popularRecommendationSetting.app.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
@@ -717,14 +796,17 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") VIP {{"PRIVILEGE"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.vipPrivilegeUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointVipPrivilegeFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REWARD POINT CLARIFICATION"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.rewardPointClarificationUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointClarificationFile(type="file")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VOUCHER CLARIFICATION"|translate}}
                                 div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardPointClarification.voucherClarificationUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
                                     input#rewardPointVoucherClarificationFile(type="file")
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
@@ -913,4 +995,83 @@ style.
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitCarouselSettings()') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
                 span#frontEndCarouselUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+
+#popUpInFirstPageSettingModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Add New Pop-up Setting" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-6
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"POP-UP IMAGE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpImageFile(type="file")
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.newPopUpInFirstPageSetting, null , vm.newPopUpInFirstPageSetting.onClickAction)")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 1")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                    input#popUpNewPageFile(type="file")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 2")
+                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-model="vm.newPopUpInFirstPageSetting.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                    input#popUpPageDetailFile(type="file")
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 3")
+                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 4")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.route", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.newPopUpInFirstPageSetting.onClickAction == 5")
+                                label(style="width: 30%;") {{"GAME"|translate}} Code
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.newPopUpInFirstPageSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block
+                                label(style="width: 30%;") PC {{"REQUIRED TO LOG IN"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.transform150(type='checkbox', ng-model="vm.newPopUpInFirstPageSetting.requiredToLogIn")
+                        .col-md-6
+                            .full-width-input-block.frontendImagePreviewPanel
+                                label {{'Pop-up Image Preview' | translate}}
+                                img#popUpImage.frontendPopUpmagePreview(src="")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitPopUpInFirstPageSetting(vm.newPopUpInFirstPageSetting)') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#popUpInFirstPageSettingUploader.collapse
+                    i.fa.fa-spinner.fa-spin
+
+#scriptDescriptionModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog.modal-medium
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"NEW_SCRIPT_DESCRIPTION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .full-width-input-block
+                            label {{"Title_Of_Setting"|translate}}
+                            div.inline-block(style="width: 60%;")
+                                input.form-control.inline-block(ng-model="vm.scriptsData.title")
+                        .full-width-input-block
+                            label {{"SCRIPT DESCRIPTION"|translate}}
+                            div.inline-block(style="width: 60%;")
+                                textarea.form-control.inline-block(rows="5", ng-model="vm.scriptsData.instructions")
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click="vm.submitScriptSetting()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                span#scriptDescriptionLoader.collapse
                     i.fa.fa-spinner.fa-spin

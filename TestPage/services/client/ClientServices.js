@@ -152,7 +152,8 @@
                 "getFrontEndData",
                 "sendFileFTP",
                 "updateRSAKeys",
-                "getFrontEndConfig"
+                "getFrontEndConfig",
+                "getPlatformReferralConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -485,6 +486,7 @@
                 "deleteMail",
                 "readMail",
                 "getPartnerPoster",
+                "getPromoShortUrl",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

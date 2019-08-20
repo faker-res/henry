@@ -11,6 +11,27 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        updateScriptSetting: function  updateScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateScriptSetting, [data.dataList, data.deletedList], actionName, isValidData);
+        },
+
+        saveFrontEndScriptSetting: function saveFrontEndScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndScriptSetting, [data], actionName, isValidData);
+        },
+
+        getFrontEndScriptSetting: function getFrontEndScriptSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndScriptSetting, [data.platformObjId], actionName, isValidData);
+        },
+
         saveFrontEndPopUpAdvSetting: function saveFrontEndPopUpAdvSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
@@ -71,7 +92,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.categoryName);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName, data.categoryObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRewardCategory, [data.platformObjId, data.categoryName, data.categoryObjId, data.displayFormat], actionName, isValidData);
         },
 
         updateRewardSetting: function updateRewardSetting (data) {
@@ -184,6 +205,13 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let isValidData = Boolean(data && data.dataList);
 
             socketUtil.emitter(self.socket, dbFrontEndSetting.updateCarouselSetting, [data.dataList, data.deletedList, data.isPartner], actionName, isValidData);
+        },
+
+        savePopUpInFirstPageSetting: function savePopUpInFirstPageSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.savePopUpInFirstPageSetting, [data], actionName, isValidData);
         },
     };
     socketActionFrontEndSetting.actions = this.actions;

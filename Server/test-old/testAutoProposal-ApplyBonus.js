@@ -4,7 +4,7 @@ const should = require('should');
 
 const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
-const constProposalType = require('./../const/constProposalType');
+const constProposalType = require('../const/constProposalType');
 
 const dbAutoProposal = require('../db_modules/dbAutoProposal');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
