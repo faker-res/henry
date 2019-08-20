@@ -9518,7 +9518,13 @@ let dbPartner = {
                     partnerData.shortUrl = {};
                 }
                 partnerData.shortUrl[urlPost] = urlData.url_short || '';
-                return dbconfig.collection_partner.findOneAndUpdate({partnerId: partnerNo}, {shortUrl: partnerData.shortUrl}, {new: true}).lean()
+                return dbconfig.collection_partner.findOneAndUpdate({
+                    partnerId: partnerNo
+                }, {
+                    $set: {
+                        shortUrl: partnerData.shortUrl
+                    }
+                }, {new: true}).lean()
             }
         )
         .then(
