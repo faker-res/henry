@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken');
 var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcrypt');
+var request = require('request');
 
 var encrypt = require('./../modules/encrypt');
 var dbConfig = require('./../modules/dbproperties');

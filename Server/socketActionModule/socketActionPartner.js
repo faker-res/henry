@@ -675,6 +675,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getPartnerPermissionLog, [ObjectId(data.platform), ObjectId(data.partnerObjId), data.createTime], actionName, isValidData);
         },
 
+        urlShortener: function urlShortener(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.urls);
+            socketUtil.emitter(self.socket, dbPartner.urlShortener, [data], actionName, isValidData);
+        },
+
         getPartnerCountByCommissionType: function getPartnerCountByCommissionType(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.commissionType);

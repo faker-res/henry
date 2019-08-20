@@ -583,7 +583,6 @@ var dbPlayerConsumptionWeekSummary = {
         let platformData = null;
         let playerData = null;
         let eventData = null;
-
         //check if player platform has consumption return reward event
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
@@ -801,7 +800,7 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], adminId, adminName, bRequest, userAgent,  isForceApply);
+        return dbPlayerConsumptionWeekSummary.checkPlatformWeeklyConsumptionReturnForPlayers(platformData._id, eventData, eventData.executeProposal, settleTime.startTime, new Date(), [playerData._id], adminName, adminId, bRequest, userAgent,  isForceApply);
     },
 
     /**
