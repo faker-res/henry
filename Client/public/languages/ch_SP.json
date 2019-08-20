@@ -5950,5 +5950,8 @@
   "Referral Reward Ratio": "推荐人返利金额（优惠比例）",
   "Reward Amount Limit": "优惠金额上限",
   "ReferralRewardGroup": "推荐人优惠（组）",
-  "Referral Reward Amount": "推荐返利金额"
+  "Referral Reward Amount": "推荐返利金额",
+  "REFERRAL_VALID": "有效",
+  "REFERRAL_UNBIND": "已解绑",
+  "Bind Time": "绑定时间"
 }

@@ -6964,7 +6964,7 @@ let dbPlayerReward = {
                                     {validEndTime: {$lte: bindReferralIntervalEndTime}}
                                 ]
                             }
-console.log('referralQuery ===>', referralQuery);
+
                             if (!selectedRewardParam[0].playerValidConsumption) {
                                 return Promise.reject({
                                     name: "DataError",
@@ -6974,7 +6974,7 @@ console.log('referralQuery ===>', referralQuery);
 
                             return dbConfig.collection_referralLog.find(referralQuery).lean().then(
                                 referees => {
-                                    console.log('referees ===>', referees);
+
                                     if (referees && referees.length > 0) {
 
                                         return dbConfig.collection_proposalType.findOne({
@@ -7015,7 +7015,7 @@ console.log('referralQuery ===>', referralQuery);
                                                                     };
 
                                                                     if (player.createTime && consumptionStartTime && (player.createTime.getTime() >= consumptionStartTime.getTime())) {
-                                                                        consumptionQuery.createTime.$gte = new Date(player.createTime)
+                                                                        consumptionQuery.createTime.$gte = new Date(player.createTime);
                                                                     }
 
                                                                     if (player.validEndTime && consumptionEndTime && (player.validEndTime.getTime() <= consumptionEndTime.getTime())) {
@@ -7024,12 +7024,12 @@ console.log('referralQuery ===>', referralQuery);
 
                                                                     if (latestApplyData && latestApplyData.createTime) {
                                                                         consumptionQuery.createTime.$gt = latestApplyData.createTime;
+                                                                        console.log('latestApplyData.createTime ===>', latestApplyData.createTime);
                                                                     }
 
                                                                     console.log('consumptionStartTime ===>', consumptionStartTime);
                                                                     console.log('consumptionEndTime ===>', consumptionEndTime);
                                                                     console.log('player ===>', player);
-                                                                    console.log('latestApplyData ===>', latestApplyData);
                                                                     console.log('consumptionQuery ===>', consumptionQuery);
 
                                                                     return dbConfig.collection_playerConsumptionRecord.aggregate([{
