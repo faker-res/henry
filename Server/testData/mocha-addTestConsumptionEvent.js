@@ -31,7 +31,7 @@ var consumptionReturnEvent = require("../scheduleTask/consumptionReturnEvent");
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 
 var dailyPlatformSettlement = require('./../scheduleTask/dailyPlatformSettlement');
 var weeklyPlatformSettlement = require('./../scheduleTask/weeklyPlatformSettlement');

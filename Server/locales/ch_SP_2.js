@@ -495,6 +495,8 @@ var simplifiedChinese = {
     "No relevant poster found. Please contact CS": "没有相关海报，请联系客服。",
     "Down line player not found": "找不到该下线玩家，请检查名字是否正确。",
     "Reward Amount Exceed Limit Within Reward Period": "已达到周期内优惠金额上限",
+    "This referrer has no valid referee player within this period": "很抱歉，目前没有被推荐人",
+    "Does not have enough valid consumption": "被推荐人未达到周期内内有效投注额要求",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
