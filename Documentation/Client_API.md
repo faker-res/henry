@@ -219,6 +219,7 @@
 		41. [获取下级代理贡献值详情](#获取下级代理贡献值详情)
 		42. [获取代理转账记录](#获取代理转账记录)
 		43. [查询所有下线玩家详情](#查询所有下线玩家详情)
+        44. [代理推广域名防红和短链转换](#代理推广域名防红和短链转换)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -3727,7 +3728,7 @@ API说明：
 	    data: {
 	        rewardAmount: 优惠额度
 	        selectedReward: {
-	            //随机抽奖组优惠 
+	            //随机抽奖组优惠
 	            rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
 	        }
         }
@@ -6571,7 +6572,26 @@ API说明：
 				}
 			}
 	* 操作失败：status--4xx, data-null, errorMessage:””
+<div id='代理推广域名防红和短链转换'></div>
 
+* **44. 代理推广域名防红和短链转换**
+    * name: getPromoShortUrl
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                url: “www.xindeli666.com/123”, // 代理网址
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "shortUrl": "http://t.cn/AiQwVM4y",
+                "partnerName": "testmk12"
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
 <!--文档没有华语名称，因此暂时命名“平台”-->
 # 平台：
 提供平台相关服务的接口。
@@ -7272,7 +7292,7 @@ API说明：
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
-		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干 
+		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干
 		* code:  recommendation - 热门推荐“:
 			* rewardPoint - 积分说明
 			* game - 游戏配置
@@ -7286,7 +7306,7 @@ API说明：
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
-					
+
 <div id='获取平台推荐人奖励設置'></div>
 
 * **19. 获取平台推荐人奖励設置**

@@ -2122,6 +2122,28 @@ var dbPlatform = {
             )
         }
     },
+    savePreventBlockUrl: function (data) {
+        let saveObj = {
+            url: data.url
+        }
+        console.log('url', saveObj);
+        return dbconfig.collection_preventBlockUrl.find({url: data.url}).then(
+            data => {
+                console.log(data);
+                if (data && data.length && data.length > 0) {
+                    return Q.reject({name: "DBError", message: "Url is Exist"});
+                }
+
+                return dbconfig.collection_preventBlockUrl(saveObj).save();
+            }
+        )
+    },
+    deletePreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.remove({url: data.url}).lean();
+    },
+    getAllPreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.find().lean();
+    },
     getExternalUserInfo: function (data, index, limit){
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
@@ -3209,7 +3231,7 @@ var dbPlatform = {
                         console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
                         if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
-                            
+
                             let themeSetting = platformData.playerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
 

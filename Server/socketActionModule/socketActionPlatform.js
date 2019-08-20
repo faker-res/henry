@@ -1088,6 +1088,24 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getMaxRewardAmountSettingByAdmin, [ObjectId(data.platformObjId), data.roleList, data.departmentList], actionName, isValidData);
         },
 
+        savePreventBlockUrl: function savePreventBlockUrl (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.url);
+            socketUtil.emitter(self.socket, dbPlatform.savePreventBlockUrl, [data], actionName, isValidData);
+        },
+
+        deletePreventBlockUrl: function deletePreventBlockUrl (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.url);
+            socketUtil.emitter(self.socket, dbPlatform.deletePreventBlockUrl, [data], actionName, isValidData);
+        },
+
+        getAllPreventBlockUrl: function getAllPreventBlockUrl (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbPlatform.getAllPreventBlockUrl, [data], actionName, isValidData);
+        },
+
         updateReferralConfig: function updateReferralConfig(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.updateData);
