@@ -6260,6 +6260,9 @@ var dbPlatform = {
                         case 'description':
                             prom = dbconfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1, isVisible: 1}).lean();
                             break;
+                        case 'registrationGuidance':
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            break;
                         case 'partnerPageSetting':
                             prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
                             break;
@@ -6367,6 +6370,21 @@ var dbPlatform = {
                     model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).lean()
             }
+            else if (code == "registrationGuidance"){
+                prom = dbconfig.collection_frontEndRegistrationGuidanceSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "categoryObjId",
+                    model: dbconfig.collection_frontEndRegistrationGuidanceCategory
+                }).sort({displayOrder: 1}).lean()
+            }
 
             return prom.then(
                 settingList => {
@@ -6388,7 +6406,7 @@ var dbPlatform = {
                         if (code && (code == "pageSetting" || code == "partnerPageSetting") && settingList && settingList.length){
                             settingList = settingList[0];
                         }
-                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
                             settingList = restructureDataFormat (settingList, code)
                         }
 
@@ -6559,12 +6577,19 @@ var dbPlatform = {
                 )
                 return {navList: navList, bodyList: bodyList, bottomList: bottomList}
             }
-            else if (settingList && settingList.length && code && code == "reward") {
+            else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
                 let allObjList = {name: "全部", list: []};
                 let arrayList = [];
+                let defaultCategory = null;
 
-                let defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                if (code == "reward"){
+                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+                else if (code == "registrationGuidance"){
+                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+
                 if (defaultCategory && defaultCategory.displayFormat){
                     allObjList.displayFormat = defaultCategory.displayFormat;
                 }
