@@ -6952,14 +6952,17 @@ let dbPlayerReward = {
                         if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
                             let referralQuery = {
                                 platform: playerData.platform._id,
-                                referral: playerData._id,
-                                isValid: {$exists: true, $eq: true, $ne: null}
+                                referral: playerData._id
                             }
 
-                            if (intervalTime) {
-                                referralQuery.validEndTime = {$gte: intervalTime.startTime};
-                            } else {
-                                referralQuery.validEndTime = {$gte: eventData.condition.validStartTime}
+                            let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+                            let bindReferralIntervalEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
+                            if (bindReferralIntervalStartTime) {
+                                referralQuery['$or'] = [
+                                    {createTime: {$gte: bindReferralIntervalStartTime}},
+                                    {validEndTime: {$lte: bindReferralIntervalEndTime}}
+                                ]
                             }
 
                             if (!selectedRewardParam[0].playerValidConsumption) {
@@ -7010,18 +7013,16 @@ let dbPlayerReward = {
                                                                         }
                                                                     };
 
-                                                                    if (player.createTime && consumptionStartTime && (player.createTime.getTime() > consumptionStartTime.getTime())) {
-                                                                        consumptionQuery.createTime = {
-                                                                            $gte: new Date(player.createTime),
-                                                                            $lte: consumptionEndTime
-                                                                        };
+                                                                    if (player.createTime && consumptionStartTime && (player.createTime.getTime() >= consumptionStartTime.getTime())) {
+                                                                        consumptionQuery.createTime.$gte = new Date(player.createTime)
+                                                                    }
+
+                                                                    if (player.validEndTime && consumptionEndTime && (player.validEndTime.getTime() <= consumptionEndTime.getTime())) {
+                                                                        consumptionQuery.createTime.$lte = new Date(player.validEndTime);
                                                                     }
 
                                                                     if (latestApplyData && latestApplyData.createTime) {
-                                                                        consumptionQuery.createTime = {
-                                                                            $gt: latestApplyData.createTime,
-                                                                            $lte: consumptionEndTime
-                                                                        };
+                                                                        consumptionQuery.createTime.$gt = latestApplyData.createTime;
                                                                     }
 
                                                                     return dbConfig.collection_playerConsumptionRecord.aggregate([{
@@ -7046,7 +7047,6 @@ let dbPlayerReward = {
                                                         if (playerConsumptions && playerConsumptions.length > 0) {
                                                             playerConsumptions.forEach(
                                                                 consumptions => {
-                                                                    console.log('selectedRewardParam===>', selectedRewardParam);
                                                                     if (consumptions && consumptions.length > 0 && consumptions[0]
                                                                         && (consumptions[0].validAmount >= selectedRewardParam[0].playerValidConsumption)) {
                                                                         totalValidConsumption += consumptions[0].validAmount;
@@ -7070,7 +7070,7 @@ let dbPlayerReward = {
                                     } else {
                                         return Promise.reject({
                                             name: "DataError",
-                                            message: "This referrer has no valid referee player within this period"
+                                            message: localization.localization.translate("This referrer has no valid referee player within this period")
                                         })
                                     }
                                 }
@@ -8383,7 +8383,7 @@ let dbPlayerReward = {
                         } else {
                             return Q.reject({
                                 name: "DataError",
-                                message: "Does not have enough valid consumption"
+                                message: localization.localization.translate("Does not have enough valid consumption")
                             });
                         }
 
