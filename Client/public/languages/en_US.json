@@ -1830,5 +1830,7 @@
   "LOGIN_PLAYER_COUNT_AVERAGE": "Login Headcount Average",
   "LOGIN_PLAYER_COUNT": "Login Headcount",
   "AppPlayer": "APP Player",
-  "referralName": "Referral Name"
+  "referralName": "Referral Name",
+  "REFERRAL_VALID": "Valid",
+  "REFERRAL_UNBIND": "Unbind"
 }
