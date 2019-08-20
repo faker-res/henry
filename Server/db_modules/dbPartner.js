@@ -9626,7 +9626,12 @@ let dbPartner = {
 
         let proms = [];
         playerObjIds.map(playerObjId => {
-            let prom = getAllPlayerCommissionRawDetails(playerObjId, commissionType, new Date(startTime), new Date(endTime), providerGroups, topUpTypes, rewardTypes, activePlayerRequirement);
+            let prom = getAllPlayerCommissionRawDetails(playerObjId, commissionType, new Date(startTime), new Date(endTime), providerGroups, topUpTypes, rewardTypes, activePlayerRequirement).catch(
+                err => {
+                    console.log('getAllPlayerCommissionRawDetails fail error for player', playerObjId, err);
+                    return Promise.reject(err);
+                }
+            );
             proms.push(prom);
         });
 
