@@ -92,7 +92,7 @@ let PlayerServiceImplement = function () {
 
         // data.partnerId = "";
         //for partner player registration
-        let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+        let byPassSMSCode = data.isTestPlayer || Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
         // console.log("yH checking---conn", conn)
