@@ -229,7 +229,7 @@ let dbReport = {
                     };
 
                     if (startDate) {
-                        referralQuery['$or'] = [{validEndTime: {$gte: startDate}}, {validEndTime: {$eq: null}}];
+                        referralQuery['$or'] = [{validEndTime: {$gte: startDate}}, {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
                     }
 
                     return dbconfig.collection_referralLog.find(referralQuery).lean().then(
