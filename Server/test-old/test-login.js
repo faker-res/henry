@@ -1,7 +1,7 @@
 var should = require('should');
 var socketConnection = require('../test_modules/socketConnection');
-var dbconfig = require('./../modules/dbproperties');
-var playerschema = require('./../schema/player');
+var dbconfig = require('../modules/dbproperties');
+var playerschema = require('../schema/player');
 var mongoose = require('mongoose');
 var io = require('socket.io-client');
 
