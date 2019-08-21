@@ -285,7 +285,9 @@ define(['js/app'], function (myApp) {
         'updateGame',
         'createDxMission',
         'comparePhoneNum',
-        'resetAllPartnerCustomizedCommissionRate'];
+        'resetAllPartnerCustomizedCommissionRate',
+        'savePreventBlockUrl',
+        'deletePreventBlockUrl'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
@@ -4467,7 +4469,7 @@ define(['js/app'], function (myApp) {
                     // if (!item.sourceUrl) {
                     //     item.registrationAgent$ = "Backstage";
                     // }
-                    
+
                     if (item && item.guestDeviceId) {
                         if (item.partner) {
                             item.registrationAgent$ = "APP Agent";
@@ -11896,6 +11898,10 @@ define(['js/app'], function (myApp) {
 
                     {group: "TeleMarketing", text: "createDxMission", action: "createDxMission"},
                     {group: "TeleMarketing", text: "comparePhoneNum", action: "comparePhoneNum"},
+
+                    {group: "Redirect Url", text: "savePreventBlockUrl", action: "savePreventBlockUrl"},
+                    {group: "Redirect Url", text: "deletePreventBlockUrl", action: "deletePreventBlockUrl"},
+
                 ];
                 utilService.actionAfterLoaded("#actionLogTablePage", function () {
                     vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
@@ -12256,6 +12262,9 @@ define(['js/app'], function (myApp) {
                                 item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                             }
 
+                            item.bindStatus$ = item.bindStatus && (item.bindStatus.toString() === 'true') ?  $translate('REFERRAL_VALID') : $translate('REFERRAL_UNBIND');
+                            item.bindTime$ = item.bindTime ? vm.dateReformat(item.bindTime) : '';
+
                             return item;
                         }), data.data.size, {}, newSearch, isExport);
                     $scope.$evalAsync();
@@ -12270,18 +12279,22 @@ define(['js/app'], function (myApp) {
                 "order": vm.referralRewardQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'referralRewardAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'bindTime', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'bindStatus', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'referralRewardAmount', 'aTargets': [12], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('Bind Time'), data: "bindTime$"},
+                    {title: $translate('STATUS'), data: "bindStatus$"},
                     {
                         title: $translate('LOBBY'), data: "provider$", sClass: "expandReferralRewardReport sumText",
                         render: function (data) {
