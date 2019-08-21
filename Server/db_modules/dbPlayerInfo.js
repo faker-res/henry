@@ -9788,8 +9788,9 @@ let dbPlayerInfo = {
                         })
 
                     let rewardEventGroupProm = dbconfig.collection_rewardEventGroup.find({platform: playerPlatformId}).lean();
+                    let referralConfigProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerPlatformId});
 
-                    return Promise.all([rewardEventProm, rewardEventGroupProm])
+                    return Promise.all([rewardEventProm, rewardEventGroupProm, referralConfigProm])
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -9802,13 +9803,18 @@ let dbPlayerInfo = {
                 return Q.reject({name: "DBError", message: "Error in getting platform", error: error});
             }
         ).then(
-            function ([rewardEvent, rewardEventGroup]) {
-                if (rewardEvent && rewardEventGroup) {
+            function ([rewardEvent, rewardEventGroup, referralConfig]) {
+                if (rewardEvent && rewardEventGroup, referralConfig) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
+
+                        if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
+                            rewardEventItem.referralPeriod = referralConfig.referralPeriod || '5';
+                            rewardEventItem.referralLimit = referralConfig.referralLimit || 1;
+                        }
 
                         let providerGroup = null;
                         let providerGroupName = null;
