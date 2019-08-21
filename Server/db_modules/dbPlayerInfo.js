@@ -1121,6 +1121,7 @@ let dbPlayerInfo = {
 
                         if (inputData.partnerName) {
                             delete inputData.referral;
+                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
@@ -1140,6 +1141,7 @@ let dbPlayerInfo = {
                             proms.push(partnerProm);
                         } else if (inputData.partnerId) {
                             delete inputData.referral;
+                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerId: inputData.partnerId,
                                 platform: platformObjId
@@ -1162,6 +1164,7 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
+                            isEnableUseReferralPlayerId = false;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
