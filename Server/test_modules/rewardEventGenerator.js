@@ -7,7 +7,7 @@ var dbRewardEvent = require("../db_modules/dbRewardEvent.js");
 var constRewardType = require("../const/constProposalType.js");
 var constProposalType = require('./../const/constProposalType');
 var dbconfig = require('../modules/dbproperties');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 var dbPlayerLevel = require("../db_modules/dbPlayerLevel.js");
 var errorUtils = require("../modules/errorUtils.js");
 

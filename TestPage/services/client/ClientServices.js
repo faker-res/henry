@@ -486,6 +486,7 @@
                 "deleteMail",
                 "readMail",
                 "getPartnerPoster",
+                "getPromoShortUrl",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

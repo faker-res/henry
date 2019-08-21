@@ -1564,33 +1564,52 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                     case "UrlShortener":
+                        vm.getAllPreventBlockUrl();
+                        vm.showGeneratePreventBlockUrlPage = true;
+                        vm.showPreventBlockUrlSetting = false;
                         break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
+            function getPreventBlockUrl () {
+                let result;
+                if (vm.choosePreventUrlType) {
+                    result = vm.preventUrlByPreset;
+                } else {
+                    result = vm.keyOwnPreventUrl;
+                }
+                return result;
+            }
+
             vm.generateMultiUrls = function() {
+                // get the url by existing two options, or keyin by user.
+                let preventBlockUrl = getPreventBlockUrl();
                 vm.urlData = [];
                 let urls = vm.splitTextArea(vm.multiUrls);
                 urls = [...new Set(urls)];
-                urls = urls.map(item => { return item.trim() });
-                let sendData = { "urls": urls }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                urls = urls.map(item => {
+                    if (preventBlockUrl) {
+                        item = preventBlockUrl + item;
+                    }
+                    return item.trim();
+                });
+                let sendData = { "urls": urls };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         vm.urlData = data.data ? data.data : [];
                     })
-                })
+                });
             }
 
             vm.generateSingleUrl = function(url, no) {
-                let sendData = { "urls": [ url ] }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
@@ -1600,8 +1619,59 @@ define(['js/app'], function (myApp) {
                                 return item;
                             }
                         });
-                    });
-                })
+                    })
+                });
+            }
+
+            vm.savePreventBlockUrl = function () {
+                let sendData = {'url': vm.newPreventBlockUrl};
+                socketService.$socket($scope.AppSocket, 'savePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+
+            vm.deletePreventBlockUrlConfirm = function (isConfirm = false, url) {
+
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Delete Prevent Block Url");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.deletePreventBlockUrl(url);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    vm.deletePreventBlockUrl(url)
+                }
+
+            }
+
+            vm.deletePreventBlockUrl = function (url) {
+                let sendData = {'url': url};
+                socketService.$socket($scope.AppSocket, 'deletePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+            vm.getAllPreventBlockUrl = function () {
+                socketService.$socket($scope.AppSocket, 'getAllPreventBlockUrl', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        data = data && data.data ? data.data : [];
+                        vm.allPreventBlockUrls = data;
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
             }
 
             vm.exportShortUrlToExcel = function () {
@@ -25276,6 +25346,9 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'scriptDescription':
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25331,6 +25404,9 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'scriptDescription':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                 }
@@ -25698,17 +25774,20 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
-            vm.addRewardCategory = function (categoryName) {
+            vm.addRewardCategory = function (categoryName, displayFormat) {
                 if (categoryName && vm.filterFrontEndSettingPlatform){
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, displayFormat: displayFormat}, function (data) {
                         $scope.$evalAsync( () => {
                             console.log('saveFrontEndRewardCategory', data.data);
+                            vm.isDefaultRewardCategory = false;
+                            $('#rewardCategoryModal').modal('hide');
                             if (data && data.data) {
                                 vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                                 vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                             }
                         })
                     }, function (err) {
+                        vm.isDefaultRewardCategory = false;
                         console.error('saveFrontEndRewardCategory error: ', err);
                     }, true);
                 }
@@ -25753,6 +25832,29 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     });
+
+                    let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                    if (ownArr && ownArr.length){
+                        ownArr.forEach((v, i) => {
+                            if (v){
+                                // try to get from the updated list to update the orderNumber
+                                let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    updateSetting[index].orderNumber = i + 1;
+                                }
+                                else{
+                                    // if cant find the record from the updated list, get it from the original data
+                                    let index = vm.allRewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                    if (index != -1){
+                                        let selectSetting = vm.allRewardSettingData[index];
+                                        selectSetting.orderNumber = i + 1;
+                                        updateSetting.push(selectSetting);
+                                    }
+                                }
+                            }
+                        });
+                    }
                     console.log("arr", arr);
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
@@ -25773,8 +25875,12 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
-                                vm.frontEndRewardCategory = data.data;
-                                vm.allFrontEndRewardCategory = data.data;
+                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+
+                                vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.frontEndRewardCategory = tempAll;
+                                vm.allFrontEndRewardCategory = tempAll;
                                 vm.displayCategory= [];
                                 vm.allFrontEndRewardCategory.forEach(
                                     p => {
@@ -25824,7 +25930,8 @@ define(['js/app'], function (myApp) {
                           utilService.actionAfterLoaded('#' + tempId, function () {
                               $(".droppable-area").sortable({
                                   connectWith: ".connected-sortable"
-                              })
+                              });
+                              $(".ownDragDrop").sortable({});
                           });
                       })
                     }, function (err) {
@@ -25832,6 +25939,16 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.enableSortableCategoryChange = function () {
+                let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+                utilService.actionAfterLoaded('#' + tempId, function () {
+                    $(".droppable-area").sortable({
+                        connectWith: ".connected-sortable"
+                    });
+                    $(".ownDragDrop").sortable({});
+                });
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
@@ -25847,7 +25964,7 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.editRewardCategory = function (categoryObjId) {
+            vm.editRewardCategory = function (categoryObjId, isNew, isDefault) {
                 if (categoryObjId && vm.allFrontEndRewardCategory && vm.allFrontEndRewardCategory.length){
                      let temp = vm.frontEndRewardCategory.filter( p => {
                         return p && p._id && p._id.toString() == categoryObjId.toString();
@@ -25855,28 +25972,61 @@ define(['js/app'], function (myApp) {
 
                     if (temp && temp.length) {
                         vm.newRewardCategoryData = Object.assign({}, temp[0]);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
                         $('#rewardCategoryModal').modal();
                     };
-
+                }
+                else if (isNew){
+                    vm.isNewRewardCategory = true;
+                    vm.newRewardCategoryData = {};
+                    $('#rewardCategoryModal').modal();
+                }
+                else if (isDefault){
+                    vm.isDefaultRewardCategory = true;
+                    if (vm.frontEndRewardDefaultCategory && vm.frontEndRewardDefaultCategory._id){
+                        vm.newRewardCategoryData = Object.assign({}, vm.frontEndRewardDefaultCategory);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRewardCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#rewardCategoryModal').modal();
                 }
             };
 
             vm.updateRewardCategory = function (updateObj) {
-                if (updateObj && updateObj._id && updateObj.categoryName){
-                    let categoryName = updateObj.categoryName;
-                    let categoryObjId = updateObj._id;
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, categoryObjId: categoryObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('saveFrontEndRewardCategory', data.data);
-                            $('#rewardCategoryModal').modal('hide');
-                            if (data && data.data) {
-                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                            }
-                        })
-                    }, function (err) {
-                        console.error('saveFrontEndRewardCategory error: ', err);
-                    }, true);
+                if (updateObj){
+                    if (updateObj._id && updateObj.categoryName) {
+                        let categoryName = updateObj.categoryName;
+                        let categoryObjId = updateObj._id;
+                        let displayFormat = updateObj.displayFormat || null;
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {
+                            platformObjId: vm.filterFrontEndSettingPlatform,
+                            categoryName: categoryName,
+                            categoryObjId: categoryObjId,
+                            displayFormat: displayFormat
+                        }, function (data) {
+                            $scope.$evalAsync(() => {
+                                console.log('saveFrontEndRewardCategory', data.data);
+                                $('#rewardCategoryModal').modal('hide');
+                                vm.isDefaultRewardCategory = false;
+                                if (data && data.data) {
+                                    vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRewardCategory = false;
+                            console.error('saveFrontEndRewardCategory error: ', err);
+                        }, true);
+                    }
+                    else if (updateObj.categoryName){
+                        vm.addRewardCategory(updateObj.categoryName, updateObj.displayFormat);
+                    }
                 }
             };
 
@@ -26156,6 +26306,24 @@ define(['js/app'], function (myApp) {
                 }
             }
             //#endregion
+
+            vm.getFrontEndUrlConfigType = function(device, key, el) {
+                vm.curDevice = device;
+                vm.curKey = key;
+
+                let i = $("a[data-target='#modalSkinColor']").index(el.currentTarget);
+
+                vm.skinColor = function (color, c1, c2, degree) {
+                    if(color && c1 == null && c2 == null){
+                        $(".colorDisplay:eq("+ i +")").css({"background-color": color, "background-image": ""});
+
+                    }else if(color == null && c1 && c2 && degree){
+                        $(".colorDisplay:eq("+ i +")").css({"background-image": "linear-gradient(" + degree + "deg," + c1 + "," + c2 + ")", "background-color": ""});
+                        vm.frontEndUrlConfig[vm.curDevice][vm.curKey] = $('.colorDisplay')[i].style.backgroundImage;
+
+                    }
+                };
+            };
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function (isPartner) {
@@ -43200,6 +43368,84 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.loadScriptSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndScriptSetting', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndScriptSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.scriptSettingData = data.data;
+                        }
+                    })
+
+                }, function (err) {
+                    console.error('getFrontEndScriptSetting error: ', err);
+                }, true);
+            };
+
+            vm.scriptSetting = function (noModal, isDelete, eventObjectId, isVisible) {
+                vm.scriptsData = {};
+                if (eventObjectId){
+                    let index = vm.scriptSettingData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    vm.scriptsData._id = vm.scriptSettingData[index]._id
+
+                    if (noModal) {
+                        if(isDelete){
+                            vm.scriptsData.status = 2;
+                        }else{
+                            vm.scriptsData.isVisible = isVisible;
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                            console.log("saveFrontEndScriptSetting", data);
+                        }, function (err) {
+                            console.log("saveFrontEndScriptSetting err", err);
+                        });
+
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+
+                    }else {
+                        $('#scriptDescriptionModal').modal();
+
+                        if (index != -1) {
+                            vm.scriptsData.title = vm.scriptSettingData[index].title;
+                            vm.scriptsData.instructions = vm.scriptSettingData[index].instructions;
+                        }
+                    }
+                }else{
+                    $('#scriptDescriptionModal').modal();
+
+                }
+            };
+
+            vm.updateScriptSetting = () => {
+                socketService.$socket($scope.AppSocket, 'updateScriptSetting', {dataList: vm.scriptSettingData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateScriptSetting is done', data);
+                            vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            },
+
+            vm.submitScriptSetting = () => {
+                $('#scriptDescriptionLoader').show();
+                vm.scriptsData.platformObjId = vm.filterFrontEndSettingPlatform;
+
+                socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                    console.log("saveFrontEndScriptSetting", data);
+                    $('#scriptDescriptionLoader').hide();
+                    $('#scriptDescriptionModal').modal('hide');
+
+                }, function (err) {
+                    console.log("saveFrontEndScriptSetting err", err);
+                });
+
+                vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
             };
 
             vm.checkProposalStepUpdatePermission = () => {

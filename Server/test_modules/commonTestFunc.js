@@ -31,9 +31,8 @@ if (env.mode == "qa") {
     clientApiInstances.createPaymentAPIMocked();
 }
 
-var commonTestFunc = {
-
-    testPlatformName: "testPlatform",
+let commonTestFunc = {
+    testPlatformName: 'testClientPlatform',
     testPaymentChannelName: "testPaymentChannelName",
     testPlayerName: "testplayer",
     testProviderName: 'testProviderName',
@@ -48,14 +47,15 @@ var commonTestFunc = {
     testDepartName: "step1Department",
 
 
-    createTestPlatform: function (data) {
-        var date = new Date();
-        var platformName = commonTestFunc.testPlatformName + date.getTime();
-        var platformData = {
+    createTestPlatform: function(data) {
+        let date = new Date();
+        let platformName = commonTestFunc.testPlatformName + date.getTime();
+        let platformData = {
             name: platformName,
-            prefix: "",
+            platformId: '9999',
+            prefix: '',
             code: new Date().getTime(),
-            description: "a platform for testing"
+            description: 'createTestPlatform - Unit Test',
         };
 
         if (data) {

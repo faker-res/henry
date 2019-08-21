@@ -2490,7 +2490,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.realName = row.data.realName;
                 vm.newPlayer.name = row.data.name;
                 vm.newPlayer.email = row.data.email;
-                vm.newPlayer.domain = row.data.domain;
+                // vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
                 vm.newPlayer.referralName = row.data.referral;
                 vm.newPlayer.platform = row.data.platformId;

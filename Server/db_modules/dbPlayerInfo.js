@@ -709,6 +709,7 @@ let dbPlayerInfo = {
         let referralLog = {};
         let isHitReferralLimit = false;
         let isEnableUseReferralPlayerId = false;
+        let referralInterval;
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -968,6 +969,7 @@ let dbPlayerInfo = {
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
                                 referralConfig => {
                                     if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                        referralInterval = referralConfig.referralPeriod || '5';
                                         isEnableUseReferralPlayerId = true;
                                     }
 
@@ -997,10 +999,11 @@ let dbPlayerInfo = {
 
                                                                 referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                                                if (countReferee <= referralLimit) {
+                                                                if (countReferee < referralLimit) {
                                                                     referralLog = {
                                                                         platform: platformObjId,
                                                                         referral: data._id,
+                                                                        referralPeriod: referralInterval
                                                                     };
 
                                                                     return inputData;
@@ -1019,18 +1022,10 @@ let dbPlayerInfo = {
                                                         referralLog = {
                                                             platform: platformObjId,
                                                             referral: data._id,
+                                                            referralPeriod: referralInterval
                                                         };
 
-                                                        if (!inputData.referralId && !inputData.referralUrl) {
-                                                            inputData.referralId = data.playerId;
-
-                                                            if (data.platform && data.platform.playerInvitationUrlList && data.platform.playerInvitationUrlList.length > 0
-                                                                && data.platform.playerInvitationUrlList[0] && data.platform.playerInvitationUrlList[0].content) {
-                                                                inputData.referralUrl = data.platform.playerInvitationUrlList[0].content + '/' + data.playerId;
-                                                            }
-
-                                                            return inputData;
-                                                        }
+                                                        return inputData;
                                                     }
                                                 }
 
@@ -1058,6 +1053,7 @@ let dbPlayerInfo = {
                                     if (referralConfig) {
 
                                         if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                                            referralInterval = referralConfig.referralPeriod || '5';
 
                                             return dbconfig.collection_players.findOne({
                                                 playerId: inputData.referralId,
@@ -1080,13 +1076,14 @@ let dbPlayerInfo = {
 
                                                             referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                                            if (countReferee <= referralLimit) {
+                                                            if (countReferee < referralLimit) {
                                                                 inputData.referral = referrerData._id;
 
                                                                 isEnableUseReferralPlayerId = true;
                                                                 referralLog = {
                                                                     platform: platformObjId,
                                                                     referral: referrerData._id,
+                                                                    referralPeriod: referralInterval
                                                                 };
 
                                                                 return inputData;
@@ -1241,7 +1238,18 @@ let dbPlayerInfo = {
                     if (data) {
                         // dbPlayerInfo.createPlayerLoginRecord(data);
                         if (isEnableUseReferralPlayerId) {
-                            referralLog.playerObjId = data._id
+                            let bindReferralTime = (data && data.registrationTime) || new Date();
+
+                            referralLog.playerObjId = data._id;
+                            referralLog.createTime = new Date(bindReferralTime);
+
+                            if (referralInterval) {
+                                let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
+
+                                if (referralIntervalTime) {
+                                    referralLog.validEndTime = referralIntervalTime.endTime;
+                                }
+                            }
 
                             let newRecord = new dbconfig.collection_referralLog(referralLog);
                             newRecord.save().catch(errorUtils.reportError);
@@ -2789,6 +2797,10 @@ let dbPlayerInfo = {
             path: "rewardPointsObjId",
             model: dbconfig.collection_rewardPoints
         }).lean().then(
+            playerData => {
+                return getReferralIdAndUrl(playerData, true);
+            }
+        ).then(
             function (data) {
                 // data.fullPhoneNumber = data.phoneNumber;
                 if (data.phoneNumber) {
@@ -2947,7 +2959,7 @@ let dbPlayerInfo = {
                                     if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
                                         referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
 
-                                        if (countReferee > referralLimit) {
+                                        if (countReferee >= referralLimit) {
                                             returnData.isHitReferralLimit = true;
 
                                             return returnData;
@@ -3062,6 +3074,10 @@ let dbPlayerInfo = {
                     }
 
                     return playerData;
+                }
+            ).then(
+                playerData => {
+                    return getReferralIdAndUrl(playerData);
                 }
             )
     },
@@ -5242,6 +5258,8 @@ let dbPlayerInfo = {
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: topupRecordData.platformId,
+                                    playerObjId: topupRecordData.playerId,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -6471,6 +6489,22 @@ let dbPlayerInfo = {
                             }
                             return Promise.all(players)
                         }
+                    ).then(
+                        playerData => {
+                            let players = [];
+                            for (let ind in playerData) {
+                                if (playerData[ind]) {
+                                    let newInfo;
+
+                                    newInfo = getReferralIdAndUrl(playerData[ind]);
+
+                                    let prom1 = Promise.resolve(newInfo);
+                                    players.push(prom1);
+                                }
+                            }
+
+                            return Promise.all(players)
+                        }
                     );
                 var b = dbconfig.collection_players
                     .find(advancedQuery).count();
@@ -6481,7 +6515,6 @@ let dbPlayerInfo = {
             data => {
                 let playerData;
                 dataSize = data[1];
-                let credibilityRemarksList = data && data[2] ? data[2] : [];
                 if (data && data[0] && data[0].length) {
                     data[0].forEach(player => {
                         if (player && player.length) {
@@ -6925,6 +6958,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -7648,6 +7683,8 @@ let dbPlayerInfo = {
                                 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
                             ) {
                                 dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
                                     autoFeedbackMissionObjId: promoCode._id,
                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
                                     createTime: promoCode.createTime
@@ -23929,7 +23966,7 @@ let dbPlayerInfo = {
                                 list: listData,
                             });
 
-                            totalLockedCredit += parseInt(rewardTaskGroup[i].rewardAmt) || 0;
+                            totalLockedCredit += parseFloat(rewardTaskGroup[i].rewardAmt) || 0;
                         }
                     }
                 }
@@ -23982,9 +24019,11 @@ let dbPlayerInfo = {
                 console.log('TYPE3===', typeof returnData.credit);
 
                 // return total amount
-                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
+                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit);
+                returnData.finalAmount =  parseFloat((returnData.finalAmount).toFixed(2));
 
-                returnData.localAmount =  totalLockedCredit + parseInt(returnData.credit);
+                returnData.localAmount =  totalLockedCredit + parseFloat(returnData.credit);
+                returnData.localAmount =  parseFloat((returnData.localAmount).toFixed(2));
 
                 return returnData;
             });
@@ -27037,6 +27076,40 @@ let dbPlayerInfo = {
                 );
             }
         )
+    },
+
+    executeAutoUnbindReferral: () => {
+        let updateProm = [];
+        let now = new Date();
+
+        return dbconfig.collection_referralLog.find({validEndTime: {$lt: now}, isValid: {$exists: true, $eq: true, $ne: null}}).then(
+            referrals => {
+                if (referrals && referrals.length > 0) {
+                    referrals.forEach(
+                        referral => {
+                            if (referral && referral.playerObjId) {
+                                let updatePlayerProm = dbconfig.collection_players.findOneAndUpdate({
+                                    _id: ObjectId(referral.playerObjId),
+                                    platform: referral.platform
+                                }, {
+                                    referral: null
+                                });
+
+                                let updateReferralLogProm = dbconfig.collection_referralLog.findOneAndUpdate({
+                                    _id: referral._id,
+                                    platform: referral.platform
+                                }, {
+                                    isValid: Boolean(false)
+                                });
+
+                                updateProm.push(Promise.all([updatePlayerProm, updateReferralLogProm]))
+                            }
+                        }
+                    );
+                    return Promise.all(updateProm);
+                }
+            }
+        )
     }
 };
 
@@ -29564,6 +29637,39 @@ function checkPlayerIsBlacklistIp(player) {
             }
         )
     }
+}
+
+function getReferralIdAndUrl(thisPlayer, generateQRCode) {
+    return dbconfig.collection_platformReferralConfig.findOne({platform: thisPlayer.platform})
+        .populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            config => {
+                if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                    if (config.platform && config.platform.playerInvitationUrlList && config.platform.playerInvitationUrlList.length > 0
+                        && config.platform.playerInvitationUrlList[0] && config.platform.playerInvitationUrlList[0].content) {
+                        thisPlayer.referralUrl = config.platform.playerInvitationUrlList[0].content + '/' + thisPlayer.playerId;
+                        thisPlayer.referralId = thisPlayer.playerId;
+                    }
+                }
+                return thisPlayer;
+            }
+        ).then(
+            playerData => {
+                if (generateQRCode && playerData && playerData.referralUrl) {
+                    let qrProm = dbPlatform.turnUrlToQr(playerData.referralUrl);
+
+                    return qrProm.then(
+                        data => {
+                            if (data) {
+                                playerData.referralQRCode = data;
+                            }
+                            return playerData;
+                        }
+                    )
+                }
+
+                return playerData;
+            }
+        )
 }
 
 var proto = dbPlayerInfoFunc.prototype;

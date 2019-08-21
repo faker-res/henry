@@ -908,37 +908,29 @@ var proposalExecutor = {
                                     }
                                 }
 
-                                if (proposalData.hasOwnProperty("inputDevice") && (proposalData.inputDevice.toString() == '0') && playerUpdate && playerUpdate.referral) {
-                                    let updateData = {};
-
+                                if (playerUpdate && playerUpdate.referral) {
                                     let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: data.platform}).then(
                                         config => {
-
                                             if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
-                                                updateData.referralId = data.playerId;
+                                                let bindReferralTime = (data && data.registrationTime) || new Date();
 
-                                                return dbconfig.collection_platform.findOne({_id: data.platform}, {playerInvitationUrlList: 1}).then(
-                                                    platformData => {
-                                                        if (platformData && platformData.playerInvitationUrlList && platformData.playerInvitationUrlList.length > 0
-                                                            && platformData.playerInvitationUrlList[0] && platformData.playerInvitationUrlList[0].content) {
-                                                            updateData.referralUrl = platformData.playerInvitationUrlList[0].content + '/' + data.playerId;
-                                                        }
+                                                let referralLog = {
+                                                    referral: playerUpdate.referral,
+                                                    playerObjId: data._id,
+                                                    platform: data.platform,
+                                                    createTime: new Date(bindReferralTime),
+                                                    referralPeriod: config.referralPeriod || '5'
+                                                };
 
-                                                        let updatePlayerProm = dbconfig.collection_players.findOneAndUpdate(
-                                                            {_id: data._id, platform: data.platform},
-                                                            updateData
-                                                        );
+                                                if (config.referralPeriod) {
+                                                    let referralIntervalTime = dbUtil.getReferralConfigIntervalTime(config.referralPeriod, new Date(bindReferralTime));
 
-                                                        let referralLog = {
-                                                            referral: playerUpdate.referral,
-                                                            playerObjId: data._id,
-                                                            platform: data.platform
-                                                        }
-                                                        let createReferralLog = new dbconfig.collection_referralLog(referralLog).save();
-
-                                                        return Promise.all([updatePlayerProm, createReferralLog]);
+                                                    if (referralIntervalTime) {
+                                                        referralLog.validEndTime = referralIntervalTime.endTime;
                                                     }
-                                                )
+                                                }
+
+                                                return new dbconfig.collection_referralLog(referralLog).save();
                                             }
                                         }
                                     )

@@ -579,6 +579,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerCommissionConfig.getPartnerCommissionRate, [conn.partnerObjId, conn.partnerId, data.partnerId, data.platformId, data.commissionClass], isValidData);
     };
 
+    this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPromoShortUrl, [data], isValidData);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

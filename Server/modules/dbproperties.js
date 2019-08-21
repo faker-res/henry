@@ -113,7 +113,9 @@ let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfigurati
 let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionSchema = require('./../schema/frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingSchema = require('./../schema/promoCodeMaxRewardAmountSetting');
+let preventBlockUrlSchema = require('./../schema/preventBlockUrl');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -302,7 +304,10 @@ let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', f
 let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionModel = db_admin.model('frontEndScriptDescription', frontEndScriptDescriptionSchema, 'frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingModel = db_admin.model('promoCodeMaxRewardAmountSetting', promoCodeMaxRewardAmountSettingSchema, 'promoCodeMaxRewardAmountSetting');
+let preventBlockUrlModel = db_admin.model('preventBlockUrl', preventBlockUrlSchema, 'preventBlockUrl');
+
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -816,7 +821,9 @@ var dbProperties = {
     collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
+    collection_frontEndScriptDescription: frontEndScriptDescriptionModel,
     collection_promoCodeMaxRewardAmountSetting: promoCodeMaxRewardAmountSettingModel,
+    collection_preventBlockUrl: preventBlockUrlModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
