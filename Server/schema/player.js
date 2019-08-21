@@ -369,6 +369,8 @@ var playerSchema = new Schema({
     },
     // verify if this is generate by app, and is been change the password before
     hasPassword: {type: Boolean, default: false},
+    // short url to referral purpose
+    shortUrl: {type: JSON},
     //os for native app
     osType: {type: String, index: true}
 });

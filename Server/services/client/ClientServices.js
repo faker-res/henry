@@ -112,6 +112,7 @@
                 "checkIsAppPlayerAndAppliedReward",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
+                "getPromoShortUrl",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

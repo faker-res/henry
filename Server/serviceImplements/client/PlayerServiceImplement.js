@@ -1557,6 +1557,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkIsAppPlayerAndAppliedReward, [conn.playerObjId], isValidData);
     };
 
+    this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
