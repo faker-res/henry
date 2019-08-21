@@ -29655,7 +29655,7 @@ function getReferralIdAndUrl(thisPlayer, generateQRCode) {
                 if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
                     if (config.platform && config.platform.playerInvitationUrlList && config.platform.playerInvitationUrlList.length > 0
                         && config.platform.playerInvitationUrlList[0] && config.platform.playerInvitationUrlList[0].content) {
-                        thisPlayer.referralUrl = config.platform.playerInvitationUrlList[0].content + '/' + thisPlayer.playerId;
+                        thisPlayer.referralUrl = config.platform.playerInvitationUrlList[0].content + '/r/' + thisPlayer.playerId;
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
