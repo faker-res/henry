@@ -2493,6 +2493,8 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
                 vm.newPlayer.referralName = row.data.referral;
+                vm.newPlayer.platform = row.data.platformId;
+                vm.newPlayer.platformId = vm.platformByAdminId.filter(platform => platform._id.toString() === row.data.platformId.toString())[0].platformId;
             });
         }
 
@@ -2733,8 +2735,8 @@ define(['js/app'], function (myApp) {
 
 
         vm.createNewPlayer = function () {
-            vm.newPlayer.platform = vm.selectedPlatform._id;
-            vm.newPlayer.platformId = vm.selectedPlatform.platformId;
+            // vm.newPlayer.platform = vm.selectedPlatform._id;
+            // vm.newPlayer.platformId = vm.selectedPlatform.platformId;
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
 
             console.log('newPlayer', vm.newPlayer);
