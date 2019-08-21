@@ -985,6 +985,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "App"
     };
 
+    $scope.referralInterval = {
+        1: "Daily",
+        2: "Weekly",
+        3: "Monthly",
+        4: "Yearly",
+        5: "No Interval"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",

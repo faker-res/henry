@@ -1723,3 +1723,96 @@ var param110Cursor = db.rewardParam.find({"name": type110});
 var param110 = param110Cursor.next();
 
 db.rewardType.update({"name": type110}, {$set: {params: param110._id, des: type110, isGrouped: true}}, {upsert: true});
+
+// Referral Reward Group
+var type111 = "ReferralRewardGroup";
+
+db.rewardParam.update({
+    "name": type111
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            topUpCond: topUpCond,
+            periodCond: {
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
+                forbidApplyReward: {
+                    index: 22,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                }
+            },
+            latestTopUpCond: {
+                // Allow to apply if there is withdrawal after top up
+                allowApplyAfterWithdrawal: {index: 31, type: "checkbox", des: "Allow to apply if there is withdrawal after top up", detail: "REWARD_APPLY_AFTER_WITHDRAWAL_DETAIL"},
+                // Ignore checks for certain rewards that applied with this top up
+                ignoreTopUpDirtyCheckForReward: {
+                    index: 32,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with top up",
+                    options: "allRewardEvent"
+                }
+            },
+            consumptionCond: consumptionCond,
+            customCond: {
+                depositMethod: {
+                    index: 19,
+                    type: "multiSelect",
+                    des: "DEPOSIT_METHOD",
+                    options: "depositMethod",
+                    detail: "REWARD_TOP_UP_TYPE_DETAIL"
+                },
+                requiredPhoneNumber: {
+                    index: 19.1,
+                    type: "checkbox",
+                    des: "Required phone number"
+                },
+                checkSameIP: {
+                    index: 19.2,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 19.3,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 19.4,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward"
+                },
+                needSMSVerification: {
+                    index: 19.5,
+                    type: "checkbox",
+                    des: "Need SMS verification"
+                }
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    playerValidConsumption: {type: "number", des: "Player Valid Consumption"},
+                    rewardPercentage: {type: "percentage", des: "Referral Reward Ratio"},
+                    maxRewardAmount: {type: "number", des: "Reward Amount Limit"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"}
+                }
+            },
+            tblOptDynamic: {}
+        }
+    }
+}, {
+    upsert: true
+});
+
+var param111Cursor = db.rewardParam.find({"name": type111});
+var param111 = param111Cursor.next();
+
+db.rewardType.update({"name": type111}, {$set: {params: param111._id, des: type111, isGrouped: true}}, {upsert: true});

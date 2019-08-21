@@ -140,6 +140,7 @@ define(['js/app'], function (myApp) {
             PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
             PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
             PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+            REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
             PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
             PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
             PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
@@ -8110,6 +8111,7 @@ define(['js/app'], function (myApp) {
             vm.euPrefixNotExist = false;
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
+            $('.hitReferralLimit').hide();
             vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
             vm.playerCreateResult = null;
@@ -8384,6 +8386,9 @@ define(['js/app'], function (myApp) {
                         duplicateNameFound: function () {
                             return vm.duplicateNameFound;
                         },
+                        showReferralLimitMsg: function () {
+                            return vm.showReferralLimitMsg;
+                        },
                         checkDuplicatedBankAccount: function (playerPaymentData){
 
                             if (playerPaymentData.newBankAccount == selectedPlayer.bankAccount){
@@ -8589,6 +8594,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerChange = false;
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
+                $('.hitReferralLimit').hide();
                 $('.partnerValidTrue').hide();
                 $('.partnerValidFalse').hide();
                 $('#dialogEditPlayer').floatingDialog(option);
@@ -8639,12 +8645,13 @@ define(['js/app'], function (myApp) {
             }
             if (sendData) {
                 sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
-                socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
+                socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
                         $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                         $('.referralValidTrue').show();
                         $('.referralValidFalse').hide();
+                        $('.hitReferralLimit').hide();
                         editObj.referral = player._id;
                         editObj.referralName = player.name;
                         if (type === 'new') {
@@ -8656,11 +8663,18 @@ define(['js/app'], function (myApp) {
                         $('.referralValidFalse').show();
                         editObj.referral = null;
                     }
+
+                    if (player && player.isHitReferralLimit) {
+                        $('.hitReferralLimit').show();
+                    } else {
+                        $('.hitReferralLimit').hide();
+                    }
                 })
             } else {
                 $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
+                $('.hitReferralLimit').hide();
                 editObj.referral = null;
             }
         };
@@ -9089,7 +9103,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
-
+            vm.newPlayer.isFromBackstage = Boolean(true);
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {

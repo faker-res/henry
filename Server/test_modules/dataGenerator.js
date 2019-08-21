@@ -16,7 +16,7 @@ var commonTestFun = require('../test_modules/commonTestFunc');
 
 var dbconfig = require('../modules/dbproperties');
 
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 
 var Q = require("q");
 var mongooseUtils = require("../modules/mongooseUtils.js");

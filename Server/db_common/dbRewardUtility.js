@@ -784,7 +784,7 @@ const dbRewardUtility = {
     checkTopupRecordIsDirtyForReward: (eventData, rewardData) => {
         let isUsed = false;
 
-        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+        if (eventData && eventData.type && eventData.type.name && eventData.type.name !== constProposalType.REFERRAL_REWARD_GROUP && rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 rewardData.selectedTopup.usedEvent.map(eventId => {
                     let isOneMatch = false;
@@ -1068,7 +1068,7 @@ const dbRewardUtility = {
         if (
             eventData.condition.allowConsumptionAfterTopUp
             || !rewardData || !rewardData.selectedTopup || !rewardData.lastConsumptionData
-            || isRandomRewardConsumption(eventData)
+            || isRandomRewardConsumption(eventData) || (eventData && eventData.type && eventData.type.name === constProposalType.REFERRAL_REWARD_GROUP)
         ) {
             return;
         }

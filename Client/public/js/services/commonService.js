@@ -1969,6 +1969,35 @@ define([], () => {
             }
             // end region
 
+            // region random reward Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "ReferralRewardGroup")) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                let rewardType = vm.selectedProposal.data.rewardType;
+                proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
+                proposalDetail["MAIN_TYPE"] = $translate("ReferralRewardGroup");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["eventId"] = vm.selectedProposal.data.eventId;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+                proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["isGroupReward"] = vm.selectedProposal.data.isGroupReward;
+                proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit;
+                proposalDetail["providerGroup"] = vm.selectedProposal.data.providerGroup;
+                proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+            }
+            // end region
+
             // region auction product Proposal
             if (vm.selectedProposal && vm.selectedProposal.type && (vm.selectedProposal.type.name === "AuctionPromoCode" || vm.selectedProposal.type.name === "AuctionOpenPromoCode" ||
                 vm.selectedProposal.type.name === "AuctionRewardPromotion" || vm.selectedProposal.type.name === "AuctionRealPrize" || vm.selectedProposal.type.name === "AuctionRewardPointChange")) {
