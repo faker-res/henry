@@ -3702,6 +3702,7 @@ API说明：
                 quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组）
             }  
         }
         ```
