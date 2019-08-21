@@ -11,6 +11,41 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        updateRegistrationGuidanceSetting: function updateRegistrationGuidanceSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.dataList);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateRegistrationGuidanceSetting, [data.dataList, data.deletedList, data.deletedCategoryList], actionName, isValidData);
+        },
+
+        getFrontEndRegistrationGuidanceSetting: function getFrontEndRegistrationGuidanceSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getFrontEndRegistrationGuidanceSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        saveFrontEndRegistrationGuidanceSetting: function saveFrontEndRegistrationGuidanceSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRegistrationGuidanceSetting, [data], actionName, isValidData);
+        },
+
+        saveFrontEndRegistrationGuidanceCategory: function saveFrontEndRegistrationGuidanceCategory(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.categoryName);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.saveFrontEndRegistrationGuidanceCategory, [data.platformObjId, data.categoryName, data.categoryObjId, data.displayFormat], actionName, isValidData);
+        },
+
+        getRegistrationGuidanceCategory: function getRegistrationGuidanceCategory(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getRegistrationGuidanceCategory, [data.platformObjId], actionName, isValidData);
+        },
+
         updateScriptSetting: function  updateScriptSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.dataList);
