@@ -239,7 +239,6 @@
 		16. [前端保存数据接口](#前端保存数据接口)
 		17. [前端获取数据接口](#前端获取数据接口)
 		18. [获取前端設置数据接口](#获取前端設置数据接口)
-		19. [获取平台推荐人奖励設置](#获取平台推荐人奖励設置)
 	13. [奖励点数](#奖励点数：)
 		1. [获取积分排名列表](#获取积分排名列表)
 		2. [获取登入积分信息](#获取登入积分信息)
@@ -3511,6 +3510,8 @@ API说明：
             validEndTime: String|优惠结束时间
             groupName: String|优惠分组名称
             showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+            referralPeriod: "4", //推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
+            referralLimit: 50, //推荐人优惠组 - 被推荐人数限制
         }
         ```
     * 操作失败:
@@ -3716,6 +3717,7 @@ API说明：
                 quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组）
             }  
         }
         ```
@@ -7321,34 +7323,6 @@ API说明：
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
-
-<div id='获取平台推荐人奖励設置'></div>
-
-* **19. 获取平台推荐人奖励設置**
-	* name: getPlatformReferralConfig
-	* service:platform
-	* 请求内容：
-		* ```
-			{
-				platformId: 1, //平台ID - 必填
-			}
-	* 响应内容：
-        * ```
-            {  
-                "status": 200,
-                "data": {
-                    "_id": "5d4a6bd27404de0c73e90de6",
-                    "platform": "5732dad105710cf94b5cfaaa",
-                    "referralPeriod": "4", //被推荐人周期
-                    "referralLimit": 50, //被推荐人数限制
-                    "enableUseReferralPlayerId": true, //是否启用推荐人账号
-                    "__v": 0
-                  }
-            }
-	* 操作失败：status--4xx, data-null, errorMessage:””
-	* 特注：
-		* enableUseReferralPlayerId： true - 开始启用; false - 未启用
-		* referralPeriod:  1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
 
 <!--文档没有华语名称，因此暂时命名“奖励点数”-->
 # 奖励点数：
