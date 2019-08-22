@@ -2801,7 +2801,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_rewardPoints
         }).lean().then(
             playerData => {
-                return getReferralIdAndUrl(playerData, true);
+                return getReferralIdAndUrl(playerData);
             }
         ).then(
             function (data) {
@@ -29727,7 +29727,7 @@ function checkPlayerIsBlacklistIp(player) {
     }
 }
 
-function getReferralIdAndUrl(thisPlayer, generateQRCode) {
+function getReferralIdAndUrl(thisPlayer) {
     return dbconfig.collection_platformReferralConfig.findOne({platform: thisPlayer.platform})
         .populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             config => {
@@ -29740,24 +29740,7 @@ function getReferralIdAndUrl(thisPlayer, generateQRCode) {
                 }
                 return thisPlayer;
             }
-        ).then(
-            playerData => {
-                if (generateQRCode && playerData && playerData.referralUrl) {
-                    let qrProm = dbPlatform.turnUrlToQr(playerData.referralUrl);
-
-                    return qrProm.then(
-                        data => {
-                            if (data) {
-                                playerData.referralQRCode = data;
-                            }
-                            return playerData;
-                        }
-                    )
-                }
-
-                return playerData;
-            }
-        )
+        );
 }
 
 var proto = dbPlayerInfoFunc.prototype;

@@ -1895,13 +1895,6 @@ var dbRewardEvent = {
                                 {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
                         }
 
-                        if (!selectedRewardParam[0].playerValidConsumption) {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "There is no minimum valid consumption setting"
-                            })
-                        }
-
                         return dbconfig.collection_referralLog.find(referralQuery).lean().then(
                             referees => {
                                 if (referees && referees.length > 0) {
@@ -1998,18 +1991,12 @@ var dbRewardEvent = {
                                     )
 
                                 } else {
-                                    return Promise.reject({
-                                        name: "DataError",
-                                        message: localization.localization.translate("This referrer has no valid referee player within this period")
-                                    })
+                                    return [0, []];
                                 }
                             }
                         );
                     } else {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Referral reward program is off"
-                        })
+                        return [0, []];
                     }
                 }
             )
@@ -3112,11 +3099,7 @@ var dbRewardEvent = {
                                 }
                             }
                             else {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_PARAM,
-                                    name: "DataError",
-                                    message: "Minimum Valid Consumption cannot be empty. Please check reward condition."
-                                });
+                                returnData.status = 2;
                             }
                         }
                         break;
