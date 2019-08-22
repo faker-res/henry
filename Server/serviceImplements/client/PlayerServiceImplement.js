@@ -256,10 +256,17 @@ let PlayerServiceImplement = function () {
                     delete playerData.guestDeviceId;
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 
