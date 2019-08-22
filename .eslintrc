@@ -14,7 +14,9 @@
     "quote-props": "off",
     "comma-dangle": "off",
     "arrow-parens": "off",
-    "quotes": "off"
+    "quotes": "off",
+    "no-trailing-spaces": "off",
+    "new-cap": "off"
   },
   "env": {
     "amd": true,
