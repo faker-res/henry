@@ -3096,10 +3096,12 @@ var dbRewardEvent = {
                                     returnData.result.rewardAmount = rewardAmount;
                                 } else {
                                     returnData.status = 2;
+                                    returnData.result.totalValidConsumptionAmount = 0;
                                 }
                             }
                             else {
                                 returnData.status = 2;
+                                returnData.result.totalValidConsumptionAmount = 0;
                             }
                         }
                         break;
