@@ -939,31 +939,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        // if (inputData.referral || inputData.referralName) {
-                        //     let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                        //     let referralProm = dbconfig.collection_players.findOne({
-                        //         name: referralName,
-                        //         platform: platformObjId
-                        //     }).then(
-                        //         data => {
-                        //             if (data) {
-                        //                 inputData.referral = data._id;
-                        //                 return inputData;
-                        //             }
-                        //             else {
-                        //                 // If user key in invalid referral during register, we will not proceed
-                        //                 return Q.reject({
-                        //                     status: constServerCode.INVALID_REFERRAL,
-                        //                     name: "DataError",
-                        //                     message: "Invalid referral"
-                        //                 });
-                        //             }
-                        //         }
-                        //     );
-                        //     proms.push(referralProm);
-                        // }
-
-                        if (inputData.referral || inputData.referralName) {
+                        if ((!inputData.partnerName && !inputData.partnerId) && (inputData.referral || inputData.referralName)) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
@@ -1047,7 +1023,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if (!inputData.referral && inputData.referralId) {
+                        if ((!inputData.partnerName && !inputData.partnerId) && !inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
@@ -1121,7 +1097,6 @@ let dbPlayerInfo = {
 
                         if (inputData.partnerName) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
@@ -1141,7 +1116,6 @@ let dbPlayerInfo = {
                             proms.push(partnerProm);
                         } else if (inputData.partnerId) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerId: inputData.partnerId,
                                 platform: platformObjId
@@ -1164,7 +1138,6 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
