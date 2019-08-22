@@ -2046,10 +2046,20 @@ var dbUtility = {
         }
 
         return retObj;
+    },
+
+    cleanOutput: (entry) => {
+        delete entry.type;
+        delete entry.executeProposal;
+        delete entry.__v;
+        delete entry.updateTime;
+        delete entry.settlementPeriod;
+        delete entry.needSettlement;
+        return entry;
     }
 };
 
-var proto = dbUtilityFunc.prototype;
+let proto = dbUtilityFunc.prototype;
 proto = Object.assign(proto, dbUtility);
 
 // This make WebStorm navigation work

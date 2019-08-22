@@ -21,7 +21,7 @@ div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
         select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-model="vm.displayCategory")
             //option(value='all' ng-init='$last && vm.refreshSPicker()') {{'PRESET (ALL)' | translate}}
             option(ng-init='$last && vm.refreshSPicker()' ng-repeat='item in vm.allFrontEndRewardCategory', value='{{item._id}}') {{item.categoryName}}
-    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayCategory(vm.displayCategory); vm.enableSortableCategoryChange();") {{'SUBMIT' | translate}}
+    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayCategory(vm.displayCategory); vm.enableSortableCategoryChange(vm.frontEndRewardCategory);") {{'SUBMIT' | translate}}
 
 div.col-xs-12.row(style="padding-right: 0;")
     div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
@@ -40,7 +40,7 @@ div.col-xs-12.row(style="padding-right: 0;")
         div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
             span(style='font-weight: bold;') {{data.categoryName}}
             p.text-danger 正式站、测试站点击可切换
-                button.btn.btn-danger.btn-delete(style="margin-left: 5px;", ng-click="vm.deleteRewardCategory(data._id)")
+                button.btn.btn-danger.btn-delete(style="margin-left: 5px;", ng-click="vm.deleteRewardCategory(data._id, vm.frontEndRewardCategory)")
                     span.fa.fa-trash-o
                 button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRewardCategory(data._id)")
                     span.fa.fa-edit
@@ -52,7 +52,7 @@ div.col-xs-12.row(style="padding-right: 0;")
                         .tab-btngroup
                             button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
                             button.btn.btn-success(ng-if="!event.isVisible", ng-click="event.isVisible = true") off
-                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id)")
+                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'rewardSettingData', 'allRewardSettingData')")
                                 span.fa.fa-trash-o
 
 div.text-right

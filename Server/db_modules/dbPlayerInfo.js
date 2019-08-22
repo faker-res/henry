@@ -9981,6 +9981,9 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                if (rewardList && rewardList.length) {
+                    rewardList = rewardList.map(e => dbUtil.cleanOutput(e));
+                }
                 return rewardList
             }
         );
