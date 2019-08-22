@@ -5540,7 +5540,7 @@ let dbPartner = {
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
-                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                    return Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
 
                 switch (period) {
@@ -5808,7 +5808,7 @@ let dbPartner = {
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
-                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                    return Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
                 let validPlayerTopUpTimes = config.validPlayerTopUpTimes ? config.validPlayerTopUpTimes : 0;
                 let validPlayerTopUpAmount = config.validPlayerTopUpAmount ? config.validPlayerTopUpAmount : 0;
