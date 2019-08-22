@@ -2043,7 +2043,7 @@ API说明：
               "status": 200,
               "data": {
                 "shortUrl": "http://t.cn/AiQwVM4y",
-                "partnerName": "testmk12"
+                "name": "testmk12"
               }
             }
     * 操作失败：status--4xx, data-null, errorMessage:””
