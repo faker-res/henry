@@ -2036,6 +2036,7 @@ API说明：
         * ```
             {
                 url: “www.xindeli666.com/123”, // 玩家网址
+                playerId: '123' //玩家Id
             }
     * 响应内容：
         * ```
@@ -6602,6 +6603,7 @@ API说明：
         * ```
             {
                 url: “www.xindeli666.com/123”, // 代理网址
+                partnerId:'270', //代理Id
             }
     * 响应内容：
         * ```
