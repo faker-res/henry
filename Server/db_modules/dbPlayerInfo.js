@@ -939,7 +939,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        if ((!inputData.partnerName && !inputData.partnerId) && (inputData.referral || inputData.referralName)) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && (inputData.referral || inputData.referralName)) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
@@ -1023,7 +1023,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if ((!inputData.partnerName && !inputData.partnerId) && !inputData.referral && inputData.referralId) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && !inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
