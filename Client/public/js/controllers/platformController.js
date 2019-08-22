@@ -24709,6 +24709,9 @@ define(['js/app'], function (myApp) {
                     case 'emailAuditConfig':
                         vm.getEmailAuditConfig(platformObjId);
                         break;
+                    case 'emailNotificationConfig':
+                        vm.getEmailNotificationConfig(platformObjId);
+                        break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
                         break;
@@ -25349,6 +25352,10 @@ define(['js/app'], function (myApp) {
                     case 'scriptDescription':
                         vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'registrationGuidance':
+                        vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                        vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25407,6 +25414,9 @@ define(['js/app'], function (myApp) {
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'scriptDescription':
+                        vm.filterFrontEndSettingPlatform = null;
+                        break;
+                    case 'registrationGuidance':
                         vm.filterFrontEndSettingPlatform = null;
                         break;
                 }
@@ -25793,23 +25803,40 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.deleteRewardCategory = function (categoryObjId) {
-                if (categoryObjId){
+            vm.deleteRewardCategory = function (categoryObjId, holder) {
+                if (categoryObjId && holder){
                     vm.rewardCategoryDeletedList.push(categoryObjId);
-                    let index =vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    let index = holder.findIndex( p => p._id.toString() == categoryObjId.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
-                            vm.frontEndRewardCategory.splice(index, 1);
+                            holder.splice(index, 1);
                             $('#' + categoryObjId).remove();
                         })
                     }
                 }
             };
 
-            vm.deleteRewardSetting = function (id) {
+            vm.deleteRewardSetting = function (id, groupHolder, allGroupHolder) {
                 if (id){
                     vm.rewardDeletedList.push(id);
+
+                    if (vm[groupHolder] && vm[groupHolder].length){
+                        vm[groupHolder] = vm[groupHolder].filter(
+                            p => {
+                                return p && p._id && p._id.toString() != id.toString();
+                            }
+                        )
+                    }
+
+                    if (vm[allGroupHolder] && vm[allGroupHolder].length){
+                        vm[allGroupHolder] = vm[allGroupHolder].filter(
+                            p => {
+                                return p && p._id && p._id.toString() != id.toString();
+                            }
+                        )
+                    }
                     $('#'+id).remove();
+                    $scope.$evalAsync();
                 }
             };
 
@@ -25941,8 +25968,8 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.enableSortableCategoryChange = function () {
-                let tempId = vm.frontEndRewardCategory && vm.frontEndRewardCategory.length? vm.frontEndRewardCategory[vm.frontEndRewardCategory.length -1]._id : "";
+            vm.enableSortableCategoryChange = function (holder) {
+                let tempId = holder && holder.length? holder[holder.length -1]._id : "";
                 utilService.actionAfterLoaded('#' + tempId, function () {
                     $(".droppable-area").sortable({
                         connectWith: ".connected-sortable"
@@ -26190,30 +26217,6 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndRewardUploader').hide();
                 });
-            };
-
-
-            vm.readURL = (input, previewId, holder) => {
-                console.log(input);
-                if (input.files && input.files[0] && vm.selectedPlatformId) {
-                    let reader1 = new FileReader();
-                    let reader2 = new FileReader();
-                    reader1.onload = function (e) {
-                        $(`#${previewId}`).attr('src', e.target.result);
-                    };
-                    reader2.onload = function (e) {
-                        holder[previewId] = {
-                            platformId: vm.selectedPlatformId,
-                            token: authService.getToken($cookies),
-                            fileStream: e.target.result,
-                            fileName: input.files[0].name
-                        };
-                    };
-                    // for preview purpose
-                    reader1.readAsDataURL(input.files[0]);
-                    // for upload to ftp server purpose
-                    reader2.readAsArrayBuffer(input.files[0]);
-                }
             };
 
             //#region Frontend Configuration - Skin Management
@@ -32430,6 +32433,41 @@ define(['js/app'], function (myApp) {
 
 
             };
+
+            vm.getEmailNotificationConfig = async (platformObjId) => {
+                vm.editEmailNotificationConfig = vm.editEmailNotificationConfig || false;
+                vm.emailNotificationConfig = vm.emailNotificationConfig || {};
+
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getEmailNotificationConfig', sendData, function (data) {
+                    console.log('getEmailNotificationConfig', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.emailNotificationConfig = {};
+                        if (data && data.data) {
+                            vm.emailNotificationConfig = data.data;
+                        }
+                    });
+                });
+            };
+            vm.updateEmailNotificationConfig = async function () {
+                console.log('updateEmailNotificationConfig', vm.emailNotificationConfig);
+
+                let result = await $scope.$socketPromise('updateEmailNotificationConfig', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.emailNotificationConfig.doNotify || false,
+                    emailPrefix: vm.emailNotificationConfig.emailPrefix || "",
+                    includeAdminName: vm.emailNotificationConfig.includeAdminName || false,
+                    includeOperationTime: vm.emailNotificationConfig.includeOperationTime || false,
+                    includeProposalStepName: vm.emailNotificationConfig.includeProposalStepName || false,
+                    includePlatformName: vm.emailNotificationConfig.includePlatformName || false
+                });
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
@@ -43446,6 +43484,361 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+            };
+
+            vm.loadRegistrationGuidanceCategory = function (platformObjId){
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getRegistrationGuidanceCategory', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getRegistrationGuidanceCategory', data.data);
+                            if (data && data.data) {
+                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+
+                                vm.registationDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.registrationCategory = tempAll;
+                                vm.allRegistrationCategory = tempAll;
+                                vm.displayRegistrationCategory= [];
+                                vm.allRegistrationCategory.forEach(
+                                    p => {
+                                        if (p && p._id){
+                                            vm.displayRegistrationCategory.push(p._id);
+                                        }
+                                    }
+                                )
+                                vm.refreshSPicker();
+                            }
+                        })
+                    }, function (err) {
+                        console.error('getRegistrationGuidanceCategory error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.loadRegistrationGuidance = function (platformObjId) {
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getFrontEndRegistrationGuidanceSetting', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getFrontEndRegistrationGuidanceSetting', data.data);
+                            if (data && data.data) {
+                                vm.registrationSettingData = data.data;
+                                vm.allRegistrationSettingData = data.data;
+                            }
+
+                            let tempId = vm.registrationCategory && vm.registrationCategory.length? vm.registrationCategory[vm.registrationCategory.length -1]._id : "";
+                            utilService.actionAfterLoaded('#' + tempId, function () {
+                                $(".droppable-area").sortable({
+                                    connectWith: ".connected-sortable"
+                                });
+                                $(".ownDragDrop").sortable({});
+                            });
+                        })
+                    }, function (err) {
+                        console.error('getFrontEndRegistrationGuidanceSetting error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.filterDisplayRegistrationCategory = function (categoryObjIdList){
+                if (categoryObjIdList && categoryObjIdList.length) {
+                    vm.registrationCategory = vm.allRegistrationCategory.filter(p => {
+                        return p && p._id && categoryObjIdList.map(p => p.toString()).includes(p._id.toString())
+                    });
+                    vm.registrationSettingData = vm.allRegistrationSettingData.filter(p => {
+                        return p && p.categoryObjId && categoryObjIdList.map(p => p.toString()).includes(p.categoryObjId.toString())
+                    });
+
+                    $scope.$evalAsync();
+                };
+            };
+
+            vm.updateRegistrationGuidanceCategory = function (updateObj) {
+                if (updateObj){
+                    if (updateObj._id && updateObj.categoryName) {
+                        let categoryName = updateObj.categoryName;
+                        let categoryObjId = updateObj._id;
+                        let displayFormat = updateObj.displayFormat || null;
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceCategory', {
+                            platformObjId: vm.filterFrontEndSettingPlatform,
+                            categoryName: categoryName,
+                            categoryObjId: categoryObjId,
+                            displayFormat: displayFormat
+                        }, function (data) {
+                            $scope.$evalAsync(() => {
+                                console.log('saveFrontEndRegistrationGuidanceCategory', data.data);
+                                $('#registrationGuidanceCategoryModal').modal('hide');
+                                vm.isDefaultRegistrationCategory = false;
+                                if (data && data.data) {
+                                    vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRegistrationCategory = false;
+                            console.error('saveFrontEndRegistrationGuidanceCategory error: ', err);
+                        }, true);
+                    }
+                    else if (updateObj.categoryName){
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: updateObj.categoryName, displayFormat: updateObj.displayFormat}, function (data) {
+                            $scope.$evalAsync( () => {
+                                console.log('saveFrontEndRegistrationGuidanceCategory', data.data);
+                                vm.isDefaultRegistrationCategory = false;
+                                $('#registrationGuidanceCategoryModal').modal('hide');
+                                if (data && data.data) {
+                                    vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRegistrationCategory = false;
+                            console.error('saveFrontEndRegistrationGuidanceCategory error: ', err);
+                        }, true);
+                    }
+                }
+            };
+
+            vm.editRegistrationCategory = function (categoryObjId, isNew, isDefault) {
+                if (categoryObjId && vm.registrationCategory && vm.registrationCategory.length){
+                    let temp = vm.registrationCategory.filter( p => {
+                        return p && p._id && p._id.toString() == categoryObjId.toString();
+                    })
+
+                    if (temp && temp.length) {
+                        vm.newRegistrationCategoryData = Object.assign({}, temp[0]);
+                        if (vm.newRegistrationCategoryData && vm.newRegistrationCategoryData.displayFormat){
+                            vm.newRegistrationCategoryData.displayFormat = vm.newRegistrationCategoryData.displayFormat.toString();
+                        }
+                        $('#registrationGuidanceCategoryModal').modal();
+                    };
+                }
+                else if (isNew){
+                    vm.newRegistrationCategoryData = {};
+                    $('#registrationGuidanceCategoryModal').modal();
+                }
+                else if (isDefault){
+                    vm.isDefaultRegistrationCategory = true;
+                    if (vm.registationDefaultCategory && vm.registationDefaultCategory._id){
+                        vm.newRegistrationCategoryData = Object.assign({}, vm.registationDefaultCategory);
+                        if (vm.newRegistrationCategoryData && vm.newRegistrationCategoryData.displayFormat){
+                            vm.newRegistrationCategoryData.displayFormat = vm.newRegistrationCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRegistrationCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#registrationGuidanceCategoryModal').modal();
+                }
+            };
+
+            vm.addNewRegistrationGuidance = function (isNew, eventObjId) {
+                //reset
+                document.querySelector('#registrationPcImageFile').value = "";
+                document.querySelector('#registrationPcNewPageFile').value = "";
+                document.querySelector('#registrationPcPageDetailFile').value = "";
+                document.querySelector('#registrationH5ImageFile').value = "";
+                document.querySelector('#registrationH5NewPageFile').value = "";
+                document.querySelector('#registrationH5PageDetailFile').value = "";
+                document.querySelector('#registrationAppImageFile').value = "";
+                document.querySelector('#registrationAppNewPageFile').value = "";
+                document.querySelector('#registrationAppPageDetailFile').value = "";
+
+                $('#registrationPcImage').attr("src","");
+                $('#registrationH5Image').attr("src","");
+                $('#registrationAppImage').attr("src","");
+                vm.registrationImageFile = {};
+                vm.registrationImageUrl = {};
+
+                if (isNew){
+                    vm.registrationSetting = {
+                        pc: {},
+                        h5: {},
+                        app: {},
+                    };
+                }
+                else{
+                    if (eventObjId){
+                        let index = vm.registrationSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        if (index != -1){
+                            vm.registrationSetting = _.clone(vm.registrationSettingData[index]);
+                            if( vm.registrationSetting && vm.registrationSetting.pc && vm.registrationSetting.pc.imageUrl) {
+                                $('#registrationPcImage').attr("src",vm.registrationSetting.pc.imageUrl);
+                            }
+                            if( vm.registrationSetting && vm.registrationSetting.h5 && vm.registrationSetting.h5.imageUrl) {
+                                $('#registrationH5Image').attr("src",vm.registrationSetting.h5.imageUrl);
+                            }
+                            if( vm.registrationSetting && vm.registrationSetting.app && vm.registrationSetting.app.imageUrl) {
+                                $('#registrationAppImage').attr("src",vm.registrationSetting.app.imageUrl);
+                            }
+
+                            if (vm.registrationSetting && !vm.registrationSetting.pc){
+                                vm.registrationSetting.pc = {};
+                            }
+                            if (vm.registrationSetting && !vm.registrationSetting.h5){
+                                vm.registrationSetting.h5 = {};
+                            }
+                            if (vm.registrationSetting && !vm.registrationSetting.app){
+                                vm.registrationSetting.app = {};
+                            }
+                        }
+                    }
+                }
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+
+                vm.refreshSPicker();
+                $('#registrationGuidanceSetting').modal();
+                $("#registrationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcImage", vm.registrationImageFile);});
+                $("#registrationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcNewPage", vm.registrationImageFile);});
+                $("#registrationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcPageDetail", vm.registrationImageFile);});
+
+                $("#registrationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5Image", vm.registrationImageFile);});
+                $("#registrationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5NewPage", vm.registrationImageFile);});
+                $("#registrationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5PageDetail", vm.registrationImageFile);});
+
+                $("#registrationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppImage", vm.registrationImageFile);});
+                $("#registrationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppNewPage", vm.registrationImageFile);});
+                $("#registrationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppPageDetail", vm.registrationImageFile);});
+            };
+
+            vm.submitRegistrationSetting = function () {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndRegistrationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.registrationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "registrationPcImage",
+                    "registrationPcNewPage",
+                    "registrationPcPageDetail",
+                    "registrationH5Image",
+                    "registrationH5NewPage",
+                    "registrationH5PageDetail",
+                    "registrationAppImage",
+                    "registrationAppNewPage",
+                    "registrationAppPageDetail",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.registrationImageFile, vm.registrationImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.registrationImageUrl", vm.registrationImageUrl);
+                        vm.registrationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.registrationImageUrl){
+                            if (vm.registrationImageUrl.registrationPcImage){
+                                vm.registrationSetting.pc.imageUrl = vm.registrationImageUrl.registrationPcImage
+                            }
+                            if (vm.registrationImageUrl.registrationPcNewPage){
+                                vm.registrationSetting.pc.newPageUrl = vm.registrationImageUrl.registrationPcNewPage
+                            }
+                            if (vm.registrationImageUrl.registrationPcPageDetail){
+                                vm.registrationSetting.pc.activityUrl = vm.registrationImageUrl.registrationPcPageDetail
+                            }
+                            if (vm.registrationImageUrl.registrationH5Image){
+                                vm.registrationSetting.h5.imageUrl = vm.registrationImageUrl.registrationH5Image
+                            }
+                            if (vm.registrationImageUrl.registrationH5NewPage){
+                                vm.registrationSetting.h5.newPageUrl = vm.registrationImageUrl.registrationH5NewPage
+                            }
+                            if (vm.registrationImageUrl.registrationH5PageDetail){
+                                vm.registrationSetting.h5.activityUrl = vm.registrationImageUrl.registrationH5PageDetail
+                            }
+                            if (vm.registrationImageUrl.registrationAppImage){
+                                vm.registrationSetting.app.imageUrl = vm.registrationImageUrl.registrationAppImage
+                            }
+                            if (vm.registrationImageUrl.registrationAppNewPage){
+                                vm.registrationSetting.app.newPageUrl = vm.registrationImageUrl.registrationAppNewPage
+                            }
+                            if (vm.registrationImageUrl.registrationAppPageDetail){
+                                vm.registrationSetting.app.activityUrl = vm.registrationImageUrl.registrationAppPageDetail
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceSetting', vm.registrationSetting, function (data) {
+                                    console.log("saveFrontEndRegistrationGuidanceSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndRegistrationUploader').hide();
+                                    // close the modal
+                                    $('#registrationGuidanceSetting').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndRegistrationGuidanceSetting err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndRegistrationUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndRegistrationUploader').hide();
+                });
+            };
+
+            vm.updateRegistrationGuidanceSetting = function () {
+                let arr = {};
+                let updateSetting = [];
+
+                vm.registrationCategory.forEach(cato => {
+                    arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
+                    arr[cato._id].forEach((v, i) => {
+                        if (v){
+                            let index = vm.registrationSettingData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                let selectSetting = vm.registrationSettingData[index];
+                                selectSetting.categoryObjId = cato._id;
+                                selectSetting.displayOrder = i + 1;
+                                updateSetting.push(selectSetting);
+                            }
+                        }
+                    });
+                });
+
+                let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                if (ownArr && ownArr.length){
+                    ownArr.forEach((v, i) => {
+                        if (v){
+                            // try to get from the updated list to update the orderNumber
+                            let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                updateSetting[index].orderNumber = i + 1;
+                            }
+                            else{
+                                // if cant find the record from the updated list, get it from the original data
+                                let index = vm.allRegistrationSettingData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    let selectSetting = vm.allRegistrationSettingData[index];
+                                    selectSetting.orderNumber = i + 1;
+                                    updateSetting.push(selectSetting);
+                                }
+                            }
+                        }
+                    });
+                }
+                console.log("arr", arr);
+                return  $scope.$socketPromise('updateRegistrationGuidanceSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
+                    (data) =>{
+                        $scope.$evalAsync( () => {
+                            console.log('updateRegistrationGuidanceSetting is done', data);
+                            vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                            vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
             };
 
             vm.checkProposalStepUpdatePermission = () => {

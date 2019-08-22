@@ -54,6 +54,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPartnerCommission'),
     require('./../socketActionModule/socketActionFrontEndSetting'),
     require('./../socketActionModule/socketActionEmailAudit'),
+    require('./../socketActionModule/socketActionEmailNotification'),
 ];
 
 var socketActions = [

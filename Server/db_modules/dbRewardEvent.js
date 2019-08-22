@@ -1878,26 +1878,21 @@ var dbRewardEvent = {
             let getPlayerValidConsumptionProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                 config => {
                     if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                        let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+                        let bindReferralIntervalEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
                         let referralQuery = {
                             platform: playerData.platform._id,
                             referral: playerData._id
                         }
 
-                        let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                        let bindReferralIntervalEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
-
-                        if (bindReferralIntervalStartTime) {
+                        if (bindReferralIntervalEndTime && bindReferralIntervalEndTime) {
                             referralQuery['$or'] = [
-                                {createTime: {$gte: bindReferralIntervalStartTime}},
-                                {validEndTime: {$lte: bindReferralIntervalEndTime}}
-                            ]
-                        }
-
-                        if (!selectedRewardParam[0].playerValidConsumption) {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "There is no minimum valid consumption setting"
-                            })
+                                {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
+                                {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
+                                {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
+                                {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
+                                {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
                         }
 
                         return dbconfig.collection_referralLog.find(referralQuery).lean().then(
@@ -1996,18 +1991,12 @@ var dbRewardEvent = {
                                     )
 
                                 } else {
-                                    return Promise.reject({
-                                        name: "DataError",
-                                        message: localization.localization.translate("This referrer has no valid referee player within this period")
-                                    })
+                                    return [0, []];
                                 }
                             }
                         );
                     } else {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Referral reward program is off"
-                        })
+                        return [0, []];
                     }
                 }
             )
@@ -3103,17 +3092,14 @@ var dbRewardEvent = {
                                             }
                                         });
                                     }
+                                    returnData.result.totalValidConsumptionAmount = totalValidConsumption;
                                     returnData.result.rewardAmount = rewardAmount;
                                 } else {
                                     returnData.status = 2;
                                 }
                             }
                             else {
-                                return Q.reject({
-                                    status: constServerCode.INVALID_PARAM,
-                                    name: "DataError",
-                                    message: "Minimum Valid Consumption cannot be empty. Please check reward condition."
-                                });
+                                returnData.status = 2;
                             }
                         }
                         break;
