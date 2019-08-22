@@ -2576,7 +2576,7 @@ var dbPlayerTopUpRecord = {
         ).then(
             topupResult => {
 
-                if (topupResult.result) {
+                if (topupResult && topupResult.result) {
                     request = topupResult;
                     var queryObj = {};
                     let start = new Date();
