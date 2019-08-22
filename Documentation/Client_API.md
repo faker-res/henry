@@ -3510,6 +3510,8 @@ API说明：
             validEndTime: String|优惠结束时间
             groupName: String|优惠分组名称
             showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+            referralPeriod: "4", //推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
+            referralLimit: 50, //推荐人优惠组 - 被推荐人数限制
         }
         ```
     * 操作失败:
