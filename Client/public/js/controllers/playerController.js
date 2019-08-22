@@ -140,6 +140,7 @@ define(['js/app'], function (myApp) {
             PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
             PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
             PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+            REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
             PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
             PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
             PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
@@ -3787,6 +3788,8 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerListRecords = data.data.data;
                 vm.newPlayerRecords.totalCount = data.data.size;
                 vm.newPlayerRecords.loading = false;
+                vm.newPlayerRecordsSuccessNames = []; // include status Success, Manual and NoVerify
+                vm.newPlayerRecordsSuccessPhone = []; // include status Success, Manual and NoVerify
                 $('#getNewPlayerListSpin').hide();
                 console.log('new player list record', data);
 
@@ -3800,13 +3803,19 @@ define(['js/app'], function (myApp) {
                         //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                         if (record.status) {
                             if (record.status == vm.constProposalStatus.SUCCESS) {
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else if (record.status == vm.constProposalStatus.MANUAL) {
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else if (record.status == vm.constProposalStatus.NOVERIFY) {
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 record.statusName = record.status ? $translate("NoVerify") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else {
@@ -7152,6 +7161,15 @@ define(['js/app'], function (myApp) {
                 if (item && item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
                     item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
                 }
+                // remove bUsed added to sameLineProviders
+                if (item && item.sameLineProviders) {
+                    for (let i in item.sameLineProviders) {
+                        let len = item.sameLineProviders[i].length;
+                        if (item.sameLineProviders[i] && item.sameLineProviders[i][len-1] === 'bUsed') {
+                            item.sameLineProviders[i].pop();
+                        }
+                    }
+                }
             });
         };
 
@@ -8093,6 +8111,7 @@ define(['js/app'], function (myApp) {
             vm.euPrefixNotExist = false;
             $('.referralValidTrue').hide();
             $('.referralValidFalse').hide();
+            $('.hitReferralLimit').hide();
             vm.newPlayer.domain = window.location.hostname;
             vm.getReferralPlayer(vm.newPlayer, "new");
             vm.playerCreateResult = null;
@@ -8273,7 +8292,7 @@ define(['js/app'], function (myApp) {
             function dialogDetails() {
                 let selectedPlayer = vm.isOneSelectedPlayer();   // ~ 20 fields!
                 let editPlayer = vm.editPlayer;                  // ~ 6 fields
-                vm.editPlayer.DOB = new Date(vm.editPlayer.DOB);
+                vm.editPlayer.DOB = vm.editPlayer.DOB? new Date(vm.editPlayer.DOB): null;
                 let allPartner = vm.partnerIdObj;
                 let allPlayerLevel = vm.allPlayerLvl;
 
@@ -8356,7 +8375,9 @@ define(['js/app'], function (myApp) {
                         updateEditedPlayer: function () {
 
                             // this ng-model has to be in date object
-                            this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                            if (this.playerBeingEdited.DOB) {
+                                this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
+                            }
                             sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
                         },
                         checkPlayerNameValidity: function (a, b, c) {
@@ -8364,6 +8385,9 @@ define(['js/app'], function (myApp) {
                         },
                         duplicateNameFound: function () {
                             return vm.duplicateNameFound;
+                        },
+                        showReferralLimitMsg: function () {
+                            return vm.showReferralLimitMsg;
                         },
                         checkDuplicatedBankAccount: function (playerPaymentData){
 
@@ -8570,6 +8594,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerChange = false;
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
+                $('.hitReferralLimit').hide();
                 $('.partnerValidTrue').hide();
                 $('.partnerValidFalse').hide();
                 $('#dialogEditPlayer').floatingDialog(option);
@@ -8620,12 +8645,13 @@ define(['js/app'], function (myApp) {
             }
             if (sendData) {
                 sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
-                socketService.$socket($scope.AppSocket, 'getPlayerInfo', sendData, function (retData) {
+                socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
                         $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                         $('.referralValidTrue').show();
                         $('.referralValidFalse').hide();
+                        $('.hitReferralLimit').hide();
                         editObj.referral = player._id;
                         editObj.referralName = player.name;
                         if (type === 'new') {
@@ -8637,11 +8663,18 @@ define(['js/app'], function (myApp) {
                         $('.referralValidFalse').show();
                         editObj.referral = null;
                     }
+
+                    if (player && player.isHitReferralLimit) {
+                        $('.hitReferralLimit').show();
+                    } else {
+                        $('.hitReferralLimit').hide();
+                    }
                 })
             } else {
                 $('.dialogEditPlayerSubmitBtn').removeAttr('disabled');
                 $('.referralValidTrue').hide();
                 $('.referralValidFalse').hide();
+                $('.hitReferralLimit').hide();
                 editObj.referral = null;
             }
         };
@@ -8930,7 +8963,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataLevel,
-                        platformId: vm.selectedPlatform.id,
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id,
                         playerId: vm.isOneSelectedPlayer().playerId
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -8944,7 +8977,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoAccAdminProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataAccAdmin,
-                        platformId: vm.selectedPlatform.id
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -8957,7 +8990,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerRealNameProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: realNameObj,
-                        platformId: vm.selectedPlatform.id,
+                        platformId: (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id,
                         playerId: vm.isOneSelectedPlayer().playerId
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -9070,7 +9103,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
-
+            vm.newPlayer.isFromBackstage = Boolean(true);
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -20215,7 +20248,20 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual") {
+            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
+            // requirement by echo
+            // 1.同账号 不同手机号尝试开户；
+            // 2.同账号 同一手机号，
+            // 3. 不同账号 同一手机号
+            // 这三种情况，只要开户成功了，之前的历史记录都隐藏
+            // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
+            if (vm.newPlayerProposal.status === "Pending" && (vm.newPlayerRecordsSuccessNames.includes(vm.newPlayerProposal.name) || vm.newPlayerRecordsSuccessPhone.includes(vm.newPlayerProposal.data.phoneNumber))) {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
                     vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);

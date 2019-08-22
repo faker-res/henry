@@ -56,7 +56,10 @@ const dbPartnerCommission = {
             parentChain.push(partnerChain[i]);
         }
         mainPartner.commissionType = commissionType || partner.commissionType || mainPartner.commissionType; // maybe remove partner.commissionType in future so that it always follow parent commission
-        if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION) {
+        if (mainPartner.commissionType != constPartnerCommissionType.WEEKLY_BONUS_AMOUNT
+            && mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION
+            && mainPartner.commissionType != constPartnerCommissionType.MONTHLY_BONUS_AMOUNT
+        ) {
             console.error("Please select a commission type -", partner.partnerName)
             return Promise.reject({message: "Please select a commission type"});
         }
@@ -70,25 +73,33 @@ const dbPartnerCommission = {
         }
 
 
-        let bonusBased = Boolean(mainPartner.commissionType == constPartnerCommissionType.WEEKLY_BONUS_AMOUNT);
+        let bonusBased = Boolean(mainPartner.commissionType != constPartnerCommissionType.DAILY_CONSUMPTION);
 
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
-        let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id);
+        // let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id);
         let commRateMultiProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id, true);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
         let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
         let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
-        let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
+        // let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
-        let [commConfig, commRate, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes, directCommConfig] = await Promise.all([commConfigProm, commRateProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, directCommConfigProm]);
+        let [commConfig, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes] = await Promise.all([commConfigProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm]);
+        console.log('commConfig', JSON.stringify(commConfig,null,2))
 
-        let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
+        let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement).catch(
+            err => {
+                console.log('getAllPlayerCommissionRawDetailsWithSettlement died with params', partner._id, err);
+                return Promise.reject(err);
+            }
+        );
 
         let activeDownLines = getActiveDownLineCount(playerRawDetail);
 
         let providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(playerRawDetail, providerGroups);
 
         commRateMulti = commRateMulti || {};
+
+        // commRate and directCommConfig are obsolete
 
         let totalTopUp = 0;
         let totalReward = 0;
@@ -130,12 +141,9 @@ const dbPartnerCommission = {
         let totalMTopUpFee = 0;
         let totalMWithdrawalFee = 0;
         if (bonusBased) {
-            totalRewardFee = math.chain(totalReward).multiply(commRate.rateAfterRebatePromo || 0).divide(100).round(2).done();
-            totalTopUpFee = math.chain(totalTopUp).multiply(commRate.rateAfterRebateTotalDeposit || 0).divide(100).round(2).done();
-            totalWithdrawalFee = math.chain(totalWithdrawal).multiply(commRate.rateAfterRebateTotalWithdrawal || 0).divide(100).round(2).done();
-            totalMRewardFee = math.chain(totalReward).multiply(commRateMulti.rateAfterRebatePromo || 0).divide(100).round(2).done();
-            totalMTopUpFee = math.chain(totalTopUp).multiply(commRateMulti.rateAfterRebateTotalDeposit || 0).divide(100).round(2).done();
-            totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRateMulti.rateAfterRebateTotalWithdrawal || 0).divide(100).round(2).done();
+            totalRewardFee = totalMRewardFee = math.chain(totalReward).multiply(commRateMulti.rateAfterRebatePromo || 0).divide(100).round(2).done();
+            totalTopUpFee = totalMTopUpFee = math.chain(totalTopUp).multiply(commRateMulti.rateAfterRebateTotalDeposit || 0).divide(100).round(2).done();
+            totalWithdrawalFee = totalMWithdrawalFee = math.chain(totalWithdrawal).multiply(commRateMulti.rateAfterRebateTotalWithdrawal || 0).divide(100).round(2).done();
         }
 
 
@@ -158,9 +166,9 @@ const dbPartnerCommission = {
                 grossCommission: 0,
                 platformFee: 0,
                 totalParentRate: 0,
-                totalTopUpFee: totalMTopUpFee,
-                totalWithdrawalFee: totalMWithdrawalFee,
-                totalRewardFee: totalMRewardFee,
+                totalTopUpFee: totalTopUpFee,
+                totalWithdrawalFee: totalWithdrawalFee,
+                totalRewardFee: totalRewardFee,
                 totalPlatformFee: 0,
                 totalReward: totalReward,
                 totalTopUp: totalTopUp,
@@ -194,36 +202,36 @@ const dbPartnerCommission = {
                     // sum all negative bonus amount
                     allConsumption += -groupConsumption.bonusAmount || 0;
                 }
-
             }
         }
 
         let rawCommissions = [];
         let nettCommission = 0;
+        let totalParentGrossCommission = 0;
         let absoluteFeeMultiplierUsed = false;
         for (let i = 0; i < commConfig.length; i++) {
             let groupRate = commConfig[i];
             let totalConsumption = bonusBased ? -providerGroupConsumptionData[groupRate.groupName].bonusAmount : providerGroupConsumptionData[groupRate.groupName].validAmount;
-            let directCommissionGroupRate = directCommConfig.find(group => {
-                return groupRate.groupId == group.groupId;
-            });
+            // let directCommissionGroupRate = directCommConfig.find(group => {
+            //     return groupRate.groupId == group.groupId;
+            // });
             let multiLevelCommissionRate = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
-            let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
+            // let directCommissionRate = getDirectCommissionRate(directCommissionGroupRate.rateTable, totalConsumption, activeDownLines);
 
             // platform fee rate (that needed to separate multilevel with direct)
-            let platformFeeRateData = {
-                rate : 0,
-                isCustom: false
-            };
+            // let platformFeeRateData = {
+            //     rate : 0,
+            //     isCustom: false
+            // };
 
-            if (bonusBased && commRate && commRate.rateAfterRebateGameProviderGroup
-                && commRate.rateAfterRebateGameProviderGroup.length > 0) {
-                commRate.rateAfterRebateGameProviderGroup.map(group => {
-                    if (group.name === groupRate.groupName) {
-                        platformFeeRateData.rate = group.rate || commRate.rateAfterRebatePlatform || 0;
-                    }
-                });
-            }
+            // if (bonusBased && commRate && commRate.rateAfterRebateGameProviderGroup
+            //     && commRate.rateAfterRebateGameProviderGroup.length > 0) {
+            //     commRate.rateAfterRebateGameProviderGroup.map(group => {
+            //         if (group.name === groupRate.groupName) {
+            //             platformFeeRateData.rate = group.rate || commRate.rateAfterRebatePlatform || 0;
+            //         }
+            //     });
+            // }
             let platformFeeRateMultiData = {
                 rate : 0,
                 isCustom: false
@@ -239,10 +247,10 @@ const dbPartnerCommission = {
             }
             // ====================================================================
 
-            let platformFeeRateDirect = bonusBased && !directCommissionRate.zeroRate ? math.chain(platformFeeRateData.rate || 0).divide(100).round(8).done() || 0 : 0;
+            // let platformFeeRateDirect = bonusBased && !directCommissionRate.zeroRate ? math.chain(platformFeeRateData.rate || 0).divide(100).round(8).done() || 0 : 0;
             let platformFeeRateMulti = bonusBased && !multiLevelCommissionRate.zeroRate ? math.chain(platformFeeRateMultiData.rate || 0).divide(100).round(8).done() || 0 : 0;
 
-            let consumptionAfterFeeDirect = totalConsumption;
+            // let consumptionAfterFeeDirect = totalConsumption;
             let consumptionAfterFeeMulti = totalConsumption;
 
             let platformFeeDirect = 0;
@@ -265,10 +273,10 @@ const dbPartnerCommission = {
                     // if there are no positive but there are negatives, then only distribute with negatives
                     feeMultiplier = math.chain(totalConsumption).divide(allConsumption).round(12).done() || 0;
                 }
-                platformFeeDirect = math.chain(totalConsumption).multiply(platformFeeRateDirect).abs().round(2).done();
-                let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done();
-                let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done();
-                let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done();
+                // platformFeeDirect = math.chain(totalConsumption).multiply(platformFeeRateDirect).abs().round(2).done();
+                // let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(2).done();
+                // let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(2).done();
+                // let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(2).done();
                 platformFeeMulti = math.chain(totalConsumption).multiply(platformFeeRateMulti).abs().round(2).done();
                 rewardFeeMulti = math.chain(totalMRewardFee).multiply(feeMultiplier).round(2).done();
                 topUpFeeMulti = math.chain(totalMTopUpFee).multiply(feeMultiplier).round(2).done();
@@ -280,13 +288,13 @@ const dbPartnerCommission = {
 
                 totalPlatformFee += platformFeeDirect;
 
-                consumptionAfterFeeDirect = math.chain(totalConsumption)
-                    .subtract(platformFeeDirect)
-                    .subtract(rewardFee)
-                    .subtract(topUpFee)
-                    .subtract(withdrawalFee)
-                    .round(2)
-                    .done();
+                // consumptionAfterFeeDirect = math.chain(totalConsumption)
+                //     .subtract(platformFeeDirect)
+                //     .subtract(rewardFee)
+                //     .subtract(topUpFee)
+                //     .subtract(withdrawalFee)
+                //     .round(2)
+                //     .done();
 
                 consumptionAfterFeeMulti = math.chain(totalConsumption)
                     .subtract(platformFeeMulti)
@@ -300,25 +308,25 @@ const dbPartnerCommission = {
 
             let mainParentCommissionRate = multiLevelCommissionRate.parentRate[multiLevelCommissionRate.parentRate.length - 1] || multiLevelCommissionRate.commissionRate;
 
-            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(8).done(); // this is useless for partner himself, only use to count relative partner's commission
-            let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(8).done();
+            let rawCommission = math.chain(consumptionAfterFeeMulti).multiply(multiLevelCommissionRate.commissionRate).round(8).done();
+            // let rawDirectCommission = math.chain(consumptionAfterFeeDirect).multiply(directCommissionRate.commissionRate).round(8).done();
 
             rawCommissions.push({
                 crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                 crewProfitDetail: providerGroupConsumptionData[groupRate.groupName].crewProfitDetail,
                 groupName: groupRate.groupName,
                 groupId: groupRate.groupId,
-                amount: math.round(rawDirectCommission, 2), // direct amount, nett commission
+                amount: rawCommission, // direct amount, nett commission
                 totalConsumption: totalConsumption,
                 totalValidBet: providerGroupConsumptionData[groupRate.groupName].validAmount,
-                commissionRate: directCommissionRate.commissionRate,
-                platformFee: platformFeeDirect,
-                platformFeeRate: platformFeeRateDirect,
+                commissionRate: multiLevelCommissionRate.commissionRate,
+                platformFee: platformFeeMulti,
+                platformFeeRate: platformFeeRateMulti,
                 siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
-                noRate: Boolean(directCommissionRate.noRate),
+                noRate: Boolean(multiLevelCommissionRate.noRate),
             });
 
-            nettCommission += rawDirectCommission;
+            nettCommission += rawCommission;
 
             // individual commission for each parent each provider
             let previousParentRate = multiLevelCommissionRate.commissionRate;
@@ -329,7 +337,6 @@ const dbPartnerCommission = {
             }
 
             let totalAllParentRate = 0;
-            let totalParentGrossCommission = 0;
             for (let j = 0; j < parentChain.length; j++) {
                 let parent = parentChain[j];
                 let objId = String(parent._id);
@@ -345,22 +352,14 @@ const dbPartnerCommission = {
                     noRate: Boolean(multiLevelCommissionRate.noRate),
                     totalValidConsumption: providerGroupConsumptionData[groupRate.groupName].validAmount,
                     crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
-                    // platformFee: math.chain(platformFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                     platformFee: math.chain(platformFeeMulti).round(2).done(),
                     platformFeeRate: math.chain(platformFeeRateMulti).round(4).done(),
-                    rewardFee: math.chain(rewardFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
-                    topUpFee: math.chain(topUpFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
-                    withdrawalFee: math.chain(withdrawalFeeMulti).divide(ratioSum).multiply(parentRatio).round(2).done(),
                 };
 
-                // detail.platformFeeRate = math.chain(detail.platformFee).divide(totalConsumption).multiply(100).round(2).done();
                 detail.amount = math.chain(rawCommission).multiply(parentRatio).round(2).done();
 
                 parentCommissionDetail[objId].grossCommission += detail.amount || 0;
                 parentCommissionDetail[objId].totalPlatformFee += detail.platformFee || 0;
-                // parentCommissionDetail[objId].totalRewardFee += detail.rewardFee || 0;
-                // parentCommissionDetail[objId].totalTopUpFee += detail.topUpFee || 0;
-                // parentCommissionDetail[objId].totalWithdrawalFee += detail.withdrawalFee || 0;
                 parentCommissionDetail[objId].platformFee += detail.platformFee || 0;
                 parentCommissionDetail[objId].totalParentRate += Number(detail.parentRate) || 0;
                 totalAllParentRate += Number(detail.parentRate) || 0;
@@ -368,6 +367,27 @@ const dbPartnerCommission = {
                 parentCommissionDetail[objId].rawCommissions.push(detail);
             }
         }
+
+        let feeMultiplier = 0;
+        if (totalParentGrossCommission + nettCommission > 0) {
+            feeMultiplier = math.chain(nettCommission).divide(totalParentGrossCommission + nettCommission).round(8).done();
+        }
+        // let rewardFee = math.chain(totalRewardFee).multiply(feeMultiplier).round(8).done();
+        // let topUpFee = math.chain(totalTopUpFee).multiply(feeMultiplier).round(8).done();
+        // let withdrawalFee = math.chain(totalWithdrawalFee).multiply(feeMultiplier).round(8).done();
+        //
+        // for (let j = 0; j < parentChain.length; j++) {
+        //     let parent = parentChain[j];
+        //     let objId = String(parent._id);
+        //
+        //     let parentFeeMultiplier = 0;
+        //     if (totalParentGrossCommission + nettCommission > 0) {
+        //         parentFeeMultiplier = math.chain(parentCommissionDetail[objId].grossCommission).divide(totalParentGrossCommission + nettCommission).round(8).done();
+        //     }
+        //     parentCommissionDetail[objId].totalRewardFee = math.chain(totalRewardFee).multiply(parentFeeMultiplier).round(2).done();
+        //     parentCommissionDetail[objId].totalTopUpFee = math.chain(totalTopUpFee).multiply(parentFeeMultiplier).round(2).done();
+        //     parentCommissionDetail[objId].totalWithdrawalFee = math.chain(totalWithdrawalFee).multiply(parentFeeMultiplier).round(2).done();
+        // }
 
         let returnObj = {
             partner: partner._id,
@@ -381,18 +401,18 @@ const dbPartnerCommission = {
             partnerCredit: partner.credits,
             downLinesRawCommissionDetail: playerRawDetail,
             activeDownLines: activeDownLines,
-            partnerCommissionRateConfig: bonusBased ? commRate : {},
+            partnerCommissionRateConfig: bonusBased ? commRateMulti : {},
             rawCommissions: rawCommissions,
             totalReward: totalReward,
             totalRewardFee: totalRewardFee,
-            rewardFeeRate: bonusBased ? commRate.rateAfterRebatePromo / 100 : 0,
+            rewardFeeRate: bonusBased ? commRateMulti.rateAfterRebatePromo / 100 : 0,
             totalPlatformFee: totalPlatformFee,
             totalTopUp: totalTopUp,
             totalTopUpFee: totalTopUpFee,
-            topUpFeeRate: bonusBased ? commRate.rateAfterRebateTotalDeposit / 100 : 0,
+            topUpFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalDeposit / 100 : 0,
             totalWithdrawal: totalWithdrawal,
             totalWithdrawalFee: totalWithdrawalFee,
-            withdrawFeeRate: bonusBased ? commRate.rateAfterRebateTotalWithdrawal / 100 : 0,
+            withdrawFeeRate: bonusBased ? commRateMulti.rateAfterRebateTotalWithdrawal / 100 : 0,
             status: constPartnerCommissionLogStatus.PREVIEW,
             grossCommission: nettCommission,
             nettCommission: nettCommission,
@@ -407,7 +427,6 @@ const dbPartnerCommission = {
         };
 
         return returnObj;
-
     },
 
     generateCurrentPartnersCommissionDetail: async function (partnerObjIds, startTime, endTime, commissionType) {
@@ -445,6 +464,7 @@ const dbPartnerCommission = {
                 return false;
             }
 
+            await dbconfig.collection_commCalcParent.remove({commCalc: ObjectId(commCalc._id)}).catch(errorUtils.reportError);
             for (let parentObjId in parentPartnerCommissionDetail) {
                 if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
                     let commCalcParentData = parentPartnerCommissionDetail[parentObjId];
@@ -457,6 +477,7 @@ const dbPartnerCommission = {
                 }
             }
 
+            await dbconfig.collection_commCalcPlayer.remove({commCalc: ObjectId(commCalc._id)}).catch(errorUtils.reportError);
             for (let j = 0; j < downLinesRawCommissionDetail.length; j++) {
                 let playerCalc = downLinesRawCommissionDetail[j];
                 playerCalc.commCalc = commCalc._id;
@@ -628,102 +649,115 @@ const dbPartnerCommission = {
         )
     },
 
-    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
+    settlePartnersCommission: async function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
+        partnerObjIdArr = partnerObjIdArr || [];
+        if (!partnerObjIdArr.length) {
+            return;
+        }
 
-        partnerObjIdArr.map(partnerObjId => {
+        for (let i = 0; i < partnerObjIdArr.length; i++) {
+            let partnerObjId = partnerObjIdArr[i];
             let prom;
             if (isSkip) {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
+                prom = await dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
                     console.error('dbPartnerCommission.generatePartnerCommissionLog error', partnerObjId, err)
                     return errorUtils.reportError(err)
                 });
             }
             proms.push(prom);
-        });
+        }
+
+        // partnerObjIdArr.map(partnerObjId => {
+        //     let prom;
+        //     if (isSkip) {
+        //         prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+        //     }
+        //     else {
+        //         prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
+        //             console.error('dbPartnerCommission.generatePartnerCommissionLog error', partnerObjId, err)
+        //             return errorUtils.reportError(err)
+        //         });
+        //     }
+        //     proms.push(prom);
+        // });
 
         return Promise.all(proms);
     },
 
-    generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
+    generatePartnerCommissionLog: async function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog, parentPartnerCommissionDetail;
-        return dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime)
-            .then(
-                commissionDetail => {
-                    if (commissionDetail.disableCommissionSettlement) {
-                        return undefined;
-                    }
-                    downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
-                    parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail || {};
+        let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime).catch(err => {
+            console.error('calculatePartnerCommission died with param:', partnerObjId, err);
+            errorUtils.reportError(err);
+            return Promise.reject(err);
+        });
+        if (commissionDetail.disableCommissionSettlement) {
+            return undefined;
+        }
 
-                    delete commissionDetail.downLinesRawCommissionDetail;
-                    delete commissionDetail.parentPartnerCommissionDetail;
-                    if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
-                        commissionDetail.rawCommissions.map(rawCommission => {
-                            if (rawCommission && rawCommission.crewProfitDetail) {
-                                delete rawCommission.crewProfitDetail;
-                            }
-                        });
-                    }
+        downLinesRawCommissionDetails = commissionDetail.downLinesRawCommissionDetail || [];
+        parentPartnerCommissionDetail = commissionDetail.parentPartnerCommissionDetail || {};
 
-                    return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                        partner: ObjectId(commissionDetail.partner),
-                        platform: ObjectId(commissionDetail.platform),
-                        startTime: new Date(startTime),
-                        endTime: new Date(endTime),
-                        commissionType: Number(commissionType),
-                    }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
-                        return Promise.reject(err);
-                    })
+        delete commissionDetail.downLinesRawCommissionDetail;
+        delete commissionDetail.parentPartnerCommissionDetail;
+        if (commissionDetail.rawCommissions && commissionDetail.rawCommissions.length) {
+            commissionDetail.rawCommissions.map(rawCommission => {
+                if (rawCommission && rawCommission.crewProfitDetail) {
+                    delete rawCommission.crewProfitDetail;
                 }
-            ).then(
-                partnerCommissionLogData => {
-                    if (!partnerCommissionLogData) {
-                        return undefined;
-                    }
-                    updatePastThreeRecord(partnerCommissionLogData).catch(errorUtils.reportError);
-                    partnerCommissionLog = partnerCommissionLogData;
+            });
+        }
 
-                    let proms = [];
-                    downLinesRawCommissionDetails.map(detail => {
-                        detail.platform = partnerCommissionLog.platform;
-                        detail.partnerCommissionLog = partnerCommissionLog._id;
+        let partnerCommissionLogData = await dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+            partner: ObjectId(commissionDetail.partner),
+            platform: ObjectId(commissionDetail.platform),
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            commissionType: Number(commissionType),
+        }, commissionDetail, {upsert: true, new: true}).lean().catch(err => {
+            return Promise.reject(err);
+        });
 
-                        let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: ObjectId(detail.platform), partnerCommissionLog: ObjectId(detail.partnerCommissionLog), name: String(detail.name)}, detail, {upsert: true, new: true}).catch(err => {
-                            console.error('downLinesRawCommissionDetail died with param:', detail, err);
-                            errorUtils.reportError(err);
-                        });
-                        proms.push(prom);
-                    });
+        if (!partnerCommissionLogData) {
+            return undefined;
+        }
+        updatePastThreeRecord(partnerCommissionLogData).catch(errorUtils.reportError);
+        partnerCommissionLog = partnerCommissionLogData;
 
-                    for (let parentObjId in parentPartnerCommissionDetail) {
-                        if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
-                            let params = parentPartnerCommissionDetail[parentObjId];
-                            params.partnerCommissionLog = partnerCommissionLog._id;
+        let proms = [];
 
-                            let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(partnerCommissionLog.partner), startTime: new Date(partnerCommissionLog.startTime)}, params, {upsert: true, new: true}).lean().catch(err => {
-                                console.log("parentPartnerCommissionDetail died with param:", params, err);
-                                return errorUtils.reportError(err);
-                            });
-                            proms.push(prom);
-                        }
-                    }
+        await dbconfig.collection_downLinesRawCommissionDetail.remove({partnerCommissionLog: ObjectId(partnerCommissionLog._id)}).catch(errorUtils.reportError);
+        downLinesRawCommissionDetails.map(detail => {
+            detail.platform = partnerCommissionLog.platform;
+            detail.partnerCommissionLog = partnerCommissionLog._id;
 
-                    return Promise.all(proms);
-                }
-            ).then(
-                downLinesRawCommissionDetail => {
-                    if (!downLinesRawCommissionDetail) {
-                        return undefined;
-                    }
+            let prom = dbconfig.collection_downLinesRawCommissionDetail.findOneAndUpdate({platform: ObjectId(detail.platform), partnerCommissionLog: ObjectId(detail.partnerCommissionLog), name: String(detail.name)}, detail, {upsert: true, new: true}).catch(err => {
+                console.error('downLinesRawCommissionDetail died with param:', detail, err);
+                errorUtils.reportError(err);
+            });
+            proms.push(prom);
+        });
 
-                    partnerCommissionLog.downLinesRawCommissionDetail = downLinesRawCommissionDetail;
-                    return partnerCommissionLog;
-                }
-            );
+        await dbconfig.collection_parentPartnerCommissionDetail.remove({partnerCommissionLog: ObjectId(partnerCommissionLog._id)}).catch(errorUtils.reportError);
+        for (let parentObjId in parentPartnerCommissionDetail) {
+            if (parentPartnerCommissionDetail.hasOwnProperty(parentObjId)) {
+                let params = parentPartnerCommissionDetail[parentObjId];
+                params.partnerCommissionLog = partnerCommissionLog._id;
+
+                let prom = dbconfig.collection_parentPartnerCommissionDetail.findOneAndUpdate({parentObjId: ObjectId(parentObjId), partnerObjId: ObjectId(partnerCommissionLog.partner), startTime: new Date(partnerCommissionLog.startTime)}, params, {upsert: true, new: true}).lean().catch(err => {
+                    console.log("parentPartnerCommissionDetail died with param:", params, err);
+                    return errorUtils.reportError(err);
+                });
+                proms.push(prom);
+            }
+        }
+
+        partnerCommissionLog.downLinesRawCommissionDetail = await Promise.all(proms);
+        return partnerCommissionLog;
     },
 
     getChildPartnerDownLineDetails: (objId, isReport) => {
@@ -1724,7 +1758,10 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
     let incompleteSetting = false;
     for (let i = 0; i < rateTable.length; i++) {
         let currentRequirement = rateTable[i];
-        let previousPartnerRate = currentRequirement.commissionRate;
+        if (!currentRequirement.commissionRate) {
+            currentRequirement.commissionRate = 0;
+        }
+        let previousPartnerRate = currentRequirement.commissionRate || 0;
         currentRequirement.parentRate = [];
 
         currentRequirement.parentRatios = parentsRateTables.map(parentRateTable => {
@@ -1736,14 +1773,9 @@ function getCommissionTable (partnerConfig, parentConfigs, group) {
             let commSetting = parentRateTable && parentRateTable.commissionSetting && parentRateTable.commissionSetting[i] || {};
             currentRequirement.parentRate.push(commSetting.commissionRate);
 
-            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate) {
+            if (!commSetting.commissionRate || previousPartnerRate >= commSetting.commissionRate || !currentRequirement.commissionRate) {
                 return 0;
             }
-
-            if (!currentRequirement.commissionRate) {
-                currentRequirement.commissionRate = commSetting.commissionRate;
-            }
-
             
             let currentRate = math.chain(Number(commSetting.commissionRate) - Number(previousPartnerRate)).divide(currentRequirement.commissionRate).round(8).done();
 

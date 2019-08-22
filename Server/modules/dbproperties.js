@@ -101,8 +101,11 @@ let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
+let frontEndPopUpSettingSchema = require('./../schema/frontEndPopUpSetting');
 let frontEndGameSettingSchema = require('./../schema/frontEndGameSetting');
 let frontEndRewardCategorySchema = require('./../schema/frontEndRewardCategory');
+let frontEndRegistrationGuidanceCategorySchema = require('./../schema/frontEndRegistrationGuidanceCategory');
+let frontEndRegistrationGuidanceSettingSchema = require('./../schema/frontEndRegistrationGuidanceSetting');
 let frontEndRewardSettingSchema = require('./../schema/frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingSchema = require('./../schema/frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationSchema = require('./../schema/frontEndRewardPointClarification');
@@ -112,7 +115,9 @@ let frontEndUrlConfigurationSchema = require('./../schema/frontEndUrlConfigurati
 let frontEndPartnerUrlConfigurationSchema = require('./../schema/frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationSchema = require('./../schema/frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationSchema = require('./../schema/frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionSchema = require('./../schema/frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingSchema = require('./../schema/promoCodeMaxRewardAmountSetting');
+let preventBlockUrlSchema = require('./../schema/preventBlockUrl');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -214,6 +219,9 @@ let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 let activeConfigSchema = require('./../schema/activeConfig');
 let activeConfigModel = db_admin.model('activeConfig', activeConfigSchema, 'activeConfig');
 
+let platformReferralConfigSchema = require('./../schema/platformReferralConfig');
+let platformReferralConfigModel = db_admin.model('platformReferralConfig', platformReferralConfigSchema, 'platformReferralConfig');
+
 let platformQuickPayGroupSchema = require('./../schema/platformQuickPayGroup');
 let platformQuickPayGroupModel = db_admin.model('platformQuickPayGroup', platformQuickPayGroupSchema, 'platformQuickPayGroup');
 
@@ -286,8 +294,11 @@ let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
+let frontEndPopUpSettingModel = db_admin.model('frontEndPopUpSetting', frontEndPopUpSettingSchema, 'frontEndPopUpSetting');
 let frontEndGameSettingModel = db_admin.model('frontEndGameSetting', frontEndGameSettingSchema, 'frontEndGameSetting');
 let frontEndRewardCategoryModel = db_admin.model('frontEndRewardCategory', frontEndRewardCategorySchema, 'frontEndRewardCategory');
+let frontEndRegistrationGuidanceCategoryModel = db_admin.model('frontEndRegistrationGuidanceCategory', frontEndRegistrationGuidanceCategorySchema, 'frontEndRegistrationGuidanceCategory');
+let frontEndRegistrationGuidanceSettingModel = db_admin.model('frontEndRegistrationGuidanceSetting', frontEndRegistrationGuidanceSettingSchema, 'frontEndRegistrationGuidanceSetting');
 let frontEndRewardSettingModel = db_admin.model('frontEndRewardSetting', frontEndRewardSettingSchema, 'frontEndRewardSetting');
 let frontEndPopUpAdvertisementSettingModel = db_admin.model('frontEndPopUpAdvertisementSetting', frontEndPopUpAdvertisementSettingSchema, 'frontEndPopUpAdvertisementSetting');
 let frontEndRewardPointClarificationModel = db_admin.model('frontEndRewardPointClarification', frontEndRewardPointClarificationSchema, 'frontEndRewardPointClarification');
@@ -297,7 +308,10 @@ let frontEndUrlConfigurationModel = db_admin.model('frontEndUrlConfiguration', f
 let frontEndPartnerUrlConfigurationModel = db_admin.model('frontEndPartnerUrlConfiguration', frontEndPartnerUrlConfigurationSchema, 'frontEndPartnerUrlConfiguration');
 let frontEndCarouselConfigurationModel = db_admin.model('frontEndCarouselConfiguration', frontEndCarouselConfigurationSchema, 'frontEndCarouselConfiguration');
 let frontEndPartnerCarouselConfigurationModel = db_admin.model('frontEndPartnerCarouselConfiguration', frontEndPartnerCarouselConfigurationSchema, 'frontEndPartnerCarouselConfiguration');
+let frontEndScriptDescriptionModel = db_admin.model('frontEndScriptDescription', frontEndScriptDescriptionSchema, 'frontEndScriptDescription');
 let promoCodeMaxRewardAmountSettingModel = db_admin.model('promoCodeMaxRewardAmountSetting', promoCodeMaxRewardAmountSettingSchema, 'promoCodeMaxRewardAmountSetting');
+let preventBlockUrlModel = db_admin.model('preventBlockUrl', preventBlockUrlSchema, 'preventBlockUrl');
+
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -637,6 +651,9 @@ let parentPartnerCommissionDetailModel = dbLogs2.model('parentPartnerCommissionD
 let playerRegisterIPSchema = require('./../schema/logs2/playerRegisterIP');
 let playerRegisterIPModel = dbLogs2.model('playerRegisterIP', playerRegisterIPSchema, 'playerRegisterIP');
 
+let referralLogSchema = require('./../schema/logs2/referralLog');
+let referralLogModel = dbLogs2.model('referralLog', referralLogSchema, 'referralLog');
+
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -747,6 +764,7 @@ var dbProperties = {
 
     collection_keywordFilter: keywordFilterModel,
     collection_activeConfig: activeConfigModel,
+    collection_platformReferralConfig: platformReferralConfigModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
@@ -795,7 +813,10 @@ var dbProperties = {
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
+    collection_frontEndPopUpSetting: frontEndPopUpSettingModel,
     collection_frontEndRewardCategory: frontEndRewardCategoryModel,
+    collection_frontEndRegistrationGuidanceCategory: frontEndRegistrationGuidanceCategoryModel,
+    collection_frontEndRegistrationGuidanceSetting: frontEndRegistrationGuidanceSettingModel,
     collection_frontEndGameSetting: frontEndGameSettingModel,
     collection_frontEndRewardSetting: frontEndRewardSettingModel,
     collection_frontEndPopUpAdvertisementSetting: frontEndPopUpAdvertisementSettingModel,
@@ -806,7 +827,9 @@ var dbProperties = {
     collection_frontEndPartnerUrlConfiguration: frontEndPartnerUrlConfigurationModel,
     collection_frontEndCarouselConfiguration: frontEndCarouselConfigurationModel,
     collection_frontEndPartnerCarouselConfiguration: frontEndPartnerCarouselConfigurationModel,
+    collection_frontEndScriptDescription: frontEndScriptDescriptionModel,
     collection_promoCodeMaxRewardAmountSetting: promoCodeMaxRewardAmountSettingModel,
+    collection_preventBlockUrl: preventBlockUrlModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
@@ -924,6 +947,7 @@ var dbProperties = {
     collection_parentPartnerCommissionDetail: parentPartnerCommissionDetailModel,
 
     collection_playerRegisterIP: playerRegisterIPModel,
+    collection_referralLog: referralLogModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,

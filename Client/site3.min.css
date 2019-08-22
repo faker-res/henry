@@ -4406,6 +4406,23 @@ hr {
     background-color: #ffc766;
 }
 
+.colorDisplay{
+    width : 80px;
+    height: 25px;
+    border: 2px solid lightgrey;
+}
+
+.colorTab{
+    border: 1px solid #ddd;
+    padding: 1em 1em 1em 0;
+    border-top-color: transparent;
+    display: flex;
+}
+
+.colorTab input{
+    width: 13em;
+}
+
 .fronendConfigDiv {
     background: #d3d3d34d;
     box-sizing: border-box;
@@ -4454,6 +4471,7 @@ hr {
     border: 1px solid #aaa;
     text-align: center;
     height: 300px;
+    overflow: auto;
 }
 
 .frontendImagePreview {

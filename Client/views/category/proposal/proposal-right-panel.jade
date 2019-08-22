@@ -32,7 +32,7 @@
                         .form-group
                             text {{'Trigger amount' | translate}}
                             label.form-control {{vm.tempNodeTriggerAmount}}
-                        .form-group
+                        .form-group(ng-if='vm.checkProposalStepUpdatePermission()')
                             button.btn-sm.btn.btn-info.common-button(ng-click='vm.clearData();vm.editingNode=true') {{'EDIT' | translate}}
                     div(ng-if="vm.editingNode")
                         //.form-group

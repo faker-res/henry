@@ -21,7 +21,7 @@ var dbPaymentChannel = {
     },
     /**
      * Get PaymentChannel information
-     * @param {String}  query - The query string
+     * @param {name: *}  query - The query string
      */
     getPaymentChannel: function (query) {
         return dbconfig.collection_paymentChannel.findOne(query);

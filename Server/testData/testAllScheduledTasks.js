@@ -24,7 +24,7 @@ var commonTestFun = require('../test_modules/commonTestFunc');
 //     $ grep -c '\(dbproperties\|socketConnection\|commonTestFunc\)' test/*.js | grep ':0$'
 require('../test_modules/improveMochaReporting')();
 
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 var playerSummary = require("../scheduleTask/playerSummary");
 var partnerSummary = require("../scheduleTask/partnerSummary");
 

@@ -718,6 +718,14 @@ function socketActionReport(socketIO, socket) {
             data.limit = data.limit || 10;
             data.index = data.index || 0;
             socketUtil.emitter(self.socket, dbReport.getPaymentMonitorReport, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getReferralRewardReport: function getReferralRewardReport(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.platformObjId);
+            var platformObjId = ObjectId(data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbReport.getReferralRewardReport, [platformObjId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         }
     };
     socketActionReport.actions = this.actions;

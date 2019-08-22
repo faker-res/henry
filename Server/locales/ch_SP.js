@@ -431,6 +431,7 @@ var simplifiedChinese = {
     "Partner Name length is not valid": "代理帐号长度无效",
     "This phone number is already used. Please insert other phone number.": "此手机号已被绑定使用，请联系客服核实",
     "PlayerLevelUp": "升级奖励",
+    "PlayerLevelMaintain": "保级优惠",
     "level change fail, please contact cs": "等级变更失效，请联系客服。",
     "The promoCode Type is still valid": "优惠类型还在使用中，不能被删除。",
     "Player level is not enough": "玩家等级不足",
@@ -600,6 +601,9 @@ var simplifiedChinese = {
     "Partner can only update child commission once a week.": "每个下级代理佣金比例每周最多只能编辑一次。",
     "No relevant poster found. Please contact CS": "没有相关海报，请联系客服。",
     "Down line player not found": "找不到该下线玩家，请检查名字是否正确。",
+    "Reward Amount Exceed Limit Within Reward Period": "已达到周期内优惠金额上限",
+    "This referrer has no valid referee player within this period": "很抱歉，目前没有被推荐人",
+    "Does not have enough valid consumption": "被推荐人未达到周期内内有效投注额要求",
 
     //todo::add missing messages here
 

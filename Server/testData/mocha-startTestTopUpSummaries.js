@@ -26,7 +26,7 @@ var dbconfig = require('../modules/dbproperties');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 
 var playerSummary = require('../scheduleTask/playerSummary');
 

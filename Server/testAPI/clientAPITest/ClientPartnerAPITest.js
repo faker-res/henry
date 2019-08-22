@@ -427,6 +427,13 @@
         this.partnerService.getPartnerPoster.once(callback);
     };
 
+    proto.getPromoShortUrl = function(callback, requestData) {
+        let data = requestData || {};
+
+        this.partnerService.getPromoShortUrl.request(data);
+        this.partnerService.getPromoShortUrl.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

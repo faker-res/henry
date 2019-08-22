@@ -92,7 +92,7 @@ let PlayerServiceImplement = function () {
 
         // data.partnerId = "";
         //for partner player registration
-        let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+        let byPassSMSCode = data.isTestPlayer || Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
         // console.log("yH checking---conn", conn)
@@ -137,10 +137,17 @@ let PlayerServiceImplement = function () {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 

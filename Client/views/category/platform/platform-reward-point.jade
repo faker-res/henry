@@ -135,9 +135,9 @@ style.
 
                     br
                     .pull-left
-                        button.btn.btn-primary.common-button(ng-if="vm.allOpen == false", ng-click='vm.openAllRewardPointsEvent();')
+                        button.btn.btn-primary.common-button(ng-click='vm.allRewardPointsEventStatus(true);')
                             text {{'OPEN_ALL'| translate}}
-                        button.btn.btn-danger.common-button(ng-if="vm.allOpen == true", ng-click='vm.closeAllRewardPointsEvent();')
+                        button.btn.btn-danger.common-button(ng-click='vm.allRewardPointsEventStatus(false);')
                             text {{'CLOSE_ALL'| translate}}
                         button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
                             text {{'DELETE_ALL'| translate}}
@@ -223,9 +223,9 @@ style.
                                     button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'Closed':'Open' | translate}}
                     br
                     .pull-left
-                        button.btn.btn-primary.common-button(ng-if="vm.allOpen == false", ng-click='vm.openAllRewardPointsEvent();')
+                        button.btn.btn-primary.common-button(ng-click='vm.allRewardPointsEventStatus(true);')
                             text {{'OPEN_ALL'| translate}}
-                        button.btn.btn-danger.common-button(ng-if="vm.allOpen == true", ng-click='vm.closeAllRewardPointsEvent();')
+                        button.btn.btn-danger.common-button(ng-click='vm.allRewardPointsEventStatus(false);')
                             text {{'CLOSE_ALL'| translate}}
                         button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
                             text {{'DELETE_ALL'| translate}}
@@ -319,9 +319,9 @@ style.
 
                     br
                     .pull-left
-                        button.btn.btn-primary.common-button(ng-if="vm.allOpen == false", ng-click='vm.openAllRewardPointsEvent();')
+                        button.btn.btn-primary.common-button(ng-click='vm.allRewardPointsEventStatus(true);')
                             text {{'OPEN_ALL'| translate}}
-                        button.btn.btn-danger.common-button(ng-if="vm.allOpen == true", ng-click='vm.closeAllRewardPointsEvent();')
+                        button.btn.btn-danger.common-button(ng-click='vm.allRewardPointsEventStatus(false);')
                             text {{'CLOSE_ALL'| translate}}
                         button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteRewardPointsEvent' ng-click='vm.deleteAllRewardPointsEvent()')
                             text {{'DELETE_ALL'| translate}}
