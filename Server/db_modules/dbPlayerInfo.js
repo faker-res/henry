@@ -939,31 +939,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        // if (inputData.referral || inputData.referralName) {
-                        //     let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                        //     let referralProm = dbconfig.collection_players.findOne({
-                        //         name: referralName,
-                        //         platform: platformObjId
-                        //     }).then(
-                        //         data => {
-                        //             if (data) {
-                        //                 inputData.referral = data._id;
-                        //                 return inputData;
-                        //             }
-                        //             else {
-                        //                 // If user key in invalid referral during register, we will not proceed
-                        //                 return Q.reject({
-                        //                     status: constServerCode.INVALID_REFERRAL,
-                        //                     name: "DataError",
-                        //                     message: "Invalid referral"
-                        //                 });
-                        //             }
-                        //         }
-                        //     );
-                        //     proms.push(referralProm);
-                        // }
-
-                        if (inputData.referral || inputData.referralName) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && (inputData.referral || inputData.referralName)) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
@@ -1047,7 +1023,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if (!inputData.referral && inputData.referralId) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && !inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
@@ -1121,7 +1097,6 @@ let dbPlayerInfo = {
 
                         if (inputData.partnerName) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
@@ -1141,7 +1116,6 @@ let dbPlayerInfo = {
                             proms.push(partnerProm);
                         } else if (inputData.partnerId) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerId: inputData.partnerId,
                                 platform: platformObjId
@@ -1164,7 +1138,6 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
@@ -2801,7 +2774,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_rewardPoints
         }).lean().then(
             playerData => {
-                return getReferralIdAndUrl(playerData, true);
+                return getReferralIdAndUrl(playerData);
             }
         ).then(
             function (data) {
@@ -9908,6 +9881,7 @@ let dbPlayerInfo = {
                             }
 
                             if(typeof clientType == "undefined"){
+                                console.log('rewardEventItem.condition', rewardEventItem.condition);
                                 if(!(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0)){
                                     rewardEventArray.push(rewardEventItem);
                                 }
@@ -9938,6 +9912,7 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardEventList => {
+                console.log('rewardEventList', rewardEventList);
                 rewardList = rewardEventList;
                 // to handle old data without registrationInterface; set to WEB
                 if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){
@@ -29727,7 +29702,7 @@ function checkPlayerIsBlacklistIp(player) {
     }
 }
 
-function getReferralIdAndUrl(thisPlayer, generateQRCode) {
+function getReferralIdAndUrl(thisPlayer) {
     return dbconfig.collection_platformReferralConfig.findOne({platform: thisPlayer.platform})
         .populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             config => {
@@ -29740,24 +29715,7 @@ function getReferralIdAndUrl(thisPlayer, generateQRCode) {
                 }
                 return thisPlayer;
             }
-        ).then(
-            playerData => {
-                if (generateQRCode && playerData && playerData.referralUrl) {
-                    let qrProm = dbPlatform.turnUrlToQr(playerData.referralUrl);
-
-                    return qrProm.then(
-                        data => {
-                            if (data) {
-                                playerData.referralQRCode = data;
-                            }
-                            return playerData;
-                        }
-                    )
-                }
-
-                return playerData;
-            }
-        )
+        );
 }
 
 var proto = dbPlayerInfoFunc.prototype;

@@ -2049,7 +2049,6 @@ var dbUtility = {
     },
 
     cleanOutput: (entry) => {
-        delete entry.type;
         delete entry.executeProposal;
         delete entry.__v;
         delete entry.updateTime;
