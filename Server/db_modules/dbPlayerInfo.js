@@ -26983,6 +26983,82 @@ let dbPlayerInfo = {
         return retArr;
     },
 
+    getPromoShortUrl: (data) => {
+        // display the partner short url or generate new one
+        let fullUrl = data.url;
+        let fullUrlUndotted = fullUrl.replace(/\./g, '^');
+        let urlArr = fullUrl.split('/');
+        let urlExist = false;
+        let result;
+        let playerData;
+        let playerNo;
+        if( urlArr && urlArr.length > 1) {
+            playerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
+        }
+        let preventBlockUrl;
+        return dbconfig.collection_preventBlockUrl.find().lean().then(
+            preventBlocks => {
+                // random pick one of preventBlock urls
+                preventBlockUrl = preventBlocks[Math.floor(Math.random() * preventBlocks.length)];
+                return dbconfig.collection_players.findOne({playerId: playerNo}).lean()
+            }
+        )
+        .then(
+            player => {
+                if (!player) {
+                    return Promise.reject({message: "Player not found."});
+                }
+                playerData = player;
+
+                // if promote short url is there , then direct return it
+                if (playerData.shortUrl && playerData.shortUrl[fullUrlUndotted]) {
+                    urlExist = true;
+                    return { shortUrl: playerData.shortUrl, name: playerData.name };
+                };
+
+                // avoid generate mass shortUrl
+                if (typeof playerData.shortUrl == 'object' && Object.keys(playerData.shortUrl).length > 30) {
+                    return Promise.reject({message: "Generate Too Many ShortenerUrl."});
+                }
+
+                // if not exist generate new weibo short link
+                let randomUrl = preventBlockUrl.url + data.url;
+                console.log('MT --checking player randomUrl', randomUrl);
+                let sendData = {urls: [randomUrl]};
+                return dbPartner.urlShortener(sendData);
+            }
+        )
+        .then(
+            (urlData) => {
+                if (!urlData) {
+                    return Promise.reject({message: "ShortenerUrl failed."});
+                }
+                if (urlExist) {
+                    return { shortUrl: playerData.shortUrl, name: urlData.name };
+                }
+                urlData = urlData && urlData[0] ? urlData[0]: null;
+                console.log('checking MT --update player shortUrl', playerNo, urlData, fullUrlUndotted);
+
+                if (!playerData.shortUrl || typeof playerData.shortUrl !== 'object' || Object.keys(playerData.shortUrl).length == 0) {
+                    playerData.shortUrl = {};
+                }
+                playerData.shortUrl[fullUrlUndotted] = urlData.url_short || '';
+                return dbconfig.collection_players.findOneAndUpdate({playerId: playerNo}, {shortUrl: playerData.shortUrl}, {new: true}).lean()
+            }
+        )
+        .then(
+            player => {
+                if (!player || !player.shortUrl) {
+                    return Promise.reject({message: "Update player shortenerUrl failed."});
+                }
+                let shortUrl = player.shortUrl[fullUrlUndotted];
+                shortUrl = shortUrl.replace(/\^/g, '.');
+                result = { 'shortUrl': shortUrl, 'name': player.name };
+                return result;
+            }
+        )
+    },
+
     countAppPlayer: (platformId, startDate, endDate, playerType, deviceType, domain, registrationInterfaceType) => {
         let promoteWayProm = Promise.resolve(true);
         let proms = [];
