@@ -109,7 +109,6 @@ let dbEmailNotification = {
             };
             console.log('sender',sender);
             console.log('subject',subject);
-            console.log('recipient',allRecipientEmail);
             return await emailer.sendEmail(emailConfig);
         }
     },
