@@ -9810,6 +9810,8 @@ let dbPlayerInfo = {
                 if (rewardEvent && rewardEventGroup, referralConfig) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
+
+                    console.log('rewardEvent.length', rewardEvent.length);
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
