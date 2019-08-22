@@ -3493,17 +3493,32 @@ API说明：
 <div id='获取奖励活动列表'></div>
 
 * **1. 获取奖励活动列表**
-	* 获取玩家所在平台正在举行的奖励活动列表
-	* name: getRewardList
-	* 请求内容：`{platformId: “xxxxxxx”}`
-	* platformId: 平台id,
-	* clientType: 1/2/5/6
-	* 响应内容：`{status:””, data: rewardList}`
-	* 请求成功：status--200, data--奖励活动列表, 详情参见下表。
-	* showInRealServer:1 // 正式站是否展示（0：不展示、1：展示、预设1）
-	* groupName: “group1” // 优惠分组名称
-	* 请求失败：status--4xx, data--null
-	* 奖励活动对象说明// todo 与客户端进行沟通之后再定
+	* functionName: getRewardList
+    * 获取玩家所在平台正在举行的奖励活动列表
+    * 请求内容：
+        ```
+        platformId: 必填|String|平台ID
+        clientType: 选填|String|1：WEB，2：H5，4：APP
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            name: String|优惠名称
+            code: String|优惠代码
+            description: String|优惠详情
+            validStartTime: String|优惠开始时间
+            validEndTime: String|优惠结束时间
+            groupName: String|优惠分组名称
+            showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家奖励任务'></div>
 
