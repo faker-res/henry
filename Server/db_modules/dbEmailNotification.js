@@ -50,6 +50,7 @@ let dbEmailNotification = {
     },
 
     async sendEmailNotification(platformObjId, platformName, processName, adminName) {
+        console.log('dbEmailNotification.sendEmailNotification');
 
         if (!platformObjId || !platformName || !processName || !adminName) {
             console.log('sendEmailNotification input error');
@@ -106,6 +107,8 @@ let dbEmailNotification = {
                 body: content,
                 isHTML: true
             };
+            console.log('sender',sender);
+            console.log('subject',subject);
             return await emailer.sendEmail(emailConfig);
         }
     },
