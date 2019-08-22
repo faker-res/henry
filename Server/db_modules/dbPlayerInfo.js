@@ -9807,7 +9807,6 @@ let dbPlayerInfo = {
             }
         ).then(
             function ([rewardEvent, rewardEventGroup, referralConfig]) {
-                console.log('rewardEvent - xxx', rewardEvent);
                 if (rewardEvent && rewardEventGroup, referralConfig) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
@@ -9909,6 +9908,7 @@ let dbPlayerInfo = {
                             }
 
                             if(typeof clientType == "undefined"){
+                                console.log('rewardEventItem.condition', rewardEventItem.condition);
                                 if(!(rewardEventItem.condition && rewardEventItem.condition.visibleForDevice && rewardEventItem.condition.visibleForDevice.length > 0)){
                                     rewardEventArray.push(rewardEventItem);
                                 }
