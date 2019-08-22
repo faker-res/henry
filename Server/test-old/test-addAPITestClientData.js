@@ -13,7 +13,7 @@ var dbGame = require('../db_modules/dbGame');
 var dbRewardType = require('../db_modules/dbRewardType');
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
 var dbRewardTask = require('../db_modules/dbRewardTask');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("./testGameTypes");
 
 var mongoose = require('mongoose');
 var Q = require("q");

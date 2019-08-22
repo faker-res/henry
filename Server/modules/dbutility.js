@@ -525,6 +525,42 @@ var dbUtility = {
         };
     },
 
+    getCurrentDateDailySGTime: (time) => {
+        let startTime = moment(time).tz('Asia/Singapore').toDate();
+        let endTime = moment(time).tz('Asia/Singapore').add(1, 'days').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentDateWeeklyTime: function (time) {
+        let startTime = moment(time).tz('Asia/Singapore').toDate();
+        let endTime = moment(time).tz('Asia/Singapore').add(1, 'week').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentDateMonthlySGTime: function (time) {
+        let startTime = moment(time).tz('Asia/Singapore').toDate();
+        let endTime = moment(time).tz('Asia/Singapore').add(1, 'month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentDateYearlySGTime: function (time) {
+        let startTime = moment(time).tz('Asia/Singapore').toDate();
+        let endTime = moment(time).tz('Asia/Singapore').add(1, 'year').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     /**
      *  1 = monday , 2= tuesday , ...,7 = sunday
      */
@@ -1975,21 +2011,21 @@ var dbUtility = {
         return clientType;
     },
 
-    getReferralConfigIntervalTime: (period) => {
+    getReferralConfigIntervalTime: (period, targetTime) => {
         let intervalTime;
 
         switch (period) {
             case "1":
-                intervalTime = dbUtility.getTodaySGTime();
+                intervalTime = targetTime ? dbUtility.getCurrentDateDailySGTime(targetTime) : dbUtility.getTodaySGTime();
                 break;
             case "2":
-                intervalTime = dbUtility.getCurrentWeekSGTime();
+                intervalTime = targetTime ? dbUtility.getCurrentDateWeeklyTime(targetTime) : dbUtility.getCurrentWeekSGTime();
                 break;
             case "3":
-                intervalTime = dbUtility.getCurrentMonthSGTIme();
+                intervalTime = targetTime ? dbUtility.getCurrentDateMonthlySGTime(targetTime) : dbUtility.getCurrentMonthSGTIme();
                 break;
             case "4":
-                intervalTime = dbUtility.getYearlySGTIme() ;
+                intervalTime = targetTime ? dbUtility.getCurrentDateYearlySGTime(targetTime) : dbUtility.getYearlySGTIme();
                 break;
             default:
                 // No interval time. Will return undefined
@@ -2010,10 +2046,20 @@ var dbUtility = {
         }
 
         return retObj;
+    },
+
+    cleanOutput: (entry) => {
+        delete entry.type;
+        delete entry.executeProposal;
+        delete entry.__v;
+        delete entry.updateTime;
+        delete entry.settlementPeriod;
+        delete entry.needSettlement;
+        return entry;
     }
 };
 
-var proto = dbUtilityFunc.prototype;
+let proto = dbUtilityFunc.prototype;
 proto = Object.assign(proto, dbUtility);
 
 // This make WebStorm navigation work

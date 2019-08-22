@@ -5,6 +5,7 @@ const constServerCode = require('../const/constServerCode');
 const constProposalType = require("./../const/constProposalType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const constPlayerTopUpType = require('../const/constPlayerTopUpType');
+const dbProposalUtility = require("../db_common/dbProposalUtility");
 let dbProposal = require('./../db_modules/dbProposal');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -205,6 +206,354 @@ let dbReport = {
                 }
             }
         );
+    },
+
+    getReferralRewardReport: (platform, query, index, limit, sortCol) => {
+        limit = limit ? limit : 30;
+        index = index ? index : 0;
+        query = query ? query : {};
+        let startDate = new Date(query.start);
+        let endDate = new Date(query.end);
+        let referrerRecord;
+        let referralRewardDetails = [];
+        let consumptionReturnTypeId = "";
+
+        return dbconfig.collection_players.findOne({name: query.referralName}).lean().then(
+            referrerData => {
+                if (referrerData && referrerData._id) {
+                    referrerRecord = referrerData;
+
+                    let referralQuery = {
+                        platform: referrerData.platform,
+                        referral: referrerData._id
+                    };
+
+                    if (startDate) {
+                        referralQuery['$or'] = [{validEndTime: {$gte: startDate}}, {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
+                    }
+
+                    return dbconfig.collection_referralLog.find(referralQuery).lean().then(
+                        referees => {
+                            if (referees && referees.length > 0) {
+                                let playerObjIds = referees.map(item => item && item.playerObjId);
+
+                                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjIds}}).lean();
+
+                                let referralRewardQuery = {
+                                    'data.playerObjId': referrerRecord._id,
+                                    'data.platformObjId': referrerRecord.platform,
+                                    createTime: {$gte: startDate, $lt: endDate},
+                                    status: constProposalStatus.APPROVED
+                                }
+                                let referralRewardProm = dbProposalUtility.getProposalDataOfType(referrerRecord.platform, constProposalType.REFERRAL_REWARD_GROUP, referralRewardQuery);
+
+
+                                let consumptionPromMatchObj = {
+                                    playerId: {$in: playerObjIds},
+                                    createTime: {
+                                        $gte: new Date(startDate),
+                                        $lt: new Date(endDate)
+                                    },
+                                    isDuplicate: {$ne: true}
+                                };
+                                let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                                    {
+                                        $match: consumptionPromMatchObj
+                                    },
+                                    {
+                                        $group: {
+                                            _id: {
+                                                playerObjId: "$playerId",
+                                                gameId: "$gameId",
+                                            },
+                                            gameId: {"$first": "$gameId"},
+                                            providerId: {"$first": "$providerId"},
+                                            count: {$sum: {$cond: ["$count", "$count", 1]}},
+                                            amount: {$sum: "$amount"},
+                                            validAmount: {$sum: "$validAmount"},
+                                            bonusAmount: {$sum: "$bonusAmount"}
+                                        }
+                                    }
+                                ]).allowDiskUse(true).read("secondaryPreferred").then(
+                                    data => {
+                                        return dbconfig.collection_gameProvider.populate(data, {path: 'providerId', select: '_id name'});
+                                    }
+                                );
+
+                                let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
+                                    {
+                                        "$match": {
+                                            "data.playerObjId": {$in: playerObjIds},
+                                            "createTime": {
+                                                "$gte": new Date(startDate),
+                                                "$lte": new Date(endDate)
+                                            },
+                                            "mainType": {$in: ["TopUp", "PlayerBonus"]},
+                                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: {
+                                                playerObjId: "$data.playerObjId",
+                                                mainType: "$mainType",
+                                                typeId: "$type",
+                                                merchantName: "$data.merchantName",
+                                                merchantNo: "$data.merchantNo"
+                                            },
+                                            count: {"$sum": 1},
+                                            amount: {"$sum": "$data.amount"}
+                                        }
+                                    }
+                                ]).allowDiskUse(true).read("secondaryPreferred");
+
+                                let rewardProm = dbconfig.collection_proposal.aggregate([
+                                    {
+                                        "$match": {
+                                            "data.playerObjId": {$in: playerObjIds},
+                                            "createTime": {
+                                                "$gte": new Date(startDate),
+                                                "$lte": new Date(endDate)
+                                            },
+                                            "mainType": "Reward",
+                                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                        }
+                                    },
+                                    {
+                                        "$group": {
+                                            "_id": {
+                                                playerObjId: "$data.playerObjId",
+                                                type: "$type"
+                                            },
+                                            "amount": {"$sum": "$data.rewardAmount"}
+                                        }
+                                    }
+                                ]).allowDiskUse(true).read("secondaryPreferred");
+
+                                let consumptionReturnProposalTypeProm = dbconfig.collection_proposalType.findOne({platformdId: referrerRecord.platform, name: constProposalType.PLAYER_CONSUMPTION_RETURN}).lean().then(
+                                    proposalType => {
+                                        if (proposalType && proposalType._id) {
+                                            consumptionReturnTypeId = proposalType._id.toString();
+                                        }
+                                    }
+                                );
+
+                                return Promise.all([playerProm, referralRewardProm, consumptionProm, topupAndBonusProm, rewardProm, consumptionReturnProposalTypeProm]).then(
+                                    data => {
+                                        let players = data && data[0] ? data[0] : [];
+                                        let referralRewardProposals = data && data[1] ? data[1] : [];
+                                        let gameDetail = data && data[2] ? data[2] : [];
+                                        let topUpAndBonusDetail = data && data[3] ? data[3] : [];
+                                        let rewardDetail = data && data[4] ? data[4] : [];
+
+                                        if (referralRewardProposals && referralRewardProposals.length > 0) {
+                                            referralRewardProposals.forEach(proposal => {
+                                                if (proposal && proposal.data && proposal.data.referralRewardDetails && proposal.data.referralRewardDetails.length > 0) {
+                                                    proposal.data.referralRewardDetails.forEach(reward => {
+                                                        if (reward) {
+                                                            let indexNo = referralRewardDetails.findIndex(x => x && x.playerObjId && reward.playerObjId
+                                                                && (x.playerObjId.toString() === reward.playerObjId.toString()));
+                                                            let amount = reward.actualRewardAmount || reward.rewardAmount || 0
+
+                                                            if (indexNo != -1) {
+                                                                referralRewardDetails[indexNo].rewardAmount += amount;
+                                                            } else {
+                                                                referralRewardDetails.push({
+                                                                    playerObjId: reward.playerObjId,
+                                                                    validAmount: reward.validAmount,
+                                                                    rewardAmount: amount
+                                                                })
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                            })
+                                        }
+
+                                        if (players && players.length) {
+                                            let retArr = [];
+
+                                            players.map(playerDetail => {
+                                                let result = {_id: playerDetail._id};
+
+                                                let referee = referees.filter(x => String(x.playerObjId) === String(playerDetail._id));
+
+                                                if (referee && referee[0]) {
+                                                    result.bindTime = referee[0] && referee[0].createTime;
+                                                    result.bindStatus = referee[0] && referee[0].isValid;
+                                                }
+
+                                                if (playerDetail.playerLevel) {
+                                                    result.playerLevel = playerDetail.playerLevel._id;
+                                                    result.playerLevelName = playerDetail.playerLevel.name;
+                                                }
+                                                result.name = playerDetail.name;
+                                                result.valueScore = playerDetail.valueScore;
+                                                result.registrationTime = playerDetail.registrationTime;
+                                                result.lastAccessTime = playerDetail.lastAccessTime;
+                                                result.realName = playerDetail.realName;
+
+                                                result.gameDetail = gameDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id) && e.providerId);
+                                                result.consumptionTimes = 0;
+                                                result.consumptionAmount = 0;
+                                                result.validConsumptionAmount = 0;
+                                                result.consumptionBonusAmount = 0;
+
+                                                let providerDetail = {};
+                                                let providerNameArr = [];
+                                                let providerNames = "";
+
+                                                for (let i = 0, len = result.gameDetail.length; i < len; i++) {
+                                                    let gameRecord = result.gameDetail[i];
+                                                    let providerId = gameRecord.providerId._id.toString();
+
+                                                    if (providerNameArr.findIndex(p => p === providerId) === -1) {
+                                                        providerNameArr.push(providerId);
+
+                                                        if (len > i + 1) {
+                                                            providerNames += gameRecord.providerId.name + '\n';
+                                                        } else {
+                                                            providerNames += gameRecord.providerId.name;
+                                                        }
+                                                    }
+
+                                                    result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
+
+                                                    if (!providerDetail.hasOwnProperty(providerId)) {
+                                                        providerDetail[providerId] = {
+                                                            count: 0,
+                                                            amount: 0,
+                                                            validAmount: 0,
+                                                            bonusAmount: 0
+                                                        };
+                                                    }
+
+                                                    providerDetail[providerId].count += gameRecord.count;
+                                                    providerDetail[providerId].amount += gameRecord.amount;
+                                                    providerDetail[providerId].validAmount += gameRecord.validAmount;
+                                                    providerDetail[providerId].bonusAmount += gameRecord.bonusAmount;
+                                                    providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
+                                                    result.consumptionTimes += gameRecord.count;
+                                                    result.consumptionAmount += gameRecord.amount;
+                                                    result.validConsumptionAmount += gameRecord.validAmount;
+                                                    result.consumptionBonusAmount += gameRecord.bonusAmount;
+                                                }
+
+                                                result.consumptionBonusRatio = (result.consumptionBonusAmount / result.consumptionBonusRatio);
+                                                result.providerDetail = providerDetail;
+                                                result.providerNames = providerNames;
+
+                                                // topup and bonus related
+                                                result.topUpAmount = 0;
+                                                result.topUpTimes = 0;
+
+                                                let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
+                                                let bonusDetail = {};
+
+                                                if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
+                                                    selftopUpAndBonusDetail.forEach(e => {
+                                                        if (e._id.mainType === 'TopUp') {
+                                                            result.topUpAmount += e.amount;
+                                                            result.topUpTimes += e.count;
+                                                        } else if (e._id.mainType === 'PlayerBonus') {
+                                                            bonusDetail.amount = e.amount ? e.amount : 0;
+                                                            bonusDetail.count = e.count ? e.count : 0;
+                                                        }
+                                                    })
+                                                }
+                                                result.bonusAmount = bonusDetail && bonusDetail.amount ? bonusDetail.amount : 0;
+                                                result.bonusTimes = bonusDetail && bonusDetail.count ? bonusDetail.count : 0;
+
+                                                if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
+                                                    let isRelevant = false;
+
+                                                    switch (query.topUpTimesOperator) {
+                                                        case '>=':
+                                                            isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                                            break;
+                                                        case '=':
+                                                            isRelevant = result.topUpTimes === Number(query.topUpTimesValue);
+                                                            break;
+                                                        case '<=':
+                                                            isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                                            break;
+                                                        case 'range':
+                                                            if (query.topUpTimesValueTwo) {
+                                                                isRelevant = result.topUpTimes >= query.topUpTimesValue && result.topUpTimes <= query.topUpTimesValueTwo;
+                                                            }
+                                                            break;
+                                                    }
+
+                                                    if (!isRelevant) {
+                                                        return "";
+                                                    }
+                                                }
+
+                                                // reward related
+                                                result.rewardAmount = 0;
+                                                result.consumptionReturnAmount = 0;
+
+                                                let selfRewardDetail = rewardDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
+
+                                                if (selfRewardDetail && selfRewardDetail.length) {
+                                                    selfRewardDetail.forEach(e => {
+                                                        if (e._id.type.toString() === consumptionReturnTypeId) {
+                                                            result.consumptionReturnAmount = Number(e.amount) || 0;
+                                                        } else {
+                                                            result.rewardAmount += Number(e.amount) || 0;
+                                                        }
+                                                    })
+                                                }
+
+
+                                                // referral reward related
+                                                let selfReferralRewardDetail = referralRewardDetails.filter(e => String(e.playerObjId) === String(playerDetail._id))[0];
+
+                                                if (selfReferralRewardDetail) {
+                                                    result.referralRewardAmount = Number(selfReferralRewardDetail.rewardAmount) || 0;
+                                                }
+
+                                                retArr.push(result);
+                                            })
+
+                                            if (sortCol && Object.keys(sortCol)) {
+                                                let sortVal = -1;
+                                                let sortKey = "registrationTime";
+                                                Object.keys(sortCol).forEach(item => {
+                                                    if (item) {
+                                                        sortKey = item;
+                                                        sortVal = sortCol[item];
+                                                    }
+                                                })
+
+                                                retArr = retArr.sort((a, b) => {
+                                                    return (a[sortKey] - b[sortKey]) * sortVal;
+                                                })
+                                            }
+
+                                            return {
+                                                data: retArr.slice(index, index + limit),
+                                                size: retArr.length
+                                            };
+
+                                            return retArr;
+
+                                        }
+                                    }
+                                );
+                            } else {
+                                return {
+                                    data: [],
+                                    size: 0
+                                };
+                            }
+                        }
+                    )
+                } else {
+                    return Promise.reject({name: "DataError", message: "Referrer is not found"});
+                }
+            }
+        )
     },
 };
 

@@ -595,6 +595,7 @@ var roleChecker = {
                 rewardSetting: [],
                 gameSetting: [],
                 scriptDescription:[],
+                registrationGuidance:[],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },
