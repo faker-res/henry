@@ -9862,7 +9862,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function ([rewardEvent, rewardEventGroup, referralConfig]) {
-                if (rewardEvent && rewardEventGroup, referralConfig) {
+                if (rewardEvent && rewardEventGroup) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
 
@@ -9942,7 +9942,7 @@ let dbPlayerInfo = {
                         if (rewardEventItem && rewardEventItem.condition) {
                             rewardEventItem.condition.showInRealServer = isShowInRealServer;
                         }
-                        console.log('rewardEventItem ===> JY', rewardEventItem)
+
                         if (rewardEventItem.canApplyFromClient) {
                             let isRewardEventExpired = false;
                             if (rewardEventItem.validEndTime && new Date(rewardEventItem.validEndTime).getTime() < new Date().getTime()) {
