@@ -7146,9 +7146,6 @@ let dbPlayerInfo = {
     },
 
     playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
-        let isEnableUseReferralPlayerId = false;
-        let referralLog = {};
-        let referralInterval;
         let isHitReferralLimit = false;
         let isSMSVerified = false;
         let rejectMsg = {
@@ -7346,50 +7343,19 @@ let dbPlayerInfo = {
                                                                 newPlayerData.osType = loginData.osType;
                                                             }
 
-                                                            let referralProm = Promise.resolve(false);
                                                             if (loginData && !loginData.partnerId && loginData.referralId) {
-                                                                referralProm = bindReferral(platformObjId, loginData);
+                                                                newPlayerData.referralId = loginData.referralId;
                                                             }
-
                                                             console.log("checking newPlayerData", newPlayerData)
-                                                            return referralProm.then(
-                                                                referralData => {
-                                                                    if (referralData && referralData.length == 5) {
-                                                                        if (referralData[0] && referralData[0].referral) {
-                                                                            newPlayerData.referral = loginData.referral;
-                                                                        }
-
-                                                                        isHitReferralLimit = referralData[1];
-                                                                        referralInterval = referralData[2];
-                                                                        isEnableUseReferralPlayerId = referralData[3];
-                                                                        referralLog = referralData[4];
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(
+                                                                playerData => {
+                                                                    if (playerData && playerData.isHitReferralLimit) {
+                                                                        isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
 
-                                                                    return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(
-                                                                        playerData => {
-                                                                            if (isEnableUseReferralPlayerId) {
-                                                                                let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
-
-                                                                                referralLog.playerObjId = playerData._id;
-                                                                                referralLog.createTime = new Date(bindReferralTime);
-
-                                                                                if (referralInterval) {
-                                                                                    let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
-
-                                                                                    if (referralIntervalTime) {
-                                                                                        referralLog.validEndTime = referralIntervalTime.endTime;
-                                                                                    }
-                                                                                }
-
-                                                                                let newRecord = new dbconfig.collection_referralLog(referralLog);
-                                                                                newRecord.save().catch(errorUtils.reportError);
-                                                                            }
-
-                                                                            return playerData;
-                                                                        }
-                                                                    );
+                                                                    return playerData;
                                                                 }
-                                                            )
+                                                            );
                                                         }
                                                     }
                                                 )
@@ -29900,12 +29866,12 @@ function bindReferral(platformObjId, loginData) {
                         }
                     })
                 } else {
-                    delete loginData.referralId;
+                    delete data.referralId;
 
-                    return [loginData, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                    return [data, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
                 }
             } else {
-                return [loginData, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                return [data, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
             }
         }
     );

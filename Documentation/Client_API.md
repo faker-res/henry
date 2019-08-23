@@ -1919,9 +1919,10 @@ API说明：
 				smsCode: “8888”, // 短信验证码, 必填
 				accountPrefix: “e” // 玩家帐号前缀，可不填
 				checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
+				referralId: 邀请码
 			}
 	* 响应内容：`{status: 200/40x, data: playerObject}`
-	* playerObject包含token，用于重新建立链接
+	* playerObject包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作成功： status--200, data--玩家对象
 	* 操作失败： status--4xx, data--null
 
