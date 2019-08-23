@@ -24709,6 +24709,9 @@ define(['js/app'], function (myApp) {
                     case 'emailAuditConfig':
                         vm.getEmailAuditConfig(platformObjId);
                         break;
+                    case 'emailNotificationConfig':
+                        vm.getEmailNotificationConfig(platformObjId);
+                        break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
                         break;
@@ -28135,7 +28138,7 @@ define(['js/app'], function (myApp) {
                 let index = collection.length - 1;
                 let id = '#expDate' + type + '-' + index;
 
-                setTimeout(() => {
+                return new Promise(resolve => setTimeout(() => {
                     collection[index].expirationTime = utilService.createDatePicker(id, {
                         language: 'en',
                         format: 'yyyy/MM/dd hh:mm:ss',
@@ -28146,8 +28149,8 @@ define(['js/app'], function (myApp) {
                     }
                     vm.checkPlayerName(collection[index], tableId, index);
                     $scope.$evalAsync();
-                    return collection;
-                }, 500);
+                    return resolve(collection);
+                }, 500));
             };
             vm.cancelPromoCode = function (col, index) {
               $scope.$evalAsync(()=>{
@@ -28191,7 +28194,7 @@ define(['js/app'], function (myApp) {
                         let playerArr = sendData.playerName.split(/\r?\n/);
                         let p = Promise.resolve();
 
-                        playerArr.forEach((el, ind) => {
+                        playerArr.forEach(el => {
                             let newData = Object.assign({}, sendData);
                             newData.playerName = el;
                             newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
@@ -28300,9 +28303,10 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
+                vm.generatingAllPromoCode = true;
                 let p = Promise.resolve();
 
-                col.forEach((elem, index, arr) => {
+                col.forEach((elem, index) => {
                     if (!elem.code) {
                         p = p.then(function () {
                             if (skipCheck && !elem.error) {
@@ -28315,28 +28319,30 @@ define(['js/app'], function (myApp) {
 
                 return p.then(() => {
                     $scope.$evalAsync(()=>{
-                      if (col && col.length > 0) {
-                          if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
-                              if (type) {
-                                  if (type == 1) {
+                        if (col && col.length > 0) {
+                            if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                                if (type) {
+                                    if (type == 1) {
                                       vm.promoCode1HasMoreThanOne = true;
-                                  }
-                                  if (type == 2) {
+                                    }
+                                    if (type == 2) {
                                       vm.promoCode2HasMoreThanOne = true;
-                                  }
-                                  if (type == 3) {
+                                    }
+                                    if (type == 3) {
                                       vm.promoCode3HasMoreThanOne = true;
-                                  }
-                              }
-                          } else {
-                              vm.promoCode1HasMoreThanOne = false;
-                              vm.promoCode2HasMoreThanOne = false;
-                              vm.promoCode3HasMoreThanOne = false;
-                          }
-                      }
-                  });
-              });
-
+                                    }
+                                }
+                            } else {
+                                vm.promoCode1HasMoreThanOne = false;
+                                vm.promoCode2HasMoreThanOne = false;
+                                vm.promoCode3HasMoreThanOne = false;
+                            }
+                        }
+                        vm.generatingAllPromoCode = false;
+                    });
+                }).catch(err => {
+                    vm.generatingAllPromoCode = false;
+                });
             };
 
             vm.checkAllPromoCodeSubType = function (platformList) {
@@ -32430,6 +32436,41 @@ define(['js/app'], function (myApp) {
 
 
             };
+
+            vm.getEmailNotificationConfig = async (platformObjId) => {
+                vm.editEmailNotificationConfig = vm.editEmailNotificationConfig || false;
+                vm.emailNotificationConfig = vm.emailNotificationConfig || {};
+
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getEmailNotificationConfig', sendData, function (data) {
+                    console.log('getEmailNotificationConfig', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.emailNotificationConfig = {};
+                        if (data && data.data) {
+                            vm.emailNotificationConfig = data.data;
+                        }
+                    });
+                });
+            };
+            vm.updateEmailNotificationConfig = async function () {
+                console.log('updateEmailNotificationConfig', vm.emailNotificationConfig);
+
+                let result = await $scope.$socketPromise('updateEmailNotificationConfig', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.emailNotificationConfig.doNotify || false,
+                    emailPrefix: vm.emailNotificationConfig.emailPrefix || "",
+                    includeAdminName: vm.emailNotificationConfig.includeAdminName || false,
+                    includeOperationTime: vm.emailNotificationConfig.includeOperationTime || false,
+                    includeProposalStepName: vm.emailNotificationConfig.includeProposalStepName || false,
+                    includePlatformName: vm.emailNotificationConfig.includePlatformName || false
+                });
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};

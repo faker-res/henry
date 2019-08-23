@@ -818,13 +818,11 @@
         this.playerService.getBindBankCardList.once(callback);
     };
 
-    proto.getPromoShortUrl = function(callback, requestData) {
-        let data = requestData || {};
-
+    proto.getPromoShortUrl = function (callback, requestData) {
+        var data = requestData || {};
         this.playerService.getPromoShortUrl.request(data);
         this.playerService.getPromoShortUrl.once(callback);
     };
-
 
     if (isNode) {
         module.exports = ClientPlayerAPITest;
