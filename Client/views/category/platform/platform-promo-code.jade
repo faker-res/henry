@@ -110,19 +110,20 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode1 && vm.newPromoCode1.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode1, $index);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode1 && vm.newPromoCode1.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode1, $index);')
                                                 text {{'CANCEL' | translate}}
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockByMainPermission") {{'MAIN_PERMISSION_DISABLE' | translate}} ({{'ALL_PROMO_CODE' | translate}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isInForbidList") {{'SECONDARY_PERMISSION_DISABLE' | translate}} ({{'promoCode' | translate}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
-                                            text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
+                                            text(style="font-size:80%" ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                             wbr
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1, vm.promoCodeSmsChannel);')
                                                 text {{'Yes' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode1, $index)')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode1, $index)')
                                                 text {{'No' | translate}}
+                                            text(ng-if="vm.generatingAllPromoCode&& !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList") {{'Processing' | translate}}
                                         td
                                             div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                         td
@@ -203,19 +204,20 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode2 && vm.newPromoCode2.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode2, $index);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode2 && vm.newPromoCode2.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode2, $index);')
                                                 text {{'CANCEL' | translate}}
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockByMainPermission") {{'MAIN_PERMISSION_DISABLE' | translate}} ({{'banReward' | translate}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isInForbidList") {{'SECONDARY_PERMISSION_DISABLE' | translate}} ({{'promoCode' | translate}})
-                                            text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
+                                            text(style="font-size:80%" ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                             wbr
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2, vm.promoCodeSmsChannel);')
                                                 text {{'Yes' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode2, $index)')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode2, $index)')
                                                 text {{'No' | translate}}
+                                            text(ng-if="vm.generatingAllPromoCode&& !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList") {{'Processing' | translate}}
                                         td
                                             div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                         td
@@ -301,19 +303,20 @@
                                         td
                                             text(ng-if="promoCode.code") {{promoCode.code}}
                                             text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                            button.btn.btn-primary(ng-if="!vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
                                                 text {{'GENERATE' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode3 && vm.newPromoCode3.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode3, $index);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode3 && vm.newPromoCode3.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList", ng-click='vm.deletePromoCode(vm.newPromoCode3, $index);')
                                                 text {{'CANCEL' | translate}}
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockByMainPermission") {{'MAIN_PERMISSION_DISABLE' | translate}} ({{'banReward' | translate}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
                                             text(style="color: red;" ng-if="!promoCode.code && promoCode.isInForbidList") {{'SECONDARY_PERMISSION_DISABLE' | translate}} ({{'promoCode' | translate}})
-                                            text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
+                                            text(style="font-size:80%" ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                             wbr
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3, vm.promoCodeSmsChannel);')
                                                 text {{'Yes' | translate}}
-                                            button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode3, $index)')
+                                            button.btn.btn-primary(ng-if="!vm.generatingAllPromoCode && !promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode3, $index)')
                                                 text {{'No' | translate}}
+                                            text(ng-if="vm.generatingAllPromoCode&& !vm.disableGeneratePromoCode && !promoCode.code && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission && !promoCode.isInForbidList") {{'Processing' | translate}}
                                         td
                                             div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                         td
