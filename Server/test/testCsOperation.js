@@ -64,6 +64,22 @@ describe("Test CS Operation", function () {
         testPlayerValidCredit = testPlayer.validCredit;
         testPlayerRealName = testPlayer.realName;
 
+        // crete a test department
+        let testDepartment = await commonTestFun.createTestDepartment();
+        testDepartment.should.have.property('_id');
+
+        adminData.departments = [testDepartment._id];
+        adminData.adminName = commonTestFun.testAdminName;
+        adminData.email = commonTestFun.testAdminEmail;
+        adminData.password = '123456';
+
+        // create a cs officer
+        let testAdmin = await dbAdminInfo.createAdminUserWithDepartment(adminData);
+        testAdmin.should.have.property('_id');
+
+        testAdminName = testAdmin.adminName;
+        testAdminObjId = testAdmin._id;
+
         // create a connection
         client.connect();
         let clientOpenProm = () => {
@@ -76,49 +92,34 @@ describe("Test CS Operation", function () {
         await clientOpenProm();
     });
 
-    it('Should create a department', async function () {
-        let testDepartment = await commonTestFun.createTestDepartment();
-        testDepartment.should.have.property('_id');
+    describe("Test CS Operation on credit change", function () {
+        before(async function() {
+            // create the credit change proposal
+            testUpdateAmount = -10;
+            let dataObj = {
+                platformId: testPlatformObjId,
+                creator: {type: "admin", name: testAdminName, id: testAdminObjId},
+                data: {
+                    playerObjId: testPlayerObjId,
+                    playerName: testPlayerName,
+                    updateAmount: testUpdateAmount,
+                    curAmount: testPlayerValidCredit,
+                    realName: testPlayerRealName,
+                    remark: "test the function of changing of valid credit",
+                    adminName: testAdminName
+                }
+            };
+            let testProposal = await commonTestFun.createUpdatePlayerCreditProposalTest(dataObj);
+            testProposal.should.have.property('_id');
+        });
 
-        adminData.departments = [testDepartment._id];
-        adminData.adminName = commonTestFun.testAdminName;
-        adminData.email = commonTestFun.testAdminEmail;
-        adminData.password = '123456';
-    });
+        it('Should check the valid credit of test player has updated correctly', async function () {
+            let testPlayerInfo = await dbPlayer.getPlayerInfo({name: testPlayerName});
+            testPlayerInfo.should.have.property('_id');
 
-    it('Should create a CS', async function () {
-        let testAdmin = await dbAdminInfo.createAdminUserWithDepartment(adminData);
-        testAdmin.should.have.property('_id');
-
-        testAdminName = testAdmin.adminName;
-        testAdminObjId = testAdmin._id;
-    });
-
-    it('Should change the credit amount of test player', async function () {
-        testUpdateAmount = -10;
-        let dataObj = {
-            platformId: testPlatformObjId,
-            creator: {type: "admin", name: testAdminName, id: testAdminObjId},
-            data: {
-                playerObjId: testPlayerObjId,
-                playerName: testPlayerName,
-                updateAmount: testUpdateAmount,
-                curAmount: testPlayerValidCredit,
-                realName: testPlayerRealName,
-                remark: "test the function of changing of valid credit",
-                adminName: testAdminName
-            }
-        };
-        let testProposal = await commonTestFun.createUpdatePlayerCreditProposalTest(dataObj);
-        testProposal.should.have.property('_id');
-    });
-
-    it('Should check the valid credit of test player has updated correctly', async function () {
-        let testPlayerInfo = await dbPlayer.getPlayerInfo({name: testPlayerName});
-        testPlayerInfo.should.have.property('_id');
-
-        validCredit = testPlayerInfo.validCredit;
-        validCredit.should.equal(testPlayerValidCredit + testUpdateAmount);
+            validCredit = testPlayerInfo.validCredit;
+            validCredit.should.equal(testPlayerValidCredit + testUpdateAmount);
+        });
     });
 
     after(async function () {
