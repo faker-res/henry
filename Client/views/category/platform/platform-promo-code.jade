@@ -138,10 +138,10 @@
 
                             br
                             .pull-right
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, false, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && !vm.promoCode1HasMoreThanOne")
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, false, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && !vm.promoCode1HasMoreThanOne" ng-disabled="vm.generatingAllPromoCode")
                                     text {{'GENERATE_ALL' | translate}}
                                     img.img-create
-                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, true, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && vm.promoCode1HasMoreThanOne" )
+                                button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode1, 1, true, vm.promoCodeSmsChannel)", ng-if = "!vm.disableGeneratePromoCode && vm.promoCode1HasMoreThanOne" ng-disabled="vm.generatingAllPromoCode")
                                     text {{'Execute All' | translate}}
                                     img.img-create
 

@@ -28303,6 +28303,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
+                vm.generatingAllPromoCode = true;
                 let p = Promise.resolve();
 
                 col.forEach((elem, index) => {
@@ -28318,28 +28319,30 @@ define(['js/app'], function (myApp) {
 
                 return p.then(() => {
                     $scope.$evalAsync(()=>{
-                      if (col && col.length > 0) {
-                          if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
-                              if (type) {
-                                  if (type == 1) {
+                        if (col && col.length > 0) {
+                            if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                                if (type) {
+                                    if (type == 1) {
                                       vm.promoCode1HasMoreThanOne = true;
-                                  }
-                                  if (type == 2) {
+                                    }
+                                    if (type == 2) {
                                       vm.promoCode2HasMoreThanOne = true;
-                                  }
-                                  if (type == 3) {
+                                    }
+                                    if (type == 3) {
                                       vm.promoCode3HasMoreThanOne = true;
-                                  }
-                              }
-                          } else {
-                              vm.promoCode1HasMoreThanOne = false;
-                              vm.promoCode2HasMoreThanOne = false;
-                              vm.promoCode3HasMoreThanOne = false;
-                          }
-                      }
-                  });
-              });
-
+                                    }
+                                }
+                            } else {
+                                vm.promoCode1HasMoreThanOne = false;
+                                vm.promoCode2HasMoreThanOne = false;
+                                vm.promoCode3HasMoreThanOne = false;
+                            }
+                        }
+                        vm.generatingAllPromoCode = false;
+                    });
+                }).catch(err => {
+                    vm.generatingAllPromoCode = false;
+                });
             };
 
             vm.checkAllPromoCodeSubType = function (platformList) {
