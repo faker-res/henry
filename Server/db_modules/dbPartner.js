@@ -9434,7 +9434,6 @@ let dbPartner = {
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                console.log(url)
                 let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
@@ -9442,7 +9441,6 @@ let dbPartner = {
 
             return Promise.all(proms).then(
                 data=> {
-                    console.log('data::',data)
                     let result = [];
                     data.forEach( (item, index) => {
                         try {
@@ -9499,7 +9497,7 @@ let dbPartner = {
                 if (partnerData.shortUrl && Object.keys(partnerData.shortUrl).length > 30) {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
-                
+
                 if ( !preventBlockUrl.url ) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
