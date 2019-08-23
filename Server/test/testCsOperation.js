@@ -23,7 +23,20 @@ var env = require("../config/env").config();
 var commonTestFun = require('../test_modules/commonTestFunc');
 
 
-describe("Test Client API - Player service", function () {
+var testPlatformObjId = null;
+var testPlatformId = null;
+var testPlayerName = null;
+var testPlayerObjId = null;
+var testPlayerId = null;
+var testPlayerValidCredit = null;
+var testPlayerRealName = null;
+var testAdminName = null;
+var testAdminObjId = null;
+var validCredit = null;
+var testUpdateAmount = null;
+var adminData = {};
+
+describe("Test CS Operation", function () {
 
     var client = new WebSocketClient(env.clientAPIServerUrl);
 
@@ -33,72 +46,57 @@ describe("Test Client API - Player service", function () {
     var registrationIntentionService = new RegistrationIntentionService();
     client.addService(registrationIntentionService);
 
-    it('Should create test player and platform', function(done) {
-        commonTestFun.createTestPlatform().then(
-            function(data) {
-                testPlatformObjId = data._id;
-                testPlatformId = data.platformId;
-                return commonTestFun.createTestPlayer(testPlatformObjId);
-            },
-            function(error) {
-                console.error(error);
-            }
-        ).then(
-            function(data) {
-                testPlayerName = data.name;
-                testPlayerObjId = data._id;
-                testPlayerId = data.playerId;
-                testPlayerValidCredit = data.validCredit;
-                testPlayerRealName = data.realName;
-                done();
-            },
-            function(error) {
-                console.error(error);
-            }
-        );
-    });
+    before(async function() {
+        // create test platform
+        let testPlatform = await commonTestFun.createTestPlatform();
+        testPlatform.should.have.property('_id');
 
-    it('Should create a connection', function (done) {
+        testPlatformObjId = testPlatform._id;
+        testPlatformId = testPlatform.platformId;
+
+        // create test player
+        let testPlayer = await commonTestFun.createTestPlayer(testPlatformObjId);
+        testPlayer.should.have.property('_id');
+
+        testPlayerName = testPlayer.name;
+        testPlayerObjId = testPlayer._id;
+        testPlayerId = testPlayer.playerId;
+        testPlayerValidCredit = testPlayer.validCredit;
+        testPlayerRealName = testPlayer.realName;
+
+        // create a connection
         client.connect();
-        client.addEventListener("open", function () {
-            done();
-        });
+        let clientOpenProm = () => {
+            return new Promise(res => {
+                client.addEventListener("open", function () {
+                    res();
+                });
+            });
+        }
+        await clientOpenProm();
     });
 
-    it('Should create a department and CS', function (done) {
-        commonTestFun.createTestDepartment().then(
-            function(data) {
-                if (data && data._id){
-                    adminData = {
-                        departments : [data._id],
-                        adminName: commonTestFun.testAdminName,
-                        email: commonTestFun.testAdminEmail,
-                        password: '123456',
-                    };
-                    return dbAdminInfo.createAdminUserWithDepartment(adminData);
-                }
-                else{
-                    console.error("Department is not found");
-                }
-            },
-            function(error) {
-                console.error(error);
-            }
-        ).then(
-            function(data) {
-                testAdminName = data.adminName;
-                testAdminObjId = data._id;
-                done();
-            },
-            function(error) {
-                console.error(error);
-            }
-        );
+    it('Should create a department', async function () {
+        let testDepartment = await commonTestFun.createTestDepartment();
+        testDepartment.should.have.property('_id');
+
+        adminData.departments = [testDepartment._id];
+        adminData.adminName = commonTestFun.testAdminName;
+        adminData.email = commonTestFun.testAdminEmail;
+        adminData.password = '123456';
     });
 
-    it('Should change the credit amount of test player', function (done) {
-        testUpdateAmount = 10;
-        dataObj = {
+    it('Should create a CS', async function () {
+        let testAdmin = await dbAdminInfo.createAdminUserWithDepartment(adminData);
+        testAdmin.should.have.property('_id');
+
+        testAdminName = testAdmin.adminName;
+        testAdminObjId = testAdmin._id;
+    });
+
+    it('Should change the credit amount of test player', async function () {
+        testUpdateAmount = -10;
+        let dataObj = {
             platformId: testPlatformObjId,
             creator: {type: "admin", name: testAdminName, id: testAdminObjId},
             data: {
@@ -110,44 +108,32 @@ describe("Test Client API - Player service", function () {
                 remark: "test the function of changing of valid credit",
                 adminName: testAdminName
             }
+        };
+        let testProposal = await commonTestFun.createUpdatePlayerCreditProposalTest(dataObj);
+        testProposal.should.have.property('_id');
+    });
+
+    it('Should check the valid credit of test player has updated correctly', async function () {
+        let testPlayerInfo = await dbPlayer.getPlayerInfo({name: testPlayerName});
+        if (!testPlayerInfo || (testPlayerInfo && !testPlayerInfo._id)) {
+            console.error("credit check failed!")
         }
-        commonTestFun.createUpdatePlayerCreditProposalTest(dataObj).then(
-            function(data) {
-                done();
-            },
-            function(error) {
-                console.error(error);
-            }
-        );
+
+        validCredit = testPlayerInfo.validCredit;
+        console.log("checking validCredit", validCredit)
+        validCredit.should.equal(testPlayerValidCredit + testUpdateAmount);
+
     });
 
-    it('Should check the valid credit of test player has updated correctly', function (done) {
-        dbPlayer.getPlayerInfo({name: testPlayerName}).then(
-            function(data) {
-                validCredit = data.validCredit;
-                if (validCredit == testPlayerValidCredit + testUpdateAmount){
-                    done();
-                }
-                else{
-                    console.error("update amount incorrect");
-                }
-            },
-            function(error) {
-                console.error(error);
-            }
-        )
-    });
+    after(async function () {
+        // remove all test data
+        console.log("checking checking reaching here?")
+        let removeTestDataProm = commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]);
+        let removeTestProposalData = commonTestFun.removeTestProposalData([] , testPlatformObjId, [], [testPlayerObjId]);
+        let finished = await Promise.all([removeTestDataProm, removeTestProposalData]);
 
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function(data){
-            done();
-        })
-    });
-
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestProposalData([] , testPlatformObjId, [], [testPlayerObjId]).then(function(data){
-            done();
-        })
+        // close connection
+        client.disconnect();
     });
 
 });
