@@ -157,10 +157,9 @@ let commonTestFunc = {
         return dbPaymentChannel.createPaymentChannel(channelData);
     },
 
-    createTestGameProvider: function (data) {
-
-        var date = new Date();
-        var providerData = {
+    createTestGameProvider: function() {
+        let date = new Date();
+        let providerData = {
             name: commonTestFunc.testProviderName + date.getTime(),
             nickName: "Froggy Games",
             code: "FGXN" + date.getTime(),

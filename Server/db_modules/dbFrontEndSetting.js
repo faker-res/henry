@@ -4,6 +4,137 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
 
+    updateRegistrationGuidanceSetting: (dataList, deletedList, deletedCategoryList) => {
+        let prom = [];
+        if (dataList && dataList.length){
+            dataList.forEach(
+                data => {
+                    if (data && data._id){
+                        let updateQuery = {
+                            categoryObjId: data.categoryObjId,
+                            isVisible: data.isVisible,
+                            displayOrder: data.displayOrder || 1,
+                            orderNumber: data.orderNumber || 1,
+                        };
+                        prom.push(getAndUpdateSetting (ObjectId(data._id), updateQuery))
+                    }
+                }
+            )
+        }
+
+        if (deletedList && deletedList.length){
+            deletedList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateSetting (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        if (deletedCategoryList && deletedCategoryList.length){
+            deletedCategoryList.forEach(
+                data => {
+                    if (data) {
+                        let updateQuery = {
+                            status: 2,
+                        };
+                        prom.push(getAndUpdateCategory (ObjectId(data), updateQuery))
+
+                    }
+                }
+            )
+        }
+
+        return Promise.all(prom);
+
+        function getAndUpdateSetting (eventObjectId, updateQuery) {
+            return dbConfig.collection_frontEndRegistrationGuidanceSetting.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean();
+        }
+
+        function getAndUpdateCategory (eventObjectId, updateQuery) {
+            let updateProm = [];
+            return dbConfig.collection_frontEndRegistrationGuidanceCategory.findOneAndUpdate({_id: eventObjectId}, updateQuery).lean().then(
+                category => {
+                    if (category && category._id && category.platformObjId){
+                        let platformObjId = category.platformObjId;
+                        let categoryObjId =  category._id;
+                        return dbConfig.collection_frontEndRegistrationGuidanceSetting.find({platformObjId: ObjectId(platformObjId), status: 1, categoryObjId: ObjectId(categoryObjId)}).lean().then(
+                            rewardList => {
+                                if (rewardList && rewardList.length){
+                                    rewardList.forEach(
+                                        reward => {
+                                            if (reward && reward._id){
+                                                updateProm.push(dbConfig.collection_frontEndRegistrationGuidanceSetting.findOneAndUpdate({_id: reward._id}, {status: 2}).lean())
+                                            }
+                                        }
+                                    )
+                                }
+                                return Promise.all(updateProm)
+                            }
+                        )
+                    }
+                }
+            )
+        }
+    },
+
+    getFrontEndRegistrationGuidanceSetting: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRegistrationGuidanceSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+        }
+
+        return prom;
+    },
+
+    saveFrontEndRegistrationGuidanceSetting: (data) => {
+        if (data) {
+            if (data._id) {
+                let eventObjId = data._id;
+                delete data._id;
+                if (data.$$hashKey) {
+                    delete data.$$hashKey;
+                }
+                if (data.hasOwnProperty("__v")) {
+                    delete data.__v;
+                }
+                return dbConfig.collection_frontEndRegistrationGuidanceSetting.findOneAndUpdate({_id: ObjectId(eventObjId)}, data).lean();
+            } else {
+                let record = new dbConfig.collection_frontEndRegistrationGuidanceSetting(data);
+                return record.save();
+            }
+        }
+    },
+
+    saveFrontEndRegistrationGuidanceCategory: (platformObjId, categoryName, categoryObjId, displayFormat) => {
+        if (categoryObjId && categoryName){
+            return dbConfig.collection_frontEndRegistrationGuidanceCategory.findOneAndUpdate({_id: ObjectId(categoryObjId)}, {categoryName: categoryName, displayFormat: displayFormat}, {new: true}).lean();
+        }
+        else if (platformObjId && categoryName){
+            let dataObj ={
+                platformObjId: ObjectId(platformObjId),
+                categoryName: categoryName,
+                displayFormat: displayFormat
+            };
+            let record = new dbConfig.collection_frontEndRegistrationGuidanceCategory(dataObj);
+            return record.save();
+        }
+    },
+
+    getRegistrationGuidanceCategory: (platformObjId) => {
+        let prom =  Promise.resolve();
+        if (platformObjId){
+            prom = dbConfig.collection_frontEndRegistrationGuidanceCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+        }
+
+        return prom;
+    },
+
     updateScriptSetting: (dataList, deletedList) => {
         let prom = [];
         if (dataList && dataList.length){

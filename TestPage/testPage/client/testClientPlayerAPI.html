@@ -1666,6 +1666,11 @@
             <input type=text name="accountPrefix">
         </label>
     </div>
+    <div>
+        <label>Referral Id
+            <input type=text name="referralId">
+        </label>
+    </div>
     <p></p>
     <button data-api-name="createGuestPlayer">Create</button>
     <div>
@@ -1942,6 +1947,11 @@
         </label>
     </div>
     <div>
+        <label>Referral Id
+            <input type=text name="referralId">
+        </label>
+    </div>
+    <div>
         <label id="captchaCode">Captcha Code
             <input id="captchaCodeInput" type=text name="captcha">
         </label>
@@ -2117,6 +2127,19 @@
     </div>
 </div>
 
+<h3> Get Promo Short Url (玩家获取推广防红短链接)</h3>
+
+ <div class="test-container">
+    <div>
+        <label>url
+            <input name="url" type=text>
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getPromoShortUrl" data-api-name="getPromoShortUrl">Get</button>
+    </div>
+</div>
 
 
 <script>
