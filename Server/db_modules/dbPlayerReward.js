@@ -6950,19 +6950,21 @@ let dbPlayerReward = {
                 let getPlayerValidConsumptionProm = dbConfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                     config => {
                         if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
+                            let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+                            let bindReferralIntervalEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
                             let referralQuery = {
                                 platform: playerData.platform._id,
                                 referral: playerData._id
                             }
 
-                            let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                            let bindReferralIntervalEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
-
-                            if (bindReferralIntervalStartTime) {
+                            if (bindReferralIntervalEndTime && bindReferralIntervalEndTime) {
                                 referralQuery['$or'] = [
-                                    {createTime: {$gte: bindReferralIntervalStartTime}},
-                                    {validEndTime: {$lte: bindReferralIntervalEndTime}}
-                                ]
+                                    {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
+                                    {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
+                                    {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
+                                    {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
+                                    {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
                             }
 
                             if (!selectedRewardParam[0].playerValidConsumption) {

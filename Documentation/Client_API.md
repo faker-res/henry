@@ -70,6 +70,7 @@
 	58. [令牌更新密码](#令牌更新密码)
 	59. [获取玩家最近玩的两个游戏](#获取玩家最近玩的两个游戏)
     60. [APP设置密码](#APP设置密码)
+    61. [获取玩家推广域名防红和短链转换](#获取玩家推广域名防红和短链转换)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -239,7 +240,6 @@
 		16. [前端保存数据接口](#前端保存数据接口)
 		17. [前端获取数据接口](#前端获取数据接口)
 		18. [获取前端設置数据接口](#获取前端設置数据接口)
-		19. [获取平台推荐人奖励設置](#获取平台推荐人奖励設置)
 	13. [奖励点数](#奖励点数：)
 		1. [获取积分排名列表](#获取积分排名列表)
 		2. [获取登入积分信息](#获取登入积分信息)
@@ -494,7 +494,7 @@ API说明：
   - deviceId: 设备号
   - referralId: 邀请码(推荐人的玩家ID)
   - referralUrl: 邀请码链接
-  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit:}
+  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit: true/false}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
 <div id='获取验证码'></div>
@@ -1900,9 +1900,10 @@ API说明：
 				guestDeviceId: “DEVICEID120213” // 设备ID, 必填
 				phoneNumber: “11755555555” //非必填， 填写则绑定电话号码+设备ID
 				accountPrefix: “e” // 账号名字前缀，非必填，默认”g”
+				referralId: "4322" //推荐人邀请码
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
-	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作失败： status--4xx, data--null
 
 <div id='生成游客账号52'></div>
@@ -2026,6 +2027,26 @@ API说明：
     * 操作成功： `{status--200，data: {text:'密码添加成功'}}`
     * 操作失败： `{status--40x，errorMessage: ””}`
 
+<div id='获取玩家推广域名防红和短链转换'></div>
+
+* **61. 获取玩家推广域名防红和短链转换**
+    * name: getPromoShortUrl
+    * service:player
+    * 请求内容
+        * ```
+            {
+                url: “www.xindeli666.com/123”, // 玩家网址
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "shortUrl": "http://t.cn/AiQwVM4y",
+                "name": "testmk12"
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
 # 注册意向服务：
 用于关注玩家注册过程中是否遇到问题，便于改进登录界面以及在适当的时候为玩家提供帮助。
 
@@ -3511,6 +3532,8 @@ API说明：
             validEndTime: String|优惠结束时间
             groupName: String|优惠分组名称
             showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+            referralPeriod: "4", //推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
+            referralLimit: 50, //推荐人优惠组 - 被推荐人数限制
         }
         ```
     * 操作失败:
@@ -3716,6 +3739,7 @@ API说明：
                 quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组）
             }  
         }
         ```
@@ -7321,34 +7345,6 @@ API说明：
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理
-
-<div id='获取平台推荐人奖励設置'></div>
-
-* **19. 获取平台推荐人奖励設置**
-	* name: getPlatformReferralConfig
-	* service:platform
-	* 请求内容：
-		* ```
-			{
-				platformId: 1, //平台ID - 必填
-			}
-	* 响应内容：
-        * ```
-            {  
-                "status": 200,
-                "data": {
-                    "_id": "5d4a6bd27404de0c73e90de6",
-                    "platform": "5732dad105710cf94b5cfaaa",
-                    "referralPeriod": "4", //被推荐人周期
-                    "referralLimit": 50, //被推荐人数限制
-                    "enableUseReferralPlayerId": true, //是否启用推荐人账号
-                    "__v": 0
-                  }
-            }
-	* 操作失败：status--4xx, data-null, errorMessage:””
-	* 特注：
-		* enableUseReferralPlayerId： true - 开始启用; false - 未启用
-		* referralPeriod:  1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
 
 <!--文档没有华语名称，因此暂时命名“奖励点数”-->
 # 奖励点数：

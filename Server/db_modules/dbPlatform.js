@@ -7224,16 +7224,6 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    },
-
-    getPlatformReferralConfig: function (platformId) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    return dbconfig.collection_platformReferralConfig.findOne({platform: platformData._id}).lean();
-                }
-            }
-        )
     }
 };
 
