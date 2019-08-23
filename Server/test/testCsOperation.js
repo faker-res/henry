@@ -115,13 +115,10 @@ describe("Test CS Operation", function () {
 
     it('Should check the valid credit of test player has updated correctly', async function () {
         let testPlayerInfo = await dbPlayer.getPlayerInfo({name: testPlayerName});
-        if (!testPlayerInfo || (testPlayerInfo && !testPlayerInfo._id)) {
-            console.error("credit check failed!")
-        }
+        testPlayerInfo.should.have.property('_id');
 
         validCredit = testPlayerInfo.validCredit;
         validCredit.should.equal(testPlayerValidCredit + testUpdateAmount);
-
     });
 
     after(async function () {
