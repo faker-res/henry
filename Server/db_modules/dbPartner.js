@@ -12030,7 +12030,14 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             if (Number(commissionType) !== constPartnerCommissionType.DAILY_CONSUMPTION) {
                 if (gameProviderGroupRate && gameProviderGroupRate.length > 0 && consumptionDetail && consumptionDetail.consumptionProviderDetail && Object.keys(consumptionDetail.consumptionProviderDetail).length > 0) {
                     gameProviderGroupRate.forEach(groupRate => {
-                        let totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
+                        let totalBonusAmount = 0;
+                        if (consumptionDetail && consumptionDetail.consumptionProviderDetail &&
+                            consumptionDetail.consumptionProviderDetail[groupRate.name] && consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount) {
+                            totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
+                        } else if (consumptionDetail && consumptionDetail.bonusAmount) {
+                            totalBonusAmount = -consumptionDetail.bonusAmount;
+                        }
+                        
                         let platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
                         platformFee = platformFee >= 0 ? platformFee : 0;
