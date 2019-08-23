@@ -1397,7 +1397,6 @@ var dbRewardEvent = {
                 }
             );
             promArr.push(periodTopupProm);
-            console.log('((((((((((((((eventQuery', eventQuery);
             let periodPropsProm = dbconfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
 
@@ -2184,7 +2183,6 @@ var dbRewardEvent = {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
-                console.log('rewardSpecificData', data);
                 let forbidRewardData = data[3];
 
                 let topupInPeriodCount = topupInPeriodData.length;
@@ -3033,7 +3031,6 @@ var dbRewardEvent = {
                             returnData.status = 2;
                             returnData.condition.reward.status = 2;
                         }
-                        console.log('returnData.status', returnData)
                         console.log('MT --checking after festivalData', festivalData)
                         console.log('MT --checking selectedRewardParam',selectedRewardParam);
                         console.log('MT --checking topUpDatas', topUpDatas);
@@ -3044,7 +3041,6 @@ var dbRewardEvent = {
                         console.log('MT --checking applyRewardSum', applyRewardSum);
 
                         festivalData.forEach(item => {
-                            console.log(item)
                             if (item.minTopUpAmount &&  topUpSum < item.minTopUpAmount && item.status == true ) {
                                 item.status = false;
                             }
@@ -3165,7 +3161,6 @@ var dbRewardEvent = {
                 } else {
                     festivalDate = dbRewardEvent.getFestivalRewardDate(item, eventData.param.others);
                 }
-                console.log('---------------->festivalDate', festivalDate);
                 // show festival by correct time && show birthday at whatever time)
                 let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday, festivalDate);
                 proms.push(prom)
@@ -3189,40 +3184,17 @@ var dbRewardEvent = {
             }
         )
     },
-    getValidTime: function (festivalTime, timenow) {
-        let result = true;
-        let startTime = new Date(festivalTime.startTime);
-        let endTime = new Date(festivalTime.endTime);
-        if (timenow > endTime || timenow < startTime) {
-            result = false;
-        }
-        return result;
-
-    },
     checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData, DOB, festivalDate) {
         return new Promise((resolve, reject) => {
             let result = false;
             let returnData = {};
             let todayTime = dbUtil.getDayTime(new Date());
-
-            console.log('<---------------------------------------')
-            console.log('<---------------------------------------')
-            console.log('<---------------------------------------')
             console.log('MT --checking festivalId', festivalId)
             let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
             let applyPeriod = dbRewardEvent.getTimePeriod(expiredInDay, todayTime)
-            console.log('.....applyPeriod......', applyPeriod)
-
-            console.log(new Date())
-            // let festivalPeriod = dbRewardEvent.getValidTime(applyPeriod, new Date());
-
-            // let isValidTime = dbRewardEvent.getValidTime(applyPeriod, new Date());
+            // find if the date is valid to apply this event
             let isValidTime = checkIfRightApplyTime({expiredInDay:expiredInDay}, festivalDate);
             // festivalDate
-            console.log('isValidTime', isValidTime);
-            console.log('--------------------------------------->')
-            console.log('--------------------------------------->')
-            console.log('--------------------------------------->')
             let festivalPeriod = null;
             let sendQuery = {
                 "data.platformObjId": platformId,
@@ -3242,6 +3214,7 @@ var dbRewardEvent = {
                 if (data) {
                     console.log('rewardParam...', rewardParam)
                     let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others, DOB);
+                    // if the reward still available, and still on time to apply 
                     if (rewardParam.applyTimes && data.length < rewardParam.applyTimes && isValidTime) {
                         console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                         returnData = {status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 };
@@ -4256,7 +4229,6 @@ function checkIfRightApplyTime(specificDate, festival) {
     if ( currentTime > moment(period.startTime).toDate() &&  currentTime < moment(period.endTime).toDate() ) {
         result = true;
     }
-    console.log('.....................')
     console.log('MT --checking …startTime -- …endTime', moment(period.startTime).toDate() , moment(period.endTime).toDate());
     console.log('MT --checking …startTime -- …endTime currentTime', currentTime);
     console.log(result);
