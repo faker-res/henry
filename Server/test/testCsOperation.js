@@ -120,14 +120,12 @@ describe("Test CS Operation", function () {
         }
 
         validCredit = testPlayerInfo.validCredit;
-        console.log("checking validCredit", validCredit)
         validCredit.should.equal(testPlayerValidCredit + testUpdateAmount);
 
     });
 
     after(async function () {
         // remove all test data
-        console.log("checking checking reaching here?")
         let removeTestDataProm = commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]);
         let removeTestProposalData = commonTestFun.removeTestProposalData([] , testPlatformObjId, [], [testPlayerObjId]);
         let finished = await Promise.all([removeTestDataProm, removeTestProposalData]);
