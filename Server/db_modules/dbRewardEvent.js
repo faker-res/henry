@@ -3050,7 +3050,6 @@ var dbRewardEvent = {
                             }
                             //
                             if (item.totalConsumptionInInterval &&  consumptionSum < item.totalConsumptionInInterval && item.status == true ) {
-                                console.log(consumptionSum + '<' + item.totalConsumptionInInterval);
                                 item.status = false;
                             }
                         })
@@ -3243,7 +3242,7 @@ var dbRewardEvent = {
                 if (data) {
                     console.log('rewardParam...', rewardParam)
                     let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others, DOB);
-                    if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes && isValidTime) {
+                    if (rewardParam.applyTimes && data.length < rewardParam.applyTimes && isValidTime) {
                         console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
                         returnData = {status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 };
                         if ( rewardParam.totalConsumptionInInterval ) {
