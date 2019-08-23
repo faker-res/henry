@@ -1558,7 +1558,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.url);
+        let isValidData = Boolean(data && data.url && data.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
     };
 

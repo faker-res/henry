@@ -26956,10 +26956,7 @@ let dbPlayerInfo = {
         let urlExist = false;
         let result;
         let playerData;
-        let playerNo;
-        if( urlArr && urlArr.length > 1) {
-            playerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
-        }
+        let playerNo = data.playerId;
         let preventBlockUrl;
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
@@ -26986,7 +26983,10 @@ let dbPlayerInfo = {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
 
-                // if not exist generate new weibo short link
+                // if not exist then generate new weibo short link
+                if ( !preventBlockUrl.url ) {
+                    return Promise.reject({message: "You need to set Prevent Block Url first!"});
+                }
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking player randomUrl', randomUrl);
                 let sendData = {urls: [randomUrl]};
