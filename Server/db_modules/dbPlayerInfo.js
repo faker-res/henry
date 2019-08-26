@@ -420,6 +420,10 @@ let dbPlayerInfo = {
 
     createGuestPlayer: function (inputData, deviceData) {
         let platform, guestPlayerData, newPlayerData;
+        let isEnableUseReferralPlayerId = false;
+        let referralLog = {};
+        let referralInterval;
+        let isHitReferralLimit = false;
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -554,6 +558,27 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 () => {
+                                    if (inputData && !inputData.partnerId && inputData.referralId) {
+                                        return bindReferral(platform._id, inputData).then(
+                                            referralData => {
+                                                if (referralData && referralData.length == 5) {
+                                                    if (referralData[0] && referralData[0].referral) {
+                                                        inputData.referral = referralData[0].referral;
+                                                    }
+
+                                                    isHitReferralLimit = referralData[1];
+                                                    referralInterval = referralData[2];
+                                                    isEnableUseReferralPlayerId = referralData[3];
+                                                    referralLog = referralData[4];
+                                                }
+                                                return inputData;
+                                            }
+                                        );
+                                    }
+                                    return inputData;
+                                }
+                            ).then(
+                                () => {
                                     if (deviceData) {
                                         guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
                                     }
@@ -563,12 +588,34 @@ let dbPlayerInfo = {
                                     if (inputData && inputData.osType) {
                                         guestPlayerData.osType = inputData.osType;
                                     }
+
+                                    if (inputData && inputData.referral) {
+                                        guestPlayerData.referral = inputData.referral;
+                                    }
                                     return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
                                 }
                             ).then(
                                 playerData => {
                                     if (!playerData) {
                                         return Promise.reject({name: "DataError", message: "Can't create new player."});
+                                    }
+
+                                    if (isEnableUseReferralPlayerId) {
+                                        let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
+
+                                        referralLog.playerObjId = playerData._id;
+                                        referralLog.createTime = new Date(bindReferralTime);
+
+                                        if (referralInterval) {
+                                            let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
+
+                                            if (referralIntervalTime) {
+                                                referralLog.validEndTime = referralIntervalTime.endTime;
+                                            }
+                                        }
+
+                                        let newRecord = new dbconfig.collection_referralLog(referralLog);
+                                        newRecord.save().catch(errorUtils.reportError);
                                     }
 
                                     newPlayerData = playerData;
@@ -602,6 +649,9 @@ let dbPlayerInfo = {
                                     }).lean().then(
                                         pdata => {
                                             pdata.platformId = inputData.platformId;
+                                            if (isHitReferralLimit) {
+                                                pdata.isHitReferralLimit = isHitReferralLimit;
+                                            }
                                             return pdata;
                                         }
                                     )
@@ -636,7 +686,15 @@ let dbPlayerInfo = {
                                         // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
                                         // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
                                         console.log('MT --checking createPlayerRewardPointsRecord', newPlayerData.platform, newPlayerData._id)
-                                        return dbPlayerInfo.createPlayerRewardPointsRecord(newPlayerData.platform, newPlayerData._id, false);
+                                        return dbPlayerInfo.createPlayerRewardPointsRecord(newPlayerData.platform, newPlayerData._id, false).then(
+                                            data => {
+                                                if (data && isHitReferralLimit) {
+                                                    data.isHitReferralLimit = isHitReferralLimit;
+                                                }
+
+                                                return data;
+                                            }
+                                        );
                                     }
                                     if (data && platform.isEbet4) {
                                         // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
@@ -939,31 +997,7 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        // if (inputData.referral || inputData.referralName) {
-                        //     let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
-                        //     let referralProm = dbconfig.collection_players.findOne({
-                        //         name: referralName,
-                        //         platform: platformObjId
-                        //     }).then(
-                        //         data => {
-                        //             if (data) {
-                        //                 inputData.referral = data._id;
-                        //                 return inputData;
-                        //             }
-                        //             else {
-                        //                 // If user key in invalid referral during register, we will not proceed
-                        //                 return Q.reject({
-                        //                     status: constServerCode.INVALID_REFERRAL,
-                        //                     name: "DataError",
-                        //                     message: "Invalid referral"
-                        //                 });
-                        //             }
-                        //         }
-                        //     );
-                        //     proms.push(referralProm);
-                        // }
-
-                        if (inputData.referral || inputData.referralName) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && (inputData.referral || inputData.referralName)) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
                             let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
@@ -1047,7 +1081,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if (!inputData.referral && inputData.referralId) {
+                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && !inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
@@ -1121,7 +1155,6 @@ let dbPlayerInfo = {
 
                         if (inputData.partnerName) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerName: inputData.partnerName,
                                 platform: platformObjId
@@ -1141,7 +1174,6 @@ let dbPlayerInfo = {
                             proms.push(partnerProm);
                         } else if (inputData.partnerId) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let partnerProm = dbconfig.collection_partner.findOne({
                                 partnerId: inputData.partnerId,
                                 platform: platformObjId
@@ -1164,7 +1196,6 @@ let dbPlayerInfo = {
                         //check if player's domain matches any partner
                         if (inputData.domain) {
                             delete inputData.referral;
-                            isEnableUseReferralPlayerId = false;
                             let filteredDomain = dbUtility.getDomainName(inputData.domain);
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
@@ -7115,6 +7146,7 @@ let dbPlayerInfo = {
     },
 
     playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
+        let isHitReferralLimit = false;
         let isSMSVerified = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
@@ -7310,8 +7342,20 @@ let dbPlayerInfo = {
                                                             if (loginData && loginData.osType) {
                                                                 newPlayerData.osType = loginData.osType;
                                                             }
+
+                                                            if (loginData && !loginData.partnerId && loginData.referralId) {
+                                                                newPlayerData.referralId = loginData.referralId;
+                                                            }
                                                             console.log("checking newPlayerData", newPlayerData)
-                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(
+                                                                playerData => {
+                                                                    if (playerData && playerData.isHitReferralLimit) {
+                                                                        isHitReferralLimit = playerData.isHitReferralLimit;
+                                                                    }
+
+                                                                    return playerData;
+                                                                }
+                                                            );
                                                         }
                                                     }
                                                 )
@@ -7319,7 +7363,18 @@ let dbPlayerInfo = {
                                         }
                                     ).then(
                                         () => {
-                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).then(
+                                                data => {
+                                                    let loginPlayerData = data[0] || data;
+
+                                                    if (loginPlayerData && isHitReferralLimit) {
+                                                        loginPlayerData.isHitReferralLimit = isHitReferralLimit;
+                                                        return loginPlayerData;
+                                                    }
+
+                                                    return data;
+                                                }
+                                            );
                                         },
                                         err => {
                                             if (err && err.message) {
@@ -9807,9 +9862,11 @@ let dbPlayerInfo = {
             }
         ).then(
             function ([rewardEvent, rewardEventGroup, referralConfig]) {
-                if (rewardEvent && rewardEventGroup, referralConfig) {
+                if (rewardEvent && rewardEventGroup) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
+
+                    console.log('rewardEvent.length', rewardEvent.length);
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
@@ -26993,10 +27050,7 @@ let dbPlayerInfo = {
         let urlExist = false;
         let result;
         let playerData;
-        let playerNo;
-        if( urlArr && urlArr.length > 1) {
-            playerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
-        }
+        let playerNo = data.playerId;
         let preventBlockUrl;
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
@@ -27023,7 +27077,10 @@ let dbPlayerInfo = {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
 
-                // if not exist generate new weibo short link
+                // if not exist then generate new weibo short link
+                if ( !preventBlockUrl.url ) {
+                    return Promise.reject({message: "You need to set Prevent Block Url first!"});
+                }
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking player randomUrl', randomUrl);
                 let sendData = {urls: [randomUrl]};
@@ -29743,6 +29800,81 @@ function getReferralIdAndUrl(thisPlayer) {
                 return thisPlayer;
             }
         );
+}
+
+function bindReferral(platformObjId, loginData) {
+    let isReferralRewardEnable = false;
+    let isHitLimit = false;
+    let referralIntervalTime;
+    let logData = {};
+    return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
+        referralConfig => {
+            if (referralConfig) {
+                if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
+                    referralIntervalTime = referralConfig.referralPeriod || '5';
+
+                    return dbconfig.collection_players.findOne({
+                        playerId: loginData.referralId,
+                        platform: platformObjId
+                    }).then(referrerData => {
+                        if (referrerData) {
+
+                            let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                            let logQuery = {
+                                platform: platformObjId,
+                                referral: referrerData._id
+                            }
+
+                            if (configIntervalTime) {
+                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                            }
+
+                            return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                countReferee => {
+                                    let referralLimit = 0;
+
+                                    referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                    if (countReferee < referralLimit) {
+                                        loginData.referral = referrerData._id;
+
+                                        isReferralRewardEnable = true;
+                                        logData = {
+                                            platform: platformObjId,
+                                            referral: referrerData._id,
+                                            referralPeriod: referralIntervalTime
+                                        };
+
+                                        return [loginData, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                                    } else {
+                                        isHitLimit = true;
+                                        delete loginData.referralId;
+
+                                        return [loginData, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                                    }
+
+                                    return [loginData, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                                }
+                            );
+                        } else {
+                            // If user key in invalid referral during register, we will not proceed
+                            return Q.reject({
+                                status: constServerCode.INVALID_REFERRAL,
+                                name: "DataError",
+                                message: "Invalid referral"
+                            });
+                        }
+                    })
+                } else {
+                    delete data.referralId;
+
+                    return [data, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+                }
+            } else {
+                return [data, isHitLimit, referralIntervalTime, isReferralRewardEnable, logData];
+            }
+        }
+    );
 }
 
 var proto = dbPlayerInfoFunc.prototype;

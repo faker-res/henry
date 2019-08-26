@@ -494,7 +494,7 @@ API说明：
   - deviceId: 设备号
   - referralId: 邀请码(推荐人的玩家ID)
   - referralUrl: 邀请码链接
-  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit:}
+  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit: true/false}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
 <div id='获取验证码'></div>
@@ -1900,9 +1900,10 @@ API说明：
 				guestDeviceId: “DEVICEID120213” // 设备ID, 必填
 				phoneNumber: “11755555555” //非必填， 填写则绑定电话号码+设备ID
 				accountPrefix: “e” // 账号名字前缀，非必填，默认”g”
+				referralId: "4322" //推荐人邀请码
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
-	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作失败： status--4xx, data--null
 
 <div id='生成游客账号52'></div>
@@ -1918,9 +1919,10 @@ API说明：
 				smsCode: “8888”, // 短信验证码, 必填
 				accountPrefix: “e” // 玩家帐号前缀，可不填
 				checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
+				referralId: 邀请码
 			}
 	* 响应内容：`{status: 200/40x, data: playerObject}`
-	* playerObject包含token，用于重新建立链接
+	* playerObject包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作成功： status--200, data--玩家对象
 	* 操作失败： status--4xx, data--null
 
@@ -2035,6 +2037,7 @@ API说明：
         * ```
             {
                 url: “www.xindeli666.com/123”, // 玩家网址
+                playerId: '123' //玩家Id
             }
     * 响应内容：
         * ```
@@ -6619,6 +6622,7 @@ API说明：
         * ```
             {
                 url: “www.xindeli666.com/123”, // 代理网址
+                partnerId:'270', //代理Id
             }
     * 响应内容：
         * ```
