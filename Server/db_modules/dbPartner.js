@@ -12035,11 +12035,14 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                         if (consumptionDetail && consumptionDetail.consumptionProviderDetail &&
                             consumptionDetail.consumptionProviderDetail[groupRate.name] && consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount) {
                             totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
-                        } else if (consumptionDetail && consumptionDetail.bonusAmount) {
-                            totalBonusAmount = -consumptionDetail.bonusAmount;
                         }
-                        
-                        let platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
+
+                        let platformFeeRate;
+                        if (!isNaN(groupRate.rate) && groupRate.rate != null && String(groupRate.rate).trim() != "") {
+                            platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
+                        } else {
+                            platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
+                        }
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
                         platformFee = platformFee >= 0 ? platformFee : 0;
                         totalPlatformFee += platformFee;
