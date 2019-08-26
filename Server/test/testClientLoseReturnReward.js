@@ -33,7 +33,7 @@ let rewardCode = "testlosecode";
 let rewardName = "testlose";
 let rewardAmount = 200;
 
-describe("Test Client API - Player service", function () {
+describe("Test Client API - reward(PlayerLoseReturnRewardGroup) service", function () {
 
     var client = new WebSocketClient(env.clientAPIServerUrl);
     var provider = new WebSocketClient(env.providerAPIServerUrl);
