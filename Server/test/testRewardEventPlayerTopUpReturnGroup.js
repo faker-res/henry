@@ -122,33 +122,6 @@ describe("Test reward event: Player top up return group", function () {
         await clientOpenProm();
     });
 
-    // it('Should create test API platform', function (done) {
-    //     commonTestFunc.createTestPlatform().then(
-    //         (platformData) => {
-    //             testPlatformObjId = platformData._id;
-    //             testPlatformId = platformData.platformId;
-    //             done();
-    //         },
-    //         (error) => {
-    //             console.error(error);
-    //             done(error);
-    //         }
-    //     );
-    // });
-    //
-    // it('Should create a new test player', function (done) {
-    //     commonTestFunc.createTestPlayer(testPlatformObjId).then(
-    //         (playerData) => {
-    //             testPlayer = playerData;
-    //             testPlayerObjId = playerData._id;
-    //             done();
-    //         },
-    //         (error) => {
-    //             done(error);
-    //         }
-    //     )
-    // });
-
     before(async function () {
         let proposalType = await dbProposalType.getProposalType({platformId: testPlatformObjId, name: eventTypeName});
         proposalType.should.have.property('_id');
@@ -166,74 +139,6 @@ describe("Test reward event: Player top up return group", function () {
         testPlatformPlayerLevel.should.have.property('_id');
         testPlatformPlayerLevelId = testPlatformPlayerLevel._id;
     });
-
-    // it('Should get proposal type id and proposal type process id', function (done) {
-    //     let typeProm = dbProposalType.getProposalType({
-    //         platformId: testPlatformObjId,
-    //         name: eventTypeName
-    //     });
-    //     let typeProcessProm = dbProposalTypeProcess.getProposalTypeProcess({
-    //         platformId: testPlatformObjId,
-    //         name: eventTypeName
-    //     });
-    //
-    //     Promise.all([typeProm, typeProcessProm]).then(
-    //         (data) => {
-    //             if (data && data[0] && data[1]) {
-    //                 data[0].name.should.equal(eventTypeName);
-    //                 data[1].name.should.equal(eventTypeName);
-    //                 proposalTypeId = data[0]._id;
-    //                 proposalTypeProcessId = data[1]._id;
-    //                 done();
-    //             }
-    //             else {
-    //                 done('Proposal type id and proposal type process not found');
-    //             }
-    //         }
-    //     ).catch(
-    //         (error) => {
-    //             console.error(error);
-    //             done(error);
-    //         }
-    //     );
-    // });
-    //
-    // it('Should get player top up return group reward type on platform', function (done) {
-    //     dbConfig.collection_rewardType.findOne({name: eventTypeName}).lean().then(
-    //         (rewardType) => {
-    //             if (rewardType) {
-    //                 playerTopUpReturnGroupRewardType = rewardType;
-    //                 done();
-    //             } else {
-    //                 done('Player Top Up Return Group rewardType not found');
-    //             }
-    //         },
-    //         (error) => {
-    //             console.error(error);
-    //             done(error);
-    //         }
-    //     )
-    // });
-    //
-    // it('Should get player level on platform', function (done) {
-    //     dbConfig.collection_playerLevel.findOne({
-    //         platform: testPlatformObjId,
-    //         value: 0
-    //     }).lean().then(
-    //         (playerLevel) => {
-    //             if (playerLevel) {
-    //                 testPlatformPlayerLevelId = playerLevel._id;
-    //                 done();
-    //             } else {
-    //                 done('Platform player level not found');
-    //             }
-    //         },
-    //         (error) => {
-    //             console.error(error);
-    //             done(error);
-    //         }
-    //     )
-    // });
 
     it('Should create reward event player top up return group', function (done) {
         createPlayerTopUpReturnData.type = playerTopUpReturnGroupRewardTypeId;
@@ -297,32 +202,6 @@ describe("Test reward event: Player top up return group", function () {
         );
     });
 
-    // it('Should apply player top up return group reward event', function (done) {
-    //     let proms = [];
-    //     for (let a = 0; a < 1; a++) {
-    //         proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createPlayerTopUpReturnData.code, rewardData).then(
-    //             (data) => {
-    //                 return true;
-    //             },
-    //             (error) => {
-    //                 return false;
-    //             }
-    //         ));
-    //     }
-    //     Promise.all(proms).then(
-    //         (data) => {
-    //             if (data.indexOf(true) > -1) {
-    //                 done();
-    //             } else {
-    //                 done('All promise failed');
-    //             }
-    //         },
-    //         (error) => {
-    //             done(error);
-    //         }
-    //     );
-    // });
-
     after(async function () {
         // remove all test data
         let removeTestDataProm = commonTestFunc.removeTestData(testPlatformObjId, [testPlayerObjId]);
@@ -332,16 +211,4 @@ describe("Test reward event: Player top up return group", function () {
         // close connection
         client.disconnect();
     });
-
-    // it('Should remove all test Data', function(done){
-    //     commonTestFunc.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function () {
-    //         done();
-    //     })
-    // });
-    //
-    // it('Should remove all proposal test Data', function(done){
-    //     commonTestFunc.removeTestProposalData([],testPlatformObjId, [], [testPlayerObjId]).then(function(){
-    //         done();
-    //     })
-    // });
 });
