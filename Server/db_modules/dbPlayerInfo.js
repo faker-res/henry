@@ -997,10 +997,10 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && (inputData.referral || inputData.referralName)) {
+                        if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
-                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
+                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
                                         referralInterval = referralConfig.referralPeriod || '5';
@@ -1081,7 +1081,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && !inputData.referral && inputData.referralId) {
+                        if (!inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
@@ -1228,6 +1228,11 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
+                    if (inputData.partner) {
+                        delete inputData.referral;
+                        isEnableUseReferralPlayerId = false;
+                    }
+
                     inputData = determineRegistrationInterface(inputData);
 
                     if (adminName && adminId) {
