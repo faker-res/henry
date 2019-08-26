@@ -4341,6 +4341,7 @@
   "popUpListKeyInColor": "弹窗表单输入色",
   "popUpListLabelColor": "弹窗表单label色",
   "popUpListBgColor": "弹窗表单背景色",
+  "dropDownFrameBgColor": "下拉框背景色",
   "ximaAmount": "洗码金额",
   "manualTopupAmount": "手工存款金额",
   "onlineTopupAmount": "在线充值金额",

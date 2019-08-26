@@ -127,6 +127,12 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formHoverBottomFrameColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor, "background-image": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor }')
 
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{ "dropDownFrameBgColor" | translate}}
+    div.inline-block
+        a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'dropDownFrameBgColor', $event)")
+            div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.dropDownFrameBgColor, "background-image": vm.frontEndUrlConfig.pc.dropDownFrameBgColor }')
+
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
