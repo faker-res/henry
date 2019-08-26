@@ -55,7 +55,9 @@ var commonTestFunc = {
             name: platformName,
             prefix: "",
             code: new Date().getTime(),
-            description: "a platform for testing"
+            description: "a platform for testing",
+            //FOR UNIT TEST
+            platformId: "5566"
         };
 
         if (data) {
