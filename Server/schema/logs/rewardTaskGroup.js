@@ -38,7 +38,8 @@ let rewardTaskGroupSchema = new Schema({
     currentAmt: {type: Number, default: 0},
     // Forbidden XIMA amount
     forbidXIMAAmt: {type: Number, default: 0},
-
+    // Balance of Forbidden XIMA Amount after consumption
+    remainingForbidXIMAAmt: {type: Number},
     // Last played provider
     lastPlayedProvider: {type: Schema.Types.ObjectId},
 
