@@ -49,6 +49,20 @@ function socketActionEmailAudit (socketIO, socket) {
             socketUtil.emitter(self.socket, dbEmailAudit.setAuditManualRewardSetting, [data.platformObjId, data.minimumAuditAmount, data.emailNameExtension, data.domain, data.recipient, data.reviewer], actionName, isValidData);
         },
 
+
+
+        // repair transfer
+        getAuditRepairTransferSetting: function getAuditRepairTransferSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailAudit.getAuditRepairTransferSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        setAuditRepairTransferSetting: function setAuditRepairTransferSetting (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailAudit.setAuditRepairTransferSetting, [data.platformObjId, data.minimumAuditAmount, data.emailNameExtension, data.domain, data.recipient, data.reviewer], actionName, isValidData);
+        },
     };
 
     socketActionEmailAudit = this.actions;
