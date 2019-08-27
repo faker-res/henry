@@ -26294,6 +26294,34 @@ let dbPlayerInfo = {
         )
     },
 
+    getPlayerInfoForPMS: async function (platformId, playerName) {
+        let result = {};
+        let platform = await dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+        if (platform && platform._id) {
+            let player = await dbconfig.collection_players.findOne({name: playerName, platform: platform._id}, {_id: 1, playerId: 1, name: 1, validCredit: 1, lockedCredit: 1, lastAccessTime: 1})
+            if (player && player._id) {
+                let creditInfo = await dbPlayerInfo.getPlayerCredit(player.playerId);
+                let lastConsumptionInfo = await dbconfig.collection_playerConsumptionRecord.findOne({playerId: player._id, platformId: platform._id}).sort({createTime: -1});
+
+                let validCredit = (creditInfo && creditInfo.validCredit) || 0;
+                let lockedCredit = (creditInfo && creditInfo.lockedCredit) || 0;
+                let gameCredit = (creditInfo && creditInfo.gameCredit) || 0;
+
+                result.name = player.name;
+                result.totalCredit = validCredit + lockedCredit + gameCredit;
+                result.lastAccessTime = player && player.lastAccessTime;
+                result.lastBetTime = lastConsumptionInfo && lastConsumptionInfo.createTime;
+
+                return result;
+
+            } else {
+                return Promise.reject({name: "DataError", message: "Can not find player"});
+            }
+        } else {
+            return Promise.reject({name: "DataError", message: "Can not find platform"});
+        }
+    },
+
     playerCreditClearOut: function (playerName, platformObjId, adminName, adminId) {
         let platform = null;
         let providers = [];
