@@ -78,7 +78,7 @@ let commonTestFunc = {
                     name: playerName,
                     platform: platformId,
                     password: '123456',
-                    validCredit: 300,
+                    validCredit: 600,
                     realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
