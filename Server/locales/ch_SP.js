@@ -554,6 +554,7 @@ var simplifiedChinese = {
     "Reward Amount Exceed Limit Within Reward Period": "已达到周期内优惠金额上限",
     "This referrer has no valid referee player within this period": "很抱歉，目前没有被推荐人",
     "Does not have enough valid consumption": "被推荐人未达到周期内内有效投注额要求",
+    "You need to set festival type first": "请先设置 [定义特别节日模式]",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

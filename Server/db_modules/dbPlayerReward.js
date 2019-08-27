@@ -11424,6 +11424,12 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     resolve(result);
                 }
             )
+        } else {
+            reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: localization.localization.translate('You need to set festival type first')
+            });
         }
     })
 }
