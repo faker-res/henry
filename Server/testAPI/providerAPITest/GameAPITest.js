@@ -137,6 +137,24 @@
         });
     };
 
+    proto.syncWebp = function (callback, requestData) {
+        var data = requestData || {
+                "games":[
+                    {
+                        "gameId": "001E1A76-F730-4287-A915-51F9DC7E192CWW",
+                        "webp": "/cpms/baibo/PT/test.webp"
+                    }
+                ]
+            };
+        this._service.syncWebp.request(data);
+        var self = this;
+        this._service.syncWebp.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.getGameList = function (callback, requestData) {
         var data = requestData || {_id: providerId};
         this._service.getGameList.request(data);
