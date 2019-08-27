@@ -2122,6 +2122,28 @@ var dbPlatform = {
             )
         }
     },
+    savePreventBlockUrl: function (data) {
+        let saveObj = {
+            url: data.url
+        }
+        console.log('url', saveObj);
+        return dbconfig.collection_preventBlockUrl.find({url: data.url}).then(
+            data => {
+                console.log(data);
+                if (data && data.length && data.length > 0) {
+                    return Q.reject({name: "DBError", message: "Url is Exist"});
+                }
+
+                return dbconfig.collection_preventBlockUrl(saveObj).save();
+            }
+        )
+    },
+    deletePreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.remove({url: data.url}).lean();
+    },
+    getAllPreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.find().lean();
+    },
     getExternalUserInfo: function (data, index, limit){
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
@@ -3209,7 +3231,7 @@ var dbPlatform = {
                         console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
                         if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
-                            
+
                             let themeSetting = platformData.playerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
 
@@ -6214,7 +6236,7 @@ var dbPlatform = {
     },
 
     getFrontEndConfig: function (platformId, code, clientType) {
-        if (clientType && (clientType != 1 && clientType != 2 && clientType != 4)){
+        if (code != 'description' && (!clientType || (clientType && clientType != 1 && clientType != 2 && clientType != 4))){
             return Promise.reject({
                 name: "DataError",
                 message: "ClientType is not available"
@@ -6255,6 +6277,12 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
                             break;
                         case 'pageSetting':
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            break;
+                        case 'description':
+                            prom = dbconfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1, isVisible: 1}).lean();
+                            break;
+                        case 'registrationGuidance':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
@@ -6364,6 +6392,21 @@ var dbPlatform = {
                     model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).lean()
             }
+            else if (code == "registrationGuidance"){
+                prom = dbconfig.collection_frontEndRegistrationGuidanceSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "categoryObjId",
+                    model: dbconfig.collection_frontEndRegistrationGuidanceCategory
+                }).sort({displayOrder: 1}).lean()
+            }
 
             return prom.then(
                 settingList => {
@@ -6385,7 +6428,7 @@ var dbPlatform = {
                         if (code && (code == "pageSetting" || code == "partnerPageSetting") && settingList && settingList.length){
                             settingList = settingList[0];
                         }
-                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
                             settingList = restructureDataFormat (settingList, code)
                         }
 
@@ -6434,7 +6477,7 @@ var dbPlatform = {
                 prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
             else if (code == "game"){
-                prom = dbconfig.collection_frontEndGameSetting.find(query).lean()
+                prom = dbconfig.collection_frontEndGameSetting.find(query).sort({displayOrder: 1}).lean()
             }
 
             return prom.then(
@@ -6467,94 +6510,6 @@ var dbPlatform = {
                         }
                     }
                 )
-
-                //
-                // if (setting[holder].hasOwnProperty('onClickAction')) {
-                //     setting.onClickAction = setting[holder].onClickAction;
-                // }
-                // if (setting[holder].imageUrl){
-                //     setting.imageUrl = setting[holder].imageUrl;
-                // }
-                // if (setting[holder].newPageDetail){
-                //     setting.newPageDetail = setting[holder].newPageDetail;
-                // }
-                // if (setting[holder].newPageUrl){
-                //     setting.newPageUrl = setting[holder].newPageUrl;
-                // }
-                // if (setting[holder].activityDetail){
-                //     setting.activityDetail = setting[holder].activityDetail;
-                // }
-                // if (setting[holder].activityUrl){
-                //     setting.activityUrl = setting[holder].activityUrl;
-                // }
-                // if (setting[holder].rewardEventObjId){
-                //     setting.rewardCode = setting[holder].rewardEventObjId && setting[holder].rewardEventObjId.code ? setting[holder].rewardEventObjId.code : null;
-                // }
-                // if (setting[holder].route){
-                //     setting.route = setting[holder].route;
-                // }
-                // if (setting[holder].gameCode){
-                //     setting.gameCode = setting[holder].gameCode;
-                // }
-                //
-                // //for pageSetting
-                // if (setting[holder].hasOwnProperty('skin')) {
-                //     setting.skin = setting[holder].skin;
-                // }
-                // if (setting[holder].htmlTextColor){
-                //     setting.htmlTextColor = setting[holder].htmlTextColor;
-                // }
-                // if (setting[holder].textColor1){
-                //     setting.textColor1 = setting[holder].textColor1;
-                // }
-                // if (setting[holder].textColor2){
-                //     setting.textColor2 = setting[holder].textColor2;
-                // }
-                // if (setting[holder].mainNavTextColor){
-                //     setting.mainNavTextColor = setting[holder].mainNavTextColor;
-                // }
-                // if (setting[holder].mainNavActiveTextColor){
-                //     setting.mainNavActiveTextColor = setting[holder].mainNavActiveTextColor;
-                // }
-                // if (setting[holder].mainNavActiveBorderColor){
-                //     setting.mainNavActiveBorderColor = setting[holder].mainNavActiveBorderColor;
-                // }
-                // if (setting[holder].navTextColor){
-                //     setting.navTextColor = setting[holder].navTextColor;
-                // }
-                // if (setting[holder].navActiveTextColor){
-                //     setting.navActiveTextColor = setting[holder].navActiveTextColor;
-                // }
-                // if (setting[holder].formBgColor){
-                //     setting.formBgColor = setting[holder].formBgColor;
-                // }
-                // if (setting[holder].formLabelTextColor){
-                //     setting.formLabelTextColor = setting[holder].formLabelTextColor;
-                // }
-                // if (setting[holder].formInputTextColor){
-                //     setting.formInputTextColor = setting[holder].formInputTextColor;
-                // }
-                // if (setting[holder].formBorderBottomColor){
-                //     setting.formBorderBottomColor = setting[holder].formBorderBottomColor;
-                // }
-                // if (setting[holder].formHoverBottomFrameColor){
-                //     setting.formHoverBottomFrameColor = setting[holder].formHoverBottomFrameColor;
-                // }
-                // if (setting[holder].formHoverColor){
-                //     setting.formHoverColor = setting[holder].formHoverColor;
-                // }
-                // if (setting[holder].popUpListFrameColor){
-                //     setting.popUpListFrameColor = setting[holder].popUpListFrameColor;
-                // }
-                // if (setting[holder].popUpListKeyInColor){
-                //     setting.popUpListKeyInColor = setting[holder].popUpListKeyInColor;
-                // }
-                // if (setting[holder].popUpListLabelColor){
-                //     setting.popUpListLabelColor = setting[holder].popUpListLabelColor;
-                // }
-                // if (setting[holder].popUpListBgColor){
-                //     setting.popUpListBgColor = setting[holder].popUpListBgColor;
-                // }
             }
             if (setting.pc) {
                 delete setting.pc;
@@ -6620,7 +6575,7 @@ var dbPlatform = {
             return query;
         }
 
-        function restructureDataFormat (settingList, code) {
+        async function restructureDataFormat (settingList, code) {
             if (settingList && settingList.length && code && code == "recommendation") {
                 let navList = [];
                 let bodyList = [];
@@ -6644,9 +6599,22 @@ var dbPlatform = {
                 )
                 return {navList: navList, bodyList: bodyList, bottomList: bottomList}
             }
-            else if (settingList && settingList.length && code && code == "reward") {
+            else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
+                let allObjList = {name: "全部", list: []};
                 let arrayList = [];
+                let defaultCategory = null;
+
+                if (code == "reward"){
+                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+                else if (code == "registrationGuidance"){
+                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+
+                if (defaultCategory && defaultCategory.displayFormat){
+                    allObjList.displayFormat = defaultCategory.displayFormat;
+                }
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
@@ -6654,12 +6622,31 @@ var dbPlatform = {
                                 objList[p.categoryObjId.categoryName] = [];
                             }
                             objList[p.categoryObjId.categoryName].push(p);
+                            if (allObjList && allObjList.list){
+                                allObjList.list.push(p);
+                            }
                         }
                     }
                 )
 
+                if (arrayList && allObjList){
+                    // sort allObjList based on orderNumber
+                    if (allObjList && allObjList.list && allObjList.list.length){
+                        allObjList.list.sort(function (a, b) {
+                            if (a.orderNumber < b.orderNumber) {
+                                return -1;
+                            }
+                            if (a.orderNumber > b.orderNumber) {
+                                return 1;
+                            }
+                        });
+                    }
+                    arrayList.push(allObjList);
+                }
+
                 Object.keys(objList).forEach(key => {
-                    arrayList.push({name: key, list: objList[key]})
+                    let tempDisplayFormat = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.displayFormat ? objList[key][0].categoryObjId.displayFormat : null;
+                    arrayList.push({name: key, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
                 return arrayList
@@ -7237,16 +7224,6 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    },
-
-    getPlatformReferralConfig: function (platformId) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    return dbconfig.collection_platformReferralConfig.findOne({platform: platformData._id}).lean();
-                }
-            }
-        )
     }
 };
 

@@ -1789,6 +1789,27 @@
     </div>
 </div>
 
+<h3> Get Promo Short Url (代理获取推广防红短链接)</h3>
+
+<div class="test-container">
+    <div>
+        <label>url
+            <input name="url" type=text>
+        </label>
+    </div>
+    <div>
+        <label>partnerId
+            <input name="partnerId" type=text>
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="getPromoShortUrl" data-api-name="getPromoShortUrl">Get</button>
+    </div>
+</div>
+
+
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

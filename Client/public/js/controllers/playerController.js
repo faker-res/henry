@@ -3788,7 +3788,8 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerListRecords = data.data.data;
                 vm.newPlayerRecords.totalCount = data.data.size;
                 vm.newPlayerRecords.loading = false;
-                vm.newPlayerRecordsSuccessOrManualList = [];
+                vm.newPlayerRecordsSuccessNames = []; // include status Success, Manual and NoVerify
+                vm.newPlayerRecordsSuccessPhone = []; // include status Success, Manual and NoVerify
                 $('#getNewPlayerListSpin').hide();
                 console.log('new player list record', data);
 
@@ -3802,15 +3803,19 @@ define(['js/app'], function (myApp) {
                         //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                         if (record.status) {
                             if (record.status == vm.constProposalStatus.SUCCESS) {
-                                vm.newPlayerRecordsSuccessOrManualList.push(record.data.name);
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 record.statusName = record.status ? $translate("Success") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else if (record.status == vm.constProposalStatus.MANUAL) {
-                                vm.newPlayerRecordsSuccessOrManualList.push(record.data.name);
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else if (record.status == vm.constProposalStatus.NOVERIFY) {
+                                vm.newPlayerRecordsSuccessNames.push(record.data.name);
+                                vm.newPlayerRecordsSuccessPhone.push(record.data.phoneNumber);
                                 record.statusName = record.status ? $translate("NoVerify") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             }
                             else {
@@ -15398,19 +15403,21 @@ define(['js/app'], function (myApp) {
                 });
                 vm.playerPermissionHistory = data.data || [];
                 vm.playerPermissionHistory.map(item => {
-                    let toggleGroup = {
-                        banReward : item.oldData.banReward,
-                        disableWechatPay : item.oldData.disableWechatPay,
-                        forbidPlayerConsumptionReturn : item.oldData.forbidPlayerConsumptionReturn,
-                        forbidPlayerFromEnteringGame : item.oldData.forbidPlayerFromEnteringGame,
-                        forbidPlayerFromLogin : item.oldData.forbidPlayerFromLogin
-                    };
-                    for (let v in toggleGroup){
-                        if(item.oldData.hasOwnProperty(v)){
-                            item.oldData[v] = !item.oldData[v];
-                        }
-                        if(item.newData.hasOwnProperty(v)){
-                            item.newData[v] = !item.newData[v];
+                    if (item.oldData) {
+                        let toggleGroup = {
+                            banReward : item.oldData.banReward,
+                            disableWechatPay : item.oldData.disableWechatPay,
+                            forbidPlayerConsumptionReturn : item.oldData.forbidPlayerConsumptionReturn,
+                            forbidPlayerFromEnteringGame : item.oldData.forbidPlayerFromEnteringGame,
+                            forbidPlayerFromLogin : item.oldData.forbidPlayerFromLogin
+                        };
+                        for (let v in toggleGroup){
+                            if(item.oldData.hasOwnProperty(v)){
+                                item.oldData[v] = !item.oldData[v];
+                            }
+                            if(item.newData.hasOwnProperty(v)){
+                                item.newData[v] = !item.newData[v];
+                            }
                         }
                     }
                 });
@@ -20250,8 +20257,13 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            // requirement by echo
+            // 1.同账号 不同手机号尝试开户；
+            // 2.同账号 同一手机号，
+            // 3. 不同账号 同一手机号
+            // 这三种情况，只要开户成功了，之前的历史记录都隐藏
             // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
-            if (vm.newPlayerProposal.status === "Pending" && vm.newPlayerRecordsSuccessOrManualList.includes(vm.newPlayerProposal.name)) {
+            if (vm.newPlayerProposal.status === "Pending" && (vm.newPlayerRecordsSuccessNames.includes(vm.newPlayerProposal.name) || vm.newPlayerRecordsSuccessPhone.includes(vm.newPlayerProposal.data.phoneNumber))) {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
                     vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);

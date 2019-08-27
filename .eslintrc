@@ -1,13 +1,27 @@
 {
-//  "parserOptions": {
-//    "ecmaVersion": 6
-////    "sourceType": "module",
-////    "ecmaFeatures": {
-////      "jsx": true
-////    }
-//  },
+  "parserOptions": {
+    "ecmaVersion": 6
+//    "sourceType": "module",
+//    "ecmaFeatures": {
+//      "jsx": true
+//    }
+  },
   "extends": ["eslint:recommended", "google"],
   "rules": {
     // Additional, per-project rules...
+    "no-console": "off",
+    "max-len": [1, 120, 4],
+    "quote-props": "off",
+    "comma-dangle": "off",
+    "arrow-parens": "off",
+    "quotes": "off",
+    "no-trailing-spaces": "off",
+    "new-cap": "off"
+  },
+  "env": {
+    "amd": true,
+    "commonjs": true,
+    "node": true,
+    "mocha": true
   }
 }

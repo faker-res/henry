@@ -112,6 +112,7 @@
                 "checkIsAppPlayerAndAppliedReward",
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
+                "getPromoShortUrl",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -152,8 +153,7 @@
                 "getFrontEndData",
                 "sendFileFTP",
                 "updateRSAKeys",
-                "getFrontEndConfig",
-                "getPlatformReferralConfig"
+                "getFrontEndConfig"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -486,6 +486,7 @@
                 "deleteMail",
                 "readMail",
                 "getPartnerPoster",
+                "getPromoShortUrl",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

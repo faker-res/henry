@@ -26,7 +26,7 @@ var dbGameProviderPlayerDaySummary = require('../db_modules/dbGameProviderPlayer
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
 var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
-var testGameTypes = require("../test/testGameTypes");
+var testGameTypes = require("../test-old/testGameTypes");
 
 var mongoose = require('mongoose');
 

@@ -51,33 +51,28 @@ describe("Test Client API - Player service", function () {
     var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
 
 
-    //// Init player Data - Start ///////
-
-    it('Should create test API player and platform', function (done) {
-
+    it('Should create test API player and platform', function(done) {
         commonTestFun.createTestPlatform().then(
-            function (data) {
-
+            function(data) {
                 testPlatformObjId = data._id;
                 testPlatformId = data.platformId;
                 return commonTestFun.createTestPlayer(testPlatformObjId);
             },
-            function (error) {
+            function(error) {
                 console.error(error);
             }
         ).then(
-            function (data) {
+            function(data) {
                 testPlayerName = data.name;
                 testPlayerObjId = data._id;
                 testPlayerId = data.playerId;
                 done();
             },
-            function (error) {
+            function(error) {
                 console.error(error);
             }
         );
     });
-    //// Init player Data - End ///////
 
     it('Should create a connection', function (done) {
         client.connect();
@@ -86,19 +81,7 @@ describe("Test Client API - Player service", function () {
         });
     });
 
-    // it('Should get SMS code', function (done) {
-    //     clientPlayerAPITest.getSMSCode(function (data) {
-    //         if (data && data.data) {
-    //             smsCode = data.data;
-    //             done();
-    //         }
-    //
-    //     }, {
-    //         phoneNumber: testPhoneNumber
-    //     });
-    // });
-
-    it('Should create a test player', function (done) {
+    it('Should create a test player', function(done) {
         const newPlayerData = {
             name: testNewPlayerName,
             platformId: testPlatformId,
@@ -109,8 +92,7 @@ describe("Test Client API - Player service", function () {
             email: "testPlayer123@gmail.com",
             isTestPlayer: true
         };
-        clientPlayerAPITest.create(function (data) {
-            //console.log(data);
+        clientPlayerAPITest.create(function(data) {
             data.data.name.should.endWith(testNewPlayerName);
             //data.data.email.should.equal("testPlayer123@gmail.com");
             testNewPlayerId = data.data.playerId;

@@ -70,6 +70,18 @@ let dbEmailAudit = {
         return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
     },
 
+    async sendAuditedProposalEmailUpdate(proposalType, proposal) {
+        let relevantFunction = {
+            "UpdatePlayerCredit": dbEmailAudit.sendCreditChangeUpdate,
+            "AddPlayerRewardTask": dbEmailAudit.sendManualRewardUpdate,
+        };
+
+        if (!relevantFunction[proposalType]) {
+            return Promise.resolve();
+        }
+        return relevantFunction[proposalType](proposal);
+    },
+
     // credit change
     getAuditCreditChangeSetting(platformObjId) {
         return dbconfig.collection_auditCreditChangeSetting.findOne({platform: platformObjId}).lean();
@@ -105,7 +117,6 @@ let dbEmailAudit = {
     },
 
     async sendAuditCreditChangeRewardEmail(proposal) {
-        console.log('proposal', proposal)
         if (!proposal || !proposal.data) {
             return;
         }
@@ -179,6 +190,91 @@ let dbEmailAudit = {
         }
 
         Promise.all(proms).catch(errorUtils.reportError);
+    },
+
+    async sendCreditChangeUpdate (proposal) {
+        if (!proposal || !proposal.data) {
+            return;
+        }
+        let proposalData = proposal.data;
+
+        let playerName = proposalData.playerName || "";
+        let realName = proposalData.realNameBeforeEdit || "";
+        let playerLevel = proposalData.playerLevelName || "";
+        let creditBeforeChange = proposalData.curAmount || 0;
+        let updateAmount = proposalData.updateAmount || 0;
+        let adminName = proposal.creator && proposal.creator.name || "";
+        let adminObjId = proposal.creator && proposal.creator.id || "";
+        let remark = proposalData.remark || "";
+        let proposalId = proposal.proposalId || "";
+        let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
+        let platformName = platform.name || "";
+        let createTime = proposal.createTime;
+
+        let emailContents = {
+            playerName,
+            realName,
+            playerLevel,
+            creditBeforeChange,
+            updateAmount,
+            adminName,
+            remark,
+            proposalId,
+            platformName,
+            createTime,
+        };
+
+        let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
+
+        if (!setting) {
+            return;
+        }
+
+        if (!setting.minimumAuditAmount || Math.abs(updateAmount) < Number(setting.minimumAuditAmount)) {
+            return;
+        }
+
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
+
+        if (!recipients || !recipients.length) {
+            return;
+        }
+
+        let allRecipientEmail = recipients.map(recipient => {
+            return recipient.email;
+        });
+
+        let subject = getAuditCreditChangeEmailSubject(setting.emailNameExtension, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
+
+        let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
+        let proposalProcessData = await dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
+
+        let processStep;
+        if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
+            processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
+        }
+
+        if (!processStep && !proposalData.cancelAdmin) {
+            return;
+        }
+        let operator = proposalData.cancelAdmin || processStep && processStep.operator;
+
+        let auditor = await dbconfig.collection_admin.findOne({_id: operator}, {adminName: 1}).lean();
+
+        let stepHtml = generateProposalStepTable(proposal, processStep, auditor);
+
+        let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject, stepHtml);
+
+        let emailConfig = {
+            sender: "no-reply@snsoft.my", // company email?
+            recipient: allEmailStr, // admin email
+            subject: subject, // title
+            body: html, // html content
+            isHTML: true
+        };
+
+        return emailer.sendEmail(emailConfig);
     },
 
     // manual reward
@@ -297,6 +393,98 @@ let dbEmailAudit = {
 
         Promise.all(proms).catch(errorUtils.reportError);
     },
+
+    async sendManualRewardUpdate(proposal) {
+        if (!proposal || !proposal.data) {
+            return;
+        }
+        let proposalData = proposal.data;
+
+        let playerName = proposalData.playerName || "";
+        let realName = proposalData.realNameBeforeEdit || "";
+        let rewardAmount = proposalData.rewardAmount || 0;
+        let providerGroupObjId = proposalData.providerGroup || "";
+        let providerGroupProm = providerGroupObjId ? dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupObjId}, {name: 1}).lean() : Promise.resolve();
+        let consumptionRequired = proposalData.requiredUnlockAmount || 0;
+        let useConsumption = Boolean(proposalData.useConsumption);
+        let adminName = proposal.creator && proposal.creator.name || "";
+        let adminObjId = proposal.creator && proposal.creator.id || "";
+        let proposalId = proposal && proposal.proposalId;
+        let comment = proposalData.remark || "";
+        let platformObjId = proposalData.platformId || "";
+        let platformProm = platformObjId ? dbconfig.collection_platform.findOne({_id: platformObjId}, {name: 1}).lean() : Promise.resolve({name: ""});
+
+        let [providerGroup, platform] = await Promise.all([providerGroupProm, platformProm]);
+        let providerGroupName = providerGroup && providerGroup.name || "-";
+        let platformName = platform && platform.name || "";
+        let createTime = proposal.createTime;
+
+        let emailContents = {
+            playerName,
+            realName,
+            rewardAmount,
+            providerGroupName,
+            consumptionRequired,
+            useConsumption,
+            adminName,
+            proposalId,
+            comment,
+            platformName,
+            createTime,
+        };
+
+        let setting = await dbEmailAudit.getAuditManualRewardSetting(platformObjId);
+
+        if (!setting) {
+            return;
+        }
+
+        if (!setting.minimumAuditAmount || Math.abs(rewardAmount) < Number(setting.minimumAuditAmount)) {
+            return;
+        }
+
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditManualRewardRecipient");
+
+        if (!recipients || !recipients.length) {
+            return;
+        }
+
+        let allRecipientEmail = recipients.map(recipient => {
+            return recipient.email;
+        });
+
+        let subject = getAuditManualRewardEmailSubject(setting.emailNameExtension, emailContents.createTime, emailContents.rewardAmount, emailContents.playerName);
+
+        let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
+        let proposalProcessData = await dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
+
+        let processStep;
+        if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
+            processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
+        }
+
+        if (!processStep && !proposalData.cancelAdmin) {
+            return;
+        }
+        let operator = proposalData.cancelAdmin || processStep && processStep.operator;
+
+        let auditor = await dbconfig.collection_admin.findOne({_id: operator}, {adminName: 1}).lean();
+
+        let stepHtml = generateProposalStepTable(proposal, processStep, auditor);
+
+        let html = generateAuditManualRewardEmail(emailContents, allRecipientEmail, subject, stepHtml);
+
+        let emailConfig = {
+            sender: "no-reply@snsoft.my", // company email?
+            recipient: allEmailStr, // admin email
+            subject: subject, // title
+            body: html, // html content
+            isHTML: true
+        };
+
+        return emailer.sendEmail(emailConfig);
+    }
 };
 
 // common func
@@ -356,6 +544,65 @@ function generateAuditDecisionLink(host, proposalId, adminObjId, str) {
     );
 }
 
+function generateProposalStepTable (proposalData, proposalStep, auditor) {
+    let html = ``;
+    let status, cancelTime;
+
+    switch (proposalData.status) {
+        case constProposalStatus.PENDING:
+            status = "待审核";
+            cancelTime = "";
+            break;
+        case constProposalStatus.APPROVED:
+            status = "已审核";
+            cancelTime = "";
+            break;
+        case constProposalStatus.REJECTED:
+            status = "失败";
+            break;
+        case constProposalStatus.FAIL:
+            status = "失败";
+            cancelTime = dbutility.getLocalTimeString(proposalData.data && proposalData.data.lastSettleTime || proposalData.settleTime, "YYYY/MM/DD HH:mm:ss");
+            break;
+        case constProposalStatus.SUCCESS:
+            status = "成功";
+            cancelTime = "";
+            break;
+        default:
+            status = "已取消";
+            cancelTime = dbutility.getLocalTimeString(proposalStep && proposalStep.operationTime || proposalData.data && proposalData.data.lastSettleTime || proposalData.settleTime, "YYYY/MM/DD HH:mm:ss");
+    }
+
+    html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">状态</td>
+        <td style="border: solid 1px black; padding: 3px">${status}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">${cancelTime ? "取消人" : "审核人"}</td>
+        <td style="border: solid 1px black; padding: 3px">${auditor.adminName}</td>
+    </tr>`;
+
+    let auditTime = proposalStep ? dbutility.getLocalTimeString(proposalStep.operationTime, "YYYY/MM/DD HH:mm:ss") : "";
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">${cancelTime ? "取消时间" : "审核时间"}</td>
+        <td style="border: solid 1px black; padding: 3px">${cancelTime ? cancelTime : auditTime}</td>
+    </tr>`;
+
+    let rejectRemark = proposalData.data && proposalData.data.cancelRemark || proposalData.data && proposalData.data.rejectRemark || "";
+    console.log('rejectRemark', rejectRemark, proposalData.data.cancelRemark )
+    let memo = proposalStep && proposalStep.memo || "";
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">${cancelTime ? "取消原因" : "备注"}</td>
+        <td style="border: solid 1px black; padding: 3px">${rejectRemark || memo}</td>
+    </tr>`;
+
+    html += `</table>`;
+
+    return html;
+}
 
 // audit credit change
 async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
@@ -407,7 +654,7 @@ function getAuditCreditChangeEmailSubject (emailTitle, date, updateAmount, playe
     return `${emailTitle} -- 额度加减（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
 }
 
-function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
+function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle, stepHtml) {
     let html = ``;
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
@@ -463,6 +710,12 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
         <td style="border: solid 1px black; padding: 3px">${contents.adminName}</td>
     </tr>`;
 
+    let createTime = dbutility.getLocalTimeString(contents.createTime, "YYYY/MM/DD HH:mm:ss");
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">提交时间</td>
+        <td style="border: solid 1px black; padding: 3px">${createTime}</td>
+    </tr>`;
+
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">备注</td>
         <td style="border: solid 1px black; padding: 3px; word-wrap: break-word; white-space: normal;">${contents.remark}</td>
@@ -471,6 +724,9 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle) {
 
     html += `</table>`;
 
+    if (stepHtml) {
+        html += stepHtml;
+    }
 
     html += `
     <div style="margin-top: 38px">
@@ -531,7 +787,7 @@ function getAuditManualRewardEmailSubject (emailTitle, date, rewardAmount, playe
     return `${emailTitle} -- 手工优惠（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
 }
 
-function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle) {
+function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle, stepHtml) {
     let html = ``;
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
@@ -581,12 +837,18 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle) {
 
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">占用投注记录</td>
-        <td style="border: solid 1px black; padding: 3px">${contents.useConsumption}</td>
+        <td style="border: solid 1px black; padding: 3px">${Boolean(contents.useConsumption) ? "是" : "否"}</td>
     </tr>`;
 
     html += `<tr>
         <td style="border: solid 1px black; padding: 3px">提交人</td>
         <td style="border: solid 1px black; padding: 3px">${contents.adminName}</td>
+    </tr>`;
+
+    let createTime = dbutility.getLocalTimeString(contents.createTime, "YYYY/MM/DD HH:mm:ss");
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">提交时间</td>
+        <td style="border: solid 1px black; padding: 3px">${createTime}</td>
     </tr>`;
 
     html += `<tr>
@@ -605,6 +867,9 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle) {
 
     html += `</table>`;
 
+    if (stepHtml) {
+        html += stepHtml;
+    }
 
     html += `
     <div style="margin-top: 38px">
