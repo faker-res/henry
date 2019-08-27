@@ -997,10 +997,10 @@ let dbPlayerInfo = {
                         delete inputData.platformId;
                         //find player referrer if there is any
                         let proms = [];
-                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && (inputData.referral || inputData.referralName)) {
+                        if (inputData.referral || inputData.referralName) {
                             let referralName = inputData.referralName ? inputData.referralName : platformPrefix + inputData.referral;
 
-                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean().then(
+                            let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig && referralConfig.enableUseReferralPlayerId && (referralConfig.enableUseReferralPlayerId.toString() === 'true')) {
                                         referralInterval = referralConfig.referralPeriod || '5';
@@ -1081,7 +1081,7 @@ let dbPlayerInfo = {
                             proms.push(referralProm);
                         }
 
-                        if ((!inputData.partnerName && !inputData.partnerId && !inputData.domain) && !inputData.referral && inputData.referralId) {
+                        if (!inputData.referral && inputData.referralId) {
                             let checkReferralLimit = dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).then(
                                 referralConfig => {
                                     if (referralConfig) {
@@ -1228,6 +1228,11 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
+                    if (inputData.partner) {
+                        delete inputData.referral;
+                        isEnableUseReferralPlayerId = false;
+                    }
+
                     inputData = determineRegistrationInterface(inputData);
 
                     if (adminName && adminId) {
@@ -9862,7 +9867,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function ([rewardEvent, rewardEventGroup, referralConfig]) {
-                if (rewardEvent && rewardEventGroup, referralConfig) {
+                if (rewardEvent && rewardEventGroup) {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
 
@@ -26289,6 +26294,34 @@ let dbPlayerInfo = {
         )
     },
 
+    getPlayerInfoForPMS: async function (platformId, playerName) {
+        let result = {};
+        let platform = await dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+        if (platform && platform._id) {
+            let player = await dbconfig.collection_players.findOne({name: playerName, platform: platform._id}, {_id: 1, playerId: 1, name: 1, validCredit: 1, lockedCredit: 1, lastAccessTime: 1})
+            if (player && player._id) {
+                let creditInfo = await dbPlayerInfo.getPlayerCredit(player.playerId);
+                let lastConsumptionInfo = await dbconfig.collection_playerConsumptionRecord.findOne({playerId: player._id, platformId: platform._id}).sort({createTime: -1});
+
+                let validCredit = (creditInfo && creditInfo.validCredit) || 0;
+                let lockedCredit = (creditInfo && creditInfo.lockedCredit) || 0;
+                let gameCredit = (creditInfo && creditInfo.gameCredit) || 0;
+
+                result.name = player.name;
+                result.totalCredit = validCredit + lockedCredit + gameCredit;
+                result.lastAccessTime = player && player.lastAccessTime;
+                result.lastBetTime = lastConsumptionInfo && lastConsumptionInfo.createTime;
+
+                return result;
+
+            } else {
+                return Promise.reject({name: "DataError", message: "Can not find player"});
+            }
+        } else {
+            return Promise.reject({name: "DataError", message: "Can not find platform"});
+        }
+    },
+
     playerCreditClearOut: function (playerName, platformObjId, adminName, adminId) {
         let platform = null;
         let providers = [];
@@ -27050,10 +27083,7 @@ let dbPlayerInfo = {
         let urlExist = false;
         let result;
         let playerData;
-        let playerNo;
-        if( urlArr && urlArr.length > 1) {
-            playerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
-        }
+        let playerNo = data.playerId;
         let preventBlockUrl;
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
@@ -27080,7 +27110,10 @@ let dbPlayerInfo = {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
 
-                // if not exist generate new weibo short link
+                // if not exist then generate new weibo short link
+                if ( !preventBlockUrl.url ) {
+                    return Promise.reject({message: "You need to set Prevent Block Url first!"});
+                }
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking player randomUrl', randomUrl);
                 let sendData = {urls: [randomUrl]};
