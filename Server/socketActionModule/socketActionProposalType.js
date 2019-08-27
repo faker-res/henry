@@ -14,6 +14,10 @@ function socketActionProposalType(socketIO, socket) {
     this.socketIO = socketIO;
     this.socket = socket;
 
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
     var self = this;
     this.actions = {
 
@@ -137,7 +141,7 @@ function socketActionProposalType(socketIO, socket) {
         updateProposalTypeProcessSteps: function updateProposalTypeProcessSteps(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.processId && data.steps && data.links);
-            socketUtil.emitter(self.socket, dbProposalTypeProcess.updateProcessSteps, [data.processId, data.steps, data.links], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposalTypeProcess.updateProcessSteps, [data.processId, data.steps, data.links, getAdminName()], actionName, isValidData);
         },
 
         /**

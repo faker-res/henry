@@ -1057,8 +1057,9 @@ var dbPlayerFeedback = {
             sendQuery.csOfficer.forEach(item => {
                 if (item == "") {
                     noneCSOfficerQuery = {csOfficer: {$exists: false}};
-                } else {
-                    csOfficerArr.push(ObjectId(item));
+                } else if (item && String(item).length === 24) {
+                    console.log('sendQuery.csOfficer String(item)', String(item));
+                    csOfficerArr.push(ObjectId(String(item)));
                 }
             });
 

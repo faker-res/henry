@@ -256,10 +256,17 @@ let PlayerServiceImplement = function () {
                     delete playerData.guestDeviceId;
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 
@@ -1391,12 +1398,19 @@ let PlayerServiceImplement = function () {
                 conn.playerObjId = playerData._id;
                 conn.noOfAttempt = 0;
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             },
             error => {
@@ -1555,6 +1569,11 @@ let PlayerServiceImplement = function () {
     this.checkIsAppPlayerAndAppliedReward.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn && conn.playerObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkIsAppPlayerAndAppliedReward, [conn.playerObjId], isValidData);
+    };
+
+    this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.url && data.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
     };
 
 };
