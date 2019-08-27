@@ -224,11 +224,41 @@ let dbReport = {
                     referrerRecord = referrerData;
 
                     let referralQuery = {
-                        referral: referrerData._id,
-                        isValid: {$exists: true, $eq: true, $ne: null}
+                        platform: referrerData.platform,
+                        referral: referrerData._id
                     };
 
-                    return dbconfig.collection_referralLog.find(referralQuery).lean().then(
+                    if (startDate) {
+                        referralQuery['$or'] = [{validEndTime: {$gte: startDate}}, {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
+                    }
+
+                    return dbconfig.collection_referralLog.aggregate([
+                        {
+                            $match: referralQuery
+                        },
+                        {
+                            $group: {
+                                _id: '$playerObjId',
+                                createTime: {$last: '$createTime'},
+                                referralPeriod: {$last: '$referralPeriod'},
+                                platform: {$last: '$platform'},
+                                isValid: {$last: '$isValid'},
+                                validEndTime: {$last: '$validEndTime'},
+                                referral: {$last: '$referral'},
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: '$_id',
+                                createTime: '$createTime',
+                                referralPeriod: '$referralPeriod',
+                                platform: '$platform',
+                                isValid: '$isValid',
+                                validEndTime: '$validEndTime',
+                                referral: '$referral'
+                            }
+                        }
+                    ]).read("secondaryPreferred").then(
                         referees => {
                             if (referees && referees.length > 0) {
                                 let playerObjIds = referees.map(item => item && item.playerObjId);
@@ -371,6 +401,13 @@ let dbReport = {
 
                                             players.map(playerDetail => {
                                                 let result = {_id: playerDetail._id};
+
+                                                let referee = referees.filter(x => String(x.playerObjId) === String(playerDetail._id));
+
+                                                if (referee && referee[0]) {
+                                                    result.bindTime = referee[0] && referee[0].createTime;
+                                                    result.bindStatus = referee[0] && referee[0].isValid;
+                                                }
 
                                                 if (playerDetail.playerLevel) {
                                                     result.playerLevel = playerDetail.playerLevel._id;

@@ -583,7 +583,8 @@ let dbDXMission = {
                     dxPhone = dxPhones.filter( phone => {
                         if (phone.dxMission && phone.dxMission.domain) {
                             let phoneDomain = phone.dxMission.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
-                            return phoneDomain == domain
+                            console.log('The phone domain', phoneDomain);
+                            return phoneDomain === domain
                         }
                         return false;
                     });
@@ -601,6 +602,7 @@ let dbDXMission = {
                     return loginDefaultPasswordPlayer(dxPhone);
                 }
                 else {
+                    console.log('The domain', domain);
                     return createPlayer(dxPhone, deviceData, domain, loginDetails, conn, wsFunc);
                 }
             }
@@ -1624,7 +1626,18 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 // }
 
                 playerData.domain = filteredDomain;
-                console.log("checking register DX new account", [playerData.name, playerData.domain])
+                console.log("checking register DX new account", [playerData.name, playerData.domain, playerData.partner])
+                if(!playerData.partner){
+                    playerData.partner = dbconfig.collection_partner.find({
+                        ownDomain: playerData.domain
+                    }).lean().then(data=>{
+                        // Design is one to one. So just get index 0. If many to many in the future, go loop.
+                        playerData.partner = data[0]._id;
+                        console.log('checking new partner',data[0]._id);
+
+                    });
+                    // console.log('checking new partner', [temppartner, temppartner._id]);
+                }
             }
 
             if (dxPhone.phoneNumber) {

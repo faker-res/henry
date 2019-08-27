@@ -1106,7 +1106,7 @@ define(['js/app'], function (myApp) {
             // );
 
             $scope.$socketPromise("getPartnerCommissionLog", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 commissionType: prev.settMode,
                 startTime: prev.startTime,
                 endTime: prev.endTime
@@ -1169,6 +1169,11 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.selectedSettlePartnerCommPrev.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
+                        if (vm.selectedSettlePartnerCommPrev.totalPartnerCount) {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = vm.selectedSettlePartnerCommPrev.totalPartnerCount - (vm.selectedSettlePartnerCommPrev.totalValidPartnerCount || 0);
+                        } else {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = 0
+                        }
                         vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
@@ -18025,7 +18030,7 @@ define(['js/app'], function (myApp) {
                         vm.partnerProfitQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                         vm.partnerProfitQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
-                        vm.partnerProfitQuery.pageObj = utilService.createPageForPagingTable("#partnerProfitTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.partnerProfitQuery.pageObj = utilService.createPageForPagingTable("#partnerProfitTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "partnerProfitQuery", vm.searchPartnerProfitReport)
                         });
                     });
@@ -18321,7 +18326,7 @@ define(['js/app'], function (myApp) {
                 platformIdList = vm.allPlatformData.map(a => a._id);
             }
 
-            // utilService.getDataTablePageSize("#partnerProfitTablePage", vm.partnerProfitQuery, 30);
+            utilService.getDataTablePageSize("#partnerProfitTablePage", vm.partnerProfitQuery, 10);
             let sendData = {
                 platformObjIdList: platformIdList,
                 registerStartTime: new Date(vm.partnerProfitQuery.registerStartTime.data('datetimepicker').getLocalDate()),
