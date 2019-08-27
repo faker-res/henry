@@ -15403,19 +15403,21 @@ define(['js/app'], function (myApp) {
                 });
                 vm.playerPermissionHistory = data.data || [];
                 vm.playerPermissionHistory.map(item => {
-                    let toggleGroup = {
-                        banReward : item.oldData.banReward,
-                        disableWechatPay : item.oldData.disableWechatPay,
-                        forbidPlayerConsumptionReturn : item.oldData.forbidPlayerConsumptionReturn,
-                        forbidPlayerFromEnteringGame : item.oldData.forbidPlayerFromEnteringGame,
-                        forbidPlayerFromLogin : item.oldData.forbidPlayerFromLogin
-                    };
-                    for (let v in toggleGroup){
-                        if(item.oldData.hasOwnProperty(v)){
-                            item.oldData[v] = !item.oldData[v];
-                        }
-                        if(item.newData.hasOwnProperty(v)){
-                            item.newData[v] = !item.newData[v];
+                    if (item.oldData) {
+                        let toggleGroup = {
+                            banReward : item.oldData.banReward,
+                            disableWechatPay : item.oldData.disableWechatPay,
+                            forbidPlayerConsumptionReturn : item.oldData.forbidPlayerConsumptionReturn,
+                            forbidPlayerFromEnteringGame : item.oldData.forbidPlayerFromEnteringGame,
+                            forbidPlayerFromLogin : item.oldData.forbidPlayerFromLogin
+                        };
+                        for (let v in toggleGroup){
+                            if(item.oldData.hasOwnProperty(v)){
+                                item.oldData[v] = !item.oldData[v];
+                            }
+                            if(item.newData.hasOwnProperty(v)){
+                                item.newData[v] = !item.newData[v];
+                            }
                         }
                     }
                 });

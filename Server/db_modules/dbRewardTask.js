@@ -138,6 +138,7 @@ const dbRewardTask = {
 
                     if (rewardData.useConsumption) {
                         updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        updObj.$inc.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount;
                     }
@@ -165,6 +166,8 @@ const dbRewardTask = {
 
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        // new field for XIMA purpose
+                        saveObj.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
@@ -1557,7 +1560,8 @@ const dbRewardTask = {
                             res.remainBonusAmt
                         ).catch(errorUtils.reportError);
                         // Assume overflow amount is valid for consumption return
-                        nonDirtyAmount = res.remainingCurConsumption;
+                        // // p/s: this norDirtyAmount will always be replaced with the XIMAAmt at the bottom, so I commented it out
+                        // nonDirtyAmount = res.remainingCurConsumption;
                     }
 
                     // Available XIMA Amt
@@ -1565,6 +1569,8 @@ const dbRewardTask = {
                         nonDirtyAmount = res.XIMAAmt;
                     }
 
+                    console.log("checking Outer res.XIMAAmt", res.XIMAAmt)
+                    console.log("checking Outer nonDirtyAmount", nonDirtyAmount)
                     return res;
                 }
             },
@@ -2309,10 +2315,12 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
 
     let consumptionAmt = consumptionRecord.validAmount, bonusAmt = consumptionRecord.bonusAmount;
     let remainBonusAmt = 0, remainingCurConsumption = 0, XIMAAmt = 0;
+    let nonXIMAAmt = 0;
 
     return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
         rewardTaskGroup => {
             if (rewardTaskGroup) {
+                console.log("checking PATH 1: With RTG Group")
                 let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
 
                 // Deny happening of negative RTG curConsumption
@@ -2321,6 +2329,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                 let targetConsumption = rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt;
                 let currentDifference = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rtgConsumption;
 
+                console.log("checking in this currentConsumption", currentConsumption)
+                console.log("checking in this targetConsumption", targetConsumption)
                 // Check if consumption has reached
                 if (currentConsumption > targetConsumption) {
                     // Consumption reached
@@ -2328,10 +2338,12 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     //     to compensate an early achieved RTG
                     // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
                     // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
-
+                    console.log("checking in this currentDifference", currentDifference)
+                    console.log("checking in this consumptionRecord.validAmount", consumptionRecord.validAmount)
                     if (currentDifference < consumptionRecord.validAmount && currentDifference > 0) {
                         consumptionAmt = currentDifference;
                         remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
+                        console.log("checking in this remainingCurConsumption", remainingCurConsumption)
                     }
                 }
 
@@ -2365,8 +2377,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     {_id: rewardTaskGroup._id},
                     updObj,
                     {new: true}
-                ).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).then(
-                    updatedRTG => {
+                ).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
+                    async updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
                             // update the locked reward tasks
@@ -2399,20 +2411,72 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             // Concurrent check passed
                             // Get the most accurate curConsumption
                             let beforeConsumption = updatedRTG.curConsumption - consumptionAmt;
+                            console.log("checking Path 1: consumptionAmt",  consumptionAmt)
+                            console.log("checking Path 1: beforeConsumption",  beforeConsumption)
+                            console.log("checking Path 1: updatedRTG.curConsumption",  updatedRTG.curConsumption)
+                            console.log("checking Path 1: updatedRTG.forbidXIMAAmt",  updatedRTG.forbidXIMAAmt)
+                            console.log("checking Path 1: updatedRTG.remainingForbidXIMAAmt",  updatedRTG.remainingForbidXIMAAmt)
+                            console.log("checking Path 1: updatedRTG.hasOwnProperty('remainingForbidXIMAAmt')",  updatedRTG.hasOwnProperty("remainingForbidXIMAAmt"))
 
                             // Check returnable amount
-                            if (updatedRTG.forbidXIMAAmt && beforeConsumption < updatedRTG.forbidXIMAAmt) {
-                                if (updatedRTG.curConsumption > rewardTaskGroup.forbidXIMAAmt) {
-                                    // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
-                                    XIMAAmt = consumptionRecord.validAmount - (updatedRTG.forbidXIMAAmt - beforeConsumption);
-                                } else {
-                                    // Still in the range of forbidXIMAAmt
+                            // if there is exist of "remainingForbidXIMAAmt" in RTG meaning is a new start with new logic for XIMA
+                            if (updatedRTG && updatedRTG.hasOwnProperty("remainingForbidXIMAAmt")){
+                                console.log("checking using new logic: remainingForbidXIMAAmt", updatedRTG.remainingForbidXIMAAmt)
+                                // Debug negative RTG curConsumption
+                                if (updatedRTG && updatedRTG.remainingForbidXIMAAmt && updatedRTG.remainingForbidXIMAAmt < 0) {
+                                    console.log('updatedRTG.remainingForbidXIMAAmt has negative!', updatedRTG.remainingForbidXIMAAmt, updatedRTG._id)
                                 }
-                            } else {
-                                // No forbidXIMAAmt or curConsumption already over forbidXIMAAmt
-                                XIMAAmt = consumptionRecord.validAmount;
+
+                                if (consumptionRecord && updatedRTG.remainingForbidXIMAAmt &&  updatedRTG.remainingForbidXIMAAmt >= 1 && consumptionRecord.validAmount){
+                                    // if the validAmount from consumption record exceeds the remainingForbidXIMAAmt; the balance will update to validAmount in consumptionSummary
+                                    if (consumptionRecord.validAmount >= updatedRTG.remainingForbidXIMAAmt){
+                                        XIMAAmt = consumptionRecord.validAmount - updatedRTG.remainingForbidXIMAAmt;
+                                        nonXIMAAmt = updatedRTG.remainingForbidXIMAAmt;
+                                    }
+                                    else{
+                                        // if there is no enough valid credit for the forbidXIMAAmt, all the valid credit will be used up for the forbidXIMAAmt; readyXIMAAmt = 0;
+                                        XIMAAmt = 0;
+                                        nonXIMAAmt = consumptionRecord.validAmount;
+                                    }
+
+                                    // update the RTG by reducing the remainingForbidXIMAAmt
+                                    let rtgProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                        {_id: updatedRTG._id},
+                                        {
+                                            $inc: {
+                                                remainingForbidXIMAAmt: -nonXIMAAmt
+                                            }
+                                        }
+                                    ).lean();
+
+                                    let checkSumarry = await rtgProm;
+                                    console.log("checking checkSumamary", checkSumarry)
+                                }
+                                else{
+                                    // if the forbidXIMAAmt has been cleared, all the validCredit will go to XIMAAmt
+                                    XIMAAmt = consumptionRecord.validAmount
+                                }
+                            }
+                            else{
+                                console.log("checking using back old logic")
+                                // use back the old logic until a new RTG forms
+                                if (updatedRTG.forbidXIMAAmt && beforeConsumption < updatedRTG.forbidXIMAAmt) {
+                                    if (updatedRTG.curConsumption > rewardTaskGroup.forbidXIMAAmt) {
+                                        // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
+                                        console.log("checking pATH 1: if 1st case")
+                                        XIMAAmt = consumptionRecord.validAmount - (updatedRTG.forbidXIMAAmt - beforeConsumption);
+                                    } else {
+                                        console.log("checking pATH 1: if 1st else case")
+                                        // Still in the range of forbidXIMAAmt
+                                    }
+                                } else {
+                                    console.log("checking pATH 1: else case")
+                                    // No forbidXIMAAmt or curConsumption already over forbidXIMAAmt
+                                    XIMAAmt = consumptionRecord.validAmount;
+                                }
                             }
 
+                            console.log("checking Path 1: XIMA amount", XIMAAmt )
                             let statusUpdObj = {
                                 unlockTime: createTime
                             };
@@ -2482,7 +2546,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 )
                             }
                         }
-
+                        console.log("Chekcing Path 1: XIMA final amount", XIMAAmt)
                         return updatedRTG
                     }
                 ).then(
@@ -2501,6 +2565,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 );
             } else {
+                console.log("checking PATH 2: Without RTG Group")
                 return {
                     updatedData: false,
                     XIMAAmt: consumptionAmt
