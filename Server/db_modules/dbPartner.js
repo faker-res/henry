@@ -6660,7 +6660,7 @@ let dbPartner = {
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
                 let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
                 let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
-                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id);
+                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id, providerGroups);
 
                 return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, partnerCommissionConfigRateProm]);
             }
