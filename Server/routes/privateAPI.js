@@ -340,10 +340,10 @@ router.post('/getPlayerInfo', function(req, res, next) {
                 },
                 err => {
                     console.log('getPlayerInfo PMS error', msgBody.platformId, msgBody.name, err);
-                    let returnMsg = encodeURIComponent(JSON.stringify({
+                    let returnMsg = {
                         code: constServerCode.INVALID_DATA,
                         msg: err.message
-                    }));
+                    };
 
                     res.send(returnMsg);
                     res.end();
@@ -351,10 +351,10 @@ router.post('/getPlayerInfo', function(req, res, next) {
             )
 
         } else {
-            let returnMsg = encodeURIComponent(JSON.stringify({
+            let returnMsg = {
                 code: constServerCode.INVALID_DATA,
                 msg: "Invalid data"
-            }));
+            };
             res.send(returnMsg);
             res.end();
         }

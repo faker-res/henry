@@ -6546,7 +6546,13 @@ let dbPlayerInfo = {
                         }
                     );
                 var b = dbconfig.collection_players
-                    .find(advancedQuery).count();
+                    .find(advancedQuery).lean().then(players => {
+                        if(players) {
+                            return players.length;
+                        } else {
+                            return 0;
+                        }
+                    });
 
                 return Promise.all([a, b]);
             }
