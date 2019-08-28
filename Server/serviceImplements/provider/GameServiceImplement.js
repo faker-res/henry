@@ -47,7 +47,13 @@ var GameServiceImplement = function () {
     this.syncData.expectsData = 'games';
     this.syncData.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.games);
-        WebSocketUtil.performAction(conn, wsFunc, data,dbGame.syncGameData, [data.games], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.syncGameData, [data.games], isValidData);
+    };
+
+    this.syncWebp.expectsData = 'games';
+    this.syncWebp.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.games);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.syncWebp, [data.games], isValidData);
     };
 
     this.getGameList.expectsData = 'providerId';
