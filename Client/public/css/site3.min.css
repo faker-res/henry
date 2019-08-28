@@ -4471,6 +4471,7 @@ hr {
     border: 1px solid #aaa;
     text-align: center;
     height: 300px;
+    overflow: auto;
 }
 
 .frontendImagePreview {

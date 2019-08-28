@@ -234,15 +234,6 @@
         });
     };
 
-    proto.getPlatformReferralConfig = function (callback, requestData) {
-        this._service.getPlatformReferralConfig.request(requestData);
-        this._service.getPlatformReferralConfig.once(function (data) {
-            if (callback && typeof callback === "function") {
-                callback(data);
-            }
-        });
-    };
-
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

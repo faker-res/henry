@@ -1,0 +1,80 @@
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div
+        label {{'REGISTRATION_GUIDANCE_CATEGORY' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.editRegistrationCategory(null, true)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div
+        label {{'REGISTRATION_GUIDANCE' | translate}}
+        br
+        label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.addNewRegistrationGuidance(true)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+
+div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
+    label {{"Show category"|translate}}:
+    div.inline-block(style="width: 40%;")
+        select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-model="vm.displayRegistrationCategory")
+            option(ng-init='$last && vm.refreshSPicker()' ng-repeat='item in vm.allRegistrationCategory', value='{{item._id}}') {{item.categoryName}}
+    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayRegistrationCategory(vm.displayRegistrationCategory); vm.enableSortableCategoryChange(vm.registrationCategory);") {{'SUBMIT' | translate}}
+
+div.col-xs-12.row(style="padding-right: 0;")
+    div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
+        div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
+            span(style='font-weight: bold;') {{'ALL CATEGORY' | translate}}
+            p.text-danger 正式站、测试站点击可切换
+                button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRegistrationCategory(null, null, true)")
+                    span.fa.fa-edit
+            hr
+            div#allReward(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;")
+                ul.ownDragDrop(style="min-height: 90%; list-style: none; padding: 0px;")
+                    li.draggable-item(ng-repeat="event in vm.allRegistrationSettingData | orderBy: 'orderNumber'" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
+                        span {{event.title}}
+
+    div.col-md-4(ng-repeat="data in vm.registrationCategory" style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
+        div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
+            span(style='font-weight: bold;') {{data.categoryName}}
+            p.text-danger 正式站、测试站点击可切换
+                button.btn.btn-danger.btn-delete(style="margin-left: 5px;", ng-click="vm.deleteRewardCategory(data._id, vm.registrationCategory)")
+                    span.fa.fa-trash-o
+                button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRegistrationCategory(data._id)")
+                    span.fa.fa-edit
+            hr
+            div(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;" id="{{data._id}}")
+                ul.connected-sortable.droppable-area(style="min-height: 90%;")
+                    li.draggable-item(ng-repeat="event in vm.registrationSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="vm.addNewRegistrationGuidance(false, event._id)" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
+                        span {{event.title}}
+                        .tab-btngroup
+                            button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
+                            button.btn.btn-success(ng-if="!event.isVisible", ng-click="event.isVisible = true") off
+                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'registrationSettingData', 'allRegistrationSettingData')")
+                                span.fa.fa-trash-o
+
+div.text-right
+    button.btn-danger.btn.btn-space(style="margin-top: 15px;" ng-click="vm.rewardCategoryDeletedList=[];vm.rewardDeletedList=[];vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform); vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
+    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateRegistrationGuidanceSetting()") {{'SAVE' | translate}}
+
+#registrationGuidanceCategoryModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.isDefaultRegistrationCategory = false;")
+                h4.modal-title {{"Edit Registration Guidance Category" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-12
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"CATEGORY NAME"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control(ng-disabled="vm.isDefaultRegistrationCategory" ng-model="vm.newRegistrationCategoryData.categoryName")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newRegistrationCategoryData.displayFormat')
+                                        option(value='1') {{ "list" | translate}}
+                                        option(value='2') {{ "threeInARow" | translate}}
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.updateRegistrationGuidanceCategory(vm.newRegistrationCategoryData)') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.isDefaultRegistrationCategory = false;") {{"CANCEL" | translate}}

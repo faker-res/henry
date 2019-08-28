@@ -2122,6 +2122,28 @@ var dbPlatform = {
             )
         }
     },
+    savePreventBlockUrl: function (data) {
+        let saveObj = {
+            url: data.url
+        }
+        console.log('url', saveObj);
+        return dbconfig.collection_preventBlockUrl.find({url: data.url}).then(
+            data => {
+                console.log(data);
+                if (data && data.length && data.length > 0) {
+                    return Q.reject({name: "DBError", message: "Url is Exist"});
+                }
+
+                return dbconfig.collection_preventBlockUrl(saveObj).save();
+            }
+        )
+    },
+    deletePreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.remove({url: data.url}).lean();
+    },
+    getAllPreventBlockUrl: function (data) {
+        return dbconfig.collection_preventBlockUrl.find().lean();
+    },
     getExternalUserInfo: function (data, index, limit){
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
@@ -3209,7 +3231,7 @@ var dbPlatform = {
                         console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
                         if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
-                            
+
                             let themeSetting = platformData.playerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
 
@@ -6260,6 +6282,9 @@ var dbPlatform = {
                         case 'description':
                             prom = dbconfig.collection_frontEndScriptDescription.find({platformObjId: ObjectId(platformObjId), status: 1, isVisible: 1}).lean();
                             break;
+                        case 'registrationGuidance':
+                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            break;
                         case 'partnerPageSetting':
                             prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
                             break;
@@ -6367,6 +6392,21 @@ var dbPlatform = {
                     model: dbconfig.collection_frontEndPartnerSkinSetting
                 }).lean()
             }
+            else if (code == "registrationGuidance"){
+                prom = dbconfig.collection_frontEndRegistrationGuidanceSetting.find(query).populate({
+                    path: "pc.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "h5.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "app.rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "categoryObjId",
+                    model: dbconfig.collection_frontEndRegistrationGuidanceCategory
+                }).sort({displayOrder: 1}).lean()
+            }
 
             return prom.then(
                 settingList => {
@@ -6388,7 +6428,7 @@ var dbPlatform = {
                         if (code && (code == "pageSetting" || code == "partnerPageSetting") && settingList && settingList.length){
                             settingList = settingList[0];
                         }
-                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward")) {
+                        if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
                             settingList = restructureDataFormat (settingList, code)
                         }
 
@@ -6437,7 +6477,7 @@ var dbPlatform = {
                 prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
             else if (code == "game"){
-                prom = dbconfig.collection_frontEndGameSetting.find(query).lean()
+                prom = dbconfig.collection_frontEndGameSetting.find(query).sort({displayOrder: 1}).lean()
             }
 
             return prom.then(
@@ -6559,12 +6599,19 @@ var dbPlatform = {
                 )
                 return {navList: navList, bodyList: bodyList, bottomList: bottomList}
             }
-            else if (settingList && settingList.length && code && code == "reward") {
+            else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
                 let allObjList = {name: "全部", list: []};
                 let arrayList = [];
+                let defaultCategory = null;
 
-                let defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                if (code == "reward"){
+                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+                else if (code == "registrationGuidance"){
+                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                }
+
                 if (defaultCategory && defaultCategory.displayFormat){
                     allObjList.displayFormat = defaultCategory.displayFormat;
                 }
@@ -7177,16 +7224,6 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    },
-
-    getPlatformReferralConfig: function (platformId) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    return dbconfig.collection_platformReferralConfig.findOne({platform: platformData._id}).lean();
-                }
-            }
-        )
     }
 };
 

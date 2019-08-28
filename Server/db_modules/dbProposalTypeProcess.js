@@ -3,6 +3,7 @@
  */
 
 var dbconfig = require('./../modules/dbproperties');
+var dbEmailNotification = require('./dbEmailNotification');
 var Q = require("q");
 
 var proposalTypeProcess = {
@@ -95,13 +96,19 @@ var proposalTypeProcess = {
      * @param {ObjectId} processId - ObjId of ProposalTypeProcess , ObjId of ProposalTypeProcessStep
      * @param {json} steps
      */
-    updateProcessSteps: function (processId, steps, links) {
+    updateProcessSteps: function (processId, steps, links, adminName) {
         var deferred = Q.defer();
         var stepNodeIds = [];
+        let platformObjId, platformName, processName;
         //delete all current process steps
-        dbconfig.collection_proposalTypeProcess.findOne({_id: processId}).then(
+        dbconfig.collection_proposalTypeProcess.findOne({_id: processId})
+            .populate({path: 'platformId', model: dbconfig.collection_platform})
+            .lean().then(
             function (data) {
                 if (data) {
+                    platformObjId = data.platformId._id;
+                    platformName = data.platformId.name;
+                    processName = data.name;
                     var stepProm = dbconfig.collection_proposalTypeProcessStep.remove({_id: {$in: data.steps}});
                     var processProm = dbconfig.collection_proposalTypeProcess.findOneAndUpdate(
                         {_id: processId},
@@ -190,6 +197,8 @@ var proposalTypeProcess = {
         ).then(
             function(data){
                 if( data ){
+                    //send email notification
+                    dbEmailNotification.sendEmailNotification(platformObjId, platformName, processName, adminName.toString());
                     deferred.resolve(data);
                 }
                 else{
