@@ -12931,7 +12931,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     );
 }
 
-function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
+function getPartnerCommissionConfigRate (platformObjId, partnerObjId, gameProviderGroups = []) {
     let platformConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: {$exists: false}}).lean();
     let customConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: partnerObjId}).lean();
 
@@ -12996,6 +12996,12 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                             }
                             else {
                                 defaultGroup.isCustom = false;
+                            }
+                        });
+
+                        gameProviderGroups.map(providerGroup => {
+                            if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
+                                defaultGroup.name = providerGroup.name;
                             }
                         });
                     });

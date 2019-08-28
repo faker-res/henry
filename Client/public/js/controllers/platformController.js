@@ -31761,6 +31761,7 @@ define(['js/app'], function (myApp) {
                                                         vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
                                                             if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                                 providerGroupRate = availableProviderGroupRate;
+                                                                providerGroupRate.name = gameProviderGroup.name;
                                                             }
                                                         })
                                                     }
