@@ -3168,7 +3168,7 @@ var dbPlayerTopUpRecord = {
                                         _id: proposalData._id
                                     }, updateData).exec().then(
                                         data => {
-                                            if (data && data.ok) {
+                                            if (data) {
                                                 return {proposalId: proposalId, delayTime: delayTime, newValidTime: newDelayTime};
                                             }
                                         }
