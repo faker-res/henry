@@ -17,7 +17,7 @@ let auditManualRewardLogSchema = new Schema({
     // player real name
     realName: {type: String},
     // reward amount
-    rewardAmount: {type: String}
+    rewardAmount: {type: String},
     creator: {type: String},
     // proposal's remark
     remarks: {type: String},
