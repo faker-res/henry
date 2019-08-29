@@ -75,7 +75,7 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: async (partnerObjId, platformObjId, isMulti) => {
+    getPartnerCommRate: async (partnerObjId, platformObjId, providerGroups = []) => {
         // let rateConfigSchema = isMulti ? dbconfig.collection_partnerMainCommRateConfig : dbconfig.collection_partnerCommissionRateConfig;
         let rateConfigSchema = dbconfig.collection_partnerMainCommRateConfig;
 
@@ -116,6 +116,12 @@ const dbPartnerCommissionConfig = {
 
                 break;
             }
+
+            providerGroups.map(providerGroup => {
+                if (String(platformRate.gameProviderGroupId) === String(providerGroup.gameProviderGroupId)) {
+                    platformRate.name = providerGroup.name;
+                }
+            })
         }
         output.rateAfterRebateGameProviderGroup = platformConfig.rateAfterRebateGameProviderGroup;
 

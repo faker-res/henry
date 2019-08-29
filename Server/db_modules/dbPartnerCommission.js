@@ -77,7 +77,7 @@ const dbPartnerCommission = {
 
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
         // let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id);
-        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id, true);
+        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id, providerGroups);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
         let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
         let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
