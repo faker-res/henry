@@ -130,13 +130,13 @@ describe("Test Client API - Game Service", function() {
         });
     });
 
-    it('Should get game provider credit', function(done) {
-        console.log('testProviderId', testProviderId);
-        gameAPITest.getGameProviderCredit(function(data) {
-            data.status.should.equal(200);
-            done();
-        }, {providerId: testProviderId});
-    });
+    // it('Should get game provider credit', function(done) {
+    //     console.log('testProviderId', testProviderId);
+    //     gameAPITest.getGameProviderCredit(function(data) {
+    //         data.status.should.equal(200);
+    //         done();
+    //     }, {providerId: testProviderId});
+    // });
 
     it('Should remove all test Data', function(done) {
         commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function(data) {
