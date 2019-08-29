@@ -25363,21 +25363,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
                     case 'rewardPointClarification':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'popularRecommendation':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'carouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = false;
                         break;
                     case 'partnerCarouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
                     case 'partnerUrlConfiguration':
@@ -25388,7 +25383,6 @@ define(['js/app'], function (myApp) {
                         };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForUrlConfiguration = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
@@ -25396,7 +25390,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'skinManagement':
                     case 'partnerSkinManagement':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
@@ -25406,19 +25399,18 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'rewardSetting':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'scriptDescription':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'registrationGuidance':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
+                }
+                if (vm.filterFrontEndSettingPlatform) {
+                    vm.frontEndSettingPlatform();
                 }
             };
 
