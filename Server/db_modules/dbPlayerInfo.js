@@ -27069,7 +27069,9 @@ let dbPlayerInfo = {
 
          let playerCheck = await dbconfig.collection_players.find({
              platform: platformObjId,
-             phoneNumber: phoneNumberQ
+             phoneNumber: phoneNumberQ,
+             isRealPlayer : true,
+             isTestPlayer : false,
          }, {name: 1}).lean();
 
         let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
