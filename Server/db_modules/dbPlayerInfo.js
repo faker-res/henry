@@ -17213,7 +17213,7 @@ let dbPlayerInfo = {
                     code: code
                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean().then(
                     rewardEvent => {
-                        let isXima = rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
+                        let isXima = rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
 
                         if (playerData.permission && playerData.permission.banReward && !isXima) {
                             return Promise.reject({
