@@ -6542,17 +6542,17 @@ let dbPlayerInfo = {
                                     let newInfo;
 
                                     newInfo = getReferralIdAndUrl(playerData[ind]);
-
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
                                 }
                             }
-
+                            console.log('MT --checking -S7-1-2')
                             return Promise.all(players)
                         }
                     );
                 var b = dbconfig.collection_players
                     .find(advancedQuery).lean().then(players => {
+                        console.log('MT --checking -S7-2')
                         if(players) {
                             return players.length;
                         } else {
@@ -29847,6 +29847,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
+                console.log('MT --checking S7-1-a', config)
                 return thisPlayer;
             }
         );
