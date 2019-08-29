@@ -6266,7 +6266,7 @@ let dbPlayerInfo = {
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
-
+        console.log('MT --checking -S1');
         if (data && data.phoneNumber) {
             data.phoneNumber = {
                 $in: [
@@ -6372,6 +6372,7 @@ let dbPlayerInfo = {
             _id: {$in: platformId}
         }).lean().then(
             platform => {
+                console.log('MT --checking -S2 ');
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
                 let playerProm = Promise.resolve(false);
@@ -6382,6 +6383,7 @@ let dbPlayerInfo = {
 
                 return playerProm.then(
                     singlePlayerData => {
+                        console.log('MT --checking -S3');
                         if (data && data.name && singlePlayerData && singlePlayerData._id) {
                             advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                         }
@@ -6390,6 +6392,7 @@ let dbPlayerInfo = {
                             .find(advancedQuery, {similarPlayers: 0})
                             .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
                                 players => {
+                                    console.log('MT --checking -S4');
                                     let calculatePlayerValueProms = [];
                                     let updatePlayerCredibilityRemarksProm = [];
                                     for (let i = 0; i < players.length; i++) {
@@ -6438,10 +6441,12 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                console.log('MT --checking -S5');
                 return dbconfig.collection_playerCredibilityRemark.find({platform: {$in: platformId}}).lean();
             }
         ).then(
             (credibilityRemarksData) => {
+                console.log('MT --checking -S6');
                 credibilityRemarksList = credibilityRemarksData ? credibilityRemarksData : [];
                 var a = dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
@@ -6530,34 +6535,39 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         playerData => {
+                            console.log('MT --checking -S7');
                             let players = [];
                             for (let ind in playerData) {
                                 if (playerData[ind]) {
                                     let newInfo;
 
                                     newInfo = getReferralIdAndUrl(playerData[ind]);
-
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
                                 }
                             }
-
+                            console.log('MT --checking -S7-1-2')
                             return Promise.all(players)
                         }
                     );
+                console.log('MT --checking -S7-advancedQuery', advancedQuery)
                 var b = dbconfig.collection_players
                     .find(advancedQuery).lean().then(players => {
+                        console.log('MT --checking -S7-2')
                         if(players) {
                             return players.length;
                         } else {
                             return 0;
                         }
+                    }, err => {
+                        console.log('MT --checking -S7-2-error', err);
                     });
 
                 return Promise.all([a, b]);
             }
         ).then(
             data => {
+                console.log('MT --checking -S8');
                 let playerData;
                 dataSize = data[1];
                 if (data && data[0] && data[0].length) {
@@ -17203,7 +17213,7 @@ let dbPlayerInfo = {
                     code: code
                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean().then(
                     rewardEvent => {
-                        let isXima = rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
+                        let isXima = rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
 
                         if (playerData.permission && playerData.permission.banReward && !isXima) {
                             return Promise.reject({
@@ -27059,7 +27069,9 @@ let dbPlayerInfo = {
 
          let playerCheck = await dbconfig.collection_players.find({
              platform: platformObjId,
-             phoneNumber: phoneNumberQ
+             phoneNumber: phoneNumberQ,
+             isRealPlayer : true,
+             isTestPlayer : false,
          }, {name: 1}).lean();
 
         let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
@@ -27075,7 +27087,11 @@ let dbPlayerInfo = {
         }
 
         if (recCheck && recCheck.length) {
-            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+            recCheck.forEach(p => {
+                if (p && p.playerObjId) {
+                    retArr.push(p.playerObjId.name);
+                }
+            });
         }
 
         return retArr;
@@ -29836,6 +29852,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
+                console.log('MT --checking S7-1-a', config)
                 return thisPlayer;
             }
         );

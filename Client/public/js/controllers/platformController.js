@@ -32390,6 +32390,7 @@ define(['js/app'], function (myApp) {
                 vm.editAuditConfig = vm.editAuditConfig || {};
                 vm.auditCreditChangeSetting = vm.auditCreditChangeSetting || {};
                 vm.auditManualRewardSetting = vm.auditManualRewardSetting || {};
+                vm.auditRepairTransferSetting = vm.auditRepairTransferSetting || {};
                 let sendData = {
                     platformObjId: platformObjId || null
                 };
@@ -32426,7 +32427,21 @@ define(['js/app'], function (myApp) {
                     });
                 });
 
-
+                socketService.$socket($scope.AppSocket, 'getAuditRepairTransferSetting', sendData, function (data) {
+                    console.log('getAuditRepairTransferSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditRepairTransferSetting = {};
+                        if (data && data.data) {
+                            vm.auditRepairTransferSetting = data.data;
+                        }
+                        if (!vm.auditRepairTransferSetting.recipient) {
+                            vm.auditRepairTransferSetting.recipient = [];
+                        }
+                        if (!vm.auditRepairTransferSetting.reviewer) {
+                            vm.auditRepairTransferSetting.reviewer = [];
+                        }
+                    });
+                });
             };
 
             vm.getEmailNotificationConfig = async (platformObjId) => {
@@ -33987,10 +34002,10 @@ define(['js/app'], function (myApp) {
                 switch(setting) {
                     case 'auditCreditChangeSetting':
                         return 'setAuditCreditChangeSetting';
-                        break;
                     case 'auditManualRewardSetting':
                         return 'setAuditManualRewardSetting';
-                        break;
+                    case 'auditRepairTransferSetting':
+                        return 'setAuditRepairTransferSetting';
                     default:
                         console.log('current audit setting not found');
                         return;
