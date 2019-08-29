@@ -232,7 +232,33 @@ let dbReport = {
                         referralQuery['$or'] = [{validEndTime: {$gte: startDate}}, {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
                     }
 
-                    return dbconfig.collection_referralLog.find(referralQuery).lean().then(
+                    return dbconfig.collection_referralLog.aggregate([
+                        {
+                            $match: referralQuery
+                        },
+                        {
+                            $group: {
+                                _id: '$playerObjId',
+                                createTime: {$last: '$createTime'},
+                                referralPeriod: {$last: '$referralPeriod'},
+                                platform: {$last: '$platform'},
+                                isValid: {$last: '$isValid'},
+                                validEndTime: {$last: '$validEndTime'},
+                                referral: {$last: '$referral'},
+                            }
+                        },
+                        {
+                            $project: {
+                                playerObjId: '$_id',
+                                createTime: '$createTime',
+                                referralPeriod: '$referralPeriod',
+                                platform: '$platform',
+                                isValid: '$isValid',
+                                validEndTime: '$validEndTime',
+                                referral: '$referral'
+                            }
+                        }
+                    ]).read("secondaryPreferred").then(
                         referees => {
                             if (referees && referees.length > 0) {
                                 let playerObjIds = referees.map(item => item && item.playerObjId);

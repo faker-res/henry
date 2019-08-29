@@ -5540,7 +5540,7 @@ let dbPartner = {
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
-                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                    return Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
 
                 switch (period) {
@@ -5808,7 +5808,7 @@ let dbPartner = {
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
-                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                    return Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
                 }
                 let validPlayerTopUpTimes = config.validPlayerTopUpTimes ? config.validPlayerTopUpTimes : 0;
                 let validPlayerTopUpAmount = config.validPlayerTopUpAmount ? config.validPlayerTopUpAmount : 0;
@@ -9465,15 +9465,12 @@ let dbPartner = {
     getPromoShortUrl: (data) => {
         // display the partner short url or generate new one
         let fullUrl = data.url;
+        let fullUrlUndotted = fullUrl.replace(/\./g, '^');
         let urlArr = fullUrl.split('/');
         let urlExist = false;
         let result;
         let partnerData;
-        let partnerNo;
-        let urlPost;
-        if( urlArr && urlArr.length > 1) {
-            partnerNo = urlArr && urlArr[urlArr.length - 1] ? urlArr[urlArr.length - 1] : null;
-        }
+        let partnerNo = data.partnerId;
         let preventBlockUrl;
 
         return dbconfig.collection_preventBlockUrl.find().lean().then(
@@ -9489,13 +9486,22 @@ let dbPartner = {
                     return Promise.reject({message: "Partner not found."});
                 }
                 partnerData = partner;
-                urlArr.pop();
-                urlPost = urlArr.join('/');
+
                 // if promote short url is there , then direct return it
-                if (partnerData.shortUrl && partnerData.shortUrl[urlPost]) {
+                if (typeof partnerData.shortUrl == 'object' && partnerData.shortUrl[fullUrlUndotted]) {
                     urlExist = true;
                     return { shortUrl: partnerData.shortUrl, partnerName: partnerData.partnerName };
                 };
+
+                // avoid generate mass shortUrl
+                if (partnerData.shortUrl && Object.keys(partnerData.shortUrl).length > 30) {
+                    return Promise.reject({message: "Generate Too Many ShortenerUrl."});
+                }
+
+                if ( !preventBlockUrl.url ) {
+                    return Promise.reject({message: "You need to set Prevent Block Url first!"});
+                }
+
                 // if not exist generate new weibo short link
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking randomUrl', randomUrl);
@@ -9512,19 +9518,13 @@ let dbPartner = {
                     return { shortUrl: partnerData.shortUrl, partnerName: urlData.partnerName };
                 }
                 urlData = urlData && urlData[0] ? urlData[0]: null;
-                console.log('checking MT --update shortUrl', partnerNo, urlData);
+                console.log('checking MT --update shortUrl', partnerNo, urlData, fullUrlUndotted);
 
-                if (!partnerData.shortUrl) {
+                if (!partnerData.shortUrl || typeof partnerData.shortUrl !== 'object' || Object.keys(partnerData.shortUrl).length == 0) {
                     partnerData.shortUrl = {};
                 }
-                partnerData.shortUrl[urlPost] = urlData.url_short || '';
-                return dbconfig.collection_partner.findOneAndUpdate({
-                    partnerId: partnerNo
-                }, {
-                    $set: {
-                        shortUrl: partnerData.shortUrl
-                    }
-                }, {new: true}).lean()
+                partnerData.shortUrl[fullUrlUndotted] = urlData.url_short || '';
+                return dbconfig.collection_partner.findOneAndUpdate({ partnerId: partnerNo}, {shortUrl: partnerData.shortUrl}, {new: true}).lean()
             }
         )
         .then(
@@ -9532,7 +9532,8 @@ let dbPartner = {
                 if (!partner || !partner.shortUrl) {
                     return Promise.reject({message: "Update shortenerUrl failed."});
                 }
-                let shortUrl = partner.shortUrl[urlPost];
+                let shortUrl = partner.shortUrl[fullUrlUndotted];
+                shortUrl = shortUrl.replace(/\^/g, '.');
                 result = { 'shortUrl': shortUrl, 'partnerName': partner.partnerName };
                 return result;
             }
@@ -12030,8 +12031,18 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
             if (Number(commissionType) !== constPartnerCommissionType.DAILY_CONSUMPTION) {
                 if (gameProviderGroupRate && gameProviderGroupRate.length > 0 && consumptionDetail && consumptionDetail.consumptionProviderDetail && Object.keys(consumptionDetail.consumptionProviderDetail).length > 0) {
                     gameProviderGroupRate.forEach(groupRate => {
-                        let totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
-                        let platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
+                        let totalBonusAmount = 0;
+                        if (consumptionDetail && consumptionDetail.consumptionProviderDetail &&
+                            consumptionDetail.consumptionProviderDetail[groupRate.name] && consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount) {
+                            totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
+                        }
+
+                        let platformFeeRate;
+                        if (!isNaN(groupRate.rate) && groupRate.rate != null && String(groupRate.rate).trim() != "") {
+                            platformFeeRate = groupRate.rate ? Number(groupRate.rate) : 0;
+                        } else {
+                            platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
+                        }
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
                         platformFee = platformFee >= 0 ? platformFee : 0;
                         totalPlatformFee += platformFee;

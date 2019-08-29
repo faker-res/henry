@@ -643,8 +643,11 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             returnableAmt => {
+                console.log("checking the last outer returnableAmt", returnableAmt)
                 let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
                 let nonXIMAAmt = record.validAmount - readyXIMAAmt;
+                console.log("checking the last outer record.validAmount", record.validAmount)
+                console.log("checking the last outer nonXIMAAmt", nonXIMAAmt)
 
                 return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
             },

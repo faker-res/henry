@@ -24,10 +24,11 @@ var dbGameProvider = {
 
     /**
      * Create a new gameProvider
-     * @param {json} data - The data of the gameProvider. Refer to gameProvider schema.
+     * @param {json} gameProviderData - The data of the gameProvider. Refer to gameProvider schema.
+     * @return {json} gameProvider object
      */
-    createGameProvider: function (gameProviderData) {
-        var gameProvider = new dbconfig.collection_gameProvider(gameProviderData);
+    createGameProvider: function(gameProviderData) {
+        let gameProvider = new dbconfig.collection_gameProvider(gameProviderData);
         return gameProvider.save();
     },
 

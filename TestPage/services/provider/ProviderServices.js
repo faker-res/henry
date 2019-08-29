@@ -140,6 +140,9 @@
             this.syncData = new sinonet.WebSocketAsyncFunction("syncData");
             this.addFunction(this.syncData);
 
+            this.syncWebp = new sinonet.WebSocketAsyncFunction("syncWebp");
+            this.addFunction(this.syncWebp);
+
             this.getGameList = new sinonet.WebSocketAsyncFunction("getGameList");
             this.addFunction(this.getGameList);
 
