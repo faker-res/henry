@@ -6550,6 +6550,7 @@ let dbPlayerInfo = {
                             return Promise.all(players)
                         }
                     );
+                console.log('MT --checking -S7-advancedQuery', advancedQuery)
                 var b = dbconfig.collection_players
                     .find(advancedQuery).lean().then(players => {
                         console.log('MT --checking -S7-2')
@@ -6558,6 +6559,8 @@ let dbPlayerInfo = {
                         } else {
                             return 0;
                         }
+                    }, err => {
+                        console.log('MT --checking -S7-2-error', err);
                     });
 
                 return Promise.all([a, b]);
