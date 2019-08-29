@@ -6552,7 +6552,7 @@ let dbPlayerInfo = {
                     );
                 var b = dbconfig.collection_players
                     .find(advancedQuery).lean().then(players => {
-                        console.log('MT --checking -S7-2', players)
+                        console.log('MT --checking -S7-2')
                         if(players) {
                             return players.length;
                         } else {
