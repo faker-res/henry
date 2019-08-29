@@ -6183,7 +6183,7 @@ var proposal = {
                     query = {
                         expirationTime: {$lt: new Date()},
                         type: {$in: proposalList},
-                        status: constProposalStatus.APPROVED
+                        status: constProposalStatus.PENDING
                     }
 
                     return dbconfig.collection_proposal.update(
