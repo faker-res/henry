@@ -27075,7 +27075,11 @@ let dbPlayerInfo = {
         }
 
         if (recCheck && recCheck.length) {
-            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+            recCheck.forEach(p => {
+                if (p && p.playerObjId) {
+                    retArr.push(p.playerObjId.name);
+                }
+            });
         }
 
         return retArr;
