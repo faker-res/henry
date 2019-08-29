@@ -1829,5 +1829,8 @@
   "LOGIN_TIMES_AVERAGE": "Login Times Average",
   "LOGIN_PLAYER_COUNT_AVERAGE": "Login Headcount Average",
   "LOGIN_PLAYER_COUNT": "Login Headcount",
-  "AppPlayer": "APP Player"
+  "AppPlayer": "APP Player",
+  "referralName": "Referral Name",
+  "REFERRAL_VALID": "Valid",
+  "REFERRAL_UNBIND": "Unbind"
 }

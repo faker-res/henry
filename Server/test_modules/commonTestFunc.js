@@ -17,6 +17,8 @@ var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
 var dbPartner = require('../db_modules/dbPartner');
+var dbProposal = require('../db_modules/dbProposal');
+var constProposalType = require('./../const/constProposalType');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
@@ -31,9 +33,8 @@ if (env.mode == "qa") {
     clientApiInstances.createPaymentAPIMocked();
 }
 
-var commonTestFunc = {
-
-    testPlatformName: "testPlatform",
+let commonTestFunc = {
+    testPlatformName: 'testClientPlatform',
     testPaymentChannelName: "testPaymentChannelName",
     testPlayerName: "testplayer",
     testProviderName: 'testProviderName',
@@ -46,16 +47,18 @@ var commonTestFunc = {
     testAdminName: "step1admin",
     testRoleName: "step1Role",
     testDepartName: "step1Department",
+    testAdminEmail: "step1admin@email.com",
 
 
-    createTestPlatform: function (data) {
-        var date = new Date();
-        var platformName = commonTestFunc.testPlatformName + date.getTime();
-        var platformData = {
+    createTestPlatform: function(data) {
+        let date = new Date();
+        let platformName = commonTestFunc.testPlatformName + date.getTime();
+        let platformData = {
             name: platformName,
-            prefix: "",
+            platformId: '9999',
+            prefix: '',
             code: new Date().getTime(),
-            description: "a platform for testing"
+            description: 'createTestPlatform - Unit Test',
         };
 
         if (data) {
@@ -157,10 +160,9 @@ var commonTestFunc = {
         return dbPaymentChannel.createPaymentChannel(channelData);
     },
 
-    createTestGameProvider: function (data) {
-
-        var date = new Date();
-        var providerData = {
+    createTestGameProvider: function() {
+        let date = new Date();
+        let providerData = {
             name: commonTestFunc.testProviderName + date.getTime(),
             nickName: "Froggy Games",
             code: "FGXN" + date.getTime(),
@@ -281,6 +283,12 @@ var commonTestFunc = {
 
         return dbRole.attachRolesToUsersById([adminId], [roleId]);
 
+    },
+
+    createUpdatePlayerCreditProposalTest: function (data) {
+        let platformId = data.platformId;
+        let typeName = constProposalType.UPDATE_PLAYER_CREDIT;
+        return dbProposal.checkUpdateCreditProposal(platformId, typeName, data);
     },
 
 

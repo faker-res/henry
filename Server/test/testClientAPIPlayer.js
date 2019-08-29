@@ -63,12 +63,10 @@ describe("Test Client API - Player service", function () {
 
     var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
 
-
     //// Init player Data - Start ///////
     // NOTE :: if you return promise (or use async/await), you do not need to call done(). An exception will occur if you do it
     // however, if you use promise(or any sort of async programming) without return promise, done() is necessary to tell mocha that the script is finished
-
-    before(async function (){
+    before(async function () {
         //create test platform
         let testPlatform = await commonTestFun.createTestPlatform();
         testPlatformObjId = testPlatform._id;
@@ -143,48 +141,12 @@ describe("Test Client API - Player service", function () {
         done();
     });
 
-    // let apiGetSmsCode;
-    // before(function(){
-    //     const smsParam = {
-    //                 phoneNumber: testPPlayerPhoneNumber,
-    //                 platformId: testPlatformId,
-    //                 name:testNewPlayerPartnerName,
-    //                 purpose: "registration"
-    //             };
-    //     clientPlayerAPITest.getSMSCode(function(data) {
-    //         apiGetSmsCode = data;
-    //         apiGetSmsCode.status.should.equal(200);
-    //     },smsParam);
-    // })
-    // it('Should send sms code', function(){
-    //     // apiCreatedGuestPlayer.data.name.should.endWith(testNewGuestPlayerName);
-    //     // done();
-    // });
-    //
-    // let apiCreatedPlayerPartner;
-    // before(function(){
-    //     const newPlayerPartnerData = {
-    //         name: testNewPlayerPartnerName,
-    //         platformId: testPlatformId,
-    //         phoneNumber: testPPlayerPhoneNumber,
-    //         password: "999876",
-    //         lastLoginIp: "192.168.3.24",
-    //         email: "testPlayerPartner123@gmail.com",
-    //         smsCode: smsCode,
-    //         isTestPlayer: true,
-    //         requestId: "testRequestId123"
-    //     };
-    //     clientPlayerAPITest.createPlayerPartner(function(data) {
-    //         apiCreatedPlayerPartner = data;
-    //         // testNewPlayerPartnerId = data.data.playerId;
-    //         // done();
-    //     });
-    // })
-    // it('Should create test player partner', function(){
-    //     // apiCreatedGuestPlayer.data.name.should.endWith(testNewGuestPlayerName);
-    //     // done();
-    // });
+    it('Should create a test player', function(done) {
+        apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
+        done();
+    });
 
+    // NOTE:: move the dependency out of 'it' so you can run each 'it' test individually while still not having dependency issue
     let apiLoginPlayer;
     before(function (done) {
         const testPlayerLoginData = {
@@ -208,7 +170,7 @@ describe("Test Client API - Player service", function () {
         done();
     });
 
-    it('Should return true - test player isLogin', function () {
+    it('Should return true - test player isLogin', function (done) {
         clientPlayerAPITest.isLogin(function (data) {
             data.status.should.equal(200);
             data.data.should.equal(true);
@@ -609,6 +571,7 @@ describe("Test Client API - Player service", function () {
         }, {platformId: testPlatformId});
     });
 
+
 //-------------------By Taylor-------------------------
 
     it('Should login Jbl Show', function () {
@@ -758,8 +721,7 @@ describe("Test Client API - Player service", function () {
             phoneNumber: "17355544411",
             smsCode: "5478"
         });
-    });
-
+      
     it('Should Update Password With Token', function () {
         clientPlayerAPITest.updatePasswordWithToken(function (data) {
             data.status.should.equal(200);

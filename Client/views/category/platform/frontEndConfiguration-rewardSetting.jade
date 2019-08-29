@@ -1,29 +1,46 @@
 div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
     div
+        label {{'REWARD_EVENT_CATEGORY' | translate}}
+    btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.editRewardCategory(null, true)")
+        span.fa.fa-pencil-square-o {{"ADD" | translate}}
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+    div
         label {{'REWARD_EVENT' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.addNewRewardSetting(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 
-div(style="margin: 10px; padding: 10px;")
-    label {{'Add category' | translate}}:
-    input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardCategory" )
-    button.btn.btn-primary(ng-click ="vm.addRewardCategory(vm.newRewardCategory)") {{'SUBMIT' | translate}}
+//div(style="margin: 10px; padding: 10px;")
+//    label {{'Add category' | translate}}:
+//    input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardCategory" )
+//    button.btn.btn-primary(ng-click ="vm.addRewardCategory(vm.newRewardCategory)") {{'SUBMIT' | translate}}
 div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
     label {{"Show category"|translate}}:
     div.inline-block(style="width: 40%;")
         select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-model="vm.displayCategory")
             //option(value='all' ng-init='$last && vm.refreshSPicker()') {{'PRESET (ALL)' | translate}}
             option(ng-init='$last && vm.refreshSPicker()' ng-repeat='item in vm.allFrontEndRewardCategory', value='{{item._id}}') {{item.categoryName}}
-    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayCategory(vm.displayCategory)") {{'SUBMIT' | translate}}
+    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayCategory(vm.displayCategory); vm.enableSortableCategoryChange(vm.frontEndRewardCategory);") {{'SUBMIT' | translate}}
 
 div.col-xs-12.row(style="padding-right: 0;")
+    div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
+        div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
+            span(style='font-weight: bold;') {{'ALL CATEGORY' | translate}}
+            p.text-danger 正式站、测试站点击可切换
+                button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRewardCategory(null, null, true)")
+                    span.fa.fa-edit
+            hr
+            div#allReward(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;")
+                ul.ownDragDrop(style="min-height: 90%; list-style: none; padding: 0px;")
+                    li.draggable-item(ng-repeat="event in vm.allRewardSettingData | orderBy: 'orderNumber'" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
+                        span {{event.title}}
+
     div.col-md-4(ng-repeat="data in vm.frontEndRewardCategory" style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
         div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
             span(style='font-weight: bold;') {{data.categoryName}}
             p.text-danger 正式站、测试站点击可切换
-                button.btn.btn-danger.btn-delete(style="margin-left: 5px;", ng-click="vm.deleteRewardCategory(data._id)")
+                button.btn.btn-danger.btn-delete(style="margin-left: 5px;", ng-click="vm.deleteRewardCategory(data._id, vm.frontEndRewardCategory)")
                     span.fa.fa-trash-o
                 button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRewardCategory(data._id)")
                     span.fa.fa-edit
@@ -35,7 +52,7 @@ div.col-xs-12.row(style="padding-right: 0;")
                         .tab-btngroup
                             button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
                             button.btn.btn-success(ng-if="!event.isVisible", ng-click="event.isVisible = true") off
-                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id)")
+                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'rewardSettingData', 'allRewardSettingData')")
                                 span.fa.fa-trash-o
 
 div.text-right
@@ -46,7 +63,7 @@ div.text-right
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.isDefaultRewardCategory = false;")
                 h4.modal-title {{"Edit Reward Category" | translate}}
             .modal-body
                 .panel.panel-primary
@@ -55,8 +72,14 @@ div.text-right
                             .full-width-input-block
                                 label(style="width: 30%;") {{"CATEGORY NAME"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.newRewardCategoryData.categoryName")
+                                    input.form-control(ng-disabled="vm.isDefaultRewardCategory" ng-model="vm.newRewardCategoryData.categoryName")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newRewardCategoryData.displayFormat')
+                                        option(value='1') {{ "list" | translate}}
+                                        option(value='2') {{ "threeInARow" | translate}}
 
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.updateRewardCategory(vm.newRewardCategoryData)') {{"CONFIRM" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.isDefaultRewardCategory = false;") {{"CANCEL" | translate}}

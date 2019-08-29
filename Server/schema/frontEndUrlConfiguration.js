@@ -46,6 +46,8 @@ var frontEndUrlConfigurationSchema = new Schema({
         formBorderBottomColor: {type: String},
         // 表单hover下框色
         formHoverBottomFrameColor: {type: String},
+        // 下拉框背景色
+        dropDownFrameBgColor: {type: String},
 
     },
     app: {

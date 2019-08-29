@@ -797,6 +797,18 @@ define([], function () {
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if (classes.indexOf('referrralRewardReportProfit') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if (classes.indexOf('promoCodeAcceptanceRate') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -1113,6 +1125,7 @@ define([], function () {
                 case "PlayerBonusDoubledRewardGroup":
                 case "PlayerRetentionRewardGroup":
                 case "BaccaratRewardGroup":
+                case "ReferralRewardGroup":
                     groupName = "Reward Proposal";
                     break;
                 case "UpdatePlayerInfo":

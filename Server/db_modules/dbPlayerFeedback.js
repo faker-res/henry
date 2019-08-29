@@ -1057,8 +1057,9 @@ var dbPlayerFeedback = {
             sendQuery.csOfficer.forEach(item => {
                 if (item == "") {
                     noneCSOfficerQuery = {csOfficer: {$exists: false}};
-                } else {
-                    csOfficerArr.push(ObjectId(item));
+                } else if (item && String(item).length === 24) {
+                    console.log('sendQuery.csOfficer String(item)', String(item));
+                    csOfficerArr.push(ObjectId(String(item)));
                 }
             });
 
@@ -1167,7 +1168,9 @@ var dbPlayerFeedback = {
             }
             let prom = dbconfig.collection_players.findOne({
                 phoneNumber: {$in: [player.phoneNumber, rsaCrypto.encrypt(player.phoneNumber)]},
-                platform: targetPlatformId
+                platform: targetPlatformId,
+                isRealPlayer: true,
+                "permission.forbidPlayerFromLogin": {$ne: true},
             }, {
                 _id: 1
             }).lean().then(
