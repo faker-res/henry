@@ -23,17 +23,27 @@ var commonTestFun = require('../test_modules/commonTestFunc');
 var testPlatformName = 'unittestPlayerApi_platformName';
 var testQuickPlayerName = 'testquickplayername';
 var testPhoneNumber = '95567654';
+var testGuestPhoneNumber = '55699874';
+var testPPlayerPhoneNumber = '97787654556';
 
 var testPlayerName = null;
 var testNewPlayerName = 'testnewplayer';
+var testNewGuestPlayerName = 'testguestplayer';
+var testNewPlayerPartnerName = 'testplayerpartner';
 var testPlatformObjId = null;
 var testPlatformId = null;
 var testPlayerObjId = null;
 var testPlayerId = null;
 var testNewPlayerId = null;
+var testNewGuestPlayerId = null;
+var testNewPlayerPartnerId = null;
 var smsCode = null;
 var token = null;
 var dat = null;
+var testPlayerGender = null;
+var testPlayerDOB = null;
+var testPlayerRealName = null;
+var testPlayerOldPwd = null;
 
 describe("Test Client API - Player service", function () {
 
@@ -66,10 +76,12 @@ describe("Test Client API - Player service", function () {
 
         // create test player
         let testPlayer = await commonTestFun.createTestPlayer(testPlatformObjId);
-        console.log('test player', testPlayer)
         testPlayerName = testPlayer.name;
         testPlayerObjId = testPlayer._id;
         testPlayerId = testPlayer.playerId;
+        testPlayerGender = testPlayer.gender;
+        testPlayerDOB = testPlayer.DOB;
+        testPlayerRealName = testPlayer.realName;
 
         // create a connection
         client.connect();
@@ -82,53 +94,6 @@ describe("Test Client API - Player service", function () {
         }
         await clientOpenProm();
     });
-
-    // it('Should create test API player and platform', function (done) {
-    //
-    //     commonTestFun.createTestPlatform().then(
-    //         function (data) {
-    //             testPlatformObjId = data._id;
-    //             testPlatformId = data.platformId;
-    //             // testPlatformId = "5566";
-    //             return commonTestFun.createTestPlayer(testPlatformObjId);
-    //         },
-    //         function (error) {
-    //             console.error(error);
-    //         }
-    //     ).then(
-    //         function (data) {
-    //             testPlayerName = data.name;
-    //             testPlayerObjId = data._id;
-    //             testPlayerId = data.playerId;
-    //             done();
-    //         },
-    //         function (error) {
-    //             console.error(error);
-    //         }
-    //     );
-    // });
-    // Init player Data - End ///////
-
-    // it('Should create a connection', function (done) {
-    //     client.connect();
-    //     client.addEventListener("open", function () {
-    //         done();
-    //     });
-    // });
-
-
-
-    // it('Should get SMS code', function (done) {
-    //     clientPlayerAPITest.getSMSCode(function (data) {
-    //         if (data && data.data) {
-    //             smsCode = data.data;
-    //             done();
-    //         }
-    //
-    //     }, {
-    //         phoneNumber: testPhoneNumber
-    //     });
-    // });
 
     let apiCreatedPlayer;
     before(function(done) {
@@ -150,27 +115,75 @@ describe("Test Client API - Player service", function () {
     })
 
     it('Should create a test player', function (done) {
-        // const newPlayerData = {
-        //     name: testNewPlayerName,
-        //     platformId: testPlatformId,
-        //     phoneNumber: testPhoneNumber,
-        //     captcha: 'testCaptcha',
-        //     password: "123456",
-        //     lastLoginIp: "192.168.3.22",
-        //     email: "testPlayer123@gmail.com",
-        //     isTestPlayer: true
-        // };
-        // clientPlayerAPITest.create(function (data) {
-        //     //console.log(data);
-        //     data.data.name.should.endWith(testNewPlayerName);
-        //     //data.data.email.should.equal("testPlayer123@gmail.com");
-        //     testNewPlayerId = data.data.playerId;
-        //     // done();
-        // }, newPlayerData);
-
         apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
         done();
     });
+
+    let apiCreatedGuestPlayer;
+    before(function(done){
+        const newGuestPData = {
+            name: testNewGuestPlayerName,
+            platformId: testPlatformId,
+            phoneNumber: testGuestPhoneNumber,
+            captcha: 'testCaptcha',
+            password: "654321",
+            lastLoginIp: "192.168.3.23",
+            email: "testGuestPlayer123@gmail.com",
+            isTestPlayer: true,
+            guestDeviceId: "01234567-89ABCDEF-01234567-89ABCDEF"
+        };
+        clientPlayerAPITest.createGuestPlayer(function(data) {
+            apiCreatedGuestPlayer = data;
+            testNewGuestPlayerId = data.data.playerId;
+            done();
+        }, newGuestPData);
+    })
+    it('Should create test guest player', function(done){
+        // apiCreatedGuestPlayer.data.name.should.endWith(testNewGuestPlayerName);
+        done();
+    });
+
+    // let apiGetSmsCode;
+    // before(function(){
+    //     const smsParam = {
+    //                 phoneNumber: testPPlayerPhoneNumber,
+    //                 platformId: testPlatformId,
+    //                 name:testNewPlayerPartnerName,
+    //                 purpose: "registration"
+    //             };
+    //     clientPlayerAPITest.getSMSCode(function(data) {
+    //         apiGetSmsCode = data;
+    //         apiGetSmsCode.status.should.equal(200);
+    //     },smsParam);
+    // })
+    // it('Should send sms code', function(){
+    //     // apiCreatedGuestPlayer.data.name.should.endWith(testNewGuestPlayerName);
+    //     // done();
+    // });
+    //
+    // let apiCreatedPlayerPartner;
+    // before(function(){
+    //     const newPlayerPartnerData = {
+    //         name: testNewPlayerPartnerName,
+    //         platformId: testPlatformId,
+    //         phoneNumber: testPPlayerPhoneNumber,
+    //         password: "999876",
+    //         lastLoginIp: "192.168.3.24",
+    //         email: "testPlayerPartner123@gmail.com",
+    //         smsCode: smsCode,
+    //         isTestPlayer: true,
+    //         requestId: "testRequestId123"
+    //     };
+    //     clientPlayerAPITest.createPlayerPartner(function(data) {
+    //         apiCreatedPlayerPartner = data;
+    //         // testNewPlayerPartnerId = data.data.playerId;
+    //         // done();
+    //     });
+    // })
+    // it('Should create test player partner', function(){
+    //     // apiCreatedGuestPlayer.data.name.should.endWith(testNewGuestPlayerName);
+    //     // done();
+    // });
 
     let apiLoginPlayer;
     before(function (done) {
@@ -188,26 +201,16 @@ describe("Test Client API - Player service", function () {
     });
 
     it('Should login apiUser', function (done) {
-        // const testPlayerLoginData = {
-        //     name: testPlayerName,
-        //     password: "123456",
-        //     lastLoginIp: "192.168.3.22",
-        //     platformId: testPlatformId
-        // };
-        // clientPlayerAPITest.login(function (data) {
-        //     this.timeout(15000);
-        //     token = data.token;
-        //     data.data.name.should.equal(testPlayerName);
-        // }, testPlayerLoginData);
-
+        apiLoginPlayer.status.should.equal(200);
+        apiLoginPlayer.data.should.be.an.Object();
+        apiLoginPlayer.token.should.be.a.String();
         apiLoginPlayer.data.name.should.equal(testPlayerName);
         done();
     });
 
-
     it('Should return true - test player isLogin', function () {
         clientPlayerAPITest.isLogin(function (data) {
-
+            data.status.should.equal(200);
             data.data.should.equal(true);
         }, {playerId: testPlayerId});
     });
@@ -215,176 +218,16 @@ describe("Test Client API - Player service", function () {
     //todo::add env config for server url
     it('Should get a test player', function (done) {
         clientPlayerAPITest.get(function (data) {
-            // data.data.should.have.property('playerId').which.is.a.Number();
-            data.data._id.should.not.null();
-            data.data.playerId.should.be.a.String();
-            data.data.name.should.be.a.String();
-            data.data.password.should.be.a.String();
-            data.data.phoneNumber.should.be.a.String();
-            data.data.bankName.should.be.a.String();
-            data.data.bankAccount.should.be.a.String();
-            data.data.bankAccountName.should.be.a.String();
-            data.data.bankAccountType.should.be.a.String();
-            data.data.bankAddress.should.be.a.String();
-            data.data.bankBranch.should.be.a.String();
-            data.data.internetBanking.should.be.a.String();
-            data.data.merchantGroup.should.be.a.String();
-            data.data.bankCardGroup.should.be.a.String();
-            data.data.hasPassword.should.be.a.Boolean();
-            data.data.qnaWrongCount.should.not.null();
-            data.data.relTsPhoneList.should.an.Array();
-            data.data.ximaWithdraw.should.a.Number();
-            data.data.viewInfo.should.not.null();
-            data.data.loginTimes.should.be.an.Number();
-            data.data.registrationInterface.should.be.an.Number();
-            data.data.valueScore.should.be.an.Number();
-            data.data.gameProviderPlayed.should.be.an.Array();
-            data.data.credibilityRemarks.should.be.an.Array();
-            data.data.applyingEasterEgg.should.be.a.Boolean();
-            data.data.isReferralReward.should.be.a.Boolean();
-            data.data.similarPlayers.should.be.an.Array();
-            data.data.favoriteGames.should.be.an.Array();
-            data.data.bFirstTopUpReward.should.be.a.Boolean();
-            data.data.forbidLevelMaintainReward.should.be.a.Boolean();
-            data.data.forbidLevelUpReward.should.be.a.Boolean();
-            data.data.forbidPromoCode.should.be.a.Boolean();
-            data.data.forbidRewardEvents.should.be.an.Array();
-            data.data.forbidTopUpType.should.be.an.Array();
-            data.data.creditWallet.should.be.an.Array();
-            data.data.consumptionTimes.should.be.a.Number();
-            data.data.consumptionSum.should.be.a.Number();
-            data.data.pastMonthConsumptionSum.should.be.a.Number();
-            data.data.weeklyConsumptionSum.should.be.a.Number();
-            data.data.dailyConsumptionSum.should.be.a.Number();
-            data.data.bonusAmountSum.should.be.a.Number();
-            data.data.pastMonthBonusAmountSum.should.be.a.Number();
-            data.data.weeklyBonusAmountSum.should.be.a.Number();
-            data.data.dailyBonusAmountSum.should.be.a.Number();
-            data.data.withdrawSum.should.be.a.Number();
-            data.data.pastMonthWithdrawSum.should.be.a.Number();
-            data.data.weeklyWithdrawSum.should.be.a.Number();
-            data.data.dailyWithdrawSum.should.be.a.Number();
-            data.data.withdrawTimes.should.be.a.Number();
-            data.data.topUpTimes.should.be.a.Number();
-            data.data.topUpSum.should.be.a.Number();
-            data.data.pastMonthTopUpSum.should.be.a.Number();
-            data.data.weeklyTopUpSum.should.be.a.Number();
-            data.data.dailyTopUpIncentiveAmount.should.be.a.Number();
-            data.data.dailyTopUpSum.should.be.a.Number();
-            data.data.lockedCredit.should.be.a.Number();
-            data.data.validCredit.should.be.a.Number();
-            data.data.creditBalance.should.be.a.Number();
-            data.data.permission.should.not.null();
-            data.data.permission.levelChange.should.be.a.Boolean();
-            data.data.permission.PlayerLimitedOfferReward.should.be.a.Boolean();
-            data.data.permission.PlayerPacketRainReward.should.be.a.Boolean();
-            data.data.permission.playerConsecutiveConsumptionReward.should.be.a.Boolean();
-            data.data.permission.forbidPlayerFromEnteringGame.should.be.a.Boolean();
-            data.data.permission.forbidPlayerFromLogin.should.be.a.Boolean();
-            data.data.permission.PlayerDoubleTopUpReturn.should.be.a.Boolean();
-            data.data.permission.PlayerTopUpReturn.should.be.a.Boolean();
-            data.data.permission.forbidPlayerConsumptionIncentive.should.be.a.Boolean();
-            data.data.permission.allowPromoCode.should.be.a.Boolean();
-            data.data.permission.forbidPlayerConsumptionReturn.should.be.a.Boolean();
-            data.data.permission.disableWechatPay.should.be.a.Boolean();
-            data.data.permission.rewardPointsTask.should.be.a.Boolean();
-            data.data.permission.banReward.should.be.a.Boolean();
-            data.data.permission.quickpayTransaction.should.be.a.Boolean();
-            data.data.permission.alipayTransaction.should.be.a.Boolean();
-            data.data.permission.SMSFeedBack.should.be.a.Boolean();
-            data.data.permission.phoneCallFeedback.should.be.a.Boolean();
-            data.data.permission.topUpCard.should.be.a.Boolean();
-            data.data.permission.topupManual.should.be.a.Boolean();
-            data.data.permission.topupOnline.should.be.a.Boolean();
-            data.data.permission.allTopUp.should.be.a.Boolean();
-            data.data.permission.transactionReward.should.be.a.Boolean();
-            data.data.permission.applyBonus.should.be.a.Boolean();
-            data.data.userAgent.should.be.an.Array();
-            data.data.games.should.be.an.Array();
-            data.data.exp.should.be.a.Number();
-            data.data.forbidPromoCodeList.should.be.an.Array();
-            data.data.forbidRewardPointsEvent.should.be.an.Array();
-            data.data.forbidProviders.should.be.an.Array();
-            data.data.status.should.be.a.Number();
-            data.data.badRecords.should.be.an.Array();
-            data.data.trustLevel.should.be.a.String();
-            data.data.blacklistIp.should.be.an.Array();
-            data.data.loginIps.should.be.an.Array();
-            data.data.lastLoginIp.should.be.a.String();
-            data.data.isLogin.should.be.a.Boolean();
-            data.data.lastAccessTime.should.be.a.String();
-            data.data.registrationTime.should.be.a.String();
-            data.data.realName.should.be.a.String();
-            data.data.receiveSMS.should.be.a.Boolean();
-            data.data.feedbackTimes.should.be.a.Number();
-            if(data.data.lastFeedbackTime){//sometimes, it will be null if no feedback time, add a null check here
-                data.data.lastFeedbackTime.should.be.a.String();
-            }
-            data.data.isRealPlayer.should.be.a.Boolean();
-            data.data.isTestPlayer.should.be.a.Boolean();
-            data.data.icon.should.be.a.String();
-            data.data.smsSetting.should.not.null();
-            data.data.smsSetting.AuctionOpenPromoCodeSuccess.should.be.a.Boolean();
-            data.data.smsSetting.AuctionPromoCodeSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PromoCodeSend.should.be.a.Boolean();
-            data.data.smsSetting.PlayerLevelUpSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerLevelDownMigrationSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerLevelUpMigrationSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerPromoCodeRewardSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerRegisterIntentionSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerFreeTrialRewardGroupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerConsumptionRewardGroupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerConsecutiveRewardGroupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerLoseReturnRewardGroupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerTopUpReturnGroupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.updatePassword.should.be.a.Boolean();
-            data.data.smsSetting.UpdatePhoneInfoSuccess.should.be.a.Boolean();
-            data.data.smsSetting.UpdateBankInfoSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerLimitedOfferRewardSuccess.should.be.a.Boolean();
-            data.data.smsSetting.WithdrawCancel.should.be.a.Boolean();
-            data.data.smsSetting.WithdrawSuccess.should.be.a.Boolean();
-            data.data.smsSetting.WechatTopupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.AlipayTopupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.OnlineTopupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.ManualTopupSuccess.should.be.a.Boolean();
-            data.data.smsSetting.PlayerConsumptionReturnSuccess.should.be.a.Boolean();
-            data.data.smsSetting.updatePaymentInfo.should.be.a.Boolean();
-            data.data.smsSetting.consumptionReturn.should.be.a.Boolean();
-            data.data.smsSetting.applyReward.should.be.a.Boolean();
-            data.data.smsSetting.cancelBonus.should.be.a.Boolean();
-            data.data.smsSetting.applyBonus.should.be.a.Boolean();
-            data.data.smsSetting.manualTopup.should.be.a.Boolean();
-            if(data.data.DOB){
-                data.data.DOB.should.be.a.String();
-            }
-            data.data.gender.should.be.a.Boolean();
-            data.data.email.should.be.a.String();
-            data.data.__v.should.be.a.Number();
-            data.data.playerLevel.should.not.null();
-            data.data.playerLevel._id.should.be.a.String();
-            data.data.playerLevel.name.should.be.a.String();
-            data.data.playerLevel.value.should.be.a.Number();
-            data.data.playerLevel.platform.should.not.null();
-            data.data.playerLevel.playerValueScore.should.be.a.Number();
-            data.data.playerLevel.reward.should.not.null();
-            data.data.playerLevel.levelDownConfig.should.be.an.Array();
-            data.data.playerLevel.levelUpConfig.should.be.an.Array();
-            data.data.playerLevel.__v.should.be.a.Number();
-            data.data.rewardPointsObjId.should.not.null();
-            data.data.userCurrentPoint.should.be.a.Number();
-            data.data.platformId.should.be.a.String();
-            data.data.bankAccountCityId.should.be.a.String();
-            data.data.pendingRewardAmount.should.be.a.Number();
-            data.data.preDailyExchangedPoint.should.be.a.Number();
-            data.data.preDailyAppliedPoint.should.be.a.Number();
             data.status.should.equal(200);
+            data.data.should.be.an.Object();
+            data.data.hasPassword.should.be.a.Boolean();
             done();
         }, {playerId: testPlayerId});
     });
 
     it('Should update a player sms setting', function () {
         clientPlayerAPITest.updateSmsSetting(function (data) {
-            // data.status.should.equal(200);
+            data.status.should.equal(200);
             // done();
         }, {
             playerId: testPlayerId,
@@ -392,7 +235,7 @@ describe("Test Client API - Player service", function () {
         });
     });
 
-    // it('Should send sms code', function(done){
+    // it('Should get sms code', function(done){
     //     const smsParam = {
     //         phoneNumber: testPhoneNumber,
     //         platformId: testPlatformId
@@ -403,9 +246,52 @@ describe("Test Client API - Player service", function () {
     //    }, smsParam);
     // });
 
+    it('Should get credit', function(){
+        clientPlayerAPITest.getCredit(function (data){
+            data.status.should.equal(200);
+            data.data.gameCredit.should.be.a.Number();
+            data.data.pendingRewardAmount.should.be.a.Number();
+            data.data.validCredit.should.be.a.Number();
+        }, {playerId: testPlayerId});
+    });
+
+    it('Should get player Credit Balance', function () {
+        clientPlayerAPITest.getCreditBalance(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.a.Number();
+        }, {playerId: testPlayerId});
+    });
+
+    it('Should get credit info', function(){
+        clientPlayerAPITest.getCreditInfo(function (data){
+            data.status.should.equal(200);
+            data.data.gameCredit.should.be.a.Number();
+            data.data.lockedCredit.should.be.a.Number();
+            data.data.taskData._id.should.be.a.String();
+            data.data.taskData.playerId.should.be.a.String();
+            data.data.taskData.type.should.be.a.String();
+            data.data.taskData.rewardType.should.be.a.String();
+            data.data.taskData.platformId.should.be.a.String();
+            data.data.taskData.eventId.should.be.a.String();
+            data.data.taskData.useConsumption.should.be.a.Boolean();
+            data.data.taskData.isUnlock.should.be.a.Boolean();
+            data.data.taskData.initAmount.should.be.a.Number();
+            data.data.taskData.currentAmount.should.be.a.Number();
+            data.data.taskData._inputCredit.should.be.a.Number();
+            data.data.taskData.unlockedAmount.should.be.a.Number();
+            data.data.taskData.requiredUnlockAmount.should.be.a.Number();
+            data.data.taskData.inProvider.should.be.a.Boolean();
+            data.data.taskData.createTime.should.be.a.String();
+            data.data.taskData.data.should.be.null();
+            data.data.taskData.targetGames.should.be.an.Array();
+            data.data.taskData.targetProviders.should.be.an.Array();
+            data.data.taskData.status.should.be.a.String();
+            data.data.validCredit.should.be.a.Number();
+        }, {playerId: testPlayerId});
+    });
+
     it('Should get credit detail', function(){
         clientPlayerAPITest.getCreditDetail(function (data){
-            // expect(data.data.credit).toBe('number');
             data.data.credit.should.be.a.Number();
             data.data.finalAmount.should.be.a.Number();
             if(data.data.sameLineProviders){
@@ -430,37 +316,21 @@ describe("Test Client API - Player service", function () {
                     data.data.lockedCreditList.list.status.be.a.Boolean();
                 }
             }
-            // expect(data.data.finalAmount).toBe('number');
             data.status.should.equal(200);
-            // done();ObjectId("5cebb27843d8f20296c7cde1")
         }, {playerObjId: testPlayerObjId});
     });
 
-    // it('Should update a player payment info', function (done) {
-    //     var updatePaymentInfo = {
-    //         playerId: testPlayerId,
-    //         bankType: "testBank",
-    //         bankAccount: "1234567890123456",
-    //         // bankAccountName: "testPlayer",
-    //         bankAccountType: "saving"
-    //     };
-    //     clientPlayerAPITest.updatePaymentInfo(function (data) {
-    //         data.status.should.equal(200);
-    //         done();
-    //     }, updatePaymentInfo);
-    // });
-
     it('Should check a player name valid to register and should return false', function () {
         clientPlayerAPITest.isValidUsername(function (data) {
+            data.status.should.equal(200);
             data.data.should.equal(false);
-
         }, {name: testPlayerName, platformId: testPlatformId});
     });
-
 
     it('Should authenticate the token from previous login', function () {
         clientPlayerAPITest.authenticate(function (data) {
             data.status.should.equal(200);
+            data.data.should.be.a.Boolean();
 
         }, {playerId: testPlayerId, token: token});
     });
@@ -468,42 +338,93 @@ describe("Test Client API - Player service", function () {
     it('Should update photo url', function () {
         clientPlayerAPITest.updatePhotoUrl(function (data) {
             data.status.should.equal(200);
-
+            data.data.should.equal(400);
         }, {
             photoUrl: "http://facebook.com/aaa/bbb"
         });
     });
 
-    it('Should get player Credit Balance', function () {
-        clientPlayerAPITest.getCreditBalance(function (data) {
+    it('Should get player day status', function () {
+        clientPlayerAPITest.getPlayerDayStatus(function (data) {
             data.status.should.equal(200);
+            data.data.topUpAmount.should.be.a.Number();
+            data.data.consumptionAmount.should.be.a.Number();
 
-        });
+        }, {playerId: testPlayerId});
     });
-
 
     it('Should get player weekly status', function () {
         clientPlayerAPITest.getPlayerWeekStatus(function (data) {
             data.status.should.equal(200);
+            data.data.topUpAmount.should.be.a.Number();
+            data.data.consumptionAmount.should.be.a.Number();
 
-        });
+        },{playerId: testPlayerId});
     });
 
     it('Should get player Monthly status', function () {
         clientPlayerAPITest.getPlayerMonthStatus(function (data) {
             data.status.should.equal(200);
+            data.data.topUpAmount.should.be.a.Number();
+            data.data.consumptionAmount.should.be.a.Number();
 
-        });
+        },{playerId: testPlayerId});
+    });
+
+    it('Should get player any day status', function () {
+        clientPlayerAPITest.getPlayerAnyDayStatus(function (data) {
+            data.status.should.equal(200);
+            data.data.topUpAmount.should.be.a.Number();
+            data.data.consumptionAmount.should.be.a.Number();
+            data.data.bonusAmount.should.be.a.Number();
+            data.data.rewardAmount.should.be.a.Number();
+
+        },{playerId: testPlayerId});
     });
 
     it('Should get player mailing list', function () {
         clientPlayerAPITest.getMailList(function (data) {
             data.status.should.equal(200);
+            data.data._id.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
 
-        });
+        },{playerId: testPlayerId});
     });
 
+    it('Should get player unread mail', function () {
+        clientPlayerAPITest.getUnreadMail(function (data) {
+            data.status.should.equal(200);
+            data.data._id.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerId: testPlayerId});
+    });
 
+    it('Should send mail from player to player', function () {
+        clientPlayerAPITest.sendPlayerMailFromPlayerToPlayer(function (data) {
+            data.status.should.equal(200);
+            data.data.__v.should.be.a.Number();
+            data.data.platformId.should.be.a.String();
+            data.data.senderType.should.be.a.String();
+            data.data.senderId.should.be.a.String();
+            data.data.senderName.should.be.a.String();
+            data.data.recipientType.should.be.a.String();
+            data.data.recipientId.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data._id.should.be.a.String();
+            data.data.bDelete.should.be.a.Boolean();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
+    });
+
+    //not appear in CLient API MD
     it('Should do player Quick Registration', function () {
         dbconfig.collection_players.remove({name: testQuickPlayerName});
 
@@ -520,39 +441,351 @@ describe("Test Client API - Player service", function () {
         });
     });
 
+    it('Should check valid real name', function () {
+        const param = {
+            realName: "单元测试姓名",
+            platformId: testPlatformId
+        }
+        clientPlayerAPITest.isValidRealName(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.a.Boolean();//data.data just simply return true, so check as boolean.
+
+        }, param);
+    });
+
+    it('Should set player password', function () {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        clientPlayerAPITest.settingPlayerPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.text.should.be.a.String();
+            //this if block doing for updatePassword
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
+        }, {
+            playerId: testPlayerId,
+            password: randomPWD.toString()
+        });
+    });
+
+    it('Should update player', function () {
+        clientPlayerAPITest.update(function (data) {
+            data.status.should.equal(200);
+        },{playerId: testNewPlayerId, gender: testPlayerGender, DOB: testPlayerDOB});
+    });
+
+    it('Should update player qq', function () {
+        var randomQQ = Math.floor((Math.random() * 1000000000) + 1000000000);
+        clientPlayerAPITest.updatePlayerQQ(function (data) {
+            data.status.should.equal(200);
+        },{playerId: testNewPlayerId, qq: randomQQ.toString()});
+    });
+
+    it('Should update player wechat', function () {
+        clientPlayerAPITest.updatePlayerWeChat(function (data) {
+            data.status.should.equal(200);
+
+        }, {playerId: testNewPlayerId, wechat: "testchangewechat"});
+    });
+
+    it('Should update player email', function () {
+        clientPlayerAPITest.updatePlayerEmail(function (data) {
+            data.status.should.equal(200);
+
+        }, {playerId: testNewPlayerId, email: "testplayerupdate@test.com"});
+    });
+
+    //Based on dbPlayer.js' comment, if isRealPlayer == false cannot perform update payment
+    // it('Should update a player payment info', function (done) {
+    //     var updatePaymentInfo = {
+    //         playerId: testPlayerId,
+    //         bankType: "testBank",
+    //         bankAccount: "1234567890123456",
+    //         // bankAccountName: "testPlayer",
+    //         bankAccountType: "saving"
+    //     };
+    //     clientPlayerAPITest.updatePaymentInfo(function (data) {
+    //         data.status.should.equal(200);
+    //         done();
+    //     }, updatePaymentInfo);
+    // });
+
+    it('Should get a captcha', function () {
+        clientPlayerAPITest.captcha(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.Object();
+        });
+    });
+
+    it('Should set SMS status', function () {
+        clientPlayerAPITest.setSmsStatus(function (data) {
+            data.status.should.equal(200);
+        }, {playerId: testPlayerId, status: "1"});
+    });
+
+    it('Should get SMS status', function () {
+        clientPlayerAPITest.getSmsStatus(function (data) {
+            data.status.should.equal(200);
+            data.data.smsName.should.be.a.String();
+            data.data.smsId.should.be.a.String();
+            data.data.status.should.be.a.Number();
+            data.data.settings.smsName.should.be.a.String();
+            data.data.settings.smsId.should.be.a.String();
+            data.data.settings.status.should.be.a.Number();
+        }, {playerId: testPlayerId});
+    });
+
+    it('Should manual level up', function () {
+        clientPlayerAPITest.manualPlayerLevelUp(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.a.Boolean();
+        },{playerId: testPlayerObjId});
+    });
+
+    it('Should verify phone number by SMS code', function () {
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        clientPlayerAPITest.verifyPhoneNumberBySMSCode(function (data) {
+            data.status.should.equal(200);
+        }, {playerId: testPlayerId, smsCode: randomCode});
+    });
+
+    it('Get last game info', function () {
+        clientPlayerAPITest.getLastPlayedGameInfo(function (data) {
+            data.status.should.equal(200);
+
+        }, testPlayerObjId);
+    });
+
     it('Fail in updating player password', function () {
         clientPlayerAPITest.updatePassword(function (data) {
             data.status.should.equal(400);
 
         }, {
             playerId: testPlayerId,
-            oldPassword: '123456',
+            oldPassword: testPlayerOldPwd,
             newPassword: '5678'
         });
     });
 
     it('Success in updating player password', function () {
+        var randomPWD = Math.floor((Math.random() * 1000000) + 1000000);
         clientPlayerAPITest.updatePassword(function (data) {
             data.status.should.equal(200);
-
+            //this if block doing for resetPassword.
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
         }, {
             playerId: testPlayerId,
-            oldPassword: '123456',
-            newPassword: '567891'
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
         });
     });
 
-    it('Should logout the player', function () {
-        clientPlayerAPITest.logout(function (data) {
+    it('Should reset password', function () {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        clientPlayerAPITest.resetPassword(function (data) {
             data.status.should.equal(200);
-
-        }, {playerId: testPlayerId});
+            data.data.phoneNumber.should.be.a.Number();
+            data.data.name.should.be.a.String();
+            data.data.playerId.should.be.a.String();
+            data.data.createTime.should.be.a.String();
+            data.data.realName.should.be.a.String();
+            data.data.password.should.be.a.String();
+            data.data.questionList.id.should.be.a.Number();
+            data.data.questionList.type.should.be.a.Number();
+            data.data.questionList.title.should.be.a.String();
+            data.data.questionList.option.should.be.a.String();
+        }, {
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
+        });
     });
 
     it('Should show player withdrawal info', function () {
         clientPlayerAPITest.getWithdrawalInfo(function (data) {
 
         }, {platformId: testPlatformId});
+    });
+
+//-------------------By Taylor-------------------------
+
+    it('Should login Jbl Show', function () {
+        clientPlayerAPITest.loginJblShow(function (data) {
+            data.status.should.equal(200);
+            data.data.url.should.be.a.String();
+
+        }, {playerObjId: testPlayerObjId });
+    });
+
+    it('Should Create Demo Player', function () {
+        clientPlayerAPITest.createDemoPlayer(function (data) {
+            data.status.should.equal(200);
+
+        }, {platformId: testPlatformId, "smsCode": "3963", "phoneNumber": "97787654" });
+    });
+
+    it('Should Change Birthday Date', function () {
+        clientPlayerAPITest.changeBirthdayDate(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+
+        }, {playerObjId: testPlayerObjId, date: "2000-01-01T00:00"});
+    });
+
+    it('Should get Client Data', function () {
+        clientPlayerAPITest.getClientData(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.a.String();
+
+        }, {playerId: testPlayerId});
+    });
+
+    it('Should Save Client Data', function () {
+        clientPlayerAPITest.saveClientData(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.a.String();
+
+        }, {playerId: testPlayerId,
+            clientData:"abc"});
+    });
+
+    it('Should Call Back To User', function () {
+        clientPlayerAPITest.callBackToUser(function (data) {
+            data.status.should.equal(200);
+            data.data.should.equal(true);
+
+        }, {platformId: testPlatformId,
+            phoneNumber: "13969999999",
+            "randomNumber": "1",
+            "captcha": "8353",
+            "lineId": "0",
+            playerId: testPlayerId
+        });
+    });
+
+    it('Should Get OM Captcha', function () {
+        clientPlayerAPITest.getOMCaptcha(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+            data.data.randomNumber.should.be.a.Number();
+            data.data.data.should.be.a.String();
+
+        }, {platformId: testPlatformId});
+    });
+
+    it('Should Get Receive Transfer List', function () {
+        clientPlayerAPITest.getReceiveTransferList(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+            data.data.stats.totalCount.should.be.a.Number();
+            data.data.stats.totalPage.should.be.a.Number();
+            data.data.stats.currentPage.should.be.a.Number();
+            data.data.stats.totalReceiveAmount.should.be.a.Number();
+
+            data.data.list.amount.should.be.a.Number();
+            data.data.list.time.should.be.a.String();
+            data.data.list.status.should.be.a.String();
+            data.data.list.proposalId.should.be.a.String();
+            data.data.list.withdrawConsumption.should.be.a.Number();
+            data.data.list.providerGroupId.should.be.a.Number();
+
+        }, {
+            platformId: testPlatformId,
+            playerId: testPlayerId,
+            startTime: "",
+            endTime: "",
+            requestPage: 1,
+            count: 10
+        });
+    });
+
+    it('Should Set PhoneNumber', function () {
+        clientPlayerAPITest.setPhoneNumber(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+            data.data.number.should.be.a.String();
+
+        }, {playerId: testPlayerId, number: "01155555555", smsCode: "3223"});
+    });
+
+    it('Should Get Player Login Or Register With SMS', function () {
+        clientPlayerAPITest.playerLoginOrRegisterWithSMS(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+
+        }, {
+            platformId: testPlatformId,
+            phoneNumber: "17355544411",
+            smsCode: "8888",
+            accountPrefix: "e",
+            checkLastDeviceId: true,
+            referralId: " 邀请码 "
+        });
+    });
+
+    it('Should Get Phone Number Login With Password', function () {
+        clientPlayerAPITest.phoneNumberLoginWithPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.should.be.an.Object();
+
+        }, {
+            platformId: testPlatformId,
+            phoneNumber: "17355544411",
+            password: "8888",
+            captcha: "34223"
+        });
+    });
+
+    it('Should Get Update DeviceId', function () {
+        clientPlayerAPITest.updateDeviceId(function (data) {
+            data.status.should.equal(200);
+            data.data.number.should.be.a.String();
+
+        }, {playerId: testPlayerId, deviceId: "deviceId123"});
+    });
+
+
+    it('Should Generate Update Password Token', function () {
+        clientPlayerAPITest.generateUpdatePasswordToken(function (data) {
+            data.status.should.equal(200);
+            data.data.token.should.be.a.String();
+
+        }, {
+            platformId: testPlatformId,
+            name: "username1",
+            phoneNumber: "17355544411",
+            smsCode: "5478"
+        });
+    });
+
+    it('Should Update Password With Token', function () {
+        clientPlayerAPITest.updatePasswordWithToken(function (data) {
+            data.status.should.equal(200);
+
+        }, {
+            token: token,
+            password: "password123",
+        });
+    });
+
+    it('Should Check is App Player And Applied Reward', function () {
+        clientPlayerAPITest.checkIsAppPlayerAndAppliedReward(function (data) {
+            data.status.should.equal(200);
+
+        }, {
+            token: token,
+            password: "password123",
+        });
+    });
+
+    //-------------------By Taylor-------------------------
+
+    it('Should logout the player', function () {
+        clientPlayerAPITest.logout(function (data) {
+            data.status.should.equal(200);
+        }, {playerId: testPlayerId});
     });
 
     after(async function () {
