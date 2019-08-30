@@ -35750,9 +35750,20 @@ define(['js/app'], function (myApp) {
 
             vm.loadDepartmentLocal = () => {
                 let platformObjId = getSelectedPlatform()._id;
-                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                let departments = vm.departments.filter(department => {
                     return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
-                })
+                });
+
+                vm.currentPlatformQueryDepartments = [];
+                // filter unique department
+                for (let i = 0; i < departments.length; i++) {
+                    let department = departments[i];
+                    let index = vm.currentPlatformQueryDepartments.findIndex(availableDepartment => availableDepartment._id === department._id);
+                    if (index <= -1) {
+                        vm.currentPlatformQueryDepartments.push(department);
+                    }
+                }
+
                 vm.refreshSPicker();
             };
 
