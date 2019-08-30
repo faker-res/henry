@@ -4327,7 +4327,7 @@ var dbPlatform = {
                         new: true
                     });
                 } else {
-                    return Q.reject({name: "DBError", error: "Cannot preview, setting is incomplete"});
+                    return Q.reject({name: "DBError", error: "None of the partner match the commission type"});
                 }
             }
         );

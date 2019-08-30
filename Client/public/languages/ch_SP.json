@@ -5198,6 +5198,7 @@
   "LOGIN": "登入",
   "Player Name (Can be empty)": "会员帐号（可不输入）",
   "Cannot preview, setting is incomplete": "无法提交预览， 尚未完成代理提成设置",
+  "None of the partner match the commission type": "找不到此佣金种类的代理",
   "PlayerApiLog": "玩家事件记录",
   "Create Feedback Mission": "创建回访任务",
   "Feedback Mission Overview": "回访任务总览",
