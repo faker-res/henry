@@ -78,6 +78,47 @@ div.margin-top-5
     button.btn.btn-danger.common-button(ng-if='vm.editAuditConfig.auditManualReward', ng-click='vm.editAuditConfig.auditManualReward=!vm.editAuditConfig.auditManualReward;vm.configTabClicked("emailAuditConfig")') {{"CANCEL" | translate}}
     button.btn.btn-primary.common-button(ng-if='vm.editAuditConfig.auditManualReward', ng-click='vm.editAuditConfig.auditManualReward=!vm.editAuditConfig.auditManualReward;vm.updateEmailAuditSetting("auditManualRewardSetting")') {{"CONFIRM" | translate}}
 
+h4(style='text-align:center;font-weight:bold') {{"Audit Repair Transfer" | translate}}
+table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+    thead
+        tr
+            th {{'TITLE' | translate}}
+            th {{'VALUE' | translate}}
+    tbody
+        tr
+            td {{'setCreditAmount' | translate}}
+            td
+                text(ng-if='!vm.editAuditConfig.auditRepairTransfer') {{"when transfer repair reached" | translate}}{{vm.auditRepairTransferSetting.minimumAuditAmount || '-'}}{{"dollars, auto send audit email" | translate}}
+                input(ng-if='vm.editAuditConfig.auditRepairTransfer' ng-model='vm.auditRepairTransferSetting.minimumAuditAmount' type='number' step='0.01')
+        tr
+            td {{'DEFAULT_EMAIL_NAME' | translate}}
+            td
+                input.inline-block(type='text' ng-model='vm.auditRepairTransferSetting.emailNameExtension', ng-disabled='!vm.editAuditConfig.auditRepairTransfer')
+                text(style='color:red') {{"repair transfer (x): username -- date" | translate}}
+        //tr
+        //    td {{'RECIPIENT_SELECT' | translate}}
+        //    td
+        //        text(ng-if='!vm.editAuditConfig.auditRepairTransfer') {{"Please tick website's recipient" | translate}}
+        //        a(data-toggle="modal", data-target='#modalRecipientSelection', ng-if='vm.editAuditConfig.auditRepairTransfer', ng-click='vm.initRecipientModal("auditRepairTransferSetting")') {{"Please tick website's recipient" | translate}}
+        //tr
+        //    td {{'The person who have the right to execute proposal' | translate}}
+        //    td
+        //        text(ng-if='!vm.editAuditConfig.auditRepairTransfer') {{"Please tick website's reviewer" | translate}}
+        //        a(data-toggle="modal", data-target='#modalRecipientSelection', ng-if='vm.editAuditConfig.auditRepairTransfer', ng-click='vm.initRecipientModal("auditRepairTransferSetting")') {{"Please tick website's reviewer" | translate}}
+        tr
+            td {{'audit link domain' | translate}}
+            td
+                input(type='text' ng-model='vm.auditRepairTransferSetting.domain', ng-disabled='!vm.editAuditConfig.auditRepairTransfer', placeholder='(e.g. "em9000.fpms8.me:9000")')
+
+                // todo :: change view permission
+div.margin-top-5
+    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditRepairTransfer && checkViewPermission('Platform', 'Config', 'emailAuditConfig')", ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer')
+        text {{'EDIT' | translate}}
+        img.img-edit
+    button.btn.btn-danger.common-button(ng-if='vm.editAuditConfig.auditRepairTransfer', ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer;vm.configTabClicked("emailAuditConfig")') {{"CANCEL" | translate}}
+    button.btn.btn-primary.common-button(ng-if='vm.editAuditConfig.auditRepairTransfer', ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer;vm.updateEmailAuditSetting("auditRepairTransferSetting")') {{"CONFIRM" | translate}}
+
+
 #modalRecipientSelection.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:80%")
         .modal-content

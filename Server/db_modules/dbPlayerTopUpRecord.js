@@ -50,6 +50,7 @@ const rsaCrypto = require('./../modules/rsaCrypto');
 const extConfig = require('./../config/externalPayment/paymentSystems');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const promiseUtils = require("../modules/promiseUtils");
 
 var dbUtil = require("../modules/dbutility");
 
@@ -106,7 +107,7 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
-    getPlayerReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
+    getPlayerReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds = []) {
         let consumptionReturnTypeId;
         let onlineTopUpTypeId;
         let playerReportSummary;
@@ -154,156 +155,236 @@ var dbPlayerTopUpRecord = {
                 console.log("LH check player report 1------", startTime);
                 console.log("LH check player report 2------", endTime);
 
-                let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
-                    [
-                        {
-                            $match: {
-                                platformId: platformId,
-                                createTime: {
-                                    $gte: startTime,
-                                    $lt: endTime
-                                },
-                                playerId: {$in: playerIds}
+                async function catchQueryRetry (model, playerIds, getAggregateInput, err) {
+                    await promiseUtils.delay(30000); // delay 30 sec to try to wait out the busy moment just in case too many db request are sent in a short time
+                    let playerIdsGroupA = playerIds.slice(0, playerIds.length/2);
+                    let playerIdsGroupB = playerIds.slice(playerIds.length/2, playerIds.length);
+
+                    let topUpDetailsA = await model.aggregate(getAggregateInput(playerIdsGroupA)).read("secondaryPreferred").allowDiskUse(true);
+                    let topUpDetailsB = await model.aggregate(getAggregateInput(playerIdsGroupB)).read("secondaryPreferred").allowDiskUse(true);
+                    if (!topUpDetailsA || !topUpDetailsB) {
+                        return Promise.reject(err);
+                    }
+
+                    return topUpDetailsA.concat(topUpDetailsB);
+                }
+
+                let topUpProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                $match: {
+                                    platformId: platformId,
+                                    createTime: {
+                                        $gte: startTime,
+                                        $lt: endTime
+                                    },
+                                    playerId: {$in: playerIds}
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType"},
+                                    amount: {$sum: "$amount"},
+                                    oriAmount: {$sum: "$oriAmount"},
+                                    times: {$sum: 1},
+                                }
                             }
-                        },
-                        {
-                            $group: {
-                                _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType"},
-                                amount: {$sum: "$amount"},
-                                oriAmount: {$sum: "$oriAmount"},
-                                times: {$sum: 1},
+                        ];
+                    }
+
+                    return dbconfig.collection_playerTopUpRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            // mongoose query promise does not support .catch() (?)
+                            // source: https://stackoverflow.com/a/30672821
+                            return catchQueryRetry(dbconfig.collection_playerTopUpRecord, playerIds, getAggregateInput, err);
+                        }
+                    );
+                };
+
+                let consumptionProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                $match: {
+                                    platformId: platformId,
+                                    createTime: {
+                                        $gte: new Date(startTime),
+                                        $lt: new Date(endTime)
+                                    },
+                                    playerId: {$in: playerIds},
+                                    isDuplicate: {$ne: true}
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: {
+                                        playerId: "$playerId",
+                                        gameId: "$gameId",
+                                        platformId: "$platformId"
+                                    },
+                                    gameId: {"$first": "$gameId"},
+                                    providerId: {"$first": "$providerId"},
+                                    count: {$sum: {$cond: ["$count", "$count", 1]}},
+                                    amount: {$sum: "$amount"},
+                                    validAmount: {$sum: "$validAmount"},
+                                    bonusAmount: {$sum: "$bonusAmount"}
+                                }
                             }
-                        }
-                    ]
-                ).read("secondaryPreferred").allowDiskUse(true);
-
-                let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
-                    {
-                        $match: {
-                            platformId: platformId,
-                            createTime: {
-                                $gte: new Date(startTime),
-                                $lt: new Date(endTime)
-                            },
-                            playerId: {$in: playerIds},
-                            isDuplicate: {$ne: true}
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: {
-                                playerId: "$playerId",
-                                gameId: "$gameId",
-                                platformId: "$platformId"
-                            },
-                            gameId: {"$first": "$gameId"},
-                            providerId: {"$first": "$providerId"},
-                            count: {$sum: {$cond: ["$count", "$count", 1]}},
-                            amount: {$sum: "$amount"},
-                            validAmount: {$sum: "$validAmount"},
-                            bonusAmount: {$sum: "$bonusAmount"}
-                        }
+                        ]
                     }
-                ]).read("secondaryPreferred").allowDiskUse(true);
 
-                let bonusProm = dbconfig.collection_proposal.aggregate([
-                    {
-                        "$match": {
-                            "data.playerObjId": {$in: playerIds},
-                            "createTime": {
-                                "$gte": new Date(startTime),
-                                "$lt": new Date(endTime)
+                    return dbconfig.collection_playerConsumptionRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            return catchQueryRetry(dbconfig.collection_playerConsumptionRecord, playerIds, getAggregateInput, err);
+                        }
+                    )
+                }
+
+                let bonusProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                "$match": {
+                                    "data.playerObjId": {$in: playerIds},
+                                    "createTime": {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    },
+                                    "mainType": "PlayerBonus",
+                                    "status": constProposalStatus.SUCCESS
+                                }
                             },
-                            "mainType": "PlayerBonus",
-                            "status": constProposalStatus.SUCCESS
+                            {
+                                "$group": {
+                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId"},
+                                    "count": {"$sum": 1},
+                                    "amount": {"$sum": "$data.amount"}
+                                }
+                            }
+                        ]
+                    };
+
+                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
                         }
-                    },
-                    {
-                        "$group": {
-                            "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
-                            "count": {"$sum": 1},
-                            "amount": {"$sum": "$data.amount"}
-                        }
+                    );
+                };
+
+                let consumptionReturnProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                "$match": {
+                                    "data.playerObjId": {$in: playerIds},
+                                    "createTime": {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    },
+                                    "type": ObjectId(consumptionReturnTypeId),
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                }
+                            },
+                            {
+                                "$group": {
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
+                                    "amount": {"$sum": "$data.rewardAmount"}
+                                }
+                            }
+                        ]
                     }
-                ]).read("secondaryPreferred").allowDiskUse(true);
 
-                let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
-                    {
-                        "$match": {
-                            "data.playerObjId": {$in: playerIds},
-                            "createTime": {
-                                "$gte": new Date(startTime),
-                                "$lt": new Date(endTime)
+                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                        }
+                    );
+                }
+
+                let rewardProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                "$match": {
+                                    "data.playerObjId": {$in: playerIds},
+                                    "createTime": {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    },
+                                    "mainType": "Reward",
+                                    "type": {"$ne": ObjectId(consumptionReturnTypeId)},
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                }
                             },
-                            "type": ObjectId(consumptionReturnTypeId),
-                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                        }
-                    },
-                    {
-                        "$group": {
-                            "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
-                            "amount": {"$sum": "$data.rewardAmount"}
-                        }
+                            {
+                                "$group": {
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
+
+                                    "amount": {"$sum": "$data.rewardAmount"}
+                                }
+                            }
+                        ];
                     }
-                ]).read("secondaryPreferred").allowDiskUse(true);
 
-                let rewardProm = dbconfig.collection_proposal.aggregate([
-                    {
-                        "$match": {
-                            "data.playerObjId": {$in: playerIds},
-                            "createTime": {
-                                "$gte": new Date(startTime),
-                                "$lt": new Date(endTime)
+                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                        }
+                    );
+                }
+
+                let onlineTopUpByMerchantProm = () => {
+                    let getAggregateInput = (playerIds) => {
+                        return [
+                            {
+                                "$match": {
+                                    "type": ObjectId(onlineTopUpTypeId),
+                                    "data.playerObjId": {$in: playerIds},
+                                    "createTime": {
+                                        "$gte": new Date(startTime),
+                                        "$lt": new Date(endTime)
+                                    },
+                                    "mainType": "TopUp",
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                }
                             },
-                            "mainType": "Reward",
-                            "type": {"$ne": ObjectId(consumptionReturnTypeId)},
-                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                        }
-                    },
-                    {
-                        "$group": {
-                            "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
-
-                            "amount": {"$sum": "$data.rewardAmount"}
-                        }
+                            {
+                                "$group": {
+                                    "_id": {
+                                        "playerId": "$data.playerObjId",
+                                        "merchantName": "$data.merchantName",
+                                        "merchantNo": "$data.merchantNo"
+                                    },
+                                    "amount": {"$sum": "$data.amount"}
+                                }
+                            },
+                            {
+                                "$project": {
+                                    _id: 0,
+                                    playerId: "$_id.playerId",
+                                    merchantName: "$_id.merchantName",
+                                    merchantNo: "$_id.merchantNo",
+                                    amount: 1
+                                }
+                            }
+                        ];
                     }
-                ]).read("secondaryPreferred").allowDiskUse(true);
 
-                let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
-                    {
-                        "$match": {
-                            "type": ObjectId(onlineTopUpTypeId),
-                            "data.playerObjId": {$in: playerIds},
-                            "createTime": {
-                                "$gte": new Date(startTime),
-                                "$lt": new Date(endTime)
-                            },
-                            "mainType": "TopUp",
-                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                        data => data,
+                        err => {
+                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
                         }
-                    },
-                    {
-                        "$group": {
-                            "_id": {
-                                "playerId": "$data.playerObjId",
-                                "merchantName": "$data.merchantName",
-                                "merchantNo": "$data.merchantNo"
-                            },
-                            "amount": {"$sum": "$data.amount"}
-                        }
-                    },
-                    {
-                        "$project": {
-                            _id: 0,
-                            playerId: "$_id.playerId",
-                            merchantName: "$_id.merchantName",
-                            merchantNo: "$_id.merchantNo",
-                            amount: 1
-                        }
-                    }
-                ]).read("secondaryPreferred").allowDiskUse(true);
+                    );
+                }
 
-                return Promise.all([topUpProm, consumptionProm, bonusProm, consumptionReturnProm, rewardProm, onlineTopUpByMerchantProm]).then(
+                return Promise.all([topUpProm(), consumptionProm(), bonusProm(), consumptionReturnProm(), rewardProm(), onlineTopUpByMerchantProm()]).then(
                     result => {
                         console.log("LH check player report 3------");
                         let topUpDetails = result[0];

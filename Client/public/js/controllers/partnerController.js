@@ -17336,6 +17336,15 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#reportRightTable').resize();
+            },0)
+            $scope.safeApply();
+        }
+
         vm.getActiveConfig = function () {
             return $scope.$socketPromise('getActiveConfig', {platform: vm.platformInSetting._id})
                 .then(function (data) {

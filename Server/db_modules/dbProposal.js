@@ -188,7 +188,7 @@ var proposal = {
         );
     },
 
-    applyRepairCreditTransfer: function (platformId, proposalData) {
+    applyRepairCreditTransfer: async function (platformId, proposalData) {
         if (proposalData.data && (!proposalData.data.transferId || (proposalData.data.transferId && proposalData.data.transferId == "unknown"))) {
             return Promise.reject({
                 name: "DBError",
@@ -208,18 +208,23 @@ var proposal = {
             );
         }
 
-        return isRepairableTransfer(proposalData.data.transferId).then(
-            isRepairable => {
-                if (!isRepairable) {
-                    return Promise.reject({
-                        name: "DBError",
-                        message: "This transfer is not repairable."
-                    });
-                }
+        let isRepairable = await isRepairableTransfer(proposalData.data.transferId);
+        if (!isRepairable) {
+            return Promise.reject({
+                name: "DBError",
+                message: "This transfer is not repairable."
+            });
+        }
 
-                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
-            }
-        );
+        let repairTransferProposal = await proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+
+        if (![constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED].includes(repairTransferProposal.status)) {
+            dbEmailAudit.sendAuditRepairTransferEmail(repairTransferProposal).catch(err => {
+                console.log('sendAuditRepairTransferEmail fail', repairTransferProposal, err);
+            });
+        }
+
+        return proposal;
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
@@ -6183,7 +6188,7 @@ var proposal = {
                     query = {
                         expirationTime: {$lt: new Date()},
                         type: {$in: proposalList},
-                        status: constProposalStatus.APPROVED
+                        status: constProposalStatus.PENDING
                     }
 
                     return dbconfig.collection_proposal.update(

@@ -286,7 +286,7 @@ const dbPartnerCommission = {
                 // withdrawalFeeMulti = withdrawalFeeMulti < 0 ? withdrawalFeeMulti * -1 : withdrawalFeeMulti;
 
 
-                totalPlatformFee += platformFeeDirect;
+                totalPlatformFee += platformFeeMulti;
 
                 // consumptionAfterFeeDirect = math.chain(totalConsumption)
                 //     .subtract(platformFeeDirect)
