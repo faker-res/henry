@@ -31830,6 +31830,7 @@ define(['js/app'], function (myApp) {
                                                         vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
                                                             if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                                 providerGroupRate = availableProviderGroupRate;
+                                                                providerGroupRate.name = gameProviderGroup.name;
                                                             }
                                                         })
                                                     }
@@ -35841,6 +35842,12 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                vm.refreshSPicker();
+            };
+
+            vm.loadFeedbackDepartment = (platformObjdId) => {
+                let platform = new Array(platformObjdId);
+                vm.getAllDepartment(platform);
                 vm.refreshSPicker();
             };
 
@@ -40438,15 +40445,15 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getAllDepartment = () => {
+            vm.getAllDepartment = (platformList) => {
                 let sendData = {
-                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
-                }
+                    platforms: platformList ? platformList : []
+                };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getAllDepartment', data);
-                        var result = [];
+                        let result = [];
                         data.data.forEach(function (departmentData) {
                             result.push(departmentData);
                         });
@@ -40653,7 +40660,7 @@ define(['js/app'], function (myApp) {
                     vm.getAllPlayerLevelsLocal();
                     vm.getCredibilityRemarksLocal();
                     vm.getAllGameProvidersLocal();
-                    vm.loadDepartmentLocal();
+                    // vm.loadDepartmentLocal();
                     vm.setQueryRole(vm.autoFeedbackMission);
                     vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {

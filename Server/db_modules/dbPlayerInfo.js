@@ -6266,7 +6266,6 @@ let dbPlayerInfo = {
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
-        console.log('MT --checking -S1');
         if (data && data.phoneNumber) {
             data.phoneNumber = {
                 $in: [
@@ -6372,7 +6371,6 @@ let dbPlayerInfo = {
             _id: {$in: platformId}
         }).lean().then(
             platform => {
-                console.log('MT --checking -S2 ');
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
                 let playerProm = Promise.resolve(false);
@@ -6383,7 +6381,6 @@ let dbPlayerInfo = {
 
                 return playerProm.then(
                     singlePlayerData => {
-                        console.log('MT --checking -S3');
                         if (data && data.name && singlePlayerData && singlePlayerData._id) {
                             advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                         }
@@ -6392,7 +6389,6 @@ let dbPlayerInfo = {
                             .find(advancedQuery, {similarPlayers: 0})
                             .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
                                 players => {
-                                    console.log('MT --checking -S4');
                                     let calculatePlayerValueProms = [];
                                     let updatePlayerCredibilityRemarksProm = [];
                                     for (let i = 0; i < players.length; i++) {
@@ -6441,12 +6437,10 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                console.log('MT --checking -S5');
                 return dbconfig.collection_playerCredibilityRemark.find({platform: {$in: platformId}}).lean();
             }
         ).then(
             (credibilityRemarksData) => {
-                console.log('MT --checking -S6');
                 credibilityRemarksList = credibilityRemarksData ? credibilityRemarksData : [];
                 var a = dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
@@ -6535,7 +6529,6 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         playerData => {
-                            console.log('MT --checking -S7');
                             let players = [];
                             for (let ind in playerData) {
                                 if (playerData[ind]) {
@@ -6546,28 +6539,29 @@ let dbPlayerInfo = {
                                     players.push(prom1);
                                 }
                             }
-                            console.log('MT --checking -S7-1-2')
                             return Promise.all(players)
                         }
                     );
-                console.log('MT --checking -S7-advancedQuery', advancedQuery)
-                var b = dbconfig.collection_players
-                    .find(advancedQuery).lean().then(players => {
-                        console.log('MT --checking -S7-2')
-                        if(players) {
-                            return players.length;
-                        } else {
-                            return 0;
-                        }
-                    }, err => {
-                        console.log('MT --checking -S7-2-error', err);
-                    });
+                console.log('MT --checking -advancedQuery', advancedQuery)
+                // var b = dbconfig.collection_players
+                //     .find(advancedQuery).lean().then(players => {
+                //         console.log('MT --checking -S7-2')
+                //         if(players) {
+                //             return players.length;
+                //         } else {
+                //             return 0;
+                //         }
+                //     }, err => {
+                //         console.log('MT --checking -S7-2-error', err);
+                //     });
+
+                //Data cannot load due to code was stoped at counting player amount, change to this new count method and see.
+                var b = dbconfig.collection_players.find(advancedQuery).count();
 
                 return Promise.all([a, b]);
             }
         ).then(
             data => {
-                console.log('MT --checking -S8');
                 let playerData;
                 dataSize = data[1];
                 if (data && data[0] && data[0].length) {

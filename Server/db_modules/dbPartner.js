@@ -6660,7 +6660,7 @@ let dbPartner = {
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
                 let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
                 let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
-                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id);
+                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id, providerGroups);
 
                 return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, partnerCommissionConfigRateProm]);
             }
@@ -12931,7 +12931,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     );
 }
 
-function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
+function getPartnerCommissionConfigRate (platformObjId, partnerObjId, gameProviderGroups = []) {
     let platformConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: {$exists: false}}).lean();
     let customConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: partnerObjId}).lean();
 
@@ -13000,6 +13000,16 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         });
                     });
                 }
+            }
+
+            if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && rateConfig && rateConfig.rateAfterRebateGameProviderGroup.map) {
+                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                    gameProviderGroups.map(providerGroup => {
+                        if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
+                            defaultGroup.name = providerGroup.name;
+                        }
+                    });
+                });
             }
             return rateConfig;
         }
