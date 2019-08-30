@@ -7,6 +7,7 @@ const dbPlayerMail = require('./../../db_modules/dbPlayerMail');
 const dbUtility = require('./../../modules/dbutility');
 const constServerCode = require('./../../const/constServerCode');
 const constSystemParam = require('./../../const/constSystemParam');
+const constPlayerRegistrationInterface = require('./../../const/constPlayerRegistrationInterface');
 const jwt = require('jsonwebtoken');
 const uaParser = require('ua-parser-js');
 const geoip = require('geoip-lite');
@@ -93,7 +94,7 @@ let PlayerServiceImplement = function () {
 
         // data.partnerId = "";
         //for partner player registration
-        let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+        let byPassSMSCode = data.isTestPlayer || Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
         // console.log("yH checking---conn", conn)
@@ -138,10 +139,17 @@ let PlayerServiceImplement = function () {
                     playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 
@@ -250,10 +258,17 @@ let PlayerServiceImplement = function () {
                     delete playerData.guestDeviceId;
                 }
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
 
@@ -516,8 +531,18 @@ let PlayerServiceImplement = function () {
                         }
                     );
                 };
+
+                const appDevices = [constPlayerRegistrationInterface.APP_AGENT, constPlayerRegistrationInterface.APP_PLAYER,
+                    constPlayerRegistrationInterface.APP_NATIVE_PLAYER, constPlayerRegistrationInterface.APP_NATIVE_PARTNER];
+                let expireDuration;
+                if (inputDevice && appDevices.includes(Number(inputDevice))) {
+                    expireDuration = 60 * 60 * 24 * 30;
+                } else {
+                    expireDuration = 60 * 60 * 5;
+                }
+
                 var profile = {name: playerData.name, password: playerData.password};
-                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: expireDuration});
 
                 if (playerData.phoneNumber) {
                     playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
@@ -1401,12 +1426,19 @@ let PlayerServiceImplement = function () {
                 conn.playerObjId = playerData._id;
                 conn.noOfAttempt = 0;
 
+                let isHitReferralLimitFlag = false;
+                if (playerData && playerData.isHitReferralLimit && playerData.isHitReferralLimit.toString() === 'true') {
+                    isHitReferralLimitFlag = playerData.isHitReferralLimit;
+                    delete playerData.isHitReferralLimit;
+                }
+
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
                     token: token,
+                    isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             },
             error => {
@@ -1565,6 +1597,11 @@ let PlayerServiceImplement = function () {
     this.checkIsAppPlayerAndAppliedReward.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(conn && conn.playerObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.checkIsAppPlayerAndAppliedReward, [conn.playerObjId], isValidData);
+    };
+
+    this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.url && data.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
     };
 
 };

@@ -86,7 +86,12 @@ const dbPartnerCommission = {
         let [commConfig, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes] = await Promise.all([commConfigProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm]);
         console.log('commConfig', JSON.stringify(commConfig,null,2))
 
-        let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement);
+        let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement).catch(
+            err => {
+                console.log('getAllPlayerCommissionRawDetailsWithSettlement died with params', partner._id, err);
+                return Promise.reject(err);
+            }
+        );
 
         let activeDownLines = getActiveDownLineCount(playerRawDetail);
 
@@ -281,7 +286,7 @@ const dbPartnerCommission = {
                 // withdrawalFeeMulti = withdrawalFeeMulti < 0 ? withdrawalFeeMulti * -1 : withdrawalFeeMulti;
 
 
-                totalPlatformFee += platformFeeDirect;
+                totalPlatformFee += platformFeeMulti;
 
                 // consumptionAfterFeeDirect = math.chain(totalConsumption)
                 //     .subtract(platformFeeDirect)
@@ -644,29 +649,52 @@ const dbPartnerCommission = {
         )
     },
 
-    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
+    settlePartnersCommission: async function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
+        partnerObjIdArr = partnerObjIdArr || [];
+        if (!partnerObjIdArr.length) {
+            return;
+        }
 
-        partnerObjIdArr.map(partnerObjId => {
+        for (let i = 0; i < partnerObjIdArr.length; i++) {
+            let partnerObjId = partnerObjIdArr[i];
             let prom;
             if (isSkip) {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
+                prom = await dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
                     console.error('dbPartnerCommission.generatePartnerCommissionLog error', partnerObjId, err)
                     return errorUtils.reportError(err)
                 });
             }
             proms.push(prom);
-        });
+        }
+
+        // partnerObjIdArr.map(partnerObjId => {
+        //     let prom;
+        //     if (isSkip) {
+        //         prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+        //     }
+        //     else {
+        //         prom = dbPartnerCommission.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(err => {
+        //             console.error('dbPartnerCommission.generatePartnerCommissionLog error', partnerObjId, err)
+        //             return errorUtils.reportError(err)
+        //         });
+        //     }
+        //     proms.push(prom);
+        // });
 
         return Promise.all(proms);
     },
 
     generatePartnerCommissionLog: async function (partnerObjId, commissionType, startTime, endTime) {
         let downLinesRawCommissionDetails, partnerCommissionLog, parentPartnerCommissionDetail;
-        let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime);
+        let commissionDetail = await dbPartnerCommission.calculatePartnerCommission(partnerObjId, startTime, endTime).catch(err => {
+            console.error('calculatePartnerCommission died with param:', partnerObjId, err);
+            errorUtils.reportError(err);
+            return Promise.reject(err);
+        });
         if (commissionDetail.disableCommissionSettlement) {
             return undefined;
         }

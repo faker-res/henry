@@ -1106,7 +1106,7 @@ define(['js/app'], function (myApp) {
             // );
 
             $scope.$socketPromise("getPartnerCommissionLog", {
-                platformObjId: vm.selectedPlatform.id,
+                platformObjId: vm.platformInSettlementTab._id,
                 commissionType: prev.settMode,
                 startTime: prev.startTime,
                 endTime: prev.endTime
@@ -1169,6 +1169,11 @@ define(['js/app'], function (myApp) {
                             }
                         });
                         vm.selectedSettlePartnerCommPrev.totalCommPreview = vm.partnerCommissionLog && vm.partnerCommissionLog.length || 0;
+                        if (vm.selectedSettlePartnerCommPrev.totalPartnerCount) {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = vm.selectedSettlePartnerCommPrev.totalPartnerCount - (vm.selectedSettlePartnerCommPrev.totalValidPartnerCount || 0);
+                        } else {
+                            vm.selectedSettlePartnerCommPrev.totalForbidPartner = 0
+                        }
                         vm.currentUseCommDetail = vm.partnerCommissionLog;
                         $('#modalPartnerCommPreview').modal();
                     })
@@ -6827,8 +6832,11 @@ define(['js/app'], function (myApp) {
         };
         vm.initPermissionPartner = function (partnerObjId) {
             vm.permissionPartner = {};
-            vm.permissionPartner = vm.partners.find(p => String(p._id) === partnerObjId);
-
+            let tempPartner = vm.partners.find(p => String(p._id) === partnerObjId);
+            if (tempPartner) {
+                vm.permissionPartner = JSON.parse(JSON.stringify(tempPartner));
+            }
+            
             if (vm.permissionPartner && vm.permissionPartner.permission) {
                 vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
                 vm.permissionPartner.permission.disableCommSettlement = !vm.permissionPartner.permission.disableCommSettlement;
@@ -17328,6 +17336,15 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#reportRightTable').resize();
+            },0)
+            $scope.safeApply();
+        }
+
         vm.getActiveConfig = function () {
             return $scope.$socketPromise('getActiveConfig', {platform: vm.platformInSetting._id})
                 .then(function (data) {
@@ -18025,7 +18042,7 @@ define(['js/app'], function (myApp) {
                         vm.partnerProfitQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                         vm.partnerProfitQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
 
-                        vm.partnerProfitQuery.pageObj = utilService.createPageForPagingTable("#partnerProfitTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.partnerProfitQuery.pageObj = utilService.createPageForPagingTable("#partnerProfitTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "partnerProfitQuery", vm.searchPartnerProfitReport)
                         });
                     });
@@ -18321,7 +18338,7 @@ define(['js/app'], function (myApp) {
                 platformIdList = vm.allPlatformData.map(a => a._id);
             }
 
-            // utilService.getDataTablePageSize("#partnerProfitTablePage", vm.partnerProfitQuery, 30);
+            utilService.getDataTablePageSize("#partnerProfitTablePage", vm.partnerProfitQuery, 10);
             let sendData = {
                 platformObjIdList: platformIdList,
                 registerStartTime: new Date(vm.partnerProfitQuery.registerStartTime.data('datetimepicker').getLocalDate()),

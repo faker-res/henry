@@ -556,7 +556,7 @@ var dbQualityInspection = {
 
             live800Chat.conversation.content = content;
             platformInfo = platformInfo[0] ? platformInfo[0] : [];
-            live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
+            live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo, live800Chat.createTime);
             // this is to check the record is an effective conversation or not
             let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails, true);
 
@@ -1025,7 +1025,7 @@ var dbQualityInspection = {
                 });
 
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
-                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
+                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo, live800Chat.createTime);
                 let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails, true);
                 if(isValidCV){
                     liveChats.push(live800Chat);
@@ -1424,7 +1424,7 @@ var dbQualityInspection = {
                     }
                 });
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
-                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
+                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo, live800Chat.createTime);
 
 
                 if(noValidCV){
@@ -1458,48 +1458,77 @@ var dbQualityInspection = {
       return deferred.promise;
 
     },
-    calculateRate: function(conversation, platform){
+    calculateRate: function(conversation, platform, chatClosedTime) {
         let firstCV = null;
         let firstTime = null;
-        let lastCV = null;
-        let lastCustomerCV = null;
+        let lastReply = null;
+        let lastCustomerQuestion = null;
+        let closedTime = null;
         if (!platform) {
             return conversation;
         }
-
+        if (chatClosedTime) {
+            let time = new Date(chatClosedTime);
+            closedTime = time.getTime();
+        }
         if (platform.overtimeSetting) {
-
             let overtimeSetting = platform.overtimeSetting;
             overtimeSetting.sort(function (a, b) {
                 return a.conversationInterval - b.conversationInterval
-            })
+            });
             conversation.forEach(item => {
                 if (!firstCV && (item.roles == 2 || item.roles == 3)) {
+                    // find the first & last customer question
                     firstCV = item;
-                    lastCustomerCV = item;
+                    lastCustomerQuestion = item;
                 } else {
                     if (item.roles == 2 || item.roles == 3) {
-                        // keep the last customer question , to calculate the timeoutRate
-                        if (lastCV.roles == 1) {
-                            lastCustomerCV = item;
+                        // customer keep saying ....
+                        // keep the last customer question, to calculate the timeoutRate
+                        if (lastReply.roles == 1) {
+                            // update the last customer question
+                            lastCustomerQuestion = item;
                         }
-                    } else if (item.roles == 1 && lastCustomerCV) {
-                        let timeStamp = item.time - lastCustomerCV.time;
+                    } else if (item.roles == 1 && lastCustomerQuestion) {
+                        // if cs reply, calculate the timeout rate
+                        let timeStamp = item.time - lastCustomerQuestion.time;
                         let sec = timeStamp / 1000;
                         let rate = 0;
-
-                        if(lastCV.roles == 1){
+                        if (lastReply.roles == 1) {
                             // if that's cs conversation before it, no need to rate again.
-                        }else if(lastCV.roles != 1){
+                        } else if (lastReply.roles != 1) {
                             // calculate the timeoutRate
                             item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
                         }
                     } else {
+
                     }
                 }
-                lastCV = item;
+                // record the last conversation, to compare whether it's same role with last conversation.
+                lastReply = item;
                 return item;
-            })
+            });
+
+            let totalConversation = conversation ? conversation.length : 0;
+            let last = totalConversation - 1;
+
+            // execute if the last conversation is not from CS
+            if (last > -1 && conversation[last].roles !== 1) {
+                let timeStamp = closedTime - conversation[last].time; // from last customer question until chat closed time
+                let sec = timeStamp / 1000;
+
+                // automatically add last conversation for CS to display overtime
+                conversation[last+1] = {
+                    time : closedTime, // chat closed time
+                    review: "",
+                    content : '"---关闭对话---没有回复访客---"',
+                    inspectionRate : 0,
+                    timeoutRate : 0,
+                    createTime: new Date(closedTime),
+                    roles : 1
+                };
+                conversation[last+1].timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, '', sec);
+            }
         }
         return conversation;
     },

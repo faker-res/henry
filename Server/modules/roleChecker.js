@@ -485,6 +485,7 @@ var roleChecker = {
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 largeWithdrawalSetting: ['updateLargeWithdrawalSetting', 'updateLargeWithdrawalPartnerSetting'],
                 emailAuditConfig: ['setAuditCreditChangeSetting', 'setAuditManualRewardSetting'],
+                emailNotificationConfig: ['updateEmailNotificationConfig'],
                 platformFeeEstimateSetting: ['updatePlatformFeeEstimateSetting'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
@@ -505,6 +506,7 @@ var roleChecker = {
                 CanAuditLargeWithdrawal: [],
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
+                referral: ['updateReferralConfig'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -593,6 +595,8 @@ var roleChecker = {
                 skinManagement: ['getSkinSetting', 'saveSkinSetting', 'removeSkinSetting'],
                 rewardSetting: [],
                 gameSetting: [],
+                scriptDescription:[],
+                registrationGuidance:[],
                 partnerUrlConfiguration: [],
                 partnerSkinManagement: ['getSkinSetting', 'saveUrlConfig', 'getUrlConfig'],
             },
@@ -607,6 +611,8 @@ var roleChecker = {
                 "auditCreditChangeAuditor": [],
                 "auditManualRewardRecipient": [],
                 "auditManualRewardAuditor": [],
+                "auditRepairTransferRecipient": [],
+                "auditRepairTransferAuditor": [],
             },
         },
         Report: {

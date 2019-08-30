@@ -70,6 +70,7 @@
 	58. [令牌更新密码](#令牌更新密码)
 	59. [获取玩家最近玩的两个游戏](#获取玩家最近玩的两个游戏)
     60. [APP设置密码](#APP设置密码)
+    61. [获取玩家推广域名防红和短链转换](#获取玩家推广域名防红和短链转换)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -219,6 +220,7 @@
 		41. [获取下级代理贡献值详情](#获取下级代理贡献值详情)
 		42. [获取代理转账记录](#获取代理转账记录)
 		43. [查询所有下线玩家详情](#查询所有下线玩家详情)
+		44. [代理推广域名防红和短链转换](#代理推广域名防红和短链转换)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -491,8 +493,10 @@ API说明：
   - captcha：图片验证码，代理上线开下线用，将不用smsCode
   - sourceUrl：注册来源（跳转域名）
   - deviceId: 设备号
-  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx}
-  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+  - referralId: 邀请码(推荐人的玩家ID)
+  - referralUrl: 邀请码链接
+  - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit: true/false}
+  - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
 <div id='获取验证码'></div>
 
@@ -1897,9 +1901,10 @@ API说明：
 				guestDeviceId: “DEVICEID120213” // 设备ID, 必填
 				phoneNumber: “11755555555” //非必填， 填写则绑定电话号码+设备ID
 				accountPrefix: “e” // 账号名字前缀，非必填，默认”g”
+				referralId: "4322" //推荐人邀请码
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
-	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock
+	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作失败： status--4xx, data--null
 
 <div id='生成游客账号52'></div>
@@ -1915,9 +1920,10 @@ API说明：
 				smsCode: “8888”, // 短信验证码, 必填
 				accountPrefix: “e” // 玩家帐号前缀，可不填
 				checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
+				referralId: 邀请码
 			}
 	* 响应内容：`{status: 200/40x, data: playerObject}`
-	* playerObject包含token，用于重新建立链接
+	* playerObject包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作成功： status--200, data--玩家对象
 	* 操作失败： status--4xx, data--null
 
@@ -2023,6 +2029,27 @@ API说明：
     * 操作成功： `{status--200，data: {text:'密码添加成功'}}`
     * 操作失败： `{status--40x，errorMessage: ””}`
 
+<div id='获取玩家推广域名防红和短链转换'></div>
+
+* **61. 获取玩家推广域名防红和短链转换**
+    * name: getPromoShortUrl
+    * service:player
+    * 请求内容
+        * ```
+            {
+                url: “www.xindeli666.com/123”, // 玩家网址
+                playerId: '123' //玩家Id
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "shortUrl": "http://t.cn/AiQwVM4y",
+                "name": "testmk12"
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
 # 注册意向服务：
 用于关注玩家注册过程中是否遇到问题，便于改进登录界面以及在适当的时候为玩家提供帮助。
 
@@ -3490,17 +3517,34 @@ API说明：
 <div id='获取奖励活动列表'></div>
 
 * **1. 获取奖励活动列表**
-	* 获取玩家所在平台正在举行的奖励活动列表
-	* name: getRewardList
-	* 请求内容：`{platformId: “xxxxxxx”}`
-	* platformId: 平台id,
-	* clientType: 1/2/5/6
-	* 响应内容：`{status:””, data: rewardList}`
-	* 请求成功：status--200, data--奖励活动列表, 详情参见下表。
-	* showInRealServer:1 // 正式站是否展示（0：不展示、1：展示、预设1）
-	* groupName: “group1” // 优惠分组名称
-	* 请求失败：status--4xx, data--null
-	* 奖励活动对象说明// todo 与客户端进行沟通之后再定
+	* functionName: getRewardList
+    * 获取玩家所在平台正在举行的奖励活动列表
+    * 请求内容：
+        ```
+        platformId: 必填|String|平台ID
+        clientType: 选填|String|1：WEB，2：H5，4：APP
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            name: String|优惠名称
+            code: String|优惠代码
+            description: String|优惠详情
+            validStartTime: String|优惠开始时间
+            validEndTime: String|优惠结束时间
+            groupName: String|优惠分组名称
+            showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+            referralPeriod: "4", //推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
+            referralLimit: 50, //推荐人优惠组 - 被推荐人数限制
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取玩家奖励任务'></div>
 
@@ -3698,6 +3742,7 @@ API说明：
                 quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组）
             }  
         }
         ```
@@ -3717,6 +3762,7 @@ API说明：
 	    ```
 	    code: 必填|String|优惠唯一代码
 	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    festivalItemId: 选填|String|特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得
 	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
 	    ```
 	* 操作成功：
@@ -3725,7 +3771,7 @@ API说明：
 	    data: {
 	        rewardAmount: 优惠额度
 	        selectedReward: {
-	            //随机抽奖组优惠 
+	            //随机抽奖组优惠
 	            rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
 	        }
         }
@@ -6569,7 +6615,27 @@ API说明：
 				}
 			}
 	* 操作失败：status--4xx, data-null, errorMessage:””
+<div id='代理推广域名防红和短链转换'></div>
 
+* **44. 代理推广域名防红和短链转换**
+    * name: getPromoShortUrl
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                url: “www.xindeli666.com/123”, // 代理网址
+                partnerId:'270', //代理Id
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "shortUrl": "http://t.cn/AiQwVM4y",
+                "partnerName": "testmk12"
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
 <!--文档没有华语名称，因此暂时命名“平台”-->
 # 平台：
 提供平台相关服务的接口。
@@ -7270,15 +7336,18 @@ API说明：
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
-		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干 
-		* code:  recommendation - 热门推荐“:
+		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干
+		* code: 
+		    * recommendation - 热门推荐
 			* rewardPoint - 积分说明
 			* game - 游戏配置
 			* carousel - 轮播配置
 			* advertisement - 弹窗广告
 			* pageSetting - 网站配置
 			* skin - 皮肤管理
-			* reward - 优惠配置
+			* reward - 优惠配置 (新增全部分类组: 排序号 orderNumber)
+			* description - 文本说明
+			* registrationGuidance - 注册引导
 			* partnerCarousel - 代理轮播配置
 			* partnerPageSetting - 代理网站配置
 			* partnerSkin - 代理皮肤管理

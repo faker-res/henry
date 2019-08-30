@@ -188,7 +188,7 @@ var proposal = {
         );
     },
 
-    applyRepairCreditTransfer: function (platformId, proposalData) {
+    applyRepairCreditTransfer: async function (platformId, proposalData) {
         if (proposalData.data && (!proposalData.data.transferId || (proposalData.data.transferId && proposalData.data.transferId == "unknown"))) {
             return Promise.reject({
                 name: "DBError",
@@ -208,18 +208,23 @@ var proposal = {
             );
         }
 
-        return isRepairableTransfer(proposalData.data.transferId).then(
-            isRepairable => {
-                if (!isRepairable) {
-                    return Promise.reject({
-                        name: "DBError",
-                        message: "This transfer is not repairable."
-                    });
-                }
+        let isRepairable = await isRepairableTransfer(proposalData.data.transferId);
+        if (!isRepairable) {
+            return Promise.reject({
+                name: "DBError",
+                message: "This transfer is not repairable."
+            });
+        }
 
-                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
-            }
-        );
+        let repairTransferProposal = await proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+
+        if (![constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED].includes(repairTransferProposal.status)) {
+            dbEmailAudit.sendAuditRepairTransferEmail(repairTransferProposal).catch(err => {
+                console.log('sendAuditRepairTransferEmail fail', repairTransferProposal, err);
+            });
+        }
+
+        return proposal;
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
@@ -832,8 +837,7 @@ var proposal = {
             .then(
                 proposalData => {
                     if (proposalData && proposalData.type && proposalData.type.name && proposalData.type.name == constProposalType.UPDATE_PLAYER_PHONE
-                        && proposalData.data && proposalData.data.updateData && Object.keys(proposalData.data.updateData)[0]
-                        && Object.keys(proposalData.data.updateData)[0] == 'phoneNumber' && proposalData.status && proposalData.status != constProposalStatus.PENDING) {
+                        && proposalData.data && proposalData.data.updateData && proposalData.data.updateData.phoneNumber && proposalData.status && proposalData.status != constProposalStatus.PENDING) {
                         proposalData.data.updateData.phoneNumber = dbutility.encodePhoneNum(proposalData.data.updateData.phoneNumber);
                     }
 
@@ -1379,6 +1383,7 @@ var proposal = {
         let proposalObj;
         let proposalProcessData;
         let isProcessedBefore = false;
+        let proposalTypeName = "";
 
         let adminInfo = await dbconfig.collection_admin.findById(adminId).lean();
 
@@ -1452,6 +1457,7 @@ var proposal = {
                     else {
                         //get full info of process
                         proposalData = data;
+                        proposalTypeName = proposalData && proposalData.type && proposalData.type.name || "";
                         return dbconfig.collection_proposalProcess.findOne({_id: data.process})
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
                             .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
@@ -1694,6 +1700,7 @@ var proposal = {
             function (data) {
                 console.log("updateProposalProcessStep data5", data);
                 if (data) {
+                    dbEmailAudit.sendAuditedProposalEmailUpdate(proposalTypeName, data).catch(errorUtils.reportError);
                     deferred.resolve(data);
                 }
                 else {
@@ -1711,64 +1718,59 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark, adminObjId, cancelRemark) {
-        let proposalData;
-        return dbconfig.collection_proposal.findOne({_id: proposalId})
+    cancelProposal: async function (proposalId, adminId, remark, adminObjId, cancelRemark) {
+        let proposalData = await dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
-            .populate({path: "type", model: dbconfig.collection_proposalType})
-            .then(
-                function (proposal) {
-                    proposalData = proposal;
-                    if (proposalData) {
-                        var proposalStatus = proposalData.status || proposalData.process.status;
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
 
-                        if (((proposalData.type.name === constProposalType.PLAYER_BONUS
-                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
-                                || (proposalData.creator.name.toString() == adminId.toString())
-                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
-                            return dbconfig.collection_proposal.findOneAndUpdate(
-                                {_id: proposalData._id, createTime: proposalData.createTime},
-                                {$inc: {processedTimes: 1}},
-                                {new: true}
-                            ).lean();
-                        }
-                        else {
-                            return Q.reject({message: "incorrect proposal status or authentication."});
-                        }
-                    }
-                    else {
-                        return Q.reject({message: "incorrect proposal data!"});
-                    }
-                }
-            ).then(
-                updatedProposal => {
-                    if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
-                        console.log(updatedProposal.proposalId + " This proposal has been processed");
-                        return Promise.reject({message: "This proposal has been processed"});
-                    }
+        if (!proposalData || !proposalData.type) {
+            return Q.reject({message: "incorrect proposal data!"});
+        }
+        var proposalStatus = proposalData.status || proposalData.process.status;
 
-                    return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
-                }
-            ).then(successData => {
-                let updateData = {
-                    "data.lastSettleTime": new Date(),
-                    settleTime: new Date(),
-                    noSteps: true,
-                    process: null,
-                    status: constProposalStatus.CANCEL,
-                    "data.cancelBy": "客服：" + adminId,
-                    "data.cancelRemark": cancelRemark,
-                };
-                if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
-                    dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
-                    delete updateData.process;
-                }
-                return dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposalData._id, createTime: proposalData.createTime},
-                    updateData,
-                    {new: true}
-                );
-            });
+        if (!((proposalData.type.name === constProposalType.PLAYER_BONUS
+            && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
+            || (proposalData.creator.name.toString() == adminId.toString())
+            && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
+            return Q.reject({message: "incorrect proposal status or authentication."});
+        }
+
+        let updatedProposal = await dbconfig.collection_proposal.findOneAndUpdate(
+            {_id: proposalData._id, createTime: proposalData.createTime},
+            {$inc: {processedTimes: 1}},
+            {new: true}
+        ).lean();
+
+        if (updatedProposal && updatedProposal.processedTimes && updatedProposal.processedTimes > 1) {
+            console.log(updatedProposal.proposalId + " This proposal has been processed");
+            return Promise.reject({message: "This proposal has been processed"});
+        }
+
+        let successData = await proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
+
+        let updateData = {
+            "data.lastSettleTime": new Date(),
+            settleTime: new Date(),
+            noSteps: true,
+            process: null,
+            status: constProposalStatus.CANCEL,
+            "data.cancelBy": "客服：" + adminId,
+            "data.cancelAdmin": adminObjId,
+            "data.cancelRemark": cancelRemark,
+        };
+        if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
+            dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
+            delete updateData.process;
+        }
+        updatedProposal = await dbconfig.collection_proposal.findOneAndUpdate(
+            {_id: proposalData._id, createTime: proposalData.createTime},
+            updateData,
+            {new: true}
+        ).lean();
+
+        dbEmailAudit.sendAuditedProposalEmailUpdate(proposalData.type.name, updatedProposal).catch(errorUtils.reportError);
+
+        return updatedProposal;
     },
 
     autoCancelProposal: function (proposalData) {
@@ -3019,13 +3021,20 @@ var proposal = {
             });
     },
 
-    getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
+    getPlayerProposalsForPlatformId: async function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, adminId, attemptNo = 0, unlockSizeLimit = false ) {//need
         platformId = Array.isArray(platformId) || !platformId ? platformId : [platformId];
+        console.log('First Platform', platformId + " : " + adminId);
 
         let proposalTypeQuery = {};
 
         if(platformId && platformId.length){
             proposalTypeQuery.platformId = {$in: platformId};
+        }else{
+            platformId = await dbconfig.collection_department.distinct("platforms",{
+                users: adminId
+            }).lean();
+            proposalTypeQuery.platformId = {$in: platformId};
+            console.log('Fine query Platform', proposalTypeQuery.platformId);
         }
 
         //check proposal without process
@@ -3563,7 +3572,7 @@ var proposal = {
             data.map(d => {
                 phoneNumber = d.phoneNumber
 
-                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo, unlockSizeLimit);
+                let p = proposal.getPlayerProposalsForPlatformId(platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, null, attemptNo, unlockSizeLimit);
                 returnArr.push(p);
             })
         }).then(data => {
@@ -6179,7 +6188,7 @@ var proposal = {
                     query = {
                         expirationTime: {$lt: new Date()},
                         type: {$in: proposalList},
-                        status: constProposalStatus.APPROVED
+                        status: constProposalStatus.PENDING
                     }
 
                     return dbconfig.collection_proposal.update(

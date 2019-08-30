@@ -79,6 +79,7 @@ form(name="form_new_player", novalidate)
 			i.referralValidFalse.margin-left-5.fa.fa-times.text-danger
 			i.referralValidTrue.margin-left-5.fa.fa-check.text-success
 			input.referralValue.form-control(ng-model='vm.newPlayer.referralName', ng-change='vm.getReferralPlayer(vm.newPlayer, "change")')
+			span.hitReferralLimit.help-block.colorRed {{"Hit Referral Limit" | translate}}
 
 		.form-group.col-md-6
 			label.control-label {{"Registration Domain" | translate}}

@@ -256,6 +256,7 @@ define(['js/app'], function (myApp) {
                 PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
                 PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
                 PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
+                REFERRAL_REWARD_GROUP: "ReferralRewardGroup",
                 PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
                 PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
                 PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
@@ -1563,33 +1564,52 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                     case "UrlShortener":
+                        vm.getAllPreventBlockUrl();
+                        vm.showGeneratePreventBlockUrlPage = true;
+                        vm.showPreventBlockUrlSetting = false;
                         break;
                 }
                 if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
+            function getPreventBlockUrl () {
+                let result;
+                if (vm.choosePreventUrlType) {
+                    result = vm.preventUrlByPreset;
+                } else {
+                    result = vm.keyOwnPreventUrl;
+                }
+                return result;
+            }
+
             vm.generateMultiUrls = function() {
+                // get the url by existing two options, or keyin by user.
+                let preventBlockUrl = getPreventBlockUrl();
                 vm.urlData = [];
                 let urls = vm.splitTextArea(vm.multiUrls);
                 urls = [...new Set(urls)];
-                urls = urls.map(item => { return item.trim() });
-                let sendData = { "urls": urls }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                urls = urls.map(item => {
+                    if (preventBlockUrl) {
+                        item = preventBlockUrl + item;
+                    }
+                    return item.trim();
+                });
+                let sendData = { "urls": urls };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         vm.urlData = data.data ? data.data : [];
                     })
-                })
+                });
             }
 
             vm.generateSingleUrl = function(url, no) {
-                let sendData = { "urls": [ url ] }
-                let host = $location.protocol() + "://" + $location.host() + ":9000";
+                let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
-                $.post(host+'/urlShortener', sendData, function(data){
+
+                socketService.$socket($scope.AppSocket, 'urlShortener', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         $('#urlShortenerSpin').hide();
                         data = ( data && data.data && data.data[0] ) ? data.data[0] : null;
@@ -1599,8 +1619,59 @@ define(['js/app'], function (myApp) {
                                 return item;
                             }
                         });
-                    });
-                })
+                    })
+                });
+            }
+
+            vm.savePreventBlockUrl = function () {
+                let sendData = {'url': vm.newPreventBlockUrl};
+                socketService.$socket($scope.AppSocket, 'savePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+
+            vm.deletePreventBlockUrlConfirm = function (isConfirm = false, url) {
+
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Delete Prevent Block Url");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.deletePreventBlockUrl(url);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    vm.deletePreventBlockUrl(url)
+                }
+
+            }
+
+            vm.deletePreventBlockUrl = function (url) {
+                let sendData = {'url': url};
+                socketService.$socket($scope.AppSocket, 'deletePreventBlockUrl', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.newPreventBlockUrl = '';
+                        vm.getAllPreventBlockUrl();
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
+            }
+
+            vm.getAllPreventBlockUrl = function () {
+                socketService.$socket($scope.AppSocket, 'getAllPreventBlockUrl', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        data = data && data.data ? data.data : [];
+                        vm.allPreventBlockUrls = data;
+                    })
+                }, err => {
+                    console.log('err', err);
+                });
             }
 
             vm.exportShortUrlToExcel = function () {
@@ -22011,183 +22082,183 @@ define(['js/app'], function (myApp) {
                     }
 
                     console.log('platformID', vm.filterRewardPlatform);
-                    if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
-                        console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
-                        socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
-                            $scope.$evalAsync(() => {
-                                vm.allPlayerLevels = data.data;
+                    if (vm.showRewardTypeData) {
+                        if (vm.showRewardTypeData.name == "PlatformTransactionReward") {
+                            console.log('action', vm.showRewardTypeData.params.params.playerLevel.action);
+                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.playerLevel.action, {platformId: vm.filterRewardPlatform}, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allPlayerLevels = data.data;
+                                })
+                            }, function (data) {
+                                console.log("created not", data);
+                            });
+                        } else if (vm.showRewardTypeData.name == "GameProviderReward") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
+
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+
+                        } else if (vm.showRewardTypeData.name == "FirstTopUp") {
+                            // vm.rewardParams.games = vm.rewardParams.games || [];
+                            // vm.rewardParams = {};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.firstTopUp = {providerTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
                             })
-                        }, function (data) {
-                            console.log("created not", data);
-                        });
-                    } else if (vm.showRewardTypeData.name == "GameProviderReward") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "PlayerConsecutiveLoginReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-
-                    } else if (vm.showRewardTypeData.name == "FirstTopUp") {
-                        // vm.rewardParams.games = vm.rewardParams.games || [];
-                        // vm.rewardParams = {};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-
-                        vm.firstTopUp = {providerTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAsync(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAsync(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name == "PlayerDoubleTopUpReward") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
 
-                        vm.firstTopUp = {providerTick: {}};
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            vm.firstTopUp = {providerTick: {}};
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.firstTopUp.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+                        } else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            });
+
+                        } else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
+                            vm.rewardParams.games = vm.rewardParams.games || [];
+                            console.log('vm.rewardParams', vm.rewardParams);
+                            vm.rewardParams.providers = vm.rewardParams.providers || [];
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+
+                            vm.playerTopUpReturn = {providerTick: {}};
+
+                            vm.platformProvider.forEach(a => {
+                                if (vm.rewardParams.providers) {
+                                    vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                                }
+                            })
+
+                            // JSON sorts the reward param properties into alphabetical order
+                            // But for the UI display, we would prefer to specify our own order
+                            let rewardType = vm.showRewardTypeData;
+                            if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
+                                //console.log("Reordering:", rewardType.params.params.reward.data);
+                                let preferredOrder = {
+                                    minPlayerLevel: 1,
+                                    maxPlayerCredit: 1,
+                                    minConsumptionAmount: 1,
+                                    minTopUpRecordAmount: 1,
+                                    rewardAmount: 1,
+                                    rewardPercentage: 1,
+                                    maxRewardAmount: 1,
+                                    spendingTimes: 1
+                                };
+                                rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
+                                //console.log("Reordered: ", rewardType.params.params.reward.data);
+                            } else {
+                                console.warn("Could not reorder:", rewardType);
                             }
-                        })
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerTopUpReturn") {
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
+                        } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        vm.playerTopUpReturn = {providerTick: {}, providerGroupTick: {}};
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        });
+                        } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                    }
-                    else if (vm.showRewardTypeData.name == "PlayerConsumptionIncentive") {
-                        vm.rewardParams.games = vm.rewardParams.games || [];
-                        console.log('vm.rewardParams', vm.rewardParams);
-                        vm.rewardParams.providers = vm.rewardParams.providers || [];
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-
-                        vm.playerTopUpReturn = {providerTick: {}};
-
-                        vm.platformProvider.forEach(a => {
-                            if (vm.rewardParams.providers) {
-                                vm.playerTopUpReturn.providerTick[a._id] = (vm.rewardParams.providers.indexOf(a._id) != -1);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
                             }
-                        })
+                        } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
+                            vm.rewardParams.reward = vm.rewardParams.reward || [];
+                            vm.allGames = [];
 
-                        // JSON sorts the reward param properties into alphabetical order
-                        // But for the UI display, we would prefer to specify our own order
-                        let rewardType = vm.showRewardTypeData;
-                        if (rewardType.params && rewardType.params.params && rewardType.params.params.reward && rewardType.params.params.reward.data) {
-                            //console.log("Reordering:", rewardType.params.params.reward.data);
-                            let preferredOrder = {
-                                minPlayerLevel: 1,
-                                maxPlayerCredit: 1,
-                                minConsumptionAmount: 1,
-                                minTopUpRecordAmount: 1,
-                                rewardAmount: 1,
-                                rewardPercentage: 1,
-                                maxRewardAmount: 1,
-                                spendingTimes: 1
-                            };
-                            rewardType.params.params.reward.data = reorderProperties(rewardType.params.params.reward.data, preferredOrder);
-                            //console.log("Reordered: ", rewardType.params.params.reward.data);
-                        } else {
-                            console.warn("Could not reorder:", rewardType);
+                            //console.log('action', vm.showRewardTypeData.params.params.games.action);
+                            if (vm.rewardParams.provider) {
+                                socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
+                                    $scope.$evalAysnc(() => {
+                                        vm.allGames = data.data;
+                                        console.log('ok', vm.allGames);
+                                    })
+
+                                }, function (data) {
+                                    console.log("created not", data);
+                                });
+                            }
+                        } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
+                            vm.assignRandomRewards = [{playerName: '', rewardName: ''}];
+                            //get the random reward still available
+                            if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
+                                vm.getRandomRewardDetail('1', 'activeRandomRewards');
+                            } else {
+                                vm.activeRandomRewards = [];
+                            }
+
                         }
-                    } else if (vm.showRewardTypeData.name === "PlayerEasterEggReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerTopUpPromo") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerLimitedOfferReward") {
-                        vm.rewardParams.reward = vm.rewardParams.reward || [];
-                        vm.allGames = [];
-
-                        //console.log('action', vm.showRewardTypeData.params.params.games.action);
-                        if (vm.rewardParams.provider) {
-                            socketService.$socket($scope.AppSocket, vm.showRewardTypeData.params.params.games.action, {_id: vm.rewardParams.provider}, function (data) {
-                                $scope.$evalAysnc(() => {
-                                    vm.allGames = data.data;
-                                    console.log('ok', vm.allGames);
-                                })
-
-                            }, function (data) {
-                                console.log("created not", data);
-                            });
-                        }
-                    } else if (vm.showRewardTypeData.name === "PlayerRandomRewardGroup") {
-                        vm.assignRandomRewards = [{ playerName:'', rewardName:'' }];
-                        //get the random reward still available
-                        if (vm.showReward && vm.showReward.type && vm.showReward.type.name == "PlayerRandomRewardGroup") {
-                            vm.getRandomRewardDetail('1', 'activeRandomRewards');
-                        } else {
-                            vm.activeRandomRewards = [];
-                        }
-
                     }
 
                     if (onCreationForm) {
@@ -22273,6 +22344,18 @@ define(['js/app'], function (myApp) {
                             }
                             if (tempInterval && tempInterval[5]) {
                                 tempInterval[5] = undefined;
+                            }
+                            vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'ReferralRewardGroup' && el == "interval"
+                            && vm.rewardMainCondition[index]) {
+                            let tempInterval = JSON.parse(JSON.stringify(vm.rewardMainCondition[index].options));
+                            if (tempInterval && tempInterval[3]) {
+                                tempInterval[3] = undefined;
+                            }
+                            if (tempInterval && tempInterval[6]) {
+                                tempInterval[6] = undefined;
                             }
                             vm.rewardMainCondition[index].options = JSON.parse(JSON.stringify(tempInterval));
                         }
@@ -24567,6 +24650,9 @@ define(['js/app'], function (myApp) {
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
                         break;
+                    case 'referral':
+                        vm.getReferralConfig(platformObjId);
+                        break;
                     case 'autoApproval':
                         vm.getAutoApprovalBasic(platformObjId);
                         break;
@@ -24622,6 +24708,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'emailAuditConfig':
                         vm.getEmailAuditConfig(platformObjId);
+                        break;
+                    case 'emailNotificationConfig':
+                        vm.getEmailNotificationConfig(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
@@ -25260,6 +25349,13 @@ define(['js/app'], function (myApp) {
                     case 'gameSetting':
                         vm.loadGameSetting(vm.filterFrontEndSettingPlatform);
                         break;
+                    case 'scriptDescription':
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        break;
+                    case 'registrationGuidance':
+                        vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                        vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                        break;
                 }
             };
 
@@ -25267,21 +25363,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
                     case 'rewardPointClarification':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'popularRecommendation':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'carouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = false;
                         break;
                     case 'partnerCarouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
                     case 'partnerUrlConfiguration':
@@ -25292,7 +25383,6 @@ define(['js/app'], function (myApp) {
                         };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForUrlConfiguration = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
@@ -25300,7 +25390,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'skinManagement':
                     case 'partnerSkinManagement':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
@@ -25310,13 +25399,18 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'rewardSetting':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
+                    case 'scriptDescription':
+                        break;
+                    case 'registrationGuidance':
+                        break;
+                }
+                if (vm.filterFrontEndSettingPlatform) {
+                    vm.frontEndSettingPlatform();
                 }
             };
 
@@ -25682,39 +25776,59 @@ define(['js/app'], function (myApp) {
                 }, true);
             };
 
-            vm.addRewardCategory = function (categoryName) {
+            vm.addRewardCategory = function (categoryName, displayFormat) {
                 if (categoryName && vm.filterFrontEndSettingPlatform){
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, displayFormat: displayFormat}, function (data) {
                         $scope.$evalAsync( () => {
                             console.log('saveFrontEndRewardCategory', data.data);
+                            vm.isDefaultRewardCategory = false;
+                            $('#rewardCategoryModal').modal('hide');
                             if (data && data.data) {
                                 vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
                                 vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
                             }
                         })
                     }, function (err) {
+                        vm.isDefaultRewardCategory = false;
                         console.error('saveFrontEndRewardCategory error: ', err);
                     }, true);
                 }
             };
 
-            vm.deleteRewardCategory = function (categoryObjId) {
-                if (categoryObjId){
+            vm.deleteRewardCategory = function (categoryObjId, holder) {
+                if (categoryObjId && holder){
                     vm.rewardCategoryDeletedList.push(categoryObjId);
-                    let index =vm.frontEndRewardCategory.findIndex( p => p._id.toString() == categoryObjId.toString());
+                    let index = holder.findIndex( p => p._id.toString() == categoryObjId.toString());
                     if (index != -1){
                         $scope.$evalAsync( () => {
-                            vm.frontEndRewardCategory.splice(index, 1);
+                            holder.splice(index, 1);
                             $('#' + categoryObjId).remove();
                         })
                     }
                 }
             };
 
-            vm.deleteRewardSetting = function (id) {
+            vm.deleteRewardSetting = function (id, groupHolder, allGroupHolder) {
                 if (id){
                     vm.rewardDeletedList.push(id);
+
+                    if (vm[groupHolder] && vm[groupHolder].length){
+                        vm[groupHolder] = vm[groupHolder].filter(
+                            p => {
+                                return p && p._id && p._id.toString() != id.toString();
+                            }
+                        )
+                    }
+
+                    if (vm[allGroupHolder] && vm[allGroupHolder].length){
+                        vm[allGroupHolder] = vm[allGroupHolder].filter(
+                            p => {
+                                return p && p._id && p._id.toString() != id.toString();
+                            }
+                        )
+                    }
                     $('#'+id).remove();
+                    $scope.$evalAsync();
                 }
             };
 
@@ -25737,6 +25851,29 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     });
+
+                    let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                    if (ownArr && ownArr.length){
+                        ownArr.forEach((v, i) => {
+                            if (v){
+                                // try to get from the updated list to update the orderNumber
+                                let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    updateSetting[index].orderNumber = i + 1;
+                                }
+                                else{
+                                    // if cant find the record from the updated list, get it from the original data
+                                    let index = vm.allRewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                    if (index != -1){
+                                        let selectSetting = vm.allRewardSettingData[index];
+                                        selectSetting.orderNumber = i + 1;
+                                        updateSetting.push(selectSetting);
+                                    }
+                                }
+                            }
+                        });
+                    }
                     console.log("arr", arr);
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
@@ -25757,8 +25894,12 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
-                                vm.frontEndRewardCategory = data.data;
-                                vm.allFrontEndRewardCategory = data.data;
+                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+
+                                vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.frontEndRewardCategory = tempAll;
+                                vm.allFrontEndRewardCategory = tempAll;
                                 vm.displayCategory= [];
                                 vm.allFrontEndRewardCategory.forEach(
                                     p => {
@@ -25808,7 +25949,8 @@ define(['js/app'], function (myApp) {
                           utilService.actionAfterLoaded('#' + tempId, function () {
                               $(".droppable-area").sortable({
                                   connectWith: ".connected-sortable"
-                              })
+                              });
+                              $(".ownDragDrop").sortable({});
                           });
                       })
                     }, function (err) {
@@ -25816,6 +25958,16 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.enableSortableCategoryChange = function (holder) {
+                let tempId = holder && holder.length? holder[holder.length -1]._id : "";
+                utilService.actionAfterLoaded('#' + tempId, function () {
+                    $(".droppable-area").sortable({
+                        connectWith: ".connected-sortable"
+                    });
+                    $(".ownDragDrop").sortable({});
+                });
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
@@ -25831,7 +25983,7 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.editRewardCategory = function (categoryObjId) {
+            vm.editRewardCategory = function (categoryObjId, isNew, isDefault) {
                 if (categoryObjId && vm.allFrontEndRewardCategory && vm.allFrontEndRewardCategory.length){
                      let temp = vm.frontEndRewardCategory.filter( p => {
                         return p && p._id && p._id.toString() == categoryObjId.toString();
@@ -25839,28 +25991,61 @@ define(['js/app'], function (myApp) {
 
                     if (temp && temp.length) {
                         vm.newRewardCategoryData = Object.assign({}, temp[0]);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
                         $('#rewardCategoryModal').modal();
                     };
-
+                }
+                else if (isNew){
+                    vm.isNewRewardCategory = true;
+                    vm.newRewardCategoryData = {};
+                    $('#rewardCategoryModal').modal();
+                }
+                else if (isDefault){
+                    vm.isDefaultRewardCategory = true;
+                    if (vm.frontEndRewardDefaultCategory && vm.frontEndRewardDefaultCategory._id){
+                        vm.newRewardCategoryData = Object.assign({}, vm.frontEndRewardDefaultCategory);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRewardCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#rewardCategoryModal').modal();
                 }
             };
 
             vm.updateRewardCategory = function (updateObj) {
-                if (updateObj && updateObj._id && updateObj.categoryName){
-                    let categoryName = updateObj.categoryName;
-                    let categoryObjId = updateObj._id;
-                    socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: categoryName, categoryObjId: categoryObjId}, function (data) {
-                        $scope.$evalAsync( () => {
-                            console.log('saveFrontEndRewardCategory', data.data);
-                            $('#rewardCategoryModal').modal('hide');
-                            if (data && data.data) {
-                                vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
-                                vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
-                            }
-                        })
-                    }, function (err) {
-                        console.error('saveFrontEndRewardCategory error: ', err);
-                    }, true);
+                if (updateObj){
+                    if (updateObj._id && updateObj.categoryName) {
+                        let categoryName = updateObj.categoryName;
+                        let categoryObjId = updateObj._id;
+                        let displayFormat = updateObj.displayFormat || null;
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRewardCategory', {
+                            platformObjId: vm.filterFrontEndSettingPlatform,
+                            categoryName: categoryName,
+                            categoryObjId: categoryObjId,
+                            displayFormat: displayFormat
+                        }, function (data) {
+                            $scope.$evalAsync(() => {
+                                console.log('saveFrontEndRewardCategory', data.data);
+                                $('#rewardCategoryModal').modal('hide');
+                                vm.isDefaultRewardCategory = false;
+                                if (data && data.data) {
+                                    vm.loadRewardCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRewardSetting(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRewardCategory = false;
+                            console.error('saveFrontEndRewardCategory error: ', err);
+                        }, true);
+                    }
+                    else if (updateObj.categoryName){
+                        vm.addRewardCategory(updateObj.categoryName, updateObj.displayFormat);
+                    }
                 }
             };
 
@@ -26026,30 +26211,6 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-
-            vm.readURL = (input, previewId, holder) => {
-                console.log(input);
-                if (input.files && input.files[0] && vm.selectedPlatformId) {
-                    let reader1 = new FileReader();
-                    let reader2 = new FileReader();
-                    reader1.onload = function (e) {
-                        $(`#${previewId}`).attr('src', e.target.result);
-                    };
-                    reader2.onload = function (e) {
-                        holder[previewId] = {
-                            platformId: vm.selectedPlatformId,
-                            token: authService.getToken($cookies),
-                            fileStream: e.target.result,
-                            fileName: input.files[0].name
-                        };
-                    };
-                    // for preview purpose
-                    reader1.readAsDataURL(input.files[0]);
-                    // for upload to ftp server purpose
-                    reader2.readAsArrayBuffer(input.files[0]);
-                }
-            };
-
             //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function (isPartner) {
                 let sendData = {
@@ -26140,6 +26301,24 @@ define(['js/app'], function (myApp) {
                 }
             }
             //#endregion
+
+            vm.getFrontEndUrlConfigType = function(device, key, el) {
+                vm.curDevice = device;
+                vm.curKey = key;
+
+                let i = $("a[data-target='#modalSkinColor']").index(el.currentTarget);
+
+                vm.skinColor = function (color, c1, c2, degree) {
+                    if(color && c1 == null && c2 == null){
+                        $(".colorDisplay:eq("+ i +")").css({"background-color": color, "background-image": ""});
+
+                    }else if(color == null && c1 && c2 && degree){
+                        $(".colorDisplay:eq("+ i +")").css({"background-image": "linear-gradient(" + degree + "deg," + c1 + "," + c2 + ")", "background-color": ""});
+                        vm.frontEndUrlConfig[vm.curDevice][vm.curKey] = $('.colorDisplay')[i].style.backgroundImage;
+
+                    }
+                };
+            };
 
             //#region Frontend Configuration - Url Configuration
             vm.saveFrontEndUrlConfig = function (isPartner) {
@@ -27951,7 +28130,7 @@ define(['js/app'], function (myApp) {
                 let index = collection.length - 1;
                 let id = '#expDate' + type + '-' + index;
 
-                setTimeout(() => {
+                return new Promise(resolve => setTimeout(() => {
                     collection[index].expirationTime = utilService.createDatePicker(id, {
                         language: 'en',
                         format: 'yyyy/MM/dd hh:mm:ss',
@@ -27962,8 +28141,8 @@ define(['js/app'], function (myApp) {
                     }
                     vm.checkPlayerName(collection[index], tableId, index);
                     $scope.$evalAsync();
-                    return collection;
-                }, 500);
+                    return resolve(collection);
+                }, 500));
             };
             vm.cancelPromoCode = function (col, index) {
               $scope.$evalAsync(()=>{
@@ -28007,7 +28186,7 @@ define(['js/app'], function (myApp) {
                         let playerArr = sendData.playerName.split(/\r?\n/);
                         let p = Promise.resolve();
 
-                        playerArr.forEach((el, ind) => {
+                        playerArr.forEach(el => {
                             let newData = Object.assign({}, sendData);
                             newData.playerName = el;
                             newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
@@ -28116,9 +28295,10 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateAllPromoCode = function (col, type, skipCheck, channel) {
+                vm.generatingAllPromoCode = true;
                 let p = Promise.resolve();
 
-                col.forEach((elem, index, arr) => {
+                col.forEach((elem, index) => {
                     if (!elem.code) {
                         p = p.then(function () {
                             if (skipCheck && !elem.error) {
@@ -28131,28 +28311,30 @@ define(['js/app'], function (myApp) {
 
                 return p.then(() => {
                     $scope.$evalAsync(()=>{
-                      if (col && col.length > 0) {
-                          if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
-                              if (type) {
-                                  if (type == 1) {
+                        if (col && col.length > 0) {
+                            if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                                if (type) {
+                                    if (type == 1) {
                                       vm.promoCode1HasMoreThanOne = true;
-                                  }
-                                  if (type == 2) {
+                                    }
+                                    if (type == 2) {
                                       vm.promoCode2HasMoreThanOne = true;
-                                  }
-                                  if (type == 3) {
+                                    }
+                                    if (type == 3) {
                                       vm.promoCode3HasMoreThanOne = true;
-                                  }
-                              }
-                          } else {
-                              vm.promoCode1HasMoreThanOne = false;
-                              vm.promoCode2HasMoreThanOne = false;
-                              vm.promoCode3HasMoreThanOne = false;
-                          }
-                      }
-                  });
-              });
-
+                                    }
+                                }
+                            } else {
+                                vm.promoCode1HasMoreThanOne = false;
+                                vm.promoCode2HasMoreThanOne = false;
+                                vm.promoCode3HasMoreThanOne = false;
+                            }
+                        }
+                        vm.generatingAllPromoCode = false;
+                    });
+                }).catch(err => {
+                    vm.generatingAllPromoCode = false;
+                });
             };
 
             vm.checkAllPromoCodeSubType = function (platformList) {
@@ -32208,6 +32390,7 @@ define(['js/app'], function (myApp) {
                 vm.editAuditConfig = vm.editAuditConfig || {};
                 vm.auditCreditChangeSetting = vm.auditCreditChangeSetting || {};
                 vm.auditManualRewardSetting = vm.auditManualRewardSetting || {};
+                vm.auditRepairTransferSetting = vm.auditRepairTransferSetting || {};
                 let sendData = {
                     platformObjId: platformObjId || null
                 };
@@ -32244,8 +32427,57 @@ define(['js/app'], function (myApp) {
                     });
                 });
 
-
+                socketService.$socket($scope.AppSocket, 'getAuditRepairTransferSetting', sendData, function (data) {
+                    console.log('getAuditRepairTransferSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditRepairTransferSetting = {};
+                        if (data && data.data) {
+                            vm.auditRepairTransferSetting = data.data;
+                        }
+                        if (!vm.auditRepairTransferSetting.recipient) {
+                            vm.auditRepairTransferSetting.recipient = [];
+                        }
+                        if (!vm.auditRepairTransferSetting.reviewer) {
+                            vm.auditRepairTransferSetting.reviewer = [];
+                        }
+                    });
+                });
             };
+
+            vm.getEmailNotificationConfig = async (platformObjId) => {
+                vm.editEmailNotificationConfig = vm.editEmailNotificationConfig || false;
+                vm.emailNotificationConfig = vm.emailNotificationConfig || {};
+
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getEmailNotificationConfig', sendData, function (data) {
+                    console.log('getEmailNotificationConfig', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.emailNotificationConfig = {};
+                        if (data && data.data) {
+                            vm.emailNotificationConfig = data.data;
+                        }
+                    });
+                });
+            };
+            vm.updateEmailNotificationConfig = async function () {
+                console.log('updateEmailNotificationConfig', vm.emailNotificationConfig);
+
+                let result = await $scope.$socketPromise('updateEmailNotificationConfig', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.emailNotificationConfig.doNotify || false,
+                    emailPrefix: vm.emailNotificationConfig.emailPrefix || "",
+                    includeAdminName: vm.emailNotificationConfig.includeAdminName || false,
+                    includeOperationTime: vm.emailNotificationConfig.includeOperationTime || false,
+                    includeProposalStepName: vm.emailNotificationConfig.includeProposalStepName || false,
+                    includePlatformName: vm.emailNotificationConfig.includePlatformName || false
+                });
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
@@ -32317,6 +32549,25 @@ define(['js/app'], function (myApp) {
                         vm.partnerBasic.partnerUnreadMailMaxDuration = platformData.partnerUnreadMailMaxDuration;
                         vm.partnerBasic.partnerDefaultCommissionGroup = platformData.partnerDefaultCommissionGroup;
                         vm.partnerBasic.partnerSameBankAccountCount = platformData.partnerSameBankAccountCount;
+                    });
+                })
+            };
+
+            vm.getReferralConfig = function (platformObjId) {
+                let sendData = {
+                    platform: platformObjId || null
+                }
+                socketService.$socket($scope.AppSocket, 'getReferralConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getReferralConfig--', data.data);
+                        let referralConfigData = data.data;
+                        vm.referralConfig = {};
+                        if (referralConfigData) {
+                            vm.referralConfig.enableUseReferralPlayerId = referralConfigData.enableUseReferralPlayerId;
+                            vm.referralConfig.referralPeriod = referralConfigData.referralPeriod;
+                            vm.referralConfig.referralLimit = referralConfigData.referralLimit;
+                        }
+
                     });
                 })
             };
@@ -32910,6 +33161,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'bonusBasic':
                         updatePlatformBasic(vm.bonusBasic);
+                        break;
+                    case 'referral':
+                        updateReferralConfig(vm.referralConfig);
                         break;
                     case 'autoApproval':
                         updateAutoApprovalConfig(vm.autoApprovalBasic);
@@ -33748,10 +34002,10 @@ define(['js/app'], function (myApp) {
                 switch(setting) {
                     case 'auditCreditChangeSetting':
                         return 'setAuditCreditChangeSetting';
-                        break;
                     case 'auditManualRewardSetting':
                         return 'setAuditManualRewardSetting';
-                        break;
+                    case 'auditRepairTransferSetting':
+                        return 'setAuditRepairTransferSetting';
                     default:
                         console.log('current audit setting not found');
                         return;
@@ -34433,6 +34687,21 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateReferralConfig(srcData) {
+                let sendData = {
+                    query: {platform: vm.filterConfigPlatform},
+                    updateData: {
+                        enableUseReferralPlayerId: srcData.enableUseReferralPlayerId,
+                        referralPeriod: srcData.referralPeriod,
+                        referralLimit: srcData.referralLimit
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateReferralConfig', sendData, function (data) {
                     loadPlatformData({loadAll: false});
                 });
             }
@@ -35481,9 +35750,20 @@ define(['js/app'], function (myApp) {
 
             vm.loadDepartmentLocal = () => {
                 let platformObjId = getSelectedPlatform()._id;
-                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                let departments = vm.departments.filter(department => {
                     return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
-                })
+                });
+
+                vm.currentPlatformQueryDepartments = [];
+                // filter unique department
+                for (let i = 0; i < departments.length; i++) {
+                    let department = departments[i];
+                    let index = vm.currentPlatformQueryDepartments.findIndex(availableDepartment => availableDepartment._id === department._id);
+                    if (index <= -1) {
+                        vm.currentPlatformQueryDepartments.push(department);
+                    }
+                }
+
                 vm.refreshSPicker();
             };
 
@@ -43147,6 +43427,439 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.loadScriptSetting = function (platformObjId) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndScriptSetting', {platformObjId: platformObjId}, function (data) {
+                    $scope.$evalAsync( () => {
+                        console.log('getFrontEndScriptSetting', data.data);
+                        if (data && data.data) {
+                            vm.frontEndDeletedList = [];
+                            vm.scriptSettingData = data.data;
+                        }
+                    })
+
+                }, function (err) {
+                    console.error('getFrontEndScriptSetting error: ', err);
+                }, true);
+            };
+
+            vm.scriptSetting = function (noModal, isDelete, eventObjectId, isVisible) {
+                vm.scriptsData = {};
+                if (eventObjectId){
+                    let index = vm.scriptSettingData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    vm.scriptsData._id = vm.scriptSettingData[index]._id
+
+                    if (noModal) {
+                        if(isDelete){
+                            vm.scriptsData.status = 2;
+                        }else{
+                            vm.scriptsData.isVisible = isVisible;
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                            console.log("saveFrontEndScriptSetting", data);
+                        }, function (err) {
+                            console.log("saveFrontEndScriptSetting err", err);
+                        });
+
+                        vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+
+                    }else {
+                        $('#scriptDescriptionModal').modal();
+
+                        if (index != -1) {
+                            vm.scriptsData.title = vm.scriptSettingData[index].title;
+                            vm.scriptsData.instructions = vm.scriptSettingData[index].instructions;
+                        }
+                    }
+                }else{
+                    $('#scriptDescriptionModal').modal();
+
+                }
+            };
+
+            vm.updateScriptSetting = () => {
+                socketService.$socket($scope.AppSocket, 'updateScriptSetting', {dataList: vm.scriptSettingData, deletedList: vm.frontEndDeletedList},
+                    function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('updateScriptSetting is done', data);
+                            vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
+            },
+
+            vm.submitScriptSetting = () => {
+                $('#scriptDescriptionLoader').show();
+                vm.scriptsData.platformObjId = vm.filterFrontEndSettingPlatform;
+
+                socketService.$socket($scope.AppSocket, 'saveFrontEndScriptSetting', vm.scriptsData, function (data) {
+                    console.log("saveFrontEndScriptSetting", data);
+                    $('#scriptDescriptionLoader').hide();
+                    $('#scriptDescriptionModal').modal('hide');
+
+                }, function (err) {
+                    console.log("saveFrontEndScriptSetting err", err);
+                });
+
+                vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
+            };
+
+            vm.loadRegistrationGuidanceCategory = function (platformObjId){
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getRegistrationGuidanceCategory', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getRegistrationGuidanceCategory', data.data);
+                            if (data && data.data) {
+                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+
+                                vm.registationDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.registrationCategory = tempAll;
+                                vm.allRegistrationCategory = tempAll;
+                                vm.displayRegistrationCategory= [];
+                                vm.allRegistrationCategory.forEach(
+                                    p => {
+                                        if (p && p._id){
+                                            vm.displayRegistrationCategory.push(p._id);
+                                        }
+                                    }
+                                )
+                                vm.refreshSPicker();
+                            }
+                        })
+                    }, function (err) {
+                        console.error('getRegistrationGuidanceCategory error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.loadRegistrationGuidance = function (platformObjId) {
+                if (platformObjId){
+                    socketService.$socket($scope.AppSocket, 'getFrontEndRegistrationGuidanceSetting', {platformObjId: platformObjId}, function (data) {
+                        $scope.$evalAsync( () => {
+                            console.log('getFrontEndRegistrationGuidanceSetting', data.data);
+                            if (data && data.data) {
+                                vm.registrationSettingData = data.data;
+                                vm.allRegistrationSettingData = data.data;
+                            }
+
+                            let tempId = vm.registrationCategory && vm.registrationCategory.length? vm.registrationCategory[vm.registrationCategory.length -1]._id : "";
+                            utilService.actionAfterLoaded('#' + tempId, function () {
+                                $(".droppable-area").sortable({
+                                    connectWith: ".connected-sortable"
+                                });
+                                $(".ownDragDrop").sortable({});
+                            });
+                        })
+                    }, function (err) {
+                        console.error('getFrontEndRegistrationGuidanceSetting error: ', err);
+                    }, true);
+                }
+            };
+
+            vm.filterDisplayRegistrationCategory = function (categoryObjIdList){
+                if (categoryObjIdList && categoryObjIdList.length) {
+                    vm.registrationCategory = vm.allRegistrationCategory.filter(p => {
+                        return p && p._id && categoryObjIdList.map(p => p.toString()).includes(p._id.toString())
+                    });
+                    vm.registrationSettingData = vm.allRegistrationSettingData.filter(p => {
+                        return p && p.categoryObjId && categoryObjIdList.map(p => p.toString()).includes(p.categoryObjId.toString())
+                    });
+
+                    $scope.$evalAsync();
+                };
+            };
+
+            vm.updateRegistrationGuidanceCategory = function (updateObj) {
+                if (updateObj){
+                    if (updateObj._id && updateObj.categoryName) {
+                        let categoryName = updateObj.categoryName;
+                        let categoryObjId = updateObj._id;
+                        let displayFormat = updateObj.displayFormat || null;
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceCategory', {
+                            platformObjId: vm.filterFrontEndSettingPlatform,
+                            categoryName: categoryName,
+                            categoryObjId: categoryObjId,
+                            displayFormat: displayFormat
+                        }, function (data) {
+                            $scope.$evalAsync(() => {
+                                console.log('saveFrontEndRegistrationGuidanceCategory', data.data);
+                                $('#registrationGuidanceCategoryModal').modal('hide');
+                                vm.isDefaultRegistrationCategory = false;
+                                if (data && data.data) {
+                                    vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRegistrationCategory = false;
+                            console.error('saveFrontEndRegistrationGuidanceCategory error: ', err);
+                        }, true);
+                    }
+                    else if (updateObj.categoryName){
+                        socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceCategory', {platformObjId: vm.filterFrontEndSettingPlatform, categoryName: updateObj.categoryName, displayFormat: updateObj.displayFormat}, function (data) {
+                            $scope.$evalAsync( () => {
+                                console.log('saveFrontEndRegistrationGuidanceCategory', data.data);
+                                vm.isDefaultRegistrationCategory = false;
+                                $('#registrationGuidanceCategoryModal').modal('hide');
+                                if (data && data.data) {
+                                    vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }
+                            })
+                        }, function (err) {
+                            vm.isDefaultRegistrationCategory = false;
+                            console.error('saveFrontEndRegistrationGuidanceCategory error: ', err);
+                        }, true);
+                    }
+                }
+            };
+
+            vm.editRegistrationCategory = function (categoryObjId, isNew, isDefault) {
+                if (categoryObjId && vm.registrationCategory && vm.registrationCategory.length){
+                    let temp = vm.registrationCategory.filter( p => {
+                        return p && p._id && p._id.toString() == categoryObjId.toString();
+                    })
+
+                    if (temp && temp.length) {
+                        vm.newRegistrationCategoryData = Object.assign({}, temp[0]);
+                        if (vm.newRegistrationCategoryData && vm.newRegistrationCategoryData.displayFormat){
+                            vm.newRegistrationCategoryData.displayFormat = vm.newRegistrationCategoryData.displayFormat.toString();
+                        }
+                        $('#registrationGuidanceCategoryModal').modal();
+                    };
+                }
+                else if (isNew){
+                    vm.newRegistrationCategoryData = {};
+                    $('#registrationGuidanceCategoryModal').modal();
+                }
+                else if (isDefault){
+                    vm.isDefaultRegistrationCategory = true;
+                    if (vm.registationDefaultCategory && vm.registationDefaultCategory._id){
+                        vm.newRegistrationCategoryData = Object.assign({}, vm.registationDefaultCategory);
+                        if (vm.newRegistrationCategoryData && vm.newRegistrationCategoryData.displayFormat){
+                            vm.newRegistrationCategoryData.displayFormat = vm.newRegistrationCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRegistrationCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#registrationGuidanceCategoryModal').modal();
+                }
+            };
+
+            vm.addNewRegistrationGuidance = function (isNew, eventObjId) {
+                //reset
+                document.querySelector('#registrationPcImageFile').value = "";
+                document.querySelector('#registrationPcNewPageFile').value = "";
+                document.querySelector('#registrationPcPageDetailFile').value = "";
+                document.querySelector('#registrationH5ImageFile').value = "";
+                document.querySelector('#registrationH5NewPageFile').value = "";
+                document.querySelector('#registrationH5PageDetailFile').value = "";
+                document.querySelector('#registrationAppImageFile').value = "";
+                document.querySelector('#registrationAppNewPageFile').value = "";
+                document.querySelector('#registrationAppPageDetailFile').value = "";
+
+                $('#registrationPcImage').attr("src","");
+                $('#registrationH5Image').attr("src","");
+                $('#registrationAppImage').attr("src","");
+                vm.registrationImageFile = {};
+                vm.registrationImageUrl = {};
+
+                if (isNew){
+                    vm.registrationSetting = {
+                        pc: {},
+                        h5: {},
+                        app: {},
+                    };
+                }
+                else{
+                    if (eventObjId){
+                        let index = vm.registrationSettingData.findIndex( p => p._id.toString() == eventObjId.toString());
+                        if (index != -1){
+                            vm.registrationSetting = _.clone(vm.registrationSettingData[index]);
+                            if( vm.registrationSetting && vm.registrationSetting.pc && vm.registrationSetting.pc.imageUrl) {
+                                $('#registrationPcImage').attr("src",vm.registrationSetting.pc.imageUrl);
+                            }
+                            if( vm.registrationSetting && vm.registrationSetting.h5 && vm.registrationSetting.h5.imageUrl) {
+                                $('#registrationH5Image').attr("src",vm.registrationSetting.h5.imageUrl);
+                            }
+                            if( vm.registrationSetting && vm.registrationSetting.app && vm.registrationSetting.app.imageUrl) {
+                                $('#registrationAppImage').attr("src",vm.registrationSetting.app.imageUrl);
+                            }
+
+                            if (vm.registrationSetting && !vm.registrationSetting.pc){
+                                vm.registrationSetting.pc = {};
+                            }
+                            if (vm.registrationSetting && !vm.registrationSetting.h5){
+                                vm.registrationSetting.h5 = {};
+                            }
+                            if (vm.registrationSetting && !vm.registrationSetting.app){
+                                vm.registrationSetting.app = {};
+                            }
+                        }
+                    }
+                }
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+
+                vm.refreshSPicker();
+                $('#registrationGuidanceSetting').modal();
+                $("#registrationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcImage", vm.registrationImageFile);});
+                $("#registrationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcNewPage", vm.registrationImageFile);});
+                $("#registrationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationPcPageDetail", vm.registrationImageFile);});
+
+                $("#registrationH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5Image", vm.registrationImageFile);});
+                $("#registrationH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5NewPage", vm.registrationImageFile);});
+                $("#registrationH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationH5PageDetail", vm.registrationImageFile);});
+
+                $("#registrationAppImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppImage", vm.registrationImageFile);});
+                $("#registrationAppNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppNewPage", vm.registrationImageFile);});
+                $("#registrationAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"registrationAppPageDetail", vm.registrationImageFile);});
+            };
+
+            vm.submitRegistrationSetting = function () {
+                vm.isFinishedUploadedToFTPServer = true;
+                $('#frontEndRegistrationUploader').show();
+                function removeFromList(data) {
+                    if (data) {
+                        delete vm.registrationImageFile[data.name];
+                    }
+
+                    return data;
+                };
+
+                let promArr = [
+                    "registrationPcImage",
+                    "registrationPcNewPage",
+                    "registrationPcPageDetail",
+                    "registrationH5Image",
+                    "registrationH5NewPage",
+                    "registrationH5PageDetail",
+                    "registrationAppImage",
+                    "registrationAppNewPage",
+                    "registrationAppPageDetail",
+                ];
+
+                let prom = Promise.resolve();
+                promArr.forEach(
+                    item => {
+                        prom = prom.then(()=>{return vm.uploadToFtp(item, vm.registrationImageFile, vm.registrationImageUrl).then(removeFromList)});
+                    }
+                );
+
+                return prom.then(
+                    () => {
+                        console.log("vm.registrationImageUrl", vm.registrationImageUrl);
+                        vm.registrationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        if (vm.registrationImageUrl){
+                            if (vm.registrationImageUrl.registrationPcImage){
+                                vm.registrationSetting.pc.imageUrl = vm.registrationImageUrl.registrationPcImage
+                            }
+                            if (vm.registrationImageUrl.registrationPcNewPage){
+                                vm.registrationSetting.pc.newPageUrl = vm.registrationImageUrl.registrationPcNewPage
+                            }
+                            if (vm.registrationImageUrl.registrationPcPageDetail){
+                                vm.registrationSetting.pc.activityUrl = vm.registrationImageUrl.registrationPcPageDetail
+                            }
+                            if (vm.registrationImageUrl.registrationH5Image){
+                                vm.registrationSetting.h5.imageUrl = vm.registrationImageUrl.registrationH5Image
+                            }
+                            if (vm.registrationImageUrl.registrationH5NewPage){
+                                vm.registrationSetting.h5.newPageUrl = vm.registrationImageUrl.registrationH5NewPage
+                            }
+                            if (vm.registrationImageUrl.registrationH5PageDetail){
+                                vm.registrationSetting.h5.activityUrl = vm.registrationImageUrl.registrationH5PageDetail
+                            }
+                            if (vm.registrationImageUrl.registrationAppImage){
+                                vm.registrationSetting.app.imageUrl = vm.registrationImageUrl.registrationAppImage
+                            }
+                            if (vm.registrationImageUrl.registrationAppNewPage){
+                                vm.registrationSetting.app.newPageUrl = vm.registrationImageUrl.registrationAppNewPage
+                            }
+                            if (vm.registrationImageUrl.registrationAppPageDetail){
+                                vm.registrationSetting.app.activityUrl = vm.registrationImageUrl.registrationAppPageDetail
+                            }
+
+                            if (vm.isFinishedUploadedToFTPServer) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndRegistrationGuidanceSetting', vm.registrationSetting, function (data) {
+                                    console.log("saveFrontEndRegistrationGuidanceSetting ret", data);
+                                    // stop the uploading loader
+                                    $('#frontEndRegistrationUploader').hide();
+                                    // close the modal
+                                    $('#registrationGuidanceSetting').modal('hide');
+                                    // collect the latest setting
+                                    vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                                }, function (err) {
+                                    console.log("saveFrontEndRegistrationGuidanceSetting err", err);
+                                });
+                            }
+                            else {
+                                $('#frontEndRegistrationUploader').hide();
+                            }
+                        }
+                    }
+                ).catch(err=>{
+                    console.log("err", err);
+                    $('#frontEndRegistrationUploader').hide();
+                });
+            };
+
+            vm.updateRegistrationGuidanceSetting = function () {
+                let arr = {};
+                let updateSetting = [];
+
+                vm.registrationCategory.forEach(cato => {
+                    arr[cato._id] = $('#'+cato._id + ' .droppable-area').sortable('toArray');
+                    arr[cato._id].forEach((v, i) => {
+                        if (v){
+                            let index = vm.registrationSettingData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                let selectSetting = vm.registrationSettingData[index];
+                                selectSetting.categoryObjId = cato._id;
+                                selectSetting.displayOrder = i + 1;
+                                updateSetting.push(selectSetting);
+                            }
+                        }
+                    });
+                });
+
+                let ownArr = $('#allReward .ownDragDrop').sortable('toArray');
+
+                if (ownArr && ownArr.length){
+                    ownArr.forEach((v, i) => {
+                        if (v){
+                            // try to get from the updated list to update the orderNumber
+                            let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                updateSetting[index].orderNumber = i + 1;
+                            }
+                            else{
+                                // if cant find the record from the updated list, get it from the original data
+                                let index = vm.allRegistrationSettingData.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1){
+                                    let selectSetting = vm.allRegistrationSettingData[index];
+                                    selectSetting.orderNumber = i + 1;
+                                    updateSetting.push(selectSetting);
+                                }
+                            }
+                        }
+                    });
+                }
+                console.log("arr", arr);
+                return  $scope.$socketPromise('updateRegistrationGuidanceSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
+                    (data) =>{
+                        $scope.$evalAsync( () => {
+                            console.log('updateRegistrationGuidanceSetting is done', data);
+                            vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform);
+                            vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);
+                        })
+                    }, function (err) {
+                        console.log('err', err);
+                    });
             };
 
             vm.checkProposalStepUpdatePermission = () => {
