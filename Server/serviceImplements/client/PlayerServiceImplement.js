@@ -535,6 +535,8 @@ let PlayerServiceImplement = function () {
                 } else {
                     expireDuration = 60 * 60 * 5;
                 }
+                console.log("zm checking uaString", uaString, playerData.name)
+                console.log("zm checking inputDevice", inputDevice, expireDuration, playerData.name)
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: expireDuration});
 
