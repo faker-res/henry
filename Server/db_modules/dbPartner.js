@@ -12998,14 +12998,18 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId, gameProvid
                                 defaultGroup.isCustom = false;
                             }
                         });
-
-                        gameProviderGroups.map(providerGroup => {
-                            if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
-                                defaultGroup.name = providerGroup.name;
-                            }
-                        });
                     });
                 }
+            }
+
+            if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && rateConfig && rateConfig.rateAfterRebateGameProviderGroup.map) {
+                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                    gameProviderGroups.map(providerGroup => {
+                        if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
+                            defaultGroup.name = providerGroup.name;
+                        }
+                    });
+                });
             }
             return rateConfig;
         }
