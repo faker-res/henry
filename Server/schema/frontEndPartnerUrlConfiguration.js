@@ -12,6 +12,8 @@ var frontEndPartnerUrlConfigurationSchema = new Schema({
     metaKeyword: {type: String},
     // meta(Description)
     metaDescription: {type: String},
+    // 主站APP下载地址
+    appDownloadAddress: {type: String},
     pc: {
         skin: {type: Schema.Types.ObjectId, ref: 'frontEndPartnerSkinSetting', index: true},
     },
