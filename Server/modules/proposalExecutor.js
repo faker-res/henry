@@ -819,7 +819,8 @@ var proposalExecutor = {
                             sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             if (proposalData.data.playerObjId && proposalData.data.platformId && proposalData.data.updateData.phoneNumber) {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
-                                checkSimilarPhoneForPlayers(proposalData.data.playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
+                                let playerObjId = proposalData.data.playerObjId._id || proposalData.data.playerObjId;
+                                checkSimilarPhoneForPlayers(playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
                             }
                             deferred.resolve(data);
                         },
@@ -908,29 +909,65 @@ var proposalExecutor = {
                                     }
                                 }
 
-                                if (playerUpdate && playerUpdate.referral) {
+                                if (playerUpdate && playerUpdate.hasOwnProperty('referral')) {
                                     let referralProm = dbconfig.collection_platformReferralConfig.findOne({platform: data.platform}).then(
                                         config => {
                                             if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
-                                                let bindReferralTime = (data && data.registrationTime) || new Date();
+                                                if (playerUpdate.referral) {
 
-                                                let referralLog = {
-                                                    referral: playerUpdate.referral,
-                                                    playerObjId: data._id,
-                                                    platform: data.platform,
-                                                    createTime: new Date(bindReferralTime),
-                                                    referralPeriod: config.referralPeriod || '5'
-                                                };
+                                                    return dbconfig.collection_referralLog.findOne({playerObjId: data._id, platform: data.platform, isValid: true}).then(
+                                                        referralLogData => {
+                                                            let updateProm = Promise.resolve(true);
+                                                            if (referralLogData) {
+                                                                updateProm = dbconfig.collection_referralLog.findOneAndUpdate(
+                                                                    {
+                                                                        platform: data.platform,
+                                                                        playerObjId: data._id,
+                                                                        isValid: true
+                                                                    },
+                                                                    {
+                                                                        isValid: false,
+                                                                        validEndTime: new Date()
+                                                                    });
+                                                            }
 
-                                                if (config.referralPeriod) {
-                                                    let referralIntervalTime = dbUtil.getReferralConfigIntervalTime(config.referralPeriod, new Date(bindReferralTime));
+                                                            return updateProm.then(() => {
+                                                                let bindReferralTime =  new Date();
 
-                                                    if (referralIntervalTime) {
-                                                        referralLog.validEndTime = referralIntervalTime.endTime;
-                                                    }
+                                                                let referralLog = {
+                                                                    referral: playerUpdate.referral,
+                                                                    playerObjId: data._id,
+                                                                    platform: data.platform,
+                                                                    createTime: new Date(bindReferralTime),
+                                                                    referralPeriod: config.referralPeriod || '5'
+                                                                };
+
+                                                                if (config.referralPeriod) {
+                                                                    let referralIntervalTime = dbUtil.getReferralConfigIntervalTime(config.referralPeriod, new Date(bindReferralTime));
+
+                                                                    if (referralIntervalTime) {
+                                                                        referralLog.validEndTime = referralIntervalTime.endTime;
+                                                                    }
+                                                                }
+
+                                                                return new dbconfig.collection_referralLog(referralLog).save();
+                                                            })
+                                                        }
+                                                    )
+
+
+                                                } else {
+                                                    return dbconfig.collection_referralLog.findOneAndUpdate(
+                                                        {
+                                                            platform: data.platform,
+                                                            playerObjId: data._id,
+                                                            isValid: true
+                                                        },
+                                                        {
+                                                            isValid: false,
+                                                            validEndTime: new Date()
+                                                        });
                                                 }
-
-                                                return new dbconfig.collection_referralLog(referralLog).save();
                                             }
                                         }
                                     )

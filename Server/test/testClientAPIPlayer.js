@@ -50,38 +50,34 @@ describe("Test Client API - Player service", function () {
 
     var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
 
+    // NOTE :: if you return promise (or use async/await), you do not need to call done(). An exception will occur if you do it
+    // however, if you use promise(or any sort of async programming) without return promise, done() is necessary to tell mocha that the script is finished
+    before(async function () {
+        //create test platform
+        let testPlatform = await commonTestFun.createTestPlatform();
+        testPlatformObjId = testPlatform._id;
+        testPlatformId = testPlatform.platformId;
 
-    it('Should create test API player and platform', function(done) {
-        commonTestFun.createTestPlatform().then(
-            function(data) {
-                testPlatformObjId = data._id;
-                testPlatformId = data.platformId;
-                return commonTestFun.createTestPlayer(testPlatformObjId);
-            },
-            function(error) {
-                console.error(error);
-            }
-        ).then(
-            function(data) {
-                testPlayerName = data.name;
-                testPlayerObjId = data._id;
-                testPlayerId = data.playerId;
-                done();
-            },
-            function(error) {
-                console.error(error);
-            }
-        );
-    });
+        // create test player
+        let testPlayer = await commonTestFun.createTestPlayer(testPlatformObjId);
+        testPlayerName = testPlayer.name;
+        testPlayerObjId = testPlayer._id;
+        testPlayerId = testPlayer.playerId;
 
-    it('Should create a connection', function (done) {
+        // create a connection
         client.connect();
-        client.addEventListener("open", function () {
-            done();
-        });
+        let clientOpenProm = () => {
+            return new Promise(res => {
+                client.addEventListener("open", function () {
+                    res();
+                });
+            });
+        }
+        await clientOpenProm();
     });
 
-    it('Should create a test player', function(done) {
+    let apiCreatedPlayer;
+    before(function(done) {
         const newPlayerData = {
             name: testNewPlayerName,
             platformId: testPlatformId,
@@ -93,15 +89,20 @@ describe("Test Client API - Player service", function () {
             isTestPlayer: true
         };
         clientPlayerAPITest.create(function(data) {
-            data.data.name.should.endWith(testNewPlayerName);
-            //data.data.email.should.equal("testPlayer123@gmail.com");
+            apiCreatedPlayer = data;
             testNewPlayerId = data.data.playerId;
             done();
         }, newPlayerData);
+    })
+
+    it('Should create a test player', function(done) {
+        apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
+        done();
     });
 
-
-    it('Should login apiUser', function (done) {
+    // NOTE:: move the dependency out of 'it' so you can run each 'it' test individually while still not having dependency issue
+    let apiLoginPlayer;
+    before(function (done) {
         const testPlayerLoginData = {
             name: testPlayerName,
             password: "123456",
@@ -110,9 +111,15 @@ describe("Test Client API - Player service", function () {
         };
         clientPlayerAPITest.login(function (data) {
             token = data.token;
-            data.data.name.should.equal(testPlayerName);
+            apiLoginPlayer = data;
             done();
         }, testPlayerLoginData);
+    });
+
+
+    it('Should login correct apiUser successfully', function(done) {
+        apiLoginPlayer.data.name.should.equal(testPlayerName);
+        done();
     });
 
 
@@ -260,16 +267,14 @@ describe("Test Client API - Player service", function () {
         }, {platformId: testPlatformId});
     });
 
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]).then(function(data){
-            done();
-        })
-    });
+    after(async function () {
+        // remove all test data
+        let removeTestDataProm = commonTestFun.removeTestData(testPlatformObjId, [testPlayerObjId]);
+        let removeTestProposalData = commonTestFun.removeTestProposalData([] , testPlatformObjId, [], [testPlayerObjId]);
+        let finished = await Promise.all([removeTestDataProm, removeTestProposalData]);
 
-    it('Should remove all test Data', function(done){
-        commonTestFun.removeTestProposalData([] , testPlatformObjId, [], [testPlayerObjId]).then(function(data){
-            done();
-        })
+        //
+        client.disconnect();
     });
 
     //notifyNewMail

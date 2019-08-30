@@ -485,6 +485,7 @@ var roleChecker = {
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 largeWithdrawalSetting: ['updateLargeWithdrawalSetting', 'updateLargeWithdrawalPartnerSetting'],
                 emailAuditConfig: ['setAuditCreditChangeSetting', 'setAuditManualRewardSetting'],
+                emailNotificationConfig: ['updateEmailNotificationConfig'],
                 platformFeeEstimateSetting: ['updatePlatformFeeEstimateSetting'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
@@ -610,6 +611,8 @@ var roleChecker = {
                 "auditCreditChangeAuditor": [],
                 "auditManualRewardRecipient": [],
                 "auditManualRewardAuditor": [],
+                "auditRepairTransferRecipient": [],
+                "auditRepairTransferAuditor": [],
             },
         },
         Report: {

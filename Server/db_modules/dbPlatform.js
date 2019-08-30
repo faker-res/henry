@@ -4327,7 +4327,7 @@ var dbPlatform = {
                         new: true
                     });
                 } else {
-                    return Q.reject({name: "DBError", error: "Cannot preview, setting is incomplete"});
+                    return Q.reject({name: "DBError", error: "None of the partner match the commission type"});
                 }
             }
         );
@@ -6477,7 +6477,7 @@ var dbPlatform = {
                 prom = dbconfig.collection_frontEndPartnerSkinSetting.find(query).lean()
             }
             else if (code == "game"){
-                prom = dbconfig.collection_frontEndGameSetting.find(query).lean()
+                prom = dbconfig.collection_frontEndGameSetting.find(query).sort({displayOrder: 1}).lean()
             }
 
             return prom.then(

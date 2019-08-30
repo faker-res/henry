@@ -580,7 +580,7 @@ var PartnerServiceImplement = function () {
     };
 
     this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.url);
+        let isValidData = Boolean(data && data.url && data.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPromoShortUrl, [data], isValidData);
     };
 
