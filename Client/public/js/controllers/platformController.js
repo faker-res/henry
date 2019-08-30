@@ -25440,21 +25440,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
                     case 'rewardPointClarification':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'popularRecommendation':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'carouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = false;
                         break;
                     case 'partnerCarouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
                     case 'partnerUrlConfiguration':
@@ -25465,7 +25460,6 @@ define(['js/app'], function (myApp) {
                         };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForUrlConfiguration = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
@@ -25473,7 +25467,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'skinManagement':
                     case 'partnerSkinManagement':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
@@ -25483,19 +25476,18 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'rewardSetting':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'scriptDescription':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'registrationGuidance':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
+                }
+                if (vm.filterFrontEndSettingPlatform) {
+                    vm.frontEndSettingPlatform();
                 }
             };
 
@@ -35835,9 +35827,20 @@ define(['js/app'], function (myApp) {
 
             vm.loadDepartmentLocal = () => {
                 let platformObjId = getSelectedPlatform()._id;
-                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                let departments = vm.departments.filter(department => {
                     return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
-                })
+                });
+
+                vm.currentPlatformQueryDepartments = [];
+                // filter unique department
+                for (let i = 0; i < departments.length; i++) {
+                    let department = departments[i];
+                    let index = vm.currentPlatformQueryDepartments.findIndex(availableDepartment => availableDepartment._id === department._id);
+                    if (index <= -1) {
+                        vm.currentPlatformQueryDepartments.push(department);
+                    }
+                }
+
                 vm.refreshSPicker();
             };
 
