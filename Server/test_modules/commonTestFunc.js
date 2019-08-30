@@ -10,6 +10,8 @@ var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbProposalType = require('./../db_modules/dbProposalType');
 var dbRewardType = require('./../db_modules/dbRewardType');
 var dbRewardEvent = require('./../db_modules/dbRewardEvent');
+var dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
+let dbRewardPointsLvlConfig = require('./../db_modules/dbRewardPointsLvlConfig');
 var dbRewardRule = require('./../db_modules/dbRewardRule');
 var dbRewardTask = require('./../db_modules/dbRewardTask');
 var dbProposalProcess = require('./../db_modules/dbProposalProcess');
@@ -46,6 +48,9 @@ let commonTestFunc = {
     testRoleName: "step1Role",
     testDepartName: "step1Department",
 
+    createTestRewardPointsEvent: (data) => {
+        return dbRewardPointsEvent.createRewardPointsEvent(data);
+    },
 
     createTestPlatform: function(data) {
         let date = new Date();
@@ -358,6 +363,7 @@ let commonTestFunc = {
         );
         let pmR1 = dbconfig.collection_rewardPoints.remove({playerObjId:playerObjIds});
         let pmR2 = dbconfig.collection_rewardPointsEvent.remove({platformObjId:platformObjId});
+        let pmR3 = dbconfig.collection_rewardPointsLvlConfig.remove({platformObjId:platformObjId});
 
         let pmS = dbconfig.collection_proposal.remove({"data.platformId":platformObjId});
 
@@ -370,7 +376,7 @@ let commonTestFunc = {
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1, pmT, pmU, pmU1]);
+            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
@@ -428,6 +434,10 @@ let commonTestFunc = {
         //return Math.floor(Math.random() * 1000000);
         return new Date().getTime() + Math.floor(Math.random() * 1000000);
     },
+
+    upsertRewardPointsLvlConfig: function(data) {
+        return dbRewardPointsLvlConfig.upsertRewardPointsLvlConfig(data);
+    }
 };
 
 module.exports = commonTestFunc;
