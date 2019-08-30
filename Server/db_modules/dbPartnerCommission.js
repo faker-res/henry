@@ -84,7 +84,6 @@ const dbPartnerCommission = {
         // let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
         let [commConfig, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes] = await Promise.all([commConfigProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm]);
-        console.log('commConfig', JSON.stringify(commConfig,null,2))
 
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement).catch(
             err => {
@@ -241,7 +240,8 @@ const dbPartnerCommission = {
                 && commRateMulti.rateAfterRebateGameProviderGroup.length > 0) {
                 commRateMulti.rateAfterRebateGameProviderGroup.map(group => {
                     if (group.name === groupRate.groupName) {
-                        platformFeeRateMultiData.rate = group.rate || commRateMulti.rateAfterRebatePlatform|| 0;
+                        platformFeeRateMultiData.rate = group.rate || commRateMulti.rateAfterRebatePlatform || 0;
+                        group.rate = platformFeeRateMultiData.rate;
                     }
                 });
             }
