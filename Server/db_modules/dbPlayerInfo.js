@@ -15104,6 +15104,7 @@ let dbPlayerInfo = {
     authenticate: function (playerId, token, playerIp, conn) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+            console.log("zm checking decode", decoded)
             if (err || !decoded) {
                 // Jwt token error
                 deferred.reject({name: "DataError", message: "Token is not authenticated"});
