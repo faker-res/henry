@@ -528,15 +528,15 @@ let PlayerServiceImplement = function () {
                     );
                 };
 
-                const appDevices = [constPlayerRegistrationInterface.APP_AGENT, constPlayerRegistrationInterface.APP_PLAYER];
+                const appDevices = [constPlayerRegistrationInterface.APP_AGENT, constPlayerRegistrationInterface.APP_PLAYER,
+                    constPlayerRegistrationInterface.APP_NATIVE_PLAYER, constPlayerRegistrationInterface.APP_NATIVE_PARTNER];
                 let expireDuration;
                 if (inputDevice && appDevices.includes(Number(inputDevice))) {
                     expireDuration = 60 * 60 * 24 * 30;
                 } else {
                     expireDuration = 60 * 60 * 5;
                 }
-                console.log("zm checking uaString", uaString, playerData.name)
-                console.log("zm checking inputDevice", inputDevice, expireDuration, playerData.name)
+
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: expireDuration});
 
