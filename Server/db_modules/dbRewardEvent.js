@@ -3004,6 +3004,7 @@ var dbRewardEvent = {
 
 
                     case constRewardType.PLAYER_FESTIVAL_REWARD_GROUP:
+
                         console.log('rewardSpecificData', rewardSpecificData);
                         let consumptionData = rewardSpecificData[0];
                         let topUpDatas = rewardSpecificData[1];
@@ -3019,7 +3020,6 @@ var dbRewardEvent = {
                             returnData.status = 2;
                             returnData.condition.reward.status = 2;
                         }
-
                         console.log('MT --checking after festivalData', festivalData)
                         console.log('MT --checking selectedRewardParam',selectedRewardParam);
                         console.log('MT --checking topUpDatas', topUpDatas);
@@ -3028,6 +3028,17 @@ var dbRewardEvent = {
                         console.log('MT --checking topUpSum', topUpSum);
                         console.log('MT --checking consumptionSum', consumptionSum);
                         console.log('MT --checking applyRewardSum', applyRewardSum);
+
+                        festivalData.forEach(item => {
+                            if (item.minTopUpAmount &&  topUpSum < item.minTopUpAmount && item.status == true ) {
+                                item.status = false;
+                            }
+                            //
+                            if (item.totalConsumptionInInterval &&  consumptionSum < item.totalConsumptionInInterval && item.status == true ) {
+                                item.status = false;
+                            }
+                        })
+                        festivalData.sort((a,b) => (a.status > b.status) ? -1 : ((b.status > a.status) ? 1 : 0));
                         returnData.result = festivalData;
 
                         break;
@@ -3139,7 +3150,7 @@ var dbRewardEvent = {
                     festivalDate = dbRewardEvent.getFestivalRewardDate(item, eventData.param.others);
                 }
                 // show festival by correct time && show birthday at whatever time)
-                let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday);
+                let prom = dbRewardEvent.checkFestivalProposal(item, platformId, playerObjId, eventData._id, item.id, eventData, playerBirthday, festivalDate);
                 proms.push(prom)
             })
         }
@@ -3161,13 +3172,17 @@ var dbRewardEvent = {
             }
         )
     },
-    checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData, DOB) {
+    checkFestivalProposal: function (rewardParam, platformId, playerObjId, eventId, festivalId, eventData, DOB, festivalDate) {
         return new Promise((resolve, reject) => {
             let result = false;
+            let returnData = {};
             let todayTime = dbUtil.getDayTime(new Date());
             console.log('MT --checking festivalId', festivalId)
             let expiredInDay = rewardParam.expiredInDay ? rewardParam.expiredInDay : 0;
             let applyPeriod = dbRewardEvent.getTimePeriod(expiredInDay, todayTime)
+            // find if the date is valid to apply this event
+            let isValidTime = checkIfRightApplyTime({expiredInDay:expiredInDay}, festivalDate);
+            // festivalDate
             let festivalPeriod = null;
             let sendQuery = {
                 "data.platformObjId": platformId,
@@ -3187,12 +3202,21 @@ var dbRewardEvent = {
                 if (data) {
                     console.log('rewardParam...', rewardParam)
                     let festival = dbRewardEvent.getFestivalName(rewardParam.festivalId, rewardParam.rewardType, eventData.param.others, DOB);
-                    if (rewardParam.applyTimes && data.length <= rewardParam.applyTimes) {
+                    // if the reward still available, and still on time to apply 
+                    if (rewardParam.applyTimes && data.length < rewardParam.applyTimes && isValidTime) {
                         console.log('***MT --checking can apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
-                        resolve({status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 })
+                        returnData = {status: true , festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 };
+                        if ( rewardParam.totalConsumptionInInterval ) {
+                            returnData.totalConsumptionInInterval = rewardParam.totalConsumptionInInterval;
+                        }
+                        resolve(returnData)
                     } else {
                         console.log('***MT --checking cannot apply', 'now:', data.length, 'max:', rewardParam.applyTimes);
-                        resolve({status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 });
+                        returnData = {status: false, festivalObjId: festivalId, name: festival.name, month:festival.month, day:festival.day, id: rewardParam.id, minTopUpAmount:rewardParam.minTopUpAmount || 0, spendingTimes:rewardParam.spendingTimes, rewardType:rewardParam.rewardType, expiredInDay: rewardParam.expiredInDay || 0 };
+                        if ( rewardParam.totalConsumptionInInterval ) {
+                            returnData.totalConsumptionInInterval = rewardParam.totalConsumptionInInterval;
+                        }
+                        resolve(returnData);
                     }
                 } else {
                     console.log('***MT --checking festival proposal not found');

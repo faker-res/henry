@@ -302,6 +302,65 @@ router.post('/getProposalStatusList', function(req, res, next) {
     });
 });
 
+router.get('/getPlayerInfo', (req, res, next) => {
+    res.end('Success');
+});
+
+router.post('/getPlayerInfo', function(req, res, next) {
+    let inputData = [];
+
+    req.on('data', data => {
+        inputData.push(data);
+    }).on('end', () => {
+        let buffer = Buffer.concat(inputData);
+        let stringBuffer = buffer.toString();
+        let decoded = decodeURIComponent(stringBuffer);
+        let parsedData = JSON.parse(decoded.substring(decoded.indexOf('{')));
+
+        let msgBody = parsedData.content;
+        let isValidData = msgBody && msgBody.name && msgBody.platformId;
+
+        // TEMP LOG
+        console.log('parsedData getPlayerInfo PMS', parsedData);
+
+        if (isValidData) {
+            dbPlayerInfo.getPlayerInfoForPMS(msgBody.platformId, msgBody.name).then(
+                data => {
+                    console.log('getPlayerInfo PMS data', data);
+                    let returnMsg = {
+                        code: constServerCode.SUCCESS,
+                        msg: "succ",
+                        data: data
+                    };
+
+                    console.log('getPlayerInfo PMS success', msgBody.platformId, msgBody.name, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
+                },
+                err => {
+                    console.log('getPlayerInfo PMS error', msgBody.platformId, msgBody.name, err);
+                    let returnMsg = {
+                        code: constServerCode.INVALID_DATA,
+                        msg: err.message
+                    };
+
+                    res.send(returnMsg);
+                    res.end();
+                }
+            )
+
+        } else {
+            let returnMsg = {
+                code: constServerCode.INVALID_DATA,
+                msg: "Invalid data"
+            };
+            res.send(returnMsg);
+            res.end();
+        }
+    });
+});
+
 router.post('/updateKeyPair', function (req, res, next) {
     console.log(`updateKeyPair requested`);
 

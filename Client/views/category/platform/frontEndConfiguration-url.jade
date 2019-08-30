@@ -43,6 +43,11 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
+.full-width-input-block(ng-if="vm.isPartnerForUrlConfiguration")
+    label {{ "Download Address For APP At Main Page"| translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.appDownloadAddress" ng-change="vm.urlConfigShowMessage=''")
+
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
     label {{"Current Skin(PC)"|translate}}
@@ -126,6 +131,12 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
     div.inline-block
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formHoverBottomFrameColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor, "background-image": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor }')
+
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{ "dropDownFrameBgColor" | translate}}
+    div.inline-block
+        a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'dropDownFrameBgColor', $event)")
+            div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.dropDownFrameBgColor, "background-image": vm.frontEndUrlConfig.pc.dropDownFrameBgColor }')
 
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")

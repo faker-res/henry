@@ -19,6 +19,8 @@ var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
 var dbPartner = require('../db_modules/dbPartner');
+var dbProposal = require('../db_modules/dbProposal');
+var constProposalType = require('./../const/constProposalType');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
 var clientApiInstances = require("../modules/clientApiInstances.js");
@@ -47,6 +49,7 @@ let commonTestFunc = {
     testAdminName: "step1admin",
     testRoleName: "step1Role",
     testDepartName: "step1Department",
+    testAdminEmail: "step1admin@email.com",
 
     createTestRewardPointsEvent: (data) => {
         return dbRewardPointsEvent.createRewardPointsEvent(data);
@@ -287,6 +290,12 @@ let commonTestFunc = {
 
     },
 
+    createUpdatePlayerCreditProposalTest: function (data) {
+        let platformId = data.platformId;
+        let typeName = constProposalType.UPDATE_PLAYER_CREDIT;
+        return dbProposal.checkUpdateCreditProposal(platformId, typeName, data);
+    },
+
 
     removeTestData: function (platformObjId, playerObjIds) {
         let platformNameQuery = ".*" + commonTestFunc.testPlatformName + "*.";
@@ -374,9 +383,11 @@ let commonTestFunc = {
         let pmU = dbconfig.collection_messageTemplate.remove({platform:platformObjId});
         let pmU1 = dbconfig.collection_playerMail.remove({platformId:platformObjId});
 
+        let pmState = dbconfig.collection_playerBState.remove({player:playerObjIds});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1]);
+            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1, pmState]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {

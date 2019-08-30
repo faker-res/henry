@@ -257,6 +257,9 @@ let auditManualRewardSettingModel = db_admin.model('auditManualRewardSetting', a
 let auditCreditChangeSettingSchema = require('../schema/auditCreditChangeSetting');
 let auditCreditChangeSettingModel = db_admin.model('auditCreditChangeSetting', auditCreditChangeSettingSchema, 'auditCreditChangeSetting');
 
+let auditRepairTransferSettingSchema = require('../schema/auditRepairTransferSetting');
+let auditRepairTransferSettingModel = db_admin.model('auditRepairTransferSetting', auditRepairTransferSettingSchema, 'auditRepairTransferSetting');
+
 let emailNotificationConfigSchema = require('../schema/emailNotificationConfig');
 let emailNotificationConfigModel = db_admin.model('emailNotificationConfig', emailNotificationConfigSchema, 'emailNotificationConfig');
 
@@ -782,6 +785,8 @@ var dbProperties = {
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
     collection_auditManualRewardSetting: auditManualRewardSettingModel,
     collection_auditCreditChangeSetting: auditCreditChangeSettingModel,
+    collection_auditRepairTransferSetting: auditRepairTransferSettingModel,
+
     collection_emailNotificationConfig: emailNotificationConfigModel,
 
     collection_winnerMonitorConfig: winnerMonitorConfigModel,

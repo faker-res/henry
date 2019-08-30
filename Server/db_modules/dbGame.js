@@ -405,6 +405,34 @@ var dbGame = {
     },
 
     /**
+     * updates a set of data
+     * @param {array}  gameArr
+     */
+    syncWebp: function (gameArr) {
+        console.log('MT --checking syncWebp')
+        let proms = [];
+        if (gameArr.length && gameArr.length > 0) {
+            gameArr.forEach(game => {
+                console.log(game)
+                let prom = dbconfig.collection_game.findOneAndUpdate({gameId: game.gameId}, {webp: game.webp}).exec()
+                proms.push(prom);
+            })
+        }
+        return Promise.all(proms).then(
+            data => {
+                let result = [];
+                data.forEach( item => {
+                    if (item && item.gameId && item.webp && item.name && item.code) {
+                        result.push({'gameId': item.gameId, 'webp': item.webp, 'name': item.name, 'code':item.code });
+                    } else {
+                        result.push({});
+                    }
+                })
+                return result;
+            }
+        )
+    },
+    /**
      * Delete platform by object _id of the platform schema
      * @param {array}  gameObjIds - The object _ids of the platform
      */

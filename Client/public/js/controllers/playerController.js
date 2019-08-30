@@ -15083,7 +15083,7 @@ define(['js/app'], function (myApp) {
             var sendString = '';
             var sendData = {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.selectedSinglePlayer.platform,
             };
             if (vm.modifyCritical.which == 'player') {
                 sendData.data = {
