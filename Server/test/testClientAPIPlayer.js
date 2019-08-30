@@ -1,6 +1,4 @@
 var should = require('should');
-var expect = require('expect');
-var sinon = require('sinon');
 var dbconfig = require('../modules/dbproperties');
 
 var WebSocketClient = require('../server_common/WebSocketClient');
@@ -424,22 +422,6 @@ describe("Test Client API - Player service", function () {
         },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
     });
 
-    //not appear in CLient API MD
-    it('Should do player Quick Registration', function () {
-        dbconfig.collection_players.remove({name: testQuickPlayerName});
-
-        clientPlayerAPITest.playerQuickReg(function (data) {
-            data.data.name.should.endWith(testQuickPlayerName);
-
-        }, {
-            "name": testQuickPlayerName,
-            "email": "testPlayer123@gmail.com",
-            "realName": "testPlayerRealName",
-            "password": "123456",
-            "platformId": testPlatformId,
-            "phoneNumber": "97787654",
-        });
-    });
 
     it('Should check valid real name', function () {
         const param = {
