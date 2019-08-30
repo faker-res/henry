@@ -6551,23 +6551,29 @@ let dbPlayerInfo = {
                         }
                     );
                 console.log('MT --checking -S7-advancedQuery', advancedQuery)
-                var b = dbconfig.collection_players
-                    .find(advancedQuery).lean().then(players => {
-                        console.log('MT --checking -S7-2')
-                        if(players) {
-                            return players.length;
-                        } else {
-                            return 0;
-                        }
-                    }, err => {
-                        console.log('MT --checking -S7-2-error', err);
-                    });
+                // var b = dbconfig.collection_players
+                //     .find(advancedQuery).lean().then(players => {
+                //         console.log('MT --checking -S7-2')
+                //         if(players) {
+                //             return players.length;
+                //         } else {
+                //             return 0;
+                //         }
+                //     }, err => {
+                //         console.log('MT --checking -S7-2-error', err);
+                //     });
+
+                //Data cannot load due to code was stoped at counting player amount, change to this new count method and see.
+                var b = dbconfig.collection_players.find(advancedQuery).count(function(err, count){
+                    console.log('MT --checking -S7-2 1');
+                    console.log("Number of docs: ", count );
+                });
 
                 return Promise.all([a, b]);
             }
         ).then(
             data => {
-                console.log('MT --checking -S8');
+                console.log('MT --checking -S8', data);
                 let playerData;
                 dataSize = data[1];
                 if (data && data[0] && data[0].length) {
