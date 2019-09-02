@@ -27127,7 +27127,7 @@ let dbPlayerInfo = {
                 }
 
                 // if not exist then generate new weibo short link
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
                 let randomUrl = preventBlockUrl.url + data.url;

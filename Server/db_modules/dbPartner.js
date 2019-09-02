@@ -9434,7 +9434,8 @@ let dbPartner = {
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                console.log(uri);
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
@@ -9445,7 +9446,7 @@ let dbPartner = {
                     data.forEach( (item, index) => {
                         try {
                              item = JSON.parse(item);
-                             item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                             item = ( item && item[0] ) ? item[0] : {}
                              item.no = index + 1;
                              result.push(item);
                         }
@@ -9472,7 +9473,6 @@ let dbPartner = {
         let partnerData;
         let partnerNo = data.partnerId;
         let preventBlockUrl;
-
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
                 // random pick one of preventBlock urls
@@ -9497,11 +9497,9 @@ let dbPartner = {
                 if (partnerData.shortUrl && Object.keys(partnerData.shortUrl).length > 30) {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
-
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url ) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
-
                 // if not exist generate new weibo short link
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking randomUrl', randomUrl);
