@@ -11656,7 +11656,7 @@ let dbPlayerInfo = {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DBError",
-                        message: "level change fail, please contact cs"
+                        message: "level change fail, please contact cs" + playerObj.name
                     });
                 } else {
                     return Q.reject({
