@@ -140,6 +140,12 @@ define(['js/app'], function (myApp) {
                 "birthday2": 5, //会员生日 - 存送金奖励
                 "birthday3": 6 //会员生日 - 周期内累积总投注额（已申请过不扣除）
             }
+
+            // 推荐人优惠模式
+            vm.referralRewardMode = {
+                1: "consumptionType", // 投注条件
+                2: "depositType" // 存款条件
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -21617,6 +21623,7 @@ define(['js/app'], function (myApp) {
 
             };
 
+            // when reward type changed
             vm.platformRewardTypeChanged = function () {
                 $scope.$evalAsync(() => {
                     $.each(vm.allRewardTypes, function (i, v) {
@@ -21852,6 +21859,9 @@ define(['js/app'], function (myApp) {
                                     case "deviceType":
                                         result = vm.deviceType;
                                         break;
+                                    case "referralRewardMode":
+                                        result = vm.referralRewardMode;
+                                        break;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21898,6 +21908,12 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("consumptionProvider");
                                     }
 
+                                }
+
+                                if (el == "referralRewardMode") {
+                                    if (!vm.showReward || (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1))) {
+                                        vm.rewardDisabledParam.push("isDynamicRewardTopUpAmount")
+                                    }
                                 }
 
                                 if (el == "app" || el == "h5" || el == "web" || el == "backStage"){
@@ -22412,6 +22428,10 @@ define(['js/app'], function (myApp) {
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
                 let isResetLayout = Boolean(isFirstLoad);
 
+                if (!isResetLayout && model && model.name && (model.name === "isDynamicRewardTopUpAmount")) {
+                    isResetLayout = Boolean(true);
+                }
+
                 if (model && model.name == "canApplyFromClient") {
                     if (model.value == true && vm.rewardDisabledParam && vm.rewardDisabledParam.indexOf("showInRealServer") > -1) {
                         vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "showInRealServer");
@@ -22467,6 +22487,49 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTable = [];
 
                     let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    let cloneParamType = JSON.parse(JSON.stringify(vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed));
+
+                    let currentReferralRewardMode;
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'ReferralRewardGroup') {
+                        let currentReferralRewardMode;
+                        let isDynamicRewardTopUp = false;
+                        for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name === "referralRewardMode") {
+                                currentReferralRewardMode = vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value;
+                            }
+
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name === "isDynamicRewardTopUpAmount") {
+                                isDynamicRewardTopUp = vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value;
+                            }
+                        }
+
+                        if (!currentReferralRewardMode) {
+                            cloneParamType = {};
+                        } else if (currentReferralRewardMode === "1") {
+                            delete cloneParamType.rewardParam.firstTopUpAmount;
+                            delete cloneParamType.rewardParam.totalTopUpAmount;
+                            delete cloneParamType.rewardParam.topUpCount;
+                            delete cloneParamType.rewardParam.rewardAmount;
+                            delete cloneParamType.rewardParam.maxRewardInSingleTopUp;
+                        } else if (currentReferralRewardMode === "2") {
+                            if (cloneParamType && cloneParamType.rewardParam && cloneParamType.rewardParam.rewardPercentage) {
+                                cloneParamType.rewardParam.rewardPercentage.des = "Referral Reward Percentage";
+                            }
+
+                            if (isDynamicRewardTopUp) {
+                                delete cloneParamType.rewardParam.totalTopUpAmount;
+                                delete cloneParamType.rewardParam.rewardAmount;
+                                delete cloneParamType.rewardParam.playerValidConsumption;
+                            } else {
+                                delete cloneParamType.rewardParam.firstTopUpAmount;
+                                delete cloneParamType.rewardParam.maxRewardInSingleTopUp;
+                                delete cloneParamType.rewardParam.rewardPercentage;
+                                delete cloneParamType.rewardParam.playerValidConsumption;
+                            }
+                        }
+
+                        paramType = cloneParamType;
+                    }
 
                     vm.rewardMainParam = Object.assign({}, paramType);
 
@@ -23219,6 +23282,7 @@ define(['js/app'], function (myApp) {
                 console.log(vm.rewardMainParamTable);
             };
 
+            // when condition on change
             vm.rewardSelectOnChange = (model) => {
                 if (model && model.name === "topupType") {
                     if (model.value.indexOf("2") === -1) {
@@ -23285,6 +23349,15 @@ define(['js/app'], function (myApp) {
                     vm.festivalType = model.value;
                 }
 
+                if (model && model.name === "referralRewardMode") {
+                    if (model.value && model.value === "1") {
+                        vm.rewardDisabledParam.push("isDynamicRewardTopUpAmount")
+                    } else {
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "isDynamicRewardTopUpAmount");
+                    }
+
+                }
+
                 $scope.$evalAsync( () => {
                     if (model && model.name == "definePlayerLoginMode" && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup'
                         && vm.showRewardTypeData.params && vm.showRewardTypeData.params.param && vm.showRewardTypeData.params.param.tblOptDynamic
@@ -23318,6 +23391,10 @@ define(['js/app'], function (myApp) {
                                 param.value = vm.getNumberOfDayForSelectedInterval(model.value);
                             }
                         )
+                    }
+
+                    if (model && (model.name == "referralRewardMode" || model.name == "isDynamicRewardTopUpAmount") && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'ReferralRewardGroup') {
+                        vm.changeRewardParamLayout(model, true);
                     }
                 })
 
@@ -31753,6 +31830,7 @@ define(['js/app'], function (myApp) {
                                                         vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
                                                             if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                                 providerGroupRate = availableProviderGroupRate;
+                                                                providerGroupRate.name = gameProviderGroup.name;
                                                             }
                                                         })
                                                     }
@@ -35764,12 +35842,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                vm.refreshSPicker();
-            };
-
-            vm.loadFeedbackDepartment = (platformObjdId) => {
-                let platform = new Array(platformObjdId);
-                vm.getAllDepartment(platform);
                 vm.refreshSPicker();
             };
 
@@ -40384,10 +40456,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getAllDepartment = (platformList) => {
+            vm.getAllDepartment = () => {
                 let sendData = {
-                    platforms: platformList ? platformList : []
-                };
+                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
+                }
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                     $scope.$evalAsync(() => {
@@ -40601,7 +40673,7 @@ define(['js/app'], function (myApp) {
                     vm.getAllPlayerLevelsLocal();
                     vm.getCredibilityRemarksLocal();
                     vm.getAllGameProvidersLocal();
-                    // vm.loadDepartmentLocal();
+                    vm.loadDepartmentLocal();
                     vm.setQueryRole(vm.autoFeedbackMission);
                     vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {

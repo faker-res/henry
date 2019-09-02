@@ -18,7 +18,7 @@ const emailer = require("./../modules/emailer");
 
 let dbEmailAudit = {
     // common
-    async emailAudit(proposalId, adminObjId, decision, isMail, isPartner) {
+    async emailAudit(proposalId, adminObjId, decision, isMail) {
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
         let proposalProm = dbconfig.collection_proposal.findOne({proposalId}).lean();
         let status = decision === "approve" ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
@@ -65,9 +65,12 @@ let dbEmailAudit = {
             // someone changed the status in between these processes
             return Promise.reject({message: "Proposal had been updated in the process of auditing, please try again if necessary"});
         }
+        let proposalTypeName = proposal && proposal.type && proposal.type.name;
 
         let proposalStep = await dbProposalUtility.createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
-        return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
+        let executeResult = await proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
+        dbEmailAudit.sendAuditedProposalEmailUpdate(proposalTypeName, proposal).catch(errorUtils.reportError);
+        return executeResult;
     },
 
     async sendAuditedProposalEmailUpdate(proposalType, proposal) {

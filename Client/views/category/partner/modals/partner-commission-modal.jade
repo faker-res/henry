@@ -23,10 +23,10 @@
                             tr(ng-if="vm.currentUseCommDetail[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.currentUseCommDetail[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
+                                td {{v.consumptionDetail.consumptionProviderDetail && v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount || 0 | noRoundTwoDecimalToFix}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail && v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount || 0 | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'Total Consumption' | translate}}
-                                td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount | noRoundTwoDecimalToFix}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount | noRoundTwoDecimalToFix}}
+                                td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName] && vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount || 0 | noRoundTwoDecimalToFix}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName] && vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount || 0 | noRoundTwoDecimalToFix}}
                             tr
                                 td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.currentUseCommDetail[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.commissionRate}} {{'%)'}}

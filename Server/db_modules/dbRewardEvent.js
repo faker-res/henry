@@ -1875,7 +1875,7 @@ var dbRewardEvent = {
         }
 
         if (eventData.type.name === constRewardType.REFERRAL_REWARD_GROUP) {
-            let getPlayerValidConsumptionProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+            let getReferralRewardProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
                 config => {
                     if (config && config.enableUseReferralPlayerId && (config.enableUseReferralPlayerId.toString() === 'true')) {
                         let bindReferralIntervalStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
@@ -1902,93 +1902,87 @@ var dbRewardEvent = {
                                     return dbconfig.collection_proposalType.findOne({
                                         platformId: playerData.platform._id,
                                         name: constProposalType.REFERRAL_REWARD_GROUP
-                                    }).then(
-                                        proposalTypeData => {
-                                            if (proposalTypeData && proposalTypeData._id) {
-                                                let proms = [];
-                                                referees.forEach(player => {
-                                                    if (player) {
-                                                        let referralEventStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                                                        let referralEventEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+                                    }).then(proposalTypeData => {
+                                        if (proposalTypeData && proposalTypeData._id) {
+                                            let proms = [];
+                                            referees.forEach(player => {
+                                                if (player) {
+                                                    let referralEventStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+                                                    let referralEventEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
 
-                                                        let prom = dbconfig.collection_proposal.findOne({
-                                                            'data.playerObjId': playerData._id,
-                                                            'data.platformObjId': playerData.platform._id,
-                                                            createTime: {
-                                                                $gte: referralEventStartTime,
-                                                                $lte: referralEventEndTime
-                                                            },
-                                                            type: proposalTypeData._id,
-                                                            status: constProposalStatus.APPROVED,
-                                                            'data.eventId': eventData._id,
-                                                            'data.referralRewardDetails.playerObjId': player.playerObjId
-                                                        }).sort({createTime: -1}).lean().then(
-                                                            latestApplyData => {
-                                                                let consumptionStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                                                                let consumptionEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+                                                    switch (eventData.condition.referralRewardMode) {
+                                                        case "1":
+                                                            // 1: consumption
 
-                                                                let consumptionQuery = {
-                                                                    platformId: player.platform,
-                                                                    playerId: player.playerObjId,
-                                                                    createTime: {
-                                                                        $gte: consumptionStartTime,
-                                                                        $lte: consumptionEndTime
-                                                                    }
-                                                                };
+                                                            let prom = dbRewardUtil.checkPlayerConsumptionRecordForReferralReward(playerData, intervalTime, referralEventStartTime, referralEventEndTime, proposalTypeData, eventData, player);
 
-                                                                if (player.createTime && consumptionStartTime && (player.createTime.getTime() >= consumptionStartTime.getTime())) {
-                                                                    consumptionQuery.createTime.$gte = new Date(player.createTime)
-                                                                }
+                                                            proms.push(prom);
 
-                                                                if (player.validEndTime && consumptionEndTime && (player.validEndTime.getTime() <= consumptionEndTime.getTime())) {
-                                                                    consumptionQuery.createTime.$lte = new Date(player.validEndTime);
-                                                                }
+                                                            break;
+                                                        case "2":
+                                                            // 2: deposit
+                                                            if (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) {
 
-                                                                if (latestApplyData && latestApplyData.createTime) {
-                                                                    consumptionQuery.createTime.$gt = latestApplyData.createTime;
-                                                                }
+                                                                let prom = dbRewardUtil.checkPlayerFirstDepositForReferralReward(playerData, intervalTime, proposalTypeData, eventData, player);
 
-                                                                return dbconfig.collection_playerConsumptionRecord.aggregate([{
-                                                                    $match: consumptionQuery
-                                                                }, {
-                                                                    $group: {
-                                                                        _id: "$playerId",
-                                                                        validAmount: {$sum: "$validAmount"},
-                                                                        createTime: {$last: "$createTime"}
-                                                                    }
-                                                                }]);
+                                                                proms.push(prom);
+
+
+                                                            } else {
+
+                                                                let prom = dbRewardUtil.checkPlayerTotalDepositForReferralReward(playerData, intervalTime, proposalTypeData, eventData, player);
+
+                                                                proms.push(prom);
                                                             }
-                                                        )
 
-                                                        proms.push(prom);
+                                                            break;
                                                     }
-                                                });
+                                                }
+                                            });
 
-                                                return Promise.all(proms).then(playerConsumptions => {
-                                                    let playerConsumptionDetails = [];
-                                                    let totalValidConsumption = 0;
-                                                    if (playerConsumptions && playerConsumptions.length > 0) {
-                                                        playerConsumptions.forEach(
-                                                            consumptions => {
-                                                                if (consumptions && consumptions.length > 0 && consumptions[0]
-                                                                    && (consumptions[0].validAmount >= selectedRewardParam[0].playerValidConsumption)) {
-                                                                    totalValidConsumption += consumptions[0].validAmount;
-                                                                    playerConsumptionDetails.push(consumptions[0]);
+                                            return Promise.all(proms).then(details => {
+                                                let refereeDetails = [];
+                                                let total = 0;
+
+                                                if (details && details.length > 0) {
+                                                    details.forEach(items => {
+                                                        switch (eventData.condition.referralRewardMode) {
+                                                            case "1":
+                                                                if (items && items.length > 0 && items[0]
+                                                                    && (items[0].validAmount >= selectedRewardParam[0].playerValidConsumption)) {
+                                                                    total += items[0].validAmount;
+                                                                    refereeDetails.push(items[0]);
                                                                 }
-                                                            }
-                                                        )
-                                                    }
+                                                                break;
+                                                            case "2":
+                                                                if (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) {
+                                                                    if (items && items.length > 0 && items[0]
+                                                                        && (items[0].amount >= selectedRewardParam[0].firstTopUpAmount)
+                                                                        && (items[0].count >= selectedRewardParam[0].topUpCount)) {
+                                                                        total += items[0].amount;
+                                                                        refereeDetails.push(items[0]);
+                                                                    }
+                                                                } else {
+                                                                    if (items && items.length > 0 && items[0]
+                                                                        && (items[0].amount >= selectedRewardParam[0].totalTopUpAmount)
+                                                                        && (items[0].count >= selectedRewardParam[0].topUpCount)) {
+                                                                        total += items[0].amount;
+                                                                        refereeDetails.push(items[0]);
+                                                                    }
+                                                                }
+                                                                break;
+                                                        }
+                                                    });
+                                                }
 
-                                                    if (playerConsumptionDetails && playerConsumptionDetails.length > 0) {
-                                                        playerConsumptionDetails.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime());
-                                                    }
+                                                if (refereeDetails && refereeDetails.length > 0) {
+                                                    refereeDetails.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime());
+                                                }
 
-                                                    return [totalValidConsumption, playerConsumptionDetails];
-                                                })
-
-                                            }
+                                                return [total, refereeDetails];
+                                            });
                                         }
-                                    )
+                                    });
 
                                 } else {
                                     return [0, []];
@@ -2126,11 +2120,20 @@ var dbRewardEvent = {
                             createTime: {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime},
                             type: proposalTypeData._id,
                             status: constProposalStatus.APPROVED,
-                            "data.eventId": eventData._id,
+                            'data.eventId': eventData._id,
+                            'data.referralRewardMode': eventData.condition.referralRewardMode
                         }
 
                         if (intervalTime) {
                             appliedQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                        }
+
+                        if (eventData && eventData.condition && eventData.condition.referralRewardMode && (eventData.condition.referralRewardMode == "2")){
+                            if (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) {
+                                appliedQuery['data.isDynamicRewardTopUpAmount'] = {$exists: true, $eq: true};
+                            } else {
+                                appliedQuery['data.isDynamicRewardTopUpAmount'] = {$exists: true, $ne: true};
+                            }
                         }
 
                         return dbconfig.collection_proposal.aggregate([{
@@ -2160,7 +2163,7 @@ var dbRewardEvent = {
                 returnData.condition.SMSCode.status = 1;
             }
 
-            promArr.push(getPlayerValidConsumptionProm);
+            promArr.push(getReferralRewardProm);
             promArr.push(countInRewardInterval);
             promArr.push(getAppliedRewardInIntervalProm);
 
@@ -3073,47 +3076,113 @@ var dbRewardEvent = {
                         if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (totalRewardAppliedInInterval >= selectedRewardParam.maxRewardAmount)) {
                             returnData.status = 2;
                         } else {
-                            if (selectedRewardParam.playerValidConsumption) {
-                                let totalValidConsumption = rewardSpecificData[0][0];
-                                let consumptionPlayers = rewardSpecificData[0][1];
+                            switch (eventData.condition.referralRewardMode) {
+                                case "1":
+                                    let totalValidConsumption = rewardSpecificData[0][0];
+                                    let consumptionPlayers = rewardSpecificData[0][1];
+                                    let playerValidConsumptionSettingAmount = selectedRewardParam && selectedRewardParam.playerValidConsumption;
 
-                                if (totalValidConsumption >= selectedRewardParam.playerValidConsumption) {
-                                    consumptionPlayers.forEach(player => {
-                                        if (player && (parseFloat(player.validAmount) > 0)) {
-                                            let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
-                                            referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
+                                    if (!selectedRewardParam.playerValidConsumption) {
+                                        returnData.status = 2;
+                                    }
+
+                                    if (totalValidConsumption >= playerValidConsumptionSettingAmount) {
+                                        if (consumptionPlayers && consumptionPlayers.length > 0) {
+                                            consumptionPlayers.forEach(player => {
+                                                if (player && player.validAmount && (parseFloat(player.validAmount) > 0)) {
+                                                    let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
+                                                    referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
+                                                }
+                                            });
                                         }
-                                    });
 
-                                    rewardAmount = totalValidConsumption * (selectedRewardParam.rewardPercentage || 0);
-                                    if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
-                                        rewardAmount = selectedRewardParam.maxRewardAmount;
+                                        rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
+                                        returnData.result.totalValidConsumptionAmount = totalValidConsumption;
+
+                                    } else {
+                                        returnData.status = 2;
+                                        returnData.result.totalValidConsumptionAmount = totalValidConsumption;
                                     }
-                                    let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                                    if (currentAmount >= selectedRewardParam.maxRewardAmount) {
-                                        rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
-                                        let tempAmount = rewardAmount;
-                                        referralRewardDetails.forEach(item => {
-                                            if (tempAmount <=  item.rewardAmount) {
-                                                item.actualRewardAmount = tempAmount;
-                                                tempAmount -= tempAmount;
-                                            } else {
-                                                item.actualRewardAmount = item.rewardAmount;
-                                                tempAmount -= item.rewardAmount;
-                                            }
-                                        });
+                                    break;
+                                case "2":
+                                    if (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) {
+                                        let firstDepositPlayers = rewardSpecificData[0][1];
+                                        let totalFirstDepositAmount = rewardSpecificData[0][0];
+
+                                        if (!selectedRewardParam.rewardPercentage || !selectedRewardParam.spendingTimes || !selectedRewardParam.firstTopUpAmount || !selectedRewardParam.topUpCount) {
+                                            returnData.status = 2;
+                                        }
+
+                                        if (firstDepositPlayers && firstDepositPlayers.length > 0) {
+                                            firstDepositPlayers.forEach(player => {
+                                                if (player && (player.amount >= selectedRewardParam.firstTopUpAmount) && (player.count >= selectedRewardParam.topUpCount)) {
+                                                    let tempRewardAmount = player.amount * selectedRewardParam.rewardPercentage;
+
+                                                    if (selectedRewardParam && selectedRewardParam.maxRewardInSingleTopUp && (tempRewardAmount > selectedRewardParam.maxRewardInSingleTopUp)) {
+                                                        tempRewardAmount = selectedRewardParam.maxRewardInSingleTopUp;
+                                                    }
+
+                                                    rewardAmount += tempRewardAmount;
+
+                                                    referralRewardDetails.push({playerObjId: player._id, depositAmount: player.amount, depositCount: player.count, rewardAmount: tempRewardAmount});
+                                                }
+                                            });
+                                        }
+
+                                        returnData.result.totalDepositAmount = totalFirstDepositAmount;
+
+                                    } else {
+                                        let totalDepositPlayers = rewardSpecificData[0][1];
+                                        let totalDepositAmount = rewardSpecificData[0][0];
+                                        let countDepositPlayer = 0;
+
+                                        if (!selectedRewardParam.rewardAmount || !selectedRewardParam.spendingTimes) {
+                                            returnData.status = 2;
+                                        }
+
+                                        if (totalDepositPlayers && totalDepositPlayers.length > 0) {
+                                            totalDepositPlayers.forEach(player => {
+                                                if (player && (player.amount >= selectedRewardParam.totalTopUpAmount) && (player.count >= selectedRewardParam.topUpCount)) {
+                                                    referralRewardDetails.push({playerObjId: player._id, depositAmount: player.amount, depositCount: player.count, rewardAmount: selectedRewardParam.rewardAmount});
+                                                }
+                                            });
+
+                                            countDepositPlayer = referralRewardDetails && referralRewardDetails.length;
+                                            rewardAmount = selectedRewardParam.rewardAmount * countDepositPlayer;
+                                        }
+
+                                        returnData.result.totalDepositAmount = totalDepositAmount;
                                     }
-                                    returnData.result.totalValidConsumptionAmount = totalValidConsumption;
-                                    returnData.result.rewardAmount = rewardAmount;
-                                } else {
+
+                                    if (referralRewardDetails.length == 0) {
+                                        returnData.status = 2;
+                                    }
+                                    break;
+                                default:
                                     returnData.status = 2;
-                                    returnData.result.totalValidConsumptionAmount = 0;
-                                }
+                                    break;
                             }
-                            else {
-                                returnData.status = 2;
-                                returnData.result.totalValidConsumptionAmount = 0;
+
+                            if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (rewardAmount > selectedRewardParam.maxRewardAmount)) {
+                                rewardAmount = selectedRewardParam.maxRewardAmount;
                             }
+
+                            let currentAmount = totalRewardAppliedInInterval + rewardAmount;
+                            if (currentAmount >= selectedRewardParam.maxRewardAmount) {
+                                rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
+                                let tempAmount = rewardAmount;
+                                referralRewardDetails.forEach(item => {
+                                    if (tempAmount <=  item.rewardAmount) {
+                                        item.actualRewardAmount = tempAmount;
+                                        tempAmount -= tempAmount;
+                                    } else {
+                                        item.actualRewardAmount = item.rewardAmount;
+                                        tempAmount -= item.rewardAmount;
+                                    }
+                                });
+                            }
+
+                            returnData.result.rewardAmount = rewardAmount;
                         }
                         break;
 
