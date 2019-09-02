@@ -400,7 +400,7 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculatePlayerReportSummary, [platformId, data.start, data.end], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculatePlayerReportSummary, [platformId, data.start, data.end, data.name], actionName, isValidData);
         },
 
         reCalculateWinRateReportSummary: function reCalculateWinRateReportSummary(data) {
