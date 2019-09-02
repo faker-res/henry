@@ -1787,6 +1787,17 @@ db.rewardParam.update({
                     index: 19.5,
                     type: "checkbox",
                     des: "Need SMS verification"
+                },
+                referralRewardMode: {
+                    index: 53,
+                    type: "select",
+                    options: "referralRewardMode",
+                    des: "Referral Reward Mode"
+                },
+                isDynamicRewardTopUpAmount: {
+                    index: 54,
+                    type: "checkbox",
+                    des: "Reward amount is dynamically changed by deposit"
                 }
             }
         },
@@ -1794,7 +1805,12 @@ db.rewardParam.update({
             tblOptFixed: {
                 rewardParam: {
                     playerValidConsumption: {type: "number", des: "Player Valid Consumption"},
+                    totalTopUpAmount: {type: "number", des: "Referee Total Top Up Amount"},
+                    firstTopUpAmount: {type: "number", des: "Referee First Top Up Amount"},
+                    topUpCount: {type: "number", des: "Referee Top Up Count"},
+                    rewardAmount: {type: "number", des: "Reward amount"},
                     rewardPercentage: {type: "percentage", des: "Referral Reward Ratio"},
+                    maxRewardInSingleTopUp: {type: "number", des: "Max reward in single top up"},
                     maxRewardAmount: {type: "number", des: "Reward Amount Limit"},
                     spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
