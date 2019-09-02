@@ -9531,6 +9531,9 @@ let dbPartner = {
                 }
                 let shortUrl = partner.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'partnerName': partner.partnerName };
                 return result;
             }

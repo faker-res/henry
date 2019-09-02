@@ -27161,6 +27161,9 @@ let dbPlayerInfo = {
                 }
                 let shortUrl = player.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'name': player.name };
                 return result;
             }
