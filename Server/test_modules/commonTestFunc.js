@@ -439,6 +439,12 @@ let commonTestFunc = {
         //return Math.floor(Math.random() * 1000000);
         return new Date().getTime() + Math.floor(Math.random() * 1000000);
     },
+
+    createRewardType: function(name, updateData) {
+        return dbconfig.collection_rewardType.update({"name": name}, {
+            $set: updateData
+        }, {upsert: true});
+    },
 };
 
 module.exports = commonTestFunc;
