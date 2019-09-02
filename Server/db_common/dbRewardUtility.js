@@ -1437,6 +1437,9 @@ const dbRewardUtility = {
     },
 
     checkPlayerTotalDepositForReferralReward: (playerData, intervalTime, proposalTypeData, eventData, player) => {
+        let referralRewardStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+        let referralRewardEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
         return dbConfig.collection_proposal.findOne({
             'data.playerObjId': playerData._id,
             'data.platformObjId': playerData.platform._id,
@@ -1445,33 +1448,34 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $ne: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId
+            'data.referralRewardDetails.playerObjId': player.playerObjId,
+            createTime: {
+                $gte: referralRewardStartTime,
+                $lte: referralRewardEndTime
+            }
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
-                let depositStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                let depositEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
-
                 let depositQuery = {
                     "data.platformId": player.platform,
                     "data.playerObjId": player.playerObjId,
                     createTime: {
-                        $gte: depositStartTime,
-                        $lte: depositEndTime
+                        $gte: referralRewardStartTime,
+                        $lte: referralRewardEndTime
                     },
                     mainType: "TopUp",
                     status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                 };
 
-                if (player.createTime && depositStartTime && (player.createTime.getTime() >= depositStartTime.getTime())) {
+                if (player.createTime && referralRewardStartTime && (player.createTime.getTime() >= referralRewardStartTime.getTime())) {
                     depositQuery.createTime.$gte = new Date(player.createTime);
                 }
 
-                if (player.validEndTime && depositEndTime && (player.validEndTime.getTime() <= depositEndTime.getTime())) {
+                if (player.validEndTime && referralRewardEndTime && (player.validEndTime.getTime() <= referralRewardEndTime.getTime())) {
                     depositQuery.createTime.$lte = new Date(player.validEndTime);
                 }
 
-                console.log('depositStartTime ===>', depositStartTime);
-                console.log('depositEndTime ===>', depositEndTime);
+                console.log('referralRewardStartTime ===>', referralRewardStartTime);
+                console.log('referralRewardEndTime ===>', referralRewardEndTime);
                 console.log('player ===>', player);
                 console.log('depositQuery ===>', depositQuery);
 
@@ -1495,6 +1499,9 @@ const dbRewardUtility = {
     },
 
     checkPlayerFirstDepositForReferralReward: (playerData, intervalTime, proposalTypeData, eventData, player) => {
+        let referralRewardStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+        let referralRewardEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
         return dbConfig.collection_proposal.findOne({
             'data.playerObjId': playerData._id,
             'data.platformObjId': playerData.platform._id,
@@ -1503,33 +1510,34 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $eq: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId
+            'data.referralRewardDetails.playerObjId': player.playerObjId,
+            createTime: {
+                $gte: referralRewardStartTime,
+                $lte: referralRewardEndTime
+            }
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
-                let depositStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
-                let depositEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
-
                 let depositQuery = {
                     "data.platformId": player.platform,
                     "data.playerObjId": player.playerObjId,
                     createTime: {
-                        $gte: depositStartTime,
-                        $lte: depositEndTime
+                        $gte: referralRewardStartTime,
+                        $lte: referralRewardEndTime
                     },
                     mainType: "TopUp",
                     status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                 };
 
-                if (player.createTime && depositStartTime && (player.createTime.getTime() >= depositStartTime.getTime())) {
+                if (player.createTime && referralRewardStartTime && (player.createTime.getTime() >= referralRewardStartTime.getTime())) {
                     depositQuery.createTime.$gte = new Date(player.createTime);
                 }
 
-                if (player.validEndTime && depositEndTime && (player.validEndTime.getTime() <= depositEndTime.getTime())) {
+                if (player.validEndTime && referralRewardEndTime && (player.validEndTime.getTime() <= referralRewardEndTime.getTime())) {
                     depositQuery.createTime.$lte = new Date(player.validEndTime);
                 }
 
-                console.log('depositStartTime ===>', depositStartTime);
-                console.log('depositEndTime ===>', depositEndTime);
+                console.log('referralRewardStartTime ===>', referralRewardStartTime);
+                console.log('referralRewardEndTime ===>', referralRewardEndTime);
                 console.log('player ===>', player);
                 console.log('depositQuery ===>', depositQuery);
                 console.log('referralRewardMode', eventData.condition.referralRewardMode);
