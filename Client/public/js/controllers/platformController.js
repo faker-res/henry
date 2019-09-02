@@ -16649,7 +16649,7 @@ define(['js/app'], function (myApp) {
                     isNewSystem: vm.exportPlayerFilter.isNewSystem,
                     registrationTimeFrom: vm.exportQuery.registrationTime.$gte,
                     registrationTimeTo: vm.exportQuery.registrationTime.$lte || vm.exportQuery.registrationTime.$lt,
-                    platformObjId: vm.selectedPlatform.data._id,
+                    platformObjId: vm.playerFeedbackQuery.platform,
                     adminInfo: {
                         type: "admin",
                         name: authService.adminName,
@@ -17260,6 +17260,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
+                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
