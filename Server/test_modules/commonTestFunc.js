@@ -441,9 +441,15 @@ let commonTestFunc = {
     },
 
     createRewardType: function(name, updateData) {
-        return dbconfig.collection_rewardType.update({"name": name}, {
-            $set: updateData
-        }, {upsert: true});
+        return dbRewardType.getRewardType({name: name}).then(
+            data => {
+                if (!data) {
+                    return dbconfig.collection_rewardType.update({"name": name}, {
+                        $set: updateData
+                    }, {upsert: true});
+                }
+            }
+        );
     },
 };
 
