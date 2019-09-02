@@ -9435,7 +9435,6 @@ let dbPartner = {
             let proms = [];
             urls.forEach(url =>{
                 let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
-                console.log(uri);
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
