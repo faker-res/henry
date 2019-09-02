@@ -448,6 +448,7 @@ let commonTestFunc = {
                         $set: updateData
                     }, {upsert: true});
                 }
+                return data;
             }
         );
     },
