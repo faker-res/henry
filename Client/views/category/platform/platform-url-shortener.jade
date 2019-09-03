@@ -53,7 +53,7 @@
                             td(width="50%")
                                 input.form-control(type="text", ng-model="vm.keyOwnPreventUrl", placeholder='{{"alternative...ex:" | translate}}' + "https://www.579832.com/", ng-click="vm.choosePreventUrlType=false", width="40%")
                     br
-                    textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入完整网址 ,如 http://www.baidu.com  或 https://www.baidu.com", rows="8")
+                    textarea.form-control(ng-model="vm.multiUrls", placeholder="请输入网址 ,如 www.baidu.com", rows="8")
                     {{"*Batch enter domain names, key in domain by each line, the maximum of batch enter is ** domains (Auto Filter Duplicate Domain)" | translate }}
                     br
                     button.btn.btn-primary.common-button(ng-click='vm.generateMultiUrls()') {{'Convert Url' | translate}}
