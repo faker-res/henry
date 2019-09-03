@@ -1491,7 +1491,15 @@ const dbRewardUtility = {
                             createTime: {$last: "$createTime"}
                         }
                     }
-                ]);
+                ]).then(
+                    data => {
+                        if (data && (data.length == 0)) {
+                            return [{_id: player.playerObjId, count: 0, amount: 0, createTime: null}];
+                        }
+
+                        return data;
+                    }
+                );
             } else {
                 return Promise.resolve();
             }

@@ -8403,7 +8403,7 @@ let dbPlayerReward = {
                                         })
                                     }
 
-                                    if (!selectedReward.firstTopUpAmount || !selectedReward.topUpCount) {
+                                    if (!selectedReward.firstTopUpAmount || !selectedReward.topUpCount || selectedReward.firstTopUpAmount == 0 || selectedReward.topUpCount == 0) {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: localization.localization.translate("First Top Up Amount and Top Up Count setting cannot be zero")
