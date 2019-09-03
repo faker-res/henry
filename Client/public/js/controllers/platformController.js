@@ -140,6 +140,12 @@ define(['js/app'], function (myApp) {
                 "birthday2": 5, //会员生日 - 存送金奖励
                 "birthday3": 6 //会员生日 - 周期内累积总投注额（已申请过不扣除）
             }
+
+            // 推荐人优惠模式
+            vm.referralRewardMode = {
+                1: "consumptionType", // 投注条件
+                2: "depositType" // 存款条件
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -21617,6 +21623,7 @@ define(['js/app'], function (myApp) {
 
             };
 
+            // when reward type changed
             vm.platformRewardTypeChanged = function () {
                 $scope.$evalAsync(() => {
                     $.each(vm.allRewardTypes, function (i, v) {
@@ -21852,6 +21859,9 @@ define(['js/app'], function (myApp) {
                                     case "deviceType":
                                         result = vm.deviceType;
                                         break;
+                                    case "referralRewardMode":
+                                        result = vm.referralRewardMode;
+                                        break;
                                     default:
                                         result = $scope[cond.options];
                                         if (result) {
@@ -21898,6 +21908,12 @@ define(['js/app'], function (myApp) {
                                         vm.rewardDisabledParam.push("consumptionProvider");
                                     }
 
+                                }
+
+                                if (el == "referralRewardMode") {
+                                    if (!vm.showReward || (!(vm.showReward && vm.showReward.condition && vm.showReward.condition[el] && vm.showReward.condition[el].indexOf("2") > -1))) {
+                                        vm.rewardDisabledParam.push("isDynamicRewardTopUpAmount")
+                                    }
                                 }
 
                                 if (el == "app" || el == "h5" || el == "web" || el == "backStage"){
@@ -22412,6 +22428,10 @@ define(['js/app'], function (myApp) {
             vm.changeRewardParamLayout = (model, isFirstLoad) => {
                 let isResetLayout = Boolean(isFirstLoad);
 
+                if (!isResetLayout && model && model.name && (model.name === "isDynamicRewardTopUpAmount")) {
+                    isResetLayout = Boolean(true);
+                }
+
                 if (model && model.name == "canApplyFromClient") {
                     if (model.value == true && vm.rewardDisabledParam && vm.rewardDisabledParam.indexOf("showInRealServer") > -1) {
                         vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "showInRealServer");
@@ -22467,6 +22487,49 @@ define(['js/app'], function (myApp) {
                     vm.rewardMainParamTable = [];
 
                     let paramType = vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed;
+                    let cloneParamType = JSON.parse(JSON.stringify(vm.isDynamicRewardAmt ? vm.showRewardTypeData.params.param.tblOptDynamic : vm.showRewardTypeData.params.param.tblOptFixed));
+
+                    let currentReferralRewardMode;
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'ReferralRewardGroup') {
+                        let currentReferralRewardMode;
+                        let isDynamicRewardTopUp = false;
+                        for (let i = 0; i < Object.keys(vm.rewardMainCondition).length; i++) {
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name === "referralRewardMode") {
+                                currentReferralRewardMode = vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value;
+                            }
+
+                            if (vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].name === "isDynamicRewardTopUpAmount") {
+                                isDynamicRewardTopUp = vm.rewardMainCondition[Object.keys(vm.rewardMainCondition)[i]].value;
+                            }
+                        }
+
+                        if (!currentReferralRewardMode) {
+                            cloneParamType = {};
+                        } else if (currentReferralRewardMode === "1") {
+                            delete cloneParamType.rewardParam.firstTopUpAmount;
+                            delete cloneParamType.rewardParam.totalTopUpAmount;
+                            delete cloneParamType.rewardParam.topUpCount;
+                            delete cloneParamType.rewardParam.rewardAmount;
+                            delete cloneParamType.rewardParam.maxRewardInSingleTopUp;
+                        } else if (currentReferralRewardMode === "2") {
+                            if (cloneParamType && cloneParamType.rewardParam && cloneParamType.rewardParam.rewardPercentage) {
+                                cloneParamType.rewardParam.rewardPercentage.des = "Referral Reward Percentage";
+                            }
+
+                            if (isDynamicRewardTopUp) {
+                                delete cloneParamType.rewardParam.totalTopUpAmount;
+                                delete cloneParamType.rewardParam.rewardAmount;
+                                delete cloneParamType.rewardParam.playerValidConsumption;
+                            } else {
+                                delete cloneParamType.rewardParam.firstTopUpAmount;
+                                delete cloneParamType.rewardParam.maxRewardInSingleTopUp;
+                                delete cloneParamType.rewardParam.rewardPercentage;
+                                delete cloneParamType.rewardParam.playerValidConsumption;
+                            }
+                        }
+
+                        paramType = cloneParamType;
+                    }
 
                     vm.rewardMainParam = Object.assign({}, paramType);
 
@@ -23219,6 +23282,7 @@ define(['js/app'], function (myApp) {
                 console.log(vm.rewardMainParamTable);
             };
 
+            // when condition on change
             vm.rewardSelectOnChange = (model) => {
                 if (model && model.name === "topupType") {
                     if (model.value.indexOf("2") === -1) {
@@ -23285,6 +23349,15 @@ define(['js/app'], function (myApp) {
                     vm.festivalType = model.value;
                 }
 
+                if (model && model.name === "referralRewardMode") {
+                    if (model.value && model.value === "1") {
+                        vm.rewardDisabledParam.push("isDynamicRewardTopUpAmount")
+                    } else {
+                        vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "isDynamicRewardTopUpAmount");
+                    }
+
+                }
+
                 $scope.$evalAsync( () => {
                     if (model && model.name == "definePlayerLoginMode" && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup'
                         && vm.showRewardTypeData.params && vm.showRewardTypeData.params.param && vm.showRewardTypeData.params.param.tblOptDynamic
@@ -23318,6 +23391,10 @@ define(['js/app'], function (myApp) {
                                 param.value = vm.getNumberOfDayForSelectedInterval(model.value);
                             }
                         )
+                    }
+
+                    if (model && (model.name == "referralRewardMode" || model.name == "isDynamicRewardTopUpAmount") && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'ReferralRewardGroup') {
+                        vm.changeRewardParamLayout(model, true);
                     }
                 })
 
@@ -25363,21 +25440,16 @@ define(['js/app'], function (myApp) {
                 vm.selectedFrontEndSettingTab  = choice;
                 switch (choice) {
                     case 'rewardPointClarification':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'popularRecommendation':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'carouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = false;
                         break;
                     case 'partnerCarouselConfiguration':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForCarouselConfiguration = true;
                         break;
                     case 'popUpAdvertisement':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'urlConfiguration':
                     case 'partnerUrlConfiguration':
@@ -25388,7 +25460,6 @@ define(['js/app'], function (myApp) {
                         };
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.isPartnerForUrlConfiguration = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
@@ -25396,7 +25467,6 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'skinManagement':
                     case 'partnerSkinManagement':
-                        vm.filterFrontEndSettingPlatform = null;
                         vm.frontEndSkinSetting = [];
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = '';
@@ -25406,19 +25476,18 @@ define(['js/app'], function (myApp) {
                         }
                         break;
                     case 'rewardSetting':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'gameSetting':
                         vm.frontEndDeletedList = [];
                         vm.newFrontEndGameSetting = {};
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'scriptDescription':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
                     case 'registrationGuidance':
-                        vm.filterFrontEndSettingPlatform = null;
                         break;
+                }
+                if (vm.filterFrontEndSettingPlatform) {
+                    vm.frontEndSettingPlatform();
                 }
             };
 
@@ -31776,6 +31845,7 @@ define(['js/app'], function (myApp) {
                                                         vm.commissionRateConfig.rateAfterRebateGameProviderGroup.map(availableProviderGroupRate => {
                                                             if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                                 providerGroupRate = availableProviderGroupRate;
+                                                                providerGroupRate.name = gameProviderGroup.name;
                                                             }
                                                         })
                                                     }
@@ -32413,6 +32483,7 @@ define(['js/app'], function (myApp) {
                 vm.editAuditConfig = vm.editAuditConfig || {};
                 vm.auditCreditChangeSetting = vm.auditCreditChangeSetting || {};
                 vm.auditManualRewardSetting = vm.auditManualRewardSetting || {};
+                vm.auditRepairTransferSetting = vm.auditRepairTransferSetting || {};
                 let sendData = {
                     platformObjId: platformObjId || null
                 };
@@ -32449,7 +32520,21 @@ define(['js/app'], function (myApp) {
                     });
                 });
 
-
+                socketService.$socket($scope.AppSocket, 'getAuditRepairTransferSetting', sendData, function (data) {
+                    console.log('getAuditRepairTransferSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.auditRepairTransferSetting = {};
+                        if (data && data.data) {
+                            vm.auditRepairTransferSetting = data.data;
+                        }
+                        if (!vm.auditRepairTransferSetting.recipient) {
+                            vm.auditRepairTransferSetting.recipient = [];
+                        }
+                        if (!vm.auditRepairTransferSetting.reviewer) {
+                            vm.auditRepairTransferSetting.reviewer = [];
+                        }
+                    });
+                });
             };
 
             vm.getEmailNotificationConfig = async (platformObjId) => {
@@ -34010,10 +34095,10 @@ define(['js/app'], function (myApp) {
                 switch(setting) {
                     case 'auditCreditChangeSetting':
                         return 'setAuditCreditChangeSetting';
-                        break;
                     case 'auditManualRewardSetting':
                         return 'setAuditManualRewardSetting';
-                        break;
+                    case 'auditRepairTransferSetting':
+                        return 'setAuditRepairTransferSetting';
                     default:
                         console.log('current audit setting not found');
                         return;
@@ -35758,9 +35843,26 @@ define(['js/app'], function (myApp) {
 
             vm.loadDepartmentLocal = () => {
                 let platformObjId = getSelectedPlatform()._id;
-                vm.currentPlatformQueryDepartments = vm.departments.filter(department => {
+                let departments = vm.departments.filter(department => {
                     return (department.platforms.indexOf(platformObjId) > -1 && department.parent);
-                })
+                });
+
+                vm.currentPlatformQueryDepartments = [];
+                // filter unique department
+                for (let i = 0; i < departments.length; i++) {
+                    let department = departments[i];
+                    let index = vm.currentPlatformQueryDepartments.findIndex(availableDepartment => availableDepartment._id === department._id);
+                    if (index <= -1) {
+                        vm.currentPlatformQueryDepartments.push(department);
+                    }
+                }
+
+                vm.refreshSPicker();
+            };
+
+            vm.loadFeedbackDepartment = (platformObjdId) => {
+                let platform = new Array(platformObjdId);
+                vm.getAllDepartment(platform);
                 vm.refreshSPicker();
             };
 
@@ -40338,38 +40440,57 @@ define(['js/app'], function (myApp) {
 
             vm.getUniqueAdminFeedbacks = () => {
                 vm.departmentUsers = [];
+                vm.csNameByDepartment = [];
+                let platformList = vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : [];
                 let sendData = {
-                    platformList: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
-                }
+                    platformList: platformList
+                };
+
+                // get department that contain selected platforms
+                vm.getAllDepartment(platformList);
+
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getUniqueAdminFeedbacks', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getUniqueAdminFeedbacks', data);
-                        var result = [];
+                        let result = [];
                         data.data.forEach(function (userData) {
-                            let singleRecord = {}
+                            let singleRecord = {};
                             singleRecord.departmentName = userData.departmentName;
                             singleRecord.adminName = userData.adminName;
                             singleRecord._id = userData._id;
                             result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
+
+                        // Feedback Query tab - only display CS name according to the departments that contain selected platforms
+                        if (vm.queryDepartments && vm.queryDepartments.length && vm.departmentUsers && vm.departmentUsers.length) {
+                            vm.departmentUsers.forEach(user => {
+                                vm.queryDepartments.forEach(dept => {
+                                    if (user.departmentName.toString() === dept.departmentName.toString()) {
+                                        vm.csNameByDepartment.push(user);
+                                    }
+                                })
+                            })
+                        }
                     });
                 });
             };
 
-            vm.getAllDepartment = () => {
+            vm.getAllDepartment = (platformList) => {
                 let sendData = {
-                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
-                }
+                    platforms: platformList ? platformList : []
+                };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getAllDepartment', data);
-                        var result = [];
-                        data.data.forEach(function (departmentData) {
-                            result.push(departmentData);
-                        });
+                        let result = [];
+                        if (data && data.data) {
+                            data.data.forEach(function (departmentData) {
+                                result.push(departmentData);
+                            });
+                        }
                         vm.queryDepartments = result;
                     });
                 });
@@ -40573,7 +40694,7 @@ define(['js/app'], function (myApp) {
                     vm.getAllPlayerLevelsLocal();
                     vm.getCredibilityRemarksLocal();
                     vm.getAllGameProvidersLocal();
-                    vm.loadDepartmentLocal();
+                    // vm.loadDepartmentLocal();
                     vm.setQueryRole(vm.autoFeedbackMission);
                     vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {

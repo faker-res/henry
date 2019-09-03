@@ -10966,7 +10966,7 @@ define(['js/app'], function (myApp) {
                     let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
 
                     let sendData = {
-                        platformId: vm.selectedPlatform.id,
+                        platformId: vm.selectedSinglePlayer.platform,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,

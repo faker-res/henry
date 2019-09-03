@@ -6266,7 +6266,6 @@ let dbPlayerInfo = {
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
-
         if (data && data.phoneNumber) {
             data.phoneNumber = {
                 $in: [
@@ -6536,17 +6535,28 @@ let dbPlayerInfo = {
                                     let newInfo;
 
                                     newInfo = getReferralIdAndUrl(playerData[ind]);
-
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
                                 }
                             }
-
                             return Promise.all(players)
                         }
                     );
-                var b = dbconfig.collection_players
-                    .find(advancedQuery).count();
+                console.log('MT --checking -advancedQuery', advancedQuery)
+                // var b = dbconfig.collection_players
+                //     .find(advancedQuery).lean().then(players => {
+                //         console.log('MT --checking -S7-2')
+                //         if(players) {
+                //             return players.length;
+                //         } else {
+                //             return 0;
+                //         }
+                //     }, err => {
+                //         console.log('MT --checking -S7-2-error', err);
+                //     });
+
+                //Data cannot load due to code was stoped at counting player amount, change to this new count method and see.
+                var b = dbconfig.collection_players.find(advancedQuery).count();
 
                 return Promise.all([a, b]);
             }
@@ -17197,7 +17207,7 @@ let dbPlayerInfo = {
                     code: code
                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean().then(
                     rewardEvent => {
-                        let isXima = rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
+                        let isXima = rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
 
                         if (playerData.permission && playerData.permission.banReward && !isXima) {
                             return Promise.reject({
@@ -19612,7 +19622,9 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).read("secondaryPreferred");
+                    ).allowDiskUse(true).read("secondaryPreferred"); // based on error, this seems to be the most possible issue area
+                    // however, it is not in settlement, so i'll add allowDiskUse to see if its fix. If it cause more problem,
+                    // i'll separate the query into multiple requests
                 }
             ).then(
                 async playerSummaryData => {
@@ -27053,7 +27065,9 @@ let dbPlayerInfo = {
 
          let playerCheck = await dbconfig.collection_players.find({
              platform: platformObjId,
-             phoneNumber: phoneNumberQ
+             phoneNumber: phoneNumberQ,
+             isRealPlayer : true,
+             isTestPlayer : false,
          }, {name: 1}).lean();
 
         let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
@@ -27069,7 +27083,11 @@ let dbPlayerInfo = {
         }
 
         if (recCheck && recCheck.length) {
-            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+            recCheck.forEach(p => {
+                if (p && p.playerObjId) {
+                    retArr.push(p.playerObjId.name);
+                }
+            });
         }
 
         return retArr;
@@ -29830,6 +29848,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
+                console.log('MT --checking S7-1-a', config)
                 return thisPlayer;
             }
         );

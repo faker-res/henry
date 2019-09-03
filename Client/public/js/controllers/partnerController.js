@@ -17336,6 +17336,15 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.platformInSetting.autoAudit.firstWithdrawDifferentIPCheck;
         };
 
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#reportRightTable').resize();
+            },0)
+            $scope.safeApply();
+        }
+
         vm.getActiveConfig = function () {
             return $scope.$socketPromise('getActiveConfig', {platform: vm.platformInSetting._id})
                 .then(function (data) {
@@ -18975,16 +18984,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail = [], detailType){
             vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
             for (var i in vm.partnerDLCommDetailTotal){
                 delete vm.partnerDLCommDetailTotal[i];
             }
 
             if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
-                if (!partnerDownLineCommDetail[0]) {
-                    partnerDownLineCommDetail.push({});
-                }
                 (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
                     if (key === "consumptionProviderDetail") {
                         (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {

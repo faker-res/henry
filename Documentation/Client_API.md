@@ -3761,6 +3761,7 @@ API说明：
 	    ```
 	    code: 必填|String|优惠唯一代码
 	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    festivalItemId: 选填|String|特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得
 	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
 	    ```
 	* 操作成功：
@@ -7335,7 +7336,8 @@ API说明：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺3项1列; 3 - 平铺5项1列
 		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干
-		* code:  recommendation - 热门推荐“:
+		* code: 
+		    * recommendation - 热门推荐
 			* rewardPoint - 积分说明
 			* game - 游戏配置
 			* carousel - 轮播配置

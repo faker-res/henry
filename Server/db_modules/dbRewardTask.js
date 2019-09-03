@@ -119,7 +119,7 @@ const dbRewardTask = {
             playerId: rewardData.playerId,
             providerGroup: rewardData.providerGroup,
             status: {$in: [constRewardTaskStatus.STARTED]}
-        }).then(
+        }).lean().then(
             providerGroup => {
                 if (providerGroup) {
                     let updObj = {
@@ -138,7 +138,9 @@ const dbRewardTask = {
 
                     if (rewardData.useConsumption) {
                         updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
-                        updObj.$inc.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        if (providerGroup.hasOwnProperty('remainingForbidXIMAAmt')){
+                            updObj.$inc.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        }
                     } else {
                         updObj.$inc.targetConsumption = rewardData.requiredUnlockAmount;
                     }
@@ -2427,7 +2429,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                     console.log('updatedRTG.remainingForbidXIMAAmt has negative!', updatedRTG.remainingForbidXIMAAmt, updatedRTG._id)
                                 }
 
-                                if (consumptionRecord && updatedRTG.remainingForbidXIMAAmt &&  updatedRTG.remainingForbidXIMAAmt >= 1 && consumptionRecord.validAmount){
+                                if (consumptionRecord && updatedRTG.remainingForbidXIMAAmt &&  updatedRTG.remainingForbidXIMAAmt > 0 && consumptionRecord.validAmount){
                                     // if the validAmount from consumption record exceeds the remainingForbidXIMAAmt; the balance will update to validAmount in consumptionSummary
                                     if (consumptionRecord.validAmount >= updatedRTG.remainingForbidXIMAAmt){
                                         XIMAAmt = consumptionRecord.validAmount - updatedRTG.remainingForbidXIMAAmt;
