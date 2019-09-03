@@ -3179,7 +3179,7 @@ var dbRewardEvent = {
                             }
 
                             let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                            if (currentAmount >= selectedRewardParam.maxRewardAmount) {
+                            if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (currentAmount >= selectedRewardParam.maxRewardAmount)) {
                                 rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
                                 let tempAmount = rewardAmount;
                                 referralRewardDetails.forEach(item => {
