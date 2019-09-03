@@ -8980,6 +8980,9 @@ let dbPlayerReward = {
                                 proposalData.data.isDynamicRewardTopUpAmount = (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) || Boolean(false);
                             }
                             proposalData.data.intervalType = eventData && eventData.condition && eventData.condition.interval;
+                            proposalData.data.forbidWithdrawAfterApply = Boolean(selectedReward.forbidWithdrawAfterApply && selectedReward.forbidWithdrawAfterApply === true);
+                            proposalData.data.remark = selectedReward.remark;
+                            proposalData.data.forbidWithdrawIfBalanceAfterUnlock = selectedReward.forbidWithdrawIfBalanceAfterUnlock ? selectedReward.forbidWithdrawIfBalanceAfterUnlock : 0;
                             delete proposalData.data.isDynamicRewardAmount
                         }
 
