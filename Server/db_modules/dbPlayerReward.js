@@ -8463,7 +8463,7 @@ let dbPlayerReward = {
                         }
 
                         let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                        if (currentAmount >= selectedReward.maxRewardAmount) {
+                        if (selectedReward.maxRewardAmount && (currentAmount >= selectedReward.maxRewardAmount)) {
                             rewardAmount = selectedReward.maxRewardAmount - totalRewardAppliedInInterval;
                             let tempAmount = rewardAmount;
                             referralRewardDetails.forEach(item => {
