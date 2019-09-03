@@ -4598,6 +4598,8 @@
   "Execute All": "执行全部",
   "Player Reward Points Log": "玩家积分变化记录",
   "deleteMultipleFakeData": "批量删除假数据",
+  "disableFrontEndRewardPointsRankingData": "关闭前端数据",
+  "enableFrontEndRewardPointsRankingData": "开启前端数据",
   "PLAYER_LOGIN_DEVICE_ANALYSIS": "玩家登入设备",
   "LEVEL_BEFORE": "等级（前）",
   "LEVEL_AFTER": "等级（后）",
