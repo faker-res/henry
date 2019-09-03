@@ -35845,6 +35845,12 @@ define(['js/app'], function (myApp) {
                 vm.refreshSPicker();
             };
 
+            vm.loadFeedbackDepartment = (platformObjdId) => {
+                let platform = new Array(platformObjdId);
+                vm.getAllDepartment(platform);
+                vm.refreshSPicker();
+            };
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -40456,10 +40462,10 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getAllDepartment = () => {
+            vm.getAllDepartment = (platformList) => {
                 let sendData = {
-                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
-                }
+                    platforms: platformList ? platformList : []
+                };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                     $scope.$evalAsync(() => {
@@ -40673,7 +40679,7 @@ define(['js/app'], function (myApp) {
                     vm.getAllPlayerLevelsLocal();
                     vm.getCredibilityRemarksLocal();
                     vm.getAllGameProvidersLocal();
-                    vm.loadDepartmentLocal();
+                    // vm.loadDepartmentLocal();
                     vm.setQueryRole(vm.autoFeedbackMission);
                     vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {

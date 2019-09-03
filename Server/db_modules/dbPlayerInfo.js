@@ -19622,7 +19622,9 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).read("secondaryPreferred");
+                    ).allowDiskUse(true).read("secondaryPreferred"); // based on error, this seems to be the most possible issue area
+                    // however, it is not in settlement, so i'll add allowDiskUse to see if its fix. If it cause more problem,
+                    // i'll separate the query into multiple requests
                 }
             ).then(
                 async playerSummaryData => {
