@@ -40425,22 +40425,39 @@ define(['js/app'], function (myApp) {
 
             vm.getUniqueAdminFeedbacks = () => {
                 vm.departmentUsers = [];
+                vm.csNameByDepartment = [];
+                let platformList = vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : [];
                 let sendData = {
-                    platformList: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
-                }
+                    platformList: platformList
+                };
+
+                // get department that contain selected platforms
+                vm.getAllDepartment(platformList);
+
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getUniqueAdminFeedbacks', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getUniqueAdminFeedbacks', data);
-                        var result = [];
+                        let result = [];
                         data.data.forEach(function (userData) {
-                            let singleRecord = {}
+                            let singleRecord = {};
                             singleRecord.departmentName = userData.departmentName;
                             singleRecord.adminName = userData.adminName;
                             singleRecord._id = userData._id;
                             result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
+
+                        // Feedback Query tab - only display CS name according to the departments that contain selected platforms
+                        if (vm.queryDepartments && vm.queryDepartments.length && vm.departmentUsers && vm.departmentUsers.length) {
+                            vm.departmentUsers.forEach(user => {
+                                vm.queryDepartments.forEach(dept => {
+                                    if (user.departmentName.toString() === dept.departmentName.toString()) {
+                                        vm.csNameByDepartment.push(user);
+                                    }
+                                })
+                            })
+                        }
                     });
                 });
             };
@@ -40454,9 +40471,11 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         console.log('getAllDepartment', data);
                         let result = [];
-                        data.data.forEach(function (departmentData) {
-                            result.push(departmentData);
-                        });
+                        if (data && data.data) {
+                            data.data.forEach(function (departmentData) {
+                                result.push(departmentData);
+                            });
+                        }
                         vm.queryDepartments = result;
                     });
                 });

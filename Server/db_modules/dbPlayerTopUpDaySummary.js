@@ -131,7 +131,7 @@ var dbPlayerTopUpDaySummary = {
         return deferred.promise;
     },
 
-    reCalculatePlayerReportSummary: function(platformId, start, end){
+    reCalculatePlayerReportSummary: function(platformId, start, end, playerName){
         if(!platformId || !start || ! end){
             return;
         }
@@ -153,7 +153,7 @@ var dbPlayerTopUpDaySummary = {
             let endDate = dbutility.getNextOneDaySGTime(startDate);
 
             if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime()))  {
-                p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, true));
+                p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, playerName, true));
             }
         }
 
@@ -194,65 +194,48 @@ var dbPlayerTopUpDaySummary = {
         return p;
     },
 
-    calculatePlayerReportDaySummaryForTimeFrame: function (startTime, endTime, platformId, isReSummarized) {
-        console.log("LH check player report test data 1", startTime, endTime, platformId, isReSummarized);
+    calculatePlayerReportDaySummaryForTimeFrame: async function (startTime, endTime, platformId, playerName, isReSummarized) {
+        console.log("LH check player report test data 1", startTime, endTime, platformId, playerName, isReSummarized);
         var balancer = new SettlementBalancer();
+        await balancer.initConns();
+        let requestAPI = isReSummarized ? "playerReportDaySummary_calculatePlatformDaySummaryForPlayers" : "calculateDaySummary";
 
-        return balancer.initConns().then(function () {
+        let playerObjIds = [];
+        if (playerName) {
+            let playerObj = await dbconfig.collection_players.findOne({platform: platformId, name: playerName}).lean();
+            if (playerObj && playerObj._id) {
+                playerObjIds.push(playerObj._id);
+            }
+        } else {
+            playerObjIds = await dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId);
+        }
 
-            return dbPlayerConsumptionRecord.streamPlayersWithConsumptionAndProposalInTimeFrame(startTime, endTime, platformId).then(
-                playerObjIds => {
-                    console.log('playerObjIds.length', playerObjIds.length);
-                    var stream = dbconfig.collection_players.aggregate(
-                        [
-                            {
-                                $match: {
-                                    "_id": {$in: playerObjIds}
-                                }
-                            },
-                            {
-                                $group: {
-                                    _id: '$_id'
-                                }
-                            }
-                        ]
-                    ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
-
-                    if(!isReSummarized){
-                        return Q(
-                            balancer.processStream({
-                                stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
-                                makeRequest: function (playerIdObjs, request) {
-                                    request("player", "calculateDaySummary", {
-                                        startTime: startTime,
-                                        endTime: endTime,
-                                        platformId: platformId,
-                                        playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
-                                    });
-                                }
-                            })
-                        );
-                    }else{
-                        return Q(
-                            balancer.processStream({
-                                stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
-                                makeRequest: function (playerIdObjs, request) {
-                                    request("player", "playerReportDaySummary_calculatePlatformDaySummaryForPlayers", {
-                                        startTime: startTime,
-                                        endTime: endTime,
-                                        platformId: platformId,
-                                        playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
-                                    });
-                                }
-                            })
-                        );
+        let stream = dbconfig.collection_players.aggregate(
+            [
+                {
+                    $match: {
+                        "_id": {$in: playerObjIds}
                     }
-
-
+                },
+                {
+                    $group: {
+                        _id: '$_id'
+                    }
                 }
-            )
+            ]
+        ).cursor({batchSize: 1000}).allowDiskUse(true).exec();
+
+        return balancer.processStream({
+            stream: stream,
+            batchSize: constSystemParam.BATCH_SIZE,
+            makeRequest: function (playerIdObjs, request) {
+                request("player", requestAPI, {
+                    startTime: startTime,
+                    endTime: endTime,
+                    platformId: platformId,
+                    playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj._id)
+                });
+            }
         });
     },
 

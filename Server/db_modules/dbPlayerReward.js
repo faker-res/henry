@@ -3510,18 +3510,35 @@ let dbPlayerReward = {
             playerState => {
                 console.log('playerState===33', playerState);
                 if (playerState) {
-                    newPromoCodeEntry.playerObjId = player._id;
-                    newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
-                    newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-                    newPromoCodeEntry.adminId = adminObjId;
-                    newPromoCodeEntry.adminName = adminName;
-                    newPromoCodeEntry.channel = channel;
+                    let promoCodes = [];
+                    return dbConfig.collection_promoCode.find({
+                        platformObjId: platformObjId,
+                        playerObjId: player._id,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).lean().then(promoCodeObjs => {
+                        promoCodeObjs.forEach(item => {
+                            promoCodes.push(item.code);
+                        });
+                        newPromoCodeEntry.playerObjId = player._id;
+                        newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+                        newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                        newPromoCodeEntry.adminId = adminObjId;
+                        newPromoCodeEntry.adminName = adminName;
+                        newPromoCodeEntry.channel = channel;
+                        for(let count = 1; promoCodes.indexOf(newPromoCodeEntry.code) > -1; count++) {
+                            console.log(`promo code ${newPromoCodeEntry.code} exists retrying ${count}`);
+                            if(count > 5) {
+                                return Promise.reject({name: "DataError", message: "Promo code exist, max retries reached."});
+                            }
+                            newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+                        }
 
-                    return dbConfig.collection_promoCodeActiveTime.findOne({
-                        platform: platformObjId,
-                        startTime: {$lt: new Date()},
-                        endTime: {$gt: new Date()}
-                    }).lean();
+                        return dbConfig.collection_promoCodeActiveTime.findOne({
+                            platform: platformObjId,
+                            startTime: {$lt: new Date()},
+                            endTime: {$gt: new Date()}
+                        }).lean();
+                    })
                 }
             }
         ).then(
