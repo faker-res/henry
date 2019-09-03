@@ -1654,16 +1654,18 @@ let dbRewardPoints = {
         let rewardPointsProm = [];
         let playerLevelProm = [];
         let playerLevelRecord = [];
+        let displayFrontEndRewardPointsRankingData = null;
 
         let loginRewardPointEvent;
         let gameRewardPointEvent;
         let gameProvider;
         let rewardPointsRanking;
 
-        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1, displayFrontEndRewardPointsRankingData: 1}).lean().then(
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
+                    displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
@@ -1847,7 +1849,13 @@ let dbRewardPoints = {
 
                 if (rewardPointsRanking && rewardPointsRanking.length > 0) {
                     let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking.slice(0, limit));
-                    returnData.pointRanking = rewardPointsRankingListArr;
+
+                    // determine whether to display reward points ranking data for front end
+                    if (displayFrontEndRewardPointsRankingData) {
+                        returnData.pointRanking = rewardPointsRankingListArr;
+                    } else {
+                        returnData.pointRanking = [];
+                    }
 
                     if (playerData) {
                         let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData, playerLevelRecord);
