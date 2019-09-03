@@ -3118,7 +3118,7 @@ var dbRewardEvent = {
                                         let firstDepositPlayers = rewardSpecificData[0][1];
                                         let totalFirstDepositAmount = rewardSpecificData[0][0];
 
-                                        if (!selectedRewardParam.rewardPercentage || !selectedRewardParam.spendingTimes || !selectedRewardParam.firstTopUpAmount || !selectedRewardParam.topUpCount) {
+                                        if (!selectedRewardParam.rewardPercentage || !selectedRewardParam.spendingTimes || !selectedRewardParam.firstTopUpAmount || !selectedRewardParam.topUpCount || selectedRewardParam.firstTopUpAmount == 0 || selectedRewardParam.topUpCount == 0) {
                                             returnData.status = 2;
                                         }
 
