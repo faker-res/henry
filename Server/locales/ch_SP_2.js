@@ -503,7 +503,7 @@ var simplifiedChinese = {
     "Reward Amount and Spending Times setting is mandatory": "优惠金额、解锁流水（优）X倍必填",
     "Reward Percentage and Spending Times setting is mandatory": "推荐人赠送比例、解锁流水（优）X倍必填",
     "First Top Up Amount and Top Up Count setting cannot be zero": "首次单笔存款额和存款笔数不允许输入数据为0",
-    "Does not have enough top up amount and top up count": "被推荐人未达到周期内首次单笔存款额和存款笔数",
+    "Does not have enough top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
