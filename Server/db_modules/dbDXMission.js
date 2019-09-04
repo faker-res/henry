@@ -1591,7 +1591,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone)
         }
     ).then(
-        playerName => {
+        async playerName => {
             console.log('DX created player: ', playerName);
             isNew = true;
 
@@ -1628,7 +1628,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 playerData.domain = filteredDomain;
                 console.log("checking register DX new account", [playerData.name, playerData.domain, playerData.partner])
                 if(!playerData.partner){
-                    playerData.partner = dbconfig.collection_partner.find({
+                    await dbconfig.collection_partner.find({
                         ownDomain: playerData.domain
                     }).lean().then(data=>{
                         // Design is one to one. So just get index 0. If many to many in the future, go loop.
