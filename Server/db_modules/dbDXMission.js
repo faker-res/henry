@@ -1632,6 +1632,9 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                         ownDomain: playerData.domain
                     }).lean().then(data=>{
                         // Design is one to one. So just get index 0. If many to many in the future, go loop.
+                        if (!data || !data[0] || !data[0]._id) {
+                            return;
+                        }
                         playerData.partner = data[0]._id;
                         console.log('checking new partner',data[0]._id);
 
