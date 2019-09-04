@@ -5989,5 +5989,6 @@
   "Referee First Top Up Amount": "被推荐人首次单笔存款额",
   "Referral Reward Percentage": "推荐人赠送比例",
   "consumptionType": "投注条件",
-  "depositType": "存款条件"
+  "depositType": "存款条件",
+  "First Top Up Amount, Top Up Count is required more than zero": "被推荐人首次单笔存款额、被推荐人存款笔数必填大过0"
 }
