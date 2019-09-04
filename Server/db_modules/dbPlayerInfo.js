@@ -1024,7 +1024,7 @@ let dbPlayerInfo = {
                                                         }
 
                                                         if (configIntervalTime) {
-                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                            logQuery.isValid = {$exists: true, $eq: true};
                                                         }
 
                                                         return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -1101,7 +1101,7 @@ let dbPlayerInfo = {
                                                     }
 
                                                     if (configIntervalTime) {
-                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        logQuery.isValid = {$exists: true, $eq: true};
                                                     }
 
                                                     return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -2988,7 +2988,7 @@ let dbPlayerInfo = {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -29880,7 +29880,7 @@ function bindReferral(platformObjId, loginData) {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
