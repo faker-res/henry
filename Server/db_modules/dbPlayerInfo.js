@@ -23063,6 +23063,9 @@ let dbPlayerInfo = {
                     let smsIdOrTypeName = statusPairArray[0];
                     let updateStatus = parseInt(statusPairArray[1]);
 
+                    console.log('smsIdOrTypeName', smsIdOrTypeName);
+                    console.log('updateStatus', updateStatus);
+
                     smsIdOrTypeName = parseInt(smsIdOrTypeName);
                     //smsId
                     let smsSettingGroup = platformSmsGroups.find(
