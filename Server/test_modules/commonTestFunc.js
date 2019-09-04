@@ -86,7 +86,7 @@ let commonTestFunc = {
                     name: playerName,
                     platform: platformId,
                     password: '123456',
-                    validCredit: 300,
+                    validCredit: 600,
                     realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
@@ -448,7 +448,20 @@ let commonTestFunc = {
 
     upsertRewardPointsLvlConfig: function(data) {
         return dbRewardPointsLvlConfig.upsertRewardPointsLvlConfig(data);
-    }
+    },
+
+    createRewardType: function(name, updateData) {
+        return dbRewardType.getRewardType({name: name}).then(
+            data => {
+                if (!data) {
+                    return dbconfig.collection_rewardType.update({"name": name}, {
+                        $set: updateData
+                    }, {upsert: true});
+                }
+                return data;
+            }
+        );
+    },
 };
 
 module.exports = commonTestFunc;

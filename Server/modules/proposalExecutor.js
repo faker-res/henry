@@ -2216,6 +2216,8 @@ var proposalExecutor = {
                         applyAmount: 0,
                     };
                     proposalData.data.proposalId = proposalData.proposalId;
+                    console.log("Check CR execute proposal id",proposalData.proposalId)
+                    console.log("Check CR execute player id",taskData.playerId)
                     return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
@@ -2235,6 +2237,10 @@ var proposalExecutor = {
                                         sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                                     }
                                     dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
+                                },
+                                err => {
+                                    console.log("check CR execute reject",err)
+                                    return Promise.reject(err);
                                 }
                             );
                         }

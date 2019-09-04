@@ -6660,7 +6660,7 @@ let dbPartner = {
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
                 let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
                 let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
-                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id);
+                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id, providerGroups);
 
                 return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, partnerCommissionConfigRateProm]);
             }
@@ -9434,7 +9434,7 @@ let dbPartner = {
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
@@ -9445,7 +9445,7 @@ let dbPartner = {
                     data.forEach( (item, index) => {
                         try {
                              item = JSON.parse(item);
-                             item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                             item = ( item && item[0] ) ? item[0] : {}
                              item.no = index + 1;
                              result.push(item);
                         }
@@ -9472,7 +9472,6 @@ let dbPartner = {
         let partnerData;
         let partnerNo = data.partnerId;
         let preventBlockUrl;
-
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
                 // random pick one of preventBlock urls
@@ -9497,11 +9496,9 @@ let dbPartner = {
                 if (partnerData.shortUrl && Object.keys(partnerData.shortUrl).length > 30) {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
-
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url ) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
-
                 // if not exist generate new weibo short link
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking randomUrl', randomUrl);
@@ -9534,6 +9531,9 @@ let dbPartner = {
                 }
                 let shortUrl = partner.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'partnerName': partner.partnerName };
                 return result;
             }
@@ -12931,7 +12931,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     );
 }
 
-function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
+function getPartnerCommissionConfigRate (platformObjId, partnerObjId, gameProviderGroups = []) {
     let platformConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: {$exists: false}}).lean();
     let customConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: partnerObjId}).lean();
 
@@ -13000,6 +13000,16 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         });
                     });
                 }
+            }
+
+            if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && rateConfig && rateConfig.rateAfterRebateGameProviderGroup.map) {
+                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                    gameProviderGroups.map(providerGroup => {
+                        if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
+                            defaultGroup.name = providerGroup.name;
+                        }
+                    });
+                });
             }
             return rateConfig;
         }

@@ -183,8 +183,8 @@ var SettlementServiceImplement = function () {
 
     this.checkPlayerLevelDownForPlayers.expectsData = 'platformId, checkPeriod: String, playerObjIds: []';
     this.checkPlayerLevelDownForPlayers.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.checkPeriod && data.playerObjIds);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.checkPlayerLevelDownForPlayers, [data.playerObjIds, data.checkPeriod, data.platformId], isValidData);
+        var isValidData = Boolean(data && data.platformId && data.checkPeriod && data.playerObjIds && data.playerLevelsObj && data.playerLevelsObj.length);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.checkPlayerLevelDownForPlayers, [data.playerObjIds, data.checkPeriod, data.platformId, data.playerLevelsObj], isValidData);
     };
 
     this.checkPlatformWeeklyTopUpReturnForPartners.expectsData = 'platformId, eventData: {}, proposalTypeId, partnerIds: [], startTime: Date, endTime: Date';
