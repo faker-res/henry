@@ -2011,6 +2011,7 @@ define(['js/app'], function (myApp) {
                     vm.updateMultiselectProposal();
                 }
                 if (event.target.tagName == 'A') {
+                    vm.rejectRemark = "";
                     var data = vm.proposalTable.row(this).data();
                     vm.proposalRowClicked(data);
                 }
