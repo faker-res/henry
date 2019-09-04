@@ -1448,11 +1448,7 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $ne: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId,
-            createTime: {
-                $gte: referralRewardStartTime,
-                $lte: referralRewardEndTime
-            }
+            'data.referralRewardDetails.playerObjId': player.playerObjId
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
                 let depositQuery = {
@@ -1518,11 +1514,7 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $eq: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId,
-            createTime: {
-                $gte: referralRewardStartTime,
-                $lte: referralRewardEndTime
-            }
+            'data.referralRewardDetails.playerObjId': player.playerObjId
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
                 let depositQuery = {
