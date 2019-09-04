@@ -6978,10 +6978,8 @@ let dbPlayerReward = {
                             if (bindReferralIntervalEndTime && bindReferralIntervalEndTime) {
                                 referralQuery['$or'] = [
                                     {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
                                     {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
+                                    {isValid: {$exists: true, $eq: true}}];
                             }
 
                             return dbConfig.collection_referralLog.find(referralQuery).lean().then(
