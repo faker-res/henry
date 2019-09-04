@@ -10450,7 +10450,7 @@ let dbPartner = {
                 }
 
                 // Get members detail
-                let activePlayerRequirement = await getRelevantActivePlayerRequirement(partnerDetail.platform, partnerDetail.commissionType);
+                let activePlayerRequirement = await dbPartnerCommission.getRelevantActivePlayerRequirement(partnerDetail.platform, partnerDetail.commissionType);
                 let members = await dbconfig.collection_players.find({platform: partnerDetail.platform, partner: partnerDetail._id}, {_id: 1}).lean();
                 members = members.map(m => m._id);
 
@@ -12625,6 +12625,7 @@ function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
 
     return dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
         partnerLevelConfig => {
+            partnerLevelConfig = partnerLevelConfig || {};
             return {
                 topUpTimes: partnerLevelConfig[configPrefix + "PlayerTopUpTimes"] || 0,
                 topUpAmount: partnerLevelConfig[configPrefix + "PlayerTopUpAmount"] || 0,
