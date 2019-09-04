@@ -1065,6 +1065,10 @@ const dbPartnerCommission = {
     getTargetCommissionPeriod: (commissionType, date) => {
         return getTargetCommissionPeriod(commissionType, date);
     },
+
+    getRelevantActivePlayerRequirement: (platformObjId, commissionType) => {
+        return getRelevantActivePlayerRequirement(platformObjId, commissionType);
+    }
 };
 
 let proto = dbPartnerCommissionFunc.prototype;
