@@ -9888,7 +9888,6 @@ let dbPlayerInfo = {
 
                         if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
                             rewardEventItem.referralPeriod = referralConfig.referralPeriod || '5';
-                            rewardEventItem.referralLimit = referralConfig.referralLimit || 1;
                         }
 
                         let providerGroup = null;

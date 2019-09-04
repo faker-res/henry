@@ -2158,6 +2158,13 @@ var dbRewardEvent = {
                     }
                 });
 
+            let refereeQuery = {
+                platform: playerData.platform._id,
+                referral: playerData._id,
+                isValid: {$exists: true, $eq: true}
+            }
+            let getTotalRefereeProm = dbconfig.collection_referralLog.find(refereeQuery).count();
+
             // check sms verification
             if (eventData.condition.needSMSVerification) {
                 returnData.condition.SMSCode.status = 1;
@@ -2166,6 +2173,7 @@ var dbRewardEvent = {
             promArr.push(getReferralRewardProm);
             promArr.push(countInRewardInterval);
             promArr.push(getAppliedRewardInIntervalProm);
+            promArr.push(getTotalRefereeProm);
 
             forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
         }
@@ -3060,6 +3068,7 @@ var dbRewardEvent = {
                         matchMobileDevice = rewardSpecificData[1][2];
 
                         let totalRewardAppliedInInterval = rewardSpecificData[2];
+                        let totalReferee = rewardSpecificData[3]
 
                         if (!matchIPAddress) {
                             returnData.condition.ip.status = 2;
@@ -3109,7 +3118,7 @@ var dbRewardEvent = {
                                         let firstDepositPlayers = rewardSpecificData[0][1];
                                         let totalFirstDepositAmount = rewardSpecificData[0][0];
 
-                                        if (!selectedRewardParam.rewardPercentage || !selectedRewardParam.spendingTimes || !selectedRewardParam.firstTopUpAmount || !selectedRewardParam.topUpCount) {
+                                        if (!selectedRewardParam.rewardPercentage || !selectedRewardParam.spendingTimes || !selectedRewardParam.firstTopUpAmount || !selectedRewardParam.topUpCount || selectedRewardParam.firstTopUpAmount == 0 || selectedRewardParam.topUpCount == 0) {
                                             returnData.status = 2;
                                         }
 
@@ -3130,6 +3139,7 @@ var dbRewardEvent = {
                                         }
 
                                         returnData.result.totalDepositAmount = totalFirstDepositAmount;
+                                        returnData.result.depositPlayerCount = (referralRewardDetails && referralRewardDetails.length) || 0;
 
                                     } else {
                                         let totalDepositPlayers = rewardSpecificData[0][1];
@@ -3152,6 +3162,7 @@ var dbRewardEvent = {
                                         }
 
                                         returnData.result.totalDepositAmount = totalDepositAmount;
+                                        returnData.result.depositPlayerCount = (referralRewardDetails && referralRewardDetails.length) || 0;
                                     }
 
                                     if (referralRewardDetails.length == 0) {
@@ -3168,7 +3179,7 @@ var dbRewardEvent = {
                             }
 
                             let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                            if (currentAmount >= selectedRewardParam.maxRewardAmount) {
+                            if (selectedRewardParam && selectedRewardParam.maxRewardAmount && (currentAmount >= selectedRewardParam.maxRewardAmount)) {
                                 rewardAmount = selectedRewardParam.maxRewardAmount - totalRewardAppliedInInterval;
                                 let tempAmount = rewardAmount;
                                 referralRewardDetails.forEach(item => {
@@ -3183,6 +3194,7 @@ var dbRewardEvent = {
                             }
 
                             returnData.result.rewardAmount = rewardAmount;
+                            returnData.result.recommendFriendCount = totalReferee;
                         }
                         break;
 
