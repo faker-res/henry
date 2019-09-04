@@ -2068,6 +2068,8 @@ define(['js/app'], function (myApp) {
         vm.updateMultiProposal = function (bApprove) {
             console.log("updateMultiProposal", vm.multiProposalSelected);
             if (bApprove) {
+                vm.rejectMultipleRemark = "";
+                vm.rejectRemark = "";
                 vm.showProposalIndicator.approve = true;
             } else {
                 vm.showProposalIndicator.reject = true;
