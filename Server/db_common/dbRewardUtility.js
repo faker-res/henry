@@ -1374,7 +1374,199 @@ const dbRewardUtility = {
         } else {
             return true;
         }
+    },
+
+    //#region Referral Reward Group
+    checkPlayerConsumptionRecordForReferralReward: (playerData, intervalTime, referralEventStartTime, referralEventEndTime, proposalTypeData, eventData, player) => {
+        return dbConfig.collection_proposal.findOne({
+            'data.playerObjId': playerData._id,
+            'data.platformObjId': playerData.platform._id,
+            createTime: {
+                $gte: referralEventStartTime,
+                $lte: referralEventEndTime
+            },
+            type: proposalTypeData._id,
+            status: constProposalStatus.APPROVED,
+            'data.eventId': eventData._id,
+            'data.referralRewardMode': eventData.condition.referralRewardMode,
+            'data.referralRewardDetails.playerObjId': player.playerObjId
+        }).sort({createTime: -1}).lean().then(
+            latestApplyData => {
+                let consumptionStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+                let consumptionEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
+                let consumptionQuery = {
+                    platformId: player.platform,
+                    playerId: player.playerObjId,
+                    createTime: {
+                        $gte: consumptionStartTime,
+                        $lte: consumptionEndTime
+                    }
+                };
+
+                if (player.createTime && consumptionStartTime && (player.createTime.getTime() >= consumptionStartTime.getTime())) {
+                    consumptionQuery.createTime.$gte = new Date(player.createTime);
+                }
+
+                if (player.validEndTime && consumptionEndTime && (player.validEndTime.getTime() <= consumptionEndTime.getTime())) {
+                    consumptionQuery.createTime.$lte = new Date(player.validEndTime);
+                }
+
+                if (latestApplyData && latestApplyData.createTime) {
+                    consumptionQuery.createTime.$gt = latestApplyData.createTime;
+                    console.log('latestApplyData.createTime ===>', latestApplyData.createTime);
+                }
+
+                console.log('consumptionStartTime ===>', consumptionStartTime);
+                console.log('consumptionEndTime ===>', consumptionEndTime);
+                console.log('player ===>', player);
+                console.log('consumptionQuery ===>', consumptionQuery);
+                console.log('referralRewardMode', eventData.condition.referralRewardMode);
+
+                return dbConfig.collection_playerConsumptionRecord.aggregate([{
+                    $match: consumptionQuery
+                }, {
+                    $group: {
+                        _id: "$playerId",
+                        validAmount: {$sum: "$validAmount"},
+                        createTime: {$last: "$createTime"}
+                    }
+                }]);
+            }
+        )
+    },
+
+    checkPlayerTotalDepositForReferralReward: (playerData, intervalTime, proposalTypeData, eventData, player) => {
+        let referralRewardStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+        let referralRewardEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
+        return dbConfig.collection_proposal.findOne({
+            'data.playerObjId': playerData._id,
+            'data.platformObjId': playerData.platform._id,
+            type: proposalTypeData._id,
+            status: constProposalStatus.APPROVED,
+            'data.eventId': eventData._id,
+            'data.referralRewardMode': eventData.condition.referralRewardMode,
+            'data.isDynamicRewardTopUpAmount': {$exists: true, $ne: true},
+            'data.referralRewardDetails.playerObjId': player.playerObjId
+        }).sort({createTime: -1}).lean().then(proposalData => {
+            if (!proposalData) {
+                let depositQuery = {
+                    "data.platformId": player.platform,
+                    "data.playerObjId": player.playerObjId,
+                    createTime: {
+                        $gte: referralRewardStartTime,
+                        $lte: referralRewardEndTime
+                    },
+                    mainType: "TopUp",
+                    status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                };
+
+                if (player.createTime && referralRewardStartTime && (player.createTime.getTime() >= referralRewardStartTime.getTime())) {
+                    depositQuery.createTime.$gte = new Date(player.createTime);
+                }
+
+                if (player.validEndTime && referralRewardEndTime && (player.validEndTime.getTime() <= referralRewardEndTime.getTime())) {
+                    depositQuery.createTime.$lte = new Date(player.validEndTime);
+                }
+
+                console.log('referralRewardStartTime ===>', referralRewardStartTime);
+                console.log('referralRewardEndTime ===>', referralRewardEndTime);
+                console.log('player ===>', player);
+                console.log('depositQuery ===>', depositQuery);
+
+                return dbConfig.collection_proposal.aggregate([
+                    {
+                        $match: depositQuery
+                    },
+                    {
+                        $group: {
+                            _id: "$data.playerObjId",
+                            count: {"$sum": 1},
+                            amount: {"$sum": "$data.amount"},
+                            createTime: {$last: "$createTime"}
+                        }
+                    }
+                ]).then(
+                    data => {
+                        if (data && (data.length == 0)) {
+                            return [{_id: player.playerObjId, count: 0, amount: 0, createTime: null}];
+                        }
+
+                        return data;
+                    }
+                );
+            } else {
+                return Promise.resolve();
+            }
+        });
+    },
+
+    checkPlayerFirstDepositForReferralReward: (playerData, intervalTime, proposalTypeData, eventData, player) => {
+        let referralRewardStartTime = intervalTime ? intervalTime.startTime : eventData.condition.validStartTime;
+        let referralRewardEndTime = intervalTime ? intervalTime.endTime : eventData.condition.validEndTime;
+
+        return dbConfig.collection_proposal.findOne({
+            'data.playerObjId': playerData._id,
+            'data.platformObjId': playerData.platform._id,
+            type: proposalTypeData._id,
+            status: constProposalStatus.APPROVED,
+            'data.eventId': eventData._id,
+            'data.referralRewardMode': eventData.condition.referralRewardMode,
+            'data.isDynamicRewardTopUpAmount': {$exists: true, $eq: true},
+            'data.referralRewardDetails.playerObjId': player.playerObjId
+        }).sort({createTime: -1}).lean().then(proposalData => {
+            if (!proposalData) {
+                let depositQuery = {
+                    "data.platformId": player.platform,
+                    "data.playerObjId": player.playerObjId,
+                    createTime: {
+                        $gte: referralRewardStartTime,
+                        $lte: referralRewardEndTime
+                    },
+                    mainType: "TopUp",
+                    status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                };
+
+                if (player.createTime && referralRewardStartTime && (player.createTime.getTime() >= referralRewardStartTime.getTime())) {
+                    depositQuery.createTime.$gte = new Date(player.createTime);
+                }
+
+                if (player.validEndTime && referralRewardEndTime && (player.validEndTime.getTime() <= referralRewardEndTime.getTime())) {
+                    depositQuery.createTime.$lte = new Date(player.validEndTime);
+                }
+
+                console.log('referralRewardStartTime ===>', referralRewardStartTime);
+                console.log('referralRewardEndTime ===>', referralRewardEndTime);
+                console.log('player ===>', player);
+                console.log('depositQuery ===>', depositQuery);
+                console.log('referralRewardMode', eventData.condition.referralRewardMode);
+
+                let playerAmountProm = dbConfig.collection_proposal.findOne(depositQuery).sort({createTime: 1}).lean();
+                let playerTopUpCount = dbConfig.collection_proposal.find(depositQuery).count();
+
+                return Promise.all([playerAmountProm, playerTopUpCount]).then(
+                    topUpData => {
+                        let playerTopUpData = [];
+                        if (topUpData && topUpData[0]) {
+                            let detail = {};
+                            detail._id = topUpData[0].data && topUpData[0].data.playerObjId;
+                            detail.amount = topUpData[0].data && topUpData[0].data.amount;
+                            detail.createTime = topUpData[0].createTime;
+                            detail.count = topUpData[1] || 0
+
+                            playerTopUpData.push(detail);
+                        }
+
+                        return playerTopUpData;
+                    }
+                )
+            } else {
+                return Promise.resolve();
+            }
+        });
     }
+    //#endregion
 };
 
 module.exports = dbRewardUtility;

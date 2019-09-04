@@ -495,6 +495,13 @@ var simplifiedChinese = {
     "Reward Amount Exceed Limit Within Reward Period": "已达到周期内优惠金额上限",
     "This referrer has no valid referee player within this period": "很抱歉，目前没有被推荐人",
     "Does not have enough valid consumption": "被推荐人未达到周期内内有效投注额要求",
+    "Referral reward program is off": "是否启用推荐人账号尚未开启",
+    "There is no referral reward mode setting": "推荐人优惠模式尚未配置",
+    "Minimum valid consumption setting is mandatory": "被推荐人有效投注额必填",
+    "Reward Amount and Spending Times setting is mandatory": "优惠金额、解锁流水（优）X倍必填",
+    "Reward Percentage and Spending Times setting is mandatory": "推荐人赠送比例、解锁流水（优）X倍必填",
+    "First Top Up Amount and Top Up Count setting cannot be zero": "首次单笔存款额和存款笔数不允许输入数据为0",
+    "Does not have enough top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

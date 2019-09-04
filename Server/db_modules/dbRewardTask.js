@@ -299,6 +299,7 @@ const dbRewardTask = {
             }
         ).then(
             (returnData) => {
+                console.log("check CR useLockedCredit", rewardData)
                 if (rewardData && !rewardData.useLockedCredit) {
                     let amountToUpdate = 0;
                     if (proposalData && proposalData.data) {

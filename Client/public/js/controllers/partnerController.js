@@ -1256,7 +1256,7 @@ define(['js/app'], function (myApp) {
         vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
             let sendData = {
                 applySettlementArray: applyPartnerCommSettlementArray,
-                platformObjId: vm.selectedPlatform.data._id,
+                platformObjId: vm.platformInSettlementTab._id,
                 commissionType: vm.partnerCommVar.settMode,
                 startTime: vm.partnerCommVar.startTime,
                 endTime: vm.partnerCommVar.endTime

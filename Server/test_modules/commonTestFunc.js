@@ -81,7 +81,7 @@ let commonTestFunc = {
                     name: playerName,
                     platform: platformId,
                     password: '123456',
-                    validCredit: 300,
+                    validCredit: 600,
                     realName: "Test Player",
                     phoneNumber: '80808080',
                     email: 'testPlayer@sinonet.com.sg',
@@ -438,6 +438,19 @@ let commonTestFunc = {
     getRandomInt: function () {
         //return Math.floor(Math.random() * 1000000);
         return new Date().getTime() + Math.floor(Math.random() * 1000000);
+    },
+
+    createRewardType: function(name, updateData) {
+        return dbRewardType.getRewardType({name: name}).then(
+            data => {
+                if (!data) {
+                    return dbconfig.collection_rewardType.update({"name": name}, {
+                        $set: updateData
+                    }, {upsert: true});
+                }
+                return data;
+            }
+        );
     },
 };
 

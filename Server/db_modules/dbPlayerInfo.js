@@ -1024,7 +1024,7 @@ let dbPlayerInfo = {
                                                         }
 
                                                         if (configIntervalTime) {
-                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                            logQuery.isValid = {$exists: true, $eq: true};
                                                         }
 
                                                         return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -1101,7 +1101,7 @@ let dbPlayerInfo = {
                                                     }
 
                                                     if (configIntervalTime) {
-                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        logQuery.isValid = {$exists: true, $eq: true};
                                                     }
 
                                                     return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -2988,7 +2988,7 @@ let dbPlayerInfo = {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -9888,7 +9888,6 @@ let dbPlayerInfo = {
 
                         if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
                             rewardEventItem.referralPeriod = referralConfig.referralPeriod || '5';
-                            rewardEventItem.referralLimit = referralConfig.referralLimit || 1;
                         }
 
                         let providerGroup = null;
@@ -19622,7 +19621,9 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).read("secondaryPreferred");
+                    ).allowDiskUse(true).read("secondaryPreferred"); // based on error, this seems to be the most possible issue area
+                    // however, it is not in settlement, so i'll add allowDiskUse to see if its fix. If it cause more problem,
+                    // i'll separate the query into multiple requests
                 }
             ).then(
                 async playerSummaryData => {
@@ -23062,6 +23063,9 @@ let dbPlayerInfo = {
                     let smsIdOrTypeName = statusPairArray[0];
                     let updateStatus = parseInt(statusPairArray[1]);
 
+                    console.log('smsIdOrTypeName', smsIdOrTypeName);
+                    console.log('updateStatus', updateStatus);
+
                     smsIdOrTypeName = parseInt(smsIdOrTypeName);
                     //smsId
                     let smsSettingGroup = platformSmsGroups.find(
@@ -23086,6 +23090,7 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
+                console.log('updateData', updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
@@ -27127,7 +27132,7 @@ let dbPlayerInfo = {
                 }
 
                 // if not exist then generate new weibo short link
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
                 let randomUrl = preventBlockUrl.url + data.url;
@@ -27161,6 +27166,9 @@ let dbPlayerInfo = {
                 }
                 let shortUrl = player.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'name': player.name };
                 return result;
             }
@@ -29876,7 +29884,7 @@ function bindReferral(platformObjId, loginData) {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
