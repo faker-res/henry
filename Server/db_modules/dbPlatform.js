@@ -2053,7 +2053,8 @@ var dbPlatform = {
             message: data.message,
             delay: data.delay
         };
-        var recipientName = data.name || '';
+        let encodePhoneNum = dbUtility.encodePhoneNum(sendObj.tel) || '';
+        let recipientName = data.name || encodePhoneNum || '';
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
