@@ -1118,6 +1118,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getReferralConfig, [data.platform], actionName, isValidData);
         },
 
+        toggleFrontEndRewardPointsRankingData: function toggleFrontEndRewardPointsRankingData(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.toggleFrontEndRewardPointsRankingData, [data.platform, data.displayFrontEndRewardPointsRankingData], actionName, isValidData);
+        },
+
     };
     socketActionPlatform.actions = this.actions;
 }

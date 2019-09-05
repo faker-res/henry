@@ -26823,6 +26823,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
+                        vm.displayFrontEndRewardPointsRankingData = true;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -27085,6 +27086,20 @@ define(['js/app'], function (myApp) {
                     console.error(err);
                 }, true);
             }
+
+            vm.toggleFrontEndRewardPointsRankingData = function (flag) {
+                vm.displayFrontEndRewardPointsRankingData = flag;
+                let sendData = {
+                    platform: vm.rewardPointsSelectedPlatform,
+                    displayFrontEndRewardPointsRankingData: flag
+                }
+                socketService.$socket($scope.AppSocket, 'toggleFrontEndRewardPointsRankingData', sendData, function (data) {
+                    console.log('displayFrontEndRewardPointsRankingData', data);
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            };
 
             vm.toggleDeleteFakeAcc = function (flag) {
                 vm.editFakeAcc = flag;

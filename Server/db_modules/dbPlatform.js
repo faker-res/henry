@@ -7234,7 +7234,13 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    }
+    },
+
+    toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {
+        let query = {_id: platformObjId};
+        let updObj = {$set: {displayFrontEndRewardPointsRankingData: updateData}};
+        return dbconfig.collection_platform.findOneAndUpdate(query, updObj, {new: true});
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {
