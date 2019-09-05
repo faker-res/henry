@@ -6037,6 +6037,14 @@ define(['js/app'], function (myApp) {
                         partner.platform$ = matchedPlatformData.name;
                     }
                 }
+
+                if (partner.partnerLevel) {
+                    if (partner.partnerLevel == 1) {
+                        partner.partnerLevel$ = $translate("MAIN_PARTNER");
+                    } else {
+                        partner.partnerLevel$ = partner.partnerLevel + $translate("级代理");
+                    }
+                }
             });
 
             vm.partners = await getReferralsList(data);
@@ -6052,6 +6060,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
+                    },
+                    {
+                        title: $translate('PARTNER_HIERARCHICAL'),
+                        data: 'partnerLevel$'
                     },
                     {
                         title: $translate('PARTNER_NAME'),

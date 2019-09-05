@@ -5462,6 +5462,8 @@
   "Parent Partner(Unique)": "上级代理（唯一）",
   "Main Partner(parent)": "总代理（一级）",
   "MAIN_PARTNER": "总代理",
+  "LEVEL_PARTNER": "级代理",
+  "PARTNER_HIERARCHICAL": "代理层级",
   "Please reset the commission rate after binding": "绑定后请重新设置佣金比例",
   "Please reset downline commission rate": "请重新设置下级佣金比例",
   "Partner(Self)": "代理本人（自己）",
