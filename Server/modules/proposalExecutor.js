@@ -819,7 +819,8 @@ var proposalExecutor = {
                             sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             if (proposalData.data.playerObjId && proposalData.data.platformId && proposalData.data.updateData.phoneNumber) {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
-                                checkSimilarPhoneForPlayers(proposalData.data.playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
+                                let playerObjId = proposalData.data.playerObjId._id || proposalData.data.playerObjId;
+                                checkSimilarPhoneForPlayers(playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
                             }
                             deferred.resolve(data);
                         },
@@ -2215,6 +2216,8 @@ var proposalExecutor = {
                         applyAmount: 0,
                     };
                     proposalData.data.proposalId = proposalData.proposalId;
+                    console.log("Check CR execute proposal id",proposalData.proposalId)
+                    console.log("Check CR execute player id",taskData.playerId)
                     return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
@@ -2234,6 +2237,10 @@ var proposalExecutor = {
                                         sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                                     }
                                     dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
+                                },
+                                err => {
+                                    console.log("check CR execute reject",err)
+                                    return Promise.reject(err);
                                 }
                             );
                         }

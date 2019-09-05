@@ -169,9 +169,11 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                data.map(item => {
-                    adminArr.push(item._id);
-                });
+                if (data && data[0]) {
+                    data.map(item => {
+                        adminArr.push(item._id);
+                    });
+                }
                 if (playerArr.length > 0) {
                     query.playerId = {$in: playerArr};
                 } else if (playerArr.length == 0 && player) {

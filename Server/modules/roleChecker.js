@@ -611,6 +611,8 @@ var roleChecker = {
                 "auditCreditChangeAuditor": [],
                 "auditManualRewardRecipient": [],
                 "auditManualRewardAuditor": [],
+                "auditRepairTransferRecipient": [],
+                "auditRepairTransferAuditor": [],
             },
         },
         Report: {

@@ -18,7 +18,7 @@ const emailer = require("./../modules/emailer");
 
 let dbEmailAudit = {
     // common
-    async emailAudit(proposalId, adminObjId, decision, isMail, isPartner) {
+    async emailAudit(proposalId, adminObjId, decision, isMail) {
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
         let proposalProm = dbconfig.collection_proposal.findOne({proposalId}).lean();
         let status = decision === "approve" ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
@@ -65,15 +65,19 @@ let dbEmailAudit = {
             // someone changed the status in between these processes
             return Promise.reject({message: "Proposal had been updated in the process of auditing, please try again if necessary"});
         }
+        let proposalTypeName = proposal && proposal.type && proposal.type.name;
 
         let proposalStep = await dbProposalUtility.createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
-        return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
+        let executeResult = await proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
+        dbEmailAudit.sendAuditedProposalEmailUpdate(proposalTypeName, proposal).catch(errorUtils.reportError);
+        return executeResult;
     },
 
     async sendAuditedProposalEmailUpdate(proposalType, proposal) {
         let relevantFunction = {
             "UpdatePlayerCredit": dbEmailAudit.sendCreditChangeUpdate,
             "AddPlayerRewardTask": dbEmailAudit.sendManualRewardUpdate,
+            "FixPlayerCreditTransfer": dbEmailAudit.sendRepairTransferUpdate,
         };
 
         if (!relevantFunction[proposalType]) {
@@ -183,7 +187,7 @@ let dbEmailAudit = {
             let isReviewer = Boolean(auditors && auditors.length && auditors.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
 
             let prom = sendAuditCreditChangeEmail(emailContents, setting.emailNameExtension, setting.domain, recipient._id, isReviewer, setting.domain, allRecipientEmail).catch(err => {
-                console.log('send AuditManualReward email fail', String(recipient._id), err);
+                console.log('send AuditCreditChange email fail', String(recipient._id), err);
                 return errorUtils.reportError(err)
             });
             proms.push(prom);
@@ -484,7 +488,206 @@ let dbEmailAudit = {
         };
 
         return emailer.sendEmail(emailConfig);
-    }
+    },
+
+    // repair credit transfer
+    getAuditRepairTransferSetting(platformObjId) {
+        return dbconfig.collection_auditRepairTransferSetting.findOne({platform: platformObjId}).lean();
+    },
+
+    async setAuditRepairTransferSetting(platformObjId, minimumAuditAmount, emailNameExtension, domain, recipient, reviewer) {
+        let platform = await dbconfig.collection_platform.findOne({_id: platformObjId}, {_id: 1}).lean();
+        if (!platform) {
+            return Promise.reject({message: "Platform not found"});
+        }
+
+        let updateData = {platform: platformObjId};
+        if (minimumAuditAmount) {
+            updateData.minimumAuditAmount = minimumAuditAmount;
+        }
+        if (emailNameExtension) {
+            updateData.emailNameExtension = emailNameExtension;
+        }
+        if (recipient) {
+            updateData.recipient = recipient;
+        }
+        if (reviewer) {
+            updateData.reviewer = reviewer;
+        }
+        if (domain) {
+            updateData.domain = domain;
+        }
+
+        return dbconfig.collection_auditRepairTransferSetting.findOneAndUpdate({platform: platformObjId}, updateData, {
+            upsert: true,
+            new: true
+        }).lean();
+    },
+
+    async sendAuditRepairTransferEmail(proposal) {
+        if (!proposal || !proposal.data) {
+            return Promise.reject({message: "Proposal not found"});
+        }
+        let proposalData = proposal.data;
+
+        let playerName = proposalData.playerName || "";
+        let realName = proposalData.realNameBeforeEdit || "";
+        let playerLevel = proposalData.playerLevelName || "";
+        let transferId = proposalData.transferId || "";
+        let creditBeforeChange = proposalData.curAmount || 0;
+        let updateAmount = proposalData.updateAmount || 0;
+        let adminName = proposal.creator && proposal.creator.name || "";
+        let adminObjId = proposal.creator && proposal.creator.id || "";
+        let remark = proposalData.remark || "";
+        let proposalId = proposal.proposalId || "";
+        let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
+        let platformName = platform.name || "";
+        let createTime = proposal.createTime;
+
+        let emailContents = {
+            playerName,
+            realName,
+            playerLevel,
+            transferId,
+            creditBeforeChange,
+            updateAmount,
+            adminName,
+            remark,
+            proposalId,
+            platformName,
+            createTime,
+        };
+
+        let setting = await dbEmailAudit.getAuditRepairTransferSetting(platform._id);
+
+        if (!setting) {
+            return Promise.reject({message: "Please setup audit repair transfer setting"});
+        }
+
+        if (!setting.minimumAuditAmount || Math.abs(updateAmount) < Number(setting.minimumAuditAmount)) {
+            return;
+        }
+
+        let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditRepairTransferRecipient");
+        let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditRepairTransferAuditor");
+
+        let [recipients, auditors] = await Promise.all([recipientsProm, auditorsProm]);
+
+        if (!recipients || !recipients.length) {
+            return;
+        }
+
+        let allRecipientEmail = recipients.map(recipient => {
+            return recipient.email;
+        });
+
+        let proms = [];
+
+        for (let i = 0; i < recipients.length; i++) {
+            let recipient = recipients[i];
+            if (!recipient) {
+                continue;
+            }
+            console.log('sendAuditRepairTransferRewardEmail recipient', recipient);
+
+            let isReviewer = Boolean(auditors && auditors.length && auditors.map(reviewer => String(reviewer._id)).includes(String(recipient._id)));
+
+            let prom = sendAuditRepairTransferEmail(emailContents, setting.emailNameExtension, setting.domain, recipient._id, isReviewer, setting.domain, allRecipientEmail).catch(err => {
+                console.log('send AuditRepairTransfer email fail', String(recipient._id), err);
+                return errorUtils.reportError(err)
+            });
+            proms.push(prom);
+        }
+
+        Promise.all(proms).catch(errorUtils.reportError);
+    },
+
+    async sendRepairTransferUpdate(proposal) {
+        if (!proposal || !proposal.data) {
+            return Promise.reject({message: "Proposal not found"});
+        }
+        let proposalData = proposal.data;
+
+        let playerName = proposalData.playerName || "";
+        let realName = proposalData.realNameBeforeEdit || "";
+        let playerLevel = proposalData.playerLevelName || "";
+        let transferId = proposalData.transferId || "";
+        let creditBeforeChange = proposalData.curAmount || 0;
+        let updateAmount = proposalData.updateAmount || 0;
+        let adminName = proposal.creator && proposal.creator.name || "";
+        let adminObjId = proposal.creator && proposal.creator.id || "";
+        let remark = proposalData.remark || "";
+        let proposalId = proposal.proposalId || "";
+        let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
+        let platformName = platform.name || "";
+        let createTime = proposal.createTime;
+
+        let emailContents = {
+            playerName,
+            realName,
+            playerLevel,
+            transferId,
+            creditBeforeChange,
+            updateAmount,
+            adminName,
+            remark,
+            proposalId,
+            platformName,
+            createTime,
+        };
+
+        let setting = await dbEmailAudit.getAuditRepairTransferSetting(platform._id);
+
+        if (!setting) {
+            return Promise.reject({message: "Please setup audit repair transfer setting"});
+        }
+
+        if (!setting.minimumAuditAmount || Math.abs(updateAmount) < Number(setting.minimumAuditAmount)) {
+            return;
+        }
+
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditRepairTransferRecipient");
+
+        if (!recipients || !recipients.length) {
+            return;
+        }
+
+        let allRecipientEmail = recipients.map(recipient => {
+            return recipient.email;
+        });
+
+        let subject = getAuditRepairTransferEmailSubject(setting.emailNameExtension, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
+
+        let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
+        let proposalProcessData = await dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
+
+        let processStep;
+        if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
+            processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
+        }
+
+        if (!processStep && !proposalData.cancelAdmin) {
+            return;
+        }
+        let operator = proposalData.cancelAdmin || processStep && processStep.operator;
+
+        let auditor = await dbconfig.collection_admin.findOne({_id: operator}, {adminName: 1}).lean();
+
+        let stepHtml = generateProposalStepTable(proposal, processStep, auditor);
+
+        let html = generateAuditRepairTransferEmail(emailContents, allRecipientEmail, subject, stepHtml);
+
+        let emailConfig = {
+            sender: "no-reply@snsoft.my", // company email?
+            recipient: allEmailStr, // admin email
+            subject: subject, // title
+            body: html, // html content
+            isHTML: true
+        };
+
+        return emailer.sendEmail(emailConfig);
+    },
 };
 
 // common func
@@ -863,6 +1066,142 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle, step
     //     <td style="border: solid 1px black; padding: 3px">${time}</td>
     // </tr>`;
     //
+
+
+    html += `</table>`;
+
+    if (stepHtml) {
+        html += stepHtml;
+    }
+
+    html += `
+    <div style="margin-top: 38px">
+        <a href="mailto:${allEmailStr}?subject=${emailSubject}" target="_blank" style="margin: 8px;"><span style="display: inline-block; padding: 8px; font-weight: bold; background-color: purple; color: white; border-radius: 8px">发送邮件到给所有收件人</span></a>
+    </div>
+    `;
+
+    return html;
+}
+
+// repair credit transfer
+async function sendAuditRepairTransferEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
+    let subject = getAuditRepairTransferEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
+    let html = generateAuditRepairTransferEmail(emailContents, allRecipientEmail, subject);
+
+    let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
+    let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+    if (!admin) {
+        console.log("admin not found on sendAuditRepairTransferEmail", adminObjId);
+        return Promise.reject({message: "Admin not found."});
+    }
+
+    if (isReviewer) {
+        let auditLinks = await generateAuditDecisionLink(host, emailContents.proposalId, adminObjId, "AuditRepairTransfer");
+        html += `
+            <div style="margin-top: 38px">
+                <a href="${auditLinks.approve || ''}" target="_blank" style="margin: 8px;"><span style="display: inline-block; padding: 13px; font-weight: bold; background-color: green; color: white; border-radius: 8px">通过审核</span></a>
+                <a href="${auditLinks.reject || ''}" target="_blank" style="margin: 8px;"><span style="display: inline-block; padding: 13px; font-weight: bold; background-color: red; color: white; border-radius: 8px">取消提案</span></a>
+            </div>
+            `;
+    }
+
+    let emailConfig = {
+        sender: 'FPMS系统 <no-reply@snsoft.my>', // company email?
+        recipient: admin.email, // admin email
+        subject: subject, // title
+        body: html, // html content
+        isHTML: true
+    };
+
+    if (allEmailStr) {
+        emailConfig.replyTo = allEmailStr;
+    }
+
+    console.log(`sending audit email, AuditRepairTransfer, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
+
+    let emailResult = await emailer.sendEmail(emailConfig);
+
+    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+    return emailResult;
+}
+
+function getAuditRepairTransferEmailSubject (emailTitle, date, updateAmount, playerName) {
+    let formattedDate = dbutility.getLocalTimeString(date , "YYYY/MM/DD");
+    let formattedAmount = dbutility.noRoundTwoDecimalPlaces(updateAmount);
+    return `${emailTitle} -- 转账修复（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
+}
+
+function generateAuditRepairTransferEmail (contents, allEmailArr, emailTitle, stepHtml) {
+    let html = ``;
+
+    let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
+
+    let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
+
+
+    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
+
+    html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">提案号</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.proposalId}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">产品名称</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.platformName}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">账号</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.playerName}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">真实姓名</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.realName}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">等级</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.playerLevel}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">转账ID</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.transferId}</td>
+    </tr>`;
+
+    let creditBeforeChange = dbutility.noRoundTwoDecimalPlaces(contents.creditBeforeChange || 0);
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">当前额度</td>
+        <td style="border: solid 1px black; padding: 3px">${creditBeforeChange}</td>
+    </tr>`;
+
+    let updateAmount = dbutility.noRoundTwoDecimalPlaces(contents.updateAmount || 0);
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">变更额度</td>
+        <td style="border: solid 1px black; padding: 3px">${updateAmount}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">提交人</td>
+        <td style="border: solid 1px black; padding: 3px">${contents.adminName}</td>
+    </tr>`;
+
+    let createTime = dbutility.getLocalTimeString(contents.createTime, "YYYY/MM/DD HH:mm:ss");
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">提交时间</td>
+        <td style="border: solid 1px black; padding: 3px">${createTime}</td>
+    </tr>`;
+
+    html += `<tr>
+        <td style="border: solid 1px black; padding: 3px">备注</td>
+        <td style="border: solid 1px black; padding: 3px; word-wrap: break-word; white-space: normal;">${contents.remark}</td>
+    </tr>`;
 
 
     html += `</table>`;

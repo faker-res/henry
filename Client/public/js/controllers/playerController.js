@@ -10966,7 +10966,7 @@ define(['js/app'], function (myApp) {
                     let updateAmount = playerTransfer.amount - playerTransfer.lockedAmount;
 
                     let sendData = {
-                        platformId: vm.selectedPlatform.id,
+                        platformId: vm.selectedSinglePlayer.platform,
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: {
                             playerObjId: playerTransfer.playerObjId,
@@ -12609,8 +12609,10 @@ define(['js/app'], function (myApp) {
             }
             if (depositMethod == "3") {
                 vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+                vm.playerManualTopUp.provinceId = "";
             } else {
                 vm.playerManualTopUp.remark = "";
+                vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
             }
 
             // vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
@@ -15083,7 +15085,7 @@ define(['js/app'], function (myApp) {
             var sendString = '';
             var sendData = {
                 creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.selectedSinglePlayer.platform,
             };
             if (vm.modifyCritical.which == 'player') {
                 sendData.data = {

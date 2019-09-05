@@ -56,21 +56,7 @@ function createObjectId() {
 
 describe("Test Client API - Player service", function () {
 
-    var client = new WebSocketClient(env.clientAPIServerUrl);
-
-    var playerService = new PlayerService();
-    client.addService(playerService);
-
-    var registrationIntentionService = new RegistrationIntentionService();
-    client.addService(registrationIntentionService);
-
-    var topUpIntentionService = new TopUpIntentionService();
-    client.addService(topUpIntentionService);
-
-    var consumptionService = new ConsumptionService();
-    client.addService(consumptionService);
-
-    var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
+    let client = new WebSocketClient(env.clientAPIServerUrl);
 
     // NOTE :: if you return promise (or use async/await), you do not need to call done(). An exception will occur if you do it
     // however, if you use promise(or any sort of async programming) without return promise, done() is necessary to tell mocha that the script is finished
@@ -143,7 +129,6 @@ describe("Test Client API - Player service", function () {
         let testRewardEvent = await commonTestFun.createRewardEvent(eventData);
         testRewardEvent.should.have.property('_id');
         testRewardEventNameCode = testRewardEvent.code;
-
         // create a connection
         client.connect();
         let clientOpenProm = () => {
@@ -154,47 +139,6 @@ describe("Test Client API - Player service", function () {
             });
         }
         await clientOpenProm()
-    });
-
-    let apiCreatedPlayer;
-    before(function(done) {
-        const newPlayerData = {
-            name: testNewPlayerName,
-            platformId: testPlatformId,
-            phoneNumber: testPhoneNumber,
-            captcha: 'testCaptcha',
-            password: "123456",
-            lastLoginIp: "192.168.3.22",
-            email: "testPlayer123@gmail.com",
-            isTestPlayer: true
-        };
-        clientPlayerAPITest.create(function(data) {
-            apiCreatedPlayer = data;
-            testNewPlayerId = data.data.playerId;
-            done();
-        }, newPlayerData);
-    })
-
-    it('Should create a test player', function(done) {
-        console.log('testNewPlayerName',testNewPlayerName)
-        apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
-        done();
-    });
-
-    // NOTE:: move the dependency out of 'it' so you can run each 'it' test individually while still not having dependency issue
-    let apiLoginPlayer;
-    before(function (done) {
-        const testPlayerLoginData = {
-            name: testPlayerName,
-            password: "123456",
-            lastLoginIp: "192.168.3.22",
-            platformId: testPlatformId
-        };
-        clientPlayerAPITest.login(function (data) {
-            token = data.token;
-            apiLoginPlayer = data;
-            done();
-        }, testPlayerLoginData);
     });
 
     it('Should check whether festival reward group is applicable', function (done) {

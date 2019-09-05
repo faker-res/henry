@@ -1064,11 +1064,11 @@
                                 input.form-control(ng-model='vm.playerManualTopUp.realName',ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"')
                             .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
+                                select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2"')
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                             .form-group-col-md-6
                                 label.control-label {{'CITY_ID' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
+                                select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2"')
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                             .form-group-col-md-6
                                 label.control-label {{'DISTRICT_ID' | translate}}

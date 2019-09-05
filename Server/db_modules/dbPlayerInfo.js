@@ -1024,7 +1024,7 @@ let dbPlayerInfo = {
                                                         }
 
                                                         if (configIntervalTime) {
-                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                            logQuery.isValid = {$exists: true, $eq: true};
                                                         }
 
                                                         return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -1101,7 +1101,7 @@ let dbPlayerInfo = {
                                                     }
 
                                                     if (configIntervalTime) {
-                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        logQuery.isValid = {$exists: true, $eq: true};
                                                     }
 
                                                     return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -2988,7 +2988,7 @@ let dbPlayerInfo = {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -6266,7 +6266,6 @@ let dbPlayerInfo = {
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
         }
-
         if (data && data.phoneNumber) {
             data.phoneNumber = {
                 $in: [
@@ -6536,17 +6535,28 @@ let dbPlayerInfo = {
                                     let newInfo;
 
                                     newInfo = getReferralIdAndUrl(playerData[ind]);
-
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
                                 }
                             }
-
                             return Promise.all(players)
                         }
                     );
-                var b = dbconfig.collection_players
-                    .find(advancedQuery).count();
+                console.log('MT --checking -advancedQuery', advancedQuery)
+                // var b = dbconfig.collection_players
+                //     .find(advancedQuery).lean().then(players => {
+                //         console.log('MT --checking -S7-2')
+                //         if(players) {
+                //             return players.length;
+                //         } else {
+                //             return 0;
+                //         }
+                //     }, err => {
+                //         console.log('MT --checking -S7-2-error', err);
+                //     });
+
+                //Data cannot load due to code was stoped at counting player amount, change to this new count method and see.
+                var b = dbconfig.collection_players.find(advancedQuery).count();
 
                 return Promise.all([a, b]);
             }
@@ -9878,7 +9888,6 @@ let dbPlayerInfo = {
 
                         if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
                             rewardEventItem.referralPeriod = referralConfig.referralPeriod || '5';
-                            rewardEventItem.referralLimit = referralConfig.referralLimit || 1;
                         }
 
                         let providerGroup = null;
@@ -17197,7 +17206,7 @@ let dbPlayerInfo = {
                     code: code
                 }).populate({path: "type", model: dbconfig.collection_rewardType}).lean().then(
                     rewardEvent => {
-                        let isXima = rewardEvent && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
+                        let isXima = rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_CONSUMPTION_RETURN ? true : false;
 
                         if (playerData.permission && playerData.permission.banReward && !isXima) {
                             return Promise.reject({
@@ -19612,7 +19621,9 @@ let dbPlayerInfo = {
                                 gameDetail: 1
                             }
                         }
-                    ).read("secondaryPreferred");
+                    ).allowDiskUse(true).read("secondaryPreferred"); // based on error, this seems to be the most possible issue area
+                    // however, it is not in settlement, so i'll add allowDiskUse to see if its fix. If it cause more problem,
+                    // i'll separate the query into multiple requests
                 }
             ).then(
                 async playerSummaryData => {
@@ -23052,6 +23063,9 @@ let dbPlayerInfo = {
                     let smsIdOrTypeName = statusPairArray[0];
                     let updateStatus = parseInt(statusPairArray[1]);
 
+                    console.log('smsIdOrTypeName', smsIdOrTypeName);
+                    console.log('updateStatus', updateStatus);
+
                     smsIdOrTypeName = parseInt(smsIdOrTypeName);
                     //smsId
                     let smsSettingGroup = platformSmsGroups.find(
@@ -23076,6 +23090,7 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
+                console.log('updateData', updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
@@ -26294,6 +26309,34 @@ let dbPlayerInfo = {
         )
     },
 
+    getPlayerInfoForPMS: async function (platformId, playerName) {
+        let result = {};
+        let platform = await dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean();
+        if (platform && platform._id) {
+            let player = await dbconfig.collection_players.findOne({name: playerName, platform: platform._id}, {_id: 1, playerId: 1, name: 1, validCredit: 1, lockedCredit: 1, lastAccessTime: 1})
+            if (player && player._id) {
+                let creditInfo = await dbPlayerInfo.getPlayerCredit(player.playerId);
+                let lastConsumptionInfo = await dbconfig.collection_playerConsumptionRecord.findOne({playerId: player._id, platformId: platform._id}).sort({createTime: -1});
+
+                let validCredit = (creditInfo && creditInfo.validCredit) || 0;
+                let lockedCredit = (creditInfo && creditInfo.lockedCredit) || 0;
+                let gameCredit = (creditInfo && creditInfo.gameCredit) || 0;
+
+                result.name = player.name;
+                result.totalCredit = validCredit + lockedCredit + gameCredit;
+                result.lastAccessTime = player && player.lastAccessTime;
+                result.lastBetTime = lastConsumptionInfo && lastConsumptionInfo.createTime;
+
+                return result;
+
+            } else {
+                return Promise.reject({name: "DataError", message: "Can not find player"});
+            }
+        } else {
+            return Promise.reject({name: "DataError", message: "Can not find platform"});
+        }
+    },
+
     playerCreditClearOut: function (playerName, platformObjId, adminName, adminId) {
         let platform = null;
         let providers = [];
@@ -27025,7 +27068,9 @@ let dbPlayerInfo = {
 
          let playerCheck = await dbconfig.collection_players.find({
              platform: platformObjId,
-             phoneNumber: phoneNumberQ
+             phoneNumber: phoneNumberQ,
+             isRealPlayer : true,
+             isTestPlayer : false,
          }, {name: 1}).lean();
 
         let recCheck = await dbconfig.collection_phoneNumberBindingRecord.find({
@@ -27041,7 +27086,11 @@ let dbPlayerInfo = {
         }
 
         if (recCheck && recCheck.length) {
-            recCheck.forEach(p => retArr.push(p.playerObjId.name));
+            recCheck.forEach(p => {
+                if (p && p.playerObjId) {
+                    retArr.push(p.playerObjId.name);
+                }
+            });
         }
 
         return retArr;
@@ -27083,7 +27132,7 @@ let dbPlayerInfo = {
                 }
 
                 // if not exist then generate new weibo short link
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
                 let randomUrl = preventBlockUrl.url + data.url;
@@ -27117,6 +27166,9 @@ let dbPlayerInfo = {
                 }
                 let shortUrl = player.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'name': player.name };
                 return result;
             }
@@ -29802,6 +29854,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
+                console.log('MT --checking S7-1-a', config)
                 return thisPlayer;
             }
         );
@@ -29831,7 +29884,7 @@ function bindReferral(platformObjId, loginData) {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(

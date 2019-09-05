@@ -77,14 +77,13 @@ const dbPartnerCommission = {
 
         let commConfigProm = getCommissionTables(partner._id, parentChain, mainPartner.commissionType, providerGroups);
         // let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id);
-        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id, true);
+        let commRateMultiProm = dbPartnerCommissionConfig.getPartnerCommRate(mainPartner._id, platform._id, providerGroups);
         let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, mainPartner.commissionType);
         let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
         let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
         // let directCommConfigProm = getDirectCommissionRateTables(platform._id, mainPartner.commissionType, partner._id, providerGroups);
 
         let [commConfig, commRateMulti, activePlayerRequirement, topUpProposalTypes, rewardProposalTypes] = await Promise.all([commConfigProm, commRateMultiProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm]);
-        console.log('commConfig', JSON.stringify(commConfig,null,2))
 
         let playerRawDetail = await getAllPlayerCommissionRawDetailsWithSettlement(partner._id, platform._id, mainPartner.commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, topUpProposalTypes, rewardProposalTypes, activePlayerRequirement).catch(
             err => {
@@ -241,7 +240,8 @@ const dbPartnerCommission = {
                 && commRateMulti.rateAfterRebateGameProviderGroup.length > 0) {
                 commRateMulti.rateAfterRebateGameProviderGroup.map(group => {
                     if (group.name === groupRate.groupName) {
-                        platformFeeRateMultiData.rate = group.rate || commRateMulti.rateAfterRebatePlatform|| 0;
+                        platformFeeRateMultiData.rate = group.rate || commRateMulti.rateAfterRebatePlatform || 0;
+                        group.rate = platformFeeRateMultiData.rate;
                     }
                 });
             }
@@ -286,7 +286,7 @@ const dbPartnerCommission = {
                 // withdrawalFeeMulti = withdrawalFeeMulti < 0 ? withdrawalFeeMulti * -1 : withdrawalFeeMulti;
 
 
-                totalPlatformFee += platformFeeDirect;
+                totalPlatformFee += platformFeeMulti;
 
                 // consumptionAfterFeeDirect = math.chain(totalConsumption)
                 //     .subtract(platformFeeDirect)
@@ -1065,6 +1065,10 @@ const dbPartnerCommission = {
     getTargetCommissionPeriod: (commissionType, date) => {
         return getTargetCommissionPeriod(commissionType, date);
     },
+
+    getRelevantActivePlayerRequirement: (platformObjId, commissionType) => {
+        return getRelevantActivePlayerRequirement(platformObjId, commissionType);
+    }
 };
 
 let proto = dbPartnerCommissionFunc.prototype;

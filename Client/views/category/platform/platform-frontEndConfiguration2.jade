@@ -490,176 +490,182 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") {{"TITLE OF POP-UP WINDOW"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.title")
+                                    input.form-control(ng-model="vm.newPopUpAdvertisementSetting.title")
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"CAROUSEL_DEVICE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    select.form-control(ng-model='vm.newPopUpAdvertisementSetting.device' ng-change='vm.addNewPopUpAdvertisement()')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+                            div(ng-show="vm.newPopUpAdvertisementSetting.device == 1")
+                                div.frontendConfigSeperator
+                                .full-width-input-block
+                                    label(style="width: 30%;") PC {{"ADVERTISEMENT POSITION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.position")
+                                            option(value="topLeft") {{"topLeft" | translate}}
+                                            option(value="bottomLeft") {{"bottomLeft" | translate}}
+                                            option(value="topRight") {{"topRight" | translate}}
+                                            option(value="bottomRight") {{"bottomRight" | translate}}
+                                            option(value="bottomRight") {{"bottomRight" | translate}}
+                                            option(value="center") {{"center" | translate}}
+                                            option(value="rightSideLabel") {{"rightSideLabel" | translate}}
+                                .full-width-input-block
+                                    label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvPcImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, null)")
+                                .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.onClickAction == 1")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvPcNewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 2")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#popUpAdvPcPageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                                .full-width-input-block
+                                    label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(type="checkbox", ng-model="vm.newPopUpAdvertisementSetting.requiredToLogIn")
 
-                            div.frontendConfigSeperator
-                            .full-width-input-block
-                                label(style="width: 30%;") PC {{"ADVERTISEMENT POSITION"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.position")
-                                        option(value="topLeft") {{"topLeft" | translate}}
-                                        option(value="bottomLeft") {{"bottomLeft" | translate}}
-                                        option(value="topRight") {{"topRight" | translate}}
-                                        option(value="bottomRight") {{"bottomRight" | translate}}
-                                        option(value="bottomRight") {{"bottomRight" | translate}}
-                                        option(value="center") {{"center" | translate}}
-                                        option(value="rightSideLabel") {{"rightSideLabel" | translate}}
+                            div(ng-show="vm.newPopUpAdvertisementSetting.device == 2")
+                                div.frontendConfigSeperator
+                                .full-width-input-block
+                                    label(style="width: 30%;") H5 {{"ADVERTISEMENT POSITION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.position")
+                                            option(value="center") {{"center" | translate}}
+                                            option(value="top") {{"topLeft" | translate}}
+                                            option(value="shortcutPopUp") {{"shortcutPopUp" | translate}}
 
-                            .full-width-input-block
-                                label(style="width: 30%;") PC {{"BACKGROUND IMAGE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvPcImageFile(type="file")
-                            .full-width-input-block
-                                label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'pc', vm.popUpAdvertisementSetting.pc.onClickAction)")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 1")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.pc.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvPcNewPageFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 2")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.pc.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popUpAdvPcPageDetailFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 3")
-                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.rewardEventObjId", ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 4")
-                                label(style="width: 30%;") {{"ROUTE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.pc.onClickAction == 5")
-                                label(style="width: 30%;") {{"GAME"|translate}} Code
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.pc.requiredToLogIn")
+                                .full-width-input-block
+                                    label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvH5ImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, null)")
+                                .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 1")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvH5NewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 2")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#popUpAdvH5PageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                                .full-width-input-block
+                                    label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(type="checkbox", ng-model="vm.newPopUpAdvertisementSetting.requiredToLogIn")
 
-                            div.frontendConfigSeperator
-                            .full-width-input-block
-                                label(style="width: 30%;") H5 {{"ADVERTISEMENT POSITION"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.position")
-                                        option(value="center") {{"center" | translate}}
-                                        option(value="top") {{"topLeft" | translate}}
-                                        option(value="shortcutPopUp") {{"shortcutPopUp" | translate}}
-
-                            .full-width-input-block
-                                label(style="width: 30%;") H5 {{"BACKGROUND IMAGE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvH5ImageFile(type="file")
-                            .full-width-input-block
-                                label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'h5', vm.popUpAdvertisementSetting.h5.onClickAction)")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 1")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.h5.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvH5NewPageFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 2")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.h5.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popUpAdvH5PageDetailFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 3")
-                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 4")
-                                label(style="width: 30%;") {{"ROUTE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 5")
-                                label(style="width: 30%;") {{"GAME"|translate}} Code
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.h5.requiredToLogIn")
-
-                            div.frontendConfigSeperator
-                            .full-width-input-block
-                                label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvAppImageFile(type="file")
-                            .full-width-input-block
-                                label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, 'app', vm.popUpAdvertisementSetting.app.onClickAction)")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 1")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.app.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
-                                    input#popUpAdvAppNewPageFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 2")
-                                label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control(ng-model="vm.popUpAdvertisementSetting.app.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
-                                    input#popUpAdvAppPageDetailFile(type="file")
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 3")
-                                label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 4")
-                                label(style="width: 30%;") {{"ROUTE"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.route", placeholder='{{"Please write down the page code" | translate}}')
-                            .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.app.onClickAction == 5")
-                                label(style="width: 30%;") {{"GAME"|translate}} Code
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(ng-model="vm.popUpAdvertisementSetting.app.gameCode", placeholder='{{"Please write down the game code" | translate}}')
-                            .full-width-input-block
-                                label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
-                                div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="checkbox", ng-model="vm.popUpAdvertisementSetting.app.requiredToLogIn")
+                            div(ng-show="vm.newPopUpAdvertisementSetting.device == 4")
+                                div.frontendConfigSeperator
+                                .full-width-input-block
+                                    label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.imageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvAppImageFile(type="file")
+                                .full-width-input-block
+                                    label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.popUpAdvertisementSetting, null)")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 1")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvAppNewPageFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 2")
+                                    label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control(ng-model="vm.newPopUpAdvertisementSetting.activityUrl", placeholder='{{"Please write down the link or upload the web page file" | translate}}')
+                                        input#popUpAdvAppPageDetailFile(type="file")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 3")
+                                    label(style="width: 30%;") {{"ACTIVITY NAME"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.rewardEventObjId" ng-options='v._id as v.name | translate for v in vm.allRewardEvent')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 4")
+                                    label(style="width: 30%;") {{"ROUTE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.route", placeholder='{{"Please write down the page code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 5")
+                                    label(style="width: 30%;") {{"GAME"|translate}} Code
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                                .full-width-input-block
+                                    label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(type="checkbox", ng-model="vm.newPopUpAdvertisementSetting.requiredToLogIn")
 
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VISIBLE ON DEVICE OF"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.newPopUpAdvertisementSetting.visibleOnDevice" ng-options='v as i | translate for (i, v) in vm.frontEndSettingDevices')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"VISIBLE FOR PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isPlayerVisible')
+                                    input.transform150(type='checkbox', ng-model='vm.newPopUpAdvertisementSetting.isPlayerVisible')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH REGISTERED HP NO."|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isPlayerWithRegisteredHpNoVisible')
+                                    input.transform150(type='checkbox', ng-model='vm.newPopUpAdvertisementSetting.isPlayerWithRegisteredHpNoVisible')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR NEW PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isNewPlayerVisible')
+                                    input.transform150(type='checkbox', ng-model='vm.newPopUpAdvertisementSetting.isNewPlayerVisible')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR FIRST-TIME-LOGIN PLAYER"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.transform150(type='checkbox', ng-model='vm.popUpAdvertisementSetting.isFirstTimeLoginPlayerVisible')
+                                    input.transform150(type='checkbox', ng-model='vm.newPopUpAdvertisementSetting.isFirstTimeLoginPlayerVisible')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER LEVEL OF"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.newPopUpAdvertisementSetting.visibleOnPlayerLevel" ng-options='v._id as v.name | translate for v in vm.allPlayerLvl')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH ACCOUNT BALANCE LOWER THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popUpAdvertisementSetting.visibleForBalanceBelow")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.newPopUpAdvertisementSetting.visibleForBalanceBelow")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER WITH TOP UP TIMES MORE THAN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.popUpAdvertisementSetting.visibleForTopUpTimeMoreThan")
+                                    input.form-control.inline-block(type="number", min="0", ng-model="vm.newPopUpAdvertisementSetting.visibleForTopUpTimeMoreThan")
                             .full-width-input-block
                                 label(style="width: 30%;") {{"(FRONT END) VISIBLE FOR PLAYER INVOLVES IN"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.popUpAdvertisementSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
+                                    select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.newPopUpAdvertisementSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
                             .full-width-input-block.frontendImagePreviewPanel
