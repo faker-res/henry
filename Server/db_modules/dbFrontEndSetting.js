@@ -349,8 +349,12 @@ var dbFrontEndSetting = {
                     if (data && data._id){
                         let updateQuery = {
                             isVisible: data.isVisible,
-                            displayOrder: data.displayOrder
+                            device: data.device,
                         };
+
+                        if (data && data.displayOrder) {
+                            updateQuery.displayOrder = data.displayOrder;
+                        }
                         prom.push(dbConfig.collection_frontEndPopUpAdvertisementSetting.findOneAndUpdate({_id: ObjectId(data._id)}, updateQuery).lean())
                     }
                 }
