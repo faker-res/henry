@@ -3012,7 +3012,15 @@ function getProgressBaseOnConsumptionAmount (playerObjId, event, startTime, endT
                 let totalValidAmount = 0;
 
                 eligibleConsumptions.map(consumption => {
-                    totalValidAmount += Number(consumption.validAmount);
+                    if(event.target.betType && event.target.betType.length > 0) {
+                        consumption.betDetails.forEach(detail => {
+                            if (event.target.betType.indexOf(detail.separatedBetType) > -1) {
+                                totalValidAmount += Number(detail.separatedBetAmount);
+                            }
+                        });
+                    } else {
+                        totalValidAmount += Number(consumption.validAmount);
+                    }
                 });
 
                 if (totalValidAmount >= dailyValidConsumptionAmount) {
