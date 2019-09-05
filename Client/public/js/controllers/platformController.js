@@ -24169,6 +24169,7 @@ define(['js/app'], function (myApp) {
                 let isPlayerResult = true;
                 let isPeriodResultValid = true;
                 let isApplyTypeValid = true;
+                let isReferralResult = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -24286,6 +24287,19 @@ define(['js/app'], function (myApp) {
                             })
                         }
 
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'ReferralRewardGroup'
+                            && vm.rewardCondition && vm.rewardCondition.referralRewardMode && vm.rewardCondition.referralRewardMode === '2'
+                            && vm.rewardCondition.isDynamicRewardTopUpAmount
+                            && vm.rewardMainParamTable[e] && vm.rewardMainParamTable[e].value && vm.rewardMainParamTable[e].value.length > 0) {
+                            vm.rewardMainParamTable[e].value.forEach(el => {
+                                if (Object.keys(el) && Object.keys(el).length > 0
+                                    && (!el.firstTopUpAmount || !el.topUpCount)) {
+                                    isValid = false;
+                                    isReferralResult = false;
+                                }
+                            })
+                        }
+
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -24396,6 +24410,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Player Result is required"));
                     } else if (!isPeriodResultValid && !isApplyTypeValid) {
                         socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
+                    } else if (!isReferralResult) {
+                        socketService.showErrorMessage($translate('First Top Up Amount, Top Up Count is required more than zero'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
