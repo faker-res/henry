@@ -6978,10 +6978,8 @@ let dbPlayerReward = {
                             if (bindReferralIntervalEndTime && bindReferralIntervalEndTime) {
                                 referralQuery['$or'] = [
                                     {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
                                     {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
+                                    {isValid: {$exists: true, $eq: true}}];
                             }
 
                             return dbConfig.collection_referralLog.find(referralQuery).lean().then(
@@ -8426,6 +8424,13 @@ let dbPlayerReward = {
                                         });
                                     }
 
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet first top up amount and top up count")
+                                        });
+                                    }
+
                                 } else {
                                     let totalDepositPlayers = rewardSpecificData[0][1];
                                     let countDepositPlayer = 0;
@@ -8447,13 +8452,13 @@ let dbPlayerReward = {
                                         countDepositPlayer = referralRewardDetails && referralRewardDetails.length;
                                         rewardAmount = selectedReward.rewardAmount * countDepositPlayer;
                                     }
-                                }
 
-                                if (referralRewardDetails.length == 0) {
-                                    return Promise.reject({
-                                        name: "DataError",
-                                        message: localization.localization.translate("Does not have enough top up amount and top up count")
-                                    });
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet top up amount and top up count")
+                                        });
+                                    }
                                 }
                                 break;
                         }

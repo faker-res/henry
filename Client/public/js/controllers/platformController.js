@@ -24169,6 +24169,7 @@ define(['js/app'], function (myApp) {
                 let isPlayerResult = true;
                 let isPeriodResultValid = true;
                 let isApplyTypeValid = true;
+                let isReferralResult = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -24286,6 +24287,19 @@ define(['js/app'], function (myApp) {
                             })
                         }
 
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'ReferralRewardGroup'
+                            && vm.rewardCondition && vm.rewardCondition.referralRewardMode && vm.rewardCondition.referralRewardMode === '2'
+                            && vm.rewardCondition.isDynamicRewardTopUpAmount
+                            && vm.rewardMainParamTable[e] && vm.rewardMainParamTable[e].value && vm.rewardMainParamTable[e].value.length > 0) {
+                            vm.rewardMainParamTable[e].value.forEach(el => {
+                                if (Object.keys(el) && Object.keys(el).length > 0
+                                    && (!el.firstTopUpAmount || !el.topUpCount)) {
+                                    isValid = false;
+                                    isReferralResult = false;
+                                }
+                            })
+                        }
+
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -24396,6 +24410,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Player Result is required"));
                     } else if (!isPeriodResultValid && !isApplyTypeValid) {
                         socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
+                    } else if (!isReferralResult) {
+                        socketService.showErrorMessage($translate('First Top Up Amount, Top Up Count is required more than zero'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -43312,29 +43328,33 @@ define(['js/app'], function (myApp) {
                         console.log('getFrontEndPopUpAdvertisementSetting', data.data);
                         if (data && data.data) {
                             vm.frontEndDeletedList = [];
-                            vm.popUpAdvertisementData = data.data;
+                            vm.popUpAdvertisementData = data.data.map(item => {
+                                item.device = item.device.toString();
+                                return item;
+                            });
+
+                            utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
+                                $(".popUpAdvModal .droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                                    connectWith: ".connected-sortable",
+                                    // stop: function () {
+                                    //     let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+                                    //     arr1.forEach(
+                                    //         (v, i) => {
+                                    //             if (v) {
+                                    //                 let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                                    //                 if (index != -1) {
+                                    //                     vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                                    //                 }
+                                    //             }
+                                    //         }
+                                    //     );
+                                    // }
+                                }).disableSelection()
+                            })
                         }
 
-                        $('.popUpAdvModal .droppable-area1').children().remove();
-
-                        utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
-                            $(".popUpAdvModal .droppable-area1").sortable({
-                                connectWith: ".connected-sortable",
-                                stop: function () {
-                                    let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
-                                    arr1.forEach(
-                                        (v, i) => {
-                                            if (v) {
-                                                let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
-                                                if (index != -1) {
-                                                    vm.popUpAdvertisementData[index].displayOrder = i + 1;
-                                                }
-                                            }
-                                        }
-                                    );
-                                }
-                            }).disableSelection()
-                        })
+                        // $('.popUpAdvModal .droppable-area1').children().remove();
                     })
                 }, function (err) {
                     console.error('getFrontEndPopUpAdvertisementSetting error: ', err);
@@ -43342,18 +43362,23 @@ define(['js/app'], function (myApp) {
             };
 
             vm.editPopUpAdvertisement = function (eventObjectId) {
-                vm.addNewPopUpAdvertisement(false, eventObjectId)
+                vm.addNewPopUpAdvertisement(eventObjectId);
+                $('#popUpAdvertisementModal').modal();
             };
 
             vm.updatePopUpAdvertisementSetting = function () {
                 let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+                let arr2 = $('.popUpAdvModal .droppable-area2').sortable('toArray');
+                let arr3 = $('.popUpAdvModal .droppable-area3').sortable('toArray');
                 let updateArr = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                let selectedAdv = vm.popUpAdvertisementData[index];
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 1;
                                 selectedAdv.displayOrder = i + 1;
                                 updateArr.push(selectedAdv);
                             }
@@ -43361,7 +43386,37 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 2;
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 4;
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
+                            }
+                        }
+                    }
+                );
+
+                return $scope.$socketPromise('updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopUpAdvertisementSetting is done', data);
@@ -43372,7 +43427,18 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.addNewPopUpAdvertisement = function (isNew, eventObjectId) {
+            vm.initPopUpAdvertisementSetting = function() {
+                vm.newPopUpAdvertisementSetting = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                };
+
+                vm.addNewPopUpAdvertisement();
+                $('#popUpAdvertisementModal').modal();
+
+            };
+
+            vm.addNewPopUpAdvertisement = function (eventObjectId) {
                 let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
                 vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 vm.popUpAdvImageFile = {};
@@ -43393,39 +43459,94 @@ define(['js/app'], function (myApp) {
                 $('#popUpAdvH5Image').attr("src","");
                 $('#popUpAdvAppImage').attr("src","");
 
-                if (isNew) {
-                    vm.popUpAdvertisementSetting = {
-                        pc: {},
-                        h5: {},
-                        app: {},
-                        isPlayerVisible: true,
-                        isPlayerWithRegisteredHpNoVisible: true,
-                    };
+                // if (isNew) {
+                //     vm.popUpAdvertisementSetting = {
+                //         pc: {},
+                //         h5: {},
+                //         app: {},
+                //         isPlayerVisible: true,
+                //         isPlayerWithRegisteredHpNoVisible: true,
+                //     };
+                // }
+                // else{
+                //     if (eventObjectId) {
+                //         let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                //         if (index != -1) {
+                //             vm.popUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
+                //
+                //             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.device){
+                //                 if (vm.popUpAdvertisementSetting.device == 1){
+                //                     $('#popUpAdvPcImage').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }else if(vm.popUpAdvertisementSetting.device == 4){
+                //                     $('#popUpAdvAppImage').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }else if(vm.popUpAdvertisementSetting.device == 2){
+                //                     $('#popUpAdvH5Image').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }
+                //             }
+                //
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.pc && vm.popUpAdvertisementSetting.pc.imageUrl) {
+                //             //     $('#popUpAdvPcImage').attr("src", vm.popUpAdvertisementSetting.pc.imageUrl);
+                //             // }
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.h5 && vm.popUpAdvertisementSetting.h5.imageUrl) {
+                //             //     $('#popUpAdvH5Image').attr("src", vm.popUpAdvertisementSetting.h5.imageUrl);
+                //             // }
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
+                //             //     $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                //             // }
+                //
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                //                 vm.popUpAdvertisementSetting.pc = {};
+                //             }
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                //                 vm.popUpAdvertisementSetting.h5 = {};
+                //             }
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                //                 vm.popUpAdvertisementSetting.app = {};
+                //             }
+                //         }
+                //     }
+                // }
+
+                if (vm.newPopUpAdvertisementSetting){
+                    if (vm.newPopUpAdvertisementSetting.onClickAction){
+                        vm.newPopUpAdvertisementSetting.onClickAction = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.newPageUrl){
+                        vm.newPopUpAdvertisementSetting.newPageUrl = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.activityUrl){
+                        vm.newPopUpAdvertisementSetting.activityUrl = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.rewardEventObjId){
+                        vm.newPopUpAdvertisementSetting.rewardEventObjId = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.route){
+                        vm.newPopUpAdvertisementSetting.route = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.gameCode){
+                        vm.newPopUpAdvertisementSetting.gameCode = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.requiredToLogIn){
+                        vm.newPopUpAdvertisementSetting.requiredToLogIn = null;
+                    }
                 }
-                else{
-                    if (eventObjectId) {
-                        let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
-                        if (index != -1) {
-                            vm.popUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
 
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.pc && vm.popUpAdvertisementSetting.pc.imageUrl) {
-                                $('#popUpAdvPcImage').attr("src", vm.popUpAdvertisementSetting.pc.imageUrl);
-                            }
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.h5 && vm.popUpAdvertisementSetting.h5.imageUrl) {
-                                $('#popUpAdvH5Image').attr("src", vm.popUpAdvertisementSetting.h5.imageUrl);
-                            }
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
-                                $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
-                            }
+                if (eventObjectId) {
+                    let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    if (index != -1) {
+                        vm.newPopUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
 
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
-                                vm.popUpAdvertisementSetting.pc = {};
-                            }
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
-                                vm.popUpAdvertisementSetting.h5 = {};
-                            }
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
-                                vm.popUpAdvertisementSetting.app = {};
+                        if (vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device){
+                            vm.newPopUpAdvertisementSetting.device = vm.newPopUpAdvertisementSetting.device.toString();
+                        }
+
+                        if (vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device){
+                            if (vm.newPopUpAdvertisementSetting.device == 1){
+                                $('#popUpAdvPcImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                            }else if(vm.newPopUpAdvertisementSetting.device == 4){
+                                $('#popUpAdvAppImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                            }else if(vm.newPopUpAdvertisementSetting.device == 2){
+                                $('#popUpAdvH5Image').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
                             }
                         }
                     }
@@ -43446,7 +43567,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
             };
 
-            vm.submitPopUpAdvertisementSettings = () => {
+            vm.submitPopUpAdvertisementSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopUpAdvUploader').show();
                 function removeFromList(data) {
@@ -43456,18 +43577,28 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
+                await vm.updatePopUpAdvertisementSetting();
+                let promArr;
 
-                let promArr = [
-                    "popUpAdvPcImage",
-                    "popUpAdvPcNewPage",
-                    "popUpAdvPcPageDetail",
-                    "popUpAdvH5Image",
-                    "popUpAdvH5NewPage",
-                    "popUpAdvH5PageDetail",
-                    "popUpAdvAppImage",
-                    "popUpAdvAppNewPage",
-                    "popUpAdvAppPageDetail",
-                ];
+                if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '1') {
+                    promArr = [
+                        "popUpAdvPcImage",
+                        "popUpAdvPcNewPage",
+                        "popUpAdvPcPageDetail"
+                    ];
+                } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '4') {
+                    promArr = [
+                        "popUpAdvAppImage",
+                        "popUpAdvAppNewPage",
+                        "popUpAdvAppPageDetail"
+                    ];
+                } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '2') {
+                    promArr = [
+                        "popUpAdvH5Image",
+                        "popUpAdvH5NewPage",
+                        "popUpAdvH5PageDetail"
+                    ];
+                }
 
                 let prom = Promise.resolve();
                 promArr.forEach(
@@ -43479,38 +43610,38 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popUpAdvImageUrl", vm.popUpAdvImageUrl);
-                        vm.popUpAdvertisementSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        vm.newPopUpAdvertisementSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popUpAdvImageUrl){
                             if (vm.popUpAdvImageUrl.popUpAdvPcImage){
-                                vm.popUpAdvertisementSetting.pc.imageUrl = vm.popUpAdvImageUrl.popUpAdvPcImage
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvPcImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvPcNewPage){
-                                vm.popUpAdvertisementSetting.pc.newPageUrl = vm.popUpAdvImageUrl.popUpAdvPcNewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvPcNewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvPcPageDetail){
-                                vm.popUpAdvertisementSetting.pc.activityUrl = vm.popUpAdvImageUrl.popUpAdvPcPageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvPcPageDetail
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5Image){
-                                vm.popUpAdvertisementSetting.h5.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5NewPage){
-                                vm.popUpAdvertisementSetting.h5.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5PageDetail){
-                                vm.popUpAdvertisementSetting.h5.activityUrl = vm.popUpAdvImageUrl.popUpAdvH5PageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvH5PageDetail
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppImage){
-                                vm.popUpAdvertisementSetting.app.imageUrl = vm.popUpAdvImageUrl.popUpAdvAppImage
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvAppImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppNewPage){
-                                vm.popUpAdvertisementSetting.app.newPageUrl = vm.popUpAdvImageUrl.popUpAdvAppNewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvAppNewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppPageDetail){
-                                vm.popUpAdvertisementSetting.app.activityUrl = vm.popUpAdvImageUrl.popUpAdvAppPageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvAppPageDetail
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
-                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopUpAdvSetting', vm.popUpAdvertisementSetting, function (data) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopUpAdvSetting', vm.newPopUpAdvertisementSetting, function (data) {
                                     console.log("saveFrontEndPopUpAdvSetting ret", data);
                                     // stop the uploading loader
                                     $('#frontEndPopUpAdvUploader').hide();

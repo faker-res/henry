@@ -12609,8 +12609,10 @@ define(['js/app'], function (myApp) {
             }
             if (depositMethod == "3") {
                 vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+                vm.playerManualTopUp.provinceId = "";
             } else {
                 vm.playerManualTopUp.remark = "";
+                vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
             }
 
             // vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];

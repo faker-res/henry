@@ -1024,7 +1024,7 @@ let dbPlayerInfo = {
                                                         }
 
                                                         if (configIntervalTime) {
-                                                            logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                            logQuery.isValid = {$exists: true, $eq: true};
                                                         }
 
                                                         return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -1101,7 +1101,7 @@ let dbPlayerInfo = {
                                                     }
 
                                                     if (configIntervalTime) {
-                                                        logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                                        logQuery.isValid = {$exists: true, $eq: true};
                                                     }
 
                                                     return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -2988,7 +2988,7 @@ let dbPlayerInfo = {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
@@ -23063,6 +23063,9 @@ let dbPlayerInfo = {
                     let smsIdOrTypeName = statusPairArray[0];
                     let updateStatus = parseInt(statusPairArray[1]);
 
+                    console.log('smsIdOrTypeName', smsIdOrTypeName);
+                    console.log('updateStatus', updateStatus);
+
                     smsIdOrTypeName = parseInt(smsIdOrTypeName);
                     //smsId
                     let smsSettingGroup = platformSmsGroups.find(
@@ -23087,6 +23090,7 @@ let dbPlayerInfo = {
             () => Q.reject({name: "DataError", message: "Invalid data"})
         ).then(
             () => {
+                console.log('updateData', updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
                     () => {
                         return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
@@ -29880,7 +29884,7 @@ function bindReferral(platformObjId, loginData) {
                             }
 
                             if (configIntervalTime) {
-                                logQuery.createTime = {$gte: configIntervalTime.startTime, $lt: configIntervalTime.endTime};
+                                logQuery.isValid = {$exists: true, $eq: true};
                             }
 
                             return dbconfig.collection_referralLog.find(logQuery).count().then(
