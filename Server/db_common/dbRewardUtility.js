@@ -943,12 +943,17 @@ const dbRewardUtility = {
             orArray.push({'data.deviceId': playerData.deviceId})
         }
 
+        console.log('ipArray', ipArray);
+        console.log('orArray', orArray);
+
         let matchQuery = {
             "data.eventId": eventData._id,
             "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
             createTime: {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
             $or: orArray
         };
+
+        console.log('matchQuery', matchQuery);
 
         return dbConfig.collection_proposal.find(
             matchQuery,
@@ -965,6 +970,7 @@ const dbRewardUtility = {
         ).lean().then(
             countReward => {
                 // check playerId
+                console.log('countReward', countReward);
                 if (countReward && countReward.length) {
                     for (let i = 0; i < countReward.length; i++) {
                         if (eventData.condition.checkSameIP && ipArray.includes(countReward[i].data.lastLoginIp)) {
