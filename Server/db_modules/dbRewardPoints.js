@@ -1665,7 +1665,11 @@ let dbRewardPoints = {
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
-                    displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
+                    if (platformData.hasOwnProperty('displayFrontEndRewardPointsRankingData')) {
+                        displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
+                    } else {
+                        displayFrontEndRewardPointsRankingData = true;
+                    }
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
