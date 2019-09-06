@@ -12609,8 +12609,10 @@ define(['js/app'], function (myApp) {
             }
             if (depositMethod == "3") {
                 vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+                vm.playerManualTopUp.provinceId = "";
             } else {
                 vm.playerManualTopUp.remark = "";
+                vm.playerManualTopUp.provinceId = vm.provinceList[0].id;
             }
 
             // vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
@@ -13443,6 +13445,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
                     sendData.bankAccountDistrict = vm.currentDistrict.district;
+                    sendData.bankChoice = "1";
                     console.log('send===', sendData);
                     if (sendData.newBankAccount != sendData.encodedBankAccount) {
                         sendData.bankAccount = sendData.newBankAccount;
@@ -13456,6 +13459,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
                     sendData.bankName2 = vm.playerPayment2.bankName2;
+                    sendData.bankChoice = "2";
                     console.log('send===', sendData);
                     if (sendData.newBankAccount2 != sendData.encodedBankAccount2) {
                         sendData.bankAccount2 = sendData.newBankAccount2;
@@ -13470,6 +13474,7 @@ define(['js/app'], function (myApp) {
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
                     sendData.bankName3 = vm.playerPayment3.bankName3;
+                    sendData.bankChoice = "3";
                     console.log('send===', sendData);
                     if (sendData.newBankAccount3 != sendData.encodedBankAccount3) {
                         sendData.bankAccount3 = sendData.newBankAccount3;

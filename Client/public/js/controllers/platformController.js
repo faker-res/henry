@@ -16655,7 +16655,7 @@ define(['js/app'], function (myApp) {
                     isNewSystem: vm.exportPlayerFilter.isNewSystem,
                     registrationTimeFrom: vm.exportQuery.registrationTime.$gte,
                     registrationTimeTo: vm.exportQuery.registrationTime.$lte || vm.exportQuery.registrationTime.$lt,
-                    platformObjId: vm.selectedPlatform.data._id,
+                    platformObjId: vm.playerFeedbackQuery.platform,
                     adminInfo: {
                         type: "admin",
                         name: authService.adminName,
@@ -17266,6 +17266,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
+                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -20690,8 +20691,17 @@ define(['js/app'], function (myApp) {
                         vm.partnerValidity.ownDomainDuplicate = true;
                         vm.partnerValidity.ownDomainName = '';
                         data.data.data.map(item => {
-                            vm.partnerValidity.ownDomainName += item;
-                            vm.partnerValidity.ownDomainName += ' ';
+                            if (vm.partnerValidity.ownDomainName) {
+                                vm.partnerValidity.ownDomainName += ',';
+                            }
+                            if (item.name) {
+                                vm.partnerValidity.ownDomainName += item.name;
+                                vm.partnerValidity.ownDomainName += ' ';
+                            }
+                            if (item.partnerName) {
+                                vm.partnerValidity.ownDomainName += "(" + item.partnerName + ")";
+                                vm.partnerValidity.ownDomainName += ' ';
+                            }
                         })
                     }
                     form.ownDomain.$setValidity('invalidOwnDomain', !vm.partnerValidity.ownDomainDuplicate)
@@ -24168,6 +24178,7 @@ define(['js/app'], function (myApp) {
                 let isPlayerResult = true;
                 let isPeriodResultValid = true;
                 let isApplyTypeValid = true;
+                let isReferralResult = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -24285,6 +24296,19 @@ define(['js/app'], function (myApp) {
                             })
                         }
 
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name === 'ReferralRewardGroup'
+                            && vm.rewardCondition && vm.rewardCondition.referralRewardMode && vm.rewardCondition.referralRewardMode === '2'
+                            && vm.rewardCondition.isDynamicRewardTopUpAmount
+                            && vm.rewardMainParamTable[e] && vm.rewardMainParamTable[e].value && vm.rewardMainParamTable[e].value.length > 0) {
+                            vm.rewardMainParamTable[e].value.forEach(el => {
+                                if (Object.keys(el) && Object.keys(el).length > 0
+                                    && (!el.firstTopUpAmount || !el.topUpCount)) {
+                                    isValid = false;
+                                    isReferralResult = false;
+                                }
+                            })
+                        }
+
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -24395,6 +24419,8 @@ define(['js/app'], function (myApp) {
                         socketService.showErrorMessage($translate("Player Result is required"));
                     } else if (!isPeriodResultValid && !isApplyTypeValid) {
                         socketService.showErrorMessage($translate('Reward interval does not valid for this reward apply type'));
+                    } else if (!isReferralResult) {
+                        socketService.showErrorMessage($translate('First Top Up Amount, Top Up Count is required more than zero'));
                     } else {
                         socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
                     }
@@ -25568,25 +25594,25 @@ define(['js/app'], function (myApp) {
                                         // close the modal
                                         $('#popUpInFirstPageSettingModal').modal('hide');
                                         // append the pop-up setting to the general list
-                                        if (data && data.data && data.data._id && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc){
-                                            if (vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList instanceof Array){
-                                                let index = vm.popularRecommendationSetting.pc.popUpList.findIndex( p => {
+                                        if (data && data.data && data.data._id && vm.newPopularRecommendationSetting){
+                                            if (vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList instanceof Array){
+                                                let index = vm.newPopularRecommendationSetting.popUpList.findIndex( p => {
                                                     if (p && p._id){
                                                         return p._id.toString() ==  data.data._id.toString()
                                                     }
                                                 });
 
                                                 if (index != -1){
-                                                    vm.popularRecommendationSetting.pc.popUpList[index] = data.data;
+                                                    vm.newPopularRecommendationSetting.popUpList[index] = data.data;
                                                 }
                                                 else{
-                                                    vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                    vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                                 }
 
                                             }
                                             else{
-                                                vm.popularRecommendationSetting.pc.popUpList = [];
-                                                vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                vm.newPopularRecommendationSetting.popUpList = [];
+                                                vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                             }
                                         }
 
@@ -25631,9 +25657,9 @@ define(['js/app'], function (myApp) {
                     vm.newPopUpInFirstPageSetting = {};
                 }
                 else{
-                    if (popUpObjId && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length) {
+                    if (popUpObjId && vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length) {
 
-                        let temp = vm.popularRecommendationSetting.pc.popUpList.filter (p => {
+                        let temp = vm.newPopularRecommendationSetting.popUpList.filter (p => {
                             if (p && p._id){
                                 return p._id.toString() == popUpObjId.toString()
                             }
@@ -26806,6 +26832,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
+                        vm.displayFrontEndRewardPointsRankingData = true;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -27068,6 +27095,20 @@ define(['js/app'], function (myApp) {
                     console.error(err);
                 }, true);
             }
+
+            vm.toggleFrontEndRewardPointsRankingData = function (flag) {
+                vm.displayFrontEndRewardPointsRankingData = flag;
+                let sendData = {
+                    platform: vm.rewardPointsSelectedPlatform,
+                    displayFrontEndRewardPointsRankingData: flag
+                }
+                socketService.$socket($scope.AppSocket, 'toggleFrontEndRewardPointsRankingData', sendData, function (data) {
+                    console.log('displayFrontEndRewardPointsRankingData', data);
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            };
 
             vm.toggleDeleteFakeAcc = function (flag) {
                 vm.editFakeAcc = flag;
@@ -35845,6 +35886,12 @@ define(['js/app'], function (myApp) {
                 vm.refreshSPicker();
             };
 
+            vm.loadFeedbackDepartment = (platformObjdId) => {
+                let platform = new Array(platformObjdId);
+                vm.getAllDepartment(platform);
+                vm.refreshSPicker();
+            };
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -40419,38 +40466,57 @@ define(['js/app'], function (myApp) {
 
             vm.getUniqueAdminFeedbacks = () => {
                 vm.departmentUsers = [];
+                vm.csNameByDepartment = [];
+                let platformList = vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : [];
                 let sendData = {
-                    platformList: vm.feedbackAdminQuery && vm.feedbackAdminQuery.platformList ? vm.feedbackAdminQuery.platformList : []
-                }
+                    platformList: platformList
+                };
+
+                // get department that contain selected platforms
+                vm.getAllDepartment(platformList);
+
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getUniqueAdminFeedbacks', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getUniqueAdminFeedbacks', data);
-                        var result = [];
+                        let result = [];
                         data.data.forEach(function (userData) {
-                            let singleRecord = {}
+                            let singleRecord = {};
                             singleRecord.departmentName = userData.departmentName;
                             singleRecord.adminName = userData.adminName;
                             singleRecord._id = userData._id;
                             result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
+
+                        // Feedback Query tab - only display CS name according to the departments that contain selected platforms
+                        if (vm.queryDepartments && vm.queryDepartments.length && vm.departmentUsers && vm.departmentUsers.length) {
+                            vm.departmentUsers.forEach(user => {
+                                vm.queryDepartments.forEach(dept => {
+                                    if (user.departmentName.toString() === dept.departmentName.toString()) {
+                                        vm.csNameByDepartment.push(user);
+                                    }
+                                })
+                            })
+                        }
                     });
                 });
             };
 
-            vm.getAllDepartment = () => {
+            vm.getAllDepartment = (platformList) => {
                 let sendData = {
-                    platforms: vm.sendMultiMessage && vm.sendMultiMessage.platformList ? vm.sendMultiMessage.platformList : []
-                }
+                    platforms: platformList ? platformList : []
+                };
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getAllDepartment', data);
-                        var result = [];
-                        data.data.forEach(function (departmentData) {
-                            result.push(departmentData);
-                        });
+                        let result = [];
+                        if (data && data.data) {
+                            data.data.forEach(function (departmentData) {
+                                result.push(departmentData);
+                            });
+                        }
                         vm.queryDepartments = result;
                     });
                 });
@@ -40654,7 +40720,7 @@ define(['js/app'], function (myApp) {
                     vm.getAllPlayerLevelsLocal();
                     vm.getCredibilityRemarksLocal();
                     vm.getAllGameProvidersLocal();
-                    vm.loadDepartmentLocal();
+                    // vm.loadDepartmentLocal();
                     vm.setQueryRole(vm.autoFeedbackMission);
                     vm.setQueryAdmins(vm.autoFeedbackMission);
                     if(!vm.autoFeedbackMission.schedule) {
@@ -42768,7 +42834,30 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.addNewPopularRecommendationSetting = function(isNew, eventObjId) {
+            vm.getPopularRecommendationSettingDevice = function(device){
+                vm.popularDevice = device;
+            };
+
+            vm.initPopularRecommendationSetting = function() {
+                if(!vm.popularDevice){
+                    vm.popularDevice = "1";
+                }
+                vm.newPopularRecommendationSetting = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                    device: vm.popularDevice
+                };
+
+                vm.addNewPopularRecommendationSetting();
+                $('#popularRecommendationSetting').modal();
+            };
+
+            vm.addNewPopularRecommendationSetting = function(eventObjId) {
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.popularRecommendationImageFile = {};
+                vm.popularRecommendationImageUrl = {};
+
                 //reset
                 document.querySelector('#popularRecommendationPcImageFile').value = "";
                 document.querySelector('#popularRecommendationPcNewPageFile').value = "";
@@ -42783,47 +42872,108 @@ define(['js/app'], function (myApp) {
                 $('#pcImage').attr("src","");
                 $('#H5Image').attr("src","");
                 $('#appImage').attr("src","");
-                vm.popularRecommendationImageFile = {};
-                vm.popularRecommendationImageUrl = {};
 
-                if (isNew){
-                    vm.popularRecommendationSetting = {
-                        pc: {},
-                        h5: {},
-                        app: {},
-                        isPlayerVisible: true,
-                        isPlayerWithRegisteredHpNoVisible: true,
-                    };
+
+
+                // if (isNew){
+                //     vm.popularRecommendationSetting = {
+                //         pc: {},
+                //         h5: {},
+                //         app: {},
+                //         isPlayerVisible: true,
+                //         isPlayerWithRegisteredHpNoVisible: true,
+                //     };
+                // }
+                // else{
+                //     if (eventObjId){
+                //         let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                //         if (index != -1){
+                //             vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
+                //                 $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
+                //                 $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
+                //                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
+                //             }
+                //
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                //                 vm.popularRecommendationSetting.pc = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                //                 vm.popularRecommendationSetting.h5 = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                //                 vm.popularRecommendationSetting.app = {};
+                //             }
+                //         }
+                //     }
+                // }
+
+                if(vm.newPopularRecommendationSetting){
+                    if (vm.newPopularRecommendationSetting.imageUrl){
+                        vm.newPopularRecommendationSetting.imageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.onClickAction){
+                        vm.newPopularRecommendationSetting.onClickAction = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.newPageUrl){
+                        vm.newPopularRecommendationSetting.newPageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.activityUrl){
+                        vm.newPopularRecommendationSetting.activityUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.rewardEventObjId){
+                        vm.newPopularRecommendationSetting.rewardEventObjId = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.route){
+                        vm.newPopularRecommendationSetting.route = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.gameCode){
+                        vm.newPopularRecommendationSetting.gameCode = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.pageHeight){
+                        vm.newPopularRecommendationSetting.pageHeight = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.selectedNavImage){
+                        vm.newPopularRecommendationSetting.selectedNavImage = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.requiredToLogIn){
+                        vm.newPopularRecommendationSetting.requiredToLogIn = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.stopPopUp){
+                        vm.newPopularRecommendationSetting.stopPopUp = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.popUpList){
+                        vm.newPopularRecommendationSetting.popUpList = null;
+                    }
+
                 }
-                else{
-                    if (eventObjId){
-                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
-                        if (index != -1){
-                            vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
-                                $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
-                                $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
-                                $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
-                            }
 
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
-                                vm.popularRecommendationSetting.pc = {};
+                if (eventObjId){
+                    let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                    if (index != -1){
+                        vm.newPopularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            vm.newPopularRecommendationSetting.device = vm.newPopularRecommendationSetting.device.toString();
+                        }
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            if (vm.newPopularRecommendationSetting.device == 1){
+                                $('#pcImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
-                                vm.popularRecommendationSetting.h5 = {};
+                            else if (vm.newPopularRecommendationSetting.device == 4){
+                                $('#appImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
-                                vm.popularRecommendationSetting.app = {};
+                            else if (vm.newPopularRecommendationSetting.device == 2){
+                                $('#H5Image').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
                         }
                     }
                 }
-                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
-                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
 
                 vm.refreshSPicker();
                 $('#popularRecommendationSetting').modal();
@@ -42950,7 +43100,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.editPopularRecommendationSetting = function(eventObjId) {
-                vm.addNewPopularRecommendationSetting(false, eventObjId);
+                vm.addNewPopularRecommendationSetting(eventObjId);
+                $('#popularRecommendationSetting').modal();
+
             };
 
             vm.submitPopularRecommendationSettings = async () => {
@@ -42964,19 +43116,30 @@ define(['js/app'], function (myApp) {
                     return data;
                 };
 
-                let promArr = [
-                    "pcImage",
-                    "pcNewPage",
-                    "pcPageDetail",
-                    "H5Image",
-                    "H5NewPage",
-                    "H5PageDetail",
-                    "appImage",
-                    "appNewPage",
-                    "appPageDetail",
-                ];
                 // we will save the collection changer before create another new item.
                 await vm.updatePopularRecommendationSetting();
+                let promArr;
+
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                    promArr = [
+                        "pcImage",
+                        "pcNewPage",
+                        "pcPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                    promArr = [
+                        "appImage",
+                        "appNewPage",
+                        "appPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                    promArr = [
+                        "H5Image",
+                        "H5NewPage",
+                        "H5PageDetail",
+                    ];
+                }
+                
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -42987,38 +43150,38 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
-                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        vm.newPopularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popularRecommendationImageUrl){
                             if (vm.popularRecommendationImageUrl.pcImage){
-                                vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.pcImage
                             }
                             if (vm.popularRecommendationImageUrl.pcNewPage){
-                                vm.popularRecommendationSetting.pc.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
                             }
                             if (vm.popularRecommendationImageUrl.pcPageDetail){
-                                vm.popularRecommendationSetting.pc.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
                             }
                             if (vm.popularRecommendationImageUrl.H5Image){
-                                vm.popularRecommendationSetting.h5.imageUrl = vm.popularRecommendationImageUrl.H5Image
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.H5Image
                             }
                             if (vm.popularRecommendationImageUrl.H5NewPage){
-                                vm.popularRecommendationSetting.h5.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
                             }
                             if (vm.popularRecommendationImageUrl.H5PageDetail){
-                                vm.popularRecommendationSetting.h5.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
                             }
                             if (vm.popularRecommendationImageUrl.appImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.popularRecommendationImageUrl.appImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.appImage
                             }
                             if (vm.popularRecommendationImageUrl.appNewPage){
-                                vm.popularRecommendationSetting.app.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
                             }
                             if (vm.popularRecommendationImageUrl.appPageDetail){
-                                vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
                             }
 
-                            if (vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length){
-                                vm.popularRecommendationSetting.pc.popUpList = vm.popularRecommendationSetting.pc.popUpList.map(p => {
+                            if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length){
+                                vm.newPopularRecommendationSetting.popUpList = vm.popularRecommendationSetting.popUpList.map(p => {
                                     if (p && p._id){
                                         return p._id
                                     }
@@ -43026,7 +43189,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
-                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.newPopularRecommendationSetting, function (data) {
                                     console.log("saveFrontEndPopularRecommendationSetting ret", data);
                                     // stop the uploading loader
                                     $('#frontEndPopularRecommendationUploader').hide();
@@ -43286,29 +43449,33 @@ define(['js/app'], function (myApp) {
                         console.log('getFrontEndPopUpAdvertisementSetting', data.data);
                         if (data && data.data) {
                             vm.frontEndDeletedList = [];
-                            vm.popUpAdvertisementData = data.data;
+                            vm.popUpAdvertisementData = data.data.map(item => {
+                                item.device = item.device.toString();
+                                return item;
+                            });
+
+                            utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                                document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
+                                $(".popUpAdvModal .droppable-area1, .droppable-area2, .droppable-area3").sortable({
+                                    connectWith: ".connected-sortable",
+                                    // stop: function () {
+                                    //     let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+                                    //     arr1.forEach(
+                                    //         (v, i) => {
+                                    //             if (v) {
+                                    //                 let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                                    //                 if (index != -1) {
+                                    //                     vm.popUpAdvertisementData[index].displayOrder = i + 1;
+                                    //                 }
+                                    //             }
+                                    //         }
+                                    //     );
+                                    // }
+                                }).disableSelection()
+                            })
                         }
 
-                        $('.popUpAdvModal .droppable-area1').children().remove();
-
-                        utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
-                            $(".popUpAdvModal .droppable-area1").sortable({
-                                connectWith: ".connected-sortable",
-                                stop: function () {
-                                    let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
-                                    arr1.forEach(
-                                        (v, i) => {
-                                            if (v) {
-                                                let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
-                                                if (index != -1) {
-                                                    vm.popUpAdvertisementData[index].displayOrder = i + 1;
-                                                }
-                                            }
-                                        }
-                                    );
-                                }
-                            }).disableSelection()
-                        })
+                        // $('.popUpAdvModal .droppable-area1').children().remove();
                     })
                 }, function (err) {
                     console.error('getFrontEndPopUpAdvertisementSetting error: ', err);
@@ -43316,18 +43483,23 @@ define(['js/app'], function (myApp) {
             };
 
             vm.editPopUpAdvertisement = function (eventObjectId) {
-                vm.addNewPopUpAdvertisement(false, eventObjectId)
+                vm.addNewPopUpAdvertisement(eventObjectId);
+                $('#popUpAdvertisementModal').modal();
             };
 
             vm.updatePopUpAdvertisementSetting = function () {
                 let arr1 = $('.popUpAdvModal .droppable-area1').sortable('toArray');
+                let arr2 = $('.popUpAdvModal .droppable-area2').sortable('toArray');
+                let arr3 = $('.popUpAdvModal .droppable-area3').sortable('toArray');
                 let updateArr = [];
                 arr1.forEach (
                     (v, i) => {
                         if (v){
                             let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
                             if (index != -1){
-                                let selectedAdv = vm.popUpAdvertisementData[index];
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 1;
                                 selectedAdv.displayOrder = i + 1;
                                 updateArr.push(selectedAdv);
                             }
@@ -43335,7 +43507,37 @@ define(['js/app'], function (myApp) {
                     }
                 );
 
-                socketService.$socket($scope.AppSocket, 'updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
+                arr2.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 2;
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
+                            }
+                        }
+                    }
+                );
+
+                arr3.forEach (
+                    (v, i) => {
+                        if (v){
+                            let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == v.toString());
+                            if (index != -1){
+                                // let selectedAdv = vm.popUpAdvertisementData[index];
+                                let selectedAdv = Object.assign({}, vm.popUpAdvertisementData[index]);
+                                selectedAdv.device = 4;
+                                selectedAdv.displayOrder = i + 1;
+                                updateArr.push(selectedAdv);
+                            }
+                        }
+                    }
+                );
+
+                return $scope.$socketPromise('updatePopUpAdvertisementSetting', {dataList: updateArr, deletedList: vm.frontEndDeletedList},
                     function (data) {
                         $scope.$evalAsync( () => {
                             console.log('updatePopUpAdvertisementSetting is done', data);
@@ -43346,7 +43548,18 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            vm.addNewPopUpAdvertisement = function (isNew, eventObjectId) {
+            vm.initPopUpAdvertisementSetting = function() {
+                vm.newPopUpAdvertisementSetting = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                };
+
+                vm.addNewPopUpAdvertisement();
+                $('#popUpAdvertisementModal').modal();
+
+            };
+
+            vm.addNewPopUpAdvertisement = function (eventObjectId) {
                 let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
                 vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
                 vm.popUpAdvImageFile = {};
@@ -43367,39 +43580,94 @@ define(['js/app'], function (myApp) {
                 $('#popUpAdvH5Image').attr("src","");
                 $('#popUpAdvAppImage').attr("src","");
 
-                if (isNew) {
-                    vm.popUpAdvertisementSetting = {
-                        pc: {},
-                        h5: {},
-                        app: {},
-                        isPlayerVisible: true,
-                        isPlayerWithRegisteredHpNoVisible: true,
-                    };
+                // if (isNew) {
+                //     vm.popUpAdvertisementSetting = {
+                //         pc: {},
+                //         h5: {},
+                //         app: {},
+                //         isPlayerVisible: true,
+                //         isPlayerWithRegisteredHpNoVisible: true,
+                //     };
+                // }
+                // else{
+                //     if (eventObjectId) {
+                //         let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                //         if (index != -1) {
+                //             vm.popUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
+                //
+                //             if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.device){
+                //                 if (vm.popUpAdvertisementSetting.device == 1){
+                //                     $('#popUpAdvPcImage').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }else if(vm.popUpAdvertisementSetting.device == 4){
+                //                     $('#popUpAdvAppImage').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }else if(vm.popUpAdvertisementSetting.device == 2){
+                //                     $('#popUpAdvH5Image').attr("src",vm.popUpAdvertisementSetting.imageUrl);
+                //                 }
+                //             }
+                //
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.pc && vm.popUpAdvertisementSetting.pc.imageUrl) {
+                //             //     $('#popUpAdvPcImage').attr("src", vm.popUpAdvertisementSetting.pc.imageUrl);
+                //             // }
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.h5 && vm.popUpAdvertisementSetting.h5.imageUrl) {
+                //             //     $('#popUpAdvH5Image').attr("src", vm.popUpAdvertisementSetting.h5.imageUrl);
+                //             // }
+                //             // if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
+                //             //     $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
+                //             // }
+                //
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
+                //                 vm.popUpAdvertisementSetting.pc = {};
+                //             }
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
+                //                 vm.popUpAdvertisementSetting.h5 = {};
+                //             }
+                //             if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
+                //                 vm.popUpAdvertisementSetting.app = {};
+                //             }
+                //         }
+                //     }
+                // }
+
+                if (vm.newPopUpAdvertisementSetting){
+                    if (vm.newPopUpAdvertisementSetting.onClickAction){
+                        vm.newPopUpAdvertisementSetting.onClickAction = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.newPageUrl){
+                        vm.newPopUpAdvertisementSetting.newPageUrl = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.activityUrl){
+                        vm.newPopUpAdvertisementSetting.activityUrl = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.rewardEventObjId){
+                        vm.newPopUpAdvertisementSetting.rewardEventObjId = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.route){
+                        vm.newPopUpAdvertisementSetting.route = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.gameCode){
+                        vm.newPopUpAdvertisementSetting.gameCode = null;
+                    }
+                    if (vm.newPopUpAdvertisementSetting.requiredToLogIn){
+                        vm.newPopUpAdvertisementSetting.requiredToLogIn = null;
+                    }
                 }
-                else{
-                    if (eventObjectId) {
-                        let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
-                        if (index != -1) {
-                            vm.popUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
 
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.pc && vm.popUpAdvertisementSetting.pc.imageUrl) {
-                                $('#popUpAdvPcImage').attr("src", vm.popUpAdvertisementSetting.pc.imageUrl);
-                            }
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.h5 && vm.popUpAdvertisementSetting.h5.imageUrl) {
-                                $('#popUpAdvH5Image').attr("src", vm.popUpAdvertisementSetting.h5.imageUrl);
-                            }
-                            if (vm.popUpAdvertisementSetting && vm.popUpAdvertisementSetting.app && vm.popUpAdvertisementSetting.app.imageUrl) {
-                                $('#popUpAdvAppImage').attr("src", vm.popUpAdvertisementSetting.app.imageUrl);
-                            }
+                if (eventObjectId) {
+                    let index = vm.popUpAdvertisementData.findIndex(p => p._id.toString() == eventObjectId.toString());
+                    if (index != -1) {
+                        vm.newPopUpAdvertisementSetting = _.clone(vm.popUpAdvertisementData[index]);
 
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.pc){
-                                vm.popUpAdvertisementSetting.pc = {};
-                            }
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.h5){
-                                vm.popUpAdvertisementSetting.h5 = {};
-                            }
-                            if (vm.popUpAdvertisementSetting && !vm.popUpAdvertisementSetting.app){
-                                vm.popUpAdvertisementSetting.app = {};
+                        if (vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device){
+                            vm.newPopUpAdvertisementSetting.device = vm.newPopUpAdvertisementSetting.device.toString();
+                        }
+
+                        if (vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device){
+                            if (vm.newPopUpAdvertisementSetting.device == 1){
+                                $('#popUpAdvPcImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                            }else if(vm.newPopUpAdvertisementSetting.device == 4){
+                                $('#popUpAdvAppImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                            }else if(vm.newPopUpAdvertisementSetting.device == 2){
+                                $('#popUpAdvH5Image').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
                             }
                         }
                     }
@@ -43420,7 +43688,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
             };
 
-            vm.submitPopUpAdvertisementSettings = () => {
+            vm.submitPopUpAdvertisementSettings = async () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopUpAdvUploader').show();
                 function removeFromList(data) {
@@ -43430,18 +43698,28 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
+                await vm.updatePopUpAdvertisementSetting();
+                let promArr;
 
-                let promArr = [
-                    "popUpAdvPcImage",
-                    "popUpAdvPcNewPage",
-                    "popUpAdvPcPageDetail",
-                    "popUpAdvH5Image",
-                    "popUpAdvH5NewPage",
-                    "popUpAdvH5PageDetail",
-                    "popUpAdvAppImage",
-                    "popUpAdvAppNewPage",
-                    "popUpAdvAppPageDetail",
-                ];
+                if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '1') {
+                    promArr = [
+                        "popUpAdvPcImage",
+                        "popUpAdvPcNewPage",
+                        "popUpAdvPcPageDetail"
+                    ];
+                } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '4') {
+                    promArr = [
+                        "popUpAdvAppImage",
+                        "popUpAdvAppNewPage",
+                        "popUpAdvAppPageDetail"
+                    ];
+                } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '2') {
+                    promArr = [
+                        "popUpAdvH5Image",
+                        "popUpAdvH5NewPage",
+                        "popUpAdvH5PageDetail"
+                    ];
+                }
 
                 let prom = Promise.resolve();
                 promArr.forEach(
@@ -43453,38 +43731,38 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popUpAdvImageUrl", vm.popUpAdvImageUrl);
-                        vm.popUpAdvertisementSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        vm.newPopUpAdvertisementSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popUpAdvImageUrl){
                             if (vm.popUpAdvImageUrl.popUpAdvPcImage){
-                                vm.popUpAdvertisementSetting.pc.imageUrl = vm.popUpAdvImageUrl.popUpAdvPcImage
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvPcImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvPcNewPage){
-                                vm.popUpAdvertisementSetting.pc.newPageUrl = vm.popUpAdvImageUrl.popUpAdvPcNewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvPcNewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvPcPageDetail){
-                                vm.popUpAdvertisementSetting.pc.activityUrl = vm.popUpAdvImageUrl.popUpAdvPcPageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvPcPageDetail
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5Image){
-                                vm.popUpAdvertisementSetting.h5.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5NewPage){
-                                vm.popUpAdvertisementSetting.h5.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5PageDetail){
-                                vm.popUpAdvertisementSetting.h5.activityUrl = vm.popUpAdvImageUrl.popUpAdvH5PageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvH5PageDetail
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppImage){
-                                vm.popUpAdvertisementSetting.app.imageUrl = vm.popUpAdvImageUrl.popUpAdvAppImage
+                                vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvAppImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppNewPage){
-                                vm.popUpAdvertisementSetting.app.newPageUrl = vm.popUpAdvImageUrl.popUpAdvAppNewPage
+                                vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvAppNewPage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvAppPageDetail){
-                                vm.popUpAdvertisementSetting.app.activityUrl = vm.popUpAdvImageUrl.popUpAdvAppPageDetail
+                                vm.newPopUpAdvertisementSetting.activityUrl = vm.popUpAdvImageUrl.popUpAdvAppPageDetail
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
-                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopUpAdvSetting', vm.popUpAdvertisementSetting, function (data) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopUpAdvSetting', vm.newPopUpAdvertisementSetting, function (data) {
                                     console.log("saveFrontEndPopUpAdvSetting ret", data);
                                     // stop the uploading loader
                                     $('#frontEndPopUpAdvUploader').hide();

@@ -1022,6 +1022,8 @@
   "LOWEST_RANDOM_LEVEL" : "Lowest Level",
   "RANDOM_GENERATE": "Random Generate",
   "deleteMultipleFakeData": "Delete Multiple Fake Data",
+  "disableFrontEndRewardPointsRankingData": "Disable Front End Reward Points Ranking Data",
+  "enableFrontEndRewardPointsRankingData": "Enable Front End Reward Points Ranking Data",
   "EMPTY_SELECT": "(Empty)",
   "INSERT": "Insert",
   "CONTENT_CHANGED": "Content Changed",

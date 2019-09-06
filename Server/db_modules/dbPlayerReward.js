@@ -3510,18 +3510,35 @@ let dbPlayerReward = {
             playerState => {
                 console.log('playerState===33', playerState);
                 if (playerState) {
-                    newPromoCodeEntry.playerObjId = player._id;
-                    newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
-                    newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-                    newPromoCodeEntry.adminId = adminObjId;
-                    newPromoCodeEntry.adminName = adminName;
-                    newPromoCodeEntry.channel = channel;
+                    let promoCodes = [];
+                    return dbConfig.collection_promoCode.find({
+                        platformObjId: platformObjId,
+                        playerObjId: player._id,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).lean().then(promoCodeObjs => {
+                        promoCodeObjs.forEach(item => {
+                            promoCodes.push(item.code);
+                        });
+                        newPromoCodeEntry.playerObjId = player._id;
+                        newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+                        newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                        newPromoCodeEntry.adminId = adminObjId;
+                        newPromoCodeEntry.adminName = adminName;
+                        newPromoCodeEntry.channel = channel;
+                        for(let count = 1; promoCodes.indexOf(newPromoCodeEntry.code) > -1; count++) {
+                            console.log(`promo code ${newPromoCodeEntry.code} exists retrying ${count}`);
+                            if(count > 5) {
+                                return Promise.reject({name: "DataError", message: "Promo code exist, max retries reached."});
+                            }
+                            newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+                        }
 
-                    return dbConfig.collection_promoCodeActiveTime.findOne({
-                        platform: platformObjId,
-                        startTime: {$lt: new Date()},
-                        endTime: {$gt: new Date()}
-                    }).lean();
+                        return dbConfig.collection_promoCodeActiveTime.findOne({
+                            platform: platformObjId,
+                            startTime: {$lt: new Date()},
+                            endTime: {$gt: new Date()}
+                        }).lean();
+                    })
                 }
             }
         ).then(
@@ -6961,10 +6978,8 @@ let dbPlayerReward = {
                             if (bindReferralIntervalEndTime && bindReferralIntervalEndTime) {
                                 referralQuery['$or'] = [
                                     {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
                                     {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$lte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{createTime: {$lte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalStartTime}}, {validEndTime: {$gte: bindReferralIntervalEndTime}}]},
-                                    {$and: [{validEndTime: {$eq: null}}, {validEndTime: {$exists: true}}]}];
+                                    {isValid: {$exists: true, $eq: true}}];
                             }
 
                             return dbConfig.collection_referralLog.find(referralQuery).lean().then(
@@ -8386,7 +8401,7 @@ let dbPlayerReward = {
                                         })
                                     }
 
-                                    if (!selectedReward.firstTopUpAmount || !selectedReward.topUpCount) {
+                                    if (!selectedReward.firstTopUpAmount || !selectedReward.topUpCount || selectedReward.firstTopUpAmount == 0 || selectedReward.topUpCount == 0) {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: localization.localization.translate("First Top Up Amount and Top Up Count setting cannot be zero")
@@ -8406,6 +8421,13 @@ let dbPlayerReward = {
 
                                                 referralRewardDetails.push({playerObjId: player._id, depositAmount: player.amount, depositCount: player.count, rewardAmount: tempRewardAmount});
                                             }
+                                        });
+                                    }
+
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet first top up amount and top up count")
                                         });
                                     }
 
@@ -8430,13 +8452,13 @@ let dbPlayerReward = {
                                         countDepositPlayer = referralRewardDetails && referralRewardDetails.length;
                                         rewardAmount = selectedReward.rewardAmount * countDepositPlayer;
                                     }
-                                }
 
-                                if (referralRewardDetails.length == 0) {
-                                    return Promise.reject({
-                                        name: "DataError",
-                                        message: localization.localization.translate("Does not have enough top up amount and top up count")
-                                    });
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet top up amount and top up count")
+                                        });
+                                    }
                                 }
                                 break;
                         }
@@ -8446,7 +8468,7 @@ let dbPlayerReward = {
                         }
 
                         let currentAmount = totalRewardAppliedInInterval + rewardAmount;
-                        if (currentAmount >= selectedReward.maxRewardAmount) {
+                        if (selectedReward && selectedReward.maxRewardAmount && (currentAmount >= selectedReward.maxRewardAmount)) {
                             rewardAmount = selectedReward.maxRewardAmount - totalRewardAppliedInInterval;
                             let tempAmount = rewardAmount;
                             referralRewardDetails.forEach(item => {
@@ -8963,6 +8985,9 @@ let dbPlayerReward = {
                                 proposalData.data.isDynamicRewardTopUpAmount = (eventData && eventData.condition && eventData.condition.isDynamicRewardTopUpAmount) || Boolean(false);
                             }
                             proposalData.data.intervalType = eventData && eventData.condition && eventData.condition.interval;
+                            proposalData.data.forbidWithdrawAfterApply = Boolean(selectedReward.forbidWithdrawAfterApply && selectedReward.forbidWithdrawAfterApply === true);
+                            proposalData.data.remark = selectedReward.remark;
+                            proposalData.data.forbidWithdrawIfBalanceAfterUnlock = selectedReward.forbidWithdrawIfBalanceAfterUnlock ? selectedReward.forbidWithdrawIfBalanceAfterUnlock : 0;
                             delete proposalData.data.isDynamicRewardAmount
                         }
 
@@ -11496,6 +11521,12 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     resolve(result);
                 }
             )
+        } else {
+            reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: localization.localization.translate('You need to set festival type first')
+            });
         }
     })
 }

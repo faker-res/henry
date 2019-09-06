@@ -1256,7 +1256,7 @@ define(['js/app'], function (myApp) {
         vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
             let sendData = {
                 applySettlementArray: applyPartnerCommSettlementArray,
-                platformObjId: vm.selectedPlatform.data._id,
+                platformObjId: vm.platformInSettlementTab._id,
                 commissionType: vm.partnerCommVar.settMode,
                 startTime: vm.partnerCommVar.startTime,
                 endTime: vm.partnerCommVar.endTime
@@ -6037,6 +6037,14 @@ define(['js/app'], function (myApp) {
                         partner.platform$ = matchedPlatformData.name;
                     }
                 }
+
+                if (partner.partnerLevel) {
+                    if (partner.partnerLevel == 1) {
+                        partner.partnerLevel$ = $translate("MAIN_PARTNER");
+                    } else {
+                        partner.partnerLevel$ = partner.partnerLevel + $translate("级代理");
+                    }
+                }
             });
 
             vm.partners = await getReferralsList(data);
@@ -6052,6 +6060,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
+                    },
+                    {
+                        title: $translate('PARTNER_HIERARCHICAL'),
+                        data: 'partnerLevel$'
                     },
                     {
                         title: $translate('PARTNER_NAME'),
@@ -8561,8 +8573,17 @@ define(['js/app'], function (myApp) {
                     vm.partnerValidity.ownDomainDuplicate = true;
                     vm.partnerValidity.ownDomainName = '';
                     data.data.data.map(item => {
-                        vm.partnerValidity.ownDomainName += item;
-                        vm.partnerValidity.ownDomainName += ' ';
+                        if (vm.partnerValidity.ownDomainName) {
+                            vm.partnerValidity.ownDomainName += ',';
+                        }
+                        if (item.name) {
+                            vm.partnerValidity.ownDomainName += item.name;
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
+                        if (item.partnerName) {
+                            vm.partnerValidity.ownDomainName += "(" + item.partnerName + ")";
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
                     })
                 }
                 form.ownDomain.$setValidity('invalidOwnDomain', !vm.partnerValidity.ownDomainDuplicate)
