@@ -1315,15 +1315,15 @@ let dbPlayerReward = {
             let consumptionIntervalProm;
             let topUpIntervalProm;
             if (event.condition.isDynamicRewardAmount){
+                let consumptionMatch = {
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
+                }
+                if (event.condition.consumptionProvider && event.condition.consumptionProvider.length) {
+                    consumptionMatch.providerId = {$in: event.condition.consumptionProvider};
+                }
                 consumptionIntervalProm = dbConfig.collection_playerConsumptionRecord.aggregate([
-                    {$match:
-                        {
-                            playerId: player._id,
-                            createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
-                            providerId: {$in: event.condition.consumptionProvider}
-
-                        }
-                    },
+                    {$match: consumptionMatch},
                     {
                         $group: {
                             _id: null,
@@ -8424,6 +8424,13 @@ let dbPlayerReward = {
                                         });
                                     }
 
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet first top up amount and top up count")
+                                        });
+                                    }
+
                                 } else {
                                     let totalDepositPlayers = rewardSpecificData[0][1];
                                     let countDepositPlayer = 0;
@@ -8445,13 +8452,13 @@ let dbPlayerReward = {
                                         countDepositPlayer = referralRewardDetails && referralRewardDetails.length;
                                         rewardAmount = selectedReward.rewardAmount * countDepositPlayer;
                                     }
-                                }
 
-                                if (referralRewardDetails.length == 0) {
-                                    return Promise.reject({
-                                        name: "DataError",
-                                        message: localization.localization.translate("Does not have enough top up amount and top up count")
-                                    });
+                                    if (referralRewardDetails.length == 0) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: localization.localization.translate("Does not meet top up amount and top up count")
+                                        });
+                                    }
                                 }
                                 break;
                         }
@@ -11514,6 +11521,12 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     resolve(result);
                 }
             )
+        } else {
+            reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: localization.localization.translate('You need to set festival type first')
+            });
         }
     })
 }

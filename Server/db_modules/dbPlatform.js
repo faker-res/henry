@@ -6269,13 +6269,13 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'recommendation':
-                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'reward':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'advertisement':
-                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'rewardPoint':
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
@@ -6325,19 +6325,19 @@ var dbPlatform = {
             let prom = Promise.resolve();
 
             if (code == 'recommendation'){
-                prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
-                    path: "pc.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "h5.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "app.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "pc.popUpList",
-                    model: dbconfig.collection_frontEndPopUpSetting
-                }).sort({displayOrder: 1}).lean()
+                // prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
+                //     path: "pc.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "h5.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "app.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "pc.popUpList",
+                //     model: dbconfig.collection_frontEndPopUpSetting
+                // }).sort({displayOrder: 1}).lean()
             }
             else if (code == "reward"){
                 prom = dbconfig.collection_frontEndRewardSetting.find(query).populate({
@@ -6355,16 +6355,16 @@ var dbPlatform = {
                 }).sort({displayOrder: 1}).lean()
             }
             else if (code == "advertisement"){
-                prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
-                    path: "pc.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "h5.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "app.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).sort({displayOrder: 1}).lean()
+                // prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
+                //     path: "pc.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "h5.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "app.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).sort({displayOrder: 1}).lean()
             }
             else if (code == "pageSetting"){
                 if (query && query.hasOwnProperty('status')){
@@ -6461,6 +6461,27 @@ var dbPlatform = {
 
             if (code == 'rewardPoint'){
                 prom = dbconfig.collection_frontEndRewardPointClarification.find(query).lean()
+            }
+            else if (code == "recommendation"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "popUpList",
+                    model: dbconfig.collection_frontEndPopUpSetting
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "advertisement"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
             }
             else if (code == "carousel"){
                 if (query){
@@ -7234,7 +7255,13 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    }
+    },
+
+    toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {
+        let query = {_id: platformObjId};
+        let updObj = {$set: {displayFrontEndRewardPointsRankingData: updateData}};
+        return dbconfig.collection_platform.findOneAndUpdate(query, updObj, {new: true});
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

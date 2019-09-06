@@ -2099,7 +2099,6 @@ let dbPlayerInfo = {
         let pName = null;
         let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
         let credibilityRemarkObjIdArr = [];
-
         playerdata.name = playerdata.name.toLowerCase();
 
         // Player name and password should be alphanumeric and between 6 to 20 characters
@@ -2134,6 +2133,9 @@ let dbPlayerInfo = {
             }
         }
 
+        if(playerdata.realName){
+            playerdata.bankAccountName = playerdata.realName;
+        }
         return dbconfig.collection_platform.findOne({_id: playerdata.platform}).lean().then(
             platform => {
                 if (platform) {
@@ -2321,6 +2323,7 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
+                    console.log('Comes to save', playerdata);
                     console.log(`Saving player ${playerdata.name} to database.`);
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
