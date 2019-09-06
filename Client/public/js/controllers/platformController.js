@@ -17266,7 +17266,7 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
-                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
+                        vm.playerFeedbackQuery.platform = data.data.data.platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
