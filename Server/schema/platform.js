@@ -552,10 +552,10 @@ var platformSchema = new Schema({
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
     phoneWhiteListExportMaxNumber: {type: Number},
-    // Switch Payment System - topup
-    topUpSystemType: {type: Number},
-    // Switch Payment System - bonus
-    bonusSystemType: {type: Number},
+    // Switch Payment System - topup , 4 - PMS2
+    topUpSystemType: {type: Number, default: 4},
+    // Switch Payment System - bonus, 4 - PMS2
+    bonusSystemType: {type: Number, default: 4},
     // to identify current using FPMS payment method
     isFPMSPaymentSystem: {type: Boolean, default: false},
     // Set provider to maintenance status if consecutively timed out after N times

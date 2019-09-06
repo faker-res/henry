@@ -3535,7 +3535,56 @@ API说明：
             groupName: String|优惠分组名称
             showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
             referralPeriod: "4", //推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
-            referralLimit: 50, //推荐人优惠组 - 被推荐人数限制
+            condition: {
+                    "requiredBankCard": false, //（领优惠中）是否有绑定提款资料
+                    "isDynamicRewardTopUpAmount": false, //优惠金额随着存款变动
+                    "referralRewardMode": "1", //推荐人优惠模式(1 - 投注条件, 2 - 存款条件)
+                    "canApplyFromClient": true, //前端展示按钮
+                    "visibleForDevice": [], //前端设备可见
+                    "allowApplyAfterWithdrawal": false, //（领优惠前）检查最新存款后有审核中、已执行的提款记录仍可申请
+                    "interval": "2", //优惠周期
+                    "isPlayerLevelDiff": false, //前端设备可见
+                    "validEndTime": "2019-10-20T16:00:00.000Z", //优惠开始时间
+                    "validStartTime": "2019-08-20T16:00:00.000Z", //优惠结束时间
+                    "isIgnoreAudit": 1000, //X 元以下优惠自动执行（忽略审核部)
+                    "showInRealServer": 1, //正式站展示
+                    "imageUrl": [""], //前端展示图片网址/imageUrl
+                    "applyType": "1", //优惠周期不符合优惠提案生成方式
+                    "forbidApplyReward": [] //（领优惠前）检查周期内不允许同时领取其他优惠
+                  }
+            param: {
+                    rewardParam: [
+                      {
+                        "levelId": 0,
+                        "value": [
+                          {
+                            //推荐人优惠 - 模式(投注条件)
+                            "spendingTimes": 10, //解锁流水（优）X倍
+                            "maxRewardAmount": 100, //优惠金额上限
+                            "rewardPercentage": 0.01, //推荐人返利金额（优惠比例）
+                            "playerValidConsumption": 100 //被推荐人有效投注额
+                            
+                            
+                            //推荐人优惠 - 模式(存款条件) - 优惠金额随着存款变动
+                            "spendingTimes": 10, //解锁流水（优）X倍
+                            "maxRewardAmount": 100, //优惠金额上限
+                            "maxRewardInSingleTopUp": 20, //单笔最高优惠金额
+                            "rewardPercentage": 0.02, //推荐人赠送比例
+                            "topUpCount": 1, //被推荐人存款笔数
+                            "firstTopUpAmount": 100 //被推荐人首次单笔存款额
+                            
+                            
+                            //推荐人优惠 - 模式(存款条件) 
+                            "totalTopUpAmount": 100, //被推荐人存款总额
+                            "topUpCount": 1, //被推荐人存款笔数
+                            "rewardAmount": 10, //优惠额
+                            "maxRewardAmount": 100, //优惠金额上限
+                            "spendingTimes": 10 //解锁流水（优）X倍
+                          }
+                        ]
+                      }
+                  }
+            
         }
         ```
     * 操作失败:
@@ -3741,7 +3790,10 @@ API说明：
                 quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
                 quantityLimitInInterval: 周期内放出总数量 (提升存留)  
-                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组）
+                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组 - 投注条件模式）
+                totalDepositAmount: 总存款金额（推荐人优惠组 - 存款条件模式）
+                depositPlayerCount: 周期内符合条件的存款人数（推荐人优惠组 - 存款条件模式）
+                recommendFriendCount: 推荐人有效期内总绑定人数（推荐人优惠组）
             }  
         }
         ```
