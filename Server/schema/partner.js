@@ -37,7 +37,7 @@ var partnerSchema = new Schema({
     //remarks
     remarks: {type: String},
     //partner level, start from 0
-    level: {type: Schema.ObjectId, ref: 'partnerLevel', index: true},
+    level: {type: Schema.ObjectId, ref: 'partnerLevel', index: true}, // deprecated
     //last login ip
     lastLoginIp: String,
     //platform id

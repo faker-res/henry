@@ -1100,10 +1100,11 @@ let dbPartner = {
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
             .populate({path: "player", model: dbconfig.collection_players, select:{_id:1, name:1, playerId:1}})
-            .populate({path: "parent", model: dbconfig.collection_partner})
+            .populate({path: "parent", model: dbconfig.collection_partner}).lean()
             .populate({path: "level", model: dbconfig.collection_partnerLevel}).
-            then(function(partnerdata){
-                partnerdata._doc.childrencount = childrencount;
+            then(async function(partnerdata){
+                partnerdata.partnerLevel = await dbPartner.getPartnerLevel(partnerdata.platform, partnerdata._id);
+                partnerdata.childrencount = childrencount;
                 return partnerdata
             })
     },
