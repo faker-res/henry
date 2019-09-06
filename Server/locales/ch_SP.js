@@ -554,6 +554,7 @@ var simplifiedChinese = {
     "Reward Amount Exceed Limit Within Reward Period": "已达到周期内优惠金额上限",
     "This referrer has no valid referee player within this period": "很抱歉，目前没有被推荐人",
     "Does not have enough valid consumption": "被推荐人未达到周期内内有效投注额要求",
+    "You need to set festival type first": "请先设置 [定义特别节日模式]",
     "Referral reward program is off": "是否启用推荐人账号尚未开启",
     "There is no referral reward mode setting": "推荐人优惠模式尚未配置",
     "Minimum valid consumption setting is mandatory": "被推荐人有效投注额必填",
