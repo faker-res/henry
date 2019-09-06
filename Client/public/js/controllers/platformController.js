@@ -25585,25 +25585,25 @@ define(['js/app'], function (myApp) {
                                         // close the modal
                                         $('#popUpInFirstPageSettingModal').modal('hide');
                                         // append the pop-up setting to the general list
-                                        if (data && data.data && data.data._id && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc){
-                                            if (vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList instanceof Array){
-                                                let index = vm.popularRecommendationSetting.pc.popUpList.findIndex( p => {
+                                        if (data && data.data && data.data._id && vm.newPopularRecommendationSetting){
+                                            if (vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList instanceof Array){
+                                                let index = vm.newPopularRecommendationSetting.popUpList.findIndex( p => {
                                                     if (p && p._id){
                                                         return p._id.toString() ==  data.data._id.toString()
                                                     }
                                                 });
 
                                                 if (index != -1){
-                                                    vm.popularRecommendationSetting.pc.popUpList[index] = data.data;
+                                                    vm.newPopularRecommendationSetting.popUpList[index] = data.data;
                                                 }
                                                 else{
-                                                    vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                    vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                                 }
 
                                             }
                                             else{
-                                                vm.popularRecommendationSetting.pc.popUpList = [];
-                                                vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                vm.newPopularRecommendationSetting.popUpList = [];
+                                                vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                             }
                                         }
 
@@ -25648,9 +25648,9 @@ define(['js/app'], function (myApp) {
                     vm.newPopUpInFirstPageSetting = {};
                 }
                 else{
-                    if (popUpObjId && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length) {
+                    if (popUpObjId && vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length) {
 
-                        let temp = vm.popularRecommendationSetting.pc.popUpList.filter (p => {
+                        let temp = vm.newPopularRecommendationSetting.popUpList.filter (p => {
                             if (p && p._id){
                                 return p._id.toString() == popUpObjId.toString()
                             }
@@ -42810,7 +42810,30 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.addNewPopularRecommendationSetting = function(isNew, eventObjId) {
+            vm.getPopularRecommendationSettingDevice = function(device){
+                vm.popularDevice = device;
+            };
+
+            vm.initPopularRecommendationSetting = function() {
+                if(!vm.popularDevice){
+                    vm.popularDevice = "1";
+                }
+                vm.newPopularRecommendationSetting = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                    device: vm.popularDevice
+                };
+
+                vm.addNewPopularRecommendationSetting();
+                $('#popularRecommendationSetting').modal();
+            };
+
+            vm.addNewPopularRecommendationSetting = function(eventObjId) {
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.popularRecommendationImageFile = {};
+                vm.popularRecommendationImageUrl = {};
+
                 //reset
                 document.querySelector('#popularRecommendationPcImageFile').value = "";
                 document.querySelector('#popularRecommendationPcNewPageFile').value = "";
@@ -42825,47 +42848,108 @@ define(['js/app'], function (myApp) {
                 $('#pcImage').attr("src","");
                 $('#H5Image').attr("src","");
                 $('#appImage').attr("src","");
-                vm.popularRecommendationImageFile = {};
-                vm.popularRecommendationImageUrl = {};
 
-                if (isNew){
-                    vm.popularRecommendationSetting = {
-                        pc: {},
-                        h5: {},
-                        app: {},
-                        isPlayerVisible: true,
-                        isPlayerWithRegisteredHpNoVisible: true,
-                    };
+
+
+                // if (isNew){
+                //     vm.popularRecommendationSetting = {
+                //         pc: {},
+                //         h5: {},
+                //         app: {},
+                //         isPlayerVisible: true,
+                //         isPlayerWithRegisteredHpNoVisible: true,
+                //     };
+                // }
+                // else{
+                //     if (eventObjId){
+                //         let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                //         if (index != -1){
+                //             vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
+                //                 $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
+                //                 $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
+                //                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
+                //             }
+                //
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                //                 vm.popularRecommendationSetting.pc = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                //                 vm.popularRecommendationSetting.h5 = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                //                 vm.popularRecommendationSetting.app = {};
+                //             }
+                //         }
+                //     }
+                // }
+
+                if(vm.newPopularRecommendationSetting){
+                    if (vm.newPopularRecommendationSetting.imageUrl){
+                        vm.newPopularRecommendationSetting.imageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.onClickAction){
+                        vm.newPopularRecommendationSetting.onClickAction = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.newPageUrl){
+                        vm.newPopularRecommendationSetting.newPageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.activityUrl){
+                        vm.newPopularRecommendationSetting.activityUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.rewardEventObjId){
+                        vm.newPopularRecommendationSetting.rewardEventObjId = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.route){
+                        vm.newPopularRecommendationSetting.route = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.gameCode){
+                        vm.newPopularRecommendationSetting.gameCode = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.pageHeight){
+                        vm.newPopularRecommendationSetting.pageHeight = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.selectedNavImage){
+                        vm.newPopularRecommendationSetting.selectedNavImage = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.requiredToLogIn){
+                        vm.newPopularRecommendationSetting.requiredToLogIn = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.stopPopUp){
+                        vm.newPopularRecommendationSetting.stopPopUp = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.popUpList){
+                        vm.newPopularRecommendationSetting.popUpList = null;
+                    }
+
                 }
-                else{
-                    if (eventObjId){
-                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
-                        if (index != -1){
-                            vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
-                                $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
-                                $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
-                                $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
-                            }
 
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
-                                vm.popularRecommendationSetting.pc = {};
+                if (eventObjId){
+                    let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                    if (index != -1){
+                        vm.newPopularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            vm.newPopularRecommendationSetting.device = vm.newPopularRecommendationSetting.device.toString();
+                        }
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            if (vm.newPopularRecommendationSetting.device == 1){
+                                $('#pcImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
-                                vm.popularRecommendationSetting.h5 = {};
+                            else if (vm.newPopularRecommendationSetting.device == 4){
+                                $('#appImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
-                                vm.popularRecommendationSetting.app = {};
+                            else if (vm.newPopularRecommendationSetting.device == 2){
+                                $('#H5Image').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
                         }
                     }
                 }
-                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
-                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
 
                 vm.refreshSPicker();
                 $('#popularRecommendationSetting').modal();
@@ -42992,7 +43076,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.editPopularRecommendationSetting = function(eventObjId) {
-                vm.addNewPopularRecommendationSetting(false, eventObjId);
+                vm.addNewPopularRecommendationSetting(eventObjId);
+                $('#popularRecommendationSetting').modal();
+
             };
 
             vm.submitPopularRecommendationSettings = async () => {
@@ -43006,19 +43092,30 @@ define(['js/app'], function (myApp) {
                     return data;
                 };
 
-                let promArr = [
-                    "pcImage",
-                    "pcNewPage",
-                    "pcPageDetail",
-                    "H5Image",
-                    "H5NewPage",
-                    "H5PageDetail",
-                    "appImage",
-                    "appNewPage",
-                    "appPageDetail",
-                ];
                 // we will save the collection changer before create another new item.
                 await vm.updatePopularRecommendationSetting();
+                let promArr;
+
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                    promArr = [
+                        "pcImage",
+                        "pcNewPage",
+                        "pcPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                    promArr = [
+                        "appImage",
+                        "appNewPage",
+                        "appPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                    promArr = [
+                        "H5Image",
+                        "H5NewPage",
+                        "H5PageDetail",
+                    ];
+                }
+                
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -43029,38 +43126,38 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
-                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        vm.newPopularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popularRecommendationImageUrl){
                             if (vm.popularRecommendationImageUrl.pcImage){
-                                vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.pcImage
                             }
                             if (vm.popularRecommendationImageUrl.pcNewPage){
-                                vm.popularRecommendationSetting.pc.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
                             }
                             if (vm.popularRecommendationImageUrl.pcPageDetail){
-                                vm.popularRecommendationSetting.pc.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
                             }
                             if (vm.popularRecommendationImageUrl.H5Image){
-                                vm.popularRecommendationSetting.h5.imageUrl = vm.popularRecommendationImageUrl.H5Image
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.H5Image
                             }
                             if (vm.popularRecommendationImageUrl.H5NewPage){
-                                vm.popularRecommendationSetting.h5.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
                             }
                             if (vm.popularRecommendationImageUrl.H5PageDetail){
-                                vm.popularRecommendationSetting.h5.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
                             }
                             if (vm.popularRecommendationImageUrl.appImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.popularRecommendationImageUrl.appImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.appImage
                             }
                             if (vm.popularRecommendationImageUrl.appNewPage){
-                                vm.popularRecommendationSetting.app.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
                             }
                             if (vm.popularRecommendationImageUrl.appPageDetail){
-                                vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
                             }
 
-                            if (vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length){
-                                vm.popularRecommendationSetting.pc.popUpList = vm.popularRecommendationSetting.pc.popUpList.map(p => {
+                            if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length){
+                                vm.newPopularRecommendationSetting.popUpList = vm.popularRecommendationSetting.popUpList.map(p => {
                                     if (p && p._id){
                                         return p._id
                                     }
@@ -43068,7 +43165,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
-                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.newPopularRecommendationSetting, function (data) {
                                     console.log("saveFrontEndPopularRecommendationSetting ret", data);
                                     // stop the uploading loader
                                     $('#frontEndPopularRecommendationUploader').hide();
