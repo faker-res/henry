@@ -7,6 +7,7 @@ var Schema = mongoose.Schema;
 
 var partnerOwnDomainSchema = new Schema({
     name: {type: String, required: true, index: true, unique: true},
+    partnerName: {type: String, required: true, index: true, unique: true},
 });
 
 module.exports = partnerOwnDomainSchema;

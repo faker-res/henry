@@ -8561,8 +8561,17 @@ define(['js/app'], function (myApp) {
                     vm.partnerValidity.ownDomainDuplicate = true;
                     vm.partnerValidity.ownDomainName = '';
                     data.data.data.map(item => {
-                        vm.partnerValidity.ownDomainName += item;
-                        vm.partnerValidity.ownDomainName += ' ';
+                        if (vm.partnerValidity.ownDomainName) {
+                            vm.partnerValidity.ownDomainName += ',';
+                        }
+                        if (item.name) {
+                            vm.partnerValidity.ownDomainName += item.name;
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
+                        if (item.partnerName) {
+                            vm.partnerValidity.ownDomainName += "(" + item.partnerName + ")";
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
                     })
                 }
                 form.ownDomain.$setValidity('invalidOwnDomain', !vm.partnerValidity.ownDomainDuplicate)

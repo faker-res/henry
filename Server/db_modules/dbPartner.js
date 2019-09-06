@@ -582,7 +582,7 @@ let dbPartner = {
                     newElements = dbUtil.difArrays(partnerData.ownDomain, newDomains);
                     removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
                     if (newElements && newElements.length > 0) {
-                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
+                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele, partnerName: partnerData.partnerName}).save());
                         return Promise.all(newProms);
                     }
                 }
@@ -1309,9 +1309,7 @@ let dbPartner = {
         return dbconfig.collection_partnerOwnDomain.find({name: {$in: value}}).then(data => {
             if (data && data.length > 0) {
                 return {
-                    data: data.map(item => {
-                        return item.name;
-                    }),
+                    data: data,
                     exists: true, time: time
                 };
             } else {
