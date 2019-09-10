@@ -219,7 +219,7 @@ let dbEmailNotification = {
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
-        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:ss A");
+        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:mm:ss A");
 
 
         html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">编辑代理佣金</div>`;
@@ -384,7 +384,7 @@ let dbEmailNotification = {
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
-        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:ss A");
+        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:mm:ss A");
 
 
         html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">编辑下级代理</div>`;
