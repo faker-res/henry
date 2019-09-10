@@ -43105,7 +43105,7 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.submitPopularRecommendationSettings = async () => {
+            vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -43117,7 +43117,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 // we will save the collection changer before create another new item.
-                await vm.updatePopularRecommendationSetting();
+                // await vm.updatePopularRecommendationSetting();
                 let promArr;
 
                 if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
@@ -43450,11 +43450,14 @@ define(['js/app'], function (myApp) {
                         if (data && data.data) {
                             vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data.map(item => {
-                                item.device = item.device.toString();
+                                if (item && item.device){
+                                    item.device = item.device.toString();
+                                }
                                 return item;
                             });
 
                             utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                                vm.clearAllDropArea();
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".popUpAdvModal .droppable-area1, .droppable-area2, .droppable-area3").sortable({
                                     connectWith: ".connected-sortable",
@@ -43688,7 +43691,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
             };
 
-            vm.submitPopUpAdvertisementSettings = async () => {
+            vm.submitPopUpAdvertisementSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopUpAdvUploader').show();
                 function removeFromList(data) {
@@ -43698,7 +43701,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-                await vm.updatePopUpAdvertisementSetting();
+                // vm.updatePopUpAdvertisementSetting();
                 let promArr;
 
                 if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '1') {
