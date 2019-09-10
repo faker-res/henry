@@ -308,6 +308,7 @@ var roleChecker = {
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
                 partnerPosterAds: [],
+                emailNotificationConfig: ["updateNotifyEditPartnerCommissionSetting", "updateNotifyEditChildPartnerSetting"],
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],

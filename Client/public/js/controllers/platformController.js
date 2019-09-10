@@ -24815,8 +24815,8 @@ define(['js/app'], function (myApp) {
                     case 'emailNotificationConfig':
                         vm.editNotifyConfig = {};
                         vm.getEmailNotificationConfig(platformObjId);
-                        vm.getNotifyEditPartnerCommissionSetting(platformObjId);
-                        vm.getNotifyEditChildPartnerSetting(platformObjId);
+                        // vm.getNotifyEditPartnerCommissionSetting(platformObjId);
+                        // vm.getNotifyEditChildPartnerSetting(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
