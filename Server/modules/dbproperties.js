@@ -207,6 +207,12 @@ var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', par
 var partnerCommissionRateConfigSchema = require('./../schema/partnerCommissionRateConfig');
 var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConfig', partnerCommissionRateConfigSchema, 'partnerCommissionRateConfig');
 
+var notifyEditChildPartnerSettingSchema = require('./../schema/notifyEditChildPartnerSetting');
+var notifyEditChildPartnerSettingModel = db_admin.model('notifyEditChildPartnerSetting', notifyEditChildPartnerSettingSchema, 'notifyEditChildPartnerSetting');
+
+var notifyEditPartnerCommissionSettingSchema = require('./../schema/notifyEditPartnerCommissionSetting');
+var notifyEditPartnerCommissionSettingModel = db_admin.model('notifyEditPartnerCommissionSetting', notifyEditPartnerCommissionSettingSchema, 'notifyEditPartnerCommissionSetting');
+
 let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
 let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');
 
@@ -763,6 +769,8 @@ var dbProperties = {
     collection_platformAnnouncement: platformAnnouncementModel,
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
     collection_partnerCommissionRateConfig: partnerCommissionRateConfigModel,
+    collection_notifyEditChildPartnerSetting: notifyEditChildPartnerSettingModel,
+    collection_notifyEditPartnerCommissionSetting: notifyEditPartnerCommissionSettingModel,
 
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,

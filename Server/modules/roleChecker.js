@@ -614,6 +614,10 @@ var roleChecker = {
                 "auditRepairTransferRecipient": [],
                 "auditRepairTransferAuditor": [],
             },
+            "EmailNotification": {
+                "notifyEditPartnerCommission": [],
+                "notifyEditChildPartner": [],
+            },
         },
         Report: {
             General: {
