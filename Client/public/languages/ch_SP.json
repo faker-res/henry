@@ -1759,6 +1759,7 @@
   "Reward Percentage %": "优惠比例％",
   "The quantity limit of the reward application for the interval": "周期内释出的优惠总数量",
   "Only limited quantity of reward is open for applying": "周期内优惠只释出 N 个（搭配存款申请的个数），超出报错",
+  "The reward application limit per player (not limited by reward interval)": "玩家可申请次数（非周期）",
 
   "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
@@ -4889,6 +4890,7 @@
   "Bank card type does not match, fail to claim reward": "银行卡类型不符，无法同时领取优惠",
   "Online top up type does not match, fail to claim reward": "在线充值类型不符，无法同时领取优惠",
   "Reward claimed exceed limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
+  "Reward claimed exceed total limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
   "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
   "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
   "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
