@@ -8644,7 +8644,10 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
+                if(vm.newPlayer.platform){
+                    sendData.platform = vm.newPlayer.platform;
+                }
+                // sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
