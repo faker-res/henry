@@ -24813,7 +24813,10 @@ define(['js/app'], function (myApp) {
                         vm.getEmailAuditConfig(platformObjId);
                         break;
                     case 'emailNotificationConfig':
+                        vm.editNotifyConfig = {};
                         vm.getEmailNotificationConfig(platformObjId);
+                        vm.getNotifyEditPartnerCommissionSetting(platformObjId);
+                        vm.getNotifyEditChildPartnerSetting(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
@@ -32597,6 +32600,73 @@ define(['js/app'], function (myApp) {
                 vm.configTabClicked("emailNotificationConfig");
             };
 
+            vm.getNotifyEditPartnerCommissionSetting = (platformObjId) => {
+                if (!platformObjId) return;
+                vm.editNotifyConfig.notifyEditPartnerCommission = vm.editNotifyConfig.notifyEditPartnerCommission || false;
+                vm.notifyEditPartnerCommission = vm.notifyEditPartnerCommission || {};
+                let sendData = {
+                    platformObjId: platformObjId
+                };
+                console.log('sendData', sendData)
+
+                socketService.$socket($scope.AppSocket, 'getNotifyEditPartnerCommissionSetting', sendData, function (data) {
+                    console.log('getNotifyEditPartnerCommissionSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.notifyEditPartnerCommission = {};
+                        if (data && data.data) {
+                            vm.notifyEditPartnerCommission = data.data;
+                        }
+                    });
+                });
+            };
+
+            vm.updateNotifyEditPartnerCommissionSetting = async function () {
+                console.log('updateNotifyEditPartnerCommissionSetting', vm.notifyEditPartnerCommission);
+
+                let result = await $scope.$socketPromise('updateNotifyEditPartnerCommissionSetting', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.notifyEditPartnerCommission.doNotify || false,
+                    emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
+                    backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                });
+                console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
+            vm.getNotifyEditChildPartnerSetting = (platformObjId) => {
+                if (!platformObjId) return;
+                vm.editNotifyConfig.notifyEditChildPartner = vm.editNotifyConfig.notifyEditChildPartner || false;
+                vm.notifyEditChildPartner = vm.notifyEditChildPartner || {};
+                let sendData = {
+                    platformObjId: platformObjId
+                };
+                console.log('sendData', sendData)
+
+                socketService.$socket($scope.AppSocket, 'getNotifyEditChildPartnerSetting', sendData, function (data) {
+                    console.log('getNotifyEditChildPartnerSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.notifyEditChildPartner = {};
+                        if (data && data.data) {
+                            vm.notifyEditChildPartner = data.data;
+                        }
+                    });
+                });
+            };
+
+            vm.updateNotifyEditChildPartnerSetting = async function () {
+                console.log('updateNotifyEditChildPartnerSetting', vm.notifyEditChildPartner);
+
+                let result = await $scope.$socketPromise('updateNotifyEditChildPartnerSetting', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.notifyEditChildPartner.doNotify || false,
+                    emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
+                    backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                });
+                console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
@@ -43105,7 +43175,7 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.submitPopularRecommendationSettings = async () => {
+            vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -43117,7 +43187,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 // we will save the collection changer before create another new item.
-                await vm.updatePopularRecommendationSetting();
+                // await vm.updatePopularRecommendationSetting();
                 let promArr;
 
                 if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
@@ -43450,11 +43520,14 @@ define(['js/app'], function (myApp) {
                         if (data && data.data) {
                             vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data.map(item => {
-                                item.device = item.device.toString();
+                                if (item && item.device){
+                                    item.device = item.device.toString();
+                                }
                                 return item;
                             });
 
                             utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                                vm.clearAllDropArea();
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".popUpAdvModal .droppable-area1, .droppable-area2, .droppable-area3").sortable({
                                     connectWith: ".connected-sortable",
@@ -43688,7 +43761,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
             };
 
-            vm.submitPopUpAdvertisementSettings = async () => {
+            vm.submitPopUpAdvertisementSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopUpAdvUploader').show();
                 function removeFromList(data) {
@@ -43698,7 +43771,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-                await vm.updatePopUpAdvertisementSetting();
+                // vm.updatePopUpAdvertisementSetting();
                 let promArr;
 
                 if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '1') {
