@@ -17287,7 +17287,7 @@ define(['js/app'], function (myApp) {
                     vm.getLargeWithdrawalPartnerSetting();
                     break;
                 case 'emailNotificationConfig':
-                    vm.editNotifyConfig = {};
+                    vm.editNotifyConfig = vm.editNotifyConfig ||{};
                     vm.getNotifyEditPartnerCommissionSetting(vm.platformInSetting);
                     vm.getNotifyEditChildPartnerSetting(vm.platformInSetting);
                     break;
