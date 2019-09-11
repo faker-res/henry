@@ -17617,9 +17617,9 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.platformInSetting._id,
                 doNotify: vm.notifyEditPartnerCommission.doNotify || false,
                 emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
-                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                backEndOnly: vm.notifyEditPartnerCommission.backEndOnly || "",
             });
-            console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+            console.log('updateNotifyEditPartnerCommissionSetting result', vm.updateNotifyEditPartnerCommissionSetting);
 
             vm.configTabClicked("emailNotificationConfig");
         };
@@ -17653,7 +17653,7 @@ define(['js/app'], function (myApp) {
                 emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
                 backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
             });
-            console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+            console.log('updateNotifyEditChildPartnerSetting result', vm.updateNotifyEditChildPartnerSetting);
 
             vm.configTabClicked("emailNotificationConfig");
         };
