@@ -9429,7 +9429,6 @@ let dbPartner = {
 
     urlShortener: (data) => {
 
-            let weiboAppKey = env.weiboAppKey;
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
