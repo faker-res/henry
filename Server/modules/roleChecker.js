@@ -321,6 +321,10 @@ var roleChecker = {
                 PREVIEW: [],
                 SETTLEMENT: [],
             },
+            "EmailNotification": {
+                "notifyEditPartnerCommission": [],
+                "notifyEditChildPartner": [],
+            },
         },
         Platform: {
             "PlatformSetting": {
@@ -614,10 +618,6 @@ var roleChecker = {
                 "auditManualRewardAuditor": [],
                 "auditRepairTransferRecipient": [],
                 "auditRepairTransferAuditor": [],
-            },
-            "EmailNotification": {
-                "notifyEditPartnerCommission": [],
-                "notifyEditChildPartner": [],
             },
         },
         Report: {

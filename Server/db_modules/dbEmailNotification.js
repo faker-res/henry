@@ -201,7 +201,7 @@ let dbEmailNotification = {
         });
         let proposalId = proposal.proposalId || "";
 
-        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailNotification.notifyEditPartnerCommission");
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Partner.EmailNotification.notifyEditPartnerCommission");
 
         if (!recipients || !recipients.length) {
             console.log('sendNotifyEditPartnerCommissionEmail no recipient')
@@ -366,7 +366,7 @@ let dbEmailNotification = {
 
         let proposalId = proposal.proposalId || "";
 
-        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailNotification.notifyEditChildPartner");
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Partner.EmailNotification.notifyEditChildPartner");
 
         if (!recipients || !recipients.length) {
             console.log('sendNotifyEditChildPartnerEmail no recipient')
