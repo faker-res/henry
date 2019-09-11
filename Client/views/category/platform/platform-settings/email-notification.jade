@@ -63,58 +63,58 @@ div.margin-top-5
     button.btn.btn-primary.common-button(ng-if='vm.editEmailNotificationConfig', ng-click='vm.editEmailNotificationConfig=!vm.editEmailNotificationConfig;vm.updateEmailNotificationConfig("emailNotificationConfig")') {{"CONFIRM" | translate}}
 
 
-h4(style='text-align:center;font-weight:bold') {{"Edit Partner Commission Setting" | translate}}
-table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-    thead
-        tr
-            th {{'TITLE' | translate}}
-            th {{'VALUE' | translate}}
-    tbody
-        tr
-            td {{'Turn On / Off' | translate}}
-            td
-                input(ng-model='vm.notifyEditPartnerCommission.doNotify' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
-        tr
-            td {{"back end only" | translate}}
-            td
-                input(ng-model='vm.notifyEditPartnerCommission.backEndOnly' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
-        tr
-            td {{'DEFAULT_EMAIL_NAME' | translate}}
-            td
-                input.inline-block(type='text' ng-model='vm.notifyEditPartnerCommission.emailPrefix', ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
-                text(style='color:red') {{"-- Edit (partner name) commission setting: Editor ID -- Date" | translate}}
-
-div.margin-top-5
-    button.btn.btn-primary.common-button(ng-if="!vm.editNotifyConfig.notifyEditPartnerCommission && checkViewPermission('Platform', 'Config', 'emailNotificationConfig')", ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission')
-        text {{'EDIT' | translate}}
-        img.img-edit
-    button.btn.btn-danger.common-button(ng-if='vm.editNotifyConfig.notifyEditPartnerCommission', ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission;vm.configTabClicked("emailNotificationConfig")') {{"CANCEL" | translate}}
-    button.btn.btn-primary.common-button(ng-if='vm.editNotifyConfig.notifyEditPartnerCommission', ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission;vm.updateNotifyEditPartnerCommissionSetting()') {{"CONFIRM" | translate}}
-
-h4(style='text-align:center;font-weight:bold') {{"Edit Child Partner" | translate}}
-table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-    thead
-        tr
-            th {{'TITLE' | translate}}
-            th {{'VALUE' | translate}}
-    tbody
-        tr
-            td {{'Turn On / Off' | translate}}
-            td
-                input(ng-model='vm.notifyEditChildPartner.doNotify' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
-        tr
-            td {{"back end only" | translate}}
-            td
-                input(ng-model='vm.notifyEditChildPartner.backEndOnly' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
-        tr
-            td {{'DEFAULT_EMAIL_NAME' | translate}}
-            td
-                input.inline-block(type='text' ng-model='vm.notifyEditChildPartner.emailPrefix', ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
-                text(style='color:red') {{"-- Edit (partner name) Child Partner: Editor ID -- Date" | translate}}
-
-div.margin-top-5
-    button.btn.btn-primary.common-button(ng-if="!vm.editNotifyConfig.notifyEditChildPartner && checkViewPermission('Platform', 'Config', 'emailNotificationConfig')", ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner')
-        text {{'EDIT' | translate}}
-        img.img-edit
-    button.btn.btn-danger.common-button(ng-if='vm.editNotifyConfig.notifyEditChildPartner', ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner;vm.configTabClicked("emailNotificationConfig")') {{"CANCEL" | translate}}
-    button.btn.btn-primary.common-button(ng-if='vm.editNotifyConfig.notifyEditChildPartner', ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner;vm.updateNotifyEditChildPartnerSetting()') {{"CONFIRM" | translate}}
+//h4(style='text-align:center;font-weight:bold') {{"Edit Partner Commission Setting" | translate}}
+//table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+//    thead
+//        tr
+//            th {{'TITLE' | translate}}
+//            th {{'VALUE' | translate}}
+//    tbody
+//        tr
+//            td {{'Turn On / Off' | translate}}
+//            td
+//                input(ng-model='vm.notifyEditPartnerCommission.doNotify' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
+//        tr
+//            td {{"back end only" | translate}}
+//            td
+//                input(ng-model='vm.notifyEditPartnerCommission.backEndOnly' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
+//        tr
+//            td {{'DEFAULT_EMAIL_NAME' | translate}}
+//            td
+//                input.inline-block(type='text' ng-model='vm.notifyEditPartnerCommission.emailPrefix', ng-disabled='!vm.editNotifyConfig.notifyEditPartnerCommission')
+//                text(style='color:red') {{"-- Edit (partner name) commission setting: Editor ID -- Date" | translate}}
+//
+//div.margin-top-5
+//    button.btn.btn-primary.common-button(ng-if="!vm.editNotifyConfig.notifyEditPartnerCommission && checkViewPermission('Platform', 'Config', 'emailNotificationConfig')", ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission')
+//        text {{'EDIT' | translate}}
+//        img.img-edit
+//    button.btn.btn-danger.common-button(ng-if='vm.editNotifyConfig.notifyEditPartnerCommission', ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission;vm.configTabClicked("emailNotificationConfig")') {{"CANCEL" | translate}}
+//    button.btn.btn-primary.common-button(ng-if='vm.editNotifyConfig.notifyEditPartnerCommission', ng-click='vm.editNotifyConfig.notifyEditPartnerCommission=!vm.editNotifyConfig.notifyEditPartnerCommission;vm.updateNotifyEditPartnerCommissionSetting()') {{"CONFIRM" | translate}}
+//
+//h4(style='text-align:center;font-weight:bold') {{"Edit Child Partner" | translate}}
+//table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+//    thead
+//        tr
+//            th {{'TITLE' | translate}}
+//            th {{'VALUE' | translate}}
+//    tbody
+//        tr
+//            td {{'Turn On / Off' | translate}}
+//            td
+//                input(ng-model='vm.notifyEditChildPartner.doNotify' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
+//        tr
+//            td {{"back end only" | translate}}
+//            td
+//                input(ng-model='vm.notifyEditChildPartner.backEndOnly' type='checkbox' ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
+//        tr
+//            td {{'DEFAULT_EMAIL_NAME' | translate}}
+//            td
+//                input.inline-block(type='text' ng-model='vm.notifyEditChildPartner.emailPrefix', ng-disabled='!vm.editNotifyConfig.notifyEditChildPartner')
+//                text(style='color:red') {{"-- Edit (partner name) Child Partner: Editor ID -- Date" | translate}}
+//
+//div.margin-top-5
+//    button.btn.btn-primary.common-button(ng-if="!vm.editNotifyConfig.notifyEditChildPartner && checkViewPermission('Platform', 'Config', 'emailNotificationConfig')", ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner')
+//        text {{'EDIT' | translate}}
+//        img.img-edit
+//    button.btn.btn-danger.common-button(ng-if='vm.editNotifyConfig.notifyEditChildPartner', ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner;vm.configTabClicked("emailNotificationConfig")') {{"CANCEL" | translate}}
+//    button.btn.btn-primary.common-button(ng-if='vm.editNotifyConfig.notifyEditChildPartner', ng-click='vm.editNotifyConfig.notifyEditChildPartner=!vm.editNotifyConfig.notifyEditChildPartner;vm.updateNotifyEditChildPartnerSetting()') {{"CONFIRM" | translate}}

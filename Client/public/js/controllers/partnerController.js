@@ -17286,6 +17286,11 @@ define(['js/app'], function (myApp) {
                 case 'largeWithdrawalPartnerSetting':
                     vm.getLargeWithdrawalPartnerSetting();
                     break;
+                case 'emailNotificationConfig':
+                    vm.editNotifyConfig = {};
+                    vm.getNotifyEditPartnerCommissionSetting(vm.platformInSetting);
+                    vm.getNotifyEditChildPartnerSetting(vm.platformInSetting);
+                    break;
                 case 'partnerDisplay':
                 case 'partnerAdvert':
                     vm.partnerAdvertisementList();
@@ -17583,6 +17588,74 @@ define(['js/app'], function (myApp) {
                 });
             });
 
+        };
+
+        vm.getNotifyEditPartnerCommissionSetting = (platformObjId) => {
+            if (!platformObjId) return;
+            vm.editNotifyConfig.notifyEditPartnerCommission = vm.editNotifyConfig.notifyEditPartnerCommission || false;
+            vm.notifyEditPartnerCommission = vm.notifyEditPartnerCommission || {};
+            let sendData = {
+                platformObjId: platformObjId
+            };
+            console.log('sendData', sendData)
+
+            socketService.$socket($scope.AppSocket, 'getNotifyEditPartnerCommissionSetting', sendData, function (data) {
+                console.log('getNotifyEditPartnerCommissionSetting', data.data);
+                $scope.$evalAsync(() => {
+                    vm.notifyEditPartnerCommission = {};
+                    if (data && data.data) {
+                        vm.notifyEditPartnerCommission = data.data;
+                    }
+                });
+            });
+        };
+
+        vm.updateNotifyEditPartnerCommissionSetting = async function () {
+            console.log('updateNotifyEditPartnerCommissionSetting', vm.notifyEditPartnerCommission);
+
+            let result = await $scope.$socketPromise('updateNotifyEditPartnerCommissionSetting', {
+                platformObjId: vm.platformInSetting._id,
+                doNotify: vm.notifyEditPartnerCommission.doNotify || false,
+                emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
+                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+            });
+            console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+
+            vm.configTabClicked("emailNotificationConfig");
+        };
+
+        vm.getNotifyEditChildPartnerSetting = (platformObjId) => {
+            if (!platformObjId) return;
+            vm.editNotifyConfig.notifyEditChildPartner = vm.editNotifyConfig.notifyEditChildPartner || false;
+            vm.notifyEditChildPartner = vm.notifyEditChildPartner || {};
+            let sendData = {
+                platformObjId: platformObjId
+            };
+            console.log('sendData', sendData)
+
+            socketService.$socket($scope.AppSocket, 'getNotifyEditChildPartnerSetting', sendData, function (data) {
+                console.log('getNotifyEditChildPartnerSetting', data.data);
+                $scope.$evalAsync(() => {
+                    vm.notifyEditChildPartner = {};
+                    if (data && data.data) {
+                        vm.notifyEditChildPartner = data.data;
+                    }
+                });
+            });
+        };
+
+        vm.updateNotifyEditChildPartnerSetting = async function () {
+            console.log('updateNotifyEditChildPartnerSetting', vm.notifyEditChildPartner);
+
+            let result = await $scope.$socketPromise('updateNotifyEditChildPartnerSetting', {
+                platformObjId: vm.platformInSetting._id,
+                doNotify: vm.notifyEditChildPartner.doNotify || false,
+                emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
+                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+            });
+            console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+
+            vm.configTabClicked("emailNotificationConfig");
         };
 
         vm.configSubmitUpdate = function (choice) {

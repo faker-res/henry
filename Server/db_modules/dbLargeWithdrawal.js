@@ -1093,7 +1093,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
 
-    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:ss A");
+    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:mm:ss A");
 
     html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%">A.玩家信息区</div>`;
 
@@ -1576,7 +1576,7 @@ function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
 
-    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:ss A");
+    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:mm:ss A");
 
     html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%">A.代理信息区</div>`;
 
