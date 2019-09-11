@@ -2011,6 +2011,7 @@ define(['js/app'], function (myApp) {
                     vm.updateMultiselectProposal();
                 }
                 if (event.target.tagName == 'A') {
+                    vm.rejectRemark = "";
                     var data = vm.proposalTable.row(this).data();
                     vm.proposalRowClicked(data);
                 }
@@ -2067,6 +2068,8 @@ define(['js/app'], function (myApp) {
         vm.updateMultiProposal = function (bApprove) {
             console.log("updateMultiProposal", vm.multiProposalSelected);
             if (bApprove) {
+                vm.rejectMultipleRemark = "";
+                vm.rejectRemark = "";
                 vm.showProposalIndicator.approve = true;
             } else {
                 vm.showProposalIndicator.reject = true;

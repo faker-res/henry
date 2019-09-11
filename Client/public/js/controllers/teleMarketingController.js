@@ -8525,11 +8525,14 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchFeedbackPhoneQuery = function (newSearch) {
+            if (!vm.filterTrashClassificationPlatform) {
+                return;
+            }
             vm.feedbackPhoneQuery = vm.feedbackPhoneQuery || {};
             var sendData = {
                 startTime: vm.feedbackPhoneQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.feedbackPhoneQuery.endTime.data('datetimepicker').getLocalDate(),
-                platformId: vm.selectedPlatform.id,
+                platformId: vm.filterTrashClassificationPlatform,
                 sourcePlatform: vm.feedbackPhoneQuery.sourcePlatform,
                 topUpTimesOperator: vm.feedbackPhoneQuery.topUpTimesOperator,
                 topUpTimes: vm.feedbackPhoneQuery.topUpTimes,

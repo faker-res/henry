@@ -1256,7 +1256,7 @@ define(['js/app'], function (myApp) {
         vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
             let sendData = {
                 applySettlementArray: applyPartnerCommSettlementArray,
-                platformObjId: vm.selectedPlatform.data._id,
+                platformObjId: vm.platformInSettlementTab._id,
                 commissionType: vm.partnerCommVar.settMode,
                 startTime: vm.partnerCommVar.startTime,
                 endTime: vm.partnerCommVar.endTime
@@ -6037,6 +6037,14 @@ define(['js/app'], function (myApp) {
                         partner.platform$ = matchedPlatformData.name;
                     }
                 }
+
+                if (partner.partnerLevel) {
+                    if (partner.partnerLevel == 1) {
+                        partner.partnerLevel$ = $translate("MAIN_PARTNER");
+                    } else {
+                        partner.partnerLevel$ = partner.partnerLevel + $translate("级代理");
+                    }
+                }
             });
 
             vm.partners = await getReferralsList(data);
@@ -6052,6 +6060,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
+                    },
+                    {
+                        title: $translate('PARTNER_HIERARCHICAL'),
+                        data: 'partnerLevel$'
                     },
                     {
                         title: $translate('PARTNER_NAME'),
@@ -8561,8 +8573,17 @@ define(['js/app'], function (myApp) {
                     vm.partnerValidity.ownDomainDuplicate = true;
                     vm.partnerValidity.ownDomainName = '';
                     data.data.data.map(item => {
-                        vm.partnerValidity.ownDomainName += item;
-                        vm.partnerValidity.ownDomainName += ' ';
+                        if (vm.partnerValidity.ownDomainName) {
+                            vm.partnerValidity.ownDomainName += ',';
+                        }
+                        if (item.name) {
+                            vm.partnerValidity.ownDomainName += item.name;
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
+                        if (item.partnerName) {
+                            vm.partnerValidity.ownDomainName += "(" + item.partnerName + ")";
+                            vm.partnerValidity.ownDomainName += ' ';
+                        }
                     })
                 }
                 form.ownDomain.$setValidity('invalidOwnDomain', !vm.partnerValidity.ownDomainDuplicate)
@@ -17265,6 +17286,11 @@ define(['js/app'], function (myApp) {
                 case 'largeWithdrawalPartnerSetting':
                     vm.getLargeWithdrawalPartnerSetting();
                     break;
+                case 'emailNotificationConfig':
+                    vm.editNotifyConfig = {};
+                    vm.getNotifyEditPartnerCommissionSetting(vm.platformInSetting);
+                    vm.getNotifyEditChildPartnerSetting(vm.platformInSetting);
+                    break;
                 case 'partnerDisplay':
                 case 'partnerAdvert':
                     vm.partnerAdvertisementList();
@@ -17562,6 +17588,74 @@ define(['js/app'], function (myApp) {
                 });
             });
 
+        };
+
+        vm.getNotifyEditPartnerCommissionSetting = (platformObjId) => {
+            if (!platformObjId) return;
+            vm.editNotifyConfig.notifyEditPartnerCommission = vm.editNotifyConfig.notifyEditPartnerCommission || false;
+            vm.notifyEditPartnerCommission = vm.notifyEditPartnerCommission || {};
+            let sendData = {
+                platformObjId: platformObjId
+            };
+            console.log('sendData', sendData)
+
+            socketService.$socket($scope.AppSocket, 'getNotifyEditPartnerCommissionSetting', sendData, function (data) {
+                console.log('getNotifyEditPartnerCommissionSetting', data.data);
+                $scope.$evalAsync(() => {
+                    vm.notifyEditPartnerCommission = {};
+                    if (data && data.data) {
+                        vm.notifyEditPartnerCommission = data.data;
+                    }
+                });
+            });
+        };
+
+        vm.updateNotifyEditPartnerCommissionSetting = async function () {
+            console.log('updateNotifyEditPartnerCommissionSetting', vm.notifyEditPartnerCommission);
+
+            let result = await $scope.$socketPromise('updateNotifyEditPartnerCommissionSetting', {
+                platformObjId: vm.platformInSetting._id,
+                doNotify: vm.notifyEditPartnerCommission.doNotify || false,
+                emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
+                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+            });
+            console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+
+            vm.configTabClicked("emailNotificationConfig");
+        };
+
+        vm.getNotifyEditChildPartnerSetting = (platformObjId) => {
+            if (!platformObjId) return;
+            vm.editNotifyConfig.notifyEditChildPartner = vm.editNotifyConfig.notifyEditChildPartner || false;
+            vm.notifyEditChildPartner = vm.notifyEditChildPartner || {};
+            let sendData = {
+                platformObjId: platformObjId
+            };
+            console.log('sendData', sendData)
+
+            socketService.$socket($scope.AppSocket, 'getNotifyEditChildPartnerSetting', sendData, function (data) {
+                console.log('getNotifyEditChildPartnerSetting', data.data);
+                $scope.$evalAsync(() => {
+                    vm.notifyEditChildPartner = {};
+                    if (data && data.data) {
+                        vm.notifyEditChildPartner = data.data;
+                    }
+                });
+            });
+        };
+
+        vm.updateNotifyEditChildPartnerSetting = async function () {
+            console.log('updateNotifyEditChildPartnerSetting', vm.notifyEditChildPartner);
+
+            let result = await $scope.$socketPromise('updateNotifyEditChildPartnerSetting', {
+                platformObjId: vm.platformInSetting._id,
+                doNotify: vm.notifyEditChildPartner.doNotify || false,
+                emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
+                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+            });
+            console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+
+            vm.configTabClicked("emailNotificationConfig");
         };
 
         vm.configSubmitUpdate = function (choice) {
@@ -18984,16 +19078,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail = [], detailType){
             vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
             for (var i in vm.partnerDLCommDetailTotal){
                 delete vm.partnerDLCommDetailTotal[i];
             }
 
             if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
-                if (!partnerDownLineCommDetail[0]) {
-                    partnerDownLineCommDetail.push({});
-                }
                 (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
                     if (key === "consumptionProviderDetail") {
                         (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {

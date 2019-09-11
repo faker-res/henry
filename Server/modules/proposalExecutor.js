@@ -51,6 +51,7 @@ var SMSSender = require('./SMSSender');
 //Reward Points
 const constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
+const dbEmailNotification = require("../db_modules/dbEmailNotification");
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
@@ -1602,6 +1603,10 @@ var proposalExecutor = {
                         newChildPartnerArr = proposalData.data.updateChildPartnerName.filter((x) => proposalData.data.curChildPartnerName.indexOf(x) === -1);
                     }
 
+                    dbEmailNotification.sendNotifyEditChildPartnerEmail(proposalData).catch(err => {
+                        console.log("sendNotifyEditChildPartnerEmail fail", proposalData.proposalId, err);
+                    });
+
                     partnerProm.then(childPartner => {
                         childPartnerData = childPartner ? childPartner : [];
 
@@ -2216,6 +2221,8 @@ var proposalExecutor = {
                         applyAmount: 0,
                     };
                     proposalData.data.proposalId = proposalData.proposalId;
+                    console.log("Check CR execute proposal id",proposalData.proposalId)
+                    console.log("Check CR execute player id",taskData.playerId)
                     return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
@@ -2235,6 +2242,10 @@ var proposalExecutor = {
                                         sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                                     }
                                     dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
+                                },
+                                err => {
+                                    console.log("check CR execute reject",err)
+                                    return Promise.reject(err);
                                 }
                             );
                         }
@@ -4117,6 +4128,9 @@ var proposalExecutor = {
                     prom.then(
                         data => {
                             updatePartnerCommissionType(proposalData);
+                            dbEmailNotification.sendNotifyEditPartnerCommissionEmail(proposalData).catch(err => {
+                                console.log("sendNotifyEditPartnerCommissionEmail failed", err);
+                            });
                             deferred.resolve(data);
                         },
                         error => deferred.reject(error)

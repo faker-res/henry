@@ -7,80 +7,106 @@ var frontEndPopularRecommendationSettingSchema = new Schema({
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
     // title
     title: {type: String},
+    // type 1 = PC, 2 = APP, 3 = H5
+    device: {type: Number, index: true},
     // display title
     displayTitle: {type: String},
     // 1： 首页热门推荐； 2： 游戏推荐； 3： 底部
     category: {type: Number, index: true},
-    pc: {
-        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
-        onClickAction: {type: Number},
-        //  ftp url for uploaded pc image
-        imageUrl: {type: String},
-        // the ftp url for uploaded new page image
-        newPageUrl: {type: String},
-        // the ftp url for uploaded activity iframe url
-        activityUrl: {type: String},
-        // reward event ObjectId
-        rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
-        // the route to official web page
-        route: {type: String},
-        // the game code
-        gameCode: {type: String},
-        // the height
-        pageHeight: {type: String},
-        // 导航选中图
-        selectedNavImage: {type: String},
-        // has to log in or not
-        requiredToLogIn: {type: Boolean, index: true},
-        // stop pop-up in navigation bar
-        stopPopUp: {type: Boolean, index: true},
-        // pop-up data
-        popUpList: [{type: Schema.Types.ObjectId, ref: 'frontEndPopUpSetting'}],
-    },
-    h5: {
-        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
-        onClickAction: {type: Number},
-        //  ftp url for uploaded pc image
-        imageUrl: {type: String},
-        // the ftp url for uploaded new page image
-        newPageUrl: {type: String},
-        // the ftp url for uploaded activity iframe url
-        activityUrl: {type: String},
-        // reward event ObjectId
-        rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
-        // the route to official web page
-        route: {type: String},
-        // the game code
-        gameCode: {type: String},
-        // the height
-        pageHeight: {type: String},
-        // 导航选中图
-        selectedNavImage: {type: String},
-        // has to log in or not
-        requiredToLogIn: {type: Boolean, index: true},
-    },
-    app: {
-        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
-        onClickAction: {type: Number},
-        //  ftp url for uploaded pc image
-        imageUrl: {type: String},
-        // the ftp url for uploaded new page image
-        newPageUrl: {type: String},
-        // the ftp url for uploaded activity iframe url
-        activityUrl: {type: String},
-        // reward event ObjectId
-        rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
-        // the route to official web page
-        route: {type: String},
-        // the game code
-        gameCode: {type: String},
-        // the height
-        pageHeight: {type: String},
-        // 导航选中图
-        selectedNavImage: {type: String},
-        // has to log in or not
-        requiredToLogIn: {type: Boolean, index: true},
-    },
+    // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+    onClickAction: {type: Number},
+    //  ftp url for uploaded pc image
+    imageUrl: {type: String},
+    // the ftp url for uploaded new page image
+    newPageUrl: {type: String},
+    // the ftp url for uploaded activity iframe url
+    activityUrl: {type: String},
+    // reward event ObjectId
+    rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
+    // the route to official web page
+    route: {type: String},
+    // the game code
+    gameCode: {type: String},
+    // the height
+    pageHeight: {type: String},
+    // 导航选中图
+    selectedNavImage: {type: String},
+    // has to log in or not
+    requiredToLogIn: {type: Boolean, index: true},
+    // stop pop-up in navigation bar
+    stopPopUp: {type: Boolean, index: true},
+    // pop-up data
+    popUpList: [{type: Schema.Types.ObjectId, ref: 'frontEndPopUpSetting'}],
+    // pc: {
+    //     // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+    //     onClickAction: {type: Number},
+    //     //  ftp url for uploaded pc image
+    //     imageUrl: {type: String},
+    //     // the ftp url for uploaded new page image
+    //     newPageUrl: {type: String},
+    //     // the ftp url for uploaded activity iframe url
+    //     activityUrl: {type: String},
+    //     // reward event ObjectId
+    //     rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
+    //     // the route to official web page
+    //     route: {type: String},
+    //     // the game code
+    //     gameCode: {type: String},
+    //     // the height
+    //     pageHeight: {type: String},
+    //     // 导航选中图
+    //     selectedNavImage: {type: String},
+    //     // has to log in or not
+    //     requiredToLogIn: {type: Boolean, index: true},
+    //     // stop pop-up in navigation bar
+    //     stopPopUp: {type: Boolean, index: true},
+    //     // pop-up data
+    //     popUpList: [{type: Schema.Types.ObjectId, ref: 'frontEndPopUpSetting'}],
+    // },
+    // h5: {
+    //     // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+    //     onClickAction: {type: Number},
+    //     //  ftp url for uploaded pc image
+    //     imageUrl: {type: String},
+    //     // the ftp url for uploaded new page image
+    //     newPageUrl: {type: String},
+    //     // the ftp url for uploaded activity iframe url
+    //     activityUrl: {type: String},
+    //     // reward event ObjectId
+    //     rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
+    //     // the route to official web page
+    //     route: {type: String},
+    //     // the game code
+    //     gameCode: {type: String},
+    //     // the height
+    //     pageHeight: {type: String},
+    //     // 导航选中图
+    //     selectedNavImage: {type: String},
+    //     // has to log in or not
+    //     requiredToLogIn: {type: Boolean, index: true},
+    // },
+    // app: {
+    //     // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+    //     onClickAction: {type: Number},
+    //     //  ftp url for uploaded pc image
+    //     imageUrl: {type: String},
+    //     // the ftp url for uploaded new page image
+    //     newPageUrl: {type: String},
+    //     // the ftp url for uploaded activity iframe url
+    //     activityUrl: {type: String},
+    //     // reward event ObjectId
+    //     rewardEventObjId: {type: Schema.Types.ObjectId, ref: 'rewardEvent', index: true},
+    //     // the route to official web page
+    //     route: {type: String},
+    //     // the game code
+    //     gameCode: {type: String},
+    //     // the height
+    //     pageHeight: {type: String},
+    //     // 导航选中图
+    //     selectedNavImage: {type: String},
+    //     // has to log in or not
+    //     requiredToLogIn: {type: Boolean, index: true},
+    // },
     // 1: web; 2: iOS APP; 3: Android APP; 4: H5
     visibleOnDevice: [{
         _id: false,

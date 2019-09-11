@@ -393,6 +393,8 @@ style.
                         table#rewardRankingRandomTable.common-table.display(style="min-width:100% ;overflow: scroll")
                         button.btn.btn-primary.common-button.pull-right(ng-if='!vm.editFakeAcc' ng-click='vm.toggleDeleteFakeAcc(true)') {{"deleteMultipleFakeData" | translate}}
                         button.btn.btn-success.common-button.pull-right(ng-if='vm.editFakeAcc' ng-click='vm.toggleDeleteFakeAcc(false)') {{"CANCEL" | translate}}
+                        button.btn.btn-danger.common-button.pull-right(ng-if='vm.displayFrontEndRewardPointsRankingData' ng-click='vm.toggleFrontEndRewardPointsRankingData(false)') {{"disableFrontEndRewardPointsRankingData" | translate}}
+                        button.btn.btn-success.common-button.pull-right(ng-if='!vm.displayFrontEndRewardPointsRankingData' ng-click='vm.toggleFrontEndRewardPointsRankingData(true)') {{"enableFrontEndRewardPointsRankingData" | translate}}
                         button.btn.btn-danger.common-button.pull-right(ng-if='vm.editFakeAcc' ng-disabled='!vm.multiRandomRankingSelected || vm.multiRandomRankingSelected.length < 1'
                         ng-click='vm.toggleDeleteFakeAcc(false);vm.deleteMultipleRandomRanking()') {{"DELETE" | translate}}
                         br

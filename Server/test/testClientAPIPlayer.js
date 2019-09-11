@@ -1,4 +1,6 @@
 var should = require('should');
+var expect = require('expect');
+var sinon = require('sinon');
 var dbconfig = require('../modules/dbproperties');
 
 var WebSocketClient = require('../server_common/WebSocketClient');
@@ -61,7 +63,6 @@ describe("Test Client API - Player service", function () {
 
     var clientPlayerAPITest = new ClientPlayerAPITest(playerService);
 
-
     //// Init player Data - Start ///////
     // NOTE :: if you return promise (or use async/await), you do not need to call done(). An exception will occur if you do it
     // however, if you use promise(or any sort of async programming) without return promise, done() is necessary to tell mocha that the script is finished
@@ -76,6 +77,9 @@ describe("Test Client API - Player service", function () {
         testPlayerName = testPlayer.name;
         testPlayerObjId = testPlayer._id;
         testPlayerId = testPlayer.playerId;
+        testPlayerGender = testPlayer.gender;
+        testPlayerDOB = testPlayer.DOB;
+        testPlayerRealName = testPlayer.realName;
 
         testPlayerGender = testPlayer.gender;
         testPlayerDOB = testPlayer.DOB;
@@ -414,6 +418,36 @@ describe("Test Client API - Player service", function () {
         });
     });
 
+    it('Should get player unread mail', function () {
+        clientPlayerAPITest.getUnreadMail(function (data) {
+            data.status.should.equal(200);
+            data.data._id.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerId: testPlayerId});
+    });
+
+    it('Should send mail from player to player', function () {
+        clientPlayerAPITest.sendPlayerMailFromPlayerToPlayer(function (data) {
+            data.status.should.equal(200);
+            data.data.__v.should.be.a.Number();
+            data.data.platformId.should.be.a.String();
+            data.data.senderType.should.be.a.String();
+            data.data.senderId.should.be.a.String();
+            data.data.senderName.should.be.a.String();
+            data.data.recipientType.should.be.a.String();
+            data.data.recipientId.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data._id.should.be.a.String();
+            data.data.bDelete.should.be.a.Boolean();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
+    });
+
     it('Should update player', function () {
         clientPlayerAPITest.update(function (data) {
             data.status.should.equal(200);
@@ -462,6 +496,7 @@ describe("Test Client API - Player service", function () {
             data.data.should.be.Object();
         });
     });
+       
 
     it('Should set SMS status', function () {
         clientPlayerAPITest.setSmsStatus(function (data) {
@@ -587,6 +622,7 @@ describe("Test Client API - Player service", function () {
             data.data.should.be.a.String();
 
         }, {playerId: testPlayerId});
+    });
 
     it('Should Save Client Data', function () {
         clientPlayerAPITest.saveClientData(function (data) {
