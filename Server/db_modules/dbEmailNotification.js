@@ -155,11 +155,14 @@ let dbEmailNotification = {
         if (proposal.data.newRate && !proposal.data.newConfigArr) {
             proposal.data.newConfigArr = [proposal.data.newRate];
         }
-        if (proposal.data.oldRate && !proposal.data.oldConfigArr) {
-            proposal.data.oldConfigArr = [proposal.data.oldRate];
+        if (!proposal.data.oldConfigArr) {
+            proposal.data.oldConfigArr = [];
+            if (proposal.data.oldRate) {
+                proposal.data.oldConfigArr = [proposal.data.oldRate];
+            }
         }
 
-        if (!proposal.data.platformObjId || !proposal.data.newConfigArr || !proposal.data.newConfigArr.length || !proposal.data.oldConfigArr || !proposal.data.oldConfigArr.length) {
+        if (!proposal.data.platformObjId || !proposal.data.newConfigArr ) {
             console.log('1', Boolean(proposal.data.newConfigArr));
             console.log('2', Boolean(proposal.data.oldConfigArr));
             return;
