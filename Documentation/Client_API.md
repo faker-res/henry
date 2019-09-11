@@ -475,6 +475,7 @@ API说明：
 			  referral: “player002”,
 			  domain: “domain.com”
             }
+            
   - name: 玩家注册的用户名.(需验证用户是否被占用)
   - realName: 真实姓名
   - password: 玩家密码

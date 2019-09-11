@@ -81,6 +81,10 @@ describe("Test Client API - Player service", function () {
         testPlayerDOB = testPlayer.DOB;
         testPlayerRealName = testPlayer.realName;
 
+        testPlayerGender = testPlayer.gender;
+        testPlayerDOB = testPlayer.DOB;
+        testPlayerRealName = testPlayer.realName;
+
         // create a connection
         client.connect();
         let clientOpenProm = () => {
@@ -146,7 +150,6 @@ describe("Test Client API - Player service", function () {
         done();
     });
 
-    // NOTE:: move the dependency out of 'it' so you can run each 'it' test individually while still not having dependency issue
     let apiLoginPlayer;
     before(function (done) {
         const testPlayerLoginData = {
@@ -171,6 +174,7 @@ describe("Test Client API - Player service", function () {
     });
 
     it('Should return true - test player isLogin', function (done) {
+
         clientPlayerAPITest.isLogin(function (data) {
             data.status.should.equal(200);
             data.data.should.equal(true);
@@ -386,22 +390,6 @@ describe("Test Client API - Player service", function () {
         },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
     });
 
-    //not appear in CLient API MD
-    it('Should do player Quick Registration', function () {
-        dbconfig.collection_players.remove({name: testQuickPlayerName});
-
-        clientPlayerAPITest.playerQuickReg(function (data) {
-            data.data.name.should.endWith(testQuickPlayerName);
-
-        }, {
-            "name": testQuickPlayerName,
-            "email": "testPlayer123@gmail.com",
-            "realName": "testPlayerRealName",
-            "password": "123456",
-            "platformId": testPlatformId,
-            "phoneNumber": "97787654",
-        });
-    });
 
     it('Should check valid real name', function () {
         const param = {
@@ -428,6 +416,36 @@ describe("Test Client API - Player service", function () {
             playerId: testPlayerId,
             password: randomPWD.toString()
         });
+    });
+
+    it('Should get player unread mail', function () {
+        clientPlayerAPITest.getUnreadMail(function (data) {
+            data.status.should.equal(200);
+            data.data._id.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerId: testPlayerId});
+    });
+
+    it('Should send mail from player to player', function () {
+        clientPlayerAPITest.sendPlayerMailFromPlayerToPlayer(function (data) {
+            data.status.should.equal(200);
+            data.data.__v.should.be.a.Number();
+            data.data.platformId.should.be.a.String();
+            data.data.senderType.should.be.a.String();
+            data.data.senderId.should.be.a.String();
+            data.data.senderName.should.be.a.String();
+            data.data.recipientType.should.be.a.String();
+            data.data.recipientId.should.be.a.String();
+            data.data.title.should.be.a.String();
+            data.data.content.should.be.a.String();
+            data.data._id.should.be.a.String();
+            data.data.bDelete.should.be.a.Boolean();
+            data.data.hasBeenRead.should.be.a.Boolean();
+            data.data.createTime.should.be.a.String();
+        },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
     });
 
     it('Should update player', function () {
@@ -478,6 +496,7 @@ describe("Test Client API - Player service", function () {
             data.data.should.be.Object();
         });
     });
+       
 
     it('Should set SMS status', function () {
         clientPlayerAPITest.setSmsStatus(function (data) {
@@ -721,7 +740,8 @@ describe("Test Client API - Player service", function () {
             phoneNumber: "17355544411",
             smsCode: "5478"
         });
-      
+    });
+
     it('Should Update Password With Token', function () {
         clientPlayerAPITest.updatePasswordWithToken(function (data) {
             data.status.should.equal(200);
