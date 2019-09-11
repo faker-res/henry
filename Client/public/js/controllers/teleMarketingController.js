@@ -1598,7 +1598,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = data.tsPhone.phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.$evalAsync();
-                $scope.makePhoneCall(data.platformId);
+                $scope.makePhoneCall(data.platformId, true);
             }
         };
 
@@ -2956,7 +2956,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId, true);
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
@@ -6156,7 +6156,7 @@ define(['js/app'], function (myApp) {
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
             $scope.safeApply();
-            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+            $scope.makePhoneCall(vm.selectedPlatform.data.platformId, true);
         };
 
         // generate telePlayer Sending Message function table ====================End==================

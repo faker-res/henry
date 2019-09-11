@@ -39,8 +39,10 @@ var adminInfoSchema = new Schema({
     callerQueue: {type: String},
     // financial settlement notification showed base on each platform
     financialPointsNotificationShowed: [{type: String}],
-    // cti url
+    // cti url 回访用
     ctiUrl: String,
+    // cti url 电销用
+    ctiTsUrl: String,
 
 });
 

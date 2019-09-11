@@ -129,7 +129,7 @@ let dbTsCallOutMission = {
                     return Promise.reject({message: "This mission is finished."})
                 }
 
-                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, operation, admin.ctiUrl);
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, operation, admin.ctiTsUrl || admin.ctiUrl);
             }
         ).then(
             () => {
@@ -163,12 +163,12 @@ let dbTsCallOutMission = {
                 }
 
                 if (mission.status == constCallOutMissionStatus.PAUSED) {
-                    return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiUrl).then(
-                        () => dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl)
+                    return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.ON_GOING, admin.ctiTsUrl || admin.ctiUrl).then(
+                        () => dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiTsUrl || admin.ctiUrl)
                     );
                 }
 
-                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
+                return dbCtiCallOut.updateCtiMissionStatus(platform, missionName, constCallOutMissionStatus.FINISHED, admin.ctiTsUrl || admin.ctiUrl); //.catch().then(() => deleteCtiMission(platform, missionName));
             }
         ).then(
             () => {
@@ -308,7 +308,7 @@ module.exports = dbTsCallOutMission;
 function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
 
-    return dbCtiCallOut.getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiUrl).then(
+    return dbCtiCallOut.getCtiCallOutMissionDetail(platform, mission.missionName, admin.ctiTsUrl || admin.ctiUrl).then(
         apiOutputData => {
             apiOutput = apiOutputData;
 

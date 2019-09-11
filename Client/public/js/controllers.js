@@ -1162,7 +1162,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.phoneCall.username = data.toText;
         $scope.getNewPhoneCaptha();
     }
-    $scope.makePhoneCall = function (platformId) {
+    $scope.makePhoneCall = function (platformId, isTs) {
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {
             adminName: $scope.getUserName()
         }, onSuccess, onFail, true);
@@ -1253,8 +1253,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 ];
             }
 
-            if (adminData.ctiUrl) {
-                urls = [`http://${adminData.ctiUrl}.tel400.me/cti/previewcallout.action`];
+            if (adminData.ctiUrl || adminData.ctiTsUrl) {
+                let usedUrl = adminData.ctiUrl || adminData.ctiTsUrl;
+                if (isTs) {
+                    usedUrl = adminData.ctiTsUrl || adminData.ctiUrl;
+                }
+                urls = [`http://${usedUrl}.tel400.me/cti/previewcallout.action`];
             }
 
             performPhoneCall();
