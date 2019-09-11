@@ -6200,7 +6200,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
+            topupMatchQuery.oriAmount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
             topupMatchQuery.$or = [{'bDirty': false}];
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
@@ -6269,7 +6269,7 @@ let dbPlayerReward = {
                         let yerTopupProbability = 0;
                         if (topup && topup.length) {
                             topup.forEach(data => {
-                                yerTopupAmount += data.amount;
+                                yerTopupAmount += data.oriAmount || data.amount;
                             });
                             yerTopupProbability = yerTopupAmount / topup.length;
                         }
@@ -7922,7 +7922,7 @@ let dbPlayerReward = {
                         let topUpAmountToParticipate = eventData.condition && eventData.condition.hasOwnProperty('requiredTopUpAmount') ? eventData.condition.requiredTopUpAmount : 0;
                         let operationOption = eventData.condition && eventData.condition.operatorOption ? true : false;
 
-                        let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
+                        let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.oriAmount || value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         useTopUpAmount = 0;
@@ -7999,7 +7999,7 @@ let dbPlayerReward = {
                             //For set topup bDirty Use
                             topUpRecords.forEach((topUpRecord) => {
                                 if (useTopupRecordAmount < topUpAmountToParticipate) {
-                                    useTopupRecordAmount += topUpRecord.amount;
+                                    useTopupRecordAmount += topUpRecord.oriAmount || topUpRecord.amount;
                                     updateTopupRecordIds.push(topUpRecord._id);
                                 }
                             });
