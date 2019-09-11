@@ -743,8 +743,8 @@ var dbUtility = {
             case "YYYY/MM/DD":
                 returnedStr = date.format("YYYY/MM/DD");
                 break;
-            case "hh:ss A":
-                returnedStr = date.format("hh:ss A");
+            case "hh:mm:ss A":
+                returnedStr = date.format("hh:mm:ss A");
                 break;
             default:
                 returnedStr = date.format().substring(0, 10) + " " + date.format().substring(11, 19)

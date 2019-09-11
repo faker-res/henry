@@ -308,6 +308,7 @@ var roleChecker = {
                 PartnerDisplay: [],
                 PartnerAdvertisement: [],
                 partnerPosterAds: [],
+                emailNotificationConfig: ["updateNotifyEditPartnerCommissionSetting", "updateNotifyEditChildPartnerSetting"],
             },
             "Report": {
                 PLAYERPARTNER_REPORT: [],
@@ -319,6 +320,10 @@ var roleChecker = {
             "Settlement": {
                 PREVIEW: [],
                 SETTLEMENT: [],
+            },
+            "EmailNotification": {
+                "notifyEditPartnerCommission": [],
+                "notifyEditChildPartner": [],
             },
         },
         Platform: {
@@ -613,10 +618,6 @@ var roleChecker = {
                 "auditManualRewardAuditor": [],
                 "auditRepairTransferRecipient": [],
                 "auditRepairTransferAuditor": [],
-            },
-            "EmailNotification": {
-                "notifyEditPartnerCommission": [],
-                "notifyEditChildPartner": [],
             },
         },
         Report: {

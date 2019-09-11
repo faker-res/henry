@@ -862,7 +862,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle, step
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
 
-    let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
+    let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:mm:ss A");
 
 
     html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
@@ -995,7 +995,7 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle, step
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
 
-    let emailSubject = emailTitle+ " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
+    let emailSubject = emailTitle+ " " + dbutility.getLocalTimeString(contents.createTime, "hh:mm:ss A");
 
 
     html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
@@ -1138,7 +1138,7 @@ function generateAuditRepairTransferEmail (contents, allEmailArr, emailTitle, st
 
     let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
 
-    let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:ss A");
+    let emailSubject = emailTitle + " " + dbutility.getLocalTimeString(contents.createTime, "hh:mm:ss A");
 
 
     html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
