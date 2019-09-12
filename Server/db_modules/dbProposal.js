@@ -236,7 +236,6 @@ var proposal = {
             //here to check which type name
             if(data.type.name === constProposalType.UPDATE_PLAYER_INFO  || data.type.name ===  constProposalType.UPDATE_PLAYER_REAL_NAME){
                 if(proposalData && proposalData.data && proposalData.data.realName && data.status == 'Approved'){
-                    console.log('checking log 1', data.status);
                     await dbconfig.collection_players.update(
                         {_id: proposalData.data.playerObjId},
                         {bankAccountName: proposalData.data.realNameAfterEdit}
@@ -245,7 +244,6 @@ var proposal = {
             }else if(data.type.name === constProposalType.UPDATE_PLAYER_BANK_INFO){
                 //"bankchoice" for identifying which bank info tab, only the first tab will be amend.
                 if(proposalData && proposalData.data && proposalData.data.bankChoice === "1" && data.status == 'Approved'){
-                    console.log('checking log 2', proposalData);
                     await dbconfig.collection_players.update(
                         {_id: proposalData.data._id},
                         {realName: proposalData.data.bankAccountName}
