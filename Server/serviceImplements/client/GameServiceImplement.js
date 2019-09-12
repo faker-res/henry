@@ -306,7 +306,9 @@ var GameServiceImplement = function () {
 
     this.notifyLiveGameStatus.addListener(
         function (data) {
-            WebSocketUtil.notifyEBETLuZhuClient(self, "notifyLiveGameStatus", data);
+            let port = data.port;
+            delete data.port;
+            WebSocketUtil.notifyEBETLuZhuClient(self, "notifyLiveGameStatus", data, port);
         }
     );
 
