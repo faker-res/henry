@@ -582,7 +582,7 @@ let dbPartner = {
                     newElements = dbUtil.difArrays(partnerData.ownDomain, newDomains);
                     removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
                     if (newElements && newElements.length > 0) {
-                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
+                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele, partnerName: partnerData.partnerName}).save());
                         return Promise.all(newProms);
                     }
                 }
@@ -1100,10 +1100,11 @@ let dbPartner = {
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
             .populate({path: "player", model: dbconfig.collection_players, select:{_id:1, name:1, playerId:1}})
-            .populate({path: "parent", model: dbconfig.collection_partner})
+            .populate({path: "parent", model: dbconfig.collection_partner}).lean()
             .populate({path: "level", model: dbconfig.collection_partnerLevel}).
-            then(function(partnerdata){
-                partnerdata._doc.childrencount = childrencount;
+            then(async function(partnerdata){
+                partnerdata.partnerLevel = await dbPartner.getPartnerLevel(partnerdata.platform, partnerdata._id);
+                partnerdata.childrencount = childrencount;
                 return partnerdata
             })
     },
@@ -1309,9 +1310,7 @@ let dbPartner = {
         return dbconfig.collection_partnerOwnDomain.find({name: {$in: value}}).then(data => {
             if (data && data.length > 0) {
                 return {
-                    data: data.map(item => {
-                        return item.name;
-                    }),
+                    data: data,
                     exists: true, time: time
                 };
             } else {
@@ -6660,7 +6659,7 @@ let dbPartner = {
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
                 let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
                 let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
-                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id);
+                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id, providerGroups);
 
                 return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, partnerCommissionConfigRateProm]);
             }
@@ -9434,7 +9433,7 @@ let dbPartner = {
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                let uri = 'https://api.weibo.com/2/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
@@ -9445,7 +9444,7 @@ let dbPartner = {
                     data.forEach( (item, index) => {
                         try {
                              item = JSON.parse(item);
-                             item = ( item.urls && item.urls[0] ) ? item.urls[0] : {}
+                             item = ( item && item[0] ) ? item[0] : {}
                              item.no = index + 1;
                              result.push(item);
                         }
@@ -9472,7 +9471,6 @@ let dbPartner = {
         let partnerData;
         let partnerNo = data.partnerId;
         let preventBlockUrl;
-
         return dbconfig.collection_preventBlockUrl.find().lean().then(
             preventBlocks => {
                 // random pick one of preventBlock urls
@@ -9497,11 +9495,9 @@ let dbPartner = {
                 if (partnerData.shortUrl && Object.keys(partnerData.shortUrl).length > 30) {
                     return Promise.reject({message: "Generate Too Many ShortenerUrl."});
                 }
-
-                if ( !preventBlockUrl.url ) {
+                if ( !preventBlockUrl || !preventBlockUrl.url ) {
                     return Promise.reject({message: "You need to set Prevent Block Url first!"});
                 }
-
                 // if not exist generate new weibo short link
                 let randomUrl = preventBlockUrl.url + data.url;
                 console.log('MT --checking randomUrl', randomUrl);
@@ -9534,6 +9530,9 @@ let dbPartner = {
                 }
                 let shortUrl = partner.shortUrl[fullUrlUndotted];
                 shortUrl = shortUrl.replace(/\^/g, '.');
+                if (!shortUrl) {
+                    return Promise.reject({message: "Update ShortenerUrl Failed."});
+                }
                 result = { 'shortUrl': shortUrl, 'partnerName': partner.partnerName };
                 return result;
             }
@@ -10450,7 +10449,7 @@ let dbPartner = {
                 }
 
                 // Get members detail
-                let activePlayerRequirement = await getRelevantActivePlayerRequirement(partnerDetail.platform, partnerDetail.commissionType);
+                let activePlayerRequirement = await dbPartnerCommission.getRelevantActivePlayerRequirement(partnerDetail.platform, partnerDetail.commissionType);
                 let members = await dbconfig.collection_players.find({platform: partnerDetail.platform, partner: partnerDetail._id}, {_id: 1}).lean();
                 members = members.map(m => m._id);
 
@@ -12625,6 +12624,7 @@ function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
 
     return dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
         partnerLevelConfig => {
+            partnerLevelConfig = partnerLevelConfig || {};
             return {
                 topUpTimes: partnerLevelConfig[configPrefix + "PlayerTopUpTimes"] || 0,
                 topUpAmount: partnerLevelConfig[configPrefix + "PlayerTopUpAmount"] || 0,
@@ -12931,7 +12931,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     );
 }
 
-function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
+function getPartnerCommissionConfigRate (platformObjId, partnerObjId, gameProviderGroups = []) {
     let platformConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: {$exists: false}}).lean();
     let customConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: partnerObjId}).lean();
 
@@ -13000,6 +13000,16 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         });
                     });
                 }
+            }
+
+            if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && rateConfig && rateConfig.rateAfterRebateGameProviderGroup.map) {
+                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                    gameProviderGroups.map(providerGroup => {
+                        if (String(defaultGroup.gameProviderGroupId) === String(providerGroup._id)) {
+                            defaultGroup.name = providerGroup.name;
+                        }
+                    });
+                });
             }
             return rateConfig;
         }

@@ -227,26 +227,33 @@ var proposal = {
         return proposal;
     },
 
-    createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
-        return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
-            data => {
-                if (smsLogInfo && data && data.proposalId)
-                    dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
+    createProposalWithTypeNameWithProcessInfo: async function (platformId, typeName, proposalData, smsLogInfo) {
+        var data = await proposal.createProposalWithTypeName(platformId, typeName, proposalData)
+        // return proposal.createProposalWithTypeName(platformId, typeName, proposalData).then(
+        //     data => {
 
-                if (data && data.process) {
-                    return getStepInfo(Object.assign({}, data));
-                } else {
-                    return data;
-                }
-            },
-            error => {
-                return Promise.reject(error);
+            // update player realname at same time
+            //here to check which type name
+
+            if (smsLogInfo && data && data.proposalId){
+                dbLogger.updateSmsLogProposalId(smsLogInfo.tel, smsLogInfo.message, data.proposalId);
             }
-        );
+
+            if (data && data.process) {
+                return getStepInfo(Object.assign({}, data));
+            } else {
+                return data;
+            }
+            // },
+            // error => {
+            //     return Promise.reject(error);
+            // }
+        // );
 
         function getStepInfo(result) {
             return dbconfig.collection_proposalProcess.findOne({_id: result.process})
                 .then(processData => {
+                    console.log('check step info data', processData);
                     if (processData) {
                         return dbconfig.collection_proposalProcessStep.findOne({_id: processData.currentStep})
                             .populate({path: 'type', model: dbconfig.collection_proposalType})
@@ -257,6 +264,7 @@ var proposal = {
                     }
                 }).then(
                     stepData => {
+                        console.log('check step info result', result);
                         result.stepInfo = stepData;
                         return result;
                     }
@@ -437,34 +445,28 @@ var proposal = {
                     }
 
                     // Set top up type proposal to pre-pending
-                    if (
-                        data[0].name == constProposalType.PLAYER_TOP_UP
+                    if (data[0].name == constProposalType.PLAYER_TOP_UP
                         || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
                         || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
                         || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                         || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
-                        || data[0].name == constProposalType.PLAYER_ASSIGN_TOP_UP
-                    ) {
+                        || data[0].name == constProposalType.PLAYER_ASSIGN_TOP_UP) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
                     // Set bExecute to be true for auction process in order to send out message/mail regardless of the status
-                    if (
-                        data[0].name == constProposalType.AUCTION_PROMO_CODE
+                    if (data[0].name == constProposalType.AUCTION_PROMO_CODE
                         || data[0].name == constProposalType.AUCTION_OPEN_PROMO_CODE
                         || data[0].name == constProposalType.AUCTION_REWARD_PROMOTION
                         || data[0].name == constProposalType.AUCTION_REAL_PRIZE
-                        || data[0].name == constProposalType.AUCTION_REWARD_POINT_CHANGE
-                    ) {
+                        || data[0].name == constProposalType.AUCTION_REWARD_POINT_CHANGE) {
                         bExecute = true;
                     }
 
                     // For third party payment system, we just set the proposal to pending without any process
-                    if (
-                        data[0].name === constProposalType.PLAYER_FKP_TOP_UP
-                        || data[0].name === constProposalType.PLAYER_COMMON_TOP_UP
-                    ) {
+                    if (data[0].name === constProposalType.PLAYER_FKP_TOP_UP
+                        || data[0].name === constProposalType.PLAYER_COMMON_TOP_UP) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PENDING;
                     }
@@ -543,7 +545,7 @@ var proposal = {
                         proposalData.status = constProposalStatus.CSPENDING;
                     }
 
-                    if (proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)) {
+                    if (proposalData.data && data[2] && (proposalTypeData.name === constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name === constProposalType.UPDATE_PARTNER_REAL_NAME)) {
                         proposalData.data.realNameAfterEdit = proposalData.data.realName;
 
                         if (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME) {
@@ -558,11 +560,10 @@ var proposal = {
                     pendingProposalData = await dbconfig.collection_proposal.findOne(queryObj).lean();
 
                     // for player update bank info, check if first time bound to the bank info
-                    if (
-                        proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
-                        && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
-                        && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId
-                    ) {
+                    if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType === "UpdatePlayer"
+                        && proposalTypeData._id && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO
+                        && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+
                         let platformData = await dbconfig.collection_platform.findOne({_id: data[0].platformId}).lean();
 
                         if (!platformData) {
@@ -610,8 +611,8 @@ var proposal = {
 
                     } else if (
                         proposalData && proposalData.data && proposalData.mainType
-                        && proposalData.mainType == "UpdatePartner" && proposalTypeData._id
-                        && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
+                        && proposalData.mainType === "UpdatePartner" && proposalTypeData._id
+                        && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO
                         && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId
                     ) {
                         return dbconfig.collection_proposal.findOne({
@@ -633,11 +634,10 @@ var proposal = {
                 // add remark if first time bound to the bank info
                 if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
-                } else if (
-                    proposalData && proposalData.data && proposalData.mainType
-                    && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO)
-                    || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO))
-                ) {
+                } else if (proposalData && proposalData.data && proposalData.mainType
+                    && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO)
+                    || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO))) {
+
                     proposalData.data.remark = localization.localization.translate("Amend Bank Info");
                 }
 
@@ -656,14 +656,13 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
-                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
-                ) {
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE) {
+
                     return Promise.reject({
                         name: "DBError",
                         message: "Player or partner already has a pending proposal for this type"
                     });
-                }
-                else {
+                } else {
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS || proposalTypeData.name == constProposalType.PARTNER_BONUS) {
                         return dbconfig.collection_platform.findOne({_id: proposalTypeData.platformId}, {financialPoints: 1, financialSettlement: 1}).lean().then(
                             platformData => {
@@ -1462,8 +1461,7 @@ var proposal = {
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
                             .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
                     }
-                }
-                else {
+                } else {
                     deferred.reject({name: "DBError", message: "Can't find proposal"});
                 }
             },
@@ -1489,10 +1487,9 @@ var proposal = {
                 console.log("updateProposalProcessStep data3", data);
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
                 if(bIsBankInfoMatched == true){
-                    if (
-                        proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps
-                        && adminInfo.roles && adminInfo.roles.length
-                    ) {
+                    if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps
+                        && adminInfo.roles && adminInfo.roles.length) {
+
                         let isCorrectRole = false;
 
                         adminInfo.roles.forEach(role => {
@@ -1564,8 +1561,7 @@ var proposal = {
                                 isLocked: null
                             }
                         ).lean();
-                    }
-                    else {
+                    } else {
                         console.log("LH Check Proposal Reject 1------------",proposalData);
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposalData._id, createTime: proposalData.createTime},
@@ -1634,8 +1630,7 @@ var proposal = {
                                             else if (proposalObj.status == constProposalStatus.APPROVED){
                                                 proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj)
                                             }
-                                        }
-                                        else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                                        } else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
                                             prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                                                 .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                                                     playerData => {

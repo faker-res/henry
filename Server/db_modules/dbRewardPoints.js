@@ -1654,16 +1654,22 @@ let dbRewardPoints = {
         let rewardPointsProm = [];
         let playerLevelProm = [];
         let playerLevelRecord = [];
+        let displayFrontEndRewardPointsRankingData = null;
 
         let loginRewardPointEvent;
         let gameRewardPointEvent;
         let gameProvider;
         let rewardPointsRanking;
 
-        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1, displayFrontEndRewardPointsRankingData: 1}).lean().then(
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
+                    if (platformData.hasOwnProperty('displayFrontEndRewardPointsRankingData')) {
+                        displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
+                    } else {
+                        displayFrontEndRewardPointsRankingData = true;
+                    }
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
@@ -1847,7 +1853,13 @@ let dbRewardPoints = {
 
                 if (rewardPointsRanking && rewardPointsRanking.length > 0) {
                     let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking.slice(0, limit));
-                    returnData.pointRanking = rewardPointsRankingListArr;
+
+                    // determine whether to display reward points ranking data for front end
+                    if (displayFrontEndRewardPointsRankingData) {
+                        returnData.pointRanking = rewardPointsRankingListArr;
+                    } else {
+                        returnData.pointRanking = [];
+                    }
 
                     if (playerData) {
                         let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData, playerLevelRecord);
@@ -3012,7 +3024,15 @@ function getProgressBaseOnConsumptionAmount (playerObjId, event, startTime, endT
                 let totalValidAmount = 0;
 
                 eligibleConsumptions.map(consumption => {
-                    totalValidAmount += Number(consumption.validAmount);
+                    if(event.target.betType && event.target.betType.length > 0) {
+                        consumption.betDetails.forEach(detail => {
+                            if (event.target.betType.indexOf(detail.separatedBetType) > -1) {
+                                totalValidAmount += Number(detail.separatedBetAmount);
+                            }
+                        });
+                    } else {
+                        totalValidAmount += Number(consumption.validAmount);
+                    }
                 });
 
                 if (totalValidAmount >= dailyValidConsumptionAmount) {

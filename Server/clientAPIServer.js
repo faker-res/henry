@@ -45,6 +45,23 @@ var ClientAPIServer = serviceUtils.buildWSServer(
     process.env.USE_SSL
 );
 
+function generateRandomStr() { //to differentiate each instance
+    var numbers = "1234567890";
+    var symbols = "#$%@*^&!~:;?/\\[]{}";
+    var dict = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" + numbers + symbols;
+    var pass = '';
+    for (var i = 0; i < 16; i++) {
+        var j = Math.random() * dict.length;
+        j = (j + Date.now()) % dict.length;
+        var c = dict.charAt(j);
+        pass = pass + c;
+    }
+
+    return pass;
+}
+
+global.clientAPIServerNo = generateRandomStr() + String(new Date().getTime());
+
 ebetRTN.connect(5).catch(errorUtils.reportError);
 
 var server = new ClientAPIServer(process.env.PORT || 9280);

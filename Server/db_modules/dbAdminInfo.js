@@ -691,7 +691,7 @@ var dbAdminInfo = {
                     }
                 }
 
-                return dbconfig.collection_department.find({_id: {$in: departments}, platforms: platformObjId}).lean();
+                return dbconfig.collection_department.find({_id: {$in: departments}, $or:[{platforms: platformObjId}, {parent: null}]}).lean();
             }
         ).then(
             departments => {

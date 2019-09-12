@@ -48,7 +48,8 @@ describe("Test reward group", function () {
 
     before(async function () {
         // create test platform
-        let testPlatform = await commonTestFunc.createTestPlatform();
+        let platformData = {usePointSystem: true, autoCheckPlayerLevelUp: false};
+        let testPlatform = await commonTestFunc.createTestPlatform(platformData);
         testPlatform.should.have.property('_id');
 
         testPlatformObjId = testPlatform._id;
@@ -144,6 +145,14 @@ describe("Test reward group", function () {
             // link type steps and add them to type process
             await dbProposalTypeProcess.addStepToProcess(proposalTypeProcessId, [stepType1Id]);
 
+            // add reward type
+            let rewardTypeData = {
+                "isGrouped": true,
+                "des": typeName,
+                "name": typeName
+            };
+            await commonTestFunc.createRewardType(typeName, rewardTypeData);
+
             // get test reward type - referral reward group
             let testGetRewardType = await dbRewardType.getRewardType({name: constRewardType.REFERRAL_REWARD_GROUP});
             testGetRewardType.should.have.property('_id');
@@ -179,7 +188,8 @@ describe("Test reward group", function () {
                     validEndTime : new Date(),
                     validStartTime : new Date().setDate(new Date().getDate() + 30),
                     applyType : '1',
-                    forbidApplyReward : []
+                    forbidApplyReward : [],
+                    referralRewardMode: "1",
                 },
                 executeProposal: proposalTypeId
             };

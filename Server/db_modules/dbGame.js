@@ -1035,6 +1035,7 @@ var dbGame = {
                     sendData.countdown = luZhuData.data.betTimeSec
                 }
             }
+            sendData.clientAPIServerNo = global.clientAPIServerNo;
             wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "game", "notifyLiveGameStatus", sendData);
         }
         return data;
