@@ -368,16 +368,18 @@ var WebSocketUtility = {
         ).catch(WebSocketUtility.errorHandler).done();
     },
 
-    notifyEBETLuZhuClient: function (service, functionName, data) {
+    notifyEBETLuZhuClient: function (service, functionName, data, clientAPIServerNo) {
         if (service._wss && service._wss._wss && service._wss._wss.clients) {
             var wss = service._wss._wss;
-            wss.clients.forEach(
-                client => {
-                    if (service[functionName] && client.EBETNotify == true) {
-                        service[functionName].response(client, {status: 200, data: data});
+            if (clientAPIServerNo && clientAPIServerNo == global.clientAPIServerNo) { // production have 4 clientAPIServer instances, this checking to prevent duplicate data send to websocket
+                wss.clients.forEach(
+                    client => {
+                        if (service[functionName] && client.EBETNotify == true) {
+                            service[functionName].response(client, {status: 200, data: data});
+                        }
                     }
-                }
-            );
+                );
+            }
         }
     },
 
