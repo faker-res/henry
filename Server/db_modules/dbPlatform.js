@@ -4125,7 +4125,7 @@ var dbPlatform = {
         let prom =  Promise.resolve();
         if (platformObjId){
             prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
-                path: "popUpList",
+                path: "pc.popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
         }
