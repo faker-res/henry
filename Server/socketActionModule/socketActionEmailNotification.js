@@ -34,6 +34,30 @@ function socketActionEmailNotification (socketIO, socket) {
                 data.doNotify, data.emailPrefix, data.includeAdminName, data.includeOperationTime, data.includeProposalStepName,
                 data.includePlatformName], actionName, isValidData);
         },
+
+        getNotifyEditPartnerCommissionSetting: function getNotifyEditPartnerCommissionSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailNotification.getNotifyEditPartnerCommissionSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateNotifyEditPartnerCommissionSetting: function updateNotifyEditPartnerCommissionSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailNotification.updateNotifyEditPartnerCommissionSetting, [data.platformObjId,  data.doNotify, data.emailPrefix, data.backEndOnly], actionName, isValidData);
+        },
+
+        getNotifyEditChildPartnerSetting: function getNotifyEditChildPartnerSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailNotification.getNotifyEditChildPartnerSetting, [data.platformObjId], actionName, isValidData);
+        },
+
+        updateNotifyEditChildPartnerSetting: function updateNotifyEditChildPartnerSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbEmailNotification.updateNotifyEditChildPartnerSetting, [data.platformObjId,  data.doNotify, data.emailPrefix, data.backEndOnly], actionName, isValidData);
+        },
     };
 
     socketActionEmailNotification = this.actions;

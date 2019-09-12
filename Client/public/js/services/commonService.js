@@ -2030,6 +2030,9 @@ define([], () => {
             if (vm.selectedProposal.data.hasOwnProperty("rejectRemark")) {
                 proposalDetail["rejectRemark"] = vm.selectedProposal.data.rejectRemark;
             }
+            if (vm.selectedProposal.data.hasOwnProperty("playerCancelRemark")) {
+                proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark;
+            }
 
             return proposalDetail;
         };

@@ -75,8 +75,7 @@ const dbPartnerCommissionConfig = {
         return getPartnerParentChain(partnerObjId);
     },
 
-    getPartnerCommRate: async (partnerObjId, platformObjId, isMulti) => {
-        // let rateConfigSchema = isMulti ? dbconfig.collection_partnerMainCommRateConfig : dbconfig.collection_partnerCommissionRateConfig;
+    getPartnerCommRate: async (partnerObjId, platformObjId, providerGroups = []) => {
         let rateConfigSchema = dbconfig.collection_partnerMainCommRateConfig;
 
         let platformConfig = await rateConfigSchema.findOne({partner: null, platform: platformObjId}).lean();
@@ -85,6 +84,16 @@ const dbPartnerCommissionConfig = {
         if (!platformConfig) {
             return Promise.reject({message: "Please complete platform commission rate config"});
         }
+
+        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
+            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
+            providerGroups.map(providerGroup => {
+                if (String(platformRate.gameProviderGroupId) === String(providerGroup._id)) {
+                    platformRate.name = providerGroup.name;
+                }
+            })
+        }
+
         if (!partnerConfig) {
             return platformConfig;
         }
@@ -196,7 +205,7 @@ const dbPartnerCommissionConfig = {
         let parentChain = await getPartnerParentChain(partnerObjId);
 
         let mainParent = parentChain[parentChain.length - 1];
-        return dbPartnerCommissionConfig.getPartnerCommRate(mainParent._id, mainParent.platform, true);
+        return dbPartnerCommissionConfig.getPartnerCommRate(mainParent._id, mainParent.platform);
     },
 
     assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {
