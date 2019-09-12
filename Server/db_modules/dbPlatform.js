@@ -6315,7 +6315,6 @@ var dbPlatform = {
             }
         );
 
-        // for those do not have "device" field
         function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 1, code);
 
@@ -6452,7 +6451,6 @@ var dbPlatform = {
             );
         }
 
-        // for those have "device" field
         function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 2, code);
             if (!query) {
@@ -6522,10 +6520,6 @@ var dbPlatform = {
                                    setting.rewardCode = setting.rewardEventObjId && setting.rewardEventObjId.code ? setting.rewardEventObjId.code : null;
                                    delete setting.rewardEventObjId;
                                }
-
-                                if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
-                                    settingList = restructureDataFormat (settingList, code)
-                                }
 
                                return checkUrlForCDNPrepend (cdnText, setting)
                             }
