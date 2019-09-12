@@ -1035,8 +1035,7 @@ var dbGame = {
                     sendData.countdown = luZhuData.data.betTimeSec
                 }
             }
-            let port = process.env.PORT || 9280;
-            sendData.port = port;
+            sendData.clientAPIServerNo = global.clientAPIServerNo;
             wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "game", "notifyLiveGameStatus", sendData);
         }
         return data;

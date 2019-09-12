@@ -368,11 +368,10 @@ var WebSocketUtility = {
         ).catch(WebSocketUtility.errorHandler).done();
     },
 
-    notifyEBETLuZhuClient: function (service, functionName, data, port) {
+    notifyEBETLuZhuClient: function (service, functionName, data, clientAPIServerNo) {
         if (service._wss && service._wss._wss && service._wss._wss.clients) {
             var wss = service._wss._wss;
-            let portNum = process.env.PORT || 9280; // production have 4 clientAPIServer instances, this checking to prevent duplicate data send to websocket
-            if (port && port == portNum) {
+            if (clientAPIServerNo && clientAPIServerNo == global.clientAPIServerNo) { // production have 4 clientAPIServer instances, this checking to prevent duplicate data send to websocket
                 wss.clients.forEach(
                     client => {
                         if (service[functionName] && client.EBETNotify == true) {
