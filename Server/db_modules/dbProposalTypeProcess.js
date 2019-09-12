@@ -105,13 +105,10 @@ var proposalTypeProcess = {
             .populate({path: 'platformId', model: dbconfig.collection_platform})
             .lean().then(
             function (data) {
-                console.log('check whatever ever', data);
                 if (data) {
                     platformObjId = data.platformId._id;
                     platformName = data.platformId.name;
                     processName = data.name;
-                    console.log('check whatever', data.steps);
-                    console.log('check whatever 2', processId);
                     var stepProm = dbconfig.collection_proposalTypeProcessStep.remove({_id: {$in: data.steps}});
                     var processProm = dbconfig.collection_proposalTypeProcess.findOneAndUpdate(
                         {_id: processId},
@@ -129,7 +126,6 @@ var proposalTypeProcess = {
         ).then(
             //create all steps
             function (data) {
-                console.log('checking whatever', data);
                 if (data && data[0] && data[1]) {
                     var stepsProm = [];
                     for (var key in steps) {
