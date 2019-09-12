@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import LineChart from './lineChart';
 import Card from './card';
 import NavBar from './navBar';
-import DateFilter from './dateFilter';
 
 import socketService from '../services/socketService';
 import localStorageService from '../services/localStorageService';
@@ -163,6 +162,9 @@ class Dashboard extends Component {
                 });
                 prepData(existingNumber);
                 break;
+
+                default:
+                    break;
             }
         } else {
             prepData();
@@ -205,8 +207,14 @@ class Dashboard extends Component {
                         total += item.amount || 0;
                     });
                     break;
+
+                    default:
+                        break;
                 }
-                this.state.cardData[cardName].value = total;
+                let stateData = {cardData: Object.assign({}, this.state.cardData)};
+                stateData.cardData[cardName].value = total;
+                this.setState(stateData);
+                // this.state.cardData[cardName].value = total;
             } else {
                 console.error(path, "unsuccessful! ", data);
             }
@@ -246,9 +254,11 @@ class Dashboard extends Component {
                     totalCredit += proposal.data.amount;
                 })
 
-                this.state.operationCardData.rewardCount.value = count;
-                this.state.operationCardData.rewardCredit.value = totalCredit;
-                this.forceUpdate();
+                let stateData = {operationCardData: Object.assign({}, this.state.operationCardData)};
+                stateData.operationCardData.rewardCount.value = count;
+                stateData.operationCardData.rewardCredit.value = totalCredit;
+                this.setState(stateData);
+                // this.forceUpdate();
             } else {
                 console.error(path, "unsuccessful! ", data);
             }
@@ -358,8 +368,6 @@ class Dashboard extends Component {
                             </div>
                         </div>
                     </div>
-
-                    <DateFilter/>
 
                 </div>
             </div>
