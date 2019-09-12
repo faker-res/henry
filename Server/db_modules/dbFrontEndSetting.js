@@ -447,7 +447,7 @@ var dbFrontEndSetting = {
     getFrontEndPopUpAdvertisementSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).sort({displayOrder: 1}).lean();
         }
 
         return prom;
