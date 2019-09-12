@@ -24815,8 +24815,8 @@ define(['js/app'], function (myApp) {
                     case 'emailNotificationConfig':
                         vm.editNotifyConfig = {};
                         vm.getEmailNotificationConfig(platformObjId);
-                        vm.getNotifyEditPartnerCommissionSetting(platformObjId);
-                        vm.getNotifyEditChildPartnerSetting(platformObjId);
+                        // vm.getNotifyEditPartnerCommissionSetting(platformObjId);
+                        // vm.getNotifyEditChildPartnerSetting(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
@@ -43251,7 +43251,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length){
-                                vm.newPopularRecommendationSetting.popUpList = vm.popularRecommendationSetting.popUpList.map(p => {
+                                vm.newPopularRecommendationSetting.popUpList = vm.newPopularRecommendationSetting.popUpList.map(p => {
                                     if (p && p._id){
                                         return p._id
                                     }

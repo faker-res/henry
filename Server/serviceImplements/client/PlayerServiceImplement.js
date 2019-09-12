@@ -32,6 +32,7 @@ let PlayerServiceImplement = function () {
     let self = this;
 
     //player create api handler
+    //added case
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
@@ -299,6 +300,7 @@ let PlayerServiceImplement = function () {
     };
 
     //player create api handler
+    //added case
     this.playerQuickReg.expectsData = 'platformId: String, password: String';
     this.playerQuickReg.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.name && data.platformId && data.password);
@@ -394,6 +396,7 @@ let PlayerServiceImplement = function () {
     };
 
     //player get api handler
+    //added case
     this.get.expectsData = 'playerId: String';
     this.get.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId));
@@ -478,6 +481,7 @@ let PlayerServiceImplement = function () {
     };
 
     //player login api handler
+    //added case
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.name && data.password && data.platformId);
@@ -779,6 +783,7 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    //added case
     this.isLogin.expectsData = 'playerId: String';
     this.isLogin.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.playerId);
@@ -786,6 +791,7 @@ let PlayerServiceImplement = function () {
     };
 
     //player logout api handler
+    //added case
     this.logout.expectsData = 'playerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
@@ -819,6 +825,7 @@ let PlayerServiceImplement = function () {
     };
 
     //
+    //added case
     this.isValidUsername.expectsData = 'name: String, platformId: String';
     this.isValidUsername.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.name && data.platformId);
@@ -878,6 +885,7 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    //added case
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
@@ -935,6 +943,7 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    //added case
     this.updatePhotoUrl.expectsData = 'photoUrl: String';
     this.updatePhotoUrl.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId && data.photoUrl);
@@ -946,6 +955,7 @@ let PlayerServiceImplement = function () {
             }).catch(WebSocketUtil.errorHandler).done();
     };
 
+    //added case
     this.getCreditBalance.expectsData = '';
     this.getCreditBalance.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId);
@@ -1133,6 +1143,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.prepareGetPlayerBillBoard, [data.platformId, data.periodCheck, data.hourCheck, data.recordCount, data.playerId, data.mode, data.providerId], isValidData, false, false, true);
     };
 
+    //added case
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.token);
@@ -1158,6 +1169,7 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.authenticatePlayerPartner, [data.playerId, data.partnerId, data.token, playerIp, conn], true, false, false, true);
     };
 
+    //added case
     this.updateSmsSetting.expectsData = '';
     this.updateSmsSetting.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId && Object.keys(data).length > 0);
@@ -1190,18 +1202,21 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerAnyDayStatus, [conn.playerId, data.providerIds, data.startTime], isValidData);
     };
 
+    //added case
     this.getPlayerWeekStatus.expectsData = '';
     this.getPlayerWeekStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, false, data.providerIds], isValidData);
     };
 
+    //added case
     this.getPlayerMonthStatus.expectsData = '';
     this.getPlayerMonthStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerMonthStatus, [conn.playerId, data.providerIds], isValidData);
     };
 
+    //added case
     this.getMailList.expectsData = '';
     this.getMailList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
@@ -1287,11 +1302,13 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.manualPlayerLevelUp, [conn.playerObjId, userAgent], isValidData);
     };
 
+    //added case
     this.getWithdrawalInfo.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWithdrawalInfo, [data.platformId, conn.playerId], isValidData);
     };
 
+    //added case
     this.getCreditDetail.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getCreditDetail, [conn.playerObjId], isValidData, null, null, false, true);

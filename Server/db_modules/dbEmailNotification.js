@@ -147,9 +147,24 @@ let dbEmailNotification = {
     },
 
     async sendNotifyEditPartnerCommissionEmail(proposal) {
-        if (!proposal || !proposal.data || !proposal.data.platformObjId || !proposal.data.newConfigArr || !proposal.data.newConfigArr.length || !proposal.data.oldConfigArr || !proposal.data.oldConfigArr.length) {
-            console.log('1', Boolean(proposal.data.newConfigArr))
-            console.log('2', Boolean(proposal.data.oldConfigArr))
+        console.log("sendNotifyEditPartnerCommissionEmail debug proposal", proposal)
+        if (!proposal || !proposal.data) {
+            return;
+        }
+
+        if (proposal.data.newRate && !proposal.data.newConfigArr) {
+            proposal.data.newConfigArr = [proposal.data.newRate];
+        }
+        if (!proposal.data.oldConfigArr) {
+            proposal.data.oldConfigArr = [];
+            if (proposal.data.oldRate) {
+                proposal.data.oldConfigArr = [proposal.data.oldRate];
+            }
+        }
+
+        if (!proposal.data.platformObjId || !proposal.data.newConfigArr ) {
+            console.log('1', Boolean(proposal.data.newConfigArr));
+            console.log('2', Boolean(proposal.data.oldConfigArr));
             return;
         }
 
@@ -189,9 +204,10 @@ let dbEmailNotification = {
         });
         let proposalId = proposal.proposalId || "";
 
-        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailNotification.notifyEditPartnerCommission");
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Partner.EmailNotification.notifyEditPartnerCommission");
 
         if (!recipients || !recipients.length) {
+            console.log('sendNotifyEditPartnerCommissionEmail no recipient')
             return;
         }
 
@@ -206,10 +222,10 @@ let dbEmailNotification = {
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
-        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:ss A");
+        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:mm:ss A");
 
 
-        html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
+        html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">编辑代理佣金</div>`;
 
         html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
 
@@ -316,6 +332,7 @@ let dbEmailNotification = {
     },
 
     async sendNotifyEditChildPartnerEmail(proposal) {
+        console.log("sendNotifyEditChildPartnerEmail debug proposal", proposal)
         if (!proposal || !proposal.data || !proposal.data.platformId) {
             console.log("!proposal", !proposal)
             console.log("!proposal.data", !proposal.data)
@@ -352,9 +369,10 @@ let dbEmailNotification = {
 
         let proposalId = proposal.proposalId || "";
 
-        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailNotification.notifyEditChildPartner");
+        let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Partner.EmailNotification.notifyEditChildPartner");
 
         if (!recipients || !recipients.length) {
+            console.log('sendNotifyEditChildPartnerEmail no recipient')
             return;
         }
 
@@ -369,10 +387,10 @@ let dbEmailNotification = {
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
-        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:ss A");
+        let emailSubject = emailTitle + " " + dbUtil.getLocalTimeString(actionTime, "hh:mm:ss A");
 
 
-        html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">手工优惠详情</div>`;
+        html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 78.6%">编辑下级代理</div>`;
 
         html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
 
