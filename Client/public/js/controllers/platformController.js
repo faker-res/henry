@@ -43251,7 +43251,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length){
-                                vm.newPopularRecommendationSetting.popUpList = vm.newPopularRecommendationSetting.popUpList.map(p => {
+                                vm.newPopularRecommendationSetting.popUpList = vm.popularRecommendationSetting.popUpList.map(p => {
                                     if (p && p._id){
                                         return p._id
                                     }
