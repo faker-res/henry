@@ -1479,8 +1479,7 @@ var proposal = {
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
                             .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
                     }
-                }
-                else {
+                } else {
                     deferred.reject({name: "DBError", message: "Can't find proposal"});
                 }
             },
@@ -1506,10 +1505,9 @@ var proposal = {
                 console.log("updateProposalProcessStep data3", data);
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
                 if(bIsBankInfoMatched == true){
-                    if (
-                        proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps
-                        && adminInfo.roles && adminInfo.roles.length
-                    ) {
+                    if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps
+                        && adminInfo.roles && adminInfo.roles.length) {
+
                         let isCorrectRole = false;
 
                         adminInfo.roles.forEach(role => {
@@ -1581,8 +1579,7 @@ var proposal = {
                                 isLocked: null
                             }
                         ).lean();
-                    }
-                    else {
+                    } else {
                         console.log("LH Check Proposal Reject 1------------",proposalData);
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposalData._id, createTime: proposalData.createTime},
@@ -1651,8 +1648,7 @@ var proposal = {
                                             else if (proposalObj.status == constProposalStatus.APPROVED){
                                                 proposal.sendMessageToPlayerAfterUpdateProposalStatus(proposalObj)
                                             }
-                                        }
-                                        else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                                        } else if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
                                             prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                                                 .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                                                     playerData => {
