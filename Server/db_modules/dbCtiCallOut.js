@@ -9,7 +9,7 @@ let dbCtiCallOut = {
         platformId = platformId ? String(platformId) : "10";
 
         if (ctiUrl) {
-            return [`http://${ctiUrl}.tel400.me/cti/`];
+            return [`http://${ctiUrl}/cti/`];
         }
 
         // todo :: THIS ONE HAVE TO BE COMMENTED WHEN MERGE TO DEVELOP-1.1
