@@ -25809,7 +25809,7 @@ let dbPlayerInfo = {
                 // Jwt token error
                 return deferred.reject({name: "DataError", message: "Token is not authenticated"});
             }
-
+            console.log('doceded', decoded);
             let isValidToken = Boolean(decoded && decoded.platform && decoded.name && decoded.password && decoded.phoneNumber);
             if (!isValidToken) {
                 return deferred.reject({name: "DataError", message: "Invalid token"});

@@ -190,6 +190,76 @@ describe("Test Client API - Player service", function () {
         }, {playerId: testPlayerId});
     });
 
+
+    it('Should set player password', function (done) {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        clientPlayerAPITest.settingPlayerPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.text.should.be.a.String();
+            //this if block doing for updatePassword
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
+            done();
+        }, {
+            playerId: testPlayerId,
+            password: randomPWD.toString()
+        });
+    });
+
+    it('Fail in updating player password', function (done) {
+        clientPlayerAPITest.updatePassword(function (data) {
+            data.status.should.equal(400);
+            done();
+        }, {
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: '5678'
+        });
+    });
+
+    it('Success in updating player password', function (done) {
+        var randomPWD = Math.floor((Math.random() * 100000000) + 100000000);
+        clientPlayerAPITest.updatePassword(function (data) {
+            data.status.should.equal(200);
+            //this if block doing for resetPassword.
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
+            done();
+        }, {
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
+        });
+    });
+
+    it('Should reset password', function () {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        var randomSms = Math.floor((Math.random() * 1000) + 1000);
+        clientPlayerAPITest.resetPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.phoneNumber.should.be.a.Number();
+            data.data.name.should.be.a.String();
+            data.data.playerId.should.be.a.String();
+            data.data.createTime.should.be.a.String();
+            data.data.realName.should.be.a.String();
+            data.data.password.should.be.a.String();
+            data.data.questionList.id.should.be.a.Number();
+            data.data.questionList.type.should.be.a.Number();
+            data.data.questionList.title.should.be.a.String();
+            data.data.questionList.option.should.be.a.String();
+        }, {
+            platformId: testPlatformId,
+            name: testNewPlayerName,
+            smsCode: randomSms,
+            phoneNumber: testPhoneNumber,
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
+        });
+    });
+
     it('Should update a player sms setting', function () {
         clientPlayerAPITest.updateSmsSetting(function (data) {
             data.status.should.equal(200);
@@ -198,6 +268,13 @@ describe("Test Client API - Player service", function () {
             playerId: testPlayerId,
             smsSetting: "mobilePhone"
         });
+    });
+
+    it('Should check a player name valid to register and should return false', function () {
+        clientPlayerAPITest.isValidUsername(function (data) {
+            data.status.should.equal(200);
+            data.data.should.equal(false);
+        }, {name: testPlayerName, platformId: testPlatformId});
     });
 
     // it('Should get sms code', function(done){
@@ -285,13 +362,6 @@ describe("Test Client API - Player service", function () {
         }, {playerObjId: testPlayerObjId});
     });
 
-    it('Should check a player name valid to register and should return false', function () {
-        clientPlayerAPITest.isValidUsername(function (data) {
-            data.status.should.equal(200);
-            data.data.should.equal(false);
-        }, {name: testPlayerName, platformId: testPlatformId});
-    });
-
     it('Should authenticate the token from previous login', function () {
         clientPlayerAPITest.authenticate(function (data) {
             data.status.should.equal(200);
@@ -303,7 +373,6 @@ describe("Test Client API - Player service", function () {
     it('Should update photo url', function () {
         clientPlayerAPITest.updatePhotoUrl(function (data) {
             data.status.should.equal(200);
-            data.data.should.equal(400);
         }, {
             photoUrl: "http://facebook.com/aaa/bbb"
         });
@@ -400,21 +469,6 @@ describe("Test Client API - Player service", function () {
             data.data.should.be.a.Boolean();//data.data just simply return true, so check as boolean.
 
         }, param);
-    });
-
-    it('Should set player password', function () {
-        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
-        testPlayerOldPwd = randomPWD.toString();
-        clientPlayerAPITest.settingPlayerPassword(function (data) {
-            data.status.should.equal(200);
-            data.data.text.should.be.a.String();
-            //this if block doing for updatePassword
-            // if(data.status === 200){
-            // }
-        }, {
-            playerId: testPlayerId,
-            password: randomPWD.toString()
-        });
     });
 
     it('Should get player unread mail', function () {
@@ -534,58 +588,6 @@ describe("Test Client API - Player service", function () {
             data.status.should.equal(200);
 
         }, testPlayerObjId);
-    });
-
-    it('Fail in updating player password', function () {
-        clientPlayerAPITest.updatePassword(function (data) {
-            data.status.should.equal(400);
-
-        }, {
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: '5678'
-        });
-    });
-
-    it('Success in updating player password', function () {
-        var randomPWD = Math.floor((Math.random() * 1000000) + 1000000);
-        clientPlayerAPITest.updatePassword(function (data) {
-            data.status.should.equal(200);
-            //this if block doing for resetPassword.
-            if(data.status === 200){
-                testPlayerOldPwd = randomPWD.toString();
-            }
-        }, {
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: randomPWD.toString()
-        });
-    });
-
-    it('Should reset password', function () {
-        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
-        var randomSms = Math.floor((Math.random() * 1000) + 1000);
-        clientPlayerAPITest.resetPassword(function (data) {
-            data.status.should.equal(200);
-            data.data.phoneNumber.should.be.a.Number();
-            data.data.name.should.be.a.String();
-            data.data.playerId.should.be.a.String();
-            data.data.createTime.should.be.a.String();
-            data.data.realName.should.be.a.String();
-            data.data.password.should.be.a.String();
-            data.data.questionList.id.should.be.a.Number();
-            data.data.questionList.type.should.be.a.Number();
-            data.data.questionList.title.should.be.a.String();
-            data.data.questionList.option.should.be.a.String();
-        }, {
-            platformId: testPlatformId,
-            name: testNewPlayerName,
-            smsCode: randomSms,
-            phoneNumber: testPhoneNumber,
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: randomPWD.toString()
-        });
     });
 
     it('Should show player withdrawal info', function () {
@@ -746,13 +748,13 @@ describe("Test Client API - Player service", function () {
         });
     });
 
-    it('Should Update Password With Token', function () {
+    it('Should Update Password With Token', function (done) {
         clientPlayerAPITest.updatePasswordWithToken(function (data) {
             data.status.should.equal(200);
-
+            done();
         }, {
             token: token,
-            password: "password123",
+            password: "password123456789",
         });
     });
 
@@ -762,7 +764,7 @@ describe("Test Client API - Player service", function () {
 
         }, {
             token: token,
-            password: "password123",
+            password: "password123456789",
         });
     });
 

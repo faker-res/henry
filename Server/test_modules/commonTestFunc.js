@@ -80,7 +80,8 @@ let commonTestFunc = {
         ]).spread(
             (merchantGroup, bankCardGroup) => {
                 var date = new Date();
-                var playerName = commonTestFunc.testPlayerName + date.getTime() + commonTestFunc.getRandomInt();
+                // var playerName = commonTestFunc.testPlayerName + date.getTime() + commonTestFunc.getRandomInt();
+                var playerName = "testingname" + commonTestFunc.getRandomInt();
 
                 var playerData = {
                     name: playerName,

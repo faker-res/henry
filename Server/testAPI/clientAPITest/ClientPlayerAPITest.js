@@ -90,6 +90,7 @@
     };
 
     proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData;
         this.playerService.verifyPhoneNumberBySMSCode.request(data);
         this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
             if (typeof callback === "function") {
@@ -315,7 +316,12 @@
     proto.isValidUsername = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.isValidUsername.request(data);
-        this.playerService.isValidUsername.once(callback);
+        this.playerService.isValidUsername.once(function (data) {
+            console.log('data', data);
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     proto.isValidRealName = function (callback, requestData) {
@@ -326,8 +332,13 @@
 
     proto.updatePassword = function (callback, requestData) {
         var data = requestData || {playerId: testPlayerId, oldPassword: "123456", newPassword: "654321"};
+        console.log('length', data.newPassword.length);
         this.playerService.updatePassword.request(data);
-        this.playerService.updatePassword.once(callback);
+        this.playerService.updatePassword.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     proto.settingPlayerPassword = function (callback, requestData) {
@@ -345,7 +356,11 @@
     proto.resetPassword = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.resetPassword.request(data);
-        this.playerService.resetPassword.once(callback);
+        this.playerService.resetPassword.once(function (data) {
+            if (typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     proto.updatePasswordPlayerPartner = function (callback, requestData) {
@@ -790,8 +805,14 @@
 
     proto.updatePasswordWithToken = function (callback, requestData) {
         var data = requestData || {};
+        console.log('token', data.token);
         this.playerService.updatePasswordWithToken.request(data);
-        this.playerService.updatePasswordWithToken.once(callback);
+        this.playerService.updatePasswordWithToken.once(function (data) {
+            console.log('token return', data);
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     proto.checkIsAppPlayerAndAppliedReward = function (callback, requestData) {
