@@ -16,7 +16,14 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
 //    input.form-control.btn-space(style="width:40%; display:inline-block", type="text", ng-model="vm.newRewardCategory" )
 //    button.btn.btn-primary(ng-click ="vm.addRewardCategory(vm.newRewardCategory)") {{'SUBMIT' | translate}}
 div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
-    label {{"Show category"|translate}}:
+    label {{"Set Default Category To Be Displayed (For Front End)"|translate}}:
+    div.inline-block(style="width: 40%;")
+        select.spicker.form-control.inline-block(ng-model="vm.selectedCategoryForFrontEndDisplay")
+            option(ng-repeat='item in vm.categorySelectionList', value='{{item._id}}') {{item.categoryName}}
+    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.updateSelectedCategoryForFrontEndDisplay(vm.selectedCategoryForFrontEndDisplay)") {{'SUBMIT' | translate}}
+
+div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
+    label {{"Show Category"|translate}}:
     div.inline-block(style="width: 40%;")
         select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-model="vm.displayCategory")
             //option(value='all' ng-init='$last && vm.refreshSPicker()') {{'PRESET (ALL)' | translate}}
