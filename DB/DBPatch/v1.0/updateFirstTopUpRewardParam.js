@@ -1387,20 +1387,25 @@ db.rewardParam.update({
                     des: "The quantity limit of the reward application for the interval",
                     detail: "Only limited quantity of reward is open for applying"
                 },
-                minDepositAmount: {
+                applyLimit: {
                     index: 47,
+                    type: "number",
+                    des: "The reward application limit per player (not limited by reward interval)"
+                },
+                minDepositAmount: {
+                    index: 48,
                     type: "number",
                     des: "The minimum required top up amount to apply for the reward",
                     detail: "Only 1 top up record can be used for the reward during the interval"
                 },
                 allowOnlyLatestTopUp: {
-                    index: 48,
+                    index: 49,
                     type: "checkbox",
                     des: "Check if this is the latest top up record",
                     detail: "Only the latest new top up record without consumption record and withdrawal record can be used to apply"
                 },
                 ignoreTopUpDirtyCheckForReward: {
-                    index: 49,
+                    index: 50,
                     type: "multiSelect",
                     des: "Ignore the following rewards that applied with the latest top up",
                     options: "allRewardEvent"

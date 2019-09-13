@@ -529,6 +529,17 @@ const dbRewardUtility = {
         if (rewardEvent.condition && rewardEvent.condition.quantityLimitInInterval) {
             eventInPeriodProm = dbConfig.collection_playerRetentionRewardGroupRecord.find(eventQuery).count().lean();
         }
+        // check the application limit has reached of the whole event
+        let eventInLifeTimeProm = Promise.resolve([]);
+        if (rewardEvent.condition && rewardEvent.condition.applyLimit) {
+            let query = Object.assign({},eventQuery);
+            query.lastApplyDate = {
+                $gte: rewardEvent.validStartTime,
+                $lte: rewardEvent.validEndTime
+            };
+            query.playerObjId = player._id;
+            eventInLifeTimeProm = dbConfig.collection_playerRetentionRewardGroupRecord.find(query).count().lean();
+        }
 
         let topupInPeriodProm = Promise.resolve([]);
         if (rewardEvent.condition && rewardEvent.condition.topUpCountType) {
@@ -558,15 +569,16 @@ const dbRewardUtility = {
                 console.log("checking retentionApplicationDate", retentionApplicationDate)
                 checkHasReceivedProm = dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent, retentionApplicationDate);
 
-                return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm])
+                return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm, eventInLifeTimeProm])
             }
         ).then(
             checkList => {
 
-                let rewardPendingCount = checkList[0]
+                let rewardPendingCount = checkList[0];
                 let eventInPeriodCount = checkList[1];
                 let topupInPeriodCount = isFrontEndApply ? checkList[2].length + 1 : checkList[2].length; /* if apply from font end together with top up, top up record + 1 to include current top up */
                 let listHasApplied = checkList[3];
+                let eventInLifeTimeCount = checkList[4];
 
                 // if there is a pending reward, then no other reward can be applied.
                 if (rewardPendingCount && rewardPendingCount > 0) {
@@ -629,6 +641,14 @@ const dbRewardUtility = {
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Reward claimed exceed limit, fail to claim reward"
+                    });
+                }
+                // Check reward apply limit in the life time of the whole event
+                if (rewardEvent.condition && rewardEvent.condition.applyLimit && rewardEvent.condition.applyLimit <= eventInLifeTimeCount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Reward claimed exceed total limit, fail to claim reward"
                     });
                 }
 
