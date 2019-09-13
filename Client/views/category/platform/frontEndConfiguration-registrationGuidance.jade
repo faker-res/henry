@@ -12,7 +12,14 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 
 div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
-    label {{"Show category"|translate}}:
+    label {{"Set Default Category To Be Displayed (For Front End)"|translate}}:
+    div.inline-block(style="width: 40%;")
+        select.spicker.form-control.inline-block(ng-model="vm.registrationCategoryForFrontEndDisplay")
+            option(ng-repeat='item in vm.registrationCategoryList', value='{{item._id}}') {{item.categoryName}}
+    button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.updateRegistrationCategoryForFrontEndDisplay(vm.registrationCategoryForFrontEndDisplay)") {{'SUBMIT' | translate}}
+
+div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
+    label {{"Show Category"|translate}}:
     div.inline-block(style="width: 40%;")
         select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-model="vm.displayRegistrationCategory")
             option(ng-init='$last && vm.refreshSPicker()' ng-repeat='item in vm.allRegistrationCategory', value='{{item._id}}') {{item.categoryName}}

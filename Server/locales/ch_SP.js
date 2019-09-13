@@ -212,6 +212,7 @@ var simplifiedChinese = {
     "Bank card type does not match, fail to claim reward": "银行卡类型不符，无法同时领取优惠",
     "Online top up type does not match, fail to claim reward": "在线充值类型不符，无法同时领取优惠",
     "Reward claimed exceed limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
+    "Reward claimed exceed total limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
     "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
     "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
     "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",

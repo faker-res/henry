@@ -27,7 +27,8 @@ var frontEndPopUpAdvertisementSettingSchema = new Schema({
     requiredToLogIn: {type: Boolean},
     // position of the pop up
     position: {type: String},
-
+    //  ftp url for uploaded closing image for H5 only
+    closingImageUrl: {type: String},
     // pc: {
     //     // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
     //     onClickAction: {type: Number},
