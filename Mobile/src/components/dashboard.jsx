@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import LineChart from './lineChart';
 import Card from './card';
 import NavBar from './navBar';
+import authService from '../services/authService.js';
+import navService from '../services/navService.js';
 
 import socketService from '../services/socketService';
 import localStorageService from '../services/localStorageService';
@@ -274,7 +276,14 @@ class Dashboard extends Component {
         this.getAllRewardProposalCountAndCredit();
     }
 
+    checkLogin() {
+        if(!authService.hasLogin()){
+            navService.goto("");
+        }
+    }
+
     render() {
+        this.checkLogin();
         return (
             <div>
                 <NavBar/>
