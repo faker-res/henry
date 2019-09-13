@@ -269,21 +269,23 @@ class Dashboard extends Component {
             console.log(err);
         });
     }
-
-    componentDidMount() {
-        this.getAllCardData();
-        this.getAllChartData();
-        this.getAllRewardProposalCountAndCredit();
-    }
-
+    
     checkLogin() {
         if(!authService.hasLogin()){
             navService.goto("");
         }
     }
 
-    render() {
+    componentWillMount() {
         this.checkLogin();
+    }
+    componentDidMount() {
+        this.getAllCardData();
+        this.getAllChartData();
+        this.getAllRewardProposalCountAndCredit();
+    }
+
+    render() {
         return (
             <div>
                 <NavBar/>

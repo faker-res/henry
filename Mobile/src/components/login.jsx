@@ -91,9 +91,12 @@ class Login extends Component {
         }
     };
     
+    componentWillMount() {
+        this.checkLogin();
+    }
+    
     render() { 
         console.log("Rendering...");
-        this.checkLogin();
         return (
             <div className="container centerMenu">
                 <div className="login card col-12">
