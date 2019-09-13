@@ -1013,7 +1013,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit, "qnaWrongCount.editName": 0}
+                                    {realName: proposalData.data.realNameAfterEdit, bankAccountName: proposalData.data.realNameAfterEdit,"qnaWrongCount.editName": 0}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect player data", error: Error()});
@@ -1048,9 +1048,9 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
-                                // if(playerUpdate.bankAccountName){
-                                //     playerUpdate.realName = playerUpdate.bankAccountName;
-                                // }
+                                if(playerUpdate.bankName && playerUpdate.bankAccountName){
+                                    playerUpdate.realName = playerUpdate.bankAccountName;
+                                }
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
                                     updateMultipleBankInfo = true;
                                 }

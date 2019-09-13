@@ -1,6 +1,4 @@
 var should = require('should');
-var expect = require('expect');
-var sinon = require('sinon');
 var dbconfig = require('../modules/dbproperties');
 
 var WebSocketClient = require('../server_common/WebSocketClient');

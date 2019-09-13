@@ -3,7 +3,7 @@ const constPartnerCommissionType = {
     DAILY_BONUS_AMOUNT: 1, // deprecated
     WEEKLY_BONUS_AMOUNT: 2,
     BIWEEKLY_BONUS_AMOUNT: 3, // deprecated
-    MONTHLY_BONUS_AMOUNT: 4, // deprecated
+    MONTHLY_BONUS_AMOUNT: 4,
     WEEKLY_CONSUMPTION: 5, // deprecated
     OPTIONAL_REGISTRATION: 6,
     DAILY_CONSUMPTION:7,

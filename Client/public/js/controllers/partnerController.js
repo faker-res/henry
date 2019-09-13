@@ -6072,7 +6072,7 @@ define(['js/app'], function (myApp) {
                         "sClass": "",
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                'class': (row.permission.forbidPartnerFromLogin === true ? "text-danger" : "text-primary"),
+                                'class': (row && row.permission && row.permission.forbidPartnerFromLogin === true ? "text-danger" : "text-primary"),
                                 'ng-click': "vm.onClickPartnerCheck('" + row._id + "', vm.showPartnerInfoModal," + JSON.stringify([data, row._id]) + ");"
                             }).text(data);
                             return link.prop('outerHTML');
@@ -6338,7 +6338,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }));
                             link.append($('<a>', {
-                                'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                'class': 'fa fa-comment margin-right-5' + (row.permission && row.permission.SMSFeedBack === false ? " text-danger" : ""),
                                 'ng-click': 'vm.onClickPartnerCheck("' + partnerObjId + '", vm.initPartnerSMSModal);' + "vm.onClickPartnerCheck('" +
                                     partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
                                     ", " + "[" + '"msg"' + ", '" + partnerObjId + "']);",
@@ -6348,7 +6348,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }));
                             link.append($('<a>', {
-                                'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission && row.permission.phoneCallFeedback === false ? " text-danger" : ""),
                                 'ng-click': "vm.onClickPartnerCheck('" + partnerObjId + "', vm.telorMessageToPartnerBtn," + JSON.stringify(['tel', partnerObjId]) + ");",
                                 // 'data-row': JSON.stringify(row),
                                 'data-toggle': 'tooltip',
@@ -6369,7 +6369,7 @@ define(['js/app'], function (myApp) {
                             if ($scope.checkViewPermission('Partner', 'Partner', 'ApplyBonus')) {
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 margin-right-5',
-                                    'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
+                                    'src': (row.permission && row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                     'height': "14px",
                                     'width': "14px",
                                     'ng-click': "vm.onClickPartnerCheck('" + partnerObjId + "', vm.initPartnerBonus);",
@@ -17287,7 +17287,7 @@ define(['js/app'], function (myApp) {
                     vm.getLargeWithdrawalPartnerSetting();
                     break;
                 case 'emailNotificationConfig':
-                    vm.editNotifyConfig = {};
+                    vm.editNotifyConfig = vm.editNotifyConfig ||{};
                     vm.getNotifyEditPartnerCommissionSetting(vm.platformInSetting);
                     vm.getNotifyEditChildPartnerSetting(vm.platformInSetting);
                     break;
@@ -17617,9 +17617,9 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.platformInSetting._id,
                 doNotify: vm.notifyEditPartnerCommission.doNotify || false,
                 emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
-                backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                backEndOnly: vm.notifyEditPartnerCommission.backEndOnly || "",
             });
-            console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+            console.log('updateNotifyEditPartnerCommissionSetting result', vm.updateNotifyEditPartnerCommissionSetting);
 
             vm.configTabClicked("emailNotificationConfig");
         };
@@ -17653,7 +17653,7 @@ define(['js/app'], function (myApp) {
                 emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
                 backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
             });
-            console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+            console.log('updateNotifyEditChildPartnerSetting result', vm.updateNotifyEditChildPartnerSetting);
 
             vm.configTabClicked("emailNotificationConfig");
         };
