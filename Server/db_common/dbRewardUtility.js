@@ -943,12 +943,17 @@ const dbRewardUtility = {
             orArray.push({'data.deviceId': playerData.deviceId})
         }
 
+        console.log('ipArray', ipArray);
+        console.log('orArray', orArray);
+
         let matchQuery = {
             "data.eventId": eventData._id,
             "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
             createTime: {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
             $or: orArray
         };
+
+        console.log('matchQuery', matchQuery);
 
         return dbConfig.collection_proposal.find(
             matchQuery,
@@ -965,6 +970,7 @@ const dbRewardUtility = {
         ).lean().then(
             countReward => {
                 // check playerId
+                console.log('countReward', countReward);
                 if (countReward && countReward.length) {
                     for (let i = 0; i < countReward.length; i++) {
                         if (eventData.condition.checkSameIP && ipArray.includes(countReward[i].data.lastLoginIp)) {
@@ -1448,11 +1454,7 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $ne: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId,
-            createTime: {
-                $gte: referralRewardStartTime,
-                $lte: referralRewardEndTime
-            }
+            'data.referralRewardDetails.playerObjId': player.playerObjId
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
                 let depositQuery = {
@@ -1491,7 +1493,15 @@ const dbRewardUtility = {
                             createTime: {$last: "$createTime"}
                         }
                     }
-                ]);
+                ]).then(
+                    data => {
+                        if (data && (data.length == 0)) {
+                            return [{_id: player.playerObjId, count: 0, amount: 0, createTime: null}];
+                        }
+
+                        return data;
+                    }
+                );
             } else {
                 return Promise.resolve();
             }
@@ -1510,11 +1520,7 @@ const dbRewardUtility = {
             'data.eventId': eventData._id,
             'data.referralRewardMode': eventData.condition.referralRewardMode,
             'data.isDynamicRewardTopUpAmount': {$exists: true, $eq: true},
-            'data.referralRewardDetails.playerObjId': player.playerObjId,
-            createTime: {
-                $gte: referralRewardStartTime,
-                $lte: referralRewardEndTime
-            }
+            'data.referralRewardDetails.playerObjId': player.playerObjId
         }).sort({createTime: -1}).lean().then(proposalData => {
             if (!proposalData) {
                 let depositQuery = {

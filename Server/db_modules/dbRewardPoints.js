@@ -1665,7 +1665,11 @@ let dbRewardPoints = {
             platformRecord => {
                 if (platformRecord) {
                     platformData = platformRecord;
-                    displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
+                    if (platformData.hasOwnProperty('displayFrontEndRewardPointsRankingData')) {
+                        displayFrontEndRewardPointsRankingData = platformData.displayFrontEndRewardPointsRankingData;
+                    } else {
+                        displayFrontEndRewardPointsRankingData = true;
+                    }
                     return dbConfig.collection_players.findOne({
                         playerId: playerId,
                         platform: platformRecord._id
@@ -3020,7 +3024,15 @@ function getProgressBaseOnConsumptionAmount (playerObjId, event, startTime, endT
                 let totalValidAmount = 0;
 
                 eligibleConsumptions.map(consumption => {
-                    totalValidAmount += Number(consumption.validAmount);
+                    if(event.target.betType && event.target.betType.length > 0) {
+                        consumption.betDetails.forEach(detail => {
+                            if (event.target.betType.indexOf(detail.separatedBetType) > -1) {
+                                totalValidAmount += Number(detail.separatedBetAmount);
+                            }
+                        });
+                    } else {
+                        totalValidAmount += Number(consumption.validAmount);
+                    }
                 });
 
                 if (totalValidAmount >= dailyValidConsumptionAmount) {

@@ -57,6 +57,7 @@ var playerSchema = new Schema({
         PromoCodeSend: {type: Boolean, default: true},
         AuctionPromoCodeSuccess: {type: Boolean, default: true},
         AuctionOpenPromoCodeSuccess: {type: Boolean, default: true},
+        PlayerRetentionRewardGroupSuccess: {type: Boolean, default: true},
     },
     //store player's icon
     icon: {type: String, default: ""},

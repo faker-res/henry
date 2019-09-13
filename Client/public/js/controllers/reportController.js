@@ -4864,6 +4864,10 @@ define(['js/app'], function (myApp) {
                 end: vm.playerQuery.end.data('datetimepicker').getLocalDate()
             };
 
+            if (vm.playerQuery.name) {
+                sendquery.name = vm.playerQuery.name;
+            }
+
             socketService.$socket($scope.AppSocket, 'reCalculatePlayerReportSummary', sendquery, function (data) {
                 $('#loadingPlayerReportTableSpin').hide();
             });

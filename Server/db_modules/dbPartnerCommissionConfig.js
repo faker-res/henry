@@ -205,7 +205,7 @@ const dbPartnerCommissionConfig = {
         let parentChain = await getPartnerParentChain(partnerObjId);
 
         let mainParent = parentChain[parentChain.length - 1];
-        return dbPartnerCommissionConfig.getPartnerCommRate(mainParent._id, mainParent.platform, true);
+        return dbPartnerCommissionConfig.getPartnerCommRate(mainParent._id, mainParent.platform);
     },
 
     assignPartnerMultiLvlComm: async function (proposalData, removedChildPartnerArr, newChildPartnerArr) {
