@@ -2180,7 +2180,7 @@
                                 td {{'Add New Cti Route' | translate}}
                                 td
                                     input(ng-model='vm.newCtiSubDomain')
-                                    text .tell400.me/cti/
+                                    text /cti/
                                 td
                                     button.btn.btn-primary.common-button(ng-disabled='!vm.newCtiSubDomain' ng-click='vm.addNewCtiSubDomain()') {{'ATTACH' | translate}}
                             tr(ng-if='checkViewPermission("Platform", "Config", "RemoveCtiUrl")')

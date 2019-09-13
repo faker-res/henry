@@ -1254,7 +1254,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
 
             if (adminData.ctiUrl) {
-                urls = [`http://${adminData.ctiUrl}.tel400.me/cti/previewcallout.action`];
+                urls = [`http://${adminData.ctiUrl}/cti/previewcallout.action`];
             }
 
             performPhoneCall();
