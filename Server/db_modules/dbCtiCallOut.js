@@ -83,7 +83,7 @@ let dbCtiCallOut = {
         return dbutility.convertToMD5(firstLevelMd5 + formattedNow);
     },
 
-    addMissionToCti: function addMissionToCti (platform, admin, calleeList, maxRingTime, redialTimes, minRedialInterval, idleAgentMultiple) {
+    addMissionToCti: function addMissionToCti (platform, admin, calleeList, maxRingTime, redialTimes, minRedialInterval, idleAgentMultiple, isTs) {
         let token = dbCtiCallOut.getCtiToken("POLYLINK_MESSAGE_TOKEN");
         let sanitizedAdminName = String(admin.adminName).replace(/[^0-9a-z]/gi, '');
 
@@ -94,13 +94,18 @@ let dbCtiCallOut = {
         param.transferType = 2;
         param.queuenum = admin.callerQueue || "9994";
         param.calloutType = '0';
-        param.calledNumber = admin.did || "879997";
+        param.calledNumber = admin.did || admin.tsDid || "879997";
+        let ctiUrl = admin.ctiUrl || admin.ctiTsUrl;
+        if (isTs) {
+            param.calledNumber = admin.tsDid || admin.did || "879997";
+            ctiUrl = admin.ctiTsUrl || admin.ctiUrl;
+        }
         param.maxRingTime = maxRingTime || 30;
         param.redialTimes = redialTimes || 3;
         param.minRedialInterval = minRedialInterval || 10;
         param.idleAgentMultiple = idleAgentMultiple ? Number(idleAgentMultiple).toFixed(1) : "2.0";
 
-        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param, admin.ctiUrl).then(
+        return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param, ctiUrl).then(
             apiOutput => {
                 if (!apiOutput) {
                     console.error("createCallOutTask.do Did not receive result");
@@ -133,11 +138,11 @@ let dbCtiCallOut = {
                     }
                 }
 
-                return dbCtiCallOut.addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997", admin.ctiUrl);
+                return dbCtiCallOut.addPhoneNumToMission (platform, missionName, calleeList, param.calledNumber, ctiUrl);
             }
         ).then(
             () => {
-                return dbCtiCallOut.updateCtiMissionStatus (platform, missionName, 1, admin.ctiUrl);
+                return dbCtiCallOut.updateCtiMissionStatus (platform, missionName, 1, ctiUrl);
             }
         ).then(
             () => {

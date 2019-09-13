@@ -608,7 +608,7 @@ function addMissionToCti (platform, admin, calleeList) {
                 return Promise.reject({message: "CTI API return error"});
             }
 
-            return addPhoneNumToMission (platform, missionName, calleeList, admin.did || "879997", admin.ctiUrl || admin.ctiTsUrl);
+            return addPhoneNumToMission (platform, missionName, calleeList, admin.did || admin.tsDid || "879997", admin.ctiUrl || admin.ctiTsUrl);
         }
     ).then(
         () => {

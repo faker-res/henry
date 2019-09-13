@@ -33,6 +33,7 @@ var adminInfoSchema = new Schema({
     //when will that token stop being valid?
     resetTokenExpiry: {type: Date},
     did: {type: Number},
+    tsDid: {type: Number},
     callerId: {type: Number},
     live800Acc: [{type: String, default: 0}],
     // caller queue ID
