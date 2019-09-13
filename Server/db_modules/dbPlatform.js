@@ -6440,7 +6440,7 @@ var dbPlatform = {
                             settingList = settingList[0];
                         }
                         if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
-                            settingList = restructureDataFormat (settingList, code)
+                            settingList = restructureDataFormat (settingList, code, platformObjId)
                         }
 
                         // check the url and prepend with cdn if there is no keyword of http, https
@@ -6524,7 +6524,7 @@ var dbPlatform = {
                                }
 
                                 if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
-                                    settingList = restructureDataFormat (settingList, code)
+                                    settingList = restructureDataFormat (settingList, code, platformObjId)
                                 }
 
                                return checkUrlForCDNPrepend (cdnText, setting)
@@ -6612,7 +6612,7 @@ var dbPlatform = {
             return query;
         }
 
-        async function restructureDataFormat (settingList, code) {
+        async function restructureDataFormat (settingList, code, platformObjId) {
             if (settingList && settingList.length && code && code == "recommendation") {
                 let navList = [];
                 let bodyList = [];
@@ -6638,19 +6638,22 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
-                let allObjList = {name: "全部", list: []};
+                let allObjList = {name: "全部", list: [], defaultShow: false};
                 let arrayList = [];
                 let defaultCategory = null;
 
                 if (code == "reward"){
-                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
                 }
                 else if (code == "registrationGuidance"){
-                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
                 }
 
-                if (defaultCategory && defaultCategory.displayFormat){
-                    allObjList.displayFormat = defaultCategory.displayFormat;
+                if (defaultCategory){
+                    allObjList.defaultShow = defaultCategory.defaultShow || false;
+                    if (defaultCategory.displayFormat){
+                        allObjList.displayFormat = defaultCategory.displayFormat;
+                    }
                 }
                 settingList.forEach(
                     p => {
@@ -6683,7 +6686,8 @@ var dbPlatform = {
 
                 Object.keys(objList).forEach(key => {
                     let tempDisplayFormat = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.displayFormat ? objList[key][0].categoryObjId.displayFormat : null;
-                    arrayList.push({name: key, displayFormat: tempDisplayFormat, list: objList[key]})
+                    let isShow = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.hasOwnProperty('defaultShow') ? objList[key][0].categoryObjId.defaultShow : false;
+                    arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
                 return arrayList
@@ -6713,6 +6717,9 @@ var dbPlatform = {
             if (setting && cdnText) {
                 if (setting.imageUrl && (setting.imageUrl.indexOf('http') == -1 && setting.imageUrl.indexOf('https') == -1)) {
                     setting.imageUrl = cdnText + setting.imageUrl;
+                }
+                if (setting.closingImageUrl && (setting.closingImageUrl.indexOf('http') == -1 && setting.closingImageUrl.indexOf('https') == -1)) {
+                    setting.closingImageUrl = cdnText + setting.closingImageUrl;
                 }
                 if (setting.newPageUrl && (setting.newPageUrl.indexOf('http') == -1 && setting.newPageUrl.indexOf('https') == -1)) {
                     setting.newPageUrl = cdnText + setting.newPageUrl;

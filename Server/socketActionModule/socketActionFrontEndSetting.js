@@ -11,6 +11,20 @@ function socketActionFrontEndSetting(socketIO, socket) {
     var self = this;
     this.actions = {
 
+        updateRegistrationCategoryForFrontEndDisplay: function (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.categoryObjId && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateRegistrationCategoryForFrontEndDisplay, [data.categoryObjId, data.platformObjId], actionName, isValidData);
+        },
+
+        updateSelectedCategoryForFrontEndDisplay: function (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.categoryObjId && data.platformObjId);
+
+            socketUtil.emitter(self.socket, dbFrontEndSetting.updateSelectedCategoryForFrontEndDisplay, [data.categoryObjId, data.platformObjId], actionName, isValidData);
+        },
+
         updateRegistrationGuidanceSetting: function updateRegistrationGuidanceSetting (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.dataList);
