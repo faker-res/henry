@@ -504,7 +504,7 @@ function getCalleeList (query, sortCol, selectedPlayers) {
 
 function getCtiUrls (platformId, ctiUrl) {
     if (ctiUrl) {
-        return [`http://${ctiUrl}.tel400.me/cti/`];
+        return [`http://${ctiUrl}/cti/`];
     }
     platformId = platformId ? String(platformId) : "10";
 
