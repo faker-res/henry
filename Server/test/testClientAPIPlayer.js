@@ -42,6 +42,7 @@ var testPlayerGender = null;
 var testPlayerDOB = null;
 var testPlayerRealName = null;
 var testPlayerOldPwd = null;
+var smsLog = null;
 
 describe("Test Client API - Player service", function () {
 
@@ -528,20 +529,6 @@ describe("Test Client API - Player service", function () {
         }, {playerId: testNewPlayerId, email: "testplayerupdate@test.com"});
     });
 
-    //Based on dbPlayer.js' comment, if isRealPlayer == false cannot perform update payment
-    // it('Should update a player payment info', function (done) {
-    //     var updatePaymentInfo = {
-    //         playerId: testPlayerId,
-    //         bankType: "testBank",
-    //         bankAccount: "1234567890123456",
-    //         // bankAccountName: "testPlayer",
-    //         bankAccountType: "saving"
-    //     };
-    //     clientPlayerAPITest.updatePaymentInfo(function (data) {
-    //         data.status.should.equal(200);
-    //         done();
-    //     }, updatePaymentInfo);
-    // });
 
     it('Should get a captcha', function () {
         clientPlayerAPITest.captcha(function (data) {
@@ -748,7 +735,27 @@ describe("Test Client API - Player service", function () {
         });
     });
 
+    async function getLog(){
+        smsLog = await dbconfig.collection_smsVerificationLog.findOne({
+            platformId: testPlatformId,
+            tel: testPhoneNumber
+        }).sort({createTime: -1});
+    }
+
     it('Should Update Password With Token', function (done) {
+
+       clientPlayerAPITest.getSMSCode(function(data){
+       }, {phoneNumber: testPhoneNumber,platformId: testPlatformId});
+
+        getLog();
+        let reqData = {platformId: testPlatformId,
+                    name: testPlayerName,
+                    phoneNumber: testPhoneNumber,
+                    smsCode: smsLog.code};
+        clientPlayerAPITest.generateUpdatePasswordToken(function(data){
+            token = data.data.token;
+        }, reqData);
+
         clientPlayerAPITest.updatePasswordWithToken(function (data) {
             data.status.should.equal(200);
             done();
