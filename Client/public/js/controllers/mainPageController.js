@@ -1113,6 +1113,7 @@ define(['js/app'], function (myApp) {
                     live800CompanyId:vm.curUser.live800CompanyId,
                     callerQueue: vm.curUser.callerQueue,
                     ctiUrl: vm.curUser.ctiUrl,
+                    ctiTsUrl: vm.curUser.ctiTsUrl,
                     live800Acc: vm.curUser.live800Acc
                 };
                 vm.updateAdminLive800 = {
