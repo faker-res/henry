@@ -24475,18 +24475,20 @@ define(['js/app'], function (myApp) {
                     console.log("created not", data);
                 });
 
-                let removeGroupData = {
-                    query: {rewardEvents: vm.showReward._id},
-                    updateData: {
-                        "$pull": {
-                            rewardEvents: vm.showReward._id
+                if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents) {
+                    let removeGroupData = {
+                        query: {rewardEvents: vm.showReward._id},
+                        updateData: {
+                            "$pull": {
+                                rewardEvents: vm.showReward._id
+                            }
                         }
-                    }
-                };
+                    };
 
-                socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
-                    console.log('remove event success');
-                });
+                    socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
+                        console.log('remove event success');
+                    });
+                }
 
                 // remove the deleted reward event form the player's forbidRewardEvents
                 if (vm.showReward && vm.showReward._id) {
