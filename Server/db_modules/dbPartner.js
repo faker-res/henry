@@ -11163,7 +11163,6 @@ let dbPartner = {
                 paymentProposalTypes = data[1];
                 rewardProposalTypes = data[2];
                 validPlayerRequirement = data[3];
-                console.log("walaoehehehe", validPlayerRequirement)
 
                 return dbconfig.collection_partner.findOne({platform: platformRecord._id, partnerId: partnerId}).lean();
             }
@@ -11329,18 +11328,6 @@ let dbPartner = {
 
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
-
-            switch (period) {
-                case 1:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.dailyActivePlayer || 0;
-                    break;
-                case 2:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.weeklyActivePlayer || 0;
-                    break;
-                case 3:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.monthlyActivePlayer || 0;
-                    break;
-            }
 
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
