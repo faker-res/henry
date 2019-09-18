@@ -107,7 +107,8 @@
                                         label(ng-click="vm.selectedGameName = vm.includedGames[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}') {{v.name$}}
                                     form(ng-submit="vm.submitGameNameChange(i);")
                                         .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="vm.selectedGameName == vm.includedGames[i].name$")
-                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGames[i].name$" style="color: black")
+                                            label(ng-click="vm.selectedGameName = vm.includedGames[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}' ng-if="!checkViewPermission('Platform', 'Game', 'EditGameName')") {{v.name$}}
+                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGames[i].name$" style="color: black" ng-if="checkViewPermission('Platform', 'Game', 'EditGameName')")
 
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.gameListCollapseOut();')
