@@ -1109,6 +1109,7 @@ define(['js/app'], function (myApp) {
                     firstName: vm.curUser.firstName,
                     lastName: vm.curUser.lastName,
                     did: vm.curUser.did,
+                    tsDid: vm.curUser.tsDid,
                     callerId: vm.curUser.callerId,
                     live800CompanyId:vm.curUser.live800CompanyId,
                     callerQueue: vm.curUser.callerQueue,
