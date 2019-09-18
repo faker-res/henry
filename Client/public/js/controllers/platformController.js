@@ -40585,7 +40585,7 @@ define(['js/app'], function (myApp) {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
-                    vm.submitAdminPlayerFeedbackQuery(true);
+                    // vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
 
