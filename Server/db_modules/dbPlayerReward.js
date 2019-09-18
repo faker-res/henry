@@ -1315,15 +1315,15 @@ let dbPlayerReward = {
             let consumptionIntervalProm;
             let topUpIntervalProm;
             if (event.condition.isDynamicRewardAmount){
+                let consumptionMatch = {
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
+                }
+                if (event.condition.consumptionProvider && event.condition.consumptionProvider.length) {
+                    consumptionMatch.providerId = {$in: event.condition.consumptionProvider};
+                }
                 consumptionIntervalProm = dbConfig.collection_playerConsumptionRecord.aggregate([
-                    {$match:
-                        {
-                            playerId: player._id,
-                            createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
-                            providerId: {$in: event.condition.consumptionProvider}
-
-                        }
-                    },
+                    {$match: consumptionMatch},
                     {
                         $group: {
                             _id: null,
@@ -11521,6 +11521,12 @@ function checkFestivalOverApplyTimes (eventData, platformId, playerObjId, select
                     resolve(result);
                 }
             )
+        } else {
+            reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: localization.localization.translate('You need to set festival type first')
+            });
         }
     })
 }

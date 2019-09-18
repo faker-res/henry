@@ -17219,6 +17219,7 @@ define(['js/app'], function (myApp) {
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 vm.playerFeedbackSelectedPlatform = vm.allPlatformData.filter(platform => {return vm.playerFeedbackQuery.selectedPlatform == platform._id})[0];
+                vm.playerFeedbackQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
                 vm.loadBankCardGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadMerchantGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadAlipayGroupData(vm.playerFeedbackQuery.selectedPlatform);
@@ -17243,7 +17244,6 @@ define(['js/app'], function (myApp) {
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 $('#platformFeedbackSpin').show();
-                console.log('sendQuery', vm.playerFeedbackQuery);
                 vm.exportQuery = vm.getPlayerFeedbackQuery();
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
@@ -17255,7 +17255,7 @@ define(['js/app'], function (myApp) {
                                 sortCol: vm.playerFeedbackQuery.sortCol,
                                 searchType: vm.playerFeedbackSearchType
                             };
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                let sendQuery = {
                     query: vm.playerFeedbackQuery,
                     index: vm.playerFeedbackQuery.index,
                     //new block
@@ -17263,10 +17263,11 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime
                     //new Block
-                }, function (data) {
+                };
+                console.log("getPlayerFeedbackQuery sendQuery", sendQuery)
+                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
-                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -20691,8 +20692,17 @@ define(['js/app'], function (myApp) {
                         vm.partnerValidity.ownDomainDuplicate = true;
                         vm.partnerValidity.ownDomainName = '';
                         data.data.data.map(item => {
-                            vm.partnerValidity.ownDomainName += item;
-                            vm.partnerValidity.ownDomainName += ' ';
+                            if (vm.partnerValidity.ownDomainName) {
+                                vm.partnerValidity.ownDomainName += ',';
+                            }
+                            if (item.name) {
+                                vm.partnerValidity.ownDomainName += item.name;
+                                vm.partnerValidity.ownDomainName += ' ';
+                            }
+                            if (item.partnerName) {
+                                vm.partnerValidity.ownDomainName += "(" + item.partnerName + ")";
+                                vm.partnerValidity.ownDomainName += ' ';
+                            }
                         })
                     }
                     form.ownDomain.$setValidity('invalidOwnDomain', !vm.partnerValidity.ownDomainDuplicate)
@@ -24804,7 +24814,10 @@ define(['js/app'], function (myApp) {
                         vm.getEmailAuditConfig(platformObjId);
                         break;
                     case 'emailNotificationConfig':
+                        vm.editNotifyConfig = {};
                         vm.getEmailNotificationConfig(platformObjId);
+                        // vm.getNotifyEditPartnerCommissionSetting(platformObjId);
+                        // vm.getNotifyEditChildPartnerSetting(platformObjId);
                         break;
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting(platformObjId);
@@ -25585,25 +25598,25 @@ define(['js/app'], function (myApp) {
                                         // close the modal
                                         $('#popUpInFirstPageSettingModal').modal('hide');
                                         // append the pop-up setting to the general list
-                                        if (data && data.data && data.data._id && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc){
-                                            if (vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList instanceof Array){
-                                                let index = vm.popularRecommendationSetting.pc.popUpList.findIndex( p => {
+                                        if (data && data.data && data.data._id && vm.newPopularRecommendationSetting){
+                                            if (vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList instanceof Array){
+                                                let index = vm.newPopularRecommendationSetting.popUpList.findIndex( p => {
                                                     if (p && p._id){
                                                         return p._id.toString() ==  data.data._id.toString()
                                                     }
                                                 });
 
                                                 if (index != -1){
-                                                    vm.popularRecommendationSetting.pc.popUpList[index] = data.data;
+                                                    vm.newPopularRecommendationSetting.popUpList[index] = data.data;
                                                 }
                                                 else{
-                                                    vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                    vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                                 }
 
                                             }
                                             else{
-                                                vm.popularRecommendationSetting.pc.popUpList = [];
-                                                vm.popularRecommendationSetting.pc.popUpList.push(data.data);
+                                                vm.newPopularRecommendationSetting.popUpList = [];
+                                                vm.newPopularRecommendationSetting.popUpList.push(data.data);
                                             }
                                         }
 
@@ -25648,9 +25661,9 @@ define(['js/app'], function (myApp) {
                     vm.newPopUpInFirstPageSetting = {};
                 }
                 else{
-                    if (popUpObjId && vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length) {
+                    if (popUpObjId && vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length) {
 
-                        let temp = vm.popularRecommendationSetting.pc.popUpList.filter (p => {
+                        let temp = vm.newPopularRecommendationSetting.popUpList.filter (p => {
                             if (p && p._id){
                                 return p._id.toString() == popUpObjId.toString()
                             }
@@ -25988,17 +26001,25 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
+                                let tempAllWithDefault = data.data;
                                 let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
                                 let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
 
                                 vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
                                 vm.frontEndRewardCategory = tempAll;
                                 vm.allFrontEndRewardCategory = tempAll;
+                                vm.categorySelectionList = [];
+                                vm.categorySelectionList = vm.categorySelectionList.concat(tempOne, tempAll);
                                 vm.displayCategory= [];
-                                vm.allFrontEndRewardCategory.forEach(
+                                tempAllWithDefault.forEach(
                                     p => {
                                         if (p && p._id){
-                                            vm.displayCategory.push(p._id);
+                                            if (p.defaultShow){
+                                                vm.selectedCategoryForFrontEndDisplay = p._id;
+                                            }
+                                            if (p && p.categoryName && p.categoryName != '全部分类'){
+                                                vm.displayCategory.push(p._id);
+                                            }
                                         }
                                     }
                                 )
@@ -26062,6 +26083,16 @@ define(['js/app'], function (myApp) {
                     });
                     $(".ownDragDrop").sortable({});
                 });
+            };
+
+            vm.updateSelectedCategoryForFrontEndDisplay = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    return $scope.$socketPromise('updateSelectedCategoryForFrontEndDisplay', {categoryObjId: categoryObjId, platformObjId: vm.filterFrontEndSettingPlatform}).then(data => {
+                        console.log("updateSelectedCategoryForFrontEndDisplay success:", data);
+                    }, err => {
+                        console.error('updateSelectedCategoryForFrontEndDisplay error: ', err);
+                    });
+                }
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
@@ -26823,6 +26854,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
+                        vm.displayFrontEndRewardPointsRankingData = true;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -27085,6 +27117,20 @@ define(['js/app'], function (myApp) {
                     console.error(err);
                 }, true);
             }
+
+            vm.toggleFrontEndRewardPointsRankingData = function (flag) {
+                vm.displayFrontEndRewardPointsRankingData = flag;
+                let sendData = {
+                    platform: vm.rewardPointsSelectedPlatform,
+                    displayFrontEndRewardPointsRankingData: flag
+                }
+                socketService.$socket($scope.AppSocket, 'toggleFrontEndRewardPointsRankingData', sendData, function (data) {
+                    console.log('displayFrontEndRewardPointsRankingData', data);
+                    $scope.safeApply();
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            };
 
             vm.toggleDeleteFakeAcc = function (flag) {
                 vm.editFakeAcc = flag;
@@ -32573,6 +32619,73 @@ define(['js/app'], function (myApp) {
                 vm.configTabClicked("emailNotificationConfig");
             };
 
+            vm.getNotifyEditPartnerCommissionSetting = (platformObjId) => {
+                if (!platformObjId) return;
+                vm.editNotifyConfig.notifyEditPartnerCommission = vm.editNotifyConfig.notifyEditPartnerCommission || false;
+                vm.notifyEditPartnerCommission = vm.notifyEditPartnerCommission || {};
+                let sendData = {
+                    platformObjId: platformObjId
+                };
+                console.log('sendData', sendData)
+
+                socketService.$socket($scope.AppSocket, 'getNotifyEditPartnerCommissionSetting', sendData, function (data) {
+                    console.log('getNotifyEditPartnerCommissionSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.notifyEditPartnerCommission = {};
+                        if (data && data.data) {
+                            vm.notifyEditPartnerCommission = data.data;
+                        }
+                    });
+                });
+            };
+
+            vm.updateNotifyEditPartnerCommissionSetting = async function () {
+                console.log('updateNotifyEditPartnerCommissionSetting', vm.notifyEditPartnerCommission);
+
+                let result = await $scope.$socketPromise('updateNotifyEditPartnerCommissionSetting', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.notifyEditPartnerCommission.doNotify || false,
+                    emailPrefix: vm.notifyEditPartnerCommission.emailPrefix || "",
+                    backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                });
+                console.log('updateNotifyEditPartnerCommissionSetting result', updateNotifyEditPartnerCommissionSetting);
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
+
+            vm.getNotifyEditChildPartnerSetting = (platformObjId) => {
+                if (!platformObjId) return;
+                vm.editNotifyConfig.notifyEditChildPartner = vm.editNotifyConfig.notifyEditChildPartner || false;
+                vm.notifyEditChildPartner = vm.notifyEditChildPartner || {};
+                let sendData = {
+                    platformObjId: platformObjId
+                };
+                console.log('sendData', sendData)
+
+                socketService.$socket($scope.AppSocket, 'getNotifyEditChildPartnerSetting', sendData, function (data) {
+                    console.log('getNotifyEditChildPartnerSetting', data.data);
+                    $scope.$evalAsync(() => {
+                        vm.notifyEditChildPartner = {};
+                        if (data && data.data) {
+                            vm.notifyEditChildPartner = data.data;
+                        }
+                    });
+                });
+            };
+
+            vm.updateNotifyEditChildPartnerSetting = async function () {
+                console.log('updateNotifyEditChildPartnerSetting', vm.notifyEditChildPartner);
+
+                let result = await $scope.$socketPromise('updateNotifyEditChildPartnerSetting', {
+                    platformObjId: vm.filterConfigPlatform,
+                    doNotify: vm.notifyEditChildPartner.doNotify || false,
+                    emailPrefix: vm.notifyEditChildPartner.emailPrefix || "",
+                    backEndOnly: vm.notifyEditChildPartner.backEndOnly || "",
+                });
+                console.log('updateNotifyEditChildPartnerSetting result', updateNotifyEditChildPartnerSetting);
+
+                vm.configTabClicked("emailNotificationConfig");
+            };
 
             vm.getLargeWithdrawalSetting = function (platformObjId) {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
@@ -42810,7 +42923,30 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.addNewPopularRecommendationSetting = function(isNew, eventObjId) {
+            vm.getPopularRecommendationSettingDevice = function(device){
+                vm.popularDevice = device;
+            };
+
+            vm.initPopularRecommendationSetting = function() {
+                if(!vm.popularDevice){
+                    vm.popularDevice = "1";
+                }
+                vm.newPopularRecommendationSetting = {
+                    isPlayerVisible: true,
+                    isPlayerWithRegisteredHpNoVisible: true,
+                    device: vm.popularDevice
+                };
+
+                vm.addNewPopularRecommendationSetting();
+                $('#popularRecommendationSetting').modal();
+            };
+
+            vm.addNewPopularRecommendationSetting = function(eventObjId) {
+                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
+                vm.popularRecommendationImageFile = {};
+                vm.popularRecommendationImageUrl = {};
+
                 //reset
                 document.querySelector('#popularRecommendationPcImageFile').value = "";
                 document.querySelector('#popularRecommendationPcNewPageFile').value = "";
@@ -42825,47 +42961,108 @@ define(['js/app'], function (myApp) {
                 $('#pcImage').attr("src","");
                 $('#H5Image').attr("src","");
                 $('#appImage').attr("src","");
-                vm.popularRecommendationImageFile = {};
-                vm.popularRecommendationImageUrl = {};
 
-                if (isNew){
-                    vm.popularRecommendationSetting = {
-                        pc: {},
-                        h5: {},
-                        app: {},
-                        isPlayerVisible: true,
-                        isPlayerWithRegisteredHpNoVisible: true,
-                    };
+
+
+                // if (isNew){
+                //     vm.popularRecommendationSetting = {
+                //         pc: {},
+                //         h5: {},
+                //         app: {},
+                //         isPlayerVisible: true,
+                //         isPlayerWithRegisteredHpNoVisible: true,
+                //     };
+                // }
+                // else{
+                //     if (eventObjId){
+                //         let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                //         if (index != -1){
+                //             vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
+                //                 $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
+                //                 $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
+                //             }
+                //             if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
+                //                 $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
+                //             }
+                //
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
+                //                 vm.popularRecommendationSetting.pc = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
+                //                 vm.popularRecommendationSetting.h5 = {};
+                //             }
+                //             if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
+                //                 vm.popularRecommendationSetting.app = {};
+                //             }
+                //         }
+                //     }
+                // }
+
+                if(vm.newPopularRecommendationSetting){
+                    if (vm.newPopularRecommendationSetting.imageUrl){
+                        vm.newPopularRecommendationSetting.imageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.onClickAction){
+                        vm.newPopularRecommendationSetting.onClickAction = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.newPageUrl){
+                        vm.newPopularRecommendationSetting.newPageUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.activityUrl){
+                        vm.newPopularRecommendationSetting.activityUrl = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.rewardEventObjId){
+                        vm.newPopularRecommendationSetting.rewardEventObjId = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.route){
+                        vm.newPopularRecommendationSetting.route = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.gameCode){
+                        vm.newPopularRecommendationSetting.gameCode = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.pageHeight){
+                        vm.newPopularRecommendationSetting.pageHeight = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.selectedNavImage){
+                        vm.newPopularRecommendationSetting.selectedNavImage = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.requiredToLogIn){
+                        vm.newPopularRecommendationSetting.requiredToLogIn = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.stopPopUp){
+                        vm.newPopularRecommendationSetting.stopPopUp = null;
+                    }
+                    if (vm.newPopularRecommendationSetting.popUpList){
+                        vm.newPopularRecommendationSetting.popUpList = null;
+                    }
+
                 }
-                else{
-                    if (eventObjId){
-                        let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
-                        if (index != -1){
-                            vm.popularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc &&  vm.popularRecommendationSetting.pc.imageUrl) {
-                                $('#pcImage').attr("src",vm.popularRecommendationSetting.pc.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.h5 &&  vm.popularRecommendationSetting.h5.imageUrl) {
-                                $('#H5Image').attr("src",vm.popularRecommendationSetting.h5.imageUrl);
-                            }
-                            if( vm.popularRecommendationSetting && vm.popularRecommendationSetting.app &&  vm.popularRecommendationSetting.app.imageUrl) {
-                                $('#appImage').attr("src",vm.popularRecommendationSetting.app.imageUrl);
-                            }
 
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.pc){
-                                vm.popularRecommendationSetting.pc = {};
+                if (eventObjId){
+                    let index = vm.frontEndPopularRecommendationData.findIndex( p => p._id.toString() == eventObjId.toString());
+                    if (index != -1){
+                        vm.newPopularRecommendationSetting = _.clone(vm.frontEndPopularRecommendationData[index]);
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            vm.newPopularRecommendationSetting.device = vm.newPopularRecommendationSetting.device.toString();
+                        }
+
+                        if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.device){
+                            if (vm.newPopularRecommendationSetting.device == 1){
+                                $('#pcImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.h5){
-                                vm.popularRecommendationSetting.h5 = {};
+                            else if (vm.newPopularRecommendationSetting.device == 4){
+                                $('#appImage').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
-                            if (vm.popularRecommendationSetting && !vm.popularRecommendationSetting.app){
-                                vm.popularRecommendationSetting.app = {};
+                            else if (vm.newPopularRecommendationSetting.device == 2){
+                                $('#H5Image').attr("src",vm.newPopularRecommendationSetting.imageUrl);
                             }
                         }
                     }
                 }
-                let selectedPlatformData = vm.allPlatformData.filter( p => p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
-                vm.selectedPlatformId = selectedPlatformData && selectedPlatformData.length && selectedPlatformData[0] ? selectedPlatformData[0].platformId : null;
 
                 vm.refreshSPicker();
                 $('#popularRecommendationSetting').modal();
@@ -42992,10 +43189,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.editPopularRecommendationSetting = function(eventObjId) {
-                vm.addNewPopularRecommendationSetting(false, eventObjId);
+                vm.addNewPopularRecommendationSetting(eventObjId);
+                $('#popularRecommendationSetting').modal();
+
             };
 
-            vm.submitPopularRecommendationSettings = async () => {
+            vm.submitPopularRecommendationSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopularRecommendationUploader').show();
                 function removeFromList(data) {
@@ -43006,19 +43205,30 @@ define(['js/app'], function (myApp) {
                     return data;
                 };
 
-                let promArr = [
-                    "pcImage",
-                    "pcNewPage",
-                    "pcPageDetail",
-                    "H5Image",
-                    "H5NewPage",
-                    "H5PageDetail",
-                    "appImage",
-                    "appNewPage",
-                    "appPageDetail",
-                ];
                 // we will save the collection changer before create another new item.
-                await vm.updatePopularRecommendationSetting();
+                // await vm.updatePopularRecommendationSetting();
+                let promArr;
+
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                    promArr = [
+                        "pcImage",
+                        "pcNewPage",
+                        "pcPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                    promArr = [
+                        "appImage",
+                        "appNewPage",
+                        "appPageDetail",
+                    ];
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                    promArr = [
+                        "H5Image",
+                        "H5NewPage",
+                        "H5PageDetail",
+                    ];
+                }
+                
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {
@@ -43029,38 +43239,38 @@ define(['js/app'], function (myApp) {
                 return prom.then(
                     () => {
                         console.log("vm.popularRecommendationImageUrl", vm.popularRecommendationImageUrl);
-                        vm.popularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
+                        vm.newPopularRecommendationSetting.platformObjId = vm.filterFrontEndSettingPlatform;
                         if (vm.popularRecommendationImageUrl){
                             if (vm.popularRecommendationImageUrl.pcImage){
-                                vm.popularRecommendationSetting.pc.imageUrl = vm.popularRecommendationImageUrl.pcImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.pcImage
                             }
                             if (vm.popularRecommendationImageUrl.pcNewPage){
-                                vm.popularRecommendationSetting.pc.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.pcNewPage
                             }
                             if (vm.popularRecommendationImageUrl.pcPageDetail){
-                                vm.popularRecommendationSetting.pc.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.pcPageDetail
                             }
                             if (vm.popularRecommendationImageUrl.H5Image){
-                                vm.popularRecommendationSetting.h5.imageUrl = vm.popularRecommendationImageUrl.H5Image
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.H5Image
                             }
                             if (vm.popularRecommendationImageUrl.H5NewPage){
-                                vm.popularRecommendationSetting.h5.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.H5NewPage
                             }
                             if (vm.popularRecommendationImageUrl.H5PageDetail){
-                                vm.popularRecommendationSetting.h5.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.H5PageDetail
                             }
                             if (vm.popularRecommendationImageUrl.appImage){
-                                vm.popularRecommendationSetting.app.imageUrl = vm.popularRecommendationImageUrl.appImage
+                                vm.newPopularRecommendationSetting.imageUrl = vm.popularRecommendationImageUrl.appImage
                             }
                             if (vm.popularRecommendationImageUrl.appNewPage){
-                                vm.popularRecommendationSetting.app.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
+                                vm.newPopularRecommendationSetting.newPageUrl = vm.popularRecommendationImageUrl.appNewPage
                             }
                             if (vm.popularRecommendationImageUrl.appPageDetail){
-                                vm.popularRecommendationSetting.app.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
+                                vm.newPopularRecommendationSetting.activityUrl = vm.popularRecommendationImageUrl.appPageDetail
                             }
 
-                            if (vm.popularRecommendationSetting && vm.popularRecommendationSetting.pc && vm.popularRecommendationSetting.pc.popUpList && vm.popularRecommendationSetting.pc.popUpList.length){
-                                vm.popularRecommendationSetting.pc.popUpList = vm.popularRecommendationSetting.pc.popUpList.map(p => {
+                            if (vm.newPopularRecommendationSetting && vm.newPopularRecommendationSetting.popUpList && vm.newPopularRecommendationSetting.popUpList.length){
+                                vm.newPopularRecommendationSetting.popUpList = vm.newPopularRecommendationSetting.popUpList.map(p => {
                                     if (p && p._id){
                                         return p._id
                                     }
@@ -43068,7 +43278,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             if (vm.isFinishedUploadedToFTPServer) {
-                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.popularRecommendationSetting, function (data) {
+                                socketService.$socket($scope.AppSocket, 'saveFrontEndPopularRecommendationSetting', vm.newPopularRecommendationSetting, function (data) {
                                     console.log("saveFrontEndPopularRecommendationSetting ret", data);
                                     // stop the uploading loader
                                     $('#frontEndPopularRecommendationUploader').hide();
@@ -43329,11 +43539,14 @@ define(['js/app'], function (myApp) {
                         if (data && data.data) {
                             vm.frontEndDeletedList = [];
                             vm.popUpAdvertisementData = data.data.map(item => {
-                                item.device = item.device.toString();
+                                if (item && item.device){
+                                    item.device = item.device.toString();
+                                }
                                 return item;
                             });
 
                             utilService.actionAfterLoaded('#popUpAdvSaveButton', function () {
+                                vm.clearAllDropArea();
                                 document.querySelectorAll(".col-md-4.fronendConfigDiv.carousel > ul > li").forEach(item => {item.parentElement.removeChild(item)});
                                 $(".popUpAdvModal .droppable-area1, .droppable-area2, .droppable-area3").sortable({
                                     connectWith: ".connected-sortable",
@@ -43449,6 +43662,7 @@ define(['js/app'], function (myApp) {
                 document.querySelector('#popUpAdvPcNewPageFile').value = "";
                 document.querySelector('#popUpAdvPcPageDetailFile').value = "";
                 document.querySelector('#popUpAdvH5ImageFile').value = "";
+                document.querySelector('#popUpAdvH5ClosingImageFile').value = "";
                 document.querySelector('#popUpAdvH5NewPageFile').value = "";
                 document.querySelector('#popUpAdvH5PageDetailFile').value = "";
                 document.querySelector('#popUpAdvAppImageFile').value = "";
@@ -43457,6 +43671,7 @@ define(['js/app'], function (myApp) {
 
                 $('#popUpAdvPcImage').attr("src","");
                 $('#popUpAdvH5Image').attr("src","");
+                $('#popUpAdvH5ClosingImage').attr("src","");
                 $('#popUpAdvAppImage').attr("src","");
 
                 // if (isNew) {
@@ -43547,6 +43762,7 @@ define(['js/app'], function (myApp) {
                                 $('#popUpAdvAppImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
                             }else if(vm.newPopUpAdvertisementSetting.device == 2){
                                 $('#popUpAdvH5Image').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                                $('#popUpAdvH5ClosingImage').attr("src",vm.newPopUpAdvertisementSetting.closingImageUrl || null);
                             }
                         }
                     }
@@ -43559,6 +43775,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvPcPageDetail", vm.popUpAdvImageFile);});
 
                 $("#popUpAdvH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5Image", vm.popUpAdvImageFile);});
+                $("#popUpAdvH5ClosingImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5ClosingImage", vm.popUpAdvImageFile);});
                 $("#popUpAdvH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5NewPage", vm.popUpAdvImageFile);});
                 $("#popUpAdvH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5PageDetail", vm.popUpAdvImageFile);});
 
@@ -43567,7 +43784,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvAppPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvAppPageDetail", vm.popUpAdvImageFile);});
             };
 
-            vm.submitPopUpAdvertisementSettings = async () => {
+            vm.submitPopUpAdvertisementSettings = () => {
                 vm.isFinishedUploadedToFTPServer = true;
                 $('#frontEndPopUpAdvUploader').show();
                 function removeFromList(data) {
@@ -43577,7 +43794,7 @@ define(['js/app'], function (myApp) {
 
                     return data;
                 };
-                await vm.updatePopUpAdvertisementSetting();
+                // vm.updatePopUpAdvertisementSetting();
                 let promArr;
 
                 if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '1') {
@@ -43595,6 +43812,7 @@ define(['js/app'], function (myApp) {
                 } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '2') {
                     promArr = [
                         "popUpAdvH5Image",
+                        "popUpAdvH5ClosingImage",
                         "popUpAdvH5NewPage",
                         "popUpAdvH5PageDetail"
                     ];
@@ -43623,6 +43841,9 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5Image){
                                 vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvH5ClosingImage){
+                                vm.newPopUpAdvertisementSetting.closingImageUrl = vm.popUpAdvImageUrl.popUpAdvH5ClosingImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5NewPage){
                                 vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
@@ -43662,6 +43883,12 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.clearClosingImageUrl = function (settingObj, fieldName){
+              if (settingObj && settingObj[fieldName]){
+                  settingObj[fieldName] = null;
+              }
             };
 
             vm.loadScriptSetting = function (platformObjId) {
@@ -43742,12 +43969,23 @@ define(['js/app'], function (myApp) {
                 vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
             };
 
+            vm.updateRegistrationCategoryForFrontEndDisplay = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    return $scope.$socketPromise('updateRegistrationCategoryForFrontEndDisplay', {categoryObjId: categoryObjId, platformObjId: vm.filterFrontEndSettingPlatform}).then(data => {
+                        console.log("updateRegistrationCategoryForFrontEndDisplay success:", data);
+                    }, err => {
+                        console.error('updateRegistrationCategoryForFrontEndDisplay error: ', err);
+                    });
+                }
+            };
+
             vm.loadRegistrationGuidanceCategory = function (platformObjId){
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getRegistrationGuidanceCategory', {platformObjId: platformObjId}, function (data) {
                         $scope.$evalAsync( () => {
                             console.log('getRegistrationGuidanceCategory', data.data);
                             if (data && data.data) {
+                                let tempAllWithDefault = data.data;
                                 let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
                                 let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
 
@@ -43755,10 +43993,18 @@ define(['js/app'], function (myApp) {
                                 vm.registrationCategory = tempAll;
                                 vm.allRegistrationCategory = tempAll;
                                 vm.displayRegistrationCategory= [];
-                                vm.allRegistrationCategory.forEach(
+                                vm.registrationCategoryList = [];
+                                vm.registrationCategoryList = vm.registrationCategoryList.concat(tempOne, tempAll);
+                                vm.displayCategory= [];
+                                tempAllWithDefault.forEach(
                                     p => {
                                         if (p && p._id){
-                                            vm.displayRegistrationCategory.push(p._id);
+                                            if (p.defaultShow){
+                                                vm.registrationCategoryForFrontEndDisplay = p._id;
+                                            }
+                                            if (p && p.categoryName && p.categoryName != '全部分类'){
+                                                vm.displayRegistrationCategory.push(p._id);
+                                            }
                                         }
                                     }
                                 )

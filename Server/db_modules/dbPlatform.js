@@ -4124,8 +4124,8 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).populate({
-                path: "pc.popUpList",
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
+                path: "popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
         }
@@ -6269,13 +6269,13 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'recommendation':
-                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'reward':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'advertisement':
-                            prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'rewardPoint':
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
@@ -6315,6 +6315,7 @@ var dbPlatform = {
             }
         );
 
+        // for those do not have "device" field
         function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 1, code);
 
@@ -6325,19 +6326,19 @@ var dbPlatform = {
             let prom = Promise.resolve();
 
             if (code == 'recommendation'){
-                prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
-                    path: "pc.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "h5.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "app.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "pc.popUpList",
-                    model: dbconfig.collection_frontEndPopUpSetting
-                }).sort({displayOrder: 1}).lean()
+                // prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
+                //     path: "pc.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "h5.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "app.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "pc.popUpList",
+                //     model: dbconfig.collection_frontEndPopUpSetting
+                // }).sort({displayOrder: 1}).lean()
             }
             else if (code == "reward"){
                 prom = dbconfig.collection_frontEndRewardSetting.find(query).populate({
@@ -6355,16 +6356,16 @@ var dbPlatform = {
                 }).sort({displayOrder: 1}).lean()
             }
             else if (code == "advertisement"){
-                prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
-                    path: "pc.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "h5.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "app.rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).sort({displayOrder: 1}).lean()
+                // prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
+                //     path: "pc.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "h5.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).populate({
+                //     path: "app.rewardEventObjId",
+                //     model: dbconfig.collection_rewardEvent
+                // }).sort({displayOrder: 1}).lean()
             }
             else if (code == "pageSetting"){
                 if (query && query.hasOwnProperty('status')){
@@ -6439,7 +6440,7 @@ var dbPlatform = {
                             settingList = settingList[0];
                         }
                         if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
-                            settingList = restructureDataFormat (settingList, code)
+                            settingList = restructureDataFormat (settingList, code, platformObjId)
                         }
 
                         // check the url and prepend with cdn if there is no keyword of http, https
@@ -6451,6 +6452,7 @@ var dbPlatform = {
             );
         }
 
+        // for those have "device" field
         function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 2, code);
             if (!query) {
@@ -6461,6 +6463,27 @@ var dbPlatform = {
 
             if (code == 'rewardPoint'){
                 prom = dbconfig.collection_frontEndRewardPointClarification.find(query).lean()
+            }
+            else if (code == "recommendation"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPopularRecommendationSetting.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "popUpList",
+                    model: dbconfig.collection_frontEndPopUpSetting
+                }).sort({displayOrder: 1}).lean()
+            }
+            else if (code == "advertisement"){
+                if (query){
+                    query.isVisible = true;
+                }
+                prom = dbconfig.collection_frontEndPopUpAdvertisementSetting.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).sort({displayOrder: 1}).lean()
             }
             else if (code == "carousel"){
                 if (query){
@@ -6499,6 +6522,10 @@ var dbPlatform = {
                                    setting.rewardCode = setting.rewardEventObjId && setting.rewardEventObjId.code ? setting.rewardEventObjId.code : null;
                                    delete setting.rewardEventObjId;
                                }
+
+                                if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
+                                    settingList = restructureDataFormat (settingList, code, platformObjId)
+                                }
 
                                return checkUrlForCDNPrepend (cdnText, setting)
                             }
@@ -6585,7 +6612,7 @@ var dbPlatform = {
             return query;
         }
 
-        async function restructureDataFormat (settingList, code) {
+        async function restructureDataFormat (settingList, code, platformObjId) {
             if (settingList && settingList.length && code && code == "recommendation") {
                 let navList = [];
                 let bodyList = [];
@@ -6611,19 +6638,22 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
-                let allObjList = {name: "全部", list: []};
+                let allObjList = {name: "全部", list: [], defaultShow: false};
                 let arrayList = [];
                 let defaultCategory = null;
 
                 if (code == "reward"){
-                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
                 }
                 else if (code == "registrationGuidance"){
-                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
                 }
 
-                if (defaultCategory && defaultCategory.displayFormat){
-                    allObjList.displayFormat = defaultCategory.displayFormat;
+                if (defaultCategory){
+                    allObjList.defaultShow = defaultCategory.defaultShow || false;
+                    if (defaultCategory.displayFormat){
+                        allObjList.displayFormat = defaultCategory.displayFormat;
+                    }
                 }
                 settingList.forEach(
                     p => {
@@ -6656,7 +6686,8 @@ var dbPlatform = {
 
                 Object.keys(objList).forEach(key => {
                     let tempDisplayFormat = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.displayFormat ? objList[key][0].categoryObjId.displayFormat : null;
-                    arrayList.push({name: key, displayFormat: tempDisplayFormat, list: objList[key]})
+                    let isShow = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.hasOwnProperty('defaultShow') ? objList[key][0].categoryObjId.defaultShow : false;
+                    arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
                 return arrayList
@@ -6686,6 +6717,9 @@ var dbPlatform = {
             if (setting && cdnText) {
                 if (setting.imageUrl && (setting.imageUrl.indexOf('http') == -1 && setting.imageUrl.indexOf('https') == -1)) {
                     setting.imageUrl = cdnText + setting.imageUrl;
+                }
+                if (setting.closingImageUrl && (setting.closingImageUrl.indexOf('http') == -1 && setting.closingImageUrl.indexOf('https') == -1)) {
+                    setting.closingImageUrl = cdnText + setting.closingImageUrl;
                 }
                 if (setting.newPageUrl && (setting.newPageUrl.indexOf('http') == -1 && setting.newPageUrl.indexOf('https') == -1)) {
                     setting.newPageUrl = cdnText + setting.newPageUrl;
@@ -7234,7 +7268,13 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
-    }
+    },
+
+    toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {
+        let query = {_id: platformObjId};
+        let updObj = {$set: {displayFrontEndRewardPointsRankingData: updateData}};
+        return dbconfig.collection_platform.findOneAndUpdate(query, updObj, {new: true});
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

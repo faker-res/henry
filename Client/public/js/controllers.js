@@ -1162,7 +1162,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.phoneCall.username = data.toText;
         $scope.getNewPhoneCaptha();
     }
-    $scope.makePhoneCall = function (platformId) {
+    $scope.makePhoneCall = function (platformId, isTs) {
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {
             adminName: $scope.getUserName()
         }, onSuccess, onFail, true);
@@ -1176,7 +1176,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 return;
             }
 
-            if (!adminData.did) {
+            if (!adminData.did && !adminData.tsdid) {
                 alert("还没设置前缀。。。");
                 return;
             }
@@ -1253,8 +1253,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 ];
             }
 
-            if (adminData.ctiUrl) {
-                urls = [`http://${adminData.ctiUrl}.tel400.me/cti/previewcallout.action`];
+            if (adminData.ctiUrl || adminData.ctiTsUrl) {
+                let usedUrl = adminData.ctiUrl || adminData.ctiTsUrl;
+                if (isTs) {
+                    usedUrl = adminData.ctiTsUrl || adminData.ctiUrl;
+                }
+                urls = [`http://${usedUrl}/cti/previewcallout.action`];
             }
 
             performPhoneCall();
@@ -1273,7 +1277,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let firstLevelMd5 = convertToMD5(adminData.callerId + "");
                 let password = convertToMD5(firstLevelMd5 + formattedNow);
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-                let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+                let did = adminData.did || adminData.tsDid;
+                if (isTs) {
+                    did = adminData.tsDid || adminData.did;
+                }
+                let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
 
                 socketService.$socket($scope.AppSocket, 'callTel400', {url: urlWithParams},

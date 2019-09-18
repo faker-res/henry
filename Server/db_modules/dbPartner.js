@@ -582,7 +582,7 @@ let dbPartner = {
                     newElements = dbUtil.difArrays(partnerData.ownDomain, newDomains);
                     removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
                     if (newElements && newElements.length > 0) {
-                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
+                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele, partnerName: partnerData.partnerName}).save());
                         return Promise.all(newProms);
                     }
                 }
@@ -1310,9 +1310,7 @@ let dbPartner = {
         return dbconfig.collection_partnerOwnDomain.find({name: {$in: value}}).then(data => {
             if (data && data.length > 0) {
                 return {
-                    data: data.map(item => {
-                        return item.name;
-                    }),
+                    data: data,
                     exists: true, time: time
                 };
             } else {
@@ -9431,11 +9429,10 @@ let dbPartner = {
 
     urlShortener: (data) => {
 
-            let weiboAppKey = env.weiboAppKey;
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let uri = 'http://sa.sogou.com/gettiny?url=' + url;
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
@@ -9444,16 +9441,10 @@ let dbPartner = {
                 data=> {
                     let result = [];
                     data.forEach( (item, index) => {
-                        try {
-                             item = JSON.parse(item);
-                             item = ( item && item[0] ) ? item[0] : {}
-                             item.no = index + 1;
-                             result.push(item);
-                        }
-                         catch(err) {
-                             console.log('MT --checking JSON INVALID', item);
-                             result.push({no: index + 1 , url_long: urls[index]});
-                        }
+                        let urlData = {};
+                        urlData.url_short = item;
+                        urlData.no = index + 1;
+                        result.push(urlData);
                     })
                     console.log('MT --checking urlShortener', result);
                     return result

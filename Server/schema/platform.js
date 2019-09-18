@@ -582,6 +582,8 @@ var platformSchema = new Schema({
     appDataVer: {type: String},
     // is use voice code verification
     useVoiceCode: {type: Boolean, default: false},
+    // display front end reward points ranking data
+    displayFrontEndRewardPointsRankingData: {type: Boolean, default: true},
 });
 
 //add platform id before save

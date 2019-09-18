@@ -1068,7 +1068,11 @@ const dbPartnerCommission = {
 
     getRelevantActivePlayerRequirement: (platformObjId, commissionType) => {
         return getRelevantActivePlayerRequirement(platformObjId, commissionType);
-    }
+    },
+
+    getCommissionTypeName(commissionType) {
+        return getCommissionTypeName(commissionType);
+    },
 };
 
 let proto = dbPartnerCommissionFunc.prototype;

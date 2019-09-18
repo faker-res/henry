@@ -4,6 +4,50 @@ var ObjectId = mongoose.Types.ObjectId;
 
 var dbFrontEndSetting = {
 
+    updateRegistrationCategoryForFrontEndDisplay: async (categoryObjId, platformObjId)  => {
+        if (categoryObjId && platformObjId){
+            let updateProm = [];
+            let categoryList = await dbConfig.collection_frontEndRegistrationGuidanceCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+
+            if (categoryList && categoryList.length){
+                categoryList.forEach(
+                    categoryObj => {
+                        if (categoryObj && categoryObj._id && categoryObj._id.toString() == categoryObjId.toString()){
+                            updateProm.push(dbConfig.collection_frontEndRegistrationGuidanceCategory.findOneAndUpdate({_id: ObjectId(categoryObj._id)}, {defaultShow: true}).lean())
+                        }
+                        else{
+                            updateProm.push(dbConfig.collection_frontEndRegistrationGuidanceCategory.findOneAndUpdate({_id: ObjectId(categoryObj._id)}, {defaultShow: false}).lean())
+                        }
+                    }
+                );
+
+                return Promise.all(updateProm);
+            }
+        }
+    },
+
+    updateSelectedCategoryForFrontEndDisplay: async (categoryObjId, platformObjId)  => {
+        if (categoryObjId && platformObjId){
+            let updateProm = [];
+            let categoryList = await dbConfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
+
+            if (categoryList && categoryList.length){
+                categoryList.forEach(
+                    categoryObj => {
+                        if (categoryObj && categoryObj._id && categoryObj._id.toString() == categoryObjId.toString()){
+                            updateProm.push(dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObj._id)}, {defaultShow: true}).lean())
+                        }
+                        else{
+                            updateProm.push(dbConfig.collection_frontEndRewardCategory.findOneAndUpdate({_id: ObjectId(categoryObj._id)}, {defaultShow: false}).lean())
+                        }
+                    }
+                );
+
+                return Promise.all(updateProm);
+            }
+        }
+    },
+
     updateRegistrationGuidanceSetting: (dataList, deletedList, deletedCategoryList) => {
         let prom = [];
         if (dataList && dataList.length){
@@ -447,7 +491,7 @@ var dbFrontEndSetting = {
     getFrontEndPopUpAdvertisementSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            prom = dbConfig.collection_frontEndPopUpAdvertisementSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).sort({displayOrder: 1}).lean();
         }
 
         return prom;
