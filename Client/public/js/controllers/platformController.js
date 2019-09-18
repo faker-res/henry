@@ -17219,6 +17219,7 @@ define(['js/app'], function (myApp) {
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 vm.playerFeedbackSelectedPlatform = vm.allPlatformData.filter(platform => {return vm.playerFeedbackQuery.selectedPlatform == platform._id})[0];
+                vm.playerFeedbackQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
                 vm.loadBankCardGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadMerchantGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadAlipayGroupData(vm.playerFeedbackQuery.selectedPlatform);
@@ -17243,7 +17244,6 @@ define(['js/app'], function (myApp) {
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 $('#platformFeedbackSpin').show();
-                console.log('sendQuery', vm.playerFeedbackQuery);
                 vm.exportQuery = vm.getPlayerFeedbackQuery();
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
@@ -17255,7 +17255,7 @@ define(['js/app'], function (myApp) {
                                 sortCol: vm.playerFeedbackQuery.sortCol,
                                 searchType: vm.playerFeedbackSearchType
                             };
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                let sendQuery = {
                     query: vm.playerFeedbackQuery,
                     index: vm.playerFeedbackQuery.index,
                     //new block
@@ -17263,10 +17263,11 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime
                     //new Block
-                }, function (data) {
+                };
+                console.log("getPlayerFeedbackQuery sendQuery", sendQuery)
+                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
-                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
