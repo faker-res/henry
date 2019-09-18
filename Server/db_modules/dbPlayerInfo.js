@@ -4125,9 +4125,9 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (playerObj.bankAccountName) {
-                        delete updateData.bankAccountName;
-                    }
+                    // if (playerObj.bankAccountName) {
+                    //     delete updateData.bankAccountName;
+                    // }
                     //check if bankAccountName in update data is the same as player's real name
                     if (updateData.bankAccountName && !playerObj.realName) {
                         // return Q.reject({
@@ -4160,6 +4160,9 @@ let dbPlayerInfo = {
                 //         });
                 //     }
                 // }
+                if(updateData.bankAccountName){
+                    updateData.realName = updateData.bankAccountName;
+                }
                 updateData.bankAccountType = 2;
 
                 if (platformData) {
