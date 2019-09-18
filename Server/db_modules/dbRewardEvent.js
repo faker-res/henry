@@ -3675,8 +3675,6 @@ var dbRewardEvent = {
     },
 
     updateRewardEventGroup: function (query, updateData) {
-        console.log("walaoquery", query)
-        console.log("walaodata", updateData)
         return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
     },
 
