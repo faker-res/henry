@@ -21491,6 +21491,10 @@ let dbPlayerInfo = {
             });
         }
 
+        if(query && query.adminIds && query.adminIds.length){
+            matchObj.csOfficer = {$in: query.adminIds}
+        }
+
         let dataObj = {
             _id: 1,
             name: 1,
@@ -21563,7 +21567,6 @@ let dbPlayerInfo = {
                 let bonusRecord = res.bonus;
                 let providerInfo = res.provider;
                 let playerInfo = res.player;
-
                 if(providerInfo && providerInfo.length){
                     topUpRecord = topUpRecord.filter(t => {
                         return providerInfo.some(p => {
@@ -21589,77 +21592,86 @@ let dbPlayerInfo = {
                 //     playerInfo: playerInfo
                 // };
 
-
                 let outputData = [];
                 let retData = {};
-
                 if(playerInfo && playerInfo.length > 0 ) {
                     playerInfo.map(player => {
-                        consumptionRecord.map(c => {
-                            if (c && c._id) {
-                                if (!retData[c._id.playerId]) {
-                                    retData[c._id.playerId] = {};
+                        if(consumptionRecord && consumptionRecord.length>0){
+                            consumptionRecord.map(c => {
+                                if (c && c._id) {
+                                    if (!retData[c._id.playerId]) {
+                                        retData[c._id.playerId] = {};
+                                    }
+                                    if (!retData[c._id.playerId][c._id.date]) {
+                                        retData[c._id.playerId][c._id.date] = {};
+                                    }
+
+                                    retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
+                                    retData[c._id.playerId][c._id.date].date = c._id.date;
+                                    retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
+                                    retData[c._id.playerId][c._id.date].consumptionCount = c.count;
+                                    retData[c._id.playerId][c._id.date].providerInfo = c.providerInfo.name;
+
+                                    if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
+                                        retData[c._id.playerId][c._id.date].playerInfo = player;
+                                    }
+
                                 }
-                                if (!retData[c._id.playerId][c._id.date]) {
-                                    retData[c._id.playerId][c._id.date] = {};
+                            });
+                        }
+
+                        if(topUpRecord && topUpRecord.length>0) {
+                            topUpRecord.map(t => {
+                                if (t && t._id) {
+                                    if (!retData[t._id.playerId]) {
+                                        retData[t._id.playerId] = {};
+                                    }
+                                    if (!retData[t._id.playerId][t._id.date]) {
+                                        retData[t._id.playerId][t._id.date] = {};
+                                    }
+
+                                    retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
+                                    retData[t._id.playerId][t._id.date].date = t._id.date;
+                                    retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
+                                    retData[t._id.playerId][t._id.date].topUpCount = t.count;
+
+                                    if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
+                                        retData[t._id.playerId][t._id.date].playerInfo = player;
+                                    }
+
                                 }
+                            });
+                        }
 
-                                retData[c._id.playerId][c._id.date].playerId = c._id.playerId;
-                                retData[c._id.playerId][c._id.date].date = c._id.date;
-                                retData[c._id.playerId][c._id.date].consumptionAmount = c.totalAmount;
-                                retData[c._id.playerId][c._id.date].consumptionCount = c.count;
-                                retData[c._id.playerId][c._id.date].providerInfo = c.providerInfo.name;
+                        if(bonusRecord && bonusRecord.length>0) {
 
-                                if (JSON.stringify(c._id.playerId) === JSON.stringify(player._id)) {
-                                    retData[c._id.playerId][c._id.date].playerInfo = player;
+                            bonusRecord.map(b => {
+
+                                if (b && b._id) {
+
+                                    if (!retData[b._id.playerId]) {
+                                        retData[b._id.playerId] = {};
+                                    }
+                                    if (!retData[b._id.playerId][b._id.date]) {
+                                        retData[b._id.playerId][b._id.date] = {};
+                                    }
+
+                                    retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
+                                    retData[b._id.playerId][b._id.date].date = b._id.date;
+                                    retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
+                                    retData[b._id.playerId][b._id.date].bonusCount = b.count;
+
+
+                                    if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
+
+                                        retData[b._id.playerId][b._id.date].playerInfo = player;
+                                    }
+
                                 }
-
-                            }
-                        });
-
-                        topUpRecord.map(t => {
-                            if (t && t._id) {
-                                if (!retData[t._id.playerId]) {
-                                    retData[t._id.playerId] = {};
-                                }
-                                if (!retData[t._id.playerId][t._id.date]) {
-                                    retData[t._id.playerId][t._id.date] = {};
-                                }
-
-                                retData[t._id.playerId][t._id.date].playerId = t._id.playerId;
-                                retData[t._id.playerId][t._id.date].date = t._id.date;
-                                retData[t._id.playerId][t._id.date].topUpAmount = t.totalAmount;
-                                retData[t._id.playerId][t._id.date].topUpCount = t.count;
-
-                                if (JSON.stringify(t._id.playerId) === JSON.stringify(player._id)) {
-                                    retData[t._id.playerId][t._id.date].playerInfo = player;
-                                }
-
-                            }
-                        });
-
-
-                        bonusRecord.map(b => {
-                            if (b && b._id) {
-                                if (!retData[b._id.playerId]) {
-                                    retData[b._id.playerId] = {};
-                                }
-                                if (!retData[b._id.playerId][b._id.date]) {
-                                    retData[b._id.playerId][b._id.date] = {};
-                                }
-
-                                retData[b._id.playerId][b._id.date].playerId = b._id.playerId;
-                                retData[b._id.playerId][b._id.date].date = b._id.date;
-                                retData[b._id.playerId][b._id.date].bonusAmount = b.totalAmount;
-                                retData[b._id.playerId][b._id.date].bonusCount = b.count;
-
-                                if (JSON.stringify(b._id.playerId) === JSON.stringify(player._id)) {
-                                    retData[b._id.playerId][b._id.date].playerInfo = player;
-                                }
-
-                            }
-                        });
+                            });
+                        }
                     });
+
 
 
                     for (let key in retData) {
