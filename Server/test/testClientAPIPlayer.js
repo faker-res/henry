@@ -1,6 +1,5 @@
 var should = require('should');
 var dbconfig = require('../modules/dbproperties');
-var Q = require("q");
 var WebSocketClient = require('../server_common/WebSocketClient');
 var PlayerService = require('../services/client/ClientServices').PlayerService;
 var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;

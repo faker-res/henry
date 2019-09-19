@@ -312,12 +312,7 @@
     proto.isValidUsername = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.isValidUsername.request(data);
-        this.playerService.isValidUsername.once(function (data) {
-            console.log('data', data);
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
+        this.playerService.isValidUsername.once(callback);
     };
 
     proto.isValidRealName = function (callback, requestData) {
@@ -792,7 +787,6 @@
 
     proto.updatePasswordWithToken = function (callback, requestData) {
         var data = requestData || {};
-        console.log('token', data.token);
         this.playerService.updatePasswordWithToken.request(data);
         this.playerService.updatePasswordWithToken.once(callback);
     };
