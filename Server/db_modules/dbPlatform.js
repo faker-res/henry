@@ -3479,7 +3479,7 @@ var dbPlatform = {
             if (data[list].length > 0) {
                 data[list].forEach(pair => {
 
-                    if (pair.content.indexOf(',') !== -1) {
+                    if (pair.content && pair.content.indexOf(',') !== -1) {
                         let splitString = pair.content.split(',');
 
                         if (splitString && splitString.length > 0) {
@@ -3504,7 +3504,7 @@ var dbPlatform = {
                         }
                     }
                     else {
-                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1) {
+                        if (pair.content && pair.isImg === 1 && pair.content.indexOf("http") === -1) {
                             if (subject === 'player' && data.playerRouteSetting) {
                                 pair.content = data.playerRouteSetting.trim() + pair.content.trim();
                             } else if (subject === 'partner' && data.partnerRouteSetting) {
