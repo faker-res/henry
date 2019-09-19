@@ -507,6 +507,10 @@ const dbPlayerMail = {
                         }
                         return dbconfig.collection_players.findOne(playerQuery).lean().then(
                             playerData => {
+                                if (!playerName && playerData && playerData.name) {
+                                    playerName = playerData.name;
+                                }
+
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
                                     player = playerData;
