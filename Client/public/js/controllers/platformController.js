@@ -17219,6 +17219,7 @@ define(['js/app'], function (myApp) {
             vm.submitPlayerFeedbackQuery = function (isNewSearch, currentTimeBoolean) {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 vm.playerFeedbackSelectedPlatform = vm.allPlatformData.filter(platform => {return vm.playerFeedbackQuery.selectedPlatform == platform._id})[0];
+                vm.playerFeedbackQuery.platform = vm.playerFeedbackQuery.selectedPlatform;
                 vm.loadBankCardGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadMerchantGroupData(vm.playerFeedbackQuery.selectedPlatform);
                 vm.loadAlipayGroupData(vm.playerFeedbackQuery.selectedPlatform);
@@ -17243,7 +17244,6 @@ define(['js/app'], function (myApp) {
                 let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
 
                 $('#platformFeedbackSpin').show();
-                console.log('sendQuery', vm.playerFeedbackQuery);
                 vm.exportQuery = vm.getPlayerFeedbackQuery();
                 console.log('vm.playerFeedbackSearchType', vm.playerFeedbackSearchType);
                 if (isNewSearch) {
@@ -17255,7 +17255,7 @@ define(['js/app'], function (myApp) {
                                 sortCol: vm.playerFeedbackQuery.sortCol,
                                 searchType: vm.playerFeedbackSearchType
                             };
-                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', {
+                let sendQuery = {
                     query: vm.playerFeedbackQuery,
                     index: vm.playerFeedbackQuery.index,
                     //new block
@@ -17263,10 +17263,11 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime
                     //new Block
-                }, function (data) {
+                };
+                console.log("getPlayerFeedbackQuery sendQuery", sendQuery)
+                socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
-                        vm.playerFeedbackQuery.platform = data.data.data[0].platform;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -26000,17 +26001,25 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync( () => {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
+                                let tempAllWithDefault = data.data;
                                 let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
                                 let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
 
                                 vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
                                 vm.frontEndRewardCategory = tempAll;
                                 vm.allFrontEndRewardCategory = tempAll;
+                                vm.categorySelectionList = [];
+                                vm.categorySelectionList = vm.categorySelectionList.concat(tempOne, tempAll);
                                 vm.displayCategory= [];
-                                vm.allFrontEndRewardCategory.forEach(
+                                tempAllWithDefault.forEach(
                                     p => {
                                         if (p && p._id){
-                                            vm.displayCategory.push(p._id);
+                                            if (p.defaultShow){
+                                                vm.selectedCategoryForFrontEndDisplay = p._id;
+                                            }
+                                            if (p && p.categoryName && p.categoryName != '全部分类'){
+                                                vm.displayCategory.push(p._id);
+                                            }
                                         }
                                     }
                                 )
@@ -26074,6 +26083,16 @@ define(['js/app'], function (myApp) {
                     });
                     $(".ownDragDrop").sortable({});
                 });
+            };
+
+            vm.updateSelectedCategoryForFrontEndDisplay = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    return $scope.$socketPromise('updateSelectedCategoryForFrontEndDisplay', {categoryObjId: categoryObjId, platformObjId: vm.filterFrontEndSettingPlatform}).then(data => {
+                        console.log("updateSelectedCategoryForFrontEndDisplay success:", data);
+                    }, err => {
+                        console.error('updateSelectedCategoryForFrontEndDisplay error: ', err);
+                    });
+                }
             };
 
             vm.filterDisplayCategory = function (rewardCategoryObjIdList){
@@ -43643,6 +43662,7 @@ define(['js/app'], function (myApp) {
                 document.querySelector('#popUpAdvPcNewPageFile').value = "";
                 document.querySelector('#popUpAdvPcPageDetailFile').value = "";
                 document.querySelector('#popUpAdvH5ImageFile').value = "";
+                document.querySelector('#popUpAdvH5ClosingImageFile').value = "";
                 document.querySelector('#popUpAdvH5NewPageFile').value = "";
                 document.querySelector('#popUpAdvH5PageDetailFile').value = "";
                 document.querySelector('#popUpAdvAppImageFile').value = "";
@@ -43651,6 +43671,7 @@ define(['js/app'], function (myApp) {
 
                 $('#popUpAdvPcImage').attr("src","");
                 $('#popUpAdvH5Image').attr("src","");
+                $('#popUpAdvH5ClosingImage').attr("src","");
                 $('#popUpAdvAppImage').attr("src","");
 
                 // if (isNew) {
@@ -43741,6 +43762,7 @@ define(['js/app'], function (myApp) {
                                 $('#popUpAdvAppImage').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
                             }else if(vm.newPopUpAdvertisementSetting.device == 2){
                                 $('#popUpAdvH5Image').attr("src",vm.newPopUpAdvertisementSetting.imageUrl);
+                                $('#popUpAdvH5ClosingImage').attr("src",vm.newPopUpAdvertisementSetting.closingImageUrl || null);
                             }
                         }
                     }
@@ -43753,6 +43775,7 @@ define(['js/app'], function (myApp) {
                 $("#popUpAdvPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvPcPageDetail", vm.popUpAdvImageFile);});
 
                 $("#popUpAdvH5ImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5Image", vm.popUpAdvImageFile);});
+                $("#popUpAdvH5ClosingImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5ClosingImage", vm.popUpAdvImageFile);});
                 $("#popUpAdvH5NewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5NewPage", vm.popUpAdvImageFile);});
                 $("#popUpAdvH5PageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"popUpAdvH5PageDetail", vm.popUpAdvImageFile);});
 
@@ -43789,6 +43812,7 @@ define(['js/app'], function (myApp) {
                 } else if (vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device === '2') {
                     promArr = [
                         "popUpAdvH5Image",
+                        "popUpAdvH5ClosingImage",
                         "popUpAdvH5NewPage",
                         "popUpAdvH5PageDetail"
                     ];
@@ -43817,6 +43841,9 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5Image){
                                 vm.newPopUpAdvertisementSetting.imageUrl = vm.popUpAdvImageUrl.popUpAdvH5Image
+                            }
+                            if (vm.popUpAdvImageUrl.popUpAdvH5ClosingImage){
+                                vm.newPopUpAdvertisementSetting.closingImageUrl = vm.popUpAdvImageUrl.popUpAdvH5ClosingImage
                             }
                             if (vm.popUpAdvImageUrl.popUpAdvH5NewPage){
                                 vm.newPopUpAdvertisementSetting.newPageUrl = vm.popUpAdvImageUrl.popUpAdvH5NewPage
@@ -43856,6 +43883,12 @@ define(['js/app'], function (myApp) {
                     console.log("err", err);
                     $('#frontEndPopUpAdvUploader').hide();
                 });
+            };
+
+            vm.clearClosingImageUrl = function (settingObj, fieldName){
+              if (settingObj && settingObj[fieldName]){
+                  settingObj[fieldName] = null;
+              }
             };
 
             vm.loadScriptSetting = function (platformObjId) {
@@ -43936,12 +43969,23 @@ define(['js/app'], function (myApp) {
                 vm.loadScriptSetting(vm.filterFrontEndSettingPlatform);
             };
 
+            vm.updateRegistrationCategoryForFrontEndDisplay = function (categoryObjId) {
+                if (categoryObjId && vm.filterFrontEndSettingPlatform){
+                    return $scope.$socketPromise('updateRegistrationCategoryForFrontEndDisplay', {categoryObjId: categoryObjId, platformObjId: vm.filterFrontEndSettingPlatform}).then(data => {
+                        console.log("updateRegistrationCategoryForFrontEndDisplay success:", data);
+                    }, err => {
+                        console.error('updateRegistrationCategoryForFrontEndDisplay error: ', err);
+                    });
+                }
+            };
+
             vm.loadRegistrationGuidanceCategory = function (platformObjId){
                 if (platformObjId){
                     socketService.$socket($scope.AppSocket, 'getRegistrationGuidanceCategory', {platformObjId: platformObjId}, function (data) {
                         $scope.$evalAsync( () => {
                             console.log('getRegistrationGuidanceCategory', data.data);
                             if (data && data.data) {
+                                let tempAllWithDefault = data.data;
                                 let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
                                 let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
 
@@ -43949,10 +43993,18 @@ define(['js/app'], function (myApp) {
                                 vm.registrationCategory = tempAll;
                                 vm.allRegistrationCategory = tempAll;
                                 vm.displayRegistrationCategory= [];
-                                vm.allRegistrationCategory.forEach(
+                                vm.registrationCategoryList = [];
+                                vm.registrationCategoryList = vm.registrationCategoryList.concat(tempOne, tempAll);
+                                vm.displayCategory= [];
+                                tempAllWithDefault.forEach(
                                     p => {
                                         if (p && p._id){
-                                            vm.displayRegistrationCategory.push(p._id);
+                                            if (p.defaultShow){
+                                                vm.registrationCategoryForFrontEndDisplay = p._id;
+                                            }
+                                            if (p && p.categoryName && p.categoryName != '全部分类'){
+                                                vm.displayRegistrationCategory.push(p._id);
+                                            }
                                         }
                                     }
                                 )
