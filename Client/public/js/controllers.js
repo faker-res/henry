@@ -1176,7 +1176,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 return;
             }
 
-            if (!adminData.did || !adminData.tsdid) {
+            if (!adminData.did && !adminData.tsdid) {
                 alert("还没设置前缀。。。");
                 return;
             }
@@ -1277,9 +1277,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let firstLevelMd5 = convertToMD5(adminData.callerId + "");
                 let password = convertToMD5(firstLevelMd5 + formattedNow);
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-                let did = admin.did || admin.tsDid;
+                let did = adminData.did || adminData.tsDid;
                 if (isTs) {
-                    did = admin.tsDid || admin.did;
+                    did = adminData.tsDid || adminData.did;
                 }
                 let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
