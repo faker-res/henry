@@ -1,6 +1,6 @@
 var should = require('should');
 var dbconfig = require('../modules/dbproperties');
-
+var Q = require("q");
 var WebSocketClient = require('../server_common/WebSocketClient');
 var PlayerService = require('../services/client/ClientServices').PlayerService;
 var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
@@ -43,9 +43,10 @@ var testPlayerDOB = null;
 var testPlayerRealName = null;
 var testPlayerOldPwd = null;
 var smsLog = null;
+var pwdToken = null;
 
 describe("Test Client API - Player service", function () {
-
+    this.timeout(12000)
     var client = new WebSocketClient(env.clientAPIServerUrl);
 
     var playerService = new PlayerService();
@@ -94,6 +95,49 @@ describe("Test Client API - Player service", function () {
             });
         }
         await clientOpenProm();
+        // saveLog2();
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        let randomCh = parseInt(Math.random() * 900 + 100);
+        // let today = new Date();
+        // today.setHours(0, 0, 0, 0);
+        let curDate = new Date();
+        curDate.setHours(curDate.getHours(), curDate.getMinutes(), curDate.getSeconds(), curDate.getMilliseconds());
+        curDate.setDate(curDate.getDate());
+        console.log('cur date', curDate);
+        let saveObj = {
+            tel: testPhoneNumber,
+            channel: randomCh,
+            platformObjId: testPlatformObjId,
+            platformId: testPlatformId,
+            code: randomCode,
+            delay: 0
+            // createTime: curDate
+        };
+        let saveLogObj = {
+            tel: testPhoneNumber,
+            channel: randomCh,
+            platform: testPlatformObjId,
+            platformId: testPlatformId,
+            message: randomCode,
+            type: 'player',
+            status: 'success'
+        };
+        let saveLog = await dbconfig.collection_smsVerificationLog(saveObj).save();
+        if(!saveLog){
+            return Promise.reject("Save verification log failed");
+        }
+        let saveLog2 = await dbconfig.collection_smsLog(saveLogObj).save();
+        if(!saveLog2){
+            return Promise.reject("Save sms log failed");
+        }
+        let getLog = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
+        if(!getLog){
+            return Promise.reject("Get log failed");
+        }
+        smsLog = getLog.code;
+
+
+        // getLog();
     });
 
     let apiCreatedPlayer;
@@ -205,6 +249,27 @@ describe("Test Client API - Player service", function () {
         }, {
             playerId: testPlayerId,
             password: randomPWD.toString()
+        });
+    });
+
+    it('Should generate Password Token', function(done){
+        let reqData = {platformId: testPlatformId,
+            name: testPlayerName,
+            phoneNumber: testPhoneNumber,
+            smsCode: smsLog};
+        clientPlayerAPITest.generateUpdatePasswordToken(function(data){
+            pwdToken = data.data.token;
+            done();
+        }, reqData);
+    });
+
+    it('Should Update Password With Token', function (done) {
+        clientPlayerAPITest.updatePasswordWithToken(function (data) {
+            data.status.should.equal(200);
+            done();
+        }, {
+            token: pwdToken,
+            password: "password123456789",
         });
     });
 
@@ -564,10 +629,10 @@ describe("Test Client API - Player service", function () {
     });
 
     it('Should verify phone number by SMS code', function () {
-        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        // let randomCode = parseInt(Math.random() * 9000 + 1000);
         clientPlayerAPITest.verifyPhoneNumberBySMSCode(function (data) {
             data.status.should.equal(200);
-        }, {playerId: testPlayerId, smsCode: randomCode});
+        }, {playerId: testPlayerId, smsCode: smsLog});
     });
 
     it('Get last game info', function () {
@@ -719,50 +784,6 @@ describe("Test Client API - Player service", function () {
             data.data.number.should.be.a.String();
 
         }, {playerId: testPlayerId, deviceId: "deviceId123"});
-    });
-
-
-    it('Should Generate Update Password Token', function () {
-        clientPlayerAPITest.generateUpdatePasswordToken(function (data) {
-            data.status.should.equal(200);
-            data.data.token.should.be.a.String();
-
-        }, {
-            platformId: testPlatformId,
-            name: "username1",
-            phoneNumber: "17355544411",
-            smsCode: "5478"
-        });
-    });
-
-    async function getLog(){
-        smsLog = await dbconfig.collection_smsVerificationLog.findOne({
-            platformId: testPlatformId,
-            tel: testPhoneNumber
-        }).sort({createTime: -1});
-    }
-
-    it('Should Update Password With Token', function (done) {
-
-       clientPlayerAPITest.getSMSCode(function(data){
-       }, {phoneNumber: testPhoneNumber,platformId: testPlatformId});
-
-        getLog();
-        let reqData = {platformId: testPlatformId,
-                    name: testPlayerName,
-                    phoneNumber: testPhoneNumber,
-                    smsCode: smsLog.code};
-        clientPlayerAPITest.generateUpdatePasswordToken(function(data){
-            token = data.data.token;
-        }, reqData);
-
-        clientPlayerAPITest.updatePasswordWithToken(function (data) {
-            data.status.should.equal(200);
-            done();
-        }, {
-            token: token,
-            password: "password123456789",
-        });
     });
 
     it('Should Check is App Player And Applied Reward', function () {
