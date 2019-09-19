@@ -53,7 +53,6 @@ var localConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
 };
 
 //for aws-development
@@ -90,7 +89,6 @@ var devConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
 };
 
 //for settlement
@@ -157,7 +155,6 @@ var qaConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
 };
 
 var testAPIConfig = {
@@ -297,7 +294,6 @@ var prodConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
 };
 
 

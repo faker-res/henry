@@ -33,14 +33,17 @@ var adminInfoSchema = new Schema({
     //when will that token stop being valid?
     resetTokenExpiry: {type: Date},
     did: {type: Number},
+    tsDid: {type: Number},
     callerId: {type: Number},
     live800Acc: [{type: String, default: 0}],
     // caller queue ID
     callerQueue: {type: String},
     // financial settlement notification showed base on each platform
     financialPointsNotificationShowed: [{type: String}],
-    // cti url
+    // cti url 回访用
     ctiUrl: String,
+    // cti url 电销用
+    ctiTsUrl: String,
 
 });
 
