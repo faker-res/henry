@@ -534,6 +534,13 @@ const dbPlayerMail = {
                                             message: "Phone number not found, please register first!"
                                         });
                                     }
+
+                                    if (purpose && purpose === constSMSPurpose.INQUIRE_ACCOUNT) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Player not exist, Please contact cs."
+                                        });
+                                    }
                                 }
                             }
                         )

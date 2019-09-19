@@ -3496,6 +3496,8 @@ let dbPlayerInfo = {
 
     inquireAccountByPhoneNumber: function (platformId, phoneNumber, smsCode) {
         let platformObj;
+        let isShowForbidMsg = true;
+        let playerRecord = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -3511,7 +3513,7 @@ let dbPlayerInfo = {
                 }
                 return dbconfig.collection_players.find({
                     platform: platformObj._id,
-                    phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
+                    phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber]},
                     $or: [{isTestPlayer: false}, {isTestPlayer: {$exists: false}}]
                 }).lean();
             }
@@ -3519,6 +3521,25 @@ let dbPlayerInfo = {
             playerData => {
                 if (!(playerData && playerData.length)) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
+                } else {
+                    playerData.forEach(player => {
+                        if (player && player.permission) {
+                            if (!player.permission.forbidPlayerFromLogin) {
+                                isShowForbidMsg = false;
+                                playerRecord.push(player);
+                            }
+                        } else {
+                            isShowForbidMsg = false;
+                            playerRecord.push(player);
+                        }
+
+                    });
+
+                    playerData = playerRecord;
+
+                    if (isShowForbidMsg) {
+                        return Promise.reject({name: "DataError", message: "Player not exist, Please contact cs."});
+                    }
                 }
 
                 let code = dbUtility.generateRandomPositiveNumber(1000, 9999);
@@ -3579,6 +3600,11 @@ let dbPlayerInfo = {
                 if (!playerData) {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
                 }
+
+                if (playerData && playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Q.reject({name: "DataError", message: "Player not exist, Please contact cs."});
+                }
+
                 playerObj = playerData;
                 let returnProm = Promise.resolve();
                 if (code) {
