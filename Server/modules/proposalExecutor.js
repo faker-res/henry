@@ -51,6 +51,7 @@ var SMSSender = require('./SMSSender');
 //Reward Points
 const constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
+const dbEmailNotification = require("../db_modules/dbEmailNotification");
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
@@ -1012,7 +1013,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit, "qnaWrongCount.editName": 0}
+                                    {realName: proposalData.data.realNameAfterEdit, bankAccountName: proposalData.data.realNameAfterEdit,"qnaWrongCount.editName": 0}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect player data", error: Error()});
@@ -1047,9 +1048,9 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
-                                // if(playerUpdate.bankAccountName){
-                                //     playerUpdate.realName = playerUpdate.bankAccountName;
-                                // }
+                                if(playerUpdate.bankName && playerUpdate.bankAccountName){
+                                    playerUpdate.realName = playerUpdate.bankAccountName;
+                                }
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
                                     updateMultipleBankInfo = true;
                                 }
@@ -1601,6 +1602,10 @@ var proposalExecutor = {
 
                         newChildPartnerArr = proposalData.data.updateChildPartnerName.filter((x) => proposalData.data.curChildPartnerName.indexOf(x) === -1);
                     }
+
+                    dbEmailNotification.sendNotifyEditChildPartnerEmail(proposalData).catch(err => {
+                        console.log("sendNotifyEditChildPartnerEmail fail", proposalData.proposalId, err);
+                    });
 
                     partnerProm.then(childPartner => {
                         childPartnerData = childPartner ? childPartner : [];
@@ -4123,6 +4128,9 @@ var proposalExecutor = {
                     prom.then(
                         data => {
                             updatePartnerCommissionType(proposalData);
+                            dbEmailNotification.sendNotifyEditPartnerCommissionEmail(proposalData).catch(err => {
+                                console.log("sendNotifyEditPartnerCommissionEmail failed", err);
+                            });
                             deferred.resolve(data);
                         },
                         error => deferred.reject(error)

@@ -4124,8 +4124,8 @@ var dbPlatform = {
     getFrontEndPopularRecommendationSetting: (platformObjId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1}).populate({
-                path: "pc.popUpList",
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
+                path: "popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
         }
@@ -6315,6 +6315,7 @@ var dbPlatform = {
             }
         );
 
+        // for those do not have "device" field
         function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 1, code);
 
@@ -6439,7 +6440,7 @@ var dbPlatform = {
                             settingList = settingList[0];
                         }
                         if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
-                            settingList = restructureDataFormat (settingList, code)
+                            settingList = restructureDataFormat (settingList, code, platformObjId)
                         }
 
                         // check the url and prepend with cdn if there is no keyword of http, https
@@ -6451,6 +6452,7 @@ var dbPlatform = {
             );
         }
 
+        // for those have "device" field
         function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
             let query = querySetUp(platformObjId, clientType, 2, code);
             if (!query) {
@@ -6520,6 +6522,10 @@ var dbPlatform = {
                                    setting.rewardCode = setting.rewardEventObjId && setting.rewardEventObjId.code ? setting.rewardEventObjId.code : null;
                                    delete setting.rewardEventObjId;
                                }
+
+                                if (settingList && settingList.length && code && (code == "recommendation" || code == "reward"  || code == "registrationGuidance")) {
+                                    settingList = restructureDataFormat (settingList, code, platformObjId)
+                                }
 
                                return checkUrlForCDNPrepend (cdnText, setting)
                             }
@@ -6606,7 +6612,7 @@ var dbPlatform = {
             return query;
         }
 
-        async function restructureDataFormat (settingList, code) {
+        async function restructureDataFormat (settingList, code, platformObjId) {
             if (settingList && settingList.length && code && code == "recommendation") {
                 let navList = [];
                 let bodyList = [];
@@ -6632,26 +6638,47 @@ var dbPlatform = {
             }
             else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
-                let allObjList = {name: "全部", list: []};
+                let allObjList = {name: "全部", list: [], defaultShow: false};
                 let arrayList = [];
+                let allCategory = null;
                 let defaultCategory = null;
+                let listedCategory = null;
 
                 if (code == "reward"){
-                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    allCategory = await dbconfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
                 else if (code == "registrationGuidance"){
-                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类"}, {displayFormat: 1}).lean();
+                    allCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
 
-                if (defaultCategory && defaultCategory.displayFormat){
-                    allObjList.displayFormat = defaultCategory.displayFormat;
+                if (allCategory && allCategory.length){
+                    defaultCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "全部分类"});
+                    if (defaultCategory && defaultCategory.length){
+                        defaultCategory = defaultCategory[0];
+                    }
+                    allObjList.defaultShow = defaultCategory.defaultShow || false;
+                    if (defaultCategory.displayFormat){
+                        allObjList.displayFormat = defaultCategory.displayFormat;
+                    }
+                    listedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName != "全部分类"});
                 }
+
+                if (listedCategory && listedCategory.length){
+                    listedCategory.forEach(
+                        p => {
+                            if (p && p.categoryName){
+                                objList[p.categoryName] = [];
+                            }
+                        }
+                    )
+                }
+
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
-                            if (objList && !objList[p.categoryObjId.categoryName]){
-                                objList[p.categoryObjId.categoryName] = [];
-                            }
+                            // if (objList && !objList[p.categoryObjId.categoryName]){
+                            //     objList[p.categoryObjId.categoryName] = [];
+                            // }
                             objList[p.categoryObjId.categoryName].push(p);
                             if (allObjList && allObjList.list){
                                 allObjList.list.push(p);
@@ -6677,7 +6704,8 @@ var dbPlatform = {
 
                 Object.keys(objList).forEach(key => {
                     let tempDisplayFormat = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.displayFormat ? objList[key][0].categoryObjId.displayFormat : null;
-                    arrayList.push({name: key, displayFormat: tempDisplayFormat, list: objList[key]})
+                    let isShow = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.hasOwnProperty('defaultShow') ? objList[key][0].categoryObjId.defaultShow : false;
+                    arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
                 return arrayList
@@ -6707,6 +6735,9 @@ var dbPlatform = {
             if (setting && cdnText) {
                 if (setting.imageUrl && (setting.imageUrl.indexOf('http') == -1 && setting.imageUrl.indexOf('https') == -1)) {
                     setting.imageUrl = cdnText + setting.imageUrl;
+                }
+                if (setting.closingImageUrl && (setting.closingImageUrl.indexOf('http') == -1 && setting.closingImageUrl.indexOf('https') == -1)) {
+                    setting.closingImageUrl = cdnText + setting.closingImageUrl;
                 }
                 if (setting.newPageUrl && (setting.newPageUrl.indexOf('http') == -1 && setting.newPageUrl.indexOf('https') == -1)) {
                     setting.newPageUrl = cdnText + setting.newPageUrl;

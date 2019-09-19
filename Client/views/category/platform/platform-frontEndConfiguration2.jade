@@ -518,7 +518,7 @@ style.
                                     label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
                                         select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.newPopUpAdvertisementSetting, null)")
-                                .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.onClickAction == 1")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")
                                         input.form-control(ng-model="vm.newPopUpAdvertisementSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
@@ -550,9 +550,9 @@ style.
                                 .full-width-input-block
                                     label(style="width: 30%;") H5 {{"ADVERTISEMENT POSITION"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.position")
+                                        select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.position", ng-change="vm.clearClosingImageUrl(vm.newPopUpAdvertisementSetting, 'closingImageUrl');")
                                             option(value="center") {{"center" | translate}}
-                                            option(value="top") {{"topLeft" | translate}}
+                                            option(value="top") {{"top" | translate}}
                                             option(value="shortcutPopUp") {{"shortcutPopUp" | translate}}
 
                                 .full-width-input-block
@@ -564,7 +564,7 @@ style.
                                     label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
                                         select.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.newPopUpAdvertisementSetting, null)")
-                                .full-width-input-block(ng-show="vm.popUpAdvertisementSetting.h5.onClickAction == 1")
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")
                                         input.form-control(ng-model="vm.newPopUpAdvertisementSetting.newPageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
@@ -586,6 +586,11 @@ style.
                                     label(style="width: 30%;") {{"GAME"|translate}} Code
                                     div.inline-block(style="width: 70%;")
                                         input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                                .full-width-input-block(ng-show="vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.position && vm.newPopUpAdvertisementSetting.position == 'top'")
+                                    label(style="width: 30%;") H5 {{"CLOSING IMAGE"|translate}}
+                                    div.inline-block(style="width: 70%;")
+                                        input.form-control.inline-block(ng-model="vm.newPopUpAdvertisementSetting.closingImageUrl", placeholder='{{"Please write down or upload the image/web page file" | translate}}')
+                                        input#popUpAdvH5ClosingImageFile(type="file")
                                 .full-width-input-block
                                     label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                     div.inline-block(style="width: 70%;")
@@ -668,13 +673,16 @@ style.
                                     select.spicker.form-control.inline-block(multiple, data-actions-box='true', bsp, ng-init='vm.refreshSPicker()', ng-model="vm.newPopUpAdvertisementSetting.visibleForInvolveInGameProvider" ng-options='v._id as v.name | translate for v in vm.platformProviderList')
 
                         .col-md-6
-                            .full-width-input-block.frontendImagePreviewPanel
+                            .full-width-input-block.frontendImagePreviewPanel(ng-show="vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device == 1")
                                 label {{'PC Image Preview' | translate}}
                                 img#popUpAdvPcImage.frontendImagePreview(src="")
-                            .full-width-input-block.frontendImagePreviewPanel
+                            .full-width-input-block.frontendImagePreviewPanel(ng-show="vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device == 2")
                                 label {{'H5 Image Preview' | translate}}
                                 img#popUpAdvH5Image.frontendImagePreview(src="")
-                            .full-width-input-block.frontendImagePreviewPanel
+                            .full-width-input-block.frontendImagePreviewPanel(ng-show="vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device == 2 && vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.position && vm.newPopUpAdvertisementSetting.position == 'top'")
+                                label {{'H5 Closing Image Preview' | translate}}
+                                img#popUpAdvH5ClosingImage.frontendImagePreview(src="")
+                            .full-width-input-block.frontendImagePreviewPanel(ng-show="vm.newPopUpAdvertisementSetting && vm.newPopUpAdvertisementSetting.device && vm.newPopUpAdvertisementSetting.device == 4")
                                 label {{'APP Image Preview' | translate}}
                                 img#popUpAdvAppImage.frontendImagePreview(src="")
 
