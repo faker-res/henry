@@ -35,13 +35,14 @@ let dbApiLog = {
             "submitDXCode",
             "createGuestPlayer",
             "playerLoginOrRegisterWithSMS",
+            "registerByPhoneNumberAndPassword",
         ];
 
         if (wsFunc.name == 'submitDXCode' && playerData && playerData._id && playerData.platform) {
             playerObjId = playerData._id;
             platform = playerData.platform;
         } else {
-            if (['login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
+            if (['login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
                 playerObjId = actionResult._id;
                 platform = actionResult.platform;
             } else {
@@ -68,7 +69,7 @@ let dbApiLog = {
             }
         }
 
-        if (actionName == 'createGuestPlayer' || actionName == 'playerLoginOrRegisterWithSMS'){
+        if (actionName == 'createGuestPlayer' || actionName == 'playerLoginOrRegisterWithSMS' || actionName == 'registerByPhoneNumberAndPassword'){
             actionName = "login";
         }
 

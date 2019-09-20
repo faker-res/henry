@@ -504,6 +504,7 @@ var simplifiedChinese = {
     "First Top Up Amount and Top Up Count setting cannot be zero": "首次单笔存款额和存款笔数不允许输入数据为0",
     "Does not meet top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
     "Does not meet first top up amount and top up count": "被推荐人未达到首次单笔存款额或存款笔数",
+    "This phone number has been registered": "该手机号码已注册",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
