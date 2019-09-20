@@ -13934,28 +13934,28 @@ function getCrewTopUpDetail (playerObjId, startTime, endTime) {
 }
 
 function getCustomizeRatePartner(query) {
-    let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
-    let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
+    // let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
+    // let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
     // multi level commission
     let mainCommissionRateConfigProm = dbconfig.collection_partnerMainCommRateConfig.find(query, {_id:0, partner:1}).lean();
 
-    return Promise.all([commissionConfigProm, commissionRateConfigProm, mainCommissionRateConfigProm]).then(
+    return mainCommissionRateConfigProm.then(
         data => {
             if (data) {
-                let commissionConfigPartner = data[0] || [];
-                let commissionRateConfigPartner = data[1] || [];
-                let mainCommissionRateConfigPartner = data[2] || [];
-                let returnData = [];
-                returnData = commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
-                    // avoid duplicate partner
-                    return !commissionConfigPartner.find(commConfig => commConfig.partner && item.partner && String(commConfig.partner) == String(item.partner));
-                }));
-                returnData =  returnData.concat(mainCommissionRateConfigPartner.filter(function (mainCommRate) {
-                    return !returnData.find(item => item.partner && mainCommRate.partner && String(item.partner) == String(mainCommRate.partner));
-                }));
+                // let commissionConfigPartner = data[0] || [];
+                // let commissionRateConfigPartner = data[1] || [];
+                // let mainCommissionRateConfigPartner = data[2] || [];
+                // let returnData = [];
+                // returnData = commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
+                //     // avoid duplicate partner
+                //     return !commissionConfigPartner.find(commConfig => commConfig.partner && item.partner && String(commConfig.partner) == String(item.partner));
+                // }));
+                // returnData =  returnData.concat(mainCommissionRateConfigPartner.filter(function (mainCommRate) {
+                //     return !returnData.find(item => item.partner && mainCommRate.partner && String(item.partner) == String(mainCommRate.partner));
+                // }));
 
 
-                return returnData;
+                return data;
             }
         }
     );
