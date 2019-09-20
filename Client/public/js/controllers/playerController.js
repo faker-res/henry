@@ -8640,11 +8640,19 @@ define(['js/app'], function (myApp) {
             var sendData = null;
             if (type === 'change' && editObj.referralName) {
                 sendData = {name: editObj.referralName}
+                if(editObj.platform){
+                    sendData.platform = editObj.platform;
+                }
+                //In edit: playerName will be selected player name.
+                //In create: playerName will be new player name.
+                if(editObj.name){
+                    sendData.playerName = editObj.name;
+                }
             } else if (type === 'new' && editObj.referral) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
+                // sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
