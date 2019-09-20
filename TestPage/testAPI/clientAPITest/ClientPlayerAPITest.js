@@ -830,6 +830,12 @@
         this.playerService.registerByPhoneNumberAndPassword.once(callback);
     };
 
+    proto.loginByPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.loginByPhoneNumberAndPassword.request(data);
+        this.playerService.loginByPhoneNumberAndPassword.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

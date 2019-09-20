@@ -7942,7 +7942,277 @@ let dbPlayerInfo = {
             return Promise.reject(rejectMsg);
         }
     },
-    
+
+    loginByPhoneNumberAndPassword: async function (inputData, userAgent, inputDevice, mobileDetect) {
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformObj = {};
+        let bUpdateIp = false;
+        let geoInfo = {};
+        let playerData = [];
+
+        let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId});
+
+        if (platformData && platformData._id) {
+            platformObj = platformData;
+            platformId = platformData._id;
+
+            let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+
+            let playerQuery = {
+                platform: platformData._id,
+                $or: [
+                    {phoneNumber: encryptedPhoneNumber},
+                    {phoneNumber: inputData.phoneNumber},
+                    {phoneNumber: enOldPhoneNumber}
+                ]
+            };
+
+            let players = await dbconfig.collection_players.find(playerQuery).lean();
+
+            let forbidPlayerCount = 0;
+            if (players && players.length > 0) {
+                players.forEach(player => {
+                    if (player && player.permission && player.permission.forbidPlayerFromLogin) {
+                        forbidPlayerCount ++;
+                    } else {
+                        let DBPassword = String(player.password); // hashedPassword from db
+                        if (dbUtility.isMd5(DBPassword)) {
+                            if (md5(inputData.password) == DBPassword) {
+                                playerData.push(player);
+                            }
+                        } else {
+                            let isMatch = bcrypt.compareSync(String(inputData.password), DBPassword);
+
+                            if (isMatch) {
+                                playerData.push(player);
+                            }
+                        }
+                    }
+                });
+
+                if (players.length == forbidPlayerCount) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is forbidden to login",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                if (playerData && playerData.length > 0) {
+                    playerData.sort((a, b) => new Date(b.lastAccessTime).getTime() - new Date(a.lastAccessTime).getTime());
+                }
+
+                if (playerData && playerData.length > 0 && playerData[0]) {
+                    playerObj = playerData[0];
+
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.NO_USER_FOUND
+                        });
+                    }
+
+                    if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                    }
+
+                    newAgentArray = playerObj.userAgent || [];
+                    uaObj = {
+                        browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                        device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                        os: userAgent && userAgent.os && userAgent.os.name || '',
+                    };
+
+                    let bExit = false;
+                    if (newAgentArray && typeof newAgentArray.forEach == "function") {
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        newAgentArray = [];
+                        bExit = true;
+                    }
+
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+
+                    if (inputData.lastLoginIp && inputData.lastLoginIp != playerObj.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                        bUpdateIp = true;
+                    }
+
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: inputData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
+                    };
+
+                    if (inputData.lastLoginIp && !playerObj.loginIps.includes(inputData.lastLoginIp)) {
+                        updateData.$push = {loginIps: inputData.lastLoginIp};
+                    }
+
+                    let data = await dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, updateData).populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    })
+
+                    if (data) {
+                        // Geo and ip related update
+                        if (bUpdateIp) {
+                            dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, inputData.lastLoginIp).catch(errorUtils.reportError);
+                        }
+
+                        //add player login record
+                        let recordData = {
+                            player: data._id,
+                            platform: platformId,
+                            loginIP: inputData.lastLoginIp,
+                            clientDomain: inputData.clientDomain ? inputData.clientDomain : "",
+                            userAgent: uaObj,
+                            isRealPlayer: playerObj.isRealPlayer,
+                            isTestPlayer: playerObj.isTestPlayer,
+                            partner: playerObj.partner ? playerObj.partner : null
+                        };
+
+                        if (platformObj.usePointSystem) {
+                            dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
+                        }
+
+                        if (recordData.userAgent) {
+                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                        }
+                        Object.assign(recordData, geoInfo);
+
+                        let record = new dbconfig.collection_playerLoginRecord(recordData);
+
+                        let loginRecord = await record.save();
+
+                        if (loginRecord) {
+                            updateAutoFeedbackLoginCount(loginRecord).catch(errorUtils.reportError);
+                            dbPlayerInfo.getRetentionRewardAfterLogin(loginRecord.platform, loginRecord.player, userAgent).catch(
+                                err => {
+                                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                        // Ignore concurrent request for now
+                                    } else {
+                                        // Set BState back to false
+                                        dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                                    }
+                                    console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
+                                }
+                            );
+
+                            let res = await dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                path: "platform",
+                                model: dbconfig.collection_platform
+                            }).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).populate({
+                                path: "rewardPointsObjId",
+                                model: dbconfig.collection_rewardPoints
+                            }).lean()
+
+                            retObj = res;
+
+                            if (retObj.rewardPointsObjId) {
+                                retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                                retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                            }
+
+                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                            let zoneData = await Promise.all([a, b, c]);
+
+                            retObj.bankAccountProvince = zoneData && zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                            retObj.bankAccountCity = zoneData && zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                            retObj.bankAccountDistrict = zoneData && zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+
+                            return retObj;
+
+                        } else {
+                            return Promise.reject({name: "DBError", message: "Error in updating player", error: error});
+                        }
+                    } else {
+                        return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Phone number and password don't match"});
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find player", code: constServerCode.PLAYER_NAME_INVALID});
+            }
+        }
+        else {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+
+        function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
+            return dbconfig.collection_promoCode.aggregate([
+                {$match: {
+                        platformObjId: record.platform,
+                        playerObjId: record.player,
+                        hasPromoCodeTemplateObjId: true,
+                        hasAutoFeedbackMissionObjId: true,
+                        autoFeedbackMissionLogin: false
+                    }},
+                {$sort: {createTime: -1}},
+                {
+                    $group: {
+                        _id: "$autoFeedbackMissionObjId",
+                        autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                        createTime: {$first: "$createTime"}
+                    }
+                }
+            ]).read("secondaryPreferred").exec().then(
+                promoCodes => {
+                    promoCodes.forEach(
+                        promoCode => {
+                            if(
+                                promoCode.autoFeedbackMissionScheduleNumber < 3
+                                || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
+                            ) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionLogin: true
+                                }).exec();
+                            }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
+                        }
+                    )
+                }
+            );
+        }
+    },
+
     getBankZoneData: function (query) {
         let province1 = null;
         let province2 = null;

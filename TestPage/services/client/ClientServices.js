@@ -114,6 +114,7 @@
                 "getBindBankCardList",
                 "getPromoShortUrl",
                 "registerByPhoneNumberAndPassword",
+                "loginByPhoneNumberAndPassword",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

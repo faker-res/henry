@@ -72,6 +72,7 @@
     60. [APP设置密码](#APP设置密码)
     61. [获取玩家推广域名防红和短链转换](#获取玩家推广域名防红和短链转换)
     62. [手机号码与密码注册](#手机号码与密码注册)
+    63. [手机号码与密码登录](#手机号码与密码登录)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -2058,13 +2059,30 @@ API说明：
     * name: registerByPhoneNumberAndPassword
     * service:player
     * 请求内容：
-    		* ```
-    			{
-    				platformId: “1”, //平台ID - 必填
-    				phoneNumber: “17355544411“ // 玩家电话号码, 必填
-    				smsCode: "2451", // 短信验证码, 必填
-    				password: "888888", //密码, 必填
-    			}
+        * ```
+            {
+                platformId: “1”, //平台ID - 必填
+                phoneNumber: “17355544411“ // 玩家电话号码, 必填
+                smsCode: "2451", // 短信验证码, 必填
+                password: "888888", //密码, 必填
+            }
+    * 响应内容：`{status: 200/40x, data: playerObject}`
+    * playerObject包含token，用于重新建立链接
+    * 操作成功： status--200, data--玩家对象
+    * 操作失败： status--4xx, data--null
+    
+<div id='手机号码与密码登录'></div>
+
+* **63. 手机号码与密码登录**
+    * name: loginByPhoneNumberAndPassword
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                platformId: “1”, //平台ID - 必填
+                phoneNumber: “17355544411“ // 玩家电话号码, 必填
+                password: "888888", //密码, 必填
+            }
     * 响应内容：`{status: 200/40x, data: playerObject}`
     * playerObject包含token，用于重新建立链接
     * 操作成功： status--200, data--玩家对象
