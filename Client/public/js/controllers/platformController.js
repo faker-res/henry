@@ -45,9 +45,16 @@ define(['js/app'], function (myApp) {
             };
 
             vm.displayFormat = {
-                "backgroundDisplay": 1,
-                "theeInARow": 2,
-                "fiveInARow": 3,
+                pc: {
+                    "backgroundDisplay": 1,
+                    "theeInARow": 2,
+                    "fiveInARow": 3,
+                },
+                h5: {
+                    "backgroundDisplay": 1,
+                    "twoInARow": 2,
+                    "theeInARow": 3,
+                }
             };
 
             vm.frontEndSettingOnClickAction = {
