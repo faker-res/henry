@@ -735,17 +735,30 @@ let dbPlayerInfo = {
             }).sort({operationTime: -1}).populate({
                 path: "gameObjId",
                 model: dbconfig.collection_game
+            }).populate({
+                path: "platform",
+                model: dbconfig.collection_platform,
+                select: 'playerRouteSetting'
             }).lean().then(
                 res => {
                     if (res && res.operationTime) {
                         searchTime = res.operationTime;
 
-                        return res.gameObjId;
+                        return processGameObject(res.gameObjId, res.platform.playerRouteSetting);
                     } else {
                         done = true;
                     }
                 }
             )
+        }
+
+        function processGameObject (gameObj, playerRouteSetting) {
+            gameObj.sourceUrl = playerRouteSetting;
+            gameObj.bigShow = playerRouteSetting.concat(gameObj.bigShow);
+            gameObj.smallShow = playerRouteSetting.concat(gameObj.smallShow);
+            gameObj.webp = playerRouteSetting.concat(gameObj.webp);
+
+            return gameObj;
         }
     },
 
