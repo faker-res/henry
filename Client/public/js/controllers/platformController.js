@@ -26832,6 +26832,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.loginRewardPointsMode = {
+                            1: 'Login',
+                            2: 'Consecutive Login'
+                        };
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
@@ -27684,6 +27688,7 @@ define(['js/app'], function (myApp) {
                     category: rewardPointsEventCategory,
                     isEditing: true,
                     userAgent: -1,
+                    pointMode: 1,
                     level: vm.allPlayerLvl.sort((a, b) => a.value > b.value)[0]._id
                 };
                 vm.rewardPointsEvent.push(Object.assign(defaultEvent, otherEventParam));

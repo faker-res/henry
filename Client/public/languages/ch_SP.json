@@ -1076,6 +1076,7 @@
   "delayManualTopupRequest": "手工充值延时申请",
   "Location": "位置",
   "Login": "登录",
+  "Consecutive Login": "签到",
   "Device": "设备",
   "bindedDeviceId": "绑定设备号",
   "PlayerDomain": "玩家域名",
