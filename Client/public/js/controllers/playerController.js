@@ -2595,7 +2595,7 @@ define(['js/app'], function (myApp) {
             vm.batchCreditTransferOut = null;
         }
         //get all platform data from server
-        vm.getPlatformGameData = function () {
+        vm.getPlatformGameData = function (platformObjId) {
             //init gametab start===============================
             vm.SelectedProvider = null;
             vm.showGameCate = "include";
@@ -2604,8 +2604,11 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
+            let sendData = {
+                _id: platformObjId ? platformObjId : vm.selectedPlatform.id
+            };
             //console.log("getGames", gameIds);
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                 console.log('getPlatform', data.data);
                 //provider list init
                 vm.platformProviderList = data.data.gameProviders;
@@ -10291,6 +10294,7 @@ define(['js/app'], function (myApp) {
         }
         //get player's game provider credit
         vm.showPlayerCreditinProvider = function (row) {
+            vm.getPlatformGameData(row.platform);
             vm.gameProviderCreditPlayerName = row.name;
             vm.queryPlatformCreditTransferPlayerName = row.name;
             // vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
