@@ -15339,6 +15339,15 @@ let dbPlayerInfo = {
                                         if (data.smallShow && !data.smallShow.includes("http")) {
                                             data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
                                         }
+
+                                        if (data.smallShow && !data.smallShow.includes("http")) {
+                                            data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
+                                        }
+
+                                        if (data.webp && !data.webp.includes("http")) {
+                                            data.webp = playerRouteSetting ? playerRouteSetting + data.webp : (data.sourceURL ? data.sourceURL + data.webp : data.webp);
+                                        }
+
                                         return data;
                                     }
                                 });
