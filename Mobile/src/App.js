@@ -5,7 +5,7 @@ import './App.css';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {faAngleDown, faSmile as fasFaSmile, faArrowAltCircleRight, faDollarSign, faUserPlus, faBars, faEllipsisV, faTachometerAlt, faChartLine, faSignOutAlt, faKey, faLanguage, faBookOpen, faEdit, faUserCircle} from '@fortawesome/free-solid-svg-icons'
 import {faSmile as farFaSmile, faMoneyBillAlt, faRegistered, faStopCircle} from '@fortawesome/free-regular-svg-icons'
-import {Route, NavLink, HashRouter} from "react-router-dom";
+import {Route,  HashRouter} from "react-router-dom";
 
 library.add(faAngleDown, farFaSmile, fasFaSmile, faArrowAltCircleRight, faDollarSign, faMoneyBillAlt, faUserPlus, faRegistered, faStopCircle, faBars, faUserCircle, faEllipsisV, faTachometerAlt, faChartLine, faSignOutAlt, faKey, faLanguage, faBookOpen, faEdit)
 
