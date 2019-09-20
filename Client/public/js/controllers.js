@@ -1081,6 +1081,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.usableChannelList = data.data.channels.filter(item => {
                 return (item != 1) && (item != '1'); //channel 1 is only for sending sms code
             });
+            $scope.channelList = $scope.usableChannelList;
             console.log("Got usable channelList:", $scope.usableChannelList);
             if (callback) {
                 callback.call(this);
@@ -1749,7 +1750,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
         });
 
-        $scope.getChannelList();
+        $scope.getUsableChannelList();
         $scope.phoneCall = {};
         utilService.initTranslate($filter('translate'));
         socketService.initTranslate($filter('translate'));

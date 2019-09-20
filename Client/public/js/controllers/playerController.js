@@ -1990,7 +1990,7 @@ define(['js/app'], function (myApp) {
                 messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
-            $scope.getChannelList(function () {
+            $scope.getUsableChannelList(function () {
                 vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
             });
             setTimeout(
