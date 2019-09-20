@@ -758,9 +758,13 @@ let dbPlayerInfo = {
             gameObj.smallShow = playerRouteSetting.concat(gameObj.smallShow);
             gameObj.webp = playerRouteSetting.concat(gameObj.webp);
 
-            Object.keys(gameObj.images).forEach(key => {
-                gameObj.images[key] = playerRouteSetting.concat(gameObj.images[key]);
-            });
+            if (gameObj.images && Object.keys(gameObj.images).length) {
+                Object.keys(gameObj.images).forEach(key => {
+                    if (key) {
+                        gameObj.images[key] = playerRouteSetting.concat(gameObj.images[key]);
+                    }
+                });
+            }
 
             return gameObj;
         }
