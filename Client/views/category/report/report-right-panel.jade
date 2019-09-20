@@ -1153,6 +1153,10 @@
                 //    label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
                 //    select.form-control.merchantNoList.spicker(ng-model='vm.queryTopup.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.dxTrackingQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.dxTrackingQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.dxTrackingQuery.name")
                 .search-filters-item
@@ -1170,6 +1174,17 @@
                 .search-filters-item
                     label {{'End date' | translate}}
                     .queryEndTime
+
+                .search-filters-item
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.dxTrackingQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                .search-filters-item
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxTrackingQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                .search-filters-item
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                         div

@@ -1866,7 +1866,7 @@ let dbRewardPoints = {
                         if (!(playerPointInfoListArr && playerPointInfoListArr.length) && playerRewardPoint) {
                             playerPointInfoListArr = [{
                                 "rank": "1000+",
-                                "grade": playerRewardPoint.playerLevel.name,
+                                "grade": playerRewardPoint.playerLevel && playerRewardPoint.playerLevel.name || "等级不存在",
                                 "totalPoint": playerRewardPoint.points
                             }]
                         }

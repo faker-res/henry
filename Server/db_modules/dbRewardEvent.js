@@ -3675,7 +3675,7 @@ var dbRewardEvent = {
     },
 
     updateRewardEventGroup: function (query, updateData) {
-        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
     },
 
     updateForbidRewardEvents: function (rewardObjId) {

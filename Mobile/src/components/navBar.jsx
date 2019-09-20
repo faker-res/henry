@@ -89,7 +89,7 @@ class NavBar extends Component{
         let platformObjId = ev.currentTarget.value;
         let platforms = this.state.platforms;
         platforms.forEach(platform => {
-            if(platform._id == platformObjId) {
+            if(platform._id === platformObjId) {
                 this.setState({selectedPlatform: platform});
             }
         })
@@ -107,17 +107,17 @@ class NavBar extends Component{
 
                     {this.state.logoutNav && (
                         <div id="Nav" className="dropdown">
-                            <a href="#"> <FontAwesomeIcon icon="language"/> English</a>
-                            <a href="#"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
-                            <a href="#"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
-                            <a href="#"> <FontAwesomeIcon icon="key"/> 更新密码</a>
-                            <a onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</a>
+                            <a href="/"> <FontAwesomeIcon icon="language"/> English</a>
+                            <a href="/"> <FontAwesomeIcon icon="edit"/> 开发日志</a>
+                            <a href="/"> <FontAwesomeIcon icon="book-open"/> 查看日志</a>
+                            <a href="/"> <FontAwesomeIcon icon="key"/> 更新密码</a>
+                            <span onClick={this.logout}> <FontAwesomeIcon icon="sign-out-alt"/> 注销</span>
                         </div>
                     )}
                 </nav>
 
                 <div id="myNav" className="overlay">
-                <a href="javascript:void(0)" className="closebtn" onClick={this.closeNav}>&times;</a>
+                    <span className="closebtn" onClick={this.closeNav}>&times;</span>
 
                     <div className="overlay-header">
                         <div className="form-group">
@@ -129,8 +129,8 @@ class NavBar extends Component{
                     </div>
 
                     <div className="overlay-content">
-                        <a href="#"> <FontAwesomeIcon icon="tachometer-alt"/> 面板</a>
-                        <a href="#"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
+                        <a href="/#/dashboard"> <FontAwesomeIcon icon="tachometer-alt"/> 面板</a>
+                        <a href="/#/temp"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
                     </div>
                 </div>
             </div>
