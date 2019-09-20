@@ -14983,32 +14983,84 @@ let dbPlayerInfo = {
                 }
             }
 
-            return dbconfig.collection_playerLoginRecord.aggregate(
-                {
-                    $match: matchObj
-                    //     {
-                    //     platform: platform,
-                    //     loginTime: {$gte: startTime, $lt: endTime}
-                    // }
-                },
-                {
-                    $unwind: "$userAgent",
-                },
-                {
-                    $group: {
-                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+            if (type === "os") {
+                // osType can replace os to show os for native app
+                return dbconfig.collection_playerLoginRecord.aggregate(
+                    {
+                        $match: matchObj
+                    },
+                    {
+                        $unwind: "$userAgent",
+                    },
+                    {
+                        $group: {
+                            _id: {_id: "$_id", userAgentOS: "$userAgent.os", osType: "$osType"},
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {name: "$_id.userAgentOS", osType: "$_id.osType"},
+                            number: {$sum: 1}
+                        }
+                    },
+                    {
+                        $sort: {number: -1}
                     }
-                },
-                {
-                    $group: {
-                        _id: {name: "$_id.userAgent1"},
-                        number: {$sum: 1}
+                ).read("secondaryPreferred").then(
+                    osData => {
+                        let output = [];
+                        if (osData) {
+                            osData.map(os => {
+                                if (os && os._id && os._id.osType && os._id.name === "") {
+                                    os._id.name = os._id.osType;
+                                }
+                            });
+
+                            // merge number for same os name
+                            osData.forEach(item => {
+                                let existing = output.filter((v, i) => {
+                                    return v._id.name.toLowerCase() === item._id.name.toLowerCase();
+                                });
+
+                                if (existing.length) {
+                                    let existingIndex = output.indexOf(existing[0]);
+                                    output[existingIndex].number += item.number;
+                                } else {
+                                    output.push(item);
+                                }
+                            });
+                        }
+                        return output;
                     }
-                },
-                {
-                    $sort: {number: -1}
-                }
-            ).read("secondaryPreferred")
+                )
+            } else {
+                return dbconfig.collection_playerLoginRecord.aggregate(
+                    {
+                        $match: matchObj
+                        //     {
+                        //     platform: platform,
+                        //     loginTime: {$gte: startTime, $lt: endTime}
+                        // }
+                    },
+                    {
+                        $unwind: "$userAgent",
+                    },
+                    {
+                        $group: {
+                            _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {name: "$_id.userAgent1"},
+                            number: {$sum: 1}
+                        }
+                    },
+                    {
+                        $sort: {number: -1}
+                    }
+                ).read("secondaryPreferred")
+            }
         }
 
     },
