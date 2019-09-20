@@ -98,6 +98,6 @@ let promoCodeSchema = new Schema({
 
 promoCodeSchema.index({platformObjId: 1, createTime: 1});
 promoCodeSchema.index({promoCodeTemplateObjId: 1});
-promoCodeSchema.index({platformObjId: 1, playerObjId: 1, hasPromoCodeTemplateObjId: 1, hasAutoFeedbackMissionObjId: 1, autoFeedbackMissionLogin: 1});
+// promoCodeSchema.index({platformObjId: 1, playerObjId: 1, hasPromoCodeTemplateObjId: 1, hasAutoFeedbackMissionObjId: 1, autoFeedbackMissionLogin: 1}); // index namespace too long
 
 module.exports = promoCodeSchema;
