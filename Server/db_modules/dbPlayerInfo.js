@@ -753,10 +753,14 @@ let dbPlayerInfo = {
         }
 
         function processGameObject (gameObj, playerRouteSetting) {
-            gameObj.sourceUrl = playerRouteSetting;
+            gameObj.sourceURL = playerRouteSetting;
             gameObj.bigShow = playerRouteSetting.concat(gameObj.bigShow);
             gameObj.smallShow = playerRouteSetting.concat(gameObj.smallShow);
             gameObj.webp = playerRouteSetting.concat(gameObj.webp);
+
+            Object.keys(gameObj.images).forEach(key => {
+                gameObj.images[key] = playerRouteSetting.concat(gameObj.images[key]);
+            });
 
             return gameObj;
         }
