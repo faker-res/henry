@@ -3216,6 +3216,12 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
 
+                if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
+                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
+                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
+                }
+
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
