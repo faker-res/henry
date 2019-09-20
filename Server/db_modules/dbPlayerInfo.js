@@ -8213,6 +8213,109 @@ let dbPlayerInfo = {
         }
     },
 
+    setPhoneNumberAndPassword: (playerId, phoneNumber, smsCode, password) => {
+        let player, platform, encryptedPhoneNumber;
+        return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                player = playerData;
+
+                if (!player) {
+                    return Promise.reject({message: "User not found OR Invalid Password"});
+                }
+
+                platform = playerData.platform;
+
+                if (player.phoneNumber) {
+                    return Promise.reject({message: "Phone number already set"}); // translate needed
+                }
+
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
+            }
+        ).then(
+            async () => {
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
+
+                if (checkCount && checkCount.length) {
+                    if (platform.allowSamePhoneNumberToRegister === true) {
+                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                message: "This phone number is already used. Please insert other phone number.",
+                                isRegisterError: true
+                            })
+                        }
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            message: "This phone number is already used. Please insert other phone number.",
+                            isRegisterError: true
+                        })
+                    }
+                }
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
+
+                let phoneLocation = queryPhoneLocation(phoneNumber);
+                let updObj = {
+                    phoneNumber: encryptedPhoneNumber
+                };
+
+                if (phoneLocation) {
+                    updObj.phoneProvince = phoneLocation.province;
+                    updObj.phoneCity = phoneLocation.city;
+                    updObj.phoneType = phoneLocation.sp;
+                }
+
+                bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                    if (err) {
+                        deferred.reject(err);
+                        return;
+                    }
+                    bcrypt.hash(password, salt, function (err, hash) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+
+                        updObj.password = hash;
+                        return dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_players,
+                            {_id: player._id},
+                            updObj,
+                            constShardKeys.collection_players
+                        );
+                    });
+                });
+            }
+        ).then(
+            () => {
+                return {number: phoneNumber};
+            }
+        )
+    },
+
     getBankZoneData: function (query) {
         let province1 = null;
         let province2 = null;

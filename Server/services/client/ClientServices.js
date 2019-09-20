@@ -115,6 +115,7 @@
                 "getPromoShortUrl",
                 "registerByPhoneNumberAndPassword",
                 "loginByPhoneNumberAndPassword",
+                "setPhoneNumberAndPassword",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
