@@ -7485,118 +7485,6 @@ let dbPlayerInfo = {
         )
     },
 
-    registerByPhoneNumberAndPassword: async (inputData) => {
-        let rejectMsg = {
-            status: constServerCode.VALIDATION_CODE_INVALID,
-            name: "ValidationError",
-            message: "Invalid SMS Validation Code"
-        };
-
-        // Check matched verification code
-        let verificationSMS = await dbconfig.collection_smsVerificationLog.findOne({
-            platformId: inputData.platformId,
-            tel: inputData.phoneNumber
-        }).sort({createTime: -1});
-
-        if (verificationSMS && verificationSMS.code) {
-            if (verificationSMS.code == inputData.smsCode) {
-                // Verified
-                let platformPrefix, platformObjId;
-
-                await dbconfig.collection_smsVerificationLog.remove({_id: verificationSMS._id});
-                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
-
-                let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean();
-
-                if (platformData && platformData._id) {
-                    platformPrefix = platformData.prefix;
-                    platformObjId = platformData._id;
-                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
-                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
-
-                    let player = await dbconfig.collection_players.find(
-                        {
-                            $or: [
-                                {phoneNumber: encryptedPhoneNumber},
-                                {phoneNumber: inputData.phoneNumber},
-                                {phoneNumber: enOldPhoneNumber},
-                                {phoneNumber: rsaCrypto.legacyEncrypt(inputData.phoneNumber)}
-                            ],
-                            platform: platformData._id,
-                        }
-                    ).sort({lastAccessTime: -1}).limit(1).lean();
-
-                    if (player && player.length) {
-                        return Promise.reject({
-                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                            name: "ValidationError",
-                            message: "This phone number has been registered",
-                            isRegisterError: true
-                        })
-                    } else {
-
-                        // Check phone number binding record
-                        let checkCount = await dbPlayerInfo.isPhoneNumberExist(inputData.phoneNumber, platformObjId);
-
-                        if (checkCount && checkCount.length) {
-                            if (platformData.allowSamePhoneNumberToRegister === true) {
-                                if (checkCount.length > platformData.samePhoneNumberRegisterCount) {
-                                    return Promise.reject({
-                                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                        name: "ValidationError",
-                                        message: "This phone number has been registered",
-                                        isRegisterError: true
-                                    })
-                                }
-                            } else {
-                                return Promise.reject({
-                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                    name: "ValidationError",
-                                    message: "This phone number has been registered",
-                                    isRegisterError: true
-                                })
-                            }
-                        }
-
-                        if (inputData.accountPrefix && typeof inputData.accountPrefix === "string") {
-                            platformPrefix = inputData.accountPrefix;
-                        }
-
-                        let userNameProp = {
-                            length: 8,
-                            pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
-                        };
-
-                        let newPlayerData = Object.assign({}, inputData);
-                        newPlayerData.name = platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase());
-
-                        return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
-                    }
-                }
-            } else {
-                // Not verified
-                if (verificationSMS.loginAttempts >= 10) {
-                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
-                    return dbconfig.collection_smsVerificationLog.remove(
-                        {_id: verificationSMS._id}
-                    ).then(() => {
-                        return Promise.reject(rejectMsg);
-                    });
-                }
-                else {
-                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
-                        {_id: verificationSMS._id},
-                        {$inc: {loginAttempts: 1}}
-                    ).then(() => {
-                        return Promise.reject(rejectMsg);
-                    });
-                }
-            }
-        } else {
-            return Promise.reject(rejectMsg);
-        }
-    },
-
     phoneNumberLoginWithPassword: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId) {
         let db_password = null;
         let newAgentArray = [];
@@ -7943,6 +7831,118 @@ let dbPlayerInfo = {
         }
     },
 
+    registerByPhoneNumberAndPassword: async (inputData) => {
+        let rejectMsg = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Invalid SMS Validation Code"
+        };
+
+        // Check matched verification code
+        let verificationSMS = await dbconfig.collection_smsVerificationLog.findOne({
+            platformId: inputData.platformId,
+            tel: inputData.phoneNumber
+        }).sort({createTime: -1});
+
+        if (verificationSMS && verificationSMS.code) {
+            if (verificationSMS.code == inputData.smsCode) {
+                // Verified
+                let platformPrefix, platformObjId;
+
+                await dbconfig.collection_smsVerificationLog.remove({_id: verificationSMS._id});
+                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+
+                let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean();
+
+                if (platformData && platformData._id) {
+                    platformPrefix = platformData.prefix;
+                    platformObjId = platformData._id;
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+
+                    let player = await dbconfig.collection_players.find(
+                        {
+                            $or: [
+                                {phoneNumber: encryptedPhoneNumber},
+                                {phoneNumber: inputData.phoneNumber},
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(inputData.phoneNumber)}
+                            ],
+                            platform: platformData._id,
+                        }
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
+
+                    if (player && player.length) {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            name: "ValidationError",
+                            message: "This phone number has been registered",
+                            isRegisterError: true
+                        })
+                    } else {
+
+                        // Check phone number binding record
+                        let checkCount = await dbPlayerInfo.isPhoneNumberExist(inputData.phoneNumber, platformObjId);
+
+                        if (checkCount && checkCount.length) {
+                            if (platformData.allowSamePhoneNumberToRegister === true) {
+                                if (checkCount.length > platformData.samePhoneNumberRegisterCount) {
+                                    return Promise.reject({
+                                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                        name: "ValidationError",
+                                        message: "This phone number has been registered",
+                                        isRegisterError: true
+                                    })
+                                }
+                            } else {
+                                return Promise.reject({
+                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                    name: "ValidationError",
+                                    message: "This phone number has been registered",
+                                    isRegisterError: true
+                                })
+                            }
+                        }
+
+                        if (inputData.accountPrefix && typeof inputData.accountPrefix === "string") {
+                            platformPrefix = inputData.accountPrefix;
+                        }
+
+                        let userNameProp = {
+                            length: 8,
+                            pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
+                        };
+
+                        let newPlayerData = Object.assign({}, inputData);
+                        newPlayerData.name = platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase());
+
+                        return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                    }
+                }
+            } else {
+                // Not verified
+                if (verificationSMS.loginAttempts >= 10) {
+                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    ).then(() => {
+                        return Promise.reject(rejectMsg);
+                    });
+                }
+                else {
+                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
+                        {_id: verificationSMS._id},
+                        {$inc: {loginAttempts: 1}}
+                    ).then(() => {
+                        return Promise.reject(rejectMsg);
+                    });
+                }
+            }
+        } else {
+            return Promise.reject(rejectMsg);
+        }
+    },
+    
     getBankZoneData: function (query) {
         let province1 = null;
         let province2 = null;
