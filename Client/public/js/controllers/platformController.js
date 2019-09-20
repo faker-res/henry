@@ -47,8 +47,8 @@ define(['js/app'], function (myApp) {
             vm.displayFormat = {
                 pc: {
                     "backgroundDisplay": 1,
-                    "theeInARow": 2,
-                    "fiveInARow": 3,
+                    "theeInARow": 3,
+                    "fiveInARow": 5,
                 },
                 h5: {
                     "backgroundDisplay": 1,
