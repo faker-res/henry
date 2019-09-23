@@ -6832,7 +6832,8 @@ let dbPlayerInfo = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Player is forbidden to login",
-                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                        code: constServerCode.PLAYER_IS_FORBIDDEN,
+                        player: playerObj.name
                     });
                 }
 
@@ -15339,6 +15340,15 @@ let dbPlayerInfo = {
                                         if (data.smallShow && !data.smallShow.includes("http")) {
                                             data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
                                         }
+
+                                        if (data.smallShow && !data.smallShow.includes("http")) {
+                                            data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
+                                        }
+
+                                        if (data.webp && !data.webp.includes("http")) {
+                                            data.webp = playerRouteSetting ? playerRouteSetting + data.webp : (data.sourceURL ? data.sourceURL + data.webp : data.webp);
+                                        }
+
                                         return data;
                                     }
                                 });

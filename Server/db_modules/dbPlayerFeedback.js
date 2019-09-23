@@ -79,31 +79,57 @@ var dbPlayerFeedback = {
         let query = {};
         if (platformList && platformList.length) {
             query = {
-                platform: {$in: platformList}
+                platforms: {$in: platformList}
             }
         }
 
-        return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
-            adminList => {
-                if (adminList && adminList.length === 0) {
-                    return [];
-                }
-                if (adminList && adminList.length) {
-                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        // this code only display unique cs name that already has feedback record
+        // return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
+        //     adminList => {
+        //         if (adminList && adminList.length === 0) {
+        //             return [];
+        //         }
+        //         if (adminList && adminList.length) {
+        //             return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        //                 .populate({path: "departments", model: dbconfig.collection_department})
+        //                 .then(
+        //                     data => {
+        //                         if (data && data.length) {
+        //                             let selectedUniqueAdmin = data;
+        //                             selectedUniqueAdmin.map(admin => {
+        //                                 if (admin.departments && admin.departments.length) {
+        //                                     admin.departmentName = admin.departments[0].departmentName;
+        //                                 }
+        //                             });
+        //                             return selectedUniqueAdmin;
+        //                         }
+        //                     }
+        //             )
+        //         }
+        //     }
+        // )
+
+        // display all cs name that are found in departments based on selected platform
+        return dbconfig.collection_department.find(query).lean().then(
+            departmentData => {
+                let departmentList = [];
+                if (departmentData && departmentData.length) {
+                    departmentList = departmentData;
+                    return dbconfig.collection_admin.find({departments: {$in: departmentList}}).lean()
                         .populate({path: "departments", model: dbconfig.collection_department})
                         .then(
                             data => {
                                 if (data && data.length) {
-                                    let selectedUniqueAdmin = data;
-                                    selectedUniqueAdmin.map(admin => {
+                                    let selectedCS = data;
+                                    selectedCS.map(admin => {
                                         if (admin.departments && admin.departments.length) {
                                             admin.departmentName = admin.departments[0].departmentName;
                                         }
                                     });
-                                    return selectedUniqueAdmin;
+                                    return selectedCS;
                                 }
                             }
-                    )
+                        );
                 }
             }
         )
@@ -121,6 +147,7 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
+            console.log('feedback.playerId._id===', feedback.playerId._id);
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
                     $match: {
@@ -160,6 +187,7 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data[0].map(item => {
+                        console.log('item._id===', item._id);
                         playerArr.push(item._id);
                     });
                 }
@@ -171,6 +199,7 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data.map(item => {
+                        console.log('item._id===', item._id);
                         adminArr.push(item._id);
                     });
                 }
@@ -223,6 +252,7 @@ var dbPlayerFeedback = {
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
                         //use playerId and timestamp as the key
+                        console.log('item.topup[0]._id===', item.topup[0]._id);
                         objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
                     }
                 });
@@ -231,6 +261,7 @@ var dbPlayerFeedback = {
 
                 var finalData = returnedData.map(item => {
                     var newObj = Object.assign({}, item);
+                    console.log('newObj.playerId._id===', newObj.playerId._id);
                     let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
                     newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
                     newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
