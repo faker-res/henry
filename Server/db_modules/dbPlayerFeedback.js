@@ -151,7 +151,7 @@ var dbPlayerFeedback = {
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
                     $match: {
-                        playerId: feedback.playerId._id,
+                        playerId: feedback.playerId._id || null,
                         platformId: feedback.platform,
                         createTime: {$gte: feedback.createTime, $lt: endTime}
                     }
@@ -165,6 +165,7 @@ var dbPlayerFeedback = {
                 }
             ]).read("secondaryPreferred").then(
                 res => {
+                    console.log('res===', res);
                     return {topup: res, time: feedback.createTime}
                 }
             );
@@ -228,6 +229,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===11', data);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
@@ -248,6 +250,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===22', data);
                 var objPlayerToTopupTimes = {};
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
@@ -258,6 +261,7 @@ var dbPlayerFeedback = {
                 });
                 var key = Object.keys(sortCol)[0];
                 var val = sortCol[key];
+                console.log('returnedData===', returnedData);
 
                 var finalData = returnedData.map(item => {
                     var newObj = Object.assign({}, item);
