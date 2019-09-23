@@ -1758,7 +1758,7 @@ let PlayerServiceImplement = function () {
         }
 
         let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.loginByPhoneNumberAndPassword, [inputData, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.loginByPhoneNumberAndPassword, [inputData, ua, inputDevice, md], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;
 
