@@ -735,17 +735,38 @@ let dbPlayerInfo = {
             }).sort({operationTime: -1}).populate({
                 path: "gameObjId",
                 model: dbconfig.collection_game
+            }).populate({
+                path: "platform",
+                model: dbconfig.collection_platform,
+                select: 'playerRouteSetting'
             }).lean().then(
                 res => {
                     if (res && res.operationTime) {
                         searchTime = res.operationTime;
 
-                        return res.gameObjId;
+                        return processGameObject(res.gameObjId, res.platform.playerRouteSetting);
                     } else {
                         done = true;
                     }
                 }
             )
+        }
+
+        function processGameObject (gameObj, playerRouteSetting) {
+            gameObj.sourceURL = playerRouteSetting;
+            gameObj.bigShow = playerRouteSetting.concat(gameObj.bigShow);
+            gameObj.smallShow = playerRouteSetting.concat(gameObj.smallShow);
+            gameObj.webp = playerRouteSetting.concat(gameObj.webp);
+
+            if (gameObj.images && Object.keys(gameObj.images).length) {
+                Object.keys(gameObj.images).forEach(key => {
+                    if (key) {
+                        gameObj.images[key] = playerRouteSetting.concat(gameObj.images[key]);
+                    }
+                });
+            }
+
+            return gameObj;
         }
     },
 
@@ -2964,64 +2985,94 @@ let dbPlayerInfo = {
             );
     },
 
-    getReferralPlayerInfo: function (query) {
-        return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
-            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
-            playerData => {
-                if (!playerData) {
-                    return false;
+    getReferralPlayerInfo: async function (query) {
+        //if edit player, there will be ne no platform.
+        var canProceed = false;
+        if(query && !query.platform){
+            //here to check referral's platform is same with edited player
+
+            //need to fetch referral's platform before checking. PS: query.name here is referral name, query.playerName is selected player name.
+            await dbconfig.collection_players.find({name: query.name}).lean().then(data=>{
+                if(data){
+                    query.platform = data[0].platform;
                 }
+            });
 
-                let returnData = {
-                    _id: playerData._id,
-                    name: playerData.name,
-                    platformId: playerData.platform.platformId,
-                    platform: playerData.platform._id,
-                    validCredit: playerData.validCredit,
-                    realName: playerData.realName
-                };
+            await dbconfig.collection_players.find({name: query.playerName, platform: query.platform}).lean().then(data=>{
+                //if got data, means edited player's platform same with key in referral's.
+                if(data && data.length > 0){
+                    canProceed = true;
+                }
+            });
+            //player name must be delete after platform checking done
+            delete query.playerName;
+        }else{
+            //If create new player will got here, playerName must delete.
+            delete query.playerName;
+            canProceed = true;
+        }
+        if(canProceed){
+            return dbconfig.collection_players.findOne(query, {similarPlayers: 0})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    playerData => {
+                        if (!playerData) {
+                            return false;
+                        }
 
-                return dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
-                    referralConfig => {
-                        if (referralConfig) {
-                            let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
-                            let logQuery = {
-                                platform: playerData.platform._id,
-                                referral: playerData._id
-                            }
+                        let returnData = {
+                            _id: playerData._id,
+                            name: playerData.name,
+                            platformId: playerData.platform.platformId,
+                            platform: playerData.platform._id,
+                            validCredit: playerData.validCredit,
+                            realName: playerData.realName
+                        };
 
-                            if (configIntervalTime) {
-                                logQuery.isValid = {$exists: true, $eq: true};
-                            }
+                        return dbconfig.collection_platformReferralConfig.findOne({platform: playerData.platform._id}).then(
+                            referralConfig => {
+                                if (referralConfig) {
+                                    let configIntervalTime = dbUtility.getReferralConfigIntervalTime(referralConfig.referralPeriod);
+                                    let logQuery = {
+                                        platform: playerData.platform._id,
+                                        referral: playerData._id
+                                    }
 
-                            return dbconfig.collection_referralLog.find(logQuery).count().then(
-                                countReferee => {
-                                    let referralLimit = 0;
+                                    if (configIntervalTime) {
+                                        logQuery.isValid = {$exists: true, $eq: true};
+                                    }
 
-                                    if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
-                                        referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+                                    return dbconfig.collection_referralLog.find(logQuery).count().then(
+                                        countReferee => {
+                                            let referralLimit = 0;
 
-                                        if (countReferee >= referralLimit) {
-                                            returnData.isHitReferralLimit = true;
+                                            if (referralConfig.enableUseReferralPlayerId.toString() === 'true') {
+                                                referralLimit = referralConfig && referralConfig.referralLimit ? referralConfig.referralLimit : 1;
+
+                                                if (countReferee >= referralLimit) {
+                                                    returnData.isHitReferralLimit = true;
+
+                                                    return returnData;
+                                                }
+                                            }
+
+                                            returnData.isHitReferralLimit = false;
 
                                             return returnData;
                                         }
-                                    }
-
-                                    returnData.isHitReferralLimit = false;
-
-                                    return returnData;
+                                    );
                                 }
-                            );
-                        }
 
-                        returnData.isHitReferralLimit = false;
+                                returnData.isHitReferralLimit = false;
 
-                        return returnData;
+                                return returnData;
+                            }
+                        );
                     }
                 );
-            }
-        );
+        }else{
+            return null;
+        }
+
     },
 
     getOnePlayerSimpleDetail: function (platformObjId, playerObjId) {
@@ -14983,32 +15034,84 @@ let dbPlayerInfo = {
                 }
             }
 
-            return dbconfig.collection_playerLoginRecord.aggregate(
-                {
-                    $match: matchObj
-                    //     {
-                    //     platform: platform,
-                    //     loginTime: {$gte: startTime, $lt: endTime}
-                    // }
-                },
-                {
-                    $unwind: "$userAgent",
-                },
-                {
-                    $group: {
-                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+            if (type === "os") {
+                // osType can replace os to show os for native app
+                return dbconfig.collection_playerLoginRecord.aggregate(
+                    {
+                        $match: matchObj
+                    },
+                    {
+                        $unwind: "$userAgent",
+                    },
+                    {
+                        $group: {
+                            _id: {_id: "$_id", userAgentOS: "$userAgent.os", osType: "$osType"},
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {name: "$_id.userAgentOS", osType: "$_id.osType"},
+                            number: {$sum: 1}
+                        }
+                    },
+                    {
+                        $sort: {number: -1}
                     }
-                },
-                {
-                    $group: {
-                        _id: {name: "$_id.userAgent1"},
-                        number: {$sum: 1}
+                ).read("secondaryPreferred").then(
+                    osData => {
+                        let output = [];
+                        if (osData) {
+                            osData.map(os => {
+                                if (os && os._id && os._id.osType && os._id.name === "") {
+                                    os._id.name = os._id.osType;
+                                }
+                            });
+
+                            // merge number for same os name
+                            osData.forEach(item => {
+                                let existing = output.filter((v, i) => {
+                                    return v._id.name.toLowerCase() === item._id.name.toLowerCase();
+                                });
+
+                                if (existing.length) {
+                                    let existingIndex = output.indexOf(existing[0]);
+                                    output[existingIndex].number += item.number;
+                                } else {
+                                    output.push(item);
+                                }
+                            });
+                        }
+                        return output;
                     }
-                },
-                {
-                    $sort: {number: -1}
-                }
-            ).read("secondaryPreferred")
+                )
+            } else {
+                return dbconfig.collection_playerLoginRecord.aggregate(
+                    {
+                        $match: matchObj
+                        //     {
+                        //     platform: platform,
+                        //     loginTime: {$gte: startTime, $lt: endTime}
+                        // }
+                    },
+                    {
+                        $unwind: "$userAgent",
+                    },
+                    {
+                        $group: {
+                            _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {name: "$_id.userAgent1"},
+                            number: {$sum: 1}
+                        }
+                    },
+                    {
+                        $sort: {number: -1}
+                    }
+                ).read("secondaryPreferred")
+            }
         }
 
     },
@@ -15236,6 +15339,15 @@ let dbPlayerInfo = {
                                         if (data.smallShow && !data.smallShow.includes("http")) {
                                             data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
                                         }
+
+                                        if (data.smallShow && !data.smallShow.includes("http")) {
+                                            data.smallShow = playerRouteSetting ? playerRouteSetting + data.smallShow : (data.sourceURL ? data.sourceURL + data.smallShow : data.smallShow);
+                                        }
+
+                                        if (data.webp && !data.webp.includes("http")) {
+                                            data.webp = playerRouteSetting ? playerRouteSetting + data.webp : (data.sourceURL ? data.sourceURL + data.webp : data.webp);
+                                        }
+
                                         return data;
                                     }
                                 });

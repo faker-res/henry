@@ -45,9 +45,16 @@ define(['js/app'], function (myApp) {
             };
 
             vm.displayFormat = {
-                "backgroundDisplay": 1,
-                "theeInARow": 2,
-                "fiveInARow": 3,
+                pc: {
+                    "backgroundDisplay": 1,
+                    "theeInARow": 3,
+                    "fiveInARow": 5,
+                },
+                h5: {
+                    "backgroundDisplay": 1,
+                    "twoInARow": 2,
+                    "theeInARow": 3,
+                }
             };
 
             vm.frontEndSettingOnClickAction = {
@@ -2890,7 +2897,7 @@ define(['js/app'], function (myApp) {
                     messageType: "sms",
                     sendBtnText: $translate("SEND")
                 };
-                $scope.getChannelList(function () {
+                $scope.getUsableChannelList(function () {
                     // vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
                     vm.sendMultiMessage.channel = null;
                     if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
@@ -3214,6 +3221,12 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.smsRecordQuery.platformList;
                 } else {
                     platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
+                if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
+                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
+                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
                 }
 
                 var sendQuery = {
@@ -24476,18 +24489,20 @@ define(['js/app'], function (myApp) {
                     console.log("created not", data);
                 });
 
-                let removeGroupData = {
-                    query: {rewardEvents: vm.showReward._id},
-                    updateData: {
-                        "$pull": {
-                            rewardEvents: vm.showReward._id
+                if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents) {
+                    let removeGroupData = {
+                        query: {rewardEvents: vm.showReward._id},
+                        updateData: {
+                            "$pull": {
+                                rewardEvents: vm.showReward._id
+                            }
                         }
-                    }
-                };
+                    };
 
-                socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
-                    console.log('remove event success');
-                });
+                    socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
+                        console.log('remove event success');
+                    });
+                }
 
                 // remove the deleted reward event form the player's forbidRewardEvents
                 if (vm.showReward && vm.showReward._id) {

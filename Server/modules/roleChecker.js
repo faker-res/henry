@@ -433,6 +433,7 @@ var roleChecker = {
                 MaintainGame: ['updateGameStatusToPlatform'],
                 DisableGame: ['updateGameStatusToPlatform'],
                 UploadImage: [],
+                EditGameName: ['renameGame']
                 // MaintenanceTime: ['updateGameStatusToPlatform']
             },
             "GameGroup": {
@@ -443,6 +444,7 @@ var roleChecker = {
                 Delete: ['deleteGameGroup'],
                 RemoveGameFromGroup: ['updatePlatformGameGroup'],
                 AddGameToGroup: ['updatePlatformGameGroup'],
+                EditGameName: ['renameGame']
             },
             // "PaymentChannel": {
             //     Read: ['getAllPaymentChannel'],
