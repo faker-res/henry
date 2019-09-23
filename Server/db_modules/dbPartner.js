@@ -11329,18 +11329,7 @@ let dbPartner = {
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
 
-            switch (period) {
-                case 1:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.dailyActivePlayer || 0;
-                    break;
-                case 2:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.weeklyActivePlayer || 0;
-                    break;
-                case 3:
-                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.monthlyActivePlayer || 0;
-                    break;
-            }
-
+            statsObj.totalActivePlayer = allActivePlayerList.length || 0;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
             statsObj.currentPage = currentPage;
@@ -11902,6 +11891,9 @@ function getPartnerAndDownlinePlayerData (platformObjId, partnerObjId, crewAccou
                 break;
             case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
                 configPrefix = "weeklyActive";
+                break;
+            case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+                configPrefix = "monthlyActive";
                 break;
         }
 
