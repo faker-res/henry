@@ -719,12 +719,12 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
-                        {_id: proposalData.data._id},
+                        {_id: proposalData.data._id, isTestPlayer: {$in: [null, false]}},
                         proposalData.data,
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
-                            if (proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
+                            if (data && proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
                                 checkIsPlayerBindToPartner(proposalData.data._id, platformObjId);
                             }
