@@ -842,6 +842,12 @@
         this.playerService.setPhoneNumberAndPassword.once(callback);
     };
 
+    proto.updatePasswordByPhoneNumber = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePasswordByPhoneNumber.request(data);
+        this.playerService.updatePasswordByPhoneNumber.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

@@ -844,6 +844,17 @@
         });
     };
 
+    proto.updatePasswordByPhoneNumber = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.updatePasswordByPhoneNumber.request(data);
+        this.playerService.updatePasswordByPhoneNumber.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

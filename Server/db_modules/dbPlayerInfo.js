@@ -7885,23 +7885,12 @@ let dbPlayerInfo = {
                         let checkCount = await dbPlayerInfo.isPhoneNumberExist(inputData.phoneNumber, platformObjId);
 
                         if (checkCount && checkCount.length) {
-                            if (platformData.allowSamePhoneNumberToRegister === true) {
-                                if (checkCount.length > platformData.samePhoneNumberRegisterCount) {
-                                    return Promise.reject({
-                                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                        name: "ValidationError",
-                                        message: "This phone number has been registered",
-                                        isRegisterError: true
-                                    })
-                                }
-                            } else {
-                                return Promise.reject({
-                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                    name: "ValidationError",
-                                    message: "This phone number has been registered",
-                                    isRegisterError: true
-                                })
-                            }
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                name: "ValidationError",
+                                message: "This phone number has been registered",
+                                isRegisterError: true
+                            })
                         }
 
                         if (inputData.accountPrefix && typeof inputData.accountPrefix === "string") {
@@ -8236,21 +8225,11 @@ let dbPlayerInfo = {
                 let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
 
                 if (checkCount && checkCount.length) {
-                    if (platform.allowSamePhoneNumberToRegister === true) {
-                        if (checkCount.length > platform.samePhoneNumberRegisterCount) {
-                            return Promise.reject({
-                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                message: "This phone number is already used. Please insert other phone number.",
-                                isRegisterError: true
-                            })
-                        }
-                    } else {
-                        return Promise.reject({
-                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                            message: "This phone number is already used. Please insert other phone number.",
-                            isRegisterError: true
-                        })
-                    }
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "ValidationError",
+                        message: "This phone number has been registered"
+                    })
                 }
 
                 let query = {
@@ -8309,9 +8288,158 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                return {number: phoneNumber};
+                return {phoneNumber: phoneNumber};
             }
         )
+    },
+
+    updatePasswordByPhoneNumber: function (platformId, phoneNumber, newPassword, smsCode, userAgent) {
+        let db_password = null;
+        let playerObj = null;
+        let platformObj = null;
+        let respData = {};
+        if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
+            return Q.reject({name: "DataError", message: "Password is too short"});
+        }
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                platformObj = platformData;
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let encryptedOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, phoneNumber, encryptedOldPhoneNumber]},
+                    platform: platformData._id
+                }
+
+                return dbconfig.collection_players.findOne(query).lean();
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (playerObj && playerObj.permission && playerObj.permission.forbidPlayerFromLogin) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            name: "DataError",
+                            message: "Player is forbidden"
+                        });
+                    }
+
+                    return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
+                        playerState => {
+                            if (playerState) {
+                                db_password = String(data.password);
+                                return platformObj;
+                            } else {
+                                return Q.reject({
+                                    name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
+                                    message: "Update Password Failed, please try again later"
+                                })
+                            }
+                        }
+                    );
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
+                    let deferred = Q.defer();
+                    respData.text = localization.localization.translate("Password successfully changed");
+
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                deferred.reject(err);
+                                return;
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
+                            ).then(
+                                () => {
+                                    let proposalData = {
+                                        creator:
+                                            {
+                                                type: 'player',
+                                                name: playerObj.name,
+                                                id: playerObj._id
+                                            },
+                                        data: {
+                                            _id: playerObj._id,
+                                            playerId: playerObj.playerId,
+                                            platformId: playerObj.platform,
+                                            isIgnoreAudit: true,
+                                            updatePassword: true,
+                                            remark: '修改密码'
+                                        },
+                                        entryType: constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PLAYERS,
+                                    };
+
+                                    if (userAgent) {
+                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                        proposalData.inputDevice = inputDeviceData;
+                                    }
+
+                                    dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
+                                        () => {
+                                            proposalData.newPassword = newPassword;
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD, proposalData);
+                                            let messageData = {
+                                                data: {platformId: playerObj.platform, playerObjId: playerObj._id}
+                                            };
+                                            messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err => {
+                                                console.error(err)
+                                            });
+                                            deferred.resolve(respData);
+                                        }
+                                    )
+                                }, deferred.reject
+                            );
+                        });
+                    });
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                    return deferred.promise;
+                }
+                else {
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Password do not match",
+                        error: "Password do not match"
+                    });
+                }
+            }
+        );
     },
 
     getBankZoneData: function (query) {
