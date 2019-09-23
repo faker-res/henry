@@ -147,6 +147,7 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
+            console.log('feedback.playerId._id===', feedback.playerId._id);
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
                     $match: {
@@ -186,6 +187,7 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data[0].map(item => {
+                        console.log('item._id===', item._id);
                         playerArr.push(item._id);
                     });
                 }
@@ -197,6 +199,7 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data.map(item => {
+                        console.log('item._id===', item._id);
                         adminArr.push(item._id);
                     });
                 }
@@ -249,6 +252,7 @@ var dbPlayerFeedback = {
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
                         //use playerId and timestamp as the key
+                        console.log('item.topup[0]._id===', item.topup[0]._id);
                         objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
                     }
                 });
@@ -257,6 +261,7 @@ var dbPlayerFeedback = {
 
                 var finalData = returnedData.map(item => {
                     var newObj = Object.assign({}, item);
+                    console.log('newObj.playerId._id===', newObj.playerId._id);
                     let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
                     newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
                     newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
