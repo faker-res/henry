@@ -5459,6 +5459,7 @@
   "WINNING_AMOUNT": "盈利金额",
   "Setting not set, please go config to set it": "需要相关设置，请到基础数据修改设置",
   "player not found": "查无此玩家",
+  "Player Not Found": "无玩家",
   "Within Period": "期间内",
   "New Tab": "新标签",
   "CanReceiveLargeWithdrawalEmail": "可收到大额提款邮件",
