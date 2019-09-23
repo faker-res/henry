@@ -633,8 +633,6 @@ define(['js/app'], function (myApp) {
                 if (selectedPhones.length) {
                     sendQuery.selectedPhones = selectedPhones;
                 } else {
-                    $('#adminPhoneListTableSpin').hide();
-                    socketService.showErrorMessage($translate("Please select player for selected bulk call"));
                     return; // might need to show an error message here
                 }
             }
