@@ -90,12 +90,9 @@
     };
 
     proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData;
         this.playerService.verifyPhoneNumberBySMSCode.request(data);
-        this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
+        this.playerService.verifyPhoneNumberBySMSCode.once(callback);
     };
 
     proto.getPlayerBillBoard = function (callback, requestData) {
