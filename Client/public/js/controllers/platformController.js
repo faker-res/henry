@@ -40666,6 +40666,11 @@ define(['js/app'], function (myApp) {
                 if(selectedPlayers.length > 0){
                     sendQuery.selectedPlayers = selectedPlayers;
                 }
+                else {
+                    socketService.showErrorMessage($translate('Please select player for selected bulk call'));
+                    $('#platformFeedbackSpin').hide();
+                    return;
+                }
 
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     vm.getCtiData();
