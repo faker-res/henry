@@ -8213,7 +8213,7 @@ let dbPlayerInfo = {
         }
     },
 
-    setPhoneNumberAndPassword: (playerId, phoneNumber, smsCode, password) => {
+    setPhoneNumberAndPassword: (playerId, phoneNumber, password) => {
         let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
@@ -8228,8 +8228,6 @@ let dbPlayerInfo = {
                 if (player.phoneNumber) {
                     return Promise.reject({message: "Phone number already set"}); // translate needed
                 }
-
-                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode);
             }
         ).then(
             async () => {

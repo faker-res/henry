@@ -1810,7 +1810,7 @@ let PlayerServiceImplement = function () {
 
     this.setPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.password);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.smsCode, data.password], isValidData)
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password], isValidData)
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
