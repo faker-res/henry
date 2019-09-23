@@ -8365,7 +8365,6 @@ define(['js/app'], function (myApp) {
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
                         playerId: selectedPlayer._id,
-                        isTestPlayer: Boolean(selectedPlayer.isTestPlayer),
                         playerBeforeEditing: _.clone(editPlayer),
                         playerBeingEdited: _.clone(editPlayer),
                         topUpGroupRemark: "",
