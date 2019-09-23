@@ -1990,7 +1990,7 @@ define(['js/app'], function (myApp) {
                 messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
-            $scope.getChannelList(function () {
+            $scope.getUsableChannelList(function () {
                 vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
             });
             setTimeout(
@@ -8365,6 +8365,7 @@ define(['js/app'], function (myApp) {
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
                         playerId: selectedPlayer._id,
+                        isTestPlayer: Boolean(selectedPlayer.isTestPlayer),
                         playerBeforeEditing: _.clone(editPlayer),
                         playerBeingEdited: _.clone(editPlayer),
                         topUpGroupRemark: "",

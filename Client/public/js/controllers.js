@@ -1075,12 +1075,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.getUsableChannelList = function (callback) {
         $scope.usableChannelList = $scope.usableChannelList && $scope.usableChannelList.length > 0 ? $scope.usableChannelList : [4]; // Bubles said default to channel 4 if get channel connection error
-        socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId}, onSuccess, onFail, true);
+        socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId || 4}, onSuccess, onFail, true);
 
         function onSuccess(data) {
             $scope.usableChannelList = data.data.channels.filter(item => {
                 return (item != 1) && (item != '1'); //channel 1 is only for sending sms code
             });
+
+            if (!$scope.usableChannelList || !$scope.usableChannelList.length) {
+                $scope.usableChannelList = [4]
+            }
+
+            $scope.channelList = $scope.usableChannelList;
             console.log("Got usable channelList:", $scope.usableChannelList);
             if (callback) {
                 callback.call(this);
@@ -1749,7 +1755,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
         });
 
-        $scope.getChannelList();
+        $scope.getUsableChannelList();
         $scope.phoneCall = {};
         utilService.initTranslate($filter('translate'));
         socketService.initTranslate($filter('translate'));

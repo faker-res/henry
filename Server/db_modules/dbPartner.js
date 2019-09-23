@@ -11329,6 +11329,18 @@ let dbPartner = {
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
 
+            switch (period) {
+                case 1:
+                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.dailyActivePlayer || 0;
+                    break;
+                case 2:
+                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.weeklyActivePlayer || 0;
+                    break;
+                case 3:
+                    statsObj.totalActivePlayer = partnerRecord && partnerRecord.monthlyActivePlayer || 0;
+                    break;
+            }
+
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
             statsObj.currentPage = currentPage;
