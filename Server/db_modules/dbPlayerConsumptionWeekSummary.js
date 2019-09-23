@@ -893,6 +893,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     if (res[type]) {
                                         if (res[type].hasOwnProperty("returnAmount")) {
                                             res[type].returnAmount += amounts[type].returnAmount;
+                                            res[type].returnAmount = res[type].returnAmount.toFixed(2);
                                         }
                                         else {
                                             res[type] += amounts[type];
