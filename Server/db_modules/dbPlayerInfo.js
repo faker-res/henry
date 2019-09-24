@@ -7832,6 +7832,617 @@ let dbPlayerInfo = {
         }
     },
 
+    registerByPhoneNumberAndPassword: async (inputData) => {
+        let rejectMsg = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Invalid SMS Validation Code"
+        };
+
+        // Check matched verification code
+        let verificationSMS = await dbconfig.collection_smsVerificationLog.findOne({
+            platformId: inputData.platformId,
+            tel: inputData.phoneNumber
+        }).sort({createTime: -1});
+
+        if (verificationSMS && verificationSMS.code) {
+            if (verificationSMS.code == inputData.smsCode) {
+                // Verified
+                let platformPrefix, platformObjId;
+
+                await dbconfig.collection_smsVerificationLog.remove({_id: verificationSMS._id});
+                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+
+                let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean();
+
+                if (platformData && platformData._id) {
+                    platformPrefix = platformData.prefix;
+                    platformObjId = platformData._id;
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+
+                    let player = await dbconfig.collection_players.find(
+                        {
+                            $or: [
+                                {phoneNumber: encryptedPhoneNumber},
+                                {phoneNumber: inputData.phoneNumber},
+                                {phoneNumber: enOldPhoneNumber},
+                                {phoneNumber: rsaCrypto.legacyEncrypt(inputData.phoneNumber)}
+                            ],
+                            platform: platformData._id,
+                        }
+                    ).sort({lastAccessTime: -1}).limit(1).lean();
+
+                    if (player && player.length) {
+                        return Promise.reject({
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            name: "ValidationError",
+                            message: "This phone number has been registered",
+                            isRegisterError: true
+                        })
+                    } else {
+
+                        // Check phone number binding record
+                        let checkCount = await dbPlayerInfo.isPhoneNumberExist(inputData.phoneNumber, platformObjId);
+
+                        if (checkCount && checkCount.length) {
+                            return Promise.reject({
+                                status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                name: "ValidationError",
+                                message: "This phone number has been registered",
+                                isRegisterError: true
+                            })
+                        }
+
+                        if (inputData.accountPrefix && typeof inputData.accountPrefix === "string") {
+                            platformPrefix = inputData.accountPrefix;
+                        }
+
+                        let userNameProp = {
+                            length: 8,
+                            pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
+                        };
+
+                        let newPlayerData = Object.assign({}, inputData);
+                        newPlayerData.name = platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase());
+
+                        return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true);
+                    }
+                }
+            } else {
+                // Not verified
+                if (verificationSMS.loginAttempts >= 10) {
+                    // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                    return dbconfig.collection_smsVerificationLog.remove(
+                        {_id: verificationSMS._id}
+                    ).then(() => {
+                        return Promise.reject(rejectMsg);
+                    });
+                }
+                else {
+                    return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
+                        {_id: verificationSMS._id},
+                        {$inc: {loginAttempts: 1}}
+                    ).then(() => {
+                        return Promise.reject(rejectMsg);
+                    });
+                }
+            }
+        } else {
+            return Promise.reject(rejectMsg);
+        }
+    },
+
+    loginByPhoneNumberAndPassword: async function (inputData, userAgent, inputDevice, mobileDetect) {
+        let newAgentArray = [];
+        let platformId = null;
+        let uaObj = null;
+        let playerObj = null;
+        let retObj = {};
+        let platformObj = {};
+        let bUpdateIp = false;
+        let geoInfo = {};
+        let playerData = [];
+
+        let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId});
+
+        if (platformData && platformData._id) {
+            platformObj = platformData;
+            platformId = platformData._id;
+
+            let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+
+            let playerQuery = {
+                platform: platformData._id,
+                $or: [
+                    {phoneNumber: encryptedPhoneNumber},
+                    {phoneNumber: inputData.phoneNumber},
+                    {phoneNumber: enOldPhoneNumber}
+                ]
+            };
+
+            let players = await dbconfig.collection_players.find(playerQuery).lean();
+
+            let forbidPlayerCount = 0;
+            if (players && players.length > 0) {
+                players.forEach(player => {
+                    if (player && player.permission && player.permission.forbidPlayerFromLogin) {
+                        forbidPlayerCount ++;
+                    } else {
+                        let DBPassword = String(player.password); // hashedPassword from db
+                        if (dbUtility.isMd5(DBPassword)) {
+                            if (md5(inputData.password) == DBPassword) {
+                                playerData.push(player);
+                            }
+                        } else {
+                            let isMatch = bcrypt.compareSync(String(inputData.password), DBPassword);
+
+                            if (isMatch) {
+                                playerData.push(player);
+                            }
+                        }
+                    }
+                });
+
+                if (players.length == forbidPlayerCount) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player is forbidden to login",
+                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                    });
+                }
+
+                if (playerData && playerData.length > 0) {
+                    playerData.sort((a, b) => new Date(b.lastAccessTime).getTime() - new Date(a.lastAccessTime).getTime());
+                }
+
+                if (playerData && playerData.length > 0 && playerData[0]) {
+                    playerObj = playerData[0];
+
+                    if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Only new system user can login",
+                            code: constServerCode.NO_USER_FOUND
+                        });
+                    }
+
+                    if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                    }
+
+                    newAgentArray = playerObj.userAgent || [];
+                    uaObj = {
+                        browser: userAgent && userAgent.browser && userAgent.browser.name || '',
+                        device: userAgent && userAgent.device && userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
+                        os: userAgent && userAgent.os && userAgent.os.name || '',
+                    };
+
+                    let bExit = false;
+                    if (newAgentArray && typeof newAgentArray.forEach == "function") {
+                        newAgentArray.forEach(
+                            agent => {
+                                if (agent.browser == uaObj.browser && agent.device == uaObj.device && agent.os == uaObj.os) {
+                                    bExit = true;
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        newAgentArray = [];
+                        bExit = true;
+                    }
+
+                    if (!bExit) {
+                        newAgentArray.push(uaObj);
+                    }
+
+                    if (inputData.lastLoginIp && inputData.lastLoginIp != playerObj.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                        bUpdateIp = true;
+                    }
+
+                    let updateData = {
+                        isLogin: true,
+                        lastLoginIp: inputData.lastLoginIp,
+                        userAgent: newAgentArray,
+                        lastAccessTime: new Date().getTime(),
+                        $inc: {loginTimes: 1}
+                    };
+
+                    if (inputData.lastLoginIp && !playerObj.loginIps.includes(inputData.lastLoginIp)) {
+                        updateData.$push = {loginIps: inputData.lastLoginIp};
+                    }
+
+                    let data = await dbconfig.collection_players.findOneAndUpdate({
+                        _id: playerObj._id,
+                        platform: playerObj.platform
+                    }, updateData).populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    })
+
+                    if (data) {
+                        // Geo and ip related update
+                        if (bUpdateIp) {
+                            dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, inputData.lastLoginIp).catch(errorUtils.reportError);
+                        }
+
+                        //add player login record
+                        let recordData = {
+                            player: data._id,
+                            platform: platformId,
+                            loginIP: inputData.lastLoginIp,
+                            clientDomain: inputData.clientDomain ? inputData.clientDomain : "",
+                            userAgent: uaObj,
+                            isRealPlayer: playerObj.isRealPlayer,
+                            isTestPlayer: playerObj.isTestPlayer,
+                            partner: playerObj.partner ? playerObj.partner : null
+                        };
+
+                        if (platformObj.usePointSystem) {
+                            dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
+                        }
+
+                        if (recordData.userAgent) {
+                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                        }
+                        Object.assign(recordData, geoInfo);
+
+                        let record = new dbconfig.collection_playerLoginRecord(recordData);
+
+                        let loginRecord = await record.save();
+
+                        if (loginRecord) {
+                            updateAutoFeedbackLoginCount(loginRecord).catch(errorUtils.reportError);
+                            dbPlayerInfo.getRetentionRewardAfterLogin(loginRecord.platform, loginRecord.player, userAgent).catch(
+                                err => {
+                                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                        // Ignore concurrent request for now
+                                    } else {
+                                        // Set BState back to false
+                                        dbPlayerUtil.setPlayerBState(playerObj._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                                    }
+                                    console.log('playerRetentionRewardGroup error when login', playerObj.playerId, err);
+                                }
+                            );
+
+                            let res = await dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                path: "platform",
+                                model: dbconfig.collection_platform
+                            }).populate({
+                                path: "playerLevel",
+                                model: dbconfig.collection_playerLevel
+                            }).populate({
+                                path: "rewardPointsObjId",
+                                model: dbconfig.collection_rewardPoints
+                            }).lean()
+
+                            retObj = res;
+
+                            if (retObj.rewardPointsObjId) {
+                                retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                                retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                            }
+
+                            let a = retObj.bankAccountProvince ? RESTUtils.getPMS2Services("postProvince", {provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
+                            let b = retObj.bankAccountCity ? RESTUtils.getPMS2Services("postCity", {cityId: retObj.bankAccountCity}).catch(() => {}) : true;
+                            let c = retObj.bankAccountDistrict ? RESTUtils.getPMS2Services("postDistrict", {districtId: retObj.bankAccountDistrict}).catch(() => {}) : true;
+
+                            let zoneData = await Promise.all([a, b, c]);
+
+                            retObj.bankAccountProvince = zoneData && zoneData[0] && zoneData[0].data ? zoneData[0].data.name : retObj.bankAccountProvince;
+                            retObj.bankAccountCity = zoneData && zoneData[1] && zoneData[1].data ? zoneData[1].data.name : retObj.bankAccountCity;
+                            retObj.bankAccountDistrict = zoneData && zoneData[2] && zoneData[2].data ? zoneData[2].data.name : retObj.bankAccountDistrict;
+
+                            return retObj;
+
+                        } else {
+                            return Promise.reject({name: "DBError", message: "Error in updating player", error: error});
+                        }
+                    } else {
+                        return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Phone number and password don't match"});
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find player", code: constServerCode.PLAYER_NAME_INVALID});
+            }
+        }
+        else {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+
+        function updateAutoFeedbackLoginCount (record) {
+            console.log('updateAutoFeedbackLoginCount time log start', record.platform, record.player);
+            return dbconfig.collection_promoCode.aggregate([
+                {$match: {
+                        platformObjId: record.platform,
+                        playerObjId: record.player,
+                        hasPromoCodeTemplateObjId: true,
+                        hasAutoFeedbackMissionObjId: true,
+                        autoFeedbackMissionLogin: false
+                    }},
+                {$sort: {createTime: -1}},
+                {
+                    $group: {
+                        _id: "$autoFeedbackMissionObjId",
+                        autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                        createTime: {$first: "$createTime"}
+                    }
+                }
+            ]).read("secondaryPreferred").exec().then(
+                promoCodes => {
+                    promoCodes.forEach(
+                        promoCode => {
+                            if(
+                                promoCode.autoFeedbackMissionScheduleNumber < 3
+                                || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()
+                            ) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    platformObjId: record.platform,
+                                    playerObjId: record.player,
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionLogin: true
+                                }).exec();
+                            }
+
+                            console.log('updateAutoFeedbackLoginCount time log end', record.platform, record.player);
+                        }
+                    )
+                }
+            );
+        }
+    },
+
+    setPhoneNumberAndPassword: (playerId, phoneNumber, password) => {
+        let player, platform, encryptedPhoneNumber;
+        return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                player = playerData;
+
+                if (!player) {
+                    return Promise.reject({message: "User not found OR Invalid Password"});
+                }
+
+                platform = playerData.platform;
+
+                if (player.phoneNumber) {
+                    return Promise.reject({message: "Phone number already set"}); // translate needed
+                }
+            }
+        ).then(
+            async () => {
+                encryptedPhoneNumber = rsaCrypto.encrypt(String(phoneNumber));
+
+                let checkCount = await dbPlayerInfo.isPhoneNumberExist(phoneNumber, platform._id);
+
+                if (checkCount && checkCount.length) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "ValidationError",
+                        message: "This phone number has been registered"
+                    })
+                }
+
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, rsaCrypto.oldEncrypt(phoneNumber.toString())]},
+                    platform: platform._id,
+                    isRealPlayer: true,
+                    'permission.forbidPlayerFromLogin': false
+                };
+
+                if (platform.allowSamePhoneNumberToRegister) {
+                    return dbPlayerInfo.isExceedPhoneNumberValidToRegister(query, platform.samePhoneNumberRegisterCount);
+                } else {
+                    return dbPlayerInfo.isPhoneNumberValidToRegister(query);
+                }
+            }
+        ).then(
+            ({isPhoneNumberValid}) => {
+                if (!isPhoneNumberValid) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        message: "This phone number is already used. Please insert other phone number."
+                    });
+                }
+
+                let phoneLocation = queryPhoneLocation(phoneNumber);
+                let updObj = {
+                    phoneNumber: encryptedPhoneNumber
+                };
+
+                if (phoneLocation) {
+                    updObj.phoneProvince = phoneLocation.province;
+                    updObj.phoneCity = phoneLocation.city;
+                    updObj.phoneType = phoneLocation.sp;
+                }
+
+                bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                    if (err) {
+                        deferred.reject(err);
+                        return;
+                    }
+                    bcrypt.hash(password, salt, function (err, hash) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+
+                        updObj.password = hash;
+                        return dbUtility.findOneAndUpdateForShard(
+                            dbconfig.collection_players,
+                            {_id: player._id},
+                            updObj,
+                            constShardKeys.collection_players
+                        );
+                    });
+                });
+            }
+        ).then(
+            () => {
+                return {phoneNumber: phoneNumber};
+            }
+        )
+    },
+
+    updatePasswordByPhoneNumber: function (platformId, phoneNumber, newPassword, smsCode, userAgent) {
+        let db_password = null;
+        let playerObj = null;
+        let platformObj = null;
+        let respData = {};
+        if (newPassword.length < constSystemParam.PASSWORD_LENGTH) {
+            return Q.reject({name: "DataError", message: "Password is too short"});
+        }
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+
+                platformObj = platformData;
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let encryptedOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                let query = {
+                    phoneNumber: {$in: [encryptedPhoneNumber, phoneNumber, encryptedOldPhoneNumber]},
+                    platform: platformData._id
+                }
+
+                return dbconfig.collection_players.findOne(query).lean();
+            }
+        ).then(
+            data => {
+                if (data) {
+                    playerObj = data;
+
+                    if (playerObj && playerObj.permission && playerObj.permission.forbidPlayerFromLogin) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_IS_FORBIDDEN,
+                            name: "DataError",
+                            message: "Player is forbidden"
+                        });
+                    }
+
+                    return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
+                        playerState => {
+                            if (playerState) {
+                                db_password = String(data.password);
+                                return platformObj;
+                            } else {
+                                return Q.reject({
+                                    name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
+                                    message: "Update Password Failed, please try again later"
+                                })
+                            }
+                        }
+                    );
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find player"
+                    });
+                }
+            }
+        ).then(
+            platformData => {
+                if (platformData) {
+                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        code: constServerCode.DOCUMENT_NOT_FOUND,
+                        message: "Unable to find platform"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                if (isVerified) {
+                    let deferred = Q.defer();
+                    respData.text = localization.localization.translate("Password successfully changed");
+
+                    bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+                        bcrypt.hash(newPassword, salt, function (err, hash) {
+                            if (err) {
+                                deferred.reject(err);
+                                return;
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
+                            ).then(
+                                () => {
+                                    let proposalData = {
+                                        creator:
+                                            {
+                                                type: 'player',
+                                                name: playerObj.name,
+                                                id: playerObj._id
+                                            },
+                                        data: {
+                                            _id: playerObj._id,
+                                            playerId: playerObj.playerId,
+                                            platformId: playerObj.platform,
+                                            isIgnoreAudit: true,
+                                            updatePassword: true,
+                                            remark: '修改密码'
+                                        },
+                                        entryType: constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PLAYERS,
+                                    };
+
+                                    if (userAgent) {
+                                        let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                                        proposalData.inputDevice = inputDeviceData;
+                                    }
+
+                                    dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
+                                        () => {
+                                            proposalData.newPassword = newPassword;
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD, proposalData);
+                                            let messageData = {
+                                                data: {platformId: playerObj.platform, playerObjId: playerObj._id}
+                                            };
+                                            messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err => {
+                                                console.error(err)
+                                            });
+                                            deferred.resolve(respData);
+                                        }
+                                    )
+                                }, deferred.reject
+                            );
+                        });
+                    });
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                    return deferred.promise;
+                }
+                else {
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Password do not match",
+                        error: "Password do not match"
+                    });
+                }
+            }
+        );
+    },
+
     getBankZoneData: function (query) {
         let province1 = null;
         let province2 = null;
