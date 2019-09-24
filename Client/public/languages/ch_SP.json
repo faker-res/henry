@@ -5014,6 +5014,7 @@
   "-- Edit (partner name) Child Partner: Editor ID -- Date": " —— 编辑（代理名）下级代理：设置人账号 —— 日期",
   "notifyEditChildPartner": "编辑代理下线结构通知",
   "back end only": "只限后台操作",
+  "BULK_SETTING_ALL_GROUP": "批量配置所有组",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
