@@ -11329,6 +11329,7 @@ let dbPartner = {
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
 
+            statsObj.totalActivePlayer = allActivePlayerList.length || 0;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
             statsObj.currentPage = currentPage;
@@ -11890,6 +11891,9 @@ function getPartnerAndDownlinePlayerData (platformObjId, partnerObjId, crewAccou
                 break;
             case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
                 configPrefix = "weeklyActive";
+                break;
+            case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+                configPrefix = "monthlyActive";
                 break;
         }
 
