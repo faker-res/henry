@@ -236,14 +236,15 @@ var dbPlayerFeedback = {
                 });
                 var key = Object.keys(sortCol)[0];
                 var val = sortCol[key];
-                console.log('returnedData===', returnedData);
 
-                var finalData = returnedData.map(item => {
-                    var newObj = Object.assign({}, item);
-                    let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
-                    newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
-                    newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
-                    return newObj;
+                let finalData = returnedData.map(item => {
+                    if (item && item.playerId) {
+                        var newObj = Object.assign({}, item);
+                        let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                        newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                        newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
+                        return newObj;
+                    }
                 }).sort((a, b) => {
                     var test = 0;
                     if (a[key] > b[key]) {
