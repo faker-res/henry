@@ -8203,7 +8203,7 @@ let dbPlayerInfo = {
         }
     },
 
-    setPhoneNumberAndPassword: (playerId, phoneNumber, password) => {
+    setPhoneNumberAndPassword: (playerId, phoneNumber, password, smsCode) => {
         let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
@@ -8218,6 +8218,25 @@ let dbPlayerInfo = {
                 if (player.phoneNumber) {
                     return Promise.reject({message: "Phone number already set"}); // translate needed
                 }
+
+                // Check matched verification code
+                return dbconfig.collection_smsVerificationLog.findOne({
+                    platformId: platform.platformId,
+                    tel: phoneNumber
+                }).sort({createTime: -1}).then(
+                    verificationSMS => {
+
+                        if (verificationSMS && verificationSMS.code && (verificationSMS.code == smsCode)) {
+                            dbconfig.collection_smsVerificationLog.remove({_id: verificationSMS._id});
+                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.VALIDATION_CODE_INVALID,
+                                name: "ValidationError",
+                                message: "Invalid SMS Validation Code"});
+                        }
+                    }
+                );
             }
         ).then(
             async () => {
