@@ -63,7 +63,8 @@ define(['js/app'], function (myApp) {
             Counter: 3,
             AliPayTransfer: 4,
             WechatTransfer: 5,
-            CloudFlashPay: 6
+            CloudFlashPay: 6,
+            CloudFlashPayTransfer: 7
         };
 
         vm.constDemoPlayerStatus = {
@@ -6116,6 +6117,7 @@ define(['js/app'], function (myApp) {
                                 let AliPayTransfer = {amount: 0};
                                 let wechatPayTransfer = {amount: 0};
                                 let CloudFlashPay = {amount: 0};
+                                let CloudFlashPayTransfer = {amount: 0};
 
                                 if (method.data && method.data.length > 0) {
 
@@ -6139,19 +6141,23 @@ define(['js/app'], function (myApp) {
                                             case (vm.constDepositMethod.CloudFlashPay):
                                                 CloudFlashPay.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
                                                 break;
+                                            case (vm.constDepositMethod.CloudFlashPayTransfer):
+                                                CloudFlashPayTransfer.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
                                         }
                                     })
                                 }
 
                                 vm.manualTopUpMethod.push({
                                     date: new Date(method.date),
-                                    totalSum: Online.amount + ATM.amount + Counter.amount + AliPayTransfer.amount + wechatPayTransfer.amount + CloudFlashPay.amount,
+                                    totalSum: Online.amount + ATM.amount + Counter.amount + AliPayTransfer.amount + wechatPayTransfer.amount + CloudFlashPay.amount + CloudFlashPayTransfer.amount,
                                     Online: Online,
                                     ATM: ATM,
                                     Counter: Counter,
                                     AliPayTransfer: AliPayTransfer,
                                     weChatPayTransfer: wechatPayTransfer,
-                                    CloudFlashPay: CloudFlashPay
+                                    CloudFlashPay: CloudFlashPay,
+                                    CloudFlashPayTransfer: CloudFlashPayTransfer
                                 })
 
                             })
@@ -6163,7 +6169,8 @@ define(['js/app'], function (myApp) {
                                 Counter: vm.calculateAverageData(vm.manualTopUpMethod, 'Counter', 'amount'),
                                 AliPayTransfer: vm.calculateAverageData(vm.manualTopUpMethod, 'AliPayTransfer', 'amount'),
                                 weChatPayTransfer: vm.calculateAverageData(vm.manualTopUpMethod, 'weChatPayTransfer', 'amount'),
-                                CloudFlashPay: vm.calculateAverageData(vm.manualTopUpMethod, 'CloudFlashPay', 'amount')
+                                CloudFlashPay: vm.calculateAverageData(vm.manualTopUpMethod, 'CloudFlashPay', 'amount'),
+                                CloudFlashPayTransfer: vm.calculateAverageData(vm.manualTopUpMethod, 'CloudFlashPayTransfer', 'amount')
                             };
 
                             vm.methodAverageAmount = [];
