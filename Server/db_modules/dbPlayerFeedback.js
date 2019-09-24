@@ -191,8 +191,12 @@ var dbPlayerFeedback = {
                     return [];
                 }
 
-                if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = {$in: [query.platform]};
+                if (query && query.platform) {
+                    if (typeof query.platform === "string") {
+                        query.platform = {$in: [query.platform]};
+                    } else {
+                        query.platform = {$in: query.platform};
+                    }
                 }
 
                 var a = dbconfig.collection_playerFeedback
