@@ -121,13 +121,18 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
+            let matchObj = {
+                platformId: feedback.platform,
+                createTime: {$gte: feedback.createTime, $lt: endTime}
+            };
+
+            if (feedback && feedback.playerId) {
+                matchObj.playerId = feedback.playerId._id
+            }
+
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
-                    $match: {
-                        playerId: feedback.playerId._id || null,
-                        platformId: feedback.platform,
-                        createTime: {$gte: feedback.createTime, $lt: endTime}
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
