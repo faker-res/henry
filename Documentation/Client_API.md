@@ -4955,8 +4955,11 @@ API说明：
 					"list": [{  
 						tableNumber: '123123',  
 						dealerName: ‘翠花’,  
-						status: 0  
-						countdown: 15  
+						status: 0, 
+						totalMakers: 6, //庄赢总数
+						totalPlayer: 6, //闲赢总数
+						totalTie: 1, //和局总数
+						countdown: 15,  
 						historyList: [{  
 							bureauNo: 12，  
 							result: 0，  
