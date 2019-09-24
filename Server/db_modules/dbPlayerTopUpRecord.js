@@ -2576,8 +2576,12 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 6:
                         case "6":
+                            //云闪付
                             depositMethod = "云闪付转账";
                             break;
+                        case 7:
+                        case "7":
+                            depositMethod = "CloudFlashPayTransfer";
                         default:
                             break;
                     }
