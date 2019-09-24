@@ -169,7 +169,6 @@ var dbPlayerFeedback = {
                 }
             ]).read("secondaryPreferred").then(
                 res => {
-                    console.log('res===', res);
                     return {topup: res, time: feedback.createTime}
                 }
             );
@@ -235,7 +234,6 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                console.log('data===11', data);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
@@ -256,7 +254,6 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                console.log('data===22', data);
                 var objPlayerToTopupTimes = {};
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
