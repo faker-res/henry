@@ -1,7 +1,7 @@
 .well
     .search-filters-item
         label {{'PRODUCT_NAME'| translate}}
-        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();vm.getAllGameProvidersLocal();vm.getDepartmentDetailsByPlatformObjId(vm.playerFeedbackQuery.selectedPlatform);' )
+        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();vm.getAllGameProvidersLocal();vm.loadFeedbackDepartment(vm.playerFeedbackQuery.selectedPlatform);' )
     .search-filters-item
         label {{"USER_TYPE"|translate}}
         select.form-control(ng-model="vm.playerFeedbackQuery.playerType")

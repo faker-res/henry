@@ -46,9 +46,7 @@
                     input.threeBoxes.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValueTwo" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'")
             .col-xs-12.text-right
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
-                //i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
-                span#loadPlayerFeedbackAdminIcon.collapse
-                    i.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}
