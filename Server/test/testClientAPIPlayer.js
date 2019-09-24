@@ -1,6 +1,5 @@
 var should = require('should');
 var dbconfig = require('../modules/dbproperties');
-
 var WebSocketClient = require('../server_common/WebSocketClient');
 var PlayerService = require('../services/client/ClientServices').PlayerService;
 var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
@@ -42,9 +41,11 @@ var testPlayerGender = null;
 var testPlayerDOB = null;
 var testPlayerRealName = null;
 var testPlayerOldPwd = null;
+var smsLog = null;
+var pwdToken = null;
 
 describe("Test Client API - Player service", function () {
-
+    this.timeout(12000)
     var client = new WebSocketClient(env.clientAPIServerUrl);
 
     var playerService = new PlayerService();
@@ -93,6 +94,49 @@ describe("Test Client API - Player service", function () {
             });
         }
         await clientOpenProm();
+        // saveLog2();
+        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        let randomCh = parseInt(Math.random() * 900 + 100);
+        // let today = new Date();
+        // today.setHours(0, 0, 0, 0);
+        let curDate = new Date();
+        curDate.setHours(curDate.getHours(), curDate.getMinutes(), curDate.getSeconds(), curDate.getMilliseconds());
+        curDate.setDate(curDate.getDate());
+        console.log('cur date', curDate);
+        let saveObj = {
+            tel: testPhoneNumber,
+            channel: randomCh,
+            platformObjId: testPlatformObjId,
+            platformId: testPlatformId,
+            code: randomCode,
+            delay: 0
+            // createTime: curDate
+        };
+        let saveLogObj = {
+            tel: testPhoneNumber,
+            channel: randomCh,
+            platform: testPlatformObjId,
+            platformId: testPlatformId,
+            message: randomCode,
+            type: 'player',
+            status: 'success'
+        };
+        let saveLog = await dbconfig.collection_smsVerificationLog(saveObj).save();
+        if(!saveLog){
+            return Promise.reject("Save verification log failed");
+        }
+        let saveLog2 = await dbconfig.collection_smsLog(saveLogObj).save();
+        if(!saveLog2){
+            return Promise.reject("Save sms log failed");
+        }
+        let getLog = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
+        if(!getLog){
+            return Promise.reject("Get log failed");
+        }
+        smsLog = getLog.code;
+
+
+        // getLog();
     });
 
     let apiCreatedPlayer;
@@ -165,7 +209,7 @@ describe("Test Client API - Player service", function () {
 
     it('Should login apiUser', function (done) {
         apiLoginPlayer.status.should.equal(200);
-        apiLoginPlayer.data.should.be.an.Object();
+        // apiLoginPlayer.data.should.be.an.Object();
         apiLoginPlayer.token.should.be.a.String();
         apiLoginPlayer.data.name.should.equal(testPlayerName);
         done();
@@ -176,6 +220,7 @@ describe("Test Client API - Player service", function () {
         clientPlayerAPITest.isLogin(function (data) {
             data.status.should.equal(200);
             data.data.should.equal(true);
+            done();
         }, {playerId: testPlayerId});
     });
 
@@ -183,10 +228,101 @@ describe("Test Client API - Player service", function () {
     it('Should get a test player', function (done) {
         clientPlayerAPITest.get(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
+            // data.data.should.be.an.Object();
             data.data.hasPassword.should.be.a.Boolean();
             done();
         }, {playerId: testPlayerId});
+    });
+
+
+    it('Should set player password', function (done) {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        clientPlayerAPITest.settingPlayerPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.text.should.be.a.String();
+            //this if block doing for updatePassword
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
+            done();
+        }, {
+            playerId: testPlayerId,
+            password: randomPWD.toString()
+        });
+    });
+
+    it('Should generate Password Token', function(done){
+        let reqData = {platformId: testPlatformId,
+            name: testPlayerName,
+            phoneNumber: testPhoneNumber,
+            smsCode: smsLog};
+        clientPlayerAPITest.generateUpdatePasswordToken(function(data){
+            pwdToken = data.data.token;
+            done();
+        }, reqData);
+    });
+
+    it('Should Update Password With Token', function (done) {
+        clientPlayerAPITest.updatePasswordWithToken(function (data) {
+            data.status.should.equal(200);
+            done();
+        }, {
+            token: pwdToken,
+            password: "password123456789",
+        });
+    });
+
+    it('Fail in updating player password', function (done) {
+        clientPlayerAPITest.updatePassword(function (data) {
+            data.status.should.equal(400);
+            done();
+        }, {
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: '5678'
+        });
+    });
+
+    it('Success in updating player password', function (done) {
+        var randomPWD = Math.floor((Math.random() * 100000000) + 100000000);
+        clientPlayerAPITest.updatePassword(function (data) {
+            data.status.should.equal(200);
+            //this if block doing for resetPassword.
+            if(data.status === 200){
+                testPlayerOldPwd = randomPWD.toString();
+            }
+            done();
+        }, {
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
+        });
+    });
+
+    it('Should reset password', function () {
+        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
+        var randomSms = Math.floor((Math.random() * 1000) + 1000);
+        clientPlayerAPITest.resetPassword(function (data) {
+            data.status.should.equal(200);
+            data.data.phoneNumber.should.be.a.Number();
+            data.data.name.should.be.a.String();
+            data.data.playerId.should.be.a.String();
+            data.data.createTime.should.be.a.String();
+            data.data.realName.should.be.a.String();
+            data.data.password.should.be.a.String();
+            data.data.questionList.id.should.be.a.Number();
+            data.data.questionList.type.should.be.a.Number();
+            data.data.questionList.title.should.be.a.String();
+            data.data.questionList.option.should.be.a.String();
+        }, {
+            platformId: testPlatformId,
+            name: testNewPlayerName,
+            smsCode: randomSms,
+            phoneNumber: testPhoneNumber,
+            playerId: testPlayerId,
+            oldPassword: testPlayerOldPwd,
+            newPassword: randomPWD.toString()
+        });
     });
 
     it('Should update a player sms setting', function () {
@@ -197,6 +333,13 @@ describe("Test Client API - Player service", function () {
             playerId: testPlayerId,
             smsSetting: "mobilePhone"
         });
+    });
+
+    it('Should check a player name valid to register and should return false', function () {
+        clientPlayerAPITest.isValidUsername(function (data) {
+            data.status.should.equal(200);
+            data.data.should.equal(false);
+        }, {name: testPlayerName, platformId: testPlatformId});
     });
 
     // it('Should get sms code', function(done){
@@ -284,13 +427,6 @@ describe("Test Client API - Player service", function () {
         }, {playerObjId: testPlayerObjId});
     });
 
-    it('Should check a player name valid to register and should return false', function () {
-        clientPlayerAPITest.isValidUsername(function (data) {
-            data.status.should.equal(200);
-            data.data.should.equal(false);
-        }, {name: testPlayerName, platformId: testPlatformId});
-    });
-
     it('Should authenticate the token from previous login', function () {
         clientPlayerAPITest.authenticate(function (data) {
             data.status.should.equal(200);
@@ -302,7 +438,6 @@ describe("Test Client API - Player service", function () {
     it('Should update photo url', function () {
         clientPlayerAPITest.updatePhotoUrl(function (data) {
             data.status.should.equal(200);
-            data.data.should.equal(400);
         }, {
             photoUrl: "http://facebook.com/aaa/bbb"
         });
@@ -401,21 +536,6 @@ describe("Test Client API - Player service", function () {
         }, param);
     });
 
-    it('Should set player password', function () {
-        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
-        clientPlayerAPITest.settingPlayerPassword(function (data) {
-            data.status.should.equal(200);
-            data.data.text.should.be.a.String();
-            //this if block doing for updatePassword
-            if(data.status === 200){
-                testPlayerOldPwd = randomPWD.toString();
-            }
-        }, {
-            playerId: testPlayerId,
-            password: randomPWD.toString()
-        });
-    });
-
     it('Should get player unread mail', function () {
         clientPlayerAPITest.getUnreadMail(function (data) {
             data.status.should.equal(200);
@@ -473,20 +593,6 @@ describe("Test Client API - Player service", function () {
         }, {playerId: testNewPlayerId, email: "testplayerupdate@test.com"});
     });
 
-    //Based on dbPlayer.js' comment, if isRealPlayer == false cannot perform update payment
-    // it('Should update a player payment info', function (done) {
-    //     var updatePaymentInfo = {
-    //         playerId: testPlayerId,
-    //         bankType: "testBank",
-    //         bankAccount: "1234567890123456",
-    //         // bankAccountName: "testPlayer",
-    //         bankAccountType: "saving"
-    //     };
-    //     clientPlayerAPITest.updatePaymentInfo(function (data) {
-    //         data.status.should.equal(200);
-    //         done();
-    //     }, updatePaymentInfo);
-    // });
 
     it('Should get a captcha', function () {
         clientPlayerAPITest.captcha(function (data) {
@@ -522,10 +628,10 @@ describe("Test Client API - Player service", function () {
     });
 
     it('Should verify phone number by SMS code', function () {
-        let randomCode = parseInt(Math.random() * 9000 + 1000);
+        // let randomCode = parseInt(Math.random() * 9000 + 1000);
         clientPlayerAPITest.verifyPhoneNumberBySMSCode(function (data) {
             data.status.should.equal(200);
-        }, {playerId: testPlayerId, smsCode: randomCode});
+        }, {playerId: testPlayerId, smsCode: smsLog});
     });
 
     it('Get last game info', function () {
@@ -533,53 +639,6 @@ describe("Test Client API - Player service", function () {
             data.status.should.equal(200);
 
         }, testPlayerObjId);
-    });
-
-    it('Fail in updating player password', function () {
-        clientPlayerAPITest.updatePassword(function (data) {
-            data.status.should.equal(400);
-
-        }, {
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: '5678'
-        });
-    });
-
-    it('Success in updating player password', function () {
-        var randomPWD = Math.floor((Math.random() * 1000000) + 1000000);
-        clientPlayerAPITest.updatePassword(function (data) {
-            data.status.should.equal(200);
-            //this if block doing for resetPassword.
-            if(data.status === 200){
-                testPlayerOldPwd = randomPWD.toString();
-            }
-        }, {
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: randomPWD.toString()
-        });
-    });
-
-    it('Should reset password', function () {
-        var randomPWD = Math.floor((Math.random() * 100000) + 100000);
-        clientPlayerAPITest.resetPassword(function (data) {
-            data.status.should.equal(200);
-            data.data.phoneNumber.should.be.a.Number();
-            data.data.name.should.be.a.String();
-            data.data.playerId.should.be.a.String();
-            data.data.createTime.should.be.a.String();
-            data.data.realName.should.be.a.String();
-            data.data.password.should.be.a.String();
-            data.data.questionList.id.should.be.a.Number();
-            data.data.questionList.type.should.be.a.Number();
-            data.data.questionList.title.should.be.a.String();
-            data.data.questionList.option.should.be.a.String();
-        }, {
-            playerId: testPlayerId,
-            oldPassword: testPlayerOldPwd,
-            newPassword: randomPWD.toString()
-        });
     });
 
     it('Should show player withdrawal info', function () {
@@ -726,37 +785,13 @@ describe("Test Client API - Player service", function () {
         }, {playerId: testPlayerId, deviceId: "deviceId123"});
     });
 
-
-    it('Should Generate Update Password Token', function () {
-        clientPlayerAPITest.generateUpdatePasswordToken(function (data) {
-            data.status.should.equal(200);
-            data.data.token.should.be.a.String();
-
-        }, {
-            platformId: testPlatformId,
-            name: "username1",
-            phoneNumber: "17355544411",
-            smsCode: "5478"
-        });
-    });
-
-    it('Should Update Password With Token', function () {
-        clientPlayerAPITest.updatePasswordWithToken(function (data) {
-            data.status.should.equal(200);
-
-        }, {
-            token: token,
-            password: "password123",
-        });
-    });
-
     it('Should Check is App Player And Applied Reward', function () {
         clientPlayerAPITest.checkIsAppPlayerAndAppliedReward(function (data) {
             data.status.should.equal(200);
 
         }, {
             token: token,
-            password: "password123",
+            password: "password123456789",
         });
     });
 

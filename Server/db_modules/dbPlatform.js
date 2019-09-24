@@ -2053,7 +2053,8 @@ var dbPlatform = {
             message: data.message,
             delay: data.delay
         };
-        var recipientName = data.name || '';
+        let encodePhoneNum = dbUtility.encodePhoneNum(sendObj.tel) || '';
+        let recipientName = data.name || encodePhoneNum || '';
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
@@ -3478,7 +3479,7 @@ var dbPlatform = {
             if (data[list].length > 0) {
                 data[list].forEach(pair => {
 
-                    if (pair.content.indexOf(',') !== -1) {
+                    if (pair.content && pair.content.indexOf(',') !== -1) {
                         let splitString = pair.content.split(',');
 
                         if (splitString && splitString.length > 0) {
@@ -3503,7 +3504,7 @@ var dbPlatform = {
                         }
                     }
                     else {
-                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1) {
+                        if (pair.content && pair.isImg === 1 && pair.content.indexOf("http") === -1) {
                             if (subject === 'player' && data.playerRouteSetting) {
                                 pair.content = data.playerRouteSetting.trim() + pair.content.trim();
                             } else if (subject === 'partner' && data.partnerRouteSetting) {
@@ -6640,27 +6641,45 @@ var dbPlatform = {
                 let objList = {};
                 let allObjList = {name: "全部", list: [], defaultShow: false};
                 let arrayList = [];
+                let allCategory = null;
                 let defaultCategory = null;
+                let listedCategory = null;
 
                 if (code == "reward"){
-                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
+                    allCategory = await dbconfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
                 else if (code == "registrationGuidance"){
-                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
+                    allCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
 
-                if (defaultCategory){
+                if (allCategory && allCategory.length){
+                    defaultCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "全部分类"});
+                    if (defaultCategory && defaultCategory.length){
+                        defaultCategory = defaultCategory[0];
+                    }
                     allObjList.defaultShow = defaultCategory.defaultShow || false;
                     if (defaultCategory.displayFormat){
                         allObjList.displayFormat = defaultCategory.displayFormat;
                     }
+                    listedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName != "全部分类"});
                 }
+
+                if (listedCategory && listedCategory.length){
+                    listedCategory.forEach(
+                        p => {
+                            if (p && p.categoryName){
+                                objList[p.categoryName] = [];
+                            }
+                        }
+                    )
+                }
+
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
-                            if (objList && !objList[p.categoryObjId.categoryName]){
-                                objList[p.categoryObjId.categoryName] = [];
-                            }
+                            // if (objList && !objList[p.categoryObjId.categoryName]){
+                            //     objList[p.categoryObjId.categoryName] = [];
+                            // }
                             objList[p.categoryObjId.categoryName].push(p);
                             if (allObjList && allObjList.list){
                                 allObjList.list.push(p);

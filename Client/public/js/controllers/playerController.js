@@ -1990,7 +1990,7 @@ define(['js/app'], function (myApp) {
                 messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
-            $scope.getChannelList(function () {
+            $scope.getUsableChannelList(function () {
                 vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
             });
             setTimeout(
@@ -2595,7 +2595,7 @@ define(['js/app'], function (myApp) {
             vm.batchCreditTransferOut = null;
         }
         //get all platform data from server
-        vm.getPlatformGameData = function () {
+        vm.getPlatformGameData = function (platformObjId) {
             //init gametab start===============================
             vm.SelectedProvider = null;
             vm.showGameCate = "include";
@@ -2604,8 +2604,11 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
+            let sendData = {
+                _id: platformObjId ? platformObjId : vm.selectedPlatform.id
+            };
             //console.log("getGames", gameIds);
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                 console.log('getPlatform', data.data);
                 //provider list init
                 vm.platformProviderList = data.data.gameProviders;
@@ -8362,6 +8365,7 @@ define(['js/app'], function (myApp) {
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
                         playerId: selectedPlayer._id,
+                        isTestPlayer: Boolean(selectedPlayer.isTestPlayer),
                         playerBeforeEditing: _.clone(editPlayer),
                         playerBeingEdited: _.clone(editPlayer),
                         topUpGroupRemark: "",
@@ -8640,11 +8644,19 @@ define(['js/app'], function (myApp) {
             var sendData = null;
             if (type === 'change' && editObj.referralName) {
                 sendData = {name: editObj.referralName}
+                if(editObj.platform){
+                    sendData.platform = editObj.platform;
+                }
+                //In edit: playerName will be selected player name.
+                //In create: playerName will be new player name.
+                if(editObj.name){
+                    sendData.playerName = editObj.name;
+                }
             } else if (type === 'new' && editObj.referral) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
+                // sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -10283,6 +10295,7 @@ define(['js/app'], function (myApp) {
         }
         //get player's game provider credit
         vm.showPlayerCreditinProvider = function (row) {
+            vm.getPlatformGameData(row.platform);
             vm.gameProviderCreditPlayerName = row.name;
             vm.queryPlatformCreditTransferPlayerName = row.name;
             // vm.creditModal = $('#modalPlayerGameProviderCredit').modal();

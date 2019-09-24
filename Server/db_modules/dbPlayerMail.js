@@ -496,11 +496,21 @@ const dbPlayerMail = {
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                             playerQuery['permission.forbidPlayerFromLogin'] = {$ne: true};
+                        } else if (purpose && !playerName && inputData && !inputData.playerId && inputData.phoneNumber && inputData.deviceId) {
+                            playerQuery["$or"] = [
+                                {guestDeviceId: inputData.deviceId},
+                                {guestDeviceId: rsaCrypto.encrypt(inputData.deviceId)},
+                                {guestDeviceId: rsaCrypto.oldEncrypt(inputData.deviceId)}
+                            ];
                         } else {
                             playerQuery.playerId = inputData.playerId;
                         }
                         return dbconfig.collection_players.findOne(playerQuery).lean().then(
                             playerData => {
+                                if (!playerName && playerData && playerData.name) {
+                                    playerName = playerData.name;
+                                }
+
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
                                     player = playerData;

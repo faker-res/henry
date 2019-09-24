@@ -2649,6 +2649,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "gradeLimit": level,
                         "gradeName": levelName,
                         "point": reward.rewardPoints,
+                        "pointMode": reward.pointMode,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,

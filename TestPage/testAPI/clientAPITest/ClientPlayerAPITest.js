@@ -824,6 +824,30 @@
         this.playerService.getPromoShortUrl.once(callback);
     };
 
+    proto.registerByPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.registerByPhoneNumberAndPassword.request(data);
+        this.playerService.registerByPhoneNumberAndPassword.once(callback);
+    };
+
+    proto.loginByPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.loginByPhoneNumberAndPassword.request(data);
+        this.playerService.loginByPhoneNumberAndPassword.once(callback);
+    };
+
+    proto.setPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.setPhoneNumberAndPassword.request(data);
+        this.playerService.setPhoneNumberAndPassword.once(callback);
+    };
+
+    proto.updatePasswordByPhoneNumber = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePasswordByPhoneNumber.request(data);
+        this.playerService.updatePasswordByPhoneNumber.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

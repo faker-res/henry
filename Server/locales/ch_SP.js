@@ -565,6 +565,8 @@ var simplifiedChinese = {
     "Does not meet top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
     "Does not meet first top up amount and top up count": "被推荐人未达到首次单笔存款额或存款笔数",
     "Player not exist, Please contact cs.": "您的帐号信息不存在，请联系客服确认。",
+    "This phone number has been registered": "该手机号码已注册",
+    "Phone number and password don't match": "手机号码和密码不匹配",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
