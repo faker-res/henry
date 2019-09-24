@@ -79,31 +79,57 @@ var dbPlayerFeedback = {
         let query = {};
         if (platformList && platformList.length) {
             query = {
-                platform: {$in: platformList}
+                platforms: {$in: platformList}
             }
         }
 
-        return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
-            adminList => {
-                if (adminList && adminList.length === 0) {
-                    return [];
-                }
-                if (adminList && adminList.length) {
-                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        // this code only display unique cs name that already has feedback record
+        // return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
+        //     adminList => {
+        //         if (adminList && adminList.length === 0) {
+        //             return [];
+        //         }
+        //         if (adminList && adminList.length) {
+        //             return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        //                 .populate({path: "departments", model: dbconfig.collection_department})
+        //                 .then(
+        //                     data => {
+        //                         if (data && data.length) {
+        //                             let selectedUniqueAdmin = data;
+        //                             selectedUniqueAdmin.map(admin => {
+        //                                 if (admin.departments && admin.departments.length) {
+        //                                     admin.departmentName = admin.departments[0].departmentName;
+        //                                 }
+        //                             });
+        //                             return selectedUniqueAdmin;
+        //                         }
+        //                     }
+        //             )
+        //         }
+        //     }
+        // )
+
+        // display all cs name that are found in departments based on selected platform
+        return dbconfig.collection_department.find(query).lean().then(
+            departmentData => {
+                let departmentList = [];
+                if (departmentData && departmentData.length) {
+                    departmentList = departmentData;
+                    return dbconfig.collection_admin.find({departments: {$in: departmentList}}).lean()
                         .populate({path: "departments", model: dbconfig.collection_department})
                         .then(
                             data => {
                                 if (data && data.length) {
-                                    let selectedUniqueAdmin = data;
-                                    selectedUniqueAdmin.map(admin => {
+                                    let selectedCS = data;
+                                    selectedCS.map(admin => {
                                         if (admin.departments && admin.departments.length) {
                                             admin.departmentName = admin.departments[0].departmentName;
                                         }
                                     });
-                                    return selectedUniqueAdmin;
+                                    return selectedCS;
                                 }
                             }
-                    )
+                        );
                 }
             }
         )
