@@ -1809,8 +1809,8 @@ let PlayerServiceImplement = function () {
     };
 
     this.setPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.phoneNumber && data.password);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password], isValidData)
+        let isValidData = Boolean(data && data.phoneNumber && data.password && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password, data.smsCode], isValidData)
     };
 
     this.updatePasswordByPhoneNumber.expectsData = 'newPassword: String';
