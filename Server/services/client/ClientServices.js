@@ -113,6 +113,10 @@
                 "playerLoginOrRegisterWithSMS",
                 "getBindBankCardList",
                 "getPromoShortUrl",
+                "registerByPhoneNumberAndPassword",
+                "loginByPhoneNumberAndPassword",
+                "setPhoneNumberAndPassword",
+                "updatePasswordByPhoneNumber",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

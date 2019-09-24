@@ -71,6 +71,10 @@
 	59. [获取玩家最近玩的两个游戏](#获取玩家最近玩的两个游戏)
     60. [APP设置密码](#APP设置密码)
     61. [获取玩家推广域名防红和短链转换](#获取玩家推广域名防红和短链转换)
+    62. [手机号码与密码注册](#手机号码与密码注册)
+    63. [手机号码与密码登录](#手机号码与密码登录)
+    64. [游客账号绑定手机号码与密码](#游客账号绑定手机号码与密码)
+    65. [通过电话号码重置密码](#通过电话号码重置密码)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -2050,6 +2054,86 @@ API说明：
               }
             }
     * 操作失败：status--4xx, data-null, errorMessage:””
+
+<div id='手机号码与密码注册'></div>
+
+* **62. 手机号码与密码注册**
+    * name: registerByPhoneNumberAndPassword
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                platformId: “1”, //平台ID - 必填
+                phoneNumber: “17355544411“ // 玩家电话号码, 必填
+                smsCode: "2451", // 短信验证码, 必填
+                password: "888888", //密码, 必填
+            }
+    * 响应内容：`{status: 200/40x, data: playerObject}`
+    * playerObject包含token，用于重新建立链接
+    * 操作成功： status--200, data--玩家对象
+    * 操作失败： status--4xx, data--null
+    
+<div id='手机号码与密码登录'></div>
+
+* **63. 手机号码与密码登录**
+    * name: loginByPhoneNumberAndPassword
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                platformId: “1”, //平台ID - 必填
+                phoneNumber: “17355544411“ // 玩家电话号码, 必填
+                password: "888888", //密码, 必填
+            }
+    * 响应内容：`{status: 200/40x, data: playerObject}`
+    * playerObject包含token，用于重新建立链接
+    * 操作成功： status--200, data--玩家对象
+    * 操作失败： status--4xx, data--null
+    
+<div id='游客账号绑定手机号码与密码'></div>
+
+* **64. 游客账号绑定手机号码与密码**
+    * name: setPhoneNumberAndPassword
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                phoneNumber: "17355544411" // 玩家电话号码, 必填
+                password: "888888", //密码, 必填
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "phoneNumber": "12345678802"
+              }
+            }
+    * 操作成功： status--200, data--{"phoneNumber": "12345678802"}
+    * 操作失败： status--4xx, data--null
+    
+<div id='通过电话号码重置密码'></div>
+
+* **65. 通过电话号码重置密码**
+    * name: updatePasswordByPhoneNumber
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                platformId: "1" //平台ID
+                phoneNumber: "17355544411" // 玩家电话号码, 必填
+                newPassword: "888888", //新密码, 必填
+                smsCode: "2451", // 短信验证码, 必填
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {text:'密码修改成功'}
+            }
+    * 操作成功： status--200, data--{text:'密码修改成功'}
+    * 操作失败： status--4xx, data--null
+    
 # 注册意向服务：
 用于关注玩家注册过程中是否遇到问题，便于改进登录界面以及在适当的时候为玩家提供帮助。
 
@@ -4955,8 +5039,11 @@ API说明：
 					"list": [{  
 						tableNumber: '123123',  
 						dealerName: ‘翠花’,  
-						status: 0  
-						countdown: 15  
+						status: 0, 
+						totalMakers: 6, //庄赢总数
+						totalPlayer: 6, //闲赢总数
+						totalTie: 1, //和局总数
+						countdown: 15,  
 						historyList: [{  
 							bureauNo: 12，  
 							result: 0，  

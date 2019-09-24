@@ -173,14 +173,18 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
-            console.log('feedback.playerId._id===', feedback.playerId._id);
+            let matchObj = {
+                platformId: feedback.platform,
+                createTime: {$gte: feedback.createTime, $lt: endTime}
+            };
+
+            if (feedback && feedback.playerId) {
+                matchObj.playerId = feedback.playerId._id
+            }
+
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
-                    $match: {
-                        playerId: feedback.playerId._id,
-                        platformId: feedback.platform,
-                        createTime: {$gte: feedback.createTime, $lt: endTime}
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
@@ -191,6 +195,7 @@ var dbPlayerFeedback = {
                 }
             ]).read("secondaryPreferred").then(
                 res => {
+                    console.log('res===', res);
                     return {topup: res, time: feedback.createTime}
                 }
             );
@@ -213,7 +218,6 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data[0].map(item => {
-                        console.log('item._id===', item._id);
                         playerArr.push(item._id);
                     });
                 }
@@ -225,7 +229,6 @@ var dbPlayerFeedback = {
             data => {
                 if (data && data[0]) {
                     data.map(item => {
-                        console.log('item._id===', item._id);
                         adminArr.push(item._id);
                     });
                 }
@@ -240,8 +243,12 @@ var dbPlayerFeedback = {
                     return [];
                 }
 
-                if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = {$in: [query.platform]};
+                if (query && query.platform) {
+                    if (typeof query.platform === "string") {
+                        query.platform = {$in: [query.platform]};
+                    } else {
+                        query.platform = {$in: query.platform};
+                    }
                 }
 
                 var a = dbconfig.collection_playerFeedback
@@ -254,6 +261,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===11', data);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
@@ -274,24 +282,25 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===22', data);
                 var objPlayerToTopupTimes = {};
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
                         //use playerId and timestamp as the key
-                        console.log('item.topup[0]._id===', item.topup[0]._id);
                         objPlayerToTopupTimes[item.topup[0]._id + new Date(item.time).getTime()] = item.topup[0];
                     }
                 });
                 var key = Object.keys(sortCol)[0];
                 var val = sortCol[key];
 
-                var finalData = returnedData.map(item => {
-                    var newObj = Object.assign({}, item);
-                    console.log('newObj.playerId._id===', newObj.playerId._id);
-                    let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
-                    newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
-                    newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
-                    return newObj;
+                let finalData = returnedData.map(item => {
+                    if (item && item.playerId) {
+                        var newObj = Object.assign({}, item);
+                        let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                        newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                        newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
+                        return newObj;
+                    }
                 }).sort((a, b) => {
                     var test = 0;
                     if (a[key] > b[key]) {

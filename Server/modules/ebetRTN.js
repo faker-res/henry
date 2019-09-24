@@ -108,11 +108,12 @@ function sendQueryCommand(tableType, size) {
         data: {
             tableType: tableType || 1,
             // table: "B2",
-            // size: 30
+            // size: 30 // size refer to notification size
         }
     };
     if (size) {
-        sendData.data.size = size;
+        // sendData.data.size = size;
+        sendData.data.numberOfTable = size;
     }
     var json = JSON.stringify(sendData);
 
