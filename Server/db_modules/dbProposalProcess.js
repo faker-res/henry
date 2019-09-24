@@ -121,7 +121,14 @@ var proposalProcess = {
                             role: stepTypeData[i].role
                         };
 
-                        if (!stepTypeData[i].triggerAmount || (propAmount >= stepTypeData[i].triggerAmount)) {
+                        stepTypeData[i].triggerAmount = Number(stepTypeData[i].triggerAmount) || 0;
+                        if (
+                            !stepTypeData[i].triggerAmount // if 0 trigger either way
+                            || ( // if a number is exist, it need positively or negatively larger than the amount to trigger)
+                                propAmount >= stepTypeData[i].triggerAmount
+                                || propAmount <= -stepTypeData[i].triggerAmount
+                            )
+                        ) {
                             proms.push(dbProposalProcessStep.createProposalProcessStep(step));
                         }
                     }
