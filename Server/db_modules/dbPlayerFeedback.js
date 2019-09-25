@@ -119,6 +119,8 @@ var dbPlayerFeedback = {
                             platformNameList.push(data.name);
                         }
                     });
+                    console.log('platformNameList===', platformNameList);
+                    console.log('platformNameList.length===', platformNameList.length);
 
                     let queryDept = {
                         departmentName: {$in: platformNameList}
@@ -127,6 +129,9 @@ var dbPlayerFeedback = {
                     if (platformNameList && platformNameList.length) {
                         return dbconfig.collection_department.find(queryDept).lean().then(
                             departmentData => {
+                                console.log('departmentData===', departmentData);
+                                console.log('departmentData.length===', departmentData.length);
+
                                 let adminList = [];
                                 if (departmentData && departmentData.length) {
                                     departmentData.forEach(data => {
@@ -135,12 +140,16 @@ var dbPlayerFeedback = {
                                         }
                                     });
                                 }
+                                console.log('adminList===', adminList);
+                                console.log('adminList.length===', adminList.length);
 
                                 if (adminList && adminList.length) {
                                     return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
                                         .populate({path: "departments", model: dbconfig.collection_department})
                                         .then(
                                             data => {
+                                                console.log('data===', data);
+                                                console.log('data.length===', data.length);
                                                 if (data && data.length) {
                                                     let selectedCS = data;
                                                     selectedCS.map(admin => {
