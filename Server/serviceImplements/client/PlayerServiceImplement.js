@@ -1817,7 +1817,7 @@ let PlayerServiceImplement = function () {
     this.updatePasswordByPhoneNumber.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         let isValidData = Boolean(data && data.platformId && data.phoneNumber && data.newPassword && data.smsCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData, false, false, true);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
