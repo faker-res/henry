@@ -156,7 +156,7 @@ var WebSocketUtility = {
                     //    level: constSystemLogLevel.ACTION };
                     //dblog.createSystemLog(logData);
 
-                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
+                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
                         dbApiLog.createApiLog(conn, wsFunc, result, reqData);
                     }
                 },

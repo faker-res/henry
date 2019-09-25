@@ -560,7 +560,8 @@ define(['js/app'], function (myApp) {
                 3: 'Counter',
                 4: 'AliPayTransfer',
                 5: 'weChatPayTransfer',
-                6: 'CloudFlashPay'
+                6: 'CloudFlashPay',
+                7: 'CloudFlashPayTransfer'
             };
 
             vm.commissionType = {
@@ -4386,10 +4387,13 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getProviderStatus = (provider) => {
-                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId]) {
-                    return provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId];
-                }
 
+                let platform = vm.allPlatformData.filter(item => { return item._id == vm.filterGamePlatform;})
+                platform = platform && platform[0] ? platform[0] : null;
+                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[platform.platformId]) {
+                    return provider.platformStatusFromCPMS[platform.platformId];
+                }
+                console.log('**',provider, platform.platformId)
                 return provider.status;
             };
 
@@ -26847,6 +26851,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.loginRewardPointsMode = {
+                            1: 'Login',
+                            2: 'Consecutive Login'
+                        };
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
@@ -27699,6 +27707,7 @@ define(['js/app'], function (myApp) {
                     category: rewardPointsEventCategory,
                     isEditing: true,
                     userAgent: -1,
+                    pointMode: 1,
                     level: vm.allPlayerLvl.sort((a, b) => a.value > b.value)[0]._id
                 };
                 vm.rewardPointsEvent.push(Object.assign(defaultEvent, otherEventParam));
@@ -35996,6 +36005,42 @@ define(['js/app'], function (myApp) {
                 vm.refreshSPicker();
             };
 
+            vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
+                    data => {
+                        $scope.$evalAsync(() => {
+                            let parentId;
+                            let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId)[0];
+                            vm.queryDepartments = [];
+                            vm.queryRoles = [];
+
+                            vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                            data.data.map(e => {
+                                if (e.departmentName.toString() === selectedPlatform.data.name.toString()) {
+                                    vm.queryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
+
+                            data.data.map(e => {
+                                if (parentId.toString() === e.parent.toString()) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
+
+                            endLoadMultipleSelect('.spicker');
+                        });
+                    }
+                );
+            };
+
+            function endLoadMultipleSelect (className) {
+                $timeout(function () {
+                    $(className).selectpicker('refresh');
+                }, 0);
+            }
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -40564,7 +40609,7 @@ define(['js/app'], function (myApp) {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
-                    vm.submitAdminPlayerFeedbackQuery(true);
+                    // vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
 
@@ -40665,6 +40710,11 @@ define(['js/app'], function (myApp) {
 
                 if(selectedPlayers.length > 0){
                     sendQuery.selectedPlayers = selectedPlayers;
+                }
+                else {
+                    socketService.showErrorMessage($translate('Please select player for selected bulk call'));
+                    $('#platformFeedbackSpin').hide();
+                    return;
                 }
 
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
@@ -43243,7 +43293,7 @@ define(['js/app'], function (myApp) {
                         "H5PageDetail",
                     ];
                 }
-                
+
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {

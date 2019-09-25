@@ -267,7 +267,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.commissionType = {
@@ -6248,7 +6249,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('MONTHLY_ACTIVE'),
                         data: "monthlyActivePlayer",
-                        visible: false,
+                        // visible: false,
                         // advSearch: true,
                         "sClass": "",
                         render: function (data, type, row, index) {

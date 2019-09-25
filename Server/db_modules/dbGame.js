@@ -12,6 +12,7 @@ var dbconfig = require('./../modules/dbproperties');
 var dbPlatformGameStatus = require('./../db_modules/dbPlatformGameStatus');
 var dbProposal = require('./../db_modules/dbProposal');
 var constSystemParam = require('./../const/constSystemParam');
+var constEBETBaccaratResult = require('./../const/constEBETBaccaratResult');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
 var constProviderStatus = require('../const/constProviderStatus');
@@ -878,16 +879,23 @@ var dbGame = {
                                 tableNumber: luZhu.table,
                                 dealerName: luZhuDetails && luZhuDetails.dealer || "",
                                 status: constTableStatus[luZhu.notifyType],
+                                totalMakers: 0,
+                                totalPlayer: 0,
+                                totalTie: 0,
                                 historyList: []
                             };
 
                             if (luZhuDetails && luZhuDetails.hasOwnProperty("betTimeSec")) {
-                                sortedLuZhuData[luZhu.table].countdown = luZhuDetails.betTimeSec
+                                sortedLuZhuData[luZhu.table].countdown = luZhuDetails.betTimeSec;
                             }
 
                         }
                         if (!sortedLuZhuData[luZhu.table].dealerName && luZhuDetails && luZhuDetails.dealer) {
-                            sortedLuZhuData[luZhu.table].dealerName = luZhuDetails.dealer
+                            sortedLuZhuData[luZhu.table].dealerName = luZhuDetails.dealer;
+                        }
+
+                        if (!sortedLuZhuData[luZhu.table].hasOwnProperty("countdown") && luZhuDetails && luZhuDetails.hasOwnProperty("betTimeSec")) {
+                            sortedLuZhuData[luZhu.table].countdown = luZhuDetails.betTimeSec;
                         }
 
                         if (luZhu.notifyType && luZhu.notifyType == constEBETBaccaratTableStatus.PAYOUT) {
@@ -928,6 +936,16 @@ var dbGame = {
                                 pairResult = constEBETBaccaratPairResult.BANKER_PAIR;
                             } else if (luZhuBaccarat.playerPair) {
                                 pairResult = constEBETBaccaratPairResult.PLAYER_PAIR;
+                            }
+
+                            if (baccaratWinner) {
+                                if (baccaratWinner == constEBETBaccaratResult.BANKER) {
+                                    sortedLuZhuData[luZhu.table].totalMakers += 1;
+                                } else if (baccaratWinner == constEBETBaccaratResult.PLAYER) {
+                                    sortedLuZhuData[luZhu.table].totalPlayer += 1;
+                                } else if (baccaratWinner == constEBETBaccaratResult.TIE) {
+                                    sortedLuZhuData[luZhu.table].totalTie += 1;
+                                }
                             }
 
                             let historyObj = {
