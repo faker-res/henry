@@ -80,7 +80,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.topUpField = {
@@ -134,6 +135,7 @@ define(['js/app'], function (myApp) {
             {typeId: 4, name: '支付宝转账(AliPay Transfer)'},
             {typeId: 5, name: '微信转帐(WeChatPay Transfer)'},
             {typeId: 6, name: '云闪付(CloudFlashPay)'},
+            {typeId: 7, name: '云闪付转账(CloudFlashPay Transfer)'},
         ];
 
         vm.alipayWechatPayArr = [

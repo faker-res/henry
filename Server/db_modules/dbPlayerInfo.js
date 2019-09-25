@@ -3547,6 +3547,8 @@ let dbPlayerInfo = {
 
     inquireAccountByPhoneNumber: function (platformId, phoneNumber, smsCode) {
         let platformObj;
+        let isShowForbidMsg = true;
+        let playerRecord = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -3570,6 +3572,25 @@ let dbPlayerInfo = {
             playerData => {
                 if (!(playerData && playerData.length)) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
+                } else {
+                    playerData.forEach(player => {
+                        if (player && player.permission) {
+                            if (!player.permission.forbidPlayerFromLogin) {
+                                isShowForbidMsg = false;
+                                playerRecord.push(player);
+                            }
+                        } else {
+                            isShowForbidMsg = false;
+                            playerRecord.push(player);
+                        }
+
+                    });
+
+                    playerData = playerRecord;
+
+                    if (isShowForbidMsg) {
+                        return Promise.reject({name: "DataError", message: "Player not exist, Please contact cs."});
+                    }
                 }
 
                 let code = dbUtility.generateRandomPositiveNumber(1000, 9999);
@@ -3630,6 +3651,11 @@ let dbPlayerInfo = {
                 if (!playerData) {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
                 }
+
+                if (playerData && playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Q.reject({name: "DataError", message: "Player not exist, Please contact cs."});
+                }
+
                 playerObj = playerData;
                 let returnProm = Promise.resolve();
                 if (code) {
@@ -7839,6 +7865,13 @@ let dbPlayerInfo = {
             message: "Invalid SMS Validation Code"
         };
 
+        if (inputData && !inputData.password) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Password is mandatory",
+            });
+        }
+
         // Check matched verification code
         let verificationSMS = await dbconfig.collection_smsVerificationLog.findOne({
             platformId: inputData.platformId,
@@ -8203,7 +8236,7 @@ let dbPlayerInfo = {
         }
     },
 
-    setPhoneNumberAndPassword: (playerId, phoneNumber, password) => {
+    setPhoneNumberAndPassword: (playerId, phoneNumber, password, smsCode) => {
         let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(
             playerData => {
@@ -8218,6 +8251,25 @@ let dbPlayerInfo = {
                 if (player.phoneNumber) {
                     return Promise.reject({message: "Phone number already set"}); // translate needed
                 }
+
+                // Check matched verification code
+                return dbconfig.collection_smsVerificationLog.findOne({
+                    platformId: platform.platformId,
+                    tel: phoneNumber
+                }).sort({createTime: -1}).then(
+                    verificationSMS => {
+
+                        if (verificationSMS && verificationSMS.code && (verificationSMS.code == smsCode)) {
+                            dbconfig.collection_smsVerificationLog.remove({_id: verificationSMS._id});
+                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                        } else {
+                            return Promise.reject({
+                                status: constServerCode.VALIDATION_CODE_INVALID,
+                                name: "ValidationError",
+                                message: "Invalid SMS Validation Code"});
+                        }
+                    }
+                );
             }
         ).then(
             async () => {

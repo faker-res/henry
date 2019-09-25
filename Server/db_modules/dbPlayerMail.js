@@ -544,6 +544,13 @@ const dbPlayerMail = {
                                             message: "Phone number not found, please register first!"
                                         });
                                     }
+
+                                    if (purpose && purpose === constSMSPurpose.INQUIRE_ACCOUNT) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Player not exist, Please contact cs."
+                                        });
+                                    }
                                 }
                             }
                         )
@@ -779,7 +786,7 @@ const dbPlayerMail = {
                     }
 
                     if (purpose && purpose === constSMSPurpose.REGISTRATION) {
-                        if ((platform.playerNameMaxLength > 0 && pName.length > platform.playerNameMaxLength) || (platform.playerNameMinLength > 0 && pName.length < platform.playerNameMinLength)) {
+                        if ((platform.playerNameMaxLength > 0 && (pName && (pName.length > platform.playerNameMaxLength))) || (platform.playerNameMinLength > 0 && (pName && (pName.length < platform.playerNameMinLength)))) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NAME_INVALID,
                                 name: "DBError",
