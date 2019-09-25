@@ -2259,6 +2259,21 @@
     </div>
 </div>
 
+<h3>Get Bank Card Info (查询银行卡归属地)</h3>
+<div class="test-container">
+    <div>
+        <label>Bank Card
+            <input type=text name="bankcard">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getBankcardInfo">Get</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {

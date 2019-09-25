@@ -494,7 +494,8 @@ const dbPlayerPayment = {
         }
 
         return dbconfig.collection_players.findOne({
-            playerId: playerId
+            playerId: playerId,
+            isRealPlayer: true
         }).populate({
             path: "platform", model: dbconfig.collection_platform
         }).populate({

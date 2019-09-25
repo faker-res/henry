@@ -4387,10 +4387,13 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getProviderStatus = (provider) => {
-                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId]) {
-                    return provider.platformStatusFromCPMS[vm.selectedPlatform.data.platformId];
-                }
 
+                let platform = vm.allPlatformData.filter(item => { return item._id == vm.filterGamePlatform;})
+                platform = platform && platform[0] ? platform[0] : null;
+                if (provider && provider.platformStatusFromCPMS && provider.platformStatusFromCPMS[platform.platformId]) {
+                    return provider.platformStatusFromCPMS[platform.platformId];
+                }
+                console.log('**',provider, platform.platformId)
                 return provider.status;
             };
 
@@ -43279,7 +43282,7 @@ define(['js/app'], function (myApp) {
                         "H5PageDetail",
                     ];
                 }
-                
+
                 let prom = Promise.resolve();
                 promArr.forEach(
                     item => {

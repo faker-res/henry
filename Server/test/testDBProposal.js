@@ -1,12 +1,9 @@
 require('../test_modules/improveMochaReporting')();
-var should = require('should');
+const should = require('chai').should();
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbProposal = require('../db_modules/dbProposal');
-var dbAdminInfo = require('../db_modules/dbAdminInfo');
 var dbPartner = require('../db_modules/dbPartner');
-var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
-var dbPlatform = require('../db_modules/dbPlatform');
 var dbProposalTypeProcessStep = require('../db_modules/dbProposalTypeProcessStep');
 var dbProposalTypeProcess = require('../db_modules/dbProposalTypeProcess');
 var dbProposalType = require('../db_modules/dbProposalType');

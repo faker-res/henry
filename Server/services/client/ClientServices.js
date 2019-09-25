@@ -117,6 +117,7 @@
                 "loginByPhoneNumberAndPassword",
                 "setPhoneNumberAndPassword",
                 "updatePasswordByPhoneNumber",
+                "getBankcardInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -1717,7 +1717,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.password && data.phoneNumber);
+        var isValidData = Boolean(data && data.platformId && data.phoneNumber);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -1810,21 +1810,19 @@ let PlayerServiceImplement = function () {
 
     this.setPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.phoneNumber && data.password && data.smsCode);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password, data.smsCode], isValidData)
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password, data.smsCode], isValidData);
     };
 
     this.updatePasswordByPhoneNumber.expectsData = 'newPassword: String';
     this.updatePasswordByPhoneNumber.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         let isValidData = Boolean(data && data.platformId && data.phoneNumber && data.newPassword && data.smsCode);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData, true, false, false).then(
-            function (res) {
-                wsFunc.response(conn, {
-                    status: constServerCode.SUCCESS, // operation successful
-                    data: res
-                }, data);
-            }
-        ).catch(WebSocketUtil.errorHandler).done();
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData, false, false, true);
+    };
+
+    this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.bankcard);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

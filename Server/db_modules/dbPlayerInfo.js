@@ -7979,6 +7979,13 @@ let dbPlayerInfo = {
 
         let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId});
 
+        if (inputData && !inputData.password) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Password is mandatory",
+            });
+        }
+
         if (platformData && platformData._id) {
             platformObj = platformData;
             platformId = platformData._id;
@@ -8493,6 +8500,40 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getBankcardInfo: function (bankCard) {
+        let options = {
+            uri: env.bankCardInfoUrl,
+            headers: {
+                Authorization: "APPCODE " + env.bankCardInfoAppCode
+            },
+            qs: {
+                kahao: String(bankCard),
+            },
+            json: true // Automatically stringifies the body to JSON
+        };
+
+        return rp(options).then(
+            data => {
+                if (data && data.showapi_res_body) {
+                    return data.showapi_res_body;
+                } else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Fail to get bank card info"
+                    });
+                }
+                return data;
+            },
+            err => {
+                console.log("get bank card info fail",err)
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Fail to get bank card info"
+                });
+            }
+        )
     },
 
     getBankZoneData: function (query) {

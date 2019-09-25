@@ -1,4 +1,4 @@
-var should = require('should');
+const should = require('chai').should();
 var WebSocketClient = require('../server_common/WebSocketClient');
 var ConsumptionService = require('../services/client/ClientServices').ConsumptionService;
 var ClientConsumptionAPITest = require('../testAPI/clientAPITest/ClientConsumptionAPITest');
@@ -12,26 +12,13 @@ var ClientGameAPITest = require('../testAPI/clientAPITest/ClientGameAPITest');
 var env = require("../config/env").config();
 var commonTestFun = require('../test_modules/commonTestFunc');
 
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbPlatform = require('../db_modules/dbPlatform');
-var dbGame = require('./../db_modules/dbGame');
-var dbPlayerTopUpIntentRecord = require('../db_modules/dbPlayerTopUpIntentRecord');
-var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
-
 var testPlayerName = null;
-var consumeAmount = 250;
-
-var testGameName = 'unitTestGame';
-
 var testPlatformObjId = null;
 var testPlatformId = null;
-
 var testPlayerObjId = null;
 var testPlayerId = null;
-
 var testProviderId = null;
 var testProviderObjId = null;
-
 var testGameId = null;
 var testGameObjId = null;
 
