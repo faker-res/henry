@@ -1605,7 +1605,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.registerByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.password && data.phoneNumber && data.smsCode);
+        var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.smsCode);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);

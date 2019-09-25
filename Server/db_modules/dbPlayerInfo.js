@@ -7865,6 +7865,13 @@ let dbPlayerInfo = {
             message: "Invalid SMS Validation Code"
         };
 
+        if (inputData && !inputData.password) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Password is mandatory",
+            });
+        }
+
         // Check matched verification code
         let verificationSMS = await dbconfig.collection_smsVerificationLog.findOne({
             platformId: inputData.platformId,
