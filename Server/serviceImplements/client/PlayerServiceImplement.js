@@ -1819,6 +1819,11 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId && data.phoneNumber && data.newPassword && data.smsCode);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData, false, false, true);
     };
+
+    this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.bankcard);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

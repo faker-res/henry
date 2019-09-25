@@ -155,8 +155,6 @@
         });
     };
 
-
-
     proto.getGameList = function (callback, requestData) {
         var data = requestData || {_id: providerId};
         this._service.getGameList.request(data);
