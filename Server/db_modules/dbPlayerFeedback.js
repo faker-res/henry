@@ -79,7 +79,7 @@ var dbPlayerFeedback = {
         let query = {};
         if (platformList && platformList.length) {
             query = {
-                platforms: {$in: platformList}
+                _id: {$in: platformList}
             }
         }
 
@@ -110,29 +110,55 @@ var dbPlayerFeedback = {
         // )
 
         // display all cs name that are found in departments based on selected platform
-        return dbconfig.collection_department.find(query).lean().then(
-            departmentData => {
-                let departmentList = [];
-                if (departmentData && departmentData.length) {
-                    departmentList = departmentData;
-                    return dbconfig.collection_admin.find({departments: {$in: departmentList}}).lean()
-                        .populate({path: "departments", model: dbconfig.collection_department})
-                        .then(
-                            data => {
-                                if (data && data.length) {
-                                    let selectedCS = data;
-                                    selectedCS.map(admin => {
-                                        if (admin.departments && admin.departments.length) {
-                                            admin.departmentName = admin.departments[0].departmentName;
+        return dbconfig.collection_platform.find(query).lean().then(
+            platformData => {
+                let platformNameList = [];
+                if (platformData && platformData.length) {
+                    platformData.forEach(data => {
+                        if (data && data.name) {
+                            platformNameList.push(data.name);
+                        }
+                    });
+
+                    let queryDept = {
+                        departmentName: {$in: platformNameList}
+                    };
+
+                    if (platformNameList && platformNameList.length) {
+                        return dbconfig.collection_department.find(queryDept).lean().then(
+                            departmentData => {
+                                let adminList = [];
+                                if (departmentData && departmentData.length) {
+                                    departmentData.forEach(data => {
+                                        if (data && data.users) {
+                                            adminList = adminList.concat(data.users);
                                         }
                                     });
-                                    return selectedCS;
+                                }
+
+                                if (adminList && adminList.length) {
+                                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+                                        .populate({path: "departments", model: dbconfig.collection_department})
+                                        .then(
+                                            data => {
+                                                if (data && data.length) {
+                                                    let selectedCS = data;
+                                                    selectedCS.map(admin => {
+                                                        if (admin.departments && admin.departments.length) {
+                                                            admin.departmentName = admin.departments[0].departmentName;
+                                                        }
+                                                    });
+                                                    return selectedCS;
+                                                }
+                                            }
+                                        )
                                 }
                             }
-                        );
+                        )
+                    }
                 }
             }
-        )
+        );
     },
 
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
@@ -169,7 +195,6 @@ var dbPlayerFeedback = {
                 }
             ]).read("secondaryPreferred").then(
                 res => {
-                    console.log('res===', res);
                     return {topup: res, time: feedback.createTime}
                 }
             );
@@ -235,7 +260,6 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                console.log('data===11', data);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
@@ -256,7 +280,6 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
-                console.log('data===22', data);
                 var objPlayerToTopupTimes = {};
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
