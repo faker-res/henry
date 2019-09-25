@@ -6154,7 +6154,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "dxNewPlayerReportProfit alignRight"},
                     {title: $translate('csOfficer'), data: "csOfficer"},
                     {title: $translate('csPromoteWay'), data: "csPromoteWay"},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
