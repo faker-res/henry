@@ -75,6 +75,7 @@
     63. [手机号码与密码登录](#手机号码与密码登录)
     64. [游客账号绑定手机号码与密码](#游客账号绑定手机号码与密码)
     65. [通过电话号码重置密码](#通过电话号码重置密码)
+    66. [查询银行卡归属地](#查询银行卡归属地)
 4. [注册意向服务](#注册意向服务：)
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
@@ -2133,6 +2134,37 @@ API说明：
               "data": {text:'密码修改成功'}
             }
     * 操作成功： status--200, data--{text:'密码修改成功'}
+    * 操作失败： status--4xx, data--null
+
+<div id='查询银行卡归属地'></div>
+
+* **66. 查询银行卡归属地**
+    * name: getBankcardInfo
+    * service:player
+    * 请求内容：
+        * ```
+            {
+                bankcard: "6215982582010042122" //银行卡号
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                  "tel": "95533",
+                  "bankName": "建设银行",
+                  "cardType": "借记卡",
+                  "url": "www.ccb.com",
+                  "ret_code": 0,
+                  "area": "河南 - 信阳",
+                  "brand": "福农卡",
+                  "cardNum": "6215982582010042122",
+                  "simpleCode": "CCB",
+                  "formatBankName": "建设银行",
+                  "logo": "http://app2.showapi.com/banklogo/ccb.png"
+              }
+            }
+    * 操作成功： status--200
     * 操作失败： status--4xx, data--null
     
 # 注册意向服务：

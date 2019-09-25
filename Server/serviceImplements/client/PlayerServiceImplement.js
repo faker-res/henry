@@ -1826,6 +1826,11 @@ let PlayerServiceImplement = function () {
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
+
+    this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.bankcard);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

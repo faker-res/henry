@@ -855,6 +855,17 @@
         });
     };
 
+    proto.getBankcardInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.getBankcardInfo.request(data);
+        this.playerService.getBankcardInfo.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {
