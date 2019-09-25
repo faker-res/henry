@@ -35,6 +35,7 @@ var testNewPlayerId = null;
 var testNewGuestPlayerId = null;
 var testNewPlayerPartnerId = null;
 var smsCode = null;
+var smsCode1 = null;
 var token = null;
 var dat = null;
 var testPlayerGender = null;
@@ -830,6 +831,30 @@ describe("Test Client API - Player service", function () {
             let smsLog = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
             smsLog.should.have.property('code');
             smsCode = smsLog.code;
+
+            let saveObj1 = {
+                tel: "12345999999",
+                channel: testChannel,
+                platformObjId: testPlatformObjId,
+                platformId: testPlatformId,
+                code: testCode,
+                delay: 0
+            };
+            let saveLogObj1 = {
+                tel: "12345999999",
+                channel: testChannel,
+                platform: testPlatformObjId,
+                platformId: testPlatformId,
+                message: testCode,
+                type: 'player',
+                status: 'success'
+            };
+            await dbconfig.collection_smsVerificationLog(saveObj1).save();
+            await dbconfig.collection_smsLog(saveLogObj1).save();
+
+            let smsLog1 = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
+            smsLog1.should.have.property('code');
+            smsCode1 = smsLog1.code;
         });
 
         it('Should create test player by phone number and password', function (done) {
@@ -892,7 +917,8 @@ describe("Test Client API - Player service", function () {
             }, {
                 playerId: testGuestPlayerId,
                 phoneNumber: "12345999999",
-                password: "123456"
+                password: "123456",
+                smsCode: smsCode1
             });
             done();
         });
