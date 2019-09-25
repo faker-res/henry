@@ -17534,6 +17534,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addPlayerFeedback = function (data, isConfirm = false) {
+                vm.toggleSubmitFeedbackButton = false;
 
                 if (!isConfirm) {
                     vm.modalYesNo = {};
@@ -17560,6 +17561,7 @@ define(['js/app'], function (myApp) {
                     };
                     console.log('sendData', sendData);
                     socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                        vm.toggleSubmitFeedbackButton = true;
                         vm.addFeedback.content = "";
                         vm.addFeedback.result = "";
                         if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
@@ -17884,6 +17886,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
                 vm.playerFeedbackQuery.callPermission = "true";
+                vm.toggleSubmitFeedbackButton = true;
                 setTimeout(
                     () => {
                         let parentId;
