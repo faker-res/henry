@@ -80,7 +80,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.topUpField = {
@@ -134,6 +135,7 @@ define(['js/app'], function (myApp) {
             {typeId: 4, name: '支付宝转账(AliPay Transfer)'},
             {typeId: 5, name: '微信转帐(WeChatPay Transfer)'},
             {typeId: 6, name: '云闪付(CloudFlashPay)'},
+            {typeId: 7, name: '云闪付转账(CloudFlashPay Transfer)'},
         ];
 
         vm.alipayWechatPayArr = [
@@ -6152,7 +6154,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: "sumInt"},
                     {title: $translate('VALID_CONSUMPTION'), data: "validConsumptionAmount$", sClass: "sumFloat"},
                     {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "consumptionBonusAmount$", sClass: "sumFloat"},
-                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "sumProfit"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: "dxNewPlayerReportProfit alignRight"},
                     {title: $translate('csOfficer'), data: "csOfficer"},
                     {title: $translate('csPromoteWay'), data: "csPromoteWay"},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},

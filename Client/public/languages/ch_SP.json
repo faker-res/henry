@@ -293,6 +293,7 @@
   "AliPayTransfer": "支付宝转账",
   "weChatPayTransfer": "微信转帐",
   "CloudFlashPay": "云闪付",
+  "CloudFlashPayTransfer": "云闪付转帐",
   "CREATE_GROUP": "创建组",
   "SAVE_AS_NEW_GROUP": "另存为新组",
   "UPDATE_GROUP": "更新组",

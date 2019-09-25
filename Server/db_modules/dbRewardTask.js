@@ -2452,8 +2452,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                         }
                                     ).lean();
 
-                                    let checkSumarry = await rtgProm;
-                                    console.log("checking checkSumamary", checkSumarry)
+                                    let checkSummary = await rtgProm;
+                                    console.log("checking checkSummary", checkSummary);
                                 }
                                 else{
                                     // if the forbidXIMAAmt has been cleared, all the validCredit will go to XIMAAmt
@@ -2479,13 +2479,13 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 }
                             }
 
-                            console.log("checking Path 1: XIMA amount", XIMAAmt )
+                            console.log("checking Path 1: XIMA amount", XIMAAmt );
                             let statusUpdObj = {
                                 unlockTime: createTime
                             };
 
-                            console.log("LH Check RTG unlock 1-------------", updatedRTG);
-                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt);
+                            console.log("LH Check RTG unlock 1-------------", updatedRTG, updatedRTG._id);
+                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt, updatedRTG._id);
                             console.log("LH Check RTG unlock 2-------------", platform.autoApproveLostThreshold);
 
                             // Check whether player has lost all credit
@@ -2493,8 +2493,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
 
-                            console.log("LH Check RTG unlock 3-------------", currentConsumption);
-                            console.log("LH Check RTG unlock 4-------------", targetConsumption);
+                            console.log("LH Check RTG unlock 3-------------", currentConsumption, updatedRTG._id);
+                            console.log("LH Check RTG unlock 4-------------", targetConsumption, updatedRTG._id);
 
                             if (currentConsumption >= targetConsumption) {
                                 statusUpdObj.status = constRewardTaskStatus.ACHIEVED;

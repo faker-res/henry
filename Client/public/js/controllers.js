@@ -601,7 +601,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "银行柜台(Counter)",
         4: "支付宝转账(AliPay Transfer)",
         5: "微信转帐(WeChatPay Transfer)",
-        6: "云闪付(CloudFlashPay)"
+        6: "云闪付(CloudFlashPay)",
+        7: "云闪付转账(CloudFlashPay Transfer)"
     };
 
     $scope.depositMethodList = {
@@ -610,7 +611,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         Counter: 3,
         AliPayTransfer: 4,
         weChatPayTransfer: 5,
-        CloudFlashPay: 6
+        CloudFlashPay: 6,
+        CloudFlashPayTransfer: 7
     };
 
     $scope.counterDepositType = {

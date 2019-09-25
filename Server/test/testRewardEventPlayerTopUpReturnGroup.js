@@ -1,4 +1,4 @@
-const should = require('should');
+const should = require('chai').should();
 const commonTestFunc = require('../test_modules/commonTestFunc');
 const constRewardType = require("../const/constRewardType");
 const dbConfig = require('../modules/dbproperties');

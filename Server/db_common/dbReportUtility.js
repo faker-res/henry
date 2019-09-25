@@ -37,7 +37,8 @@ const constDepositMethod = {
     3: '银行柜台',
     4: '支付宝转账',
     5: '微信转帐',
-    6: '云闪付'
+    6: '云闪付',
+    7: '云闪付转账'
 };
 
 let bankTypeList = [];

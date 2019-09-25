@@ -5522,10 +5522,11 @@ define(['js/app'], function (myApp) {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.playerFeedback.result;
             });
+            let playerToFeedback = vm.currentFeedbackPlayer || vm.isOneSelectedPlayer();
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
-                playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                platform: vm.selectedPlatform.id,
+                playerId: playerToFeedback._id,
+                platform: playerToFeedback.platform,
                 createTime: Date.now(),
                 adminId: authService.adminId,
                 content: vm.playerFeedback.content,
