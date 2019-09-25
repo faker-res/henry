@@ -45,9 +45,16 @@ define(['js/app'], function (myApp) {
             };
 
             vm.displayFormat = {
-                "backgroundDisplay": 1,
-                "theeInARow": 2,
-                "fiveInARow": 3,
+                pc: {
+                    "backgroundDisplay": 1,
+                    "theeInARow": 3,
+                    "fiveInARow": 5,
+                },
+                h5: {
+                    "backgroundDisplay": 1,
+                    "twoInARow": 2,
+                    "theeInARow": 3,
+                }
             };
 
             vm.frontEndSettingOnClickAction = {
@@ -553,7 +560,8 @@ define(['js/app'], function (myApp) {
                 3: 'Counter',
                 4: 'AliPayTransfer',
                 5: 'weChatPayTransfer',
-                6: 'CloudFlashPay'
+                6: 'CloudFlashPay',
+                7: 'CloudFlashPayTransfer'
             };
 
             vm.commissionType = {
@@ -2890,7 +2898,7 @@ define(['js/app'], function (myApp) {
                     messageType: "sms",
                     sendBtnText: $translate("SEND")
                 };
-                $scope.getChannelList(function () {
+                $scope.getUsableChannelList(function () {
                     // vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
                     vm.sendMultiMessage.channel = null;
                     if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
@@ -3214,6 +3222,12 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.smsRecordQuery.platformList;
                 } else {
                     platformIdList = vm.allPlatformData.map(a => a._id);
+                }
+
+                if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
+                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
+                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
                 }
 
                 var sendQuery = {
@@ -26834,6 +26848,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.loginRewardPointsMode = {
+                            1: 'Login',
+                            2: 'Consecutive Login'
+                        };
                         vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         // [vm.allGameProviders, vm.gameProvidersList] = vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, vm.rewardPointsSelectedPlatform);
@@ -27686,6 +27704,7 @@ define(['js/app'], function (myApp) {
                     category: rewardPointsEventCategory,
                     isEditing: true,
                     userAgent: -1,
+                    pointMode: 1,
                     level: vm.allPlayerLvl.sort((a, b) => a.value > b.value)[0]._id
                 };
                 vm.rewardPointsEvent.push(Object.assign(defaultEvent, otherEventParam));
@@ -35983,6 +36002,42 @@ define(['js/app'], function (myApp) {
                 vm.refreshSPicker();
             };
 
+            vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
+                    data => {
+                        $scope.$evalAsync(() => {
+                            let parentId;
+                            let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId)[0];
+                            vm.queryDepartments = [];
+                            vm.queryRoles = [];
+
+                            vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                            data.data.map(e => {
+                                if (e.departmentName.toString() === selectedPlatform.data.name.toString()) {
+                                    vm.queryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
+
+                            data.data.map(e => {
+                                if (parentId.toString() === e.parent.toString()) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
+
+                            endLoadMultipleSelect('.spicker');
+                        });
+                    }
+                );
+            };
+
+            function endLoadMultipleSelect (className) {
+                $timeout(function () {
+                    $(className).selectpicker('refresh');
+                }, 0);
+            }
+
             vm.initStep = function () {
                 vm.tempNewNodeName = '';
                 vm.tempNewNodeDepartment = '';
@@ -40551,7 +40606,7 @@ define(['js/app'], function (myApp) {
                     vm.feedbackAdminQuery.pageObj = utilService.createPageForPagingTable("#feedbackAdminTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "feedbackAdminQuery", vm.submitAdminPlayerFeedbackQuery)
                     });
-                    vm.submitAdminPlayerFeedbackQuery(true);
+                    // vm.submitAdminPlayerFeedbackQuery(true);
                 })
             }
 
@@ -40652,6 +40707,11 @@ define(['js/app'], function (myApp) {
 
                 if(selectedPlayers.length > 0){
                     sendQuery.selectedPlayers = selectedPlayers;
+                }
+                else {
+                    socketService.showErrorMessage($translate('Please select player for selected bulk call'));
+                    $('#platformFeedbackSpin').hide();
+                    return;
                 }
 
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {

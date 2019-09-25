@@ -80,7 +80,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.topUpField = {
@@ -134,6 +135,7 @@ define(['js/app'], function (myApp) {
             {typeId: 4, name: '支付宝转账(AliPay Transfer)'},
             {typeId: 5, name: '微信转帐(WeChatPay Transfer)'},
             {typeId: 6, name: '云闪付(CloudFlashPay)'},
+            {typeId: 7, name: '云闪付转账(CloudFlashPay Transfer)'},
         ];
 
         vm.alipayWechatPayArr = [
@@ -1572,7 +1574,9 @@ define(['js/app'], function (myApp) {
                     vm.getPlayerLevelByPlatformId(platformObjId);
                     vm.getPlatformProvider(platformObjId);
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
-
+                    break;
+                case "DX_TRACKING_REPORT":
+                    vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
             }
         };
@@ -5684,11 +5688,39 @@ define(['js/app'], function (myApp) {
 
         ///////////////// Begin Telemarketing Tracking Report ////////////////////////////
         vm.searchDXTrackingReport = function (newSearch, isExport = false) {
+            if (!vm.dxTrackingQuery || !vm.dxTrackingQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
             $('#dxTrackingReportTableSpin').show();
 
+            let admins = [];
+            let adminIds = [];
+
+            if (vm.dxTrackingQuery.departments) {
+                if (vm.dxTrackingQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (e._id && (vm.dxTrackingQuery.roles.indexOf(e._id) >= 0)) {
+                            e.users.map(f => {
+                                admins.push(f.adminName);
+                                adminIds.push(f._id);
+                            })
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => {
+                        if (e && e._id != "" && e.users && e.users.length) {
+                            e.users.map(f => {
+                                admins.push(f.adminName);
+                                adminIds.push(f._id);
+                            });
+                        }
+                    });
+                }
+            }
+
             let sendQuery = {
-                platformId: vm.curPlatformId,
+                platformId: vm.dxTrackingQuery.platformId,
                 query: {
                     name: vm.dxTrackingQuery.name,
                     credibilityRemarks: vm.dxTrackingQuery.credibilityRemarks,
@@ -5709,6 +5741,10 @@ define(['js/app'], function (myApp) {
                     topUpAmountValue: vm.dxTrackingQuery.topUpAmountValue,
                     topUpAmountValueTwo: vm.dxTrackingQuery.topUpAmountValueTwo,
                     providerId: vm.dxTrackingQuery.providerId,
+                    admins: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0 ? vm.dxTrackingQuery.admins : admins,
+                    adminIds: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0
+                        ? vm.dxTrackingQuery.admins.map(adm => vm.queryAdmins.find(e => e.adminName === adm)._id)
+                        : adminIds
                 }
             };
 
@@ -10909,6 +10945,38 @@ define(['js/app'], function (myApp) {
                         topUpAmountOperator: ">=",
                         consumptionTimesOperator: ">="
                     };
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                        data => {
+                            $scope.$evalAsync(() => {
+                                let parentId;
+                                vm.queryDepartments = [];
+                                vm.queryRoles = [];
+
+                                vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+
+                                data.data.map(e => {
+                                    if (e.departmentName == vm.selectedPlatform.name) {
+                                        vm.queryDepartments.push(e);
+                                        parentId = e._id;
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (String(parentId) == String(e.parent)) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+
+                                endLoadMultipleSelect('.spicker');
+
+                                if (typeof(callback) == 'function') {
+                                    callback(data.data);
+                                }
+                            });
+                        }
+                    );
 
 
                     utilService.actionAfterLoaded('#dxTrackingReportTable', function () {

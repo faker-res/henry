@@ -38,7 +38,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
         vm.topUpField = {
             "ManualPlayerTopUp": 'bankCardNo',
@@ -1913,7 +1914,7 @@ define(['js/app'], function (myApp) {
                 messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
-            $scope.getChannelList(function () {
+            $scope.getUsableChannelList(function () {
                 vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
             });
             setTimeout(

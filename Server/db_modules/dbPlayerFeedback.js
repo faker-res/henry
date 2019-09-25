@@ -79,31 +79,57 @@ var dbPlayerFeedback = {
         let query = {};
         if (platformList && platformList.length) {
             query = {
-                platform: {$in: platformList}
+                platforms: {$in: platformList}
             }
         }
 
-        return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
-            adminList => {
-                if (adminList && adminList.length === 0) {
-                    return [];
-                }
-                if (adminList && adminList.length) {
-                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        // this code only display unique cs name that already has feedback record
+        // return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
+        //     adminList => {
+        //         if (adminList && adminList.length === 0) {
+        //             return [];
+        //         }
+        //         if (adminList && adminList.length) {
+        //             return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
+        //                 .populate({path: "departments", model: dbconfig.collection_department})
+        //                 .then(
+        //                     data => {
+        //                         if (data && data.length) {
+        //                             let selectedUniqueAdmin = data;
+        //                             selectedUniqueAdmin.map(admin => {
+        //                                 if (admin.departments && admin.departments.length) {
+        //                                     admin.departmentName = admin.departments[0].departmentName;
+        //                                 }
+        //                             });
+        //                             return selectedUniqueAdmin;
+        //                         }
+        //                     }
+        //             )
+        //         }
+        //     }
+        // )
+
+        // display all cs name that are found in departments based on selected platform
+        return dbconfig.collection_department.find(query).lean().then(
+            departmentData => {
+                let departmentList = [];
+                if (departmentData && departmentData.length) {
+                    departmentList = departmentData;
+                    return dbconfig.collection_admin.find({departments: {$in: departmentList}}).lean()
                         .populate({path: "departments", model: dbconfig.collection_department})
                         .then(
                             data => {
                                 if (data && data.length) {
-                                    let selectedUniqueAdmin = data;
-                                    selectedUniqueAdmin.map(admin => {
+                                    let selectedCS = data;
+                                    selectedCS.map(admin => {
                                         if (admin.departments && admin.departments.length) {
                                             admin.departmentName = admin.departments[0].departmentName;
                                         }
                                     });
-                                    return selectedUniqueAdmin;
+                                    return selectedCS;
                                 }
                             }
-                    )
+                        );
                 }
             }
         )
@@ -121,13 +147,18 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
+            let matchObj = {
+                platformId: feedback.platform,
+                createTime: {$gte: feedback.createTime, $lt: endTime}
+            };
+
+            if (feedback && feedback.playerId) {
+                matchObj.playerId = feedback.playerId._id
+            }
+
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
-                    $match: {
-                        playerId: feedback.playerId._id,
-                        platformId: feedback.platform,
-                        createTime: {$gte: feedback.createTime, $lt: endTime}
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
@@ -138,6 +169,7 @@ var dbPlayerFeedback = {
                 }
             ]).read("secondaryPreferred").then(
                 res => {
+                    console.log('res===', res);
                     return {topup: res, time: feedback.createTime}
                 }
             );
@@ -185,8 +217,12 @@ var dbPlayerFeedback = {
                     return [];
                 }
 
-                if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = {$in: [query.platform]};
+                if (query && query.platform) {
+                    if (typeof query.platform === "string") {
+                        query.platform = {$in: [query.platform]};
+                    } else {
+                        query.platform = {$in: query.platform};
+                    }
                 }
 
                 var a = dbconfig.collection_playerFeedback
@@ -199,6 +235,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===11', data);
                 returnedData = Object.assign([], data[0]);
                 total = data[1];
                 var proms = [];
@@ -219,6 +256,7 @@ var dbPlayerFeedback = {
             }
         ).then(
             data => {
+                console.log('data===22', data);
                 var objPlayerToTopupTimes = {};
                 data.forEach(item => {
                     if (item && item.topup && item.topup[0]) {
@@ -229,12 +267,14 @@ var dbPlayerFeedback = {
                 var key = Object.keys(sortCol)[0];
                 var val = sortCol[key];
 
-                var finalData = returnedData.map(item => {
-                    var newObj = Object.assign({}, item);
-                    let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
-                    newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
-                    newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
-                    return newObj;
+                let finalData = returnedData.map(item => {
+                    if (item && item.playerId) {
+                        var newObj = Object.assign({}, item);
+                        let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                        newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                        newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
+                        return newObj;
+                    }
                 }).sort((a, b) => {
                     var test = 0;
                     if (a[key] > b[key]) {

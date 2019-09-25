@@ -150,6 +150,7 @@
   "Edit Reward Category": "编辑分类组别名称",
   "CATEGORY NAME": "分类组别名称",
   "backgroundDisplay": "背景展示",
+  "twoInARow": "平铺2项1列",
   "theeInARow": "平铺3项1列",
   "fiveInARow": "平铺5项1列",
   "Player Proposal": "玩家提案",
@@ -292,6 +293,7 @@
   "AliPayTransfer": "支付宝转账",
   "weChatPayTransfer": "微信转帐",
   "CloudFlashPay": "云闪付",
+  "CloudFlashPayTransfer": "云闪付转帐",
   "CREATE_GROUP": "创建组",
   "SAVE_AS_NEW_GROUP": "另存为新组",
   "UPDATE_GROUP": "更新组",
@@ -1076,6 +1078,7 @@
   "delayManualTopupRequest": "手工充值延时申请",
   "Location": "位置",
   "Login": "登录",
+  "Consecutive Login": "签到",
   "Device": "设备",
   "bindedDeviceId": "绑定设备号",
   "PlayerDomain": "玩家域名",
@@ -5429,6 +5432,7 @@
   "DEFAULT_PLAYER_FEEDBACK_TOPIC": "默认玩家回访主题设置",
   "DEFAULT_PLAYER_FEEDBACK_RESULT": "默认玩家回访结果设置",
   "UnbindPhoneDeviceId": "解除绑定电话和设备号",
+  "Please select player for selected bulk call": "在指定群播前，请打勾选择要拨打的电话",
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
@@ -5456,6 +5460,7 @@
   "WINNING_AMOUNT": "盈利金额",
   "Setting not set, please go config to set it": "需要相关设置，请到基础数据修改设置",
   "player not found": "查无此玩家",
+  "Player Not Found": "无玩家",
   "Within Period": "期间内",
   "New Tab": "新标签",
   "CanReceiveLargeWithdrawalEmail": "可收到大额提款邮件",
@@ -6006,5 +6011,6 @@
   "Referral Reward Percentage": "推荐人赠送比例",
   "consumptionType": "投注条件",
   "depositType": "存款条件",
-  "First Top Up Amount, Top Up Count is required more than zero": "被推荐人首次单笔存款额、被推荐人存款笔数必填大过0"
+  "First Top Up Amount, Top Up Count is required more than zero": "被推荐人首次单笔存款额、被推荐人存款笔数必填大过0",
+  "EditGameName": "编辑游戏名称"
 }
