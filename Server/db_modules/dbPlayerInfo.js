@@ -7979,6 +7979,13 @@ let dbPlayerInfo = {
 
         let platformData = await dbconfig.collection_platform.findOne({platformId: inputData.platformId});
 
+        if (inputData && !inputData.password) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Password is mandatory",
+            });
+        }
+
         if (platformData && platformData._id) {
             platformObj = platformData;
             platformId = platformData._id;
