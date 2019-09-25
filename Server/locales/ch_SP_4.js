@@ -507,6 +507,7 @@ var simplifiedChinese = {
     "Player not exist, Please contact cs.": "您的帐号信息不存在，请联系客服确认。",
     "This phone number has been registered": "该手机号码已注册",
     "Phone number and password don't match": "手机号码和密码不匹配",
+    "Password is mandatory": "密码必填",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
