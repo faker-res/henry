@@ -1,4 +1,4 @@
-var should = require('should');
+var should = require('chai').should();
 var dbconfig = require('../modules/dbproperties');
 var WebSocketClient = require('../server_common/WebSocketClient');
 var PlayerService = require('../services/client/ClientServices').PlayerService;
@@ -159,7 +159,7 @@ describe("Test Client API - Player service", function () {
     })
 
     it('Should create a test player', function (done) {
-        apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
+        apiCreatedPlayer.data.name.should.equal(testNewPlayerName);
         done();
     });
 
@@ -188,7 +188,7 @@ describe("Test Client API - Player service", function () {
     });
 
     it('Should create a test player', function(done) {
-        apiCreatedPlayer.data.name.should.endWith(testNewPlayerName);
+        apiCreatedPlayer.data.name.should.equal(testNewPlayerName);
         done();
     });
 
@@ -209,8 +209,8 @@ describe("Test Client API - Player service", function () {
 
     it('Should login apiUser', function (done) {
         apiLoginPlayer.status.should.equal(200);
-        // apiLoginPlayer.data.should.be.an.Object();
-        apiLoginPlayer.token.should.be.a.String();
+        // apiLoginPlayer.token.should.be.a.String();
+        apiLoginPlayer.token.should.be.a('string');
         apiLoginPlayer.data.name.should.equal(testPlayerName);
         done();
     });
@@ -229,7 +229,7 @@ describe("Test Client API - Player service", function () {
         clientPlayerAPITest.get(function (data) {
             data.status.should.equal(200);
             // data.data.should.be.an.Object();
-            data.data.hasPassword.should.be.a.Boolean();
+            data.data.hasPassword.should.be.a('boolean');
             done();
         }, {playerId: testPlayerId});
     });
@@ -239,7 +239,7 @@ describe("Test Client API - Player service", function () {
         var randomPWD = Math.floor((Math.random() * 100000) + 100000);
         clientPlayerAPITest.settingPlayerPassword(function (data) {
             data.status.should.equal(200);
-            data.data.text.should.be.a.String();
+            data.data.text.should.be.a('string');
             //this if block doing for updatePassword
             if(data.status === 200){
                 testPlayerOldPwd = randomPWD.toString();
@@ -304,16 +304,16 @@ describe("Test Client API - Player service", function () {
         var randomSms = Math.floor((Math.random() * 1000) + 1000);
         clientPlayerAPITest.resetPassword(function (data) {
             data.status.should.equal(200);
-            data.data.phoneNumber.should.be.a.Number();
-            data.data.name.should.be.a.String();
-            data.data.playerId.should.be.a.String();
-            data.data.createTime.should.be.a.String();
-            data.data.realName.should.be.a.String();
-            data.data.password.should.be.a.String();
-            data.data.questionList.id.should.be.a.Number();
-            data.data.questionList.type.should.be.a.Number();
-            data.data.questionList.title.should.be.a.String();
-            data.data.questionList.option.should.be.a.String();
+            data.data.phoneNumber.should.be.a('number');
+            data.data.name.should.be.a('string');
+            data.data.playerId.should.be.a('string');
+            data.data.createTime.should.be.a('string');
+            data.data.realName.should.be.a('string');
+            data.data.password.should.be.a('string');
+            data.data.questionList.id.should.be.a('number');
+            data.data.questionList.type.should.be.a('number');
+            data.data.questionList.title.should.be.a('string');
+            data.data.questionList.option.should.be.a('string');
         }, {
             platformId: testPlatformId,
             name: testNewPlayerName,
@@ -356,71 +356,71 @@ describe("Test Client API - Player service", function () {
     it('Should get credit', function(){
         clientPlayerAPITest.getCredit(function (data){
             data.status.should.equal(200);
-            data.data.gameCredit.should.be.a.Number();
-            data.data.pendingRewardAmount.should.be.a.Number();
-            data.data.validCredit.should.be.a.Number();
+            data.data.gameCredit.should.be.a('number');;
+            data.data.pendingRewardAmount.should.be.a('number');;
+            data.data.validCredit.should.be.a('number');;
         }, {playerId: testPlayerId});
     });
 
     it('Should get player Credit Balance', function () {
         clientPlayerAPITest.getCreditBalance(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.Number();
+            data.data.should.be.a('number');;
         }, {playerId: testPlayerId});
     });
 
     it('Should get credit info', function(){
         clientPlayerAPITest.getCreditInfo(function (data){
             data.status.should.equal(200);
-            data.data.gameCredit.should.be.a.Number();
-            data.data.lockedCredit.should.be.a.Number();
-            data.data.taskData._id.should.be.a.String();
-            data.data.taskData.playerId.should.be.a.String();
-            data.data.taskData.type.should.be.a.String();
-            data.data.taskData.rewardType.should.be.a.String();
-            data.data.taskData.platformId.should.be.a.String();
-            data.data.taskData.eventId.should.be.a.String();
-            data.data.taskData.useConsumption.should.be.a.Boolean();
-            data.data.taskData.isUnlock.should.be.a.Boolean();
-            data.data.taskData.initAmount.should.be.a.Number();
-            data.data.taskData.currentAmount.should.be.a.Number();
-            data.data.taskData._inputCredit.should.be.a.Number();
-            data.data.taskData.unlockedAmount.should.be.a.Number();
-            data.data.taskData.requiredUnlockAmount.should.be.a.Number();
-            data.data.taskData.inProvider.should.be.a.Boolean();
-            data.data.taskData.createTime.should.be.a.String();
+            data.data.gameCredit.should.be.a('number');
+            data.data.lockedCredit.should.be.a('number');
+            data.data.taskData._id.should.be.a('string');
+            data.data.taskData.playerId.should.be.a('string');
+            data.data.taskData.type.should.be.a('string');
+            data.data.taskData.rewardType.should.be.a('string');
+            data.data.taskData.platformId.should.be.a('string');
+            data.data.taskData.eventId.should.be.a('string');
+            data.data.taskData.useConsumption.should.be.a('boolean');
+            data.data.taskData.isUnlock.should.be.a('boolean');
+            data.data.taskData.initAmount.should.be.a('number');
+            data.data.taskData.currentAmount.should.be.a('number');
+            data.data.taskData._inputCredit.should.be.a('number');
+            data.data.taskData.unlockedAmount.should.be.a('number');
+            data.data.taskData.requiredUnlockAmount.should.be.a('number');
+            data.data.taskData.inProvider.should.be.a('boolean');
+            data.data.taskData.createTime.should.be.a('string');
             data.data.taskData.data.should.be.null();
-            data.data.taskData.targetGames.should.be.an.Array();
-            data.data.taskData.targetProviders.should.be.an.Array();
-            data.data.taskData.status.should.be.a.String();
-            data.data.validCredit.should.be.a.Number();
+            data.data.taskData.targetGames.should.be.an('array');
+            data.data.taskData.targetProviders.should.be.an('array');
+            data.data.taskData.status.should.be.a('string');
+            data.data.validCredit.should.be.a('number');
         }, {playerId: testPlayerId});
     });
 
     it('Should get credit detail', function(){
         clientPlayerAPITest.getCreditDetail(function (data){
-            data.data.credit.should.be.a.Number();
-            data.data.finalAmount.should.be.a.Number();
+            data.data.credit.should.be.a('number');
+            data.data.finalAmount.should.be.a('number');
             if(data.data.sameLineProviders){
-                data.data.sameLineProviders.should.be.an.Array();
+                data.data.sameLineProviders.should.be.an('array');
             }
-            data.data.gameCreditList.should.be.an.Array();
+            data.data.gameCreditList.should.be.an('array');
             if(data.data.gameCreditList.length > 0){
-                data.data.gameCreditList.nickName.should.be.a.String();
-                data.data.gameCreditList.validCredit.should.be.a.Number();
-                data.data.gameCreditList.status.should.be.a.Boolean();
-                data.data.gameCreditList.providerId.should.be.a.String();
+                data.data.gameCreditList.nickName.should.be.a('string');
+                data.data.gameCreditList.validCredit.should.be.a('number');
+                data.data.gameCreditList.status.should.be.a('boolean');
+                data.data.gameCreditList.providerId.should.be.a('string');
             }
             if(data.data.lockedCreditList.length > 0){
-                data.data.lockedCreditList.should.be.an.Array();
-                data.data.lockedCreditList.nickName.should.be.a.String();
-                data.data.lockedCreditList.lockCredit.should.be.a.Number();
-                data.data.lockedCreditList.list.should.be.an.Array();
+                data.data.lockedCreditList.should.be.an('array');
+                data.data.lockedCreditList.nickName.should.be.a('string');
+                data.data.lockedCreditList.lockCredit.should.be.a('number');
+                data.data.lockedCreditList.list.should.be.an('array');
                 if(data.data.lockedCreditList.list.length > 0){
-                    data.data.lockedCreditList.list.providerId.should.be.a.String();
-                    data.data.lockedCreditList.list.nickName.should.be.a.String();
-                    data.data.lockedCreditList.list.validCredit.should.be.a.Number();
-                    data.data.lockedCreditList.list.status.be.a.Boolean();
+                    data.data.lockedCreditList.list.providerId.should.be.a('string');
+                    data.data.lockedCreditList.list.nickName.should.be.a('string');
+                    data.data.lockedCreditList.list.validCredit.should.be.a('number');
+                    data.data.lockedCreditList.list.status.be.a('boolean');
                 }
             }
             data.status.should.equal(200);
@@ -430,7 +430,7 @@ describe("Test Client API - Player service", function () {
     it('Should authenticate the token from previous login', function () {
         clientPlayerAPITest.authenticate(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.Boolean();
+            data.data.should.be.a('boolean');
 
         }, {playerId: testPlayerId, token: token});
     });
@@ -446,8 +446,8 @@ describe("Test Client API - Player service", function () {
     it('Should get player day status', function () {
         clientPlayerAPITest.getPlayerDayStatus(function (data) {
             data.status.should.equal(200);
-            data.data.topUpAmount.should.be.a.Number();
-            data.data.consumptionAmount.should.be.a.Number();
+            data.data.topUpAmount.should.be.a('number');
+            data.data.consumptionAmount.should.be.a('number');
 
         }, {playerId: testPlayerId});
     });
@@ -455,8 +455,8 @@ describe("Test Client API - Player service", function () {
     it('Should get player weekly status', function () {
         clientPlayerAPITest.getPlayerWeekStatus(function (data) {
             data.status.should.equal(200);
-            data.data.topUpAmount.should.be.a.Number();
-            data.data.consumptionAmount.should.be.a.Number();
+            data.data.topUpAmount.should.be.a('number');
+            data.data.consumptionAmount.should.be.a('number');
 
         },{playerId: testPlayerId});
     });
@@ -464,8 +464,8 @@ describe("Test Client API - Player service", function () {
     it('Should get player Monthly status', function () {
         clientPlayerAPITest.getPlayerMonthStatus(function (data) {
             data.status.should.equal(200);
-            data.data.topUpAmount.should.be.a.Number();
-            data.data.consumptionAmount.should.be.a.Number();
+            data.data.topUpAmount.should.be.a('number');
+            data.data.consumptionAmount.should.be.a('number');
 
         },{playerId: testPlayerId});
     });
@@ -473,10 +473,10 @@ describe("Test Client API - Player service", function () {
     it('Should get player any day status', function () {
         clientPlayerAPITest.getPlayerAnyDayStatus(function (data) {
             data.status.should.equal(200);
-            data.data.topUpAmount.should.be.a.Number();
-            data.data.consumptionAmount.should.be.a.Number();
-            data.data.bonusAmount.should.be.a.Number();
-            data.data.rewardAmount.should.be.a.Number();
+            data.data.topUpAmount.should.be.a('number');
+            data.data.consumptionAmount.should.be.a('number');
+            data.data.bonusAmount.should.be.a('number');
+            data.data.rewardAmount.should.be.a('number');
 
         },{playerId: testPlayerId});
     });
@@ -484,11 +484,11 @@ describe("Test Client API - Player service", function () {
     it('Should get player mailing list', function () {
         clientPlayerAPITest.getMailList(function (data) {
             data.status.should.equal(200);
-            data.data._id.should.be.a.String();
-            data.data.title.should.be.a.String();
-            data.data.content.should.be.a.String();
-            data.data.hasBeenRead.should.be.a.Boolean();
-            data.data.createTime.should.be.a.String();
+            data.data._id.should.be.a('string');
+            data.data.title.should.be.a('string');
+            data.data.content.should.be.a('string');
+            data.data.hasBeenRead.should.be.a('boolean');
+            data.data.createTime.should.be.a('string');
 
         },{playerId: testPlayerId});
     });
@@ -496,30 +496,30 @@ describe("Test Client API - Player service", function () {
     it('Should get player unread mail', function () {
         clientPlayerAPITest.getUnreadMail(function (data) {
             data.status.should.equal(200);
-            data.data._id.should.be.a.String();
-            data.data.title.should.be.a.String();
-            data.data.content.should.be.a.String();
-            data.data.hasBeenRead.should.be.a.Boolean();
-            data.data.createTime.should.be.a.String();
+            data.data._id.should.be.a('string');
+            data.data.title.should.be.a('string');
+            data.data.content.should.be.a('string');
+            data.data.hasBeenRead.should.be.a('boolean');
+            data.data.createTime.should.be.a('string');
         },{playerId: testPlayerId});
     });
 
     it('Should send mail from player to player', function () {
         clientPlayerAPITest.sendPlayerMailFromPlayerToPlayer(function (data) {
             data.status.should.equal(200);
-            data.data.__v.should.be.a.Number();
-            data.data.platformId.should.be.a.String();
-            data.data.senderType.should.be.a.String();
-            data.data.senderId.should.be.a.String();
-            data.data.senderName.should.be.a.String();
-            data.data.recipientType.should.be.a.String();
-            data.data.recipientId.should.be.a.String();
-            data.data.title.should.be.a.String();
-            data.data.content.should.be.a.String();
-            data.data._id.should.be.a.String();
-            data.data.bDelete.should.be.a.Boolean();
-            data.data.hasBeenRead.should.be.a.Boolean();
-            data.data.createTime.should.be.a.String();
+            data.data.__v.should.be.a('number');
+            data.data.platformId.should.be.a('string');
+            data.data.senderType.should.be.a('string');
+            data.data.senderId.should.be.a('string');
+            data.data.senderName.should.be.a('string');
+            data.data.recipientType.should.be.a('string');
+            data.data.recipientId.should.be.a('string');
+            data.data.title.should.be.a('string');
+            data.data.content.should.be.a('string');
+            data.data._id.should.be.a('string');
+            data.data.bDelete.should.be.a('boolean');
+            data.data.hasBeenRead.should.be.a('boolean');
+            data.data.createTime.should.be.a('string');
         },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
     });
 
@@ -531,7 +531,7 @@ describe("Test Client API - Player service", function () {
         }
         clientPlayerAPITest.isValidRealName(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.Boolean();//data.data just simply return true, so check as boolean.
+            data.data.should.be.a('boolean');//data.data just simply return true, so check as boolean.
 
         }, param);
     });
@@ -539,30 +539,30 @@ describe("Test Client API - Player service", function () {
     it('Should get player unread mail', function () {
         clientPlayerAPITest.getUnreadMail(function (data) {
             data.status.should.equal(200);
-            data.data._id.should.be.a.String();
-            data.data.title.should.be.a.String();
-            data.data.content.should.be.a.String();
-            data.data.hasBeenRead.should.be.a.Boolean();
-            data.data.createTime.should.be.a.String();
+            data.data._id.should.be.a('string');
+            data.data.title.should.be.a('string');
+            data.data.content.should.be.a('string');
+            data.data.hasBeenRead.should.be.a('boolean');
+            data.data.createTime.should.be.a('string');
         },{playerId: testPlayerId});
     });
 
     it('Should send mail from player to player', function () {
         clientPlayerAPITest.sendPlayerMailFromPlayerToPlayer(function (data) {
             data.status.should.equal(200);
-            data.data.__v.should.be.a.Number();
-            data.data.platformId.should.be.a.String();
-            data.data.senderType.should.be.a.String();
-            data.data.senderId.should.be.a.String();
-            data.data.senderName.should.be.a.String();
-            data.data.recipientType.should.be.a.String();
-            data.data.recipientId.should.be.a.String();
-            data.data.title.should.be.a.String();
-            data.data.content.should.be.a.String();
-            data.data._id.should.be.a.String();
-            data.data.bDelete.should.be.a.Boolean();
-            data.data.hasBeenRead.should.be.a.Boolean();
-            data.data.createTime.should.be.a.String();
+            data.data.__v.should.be.a('number');
+            data.data.platformId.should.be.a('string');
+            data.data.senderType.should.be.a('string');
+            data.data.senderId.should.be.a('string');
+            data.data.senderName.should.be.a('string');
+            data.data.recipientType.should.be.a('string');
+            data.data.recipientId.should.be.a('string');
+            data.data.title.should.be.a('string');
+            data.data.content.should.be.a('string');
+            data.data._id.should.be.a('string');
+            data.data.bDelete.should.be.a('boolean');
+            data.data.hasBeenRead.should.be.a('boolean');
+            data.data.createTime.should.be.a('string');
         },{playerObjId: testPlayerObjId, recipientPlayerId: testNewPlayerId, title: "Hello World", content: "unit test"});
     });
 
@@ -597,7 +597,7 @@ describe("Test Client API - Player service", function () {
     it('Should get a captcha', function () {
         clientPlayerAPITest.captcha(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.Object();
+            data.data.should.be.an("object");
         });
     });
        
@@ -611,19 +611,19 @@ describe("Test Client API - Player service", function () {
     it('Should get SMS status', function () {
         clientPlayerAPITest.getSmsStatus(function (data) {
             data.status.should.equal(200);
-            data.data.smsName.should.be.a.String();
-            data.data.smsId.should.be.a.String();
-            data.data.status.should.be.a.Number();
-            data.data.settings.smsName.should.be.a.String();
-            data.data.settings.smsId.should.be.a.String();
-            data.data.settings.status.should.be.a.Number();
+            data.data.smsName.should.be.a('string');
+            data.data.smsId.should.be.a('string');
+            data.data.status.should.be.a('number');
+            data.data.settings.smsName.should.be.a('string');
+            data.data.settings.smsId.should.be.a('string');
+            data.data.settings.status.should.be.a('number');
         }, {playerId: testPlayerId});
     });
 
     it('Should manual level up', function () {
         clientPlayerAPITest.manualPlayerLevelUp(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.Boolean();
+            data.data.should.be.a('boolean');
         },{playerId: testPlayerObjId});
     });
 
@@ -653,7 +653,7 @@ describe("Test Client API - Player service", function () {
     it('Should login Jbl Show', function () {
         clientPlayerAPITest.loginJblShow(function (data) {
             data.status.should.equal(200);
-            data.data.url.should.be.a.String();
+            data.data.url.should.be.a('string');
 
         }, {playerObjId: testPlayerObjId });
     });
@@ -668,7 +668,7 @@ describe("Test Client API - Player service", function () {
     it('Should Change Birthday Date', function () {
         clientPlayerAPITest.changeBirthdayDate(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
+            data.data.should.be.an('object');
 
         }, {playerObjId: testPlayerObjId, date: "2000-01-01T00:00"});
     });
@@ -676,7 +676,7 @@ describe("Test Client API - Player service", function () {
     it('Should get Client Data', function () {
         clientPlayerAPITest.getClientData(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.String();
+            data.data.should.be.a('string');
 
         }, {playerId: testPlayerId});
     });
@@ -684,7 +684,7 @@ describe("Test Client API - Player service", function () {
     it('Should Save Client Data', function () {
         clientPlayerAPITest.saveClientData(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.a.String();
+            data.data.should.be.a('string');
 
         }, {playerId: testPlayerId,
             clientData:"abc"});
@@ -707,9 +707,9 @@ describe("Test Client API - Player service", function () {
     it('Should Get OM Captcha', function () {
         clientPlayerAPITest.getOMCaptcha(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
-            data.data.randomNumber.should.be.a.Number();
-            data.data.data.should.be.a.String();
+            data.data.should.be.an('object');
+            data.data.randomNumber.should.be.a('number');
+            data.data.data.should.be.a('string');
 
         }, {platformId: testPlatformId});
     });
@@ -717,18 +717,18 @@ describe("Test Client API - Player service", function () {
     it('Should Get Receive Transfer List', function () {
         clientPlayerAPITest.getReceiveTransferList(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
-            data.data.stats.totalCount.should.be.a.Number();
-            data.data.stats.totalPage.should.be.a.Number();
-            data.data.stats.currentPage.should.be.a.Number();
-            data.data.stats.totalReceiveAmount.should.be.a.Number();
+            data.data.should.be.an('object');
+            data.data.stats.totalCount.should.be.a('number');
+            data.data.stats.totalPage.should.be.a('number');
+            data.data.stats.currentPage.should.be.a('number');
+            data.data.stats.totalReceiveAmount.should.be.a('number');
 
-            data.data.list.amount.should.be.a.Number();
-            data.data.list.time.should.be.a.String();
-            data.data.list.status.should.be.a.String();
-            data.data.list.proposalId.should.be.a.String();
-            data.data.list.withdrawConsumption.should.be.a.Number();
-            data.data.list.providerGroupId.should.be.a.Number();
+            data.data.list.amount.should.be.a('number');
+            data.data.list.time.should.be.a('string');
+            data.data.list.status.should.be.a('string');
+            data.data.list.proposalId.should.be.a('string');
+            data.data.list.withdrawConsumption.should.be.a('number');
+            data.data.list.providerGroupId.should.be.a('number');
 
         }, {
             platformId: testPlatformId,
@@ -743,8 +743,8 @@ describe("Test Client API - Player service", function () {
     it('Should Set PhoneNumber', function () {
         clientPlayerAPITest.setPhoneNumber(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
-            data.data.number.should.be.a.String();
+            data.data.should.be.an('object');
+            data.data.number.should.be.a('string');
 
         }, {playerId: testPlayerId, number: "01155555555", smsCode: "3223"});
     });
@@ -752,7 +752,7 @@ describe("Test Client API - Player service", function () {
     it('Should Get Player Login Or Register With SMS', function () {
         clientPlayerAPITest.playerLoginOrRegisterWithSMS(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
+            data.data.should.be.an('object');
 
         }, {
             platformId: testPlatformId,
@@ -767,7 +767,7 @@ describe("Test Client API - Player service", function () {
     it('Should Get Phone Number Login With Password', function () {
         clientPlayerAPITest.phoneNumberLoginWithPassword(function (data) {
             data.status.should.equal(200);
-            data.data.should.be.an.Object();
+            data.data.should.be.an('object');
 
         }, {
             platformId: testPlatformId,
@@ -780,7 +780,7 @@ describe("Test Client API - Player service", function () {
     it('Should Get Update DeviceId', function () {
         clientPlayerAPITest.updateDeviceId(function (data) {
             data.status.should.equal(200);
-            data.data.number.should.be.a.String();
+            data.data.number.should.be.a('string');
 
         }, {playerId: testPlayerId, deviceId: "deviceId123"});
     });
