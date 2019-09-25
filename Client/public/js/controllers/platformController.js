@@ -24770,6 +24770,9 @@ define(['js/app'], function (myApp) {
 
                         vm.newDelayDurationGroup = {};
                         break;
+                    case 'topUpAmountConfig':
+                        vm.getPlatformTopUpAmountConfig(platformObjId);
+                        break;
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
                         break;
@@ -33388,6 +33391,9 @@ define(['js/app'], function (myApp) {
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
                         break;
+                    case 'topUpAmountConfig':
+                        updatePlatformTopUpAmountConfig(vm.topUpAmountBasic)
+                        break;
                     case 'partnerBasic':
                         updatePartnerBasic(vm.partnerBasic);
                         break;
@@ -34589,6 +34595,19 @@ define(['js/app'], function (myApp) {
                         vm.unlockPlatformProviderGroup()
                     }
 
+                });
+            }
+
+            function updatePlatformTopUpAmountConfig(srcData) {
+                let sendData = {
+                    query: {platformObjId: vm.filterConfigPlatform},
+                    updateData: {
+                        commonTopUpAmountRange: srcData.commonTopUpAmountRange,
+                        topUpCountAmountRange: srcData.topUpCountAmountRange
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatformTopUpAmount', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
                 });
             }
 
@@ -44416,6 +44435,40 @@ define(['js/app'], function (myApp) {
                 }
                 return isValid;
             }
+
+            //#region top up amount range setting
+            vm.updateTopUpCountAmountRangeConfigInEdit = function (type, data) {
+                if (type == 'add') {
+                    if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
+                        if (data.topUpCount) {
+                            vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        }
+                    } else {
+                        vm.topUpAmountBasic.topUpCountAmountRange = [];
+                        vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                    }
+
+                } else if (type == 'remove') {
+                    vm.topUpAmountBasic.topUpCountAmountRange.splice(data, 1);
+                }
+            };
+
+            vm.getPlatformTopUpAmountConfig = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlatformTopUpAmountConfig', sendData, function (data) {
+                    console.log('getPlatformTopUpAmountConfig', data);
+                    $scope.$evalAsync(() => {
+                        vm.topUpAmountBasic = {};
+                        if (data && data.data) {
+                            vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+            //#endregion
 
             function getSelectedPlatform() {
                 let platform = null;
