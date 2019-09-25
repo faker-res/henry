@@ -1,4 +1,4 @@
-var should = require('should');
+var should = require('chai').should();
 var dbconfig = require('../modules/dbproperties');
 
 var WebSocketClient = require('../server_common/WebSocketClient');

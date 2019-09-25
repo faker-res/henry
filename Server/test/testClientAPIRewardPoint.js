@@ -1,4 +1,4 @@
-let should = require('should');
+const should = require('chai').should();
 
 let WebSocketClient = require('../server_common/WebSocketClient');
 let PlayerService = require('../services/client/ClientServices').PlayerService;
