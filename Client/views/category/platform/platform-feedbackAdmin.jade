@@ -6,7 +6,7 @@
                 select.form-control(ng-model='vm.feedbackAdminQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getUniqueAdminFeedbacks();' )
             .search-filters-item
                 label {{'Customer Service Name' | translate}}
-                select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.csNameByDepartment')
+                select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
             .search-filters-item
                 label {{'PLAYER' | translate}}
