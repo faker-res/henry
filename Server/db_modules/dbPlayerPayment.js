@@ -501,7 +501,7 @@ const dbPlayerPayment = {
 
                         if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
                             let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
-                            topUpCountAmountRanges.sort((a, b) => {a.topUpCount - b.topUpCount});
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
 
                             for (let i = 0; i < topUpCountAmountRanges.length; i++) {
                                 let range = topUpCountAmountRanges[i];
@@ -549,7 +549,7 @@ const dbPlayerPayment = {
 
                         if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
                             let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
-                            topUpCountAmountRanges.sort((a, b) => {a.topUpCount - b.topUpCount});
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
 
                             for (let i = 0; i < topUpCountAmountRanges.length; i++) {
                                 let range = topUpCountAmountRanges[i];
