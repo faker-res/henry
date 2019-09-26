@@ -31,46 +31,62 @@ class Home extends Component {
     clickHandler = (event) => {
         let api = this.state.api;
         let testData = [];
+        let testDataDetail = [];
         for (let key in api) {
             testData.push(api[key]);
+            console.log('key api', api[key][key]);
         }
-        console.log('test', testData);
-
+        console.log('test data', testData);
         let keys = Object.keys(api).map(key => key.toString());
         let index = keys.findIndex(item => item.toString() === event.target.innerText);
-        console.log(index);
+        console.log('the index', index);
         this.setState({display: testData[index]});
-        // this.setState({linkList:testData[index].})
+
+        // if(index < 0){
+        //     this.state.display.map(item => {
+        //         if(event.target.innerText === item.name){
+        //             console.log('display', item);
+        //             this.state.linkList = item.url;
+        //         }
+        //     })
+        // }else{
+        //     if(this.state.display[index].name === event.target.innerText){
+        //         this.state.linkList = this.state.display[index].url;
+        //     }
+        // }
+
     };
 
-    anotherClick = () => {
-        console.log('display', this.state.display);
-        this.state.display.map(item => {
-            this.state.linkList = item.url;
+    anotherClick = (event) => {
+        let api = this.state.display;
+        let testDataDetail = [];
+        for (let key in api) {
+            testDataDetail.push(api[key]);
+
+        }
+        testDataDetail.map(item => {
+            if(event.target.innerText === item.name){
+                this.state.linkList = item.url;
+                console.log('link 1', this.state.linkList);
+            }
         })
 
-        console.log('url', this.state.linkList);
+        this.setState({linkList: this.state.linkList});
     }
 
     render() {
         const lists = Object.keys(this.state.api).map((key, index) => {
             return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
         });
-
+        console.log('btn display', this.state.display);
         const btns = this.state.display.map(item => {
                 return <button onClick={this.anotherClick} className="btn btn-dark m-1">{item.name}</button>
         });
-
-        // const link = this.state.display.map(item => {
-        //     return <a href={item.url}>{item.url} </a>
-        // });
-
-
-
-        // const linkList = this.state.linkList.map(item =>{
-        //     console.log('map', item);
-        //     return <a href={item.url}><h1>{item.url}</h1></a>
-        // })
+        let link = " ";
+        console.log('link', this.state.linkList);
+        if(this.state.linkList.length > 0){
+            link = this.state.linkList;
+        }
 
         return (
             <div>
@@ -80,9 +96,8 @@ class Home extends Component {
                     />
                     <Content
                         linkBtn = {btns}
-                        // urlList = {linkList}
+                        urlList = {link}
                     />
-                    {/*{link}*/}
                 </div>
             </div>
         );

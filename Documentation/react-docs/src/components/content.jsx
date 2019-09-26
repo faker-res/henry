@@ -12,13 +12,14 @@ class Content extends Component{
                     <div className="card-header">
                         {this.props.linkBtn}
                     </div>
-                    <a className="card-body" style={{height: "250px"}}>
-                        <a href={this.state.linkList}>
-                            <p>{this.state.linkList}</p>
-                        </a>
-                    </a>
+                    <div className="card-body" style={{height: "250px"}}>
+
                     </div>
                 </div>
+                <a href={this.props.urlList}>
+                    <p>{this.props.urlList}</p>
+                </a>
+            </div>
         )
     }
 }
