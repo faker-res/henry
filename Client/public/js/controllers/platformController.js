@@ -44431,6 +44431,8 @@ define(['js/app'], function (myApp) {
                     if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
                         if (data.topUpCount) {
                             vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        } else {
+                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
                         }
                     } else {
                         vm.topUpAmountBasic.topUpCountAmountRange = [];
