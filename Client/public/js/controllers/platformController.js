@@ -40637,17 +40637,6 @@ define(['js/app'], function (myApp) {
                             result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
-
-                        // Feedback Query tab - only display CS name according to the departments that contain selected platforms
-                        if (vm.queryDepartments && vm.queryDepartments.length && vm.departmentUsers && vm.departmentUsers.length) {
-                            vm.departmentUsers.forEach(user => {
-                                vm.queryDepartments.forEach(dept => {
-                                    if (user.departmentName.toString() === dept.departmentName.toString()) {
-                                        vm.csNameByDepartment.push(user);
-                                    }
-                                })
-                            })
-                        }
                     });
                 });
             };

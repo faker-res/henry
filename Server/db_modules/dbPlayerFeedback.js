@@ -83,32 +83,6 @@ var dbPlayerFeedback = {
             }
         }
 
-        // this code only display unique cs name that already has feedback record
-        // return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
-        //     adminList => {
-        //         if (adminList && adminList.length === 0) {
-        //             return [];
-        //         }
-        //         if (adminList && adminList.length) {
-        //             return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
-        //                 .populate({path: "departments", model: dbconfig.collection_department})
-        //                 .then(
-        //                     data => {
-        //                         if (data && data.length) {
-        //                             let selectedUniqueAdmin = data;
-        //                             selectedUniqueAdmin.map(admin => {
-        //                                 if (admin.departments && admin.departments.length) {
-        //                                     admin.departmentName = admin.departments[0].departmentName;
-        //                                 }
-        //                             });
-        //                             return selectedUniqueAdmin;
-        //                         }
-        //                     }
-        //             )
-        //         }
-        //     }
-        // )
-
         // display all cs name that are found in departments based on selected platform
         return dbconfig.collection_platform.find(query).lean().then(
             platformData => {
@@ -133,35 +107,94 @@ var dbPlayerFeedback = {
                                 console.log('departmentData.length===', departmentData.length);
 
                                 let adminList = [];
+                                let departmentChildrenList = [];
                                 if (departmentData && departmentData.length) {
                                     departmentData.forEach(data => {
                                         if (data && data.users) {
                                             adminList = adminList.concat(data.users);
                                         }
+                                        if (data && data.children) {
+                                            departmentChildrenList = departmentChildrenList.concat(data.children);
+                                        }
                                     });
                                 }
                                 console.log('adminList===', adminList);
                                 console.log('adminList.length===', adminList.length);
+                                console.log('departmentChildrenList===', departmentChildrenList);
+                                console.log('departmentChildrenList.length===', departmentChildrenList.length);
+
+                                let queryChildrenDept = {
+                                    _id: {$in: departmentChildrenList}
+                                };
+
+                                let prom1 = Promise.resolve();
+                                let prom2 = Promise.resolve();
 
                                 if (adminList && adminList.length) {
-                                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
-                                        .populate({path: "departments", model: dbconfig.collection_department})
-                                        .then(
-                                            data => {
-                                                console.log('data===', data);
-                                                console.log('data.length===', data.length);
-                                                if (data && data.length) {
-                                                    let selectedCS = data;
-                                                    selectedCS.map(admin => {
-                                                        if (admin.departments && admin.departments.length) {
-                                                            admin.departmentName = admin.departments[0].departmentName;
-                                                        }
-                                                    });
-                                                    return selectedCS;
-                                                }
-                                            }
-                                        )
+                                    // get all admin under parent department
+                                    prom1 = dbconfig.collection_admin.find({_id: {$in: adminList}})
+                                        .populate({path: "departments", model: dbconfig.collection_department}).lean();
                                 }
+                                if (departmentChildrenList && departmentChildrenList.length) {
+                                    // get all children department data
+                                    prom2 = dbconfig.collection_department.find(queryChildrenDept).lean();
+                                }
+
+                                return Promise.all([prom1, prom2]).then(
+                                    ([adminData, childrenDeptData]) => {
+                                        console.log('adminData===', adminData);
+                                        console.log('adminData.length===', adminData.length);
+                                        console.log('childrenDeptData===', childrenDeptData);
+                                        console.log('childrenDeptData.length===', childrenDeptData.length);
+                                        let selectedCS = [];
+                                        let childrenDeptUserList = [];
+
+                                        // all admin under parent department
+                                        if (adminData && adminData.length) {
+                                            selectedCS = selectedCS.concat(adminData);
+                                            selectedCS.map(admin => {
+                                                if (admin.departments && admin.departments.length) {
+                                                    admin.departmentName = admin.departments[0].departmentName;
+                                                }
+                                            });
+                                        }
+                                        console.log('selectedCS.length===11', selectedCS.length);
+
+                                        // children department data
+                                        if (childrenDeptData && childrenDeptData.length) {
+                                            childrenDeptData.forEach(data => {
+                                                if (data && data.users) {
+                                                    childrenDeptUserList = childrenDeptUserList.concat(data.users);
+                                                }
+                                            });
+
+                                            // get all admin under children department
+                                            return dbconfig.collection_admin.find({_id: {$in: childrenDeptUserList}})
+                                                .populate({path: "departments", model: dbconfig.collection_department}).lean().then(
+                                                    childrenAdminData => {
+                                                        let childrenAdminList = [];
+                                                        if (childrenAdminData && childrenAdminData.length) {
+                                                            childrenAdminList = childrenAdminList.concat(childrenAdminData);
+                                                            console.log('childrenAdminList===', childrenAdminList);
+                                                            console.log('childrenAdminList.length===', childrenAdminList.length);
+                                                            childrenAdminList.map(admin => {
+                                                                if (admin.departments && admin.departments.length) {
+                                                                    admin.departmentName = admin.departments[0].departmentName;
+                                                                }
+                                                            });
+                                                        }
+
+                                                        // combine admin for parent and children department
+                                                        selectedCS = selectedCS.concat(childrenAdminList);
+                                                        console.log('selectedCS.length===22', selectedCS.length);
+                                                        return selectedCS;
+                                                    }
+                                                );
+                                        } else {
+                                            return selectedCS;
+                                        }
+                                    }
+                                );
                             }
                         )
                     }
