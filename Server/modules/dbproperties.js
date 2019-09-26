@@ -478,6 +478,12 @@ let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymen
 let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
 let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
 
+let commissionBBSchema = require('./../schema/commissionBB');
+let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commissionBB');
+
+let commissionBBRecordSchema = require('./../schema/commissionBBRecord');
+let commissionBBRecordModel = dbLogs2.model('commissionBBRecord', commissionBBRecordSchema, 'commissionBBRecord');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -869,6 +875,10 @@ var dbProperties = {
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
     collection_playerGameTypeConsumptionWeekSummary: playerGameTypeConsumptionWeekSummaryModel,
+
+
+    collection_commissionBB: commissionBBModel,
+    collection_commissionBBRecord: commissionBBRecordModel,
 
     collection_partnerWeekSummary: partnerWeekSummaryModel,
     collection_partnerChildWeekSummary: partnerChildWeekSummaryModel,

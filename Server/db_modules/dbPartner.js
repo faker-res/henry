@@ -7995,384 +7995,513 @@ let dbPartner = {
         );
     },
 
-    getPartnerBillBoard: function (platformId, periodCheck, recordCount, partnerId, mode) {
+    getPartnerBillBoard: async function (platformId, periodCheck, recordCount, partnerId, mode) {
         let prom;
         let recordDate;
         let returnData = {};
         let playerDataField;
         let totalRecord = recordCount || 10; //default 10 record
-        let platformObj;
+
+        // get platform
+        let platformObj = await dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        if (!(platformObj && platformObj._id)) {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+
+        // get partner with censored names
         let partnerObj;
+        if (partnerId) {
+            platformObj = await dbconfig.collection_partner.findOne({partnerId: partnerId, platform: platformObj._id}).lean();
+            if (!(platformObj && platformObj._id)) {
+                return Promise.reject({name: "DataError", message: "Cannot find partner"});
+            }
 
-        prom = dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    platformObj = platformData;
-                    if (partnerId) {
-                        return dbconfig.collection_partner.findOne({partnerId: partnerId, platform: platformObj._id}).lean().then(
-                            partnerData => {
-                                if (partnerData && partnerData._id) {
-                                    partnerObj = partnerData;
-                                    if (partnerObj && partnerObj.partnerName) {
-                                        partnerObj.partnerName = censoredPlayerName(partnerObj.partnerName);
-                                    }
-                                    return partnerData;
-                                } else {
-                                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
-                                }
-                            }
-                        )
-                    }
-                } else {
-                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+            if (partnerObj && partnerObj.partnerName) {
+                partnerObj.partnerName = censoredPlayerName(partnerObj.partnerName);
+            }
+        }
+
+        // get period of record date
+        if (periodCheck == constPartnerBillBoardPeriod.DAILY) {
+            recordDate = dbutility.getTodaySGTime();
+        } else if (periodCheck == constPartnerBillBoardPeriod.WEEKLY) {
+            recordDate = dbutility.getCurrentWeekSGTime();
+        }  else if (periodCheck == constPartnerBillBoardPeriod.BIWEEKLY) {
+            recordDate = dbutility.getCurrentBiWeekSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.MONTHLY) {
+            recordDate = dbutility.getCurrentMonthSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+
+        } else {
+            return Promise.reject({name: "DataError", message: "Invalid period"});
+        }
+
+        // get OR generate billboard based on mode
+        if (mode == constPartnerBillBoardMode.CREW_DEPOSIT_ALL) {
+            if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+                playerDataField = "topUpSum";
+                return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewDeposit", -1, playerDataField); // no period: find data in player's schema
+            } else {
+                return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewDeposit");
+            }
+        }
+        else if (mode == constPartnerBillBoardMode.CREW_VALIDBET_ALL) {
+            if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+                playerDataField = "consumptionSum";
+                return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewValidBet", -1, playerDataField); // no period: find data in player's schema
+            } else {
+                return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewValidBet");
+            }
+        }
+        else if (mode == constPartnerBillBoardMode.CREW_PROFIT_ALL) {
+            if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+                playerDataField = "bonusAmountSum";
+                return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewProfit", 1, playerDataField); // no period: find data in player's schema
+            } else {
+                return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewProfit", true);
+            }
+        }
+        else if (mode == constPartnerBillBoardMode.CREW_COUNT_ALL) {
+            let partnerRanking;
+            returnData["allCrewHeadCount"] = {};
+            returnData["allCrewHeadCount"].boardRanking = [];
+
+            // get matched players
+            let playerMatchQuery = {
+                $match: {
+                    $and: [
+                        {partner: {$exists: true}},
+                        {partner: {$ne: null}}
+                    ],
+                    platform: platformObj._id,
+                }
+            };
+            if (periodCheck != constPartnerBillBoardPeriod.NO_PERIOD) {
+                playerMatchQuery.$match.registrationTime = {
+                    "$gte": new Date(recordDate.startTime),
+                    "$lte": new Date(recordDate.endTime)
                 }
             }
-        );
 
-        return prom.then(
-            () => {
-                if (periodCheck == constPartnerBillBoardPeriod.DAILY) {
-                    recordDate = dbutility.getTodaySGTime();
-                } else if (periodCheck == constPartnerBillBoardPeriod.WEEKLY) {
-                    recordDate = dbutility.getCurrentWeekSGTime();
-                }  else if (periodCheck == constPartnerBillBoardPeriod.BIWEEKLY) {
-                    recordDate = dbutility.getCurrentBiWeekSGTIme();
-                } else if (periodCheck == constPartnerBillBoardPeriod.MONTHLY) {
-                    recordDate = dbutility.getCurrentMonthSGTIme();
-                } else if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
-
-                } else {
-                    return Promise.reject({name: "DataError", message: "Invalid period"});
+            let playerData = await dbconfig.collection_players.aggregate([
+                playerMatchQuery,
+                {
+                    $group: {
+                        "_id": "$partner",
+                        "count": {"$sum": 1}
+                    }
+                },
+                {
+                    $sort: {
+                        "count": -1
+                    }
                 }
+            ]);
 
-                if (mode == constPartnerBillBoardMode.CREW_DEPOSIT_ALL) {
-                    if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
-                        playerDataField = "topUpSum";
-                        return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewDeposit", -1, playerDataField); // no period: find data in player's schema
-                    } else {
-                        return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewDeposit");
-                    }
+            // return empty result if no player is found
+            if (!(playerData && playerData.length)) {
+                return returnData;
+            }
 
-                } else if (mode == constPartnerBillBoardMode.CREW_VALIDBET_ALL) {
-                    if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
-                        playerDataField = "consumptionSum";
-                        return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewValidBet", -1, playerDataField); // no period: find data in player's schema
-                    } else {
-                        return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewValidBet");
-                    }
+            for (let i = 0; i < playerData.length; i++) {
+                // set the number of rank
+                playerData[i].rank = i + 1;
+                // remove the player create time
+                if (playerData[i].createTime) {
+                    delete playerData[i].createTime;
+                }
+                // set name to partnerName instead
+                if (partnerObj && partnerObj._id && playerData[i]._id.toString() == partnerObj._id.toString()) {
+                    delete playerData[i]._id;
+                    playerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
+                    partnerRanking = playerData[i];
+                }
+            }
 
-                } else if (mode == constPartnerBillBoardMode.CREW_PROFIT_ALL) {
-                    if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
-                        playerDataField = "bonusAmountSum";
-                        return billBoardAmtRankingNoPeriod(platformObj, partnerObj, totalRecord, "allCrewProfit", 1, playerDataField); // no period: find data in player's schema
-                    } else {
-                        return billBoardAmtRanking(platformObj, partnerObj, recordDate, totalRecord, "allCrewProfit", true);
-                    }
+            // if the record count is more than requested, only keep the amount of record needed
+            if (playerData.length > totalRecord) {
+                playerData.length = totalRecord;
+            }
 
-                } else if (mode == constPartnerBillBoardMode.CREW_COUNT_ALL) {
-                    let partnerRanking;
-                    returnData["allCrewHeadCount"] = {};
-                    returnData["allCrewHeadCount"].boardRanking = [];
+            // populate partner to the record
+            let populatedData = await dbconfig.collection_partner.populate(playerData, {
+                path: '_id',
+                model: dbconfig.collection_partner,
+                select: "partnerName"
+            });
+            // censor partner name
+            for (let i = 0; i < populatedData.length; i++) {
+                if (populatedData[i]._id && populatedData[i]._id.partnerName) {
+                    populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
+                    delete populatedData[i]._id;
+                }
+            }
+            // set partner ranking
+            if (partnerObj) {
+                returnData["allCrewHeadCount"].partnerRanking = {};
+                if (partnerRanking) {
+                    returnData["allCrewHeadCount"].partnerRanking = partnerRanking;
+                } else {
+                    returnData["allCrewHeadCount"].partnerRanking.error = "No record for this partner";
+                }
+            }
 
-                    let playerMatchQuery = {
-                        $match: {
-                            $and: [
-                                {partner: {$exists: true}},
-                                {partner: {$ne: null}}
-                            ],
-                            platform: platformObj._id,
-                        }
-                    };
-                    if (periodCheck != constPartnerBillBoardPeriod.NO_PERIOD) {
-                        playerMatchQuery.$match.registrationTime = {
-                            "$gte": new Date(recordDate.startTime),
-                            "$lte": new Date(recordDate.endTime)
-                        }
-                    }
-                    return dbconfig.collection_players.aggregate([
-                        playerMatchQuery,
+            returnData["allCrewHeadCount"].boardRanking = populatedData;
+            return returnData;
+        }
+        else if (mode == constPartnerBillBoardMode.CREW_COUNT_ACTIVE) {
+            if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+                return Promise.reject({name: "DataError", message: "Invalid period"});
+            }
+            let allPlayerObj = [];
+
+            // get players with partner
+            let stream = dbconfig.collection_players.find({
+                $and: [
+                    {partner: {$exists: true}},
+                    {partner: {$ne: null}}
+                ],
+                platform: platformObj._id
+            }, {partner: 1}).cursor({batchSize: 100});
+
+            // use settlement server to get if players are active
+            let balancer = new SettlementBalancer();
+            var res = [];
+            await balancer.initConns().then(function () {
+                return Q(
+                    balancer.processStream(
                         {
-                            $group: {
-                                "_id": "$partner",
-                                "count": {"$sum": 1}
-                            }
-                        },
-                        {
-                            $sort: {
-                                "count": -1
-                            }
-                        }
-                    ]).then(
-                        playerData => {
-                            if (playerData && playerData.length) {
-                                for (let i = 0; i < playerData.length; i++) {
-                                    playerData[i].rank = i + 1;
-                                    if (playerData[i].createTime) {
-                                        delete playerData[i].createTime;
-                                    }
-                                    if (partnerObj && partnerObj._id && playerData[i]._id.toString() == partnerObj._id.toString()) {
-                                        delete playerData[i]._id;
-                                        playerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
-                                        partnerRanking = playerData[i];
-                                    }
-                                }
-                                if (playerData.length > totalRecord) {
-                                    playerData.length = totalRecord;
-                                }
-
-                                return dbconfig.collection_partner.populate(playerData, {
-                                    path: '_id',
-                                    model: dbconfig.collection_partner,
-                                    select: "partnerName"
-                                }).then(
-                                    populatedData => {
-                                        for (let i = 0; i < populatedData.length; i++) {
-                                            if (populatedData[i]._id && populatedData[i]._id.partnerName) {
-                                                populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
-                                                delete populatedData[i]._id;
-                                            }
-                                        }
-                                        if (partnerObj) {
-                                            returnData["allCrewHeadCount"].partnerRanking = {};
-                                            if (partnerRanking) {
-                                                returnData["allCrewHeadCount"].partnerRanking = partnerRanking;
-                                            } else {
-                                                returnData["allCrewHeadCount"].partnerRanking.error = "No record for this partner";
-                                            }
-                                        }
-
-                                        returnData["allCrewHeadCount"].boardRanking = populatedData;
-                                        return returnData;
-                                    }
-                                );
-
-                            } else {
-                                return returnData;
+                            stream: stream,
+                            batchSize: constSystemParam.BATCH_SIZE,
+                            makeRequest: function (playerIdObjs, request) {
+                                allPlayerObj = allPlayerObj.concat(playerIdObjs);
+                                request("player", "settlePartnersActivePlayer", {
+                                    players: playerIdObjs,
+                                    platformId: platformObj._id,
+                                    periodCheck: periodCheck,
+                                    startTime: recordDate.startTime,
+                                    endTime: recordDate.endTime
+                                });
+                            },
+                            processResponse: function (record) {
+                                res = res.concat(record.data);
                             }
                         }
                     )
+                );
+            });
 
+            let partnerAmtObj = {};
+            let rankingArr = [];
+            let partnerRanking;
+            returnData["activeCrewHeadCount"] = {};
+            returnData["activeCrewHeadCount"].boardRanking = [];
 
-                } else if (mode == constPartnerBillBoardMode.CREW_COUNT_ACTIVE) {
-                    if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
-                        return Promise.reject({name: "DataError", message: "Invalid period"});
+            // count active players of each partner
+            for (let i = 0; i < res.length; i++) {
+                if (!partnerAmtObj[res[i].partner.toString()]) {
+                    // if partner not exist, add partner name
+                    partnerAmtObj[res[i].partner.toString()] = {
+                        partner: res[i].partner,
+                        count: res[i].active? 1: 0
                     }
-                    let allPlayerObj = [];
-                    let stream = dbconfig.collection_players.find({
-                        $and: [
-                            {partner: {$exists: true}},
-                            {partner: {$ne: null}}
-                        ],
-                        platform: platformObj._id
-                    }, {partner: 1}).cursor({batchSize: 100});
-                    let balancer = new SettlementBalancer();
-                    var res = [];
-                    return balancer.initConns().then(function () {
-                        return Q(
-                            balancer.processStream(
-                                {
-                                    stream: stream,
-                                    batchSize: constSystemParam.BATCH_SIZE,
-                                    makeRequest: function (playerIdObjs, request) {
-                                        allPlayerObj = allPlayerObj.concat(playerIdObjs);
-                                        request("player", "settlePartnersActivePlayer", {
-                                            players: playerIdObjs,
-                                            platformId: platformObj._id,
-                                            periodCheck: periodCheck,
-                                            startTime: recordDate.startTime,
-                                            endTime: recordDate.endTime
-                                        });
-                                    },
-                                    processResponse: function (record) {
-                                        res = res.concat(record.data);
-                                    }
-                                }
-                            )
-                        );
-                    }).then(
-                        () => {
-                            let partnerAmtObj = {};
-                            let rankingArr = [];
-                            let partnerRanking;
-                            returnData["activeCrewHeadCount"] = {};
-                            returnData["activeCrewHeadCount"].boardRanking = [];
-
-                            for (let i = 0; i < res.length; i++) {
-                                if (!partnerAmtObj[res[i].partner.toString()]) {
-                                    partnerAmtObj[res[i].partner.toString()] = {
-                                        partner: res[i].partner,
-                                        count: res[i].active? 1: 0
-                                    }
-                                } else {
-                                    if (res[i].active) {
-                                        partnerAmtObj[res[i].partner.toString()].count += 1;
-                                    }
-                                }
-                            }
-
-                            for (let l = 0; l < Object.keys(partnerAmtObj).length; l++) {
-                                rankingArr.push(partnerAmtObj[Object.keys(partnerAmtObj)[l]]);
-                            }
-
-                            function sortRankingRecord(a, b) {
-                                if (a.count < b.count) {
-                                    return 1;
-                                }
-                                if (a.count > b.count) {
-                                    return -1;
-                                }
-                                if (a.count == b.count) {
-                                    if (a.partner && b.partner) {
-                                        if (a.partner.toString() < b.partner.toString()) {
-                                            return -1;
-                                        }
-                                        if (a.partner.toString() > b.partner.toString()) {
-                                            return 1;
-                                        }
-                                    }
-                                }
-                                return 0;
-                            }
-
-                            let sortedData = rankingArr.sort(sortRankingRecord);
-                            for (let i = 0; i < sortedData.length; i++) {
-                                sortedData[i].rank = i + 1;
-                                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
-                                    delete sortedData[i].partner;
-                                    sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
-                                    partnerRanking = sortedData[i];
-                                }
-                            }
-                            if (sortedData.length > totalRecord) {
-                                sortedData.length = totalRecord;
-                            }
-
-                            if (sortedData && sortedData.length) {
-                                return dbconfig.collection_partner.populate(sortedData, {
-                                    path: 'partner',
-                                    model: dbconfig.collection_partner,
-                                    select: "partnerName"
-                                }).then(
-                                    populatedData => {
-                                        for (let i = 0; i < populatedData.length; i++) {
-                                            if (populatedData[i].partner && populatedData[i].partner.partnerName) {
-                                                populatedData[i].name = censoredPlayerName(populatedData[i].partner.partnerName);
-                                                delete populatedData[i].partner;
-                                            }
-                                        }
-                                        if (partnerObj) {
-                                            returnData["activeCrewHeadCount"].partnerRanking = {};
-                                            if (partnerRanking) {
-                                                returnData["activeCrewHeadCount"].partnerRanking = partnerRanking;
-                                            } else {
-                                                returnData["activeCrewHeadCount"].partnerRanking.error = "No record for this partner";
-                                            }
-                                        }
-
-                                        returnData["activeCrewHeadCount"].boardRanking = populatedData;
-                                        return returnData;
-                                    }
-                                );
-                            } else {
-                                return returnData;
-                            }
-                        }
-                    )
-
-                } else if (mode == constPartnerBillBoardMode.PARTNER_COMMISSION) {
-                    return dbconfig.collection_proposalType.findOne({
-                        name: constProposalType.SETTLE_PARTNER_COMMISSION,
-                        platformId: platformObj._id
-                    }).lean().then(
-                        proposalTypeData => {
-                            if (proposalTypeData && proposalTypeData._id) {
-                                let partnerRanking;
-                                returnData["totalcommission"] = {};
-                                returnData["totalcommission"].boardRanking = [];
-
-                                let proposalMatchQuery = {
-                                    $match: {
-                                        "data.platformObjId": platformObj._id,
-                                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                        "type": proposalTypeData._id
-                                    }
-                                };
-                                if (periodCheck != constPartnerBillBoardPeriod.NO_PERIOD) {
-                                    proposalMatchQuery.$match.createTime = {
-                                        "$gte": new Date(recordDate.startTime),
-                                        "$lte": new Date(recordDate.endTime)
-                                    }
-                                }
-
-                                return dbconfig.collection_proposal.aggregate([
-                                    proposalMatchQuery,
-                                    {
-                                        $group: {
-                                            "_id": "$data.partnerObjId",
-                                            "amount": {"$sum": "$data.amount"}
-                                        }
-                                    },
-                                    {
-                                        $sort: {
-                                            "amount": -1
-                                        }
-                                    }
-                                ]).read("secondaryPreferred").then(
-                                    partnerData => {
-                                        if (partnerData && partnerData.length) {
-                                            for (let i = 0; i < partnerData.length; i++) {
-                                                partnerData[i].rank = i + 1;
-                                                if (partnerObj && partnerObj._id && partnerData[i]._id.toString() == partnerObj._id.toString()) {
-                                                    delete partnerData[i]._id;
-                                                    partnerData[i].name = partnerObj.partnerName ? partnerObj.partnerName : " ";
-                                                    partnerRanking = partnerData[i];
-                                                }
-                                            }
-                                            if (partnerData.length > totalRecord) {
-                                                partnerData.length = totalRecord;
-                                            }
-
-                                            return dbconfig.collection_partner.populate(partnerData, {
-                                                path: '_id',
-                                                model: dbconfig.collection_partner,
-                                                select: "partnerName"
-                                            }).then(
-                                                populatedData => {
-                                                    for (let i = 0; i < populatedData.length; i++) {
-                                                        if (populatedData[i]._id && populatedData[i]._id.partnerName) {
-                                                            populatedData[i].name = censoredPlayerName(populatedData[i]._id.partnerName);
-                                                            delete populatedData[i]._id;
-                                                        }
-                                                    }
-                                                    if (partnerObj) {
-                                                        returnData["totalcommission"].partnerRanking = {};
-                                                        if (partnerRanking) {
-                                                            returnData["totalcommission"].partnerRanking = partnerRanking;
-                                                        } else {
-                                                            returnData["totalcommission"].partnerRanking.error = "No record for this partner";
-                                                        }
-                                                    }
-
-                                                    returnData["totalcommission"].boardRanking = populatedData;
-                                                    return returnData;
-                                                }
-                                            );
-
-                                        } else {
-                                            return returnData;
-                                        }
-                                    }
-                                )
-                            } else {
-                                return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
-                            }
-                        }
-                    );
-                } else {
-                    return Promise.reject({name: "DataError", message: "Invalid ranking mode"});
+                } else if (res[i].active) {
+                    // if partner exist and player is active, add active count
+                    partnerAmtObj[res[i].partner.toString()].count += 1;
                 }
             }
-        )
+
+            // push the necessary data into rankingArr
+            for (let l = 0; l < Object.keys(partnerAmtObj).length; l++) {
+                rankingArr.push(partnerAmtObj[Object.keys(partnerAmtObj)[l]]);
+            }
+
+            // sort the ranking
+            function sortRankingRecord(a, b) {
+                if (a.count < b.count) {
+                    return 1;
+                }
+                if (a.count > b.count) {
+                    return -1;
+                }
+                if (a.count == b.count) {
+                    if (a.partner && b.partner) {
+                        if (a.partner.toString() < b.partner.toString()) {
+                            return -1;
+                        }
+                        if (a.partner.toString() > b.partner.toString()) {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+            }
+            let sortedData = rankingArr.sort(sortRankingRecord);
+
+            // delete unnecessary field
+            for (let i = 0; i < sortedData.length; i++) {
+                sortedData[i].rank = i + 1;
+                if (partnerObj && partnerObj._id && sortedData[i].partner.toString() == partnerObj._id.toString()) {
+                    delete sortedData[i].partner;
+                    sortedData[i].name = partnerObj.partnerName? partnerObj.partnerName: " ";
+                    partnerRanking = sortedData[i];
+                }
+            }
+
+            // limit the amount of record to the requested number
+            if (sortedData.length > totalRecord) {
+                sortedData.length = totalRecord;
+            }
+
+            // if there is no result, just return empty
+            if (!(sortedData && sortedData.length)) {
+                return returnData;
+            }
+
+            // get partner names
+            let populatedData = await dbconfig.collection_partner.populate(sortedData, {
+                path: 'partner',
+                model: dbconfig.collection_partner,
+                select: "partnerName"
+            });
+
+            // encode partner names
+            for (let i = 0; i < populatedData.length; i++) {
+                if (populatedData[i].partner && populatedData[i].partner.partnerName) {
+                    populatedData[i].name = censoredPlayerName(populatedData[i].partner.partnerName);
+                    delete populatedData[i].partner;
+                }
+            }
+
+            // handle return data
+            if (partnerObj) {
+                returnData["activeCrewHeadCount"].partnerRanking = {};
+                if (partnerRanking) {
+                    returnData["activeCrewHeadCount"].partnerRanking = partnerRanking;
+                } else {
+                    returnData["activeCrewHeadCount"].partnerRanking.error = "No record for this partner";
+                }
+            }
+
+            returnData["activeCrewHeadCount"].boardRanking = populatedData;
+            return returnData;
+        }
+        else if (mode == constPartnerBillBoardMode.PARTNER_COMMISSION) {
+            return dbPartner.getPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, recordDate);
+        }
+        else {
+            return Promise.reject({name: "DataError", message: "Invalid ranking mode"});
+        }
+
+    },
+
+    async getPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, recordDate) {
+        let now = new Date();
+        let twentyFiveMinutesAgo = new Date();
+        twentyFiveMinutesAgo.setMinutes(now.getMinutes()-25);
+
+        let commissionBB = await dbconfig.collection_commissionBB.findOne({platform: platformObj._id, period: periodCheck}).lean();
+
+        // calculate if the last calculation is 25min ago
+        if (!commissionBB || !commissionBB.lastCalculate) {
+            await dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
+                console.log("calculatePartnerCommissionBillBoard failed", err, commissionBB);
+            });
+        }
+        else if (commissionBB.lastCalculate < twentyFiveMinutesAgo) {
+            dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
+                console.log("calculatePartnerCommissionBillBoard failed", err, commissionBB);
+            });
+        }
+
+        console.log("commissionB aaaB", commissionBB)
+        return dbPartner.retrieveCalculatedPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, commissionBB);
+    },
+
+    async retrieveCalculatedPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, commissionBB) {
+        commissionBB = commissionBB || {};
+        let topNBillBoard = await dbconfig.collection_commissionBBRecord.find({
+            platform: platformObj._id,
+            period: periodCheck,
+            lastFinished: commissionBB.lastFinished,
+        }, {
+            name: 1,
+            amount: 1,
+            _id: 0
+        }).sort({
+            amount: -1,
+            name: 1
+        }).limit(totalRecord).lean();
+
+        // assign ranking
+        for (let i = 0; i < topNBillBoard.length; i++) {
+            topNBillBoard[i].rank = i + 1;
+            topNBillBoard[i].name = censoredPlayerName(topNBillBoard[i].name);
+        }
+
+        // get partner's data
+        let partnerOnBoard;
+        if (partnerObj) {
+            partnerOnBoard = await dbconfig.collection_commissionBBRecord.findOne({
+                platform: platformObj._id,
+                period: periodCheck,
+                lastCalculate: commissionBB.lastFinished,
+                name: partnerObj.partnerName,
+            }, {
+                name: 1,
+                amount: 1,
+                _id: 0
+            }).limit(totalRecord).lean();
+
+            // get the rank of the player
+            if (partnerOnBoard) {
+                let partnerRank = await dbconfig.collection_commissionBBRecord.find({
+                    platform: platformObj._id,
+                    period: periodCheck,
+                    lastFinished: commissionBB.lastFinished,
+                    amount: {$gte: partnerOnBoard.amount},
+                    name: {$lte: partnerOnBoard.name}
+                }).count();
+
+                partnerOnBoard.rank = partnerRank;
+            }
+            else {
+                partnerOnBoard = {
+                    name: partnerObj.partnerName,
+                    amount: 0,
+                    rank: "-"
+                }
+            }
+
+        }
+
+        // assign output format
+        let output = {
+            totalcommission: {
+                boardRanking: topNBillBoard
+            }
+        };
+
+        if (partnerOnBoard) {
+            output.totalcommission.partnerRanking = partnerOnBoard;
+            if (partnerOnBoard.rank === "-") {
+                output.totalcommission.partnerRanking.error = "No record for this partner"
+            }
+        }
+
+        return output;
+    },
+
+    async calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB) {
+        let calTime = new Date();
+
+        // prevent multiple calculation happen at the same time
+        let newCommissionBB;
+        if (!commissionBB) {
+            newCommissionBB = await dbconfig.collection_commissionBB({
+                platform: platformObj._id,
+                period: periodCheck,
+                lastCalculate: calTime
+            }).save();
+        } else {
+            newCommissionBB = await dbconfig.collection_commissionBB.findOneAndUpdate({
+                platform: commissionBB.platform,
+                period: commissionBB.period,
+                lastCalculate: commissionBB.lastCalculate
+            }, {
+                lastCalculate: calTime
+            }, {
+                new: true
+            }).lean();
+            if (!newCommissionBB) {
+                // it probably is already calculating
+                return;
+            }
+        }
+
+        let proposalTypeData = await dbconfig.collection_proposalType.findOne({
+            name: constProposalType.SETTLE_PARTNER_COMMISSION,
+            platformId: platformObj._id
+        }).lean();
+
+        if (!(proposalTypeData && proposalTypeData._id)) {
+            return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+        }
+
+        let proposalMatchQuery = {
+            $match: {
+                "data.platformObjId": platformObj._id,
+                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                "type": proposalTypeData._id
+            }
+        };
+        if (periodCheck != constPartnerBillBoardPeriod.NO_PERIOD) {
+            proposalMatchQuery.$match.createTime = {
+                "$gte": new Date(recordDate.startTime),
+                "$lte": new Date(recordDate.endTime)
+            }
+        }
+
+        // get each partner's proposal
+        let partnerData = await dbconfig.collection_proposal.aggregate([
+            proposalMatchQuery,
+            {
+                $group: {
+                    "_id": "$data.partnerObjId",
+                    "amount": {"$sum": "$data.amount"}
+                }
+            },
+            {
+                $sort: {
+                    "amount": -1
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        console.log('calculatePartnerCommissionBillBoard partnerData', partnerData);
+
+        if (!(partnerData && partnerData.length)) {
+            return;
+        }
+
+        // populate partner
+        let populatedData = await dbconfig.collection_partner.populate(partnerData, {
+            path: '_id',
+            model: dbconfig.collection_partner,
+            select: "partnerName"
+        });
+
+        // save to record
+        for (let i = 0; i < populatedData.length; i++) {
+            if (populatedData[i]._id && populatedData[i]._id.partnerName) {
+                populatedData[i].name = populatedData[i]._id.partnerName;
+                await dbconfig.collection_commissionBBRecord.update({
+                    platform: platformObj._id,
+                    period: periodCheck,
+                    lastCalculate: calTime,
+                    name: populatedData[i].name,
+                }, {
+                    platform: platformObj._id,
+                    period: periodCheck,
+                    lastCalculate: calTime,
+                    name: populatedData[i].name,
+                    amount: populatedData[i].amount
+                }, {
+                    upsert: true
+                }).catch(err => {
+                    console.log("collection_commissionBBRecord update failed", populatedData[i].name, err);
+                });
+            }
+        }
+
+        // updateComissionBB to confirm that the new billboard is ready
+        await dbconfig.collection_commissionBB.update({
+            platform: newCommissionBB.platform,
+            period: newCommissionBB.period,
+            lastCalculate: newCommissionBB.lastCalculate
+        }, {
+            lastFinished: newCommissionBB.lastCalculate
+        });
     },
 
     getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {
