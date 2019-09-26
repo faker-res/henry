@@ -226,6 +226,8 @@
 		42. [获取代理转账记录](#获取代理转账记录)
 		43. [查询所有下线玩家详情](#查询所有下线玩家详情)
 		44. [代理推广域名防红和短链转换](#代理推广域名防红和短链转换)
+		45. [查询代理的下级会员信息](#查询代理的下级会员信息)
+        46. [查询代理的下级代理信息](#查询代理的下级代理信息)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -6808,6 +6810,127 @@ API说明：
               }
             }
     * 操作失败：status--4xx, data-null, errorMessage:””
+    
+<div id='查询代理的下级会员信息'></div>
+
+* **45. 查询代理的下级会员信息**
+    * name: getDownLinePlayerInfo
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                platformId: "1" //平台ID - 必填
+                period: 1  //1:本日  2:本周 3:本月 - 必填
+                whosePlayer: 1 //1:全部  2: 直属下线会员  3:下线代理会员 - 必填
+                playerType: 1 //1:全部 2: 新增会员 3:活跃会员- 必填
+                crewAccount: "vptest001" //玩家账号 （用于单一搜索）
+                requestPage: 1 //请求第几页（从1开始）
+                count: 10 //每页数据条数（默认为10条）
+                sortType: 1 //"1:充值   2:提款  3:输赢值  
+                              4:有效投注额  5:优惠金额  6: 平台费  
+                              7: 存取款手续费"
+                sort: true //true 升序、false 降序（默认）
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "stats": {
+                  "totalActivePlayer": 3, 活跃会员总数
+                  "totalCount": 3, //数据总数
+                  "totalPage": 1, //一共多少页
+                  "currentPage": 1, //当前页
+                  "totalNewPlayerCount": 0, // 新增会员总数  （只随period变动而变动）
+                  "totalValidCrewPlayer": 0, // 有效会员总数    (只随period变动而变动）
+                  "totalDepositAmount": 0,  // 总存款额
+                  "totalWithdrawAmount": 0, // 总提款数
+                  "totalPromoAmount": 0, // 总优惠金额
+                  "totalCrewProfit": 0, // 总输赢金额
+                  "totalPlatformFee": 0, // 总平台费
+                  "totalDepositWithdrawFee": 0,  // 总存取款手续费
+                  "totalValidBet": 0  // 总有效投注额
+                },
+                "list": [
+                  {
+                    "crewAccount": "vptest004", //玩家账号
+                    "crewRegisterTime": "2019-09-12T02:31:07.156Z", // 注册时间
+                    "crewLastLoginTime": "2019-09-12T02:31:07.156Z", // 最后登录时间
+                    "crewProfit": 0, // 输赢金额
+                    "depositAmount": 0, // 存款金额
+                    "withdrawAmount": 0, // 提款金额
+                    "validBet": 0, // 有效投注额
+                    "promoAmount": 0, // 优惠金额
+                    "platformFee": 0, // 平台手续费
+                    "totalDepositWithdrawFee": 0 // 存取款手续费
+                  }
+                ]
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
+<div id='查询代理的下级代理信息'></div>
+
+* **46. 查询代理的下级代理信息**
+    * name: getDownLinePartnerInfo
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                platformId: "1" //平台ID - 必填
+                period: 1 //1:本日   2:本周  3:本月  4: 本期（当期实时佣金） - 必填
+                partnerType: 1 //1:全部 2: 新增下级代理- 必填
+                partnerAccount: "pptest001" //代理账号 （用于单一搜索）
+                requestPage: 1 //请求第几页（从1开始）
+                count: 10 //每页数据条数（默认为10条）
+                sortType: 1 //"1:充值   2:提款  3:输赢值  
+                              4:有效投注额  5:优惠金额  6: 平台费  
+                              7: 存取款手续费 8: 贡献佣金"
+                              如果不传该参数，默认按照注册时间顺序排序
+                sort: true //true 升序、false 降序（默认）
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                  "stats": {
+                    "totalCount": 3, //数据总数
+                    "totalPage": 1, //一共多少页
+                    "currentPage": 1, //当前页
+                    "totalNewPartnerCount": 0, // 新增代理总数  （只随period变动而变动）
+                    "totalPartnerCount": 1, // 总代理人数
+                    "totalDepositAmount": 0, // 总存金额
+                    "totalWithdrawAmount": 0, // 总提款金额
+                    "totalPromoAmount": 0,  // 总优惠金额
+                    "totalCrewProfit": 0,  // 总输赢金额
+                    "totalPlatformFee": 0, // 总平台费
+                    "totalHandlingFee": 0, // 总存取款手续费
+                    "totalCommission": 0 // 总贡献佣金
+                  },
+                  "list": [
+                    {
+                      "partnerAccount": "pptest002", //代理账号
+                      "partnerRegisterTime": "2019-09-12T01:54:24.534Z", // 注册时间
+                      "partnerLastLoginTime": "2019-09-12T01:54:24.535Z", // 最后登录时间
+                      "commissionType": 1,  // 佣金模式
+                      "partnerLevel": 3,  // 代理等级
+                      "crewProfit": 0,  // 输赢金额
+                      "depositAmount": 0,  // 存款金额
+                      "withdrawAmount": 0,  // 提款金额
+                      "validBet": 0, // 有效投注额
+                      "promoAmount": 0, // 优惠金额
+                      "platformFee": 0, // 平台手续费
+                      "totalDepositWithdrawFee": 0,  // 存取款手续费 
+                      "commission": 0 // 贡献佣金
+                    }
+                  ]
+                }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
 <!--文档没有华语名称，因此暂时命名“平台”-->
 # 平台：
 提供平台相关服务的接口。
