@@ -34599,6 +34599,16 @@ define(['js/app'], function (myApp) {
             }
 
             function updatePlatformTopUpAmountConfig(srcData) {
+                let isPass = true;
+
+                if (srcData.topUpCountAmountRange && srcData.topUpCountAmountRange.length) {
+                    srcData.topUpCountAmountRange.forEach(el => {
+                        if (!el.topUpCount) {
+                            isPass = false;
+                        }
+                    })
+                }
+
                 let sendData = {
                     query: {platformObjId: vm.filterConfigPlatform},
                     updateData: {
@@ -34606,9 +34616,15 @@ define(['js/app'], function (myApp) {
                         topUpCountAmountRange: srcData.topUpCountAmountRange
                     }
                 };
-                socketService.$socket($scope.AppSocket, 'updatePlatformTopUpAmount', sendData, function (data) {
-                    loadPlatformData({loadAll: false});
-                });
+
+                if (isPass) {
+                    vm.configTableEdit=!vm.configTableEdit;
+                    socketService.$socket($scope.AppSocket, 'updatePlatformTopUpAmount', sendData, function (data) {
+                        loadPlatformData({loadAll: false});
+                    });
+                } else {
+                    socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                }
             }
 
             function updatePhoneFilter(srcData) {
