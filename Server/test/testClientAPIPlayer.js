@@ -35,6 +35,7 @@ var testNewPlayerId = null;
 var testNewGuestPlayerId = null;
 var testNewPlayerPartnerId = null;
 var smsCode = null;
+var smsCode1 = null;
 var token = null;
 var dat = null;
 var testPlayerGender = null;
@@ -801,6 +802,126 @@ describe("Test Client API - Player service", function () {
         clientPlayerAPITest.logout(function (data) {
             data.status.should.equal(200);
         }, {playerId: testPlayerId});
+    });
+
+    describe("Test create player by phone number and password", function () {
+        before(async function() {
+            let testChannel = parseInt(Math.random() * 900 + 100);
+            let testCode = parseInt(Math.random() * 9000 + 1000);
+            let saveObj = {
+                tel: "12345678870",
+                channel: testChannel,
+                platformObjId: testPlatformObjId,
+                platformId: testPlatformId,
+                code: testCode,
+                delay: 0
+            };
+            let saveLogObj = {
+                tel: "12345678870",
+                channel: testChannel,
+                platform: testPlatformObjId,
+                platformId: testPlatformId,
+                message: testCode,
+                type: 'player',
+                status: 'success'
+            };
+            await dbconfig.collection_smsVerificationLog(saveObj).save();
+            await dbconfig.collection_smsLog(saveLogObj).save();
+
+            let smsLog = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
+            smsLog.should.have.property('code');
+            smsCode = smsLog.code;
+
+            let saveObj1 = {
+                tel: "12345999999",
+                channel: testChannel,
+                platformObjId: testPlatformObjId,
+                platformId: testPlatformId,
+                code: testCode,
+                delay: 0
+            };
+            let saveLogObj1 = {
+                tel: "12345999999",
+                channel: testChannel,
+                platform: testPlatformObjId,
+                platformId: testPlatformId,
+                message: testCode,
+                type: 'player',
+                status: 'success'
+            };
+            await dbconfig.collection_smsVerificationLog(saveObj1).save();
+            await dbconfig.collection_smsLog(saveLogObj1).save();
+
+            let smsLog1 = await dbconfig.collection_smsVerificationLog.findOne({}).sort({createTime: -1})
+            smsLog1.should.have.property('code');
+            smsCode1 = smsLog1.code;
+        });
+
+        it('Should create test player by phone number and password', function (done) {
+            clientPlayerAPITest.registerByPhoneNumberAndPassword(function(data) {
+                data.status.should.equal(200);
+                data.data.should.have.property('_id');
+                done();
+            }, {
+                platformId: testPlatformId,
+                phoneNumber: "12345678870",
+                smsCode: smsCode,
+                accountPrefix: "testplayer",
+                password: "888888"
+            });
+        });
+
+        it('Should login test player by phone number and password', function () {
+            clientPlayerAPITest.loginByPhoneNumberAndPassword(function (data) {
+                data.status.should.equal(200);
+                data.data.should.have.property('_id');
+            }, {
+                platformId: testPlatformId,
+                phoneNumber: testPhoneNumber,
+                password: "123456"
+            });
+        });
+
+
+        it('Should update test player password by phone number', function () {
+            clientPlayerAPITest.updatePasswordByPhoneNumber(function (data) {
+                data.status.should.equal(200);
+                data.data.should.have.property('_id');
+            }, {
+                platformId: testPlatformId,
+                phoneNumber: testPhoneNumber,
+                newPassword: "123456",
+                smsCode: smsLog
+            });
+        });
+
+        let testGuestPlayer;
+        let testGuestPlayerId;
+        before(function(done){
+            clientPlayerAPITest.createGuestPlayer(function(data) {
+                data.status.should.equal(200);
+                data.data.should.have.property('_id');
+                testGuestPlayer = data;
+                testGuestPlayerId = data.data.playerId;
+                done();
+            }, {
+                platformId: testPlatformId,
+                captcha: 'testCaptcha',
+                isTestPlayer: true,
+                guestDeviceId: "9999-9999-9999-9999-9999"
+            });
+        })
+
+        it('Should set test guest player phone number and password', function(done){
+            clientPlayerAPITest.setPhoneNumberAndPassword(function (data) {
+            }, {
+                playerId: testGuestPlayerId,
+                phoneNumber: "12345999999",
+                password: "123456",
+                smsCode: smsCode1
+            });
+            done();
+        });
     });
 
     after(async function () {
