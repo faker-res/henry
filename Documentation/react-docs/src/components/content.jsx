@@ -5,25 +5,26 @@ class Content extends Component{
 
     };
 
-
-
     render(){
         return (
-            <div>
+            <div className="col-8">
                 <div className="card">
-                    <div className="card-header" id={this.props.contentId}>
-                        <h2>{this.props.contentTitle}</h2>
+                    <div className="card-header">
+                        {this.props.linkBtn}
                     </div>
-                    <div className="card-body">
-
-
+                    <a className="card-body" style={{height: "250px"}}>
+                        <a href={this.state.linkList}>
+                            <p>{this.state.linkList}</p>
+                        </a>
+                    </a>
                     </div>
                 </div>
-            </div>
         )
     }
 }
-
+/*<a href={this.state.linkList.url}>
+    <p>{this.state.linkList.url}</p>
+</a>*/
 export default Content;
 
 

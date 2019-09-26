@@ -34,6 +34,11 @@ code {
 .filterBodyOpen p{
   cursor: pointer;
 }
+
+.filterBodyOpen h1{
+  cursor: pointer;
+}
+
 div {
   white-space: pre-wrap;
 }

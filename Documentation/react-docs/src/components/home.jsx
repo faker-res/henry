@@ -2,97 +2,94 @@ import React, { Component } from 'react';
 import Menu from './menu';
 import Content from './content';
 
-
-/*<div className="col-lg-8">
-    {this.state.testApi.logins.map(item =>
-        <Content
-            contentId = {item.name}
-            contentTitle = {item.name}
-        />
-    )}
-</div>*/
-
 class Home extends Component {
     state = {
-        api: [
-            {
-                title: "Login",
-                content: [
-                    {name: "login", url: "#login"},
-                    {name: "playerLogin", url: "#playerLogin"},
-                    {name: "playerAppLogin", url: "#playerAppLogin"}
-                ]
-            },
-
-            {
-                title: "Register",
-                content: [
-                    {name: "Reg1", url: "#Reg1"},
-                    {name: "Reg2", url: "#Reg2"},
-                    {name: "Reg3", url: "#Reg3"}
-                ]
-            }
-        ]
+        api: {
+            Login: [
+                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#玩家开户"},
+                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家开户"},
+            ],
+            Register: [
+                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#登录"}
+            ]
+        },
+        display:{},
+        linkList:{}
     };
 
-    loadData(){
-
-        // this.state.api.forEach( (item, index) => {
-        //     console.log('index item', item)
-        //     console.log('index', item[Object.keys(item)[0]][index].name)
-        //     item[Object.keys(item)[0]].map(subitem => {
-        //         console.log('sub item', subitem.url)
-        //     })
-        //
-        // })
-        // return <Menu title = {item[Object.keys(item)[0]][index].name} content = {item[Object.keys(item)[0]]}/>
-
-
-        this.state.api.map((item, i) => {
-            item[Object.keys(item)[0]].map(subitem => {
-                console.log('content', subitem)
-                return subitem;
-            })
-        })
+    componentWillMount() {
+        let api = this.state.api;
+        let testData = [];
+        for (let key in api) {
+            testData.push(api[key]);
+        }
+        let displayData;
+        displayData = JSON.parse(JSON.stringify(testData[0]));
+        this.setState({display: displayData});
     }
 
-    loadTitle(){
-        this.state.api.map((item, i) => {
-            console.log('title', item)
-            return item[Object.keys(item)[0]];
+    clickHandler = (event) => {
+        let api = this.state.api;
+        let testData = [];
+        for (let key in api) {
+            testData.push(api[key]);
+        }
+        console.log('test', testData);
+
+        let keys = Object.keys(api).map(key => key.toString());
+        let index = keys.findIndex(item => item.toString() === event.target.innerText);
+        console.log(index);
+        this.setState({display: testData[index]});
+        // this.setState({linkList:testData[index].})
+    };
+
+    anotherClick = () => {
+        console.log('display', this.state.display);
+        this.state.display.map(item => {
+            this.state.linkList = item.url;
         })
+
+        console.log('url', this.state.linkList);
     }
 
     render() {
-        // this.loadData();
-        // console.log('props here', this.loadTitle())
+        const lists = Object.keys(this.state.api).map((key, index) => {
+            return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
+        });
+
+        const btns = this.state.display.map(item => {
+                return <button onClick={this.anotherClick} className="btn btn-dark m-1">{item.name}</button>
+        });
+
+        // const link = this.state.display.map(item => {
+        //     return <a href={item.url}>{item.url} </a>
+        // });
+
+
+
+        // const linkList = this.state.linkList.map(item =>{
+        //     console.log('map', item);
+        //     return <a href={item.url}><h1>{item.url}</h1></a>
+        // })
+
         return (
             <div>
                 <div className="row">
-                    <div className="col-lg-4">
-
-                        <Menu
-                            title = {this.state.api}
-                            content = {this.state.api}
-                        />
-
-                    </div>
-
-
+                    <Menu
+                        list = {lists}
+                    />
+                    <Content
+                        linkBtn = {btns}
+                        // urlList = {linkList}
+                    />
+                    {/*{link}*/}
                 </div>
             </div>
         );
     }
 }
-//{this.state.api.map((item, i) =>
-  //  {item[Object.keys(item)[0]].map((subitem, i) =>
-    //    <Menu
-      //      title = {item[Object.keys(item)[0]][i].name}
-        //    content = {subitem.url}
-        ///>
 
-    //)}
-//)}
-
-
+/*return  <a href={item.url}>
+    <button onClick={this.clickHandler} className="btn btn-dark m-1">{item.name}</button>
+</a>*/
 export default Home;
