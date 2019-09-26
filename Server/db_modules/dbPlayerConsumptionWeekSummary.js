@@ -890,22 +890,27 @@ var dbPlayerConsumptionWeekSummary = {
                         for (let amounts of data) {
                             Object.keys(amounts).forEach(
                                 type => {
+                                    // console.log('amounts', amounts[type]);
+                                    res[type] = null
                                     if (res[type]) {
                                         if (res[type].hasOwnProperty("returnAmount")) {
+                                            console.log('amount return', amounts[type].returnAmount);
                                             res[type].returnAmount += amounts[type].returnAmount;
                                             res[type].returnAmount = res[type].returnAmount.toFixed(2);
-                                        }
-                                        else {
+                                        } else {
                                             res[type] += amounts[type];
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         res[type] = amounts[type];
+                                        if (res[type].hasOwnProperty("returnAmount")) {
+                                            res[type].returnAmount = res[type].returnAmount.toFixed(2);
+                                        }
                                     }
                                 }
                             )
                         }
                     }
+                    console.log('res', res);
                     return res;
                 }
             );
