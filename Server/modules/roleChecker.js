@@ -514,6 +514,7 @@ var roleChecker = {
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
                 referral: ['updateReferralConfig'],
+                TopUpAmountConfig: ['updatePlatformTopUpAmount'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
