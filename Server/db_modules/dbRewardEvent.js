@@ -3020,7 +3020,7 @@ var dbRewardEvent = {
                         let periodData = rewardSpecificData[2];
                         let festivalData = rewardSpecificData[3];
                         let applyFestivalTimes = 0;
-                        let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
+                        let topUpSum = topUpDatas.reduce((sum, value) => sum + (value.oriAmount || value.amount), 0);
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         console.log('MT --checking before festivalData', festivalData);
