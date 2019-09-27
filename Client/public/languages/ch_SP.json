@@ -6014,7 +6014,7 @@
   "depositType": "存款条件",
   "First Top Up Amount, Top Up Count is required more than zero": "被推荐人首次单笔存款额、被推荐人存款笔数必填大过0",
   "EditGameName": "编辑游戏名称",
-  "Common Top Up Amount Range": "通用充值额度区间",
+  "TOP_UP_AMOUNT_RANGE": "充值额度区间",
   "Top Up Count Amount Range": "存款笔数额度区间",
   "Top Up Amount Range": "充值区间",
   "Top Up Count(less than or equal)": "存款笔数（含、以下）",
