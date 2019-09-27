@@ -1156,7 +1156,7 @@ let PlayerServiceImplement = function () {
 
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.authenticate,
-            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice], isValidData, false, false, true
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice], true, false, false, true
         );
     };
 
