@@ -3475,7 +3475,7 @@ var dbPlatform = {
                         if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
                             returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
                         } else {
-                            returnedObj.minDepositAmount = returnedObj.minDepositAmount || 10;
+                            returnedObj.minDepositAmount = 10;
                         }
 
                         return returnedObj;
