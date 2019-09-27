@@ -8010,12 +8010,13 @@ let dbPartner = {
         // get partner with censored names
         let partnerObj;
         if (partnerId) {
-            platformObj = await dbconfig.collection_partner.findOne({partnerId: partnerId, platform: platformObj._id}).lean();
+            partnerObj = await dbconfig.collection_partner.findOne({partnerId: partnerId, platform: platformObj._id}).lean();
             if (!(platformObj && platformObj._id)) {
                 return Promise.reject({name: "DataError", message: "Cannot find partner"});
             }
 
             if (partnerObj && partnerObj.partnerName) {
+                partnerObj.name = partnerObj.partnerName;
                 partnerObj.partnerName = censoredPlayerName(partnerObj.partnerName);
             }
         }
@@ -8345,19 +8346,19 @@ let dbPartner = {
                 platform: platformObj._id,
                 period: periodCheck,
                 lastCalculate: commissionBB.lastFinished,
-                name: partnerObj.partnerName,
+                name: partnerObj.name,
             }, {
                 name: 1,
                 amount: 1,
                 _id: 0
-            }).limit(totalRecord).lean();
+            }).lean();
 
             // get the rank of the player
             if (partnerOnBoard) {
                 let partnerRank = await dbconfig.collection_commissionBBRecord.find({
                     platform: platformObj._id,
                     period: periodCheck,
-                    lastFinished: commissionBB.lastFinished,
+                    lastCalculate: commissionBB.lastFinished,
                     amount: {$gte: partnerOnBoard.amount},
                     name: {$lte: partnerOnBoard.name}
                 }).count();
@@ -8366,7 +8367,7 @@ let dbPartner = {
             }
             else {
                 partnerOnBoard = {
-                    name: partnerObj.partnerName,
+                    name: partnerObj.name,
                     amount: 0,
                     rank: "-"
                 }
