@@ -1844,6 +1844,9 @@ define(['js/app'], function (myApp) {
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
                 proposalId: vm.queryTopup.proposalId,
+                platformList:
+                    vm.queryTopup.platformList && vm.queryTopup.platformList.length ?
+                        vm.queryTopup.platformList : vm.platformList.map(item => item._id),
                 index: 0,
                 limit: isExport ? 10000 : 1,
             } : {
@@ -6961,6 +6964,7 @@ define(['js/app'], function (myApp) {
             var sendData = newproposalQuery.proposalId ? {
                 // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : [],
                 index: 0,
                 limit: isExport ? 10000 : 1,
             } : {
