@@ -3634,6 +3634,7 @@ let dbPlayerInfo = {
         let isGetQuestion = false; //  return question only
         let correctQues = [];
         let incorrectQues = [];
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -3646,7 +3647,8 @@ let dbPlayerInfo = {
                     paymentSystemId = platformObj.bonusSystemType;
                 }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
-            }).then(
+            }
+        ).then(
             playerData => {
                 if (!playerData) {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -15908,7 +15910,7 @@ let dbPlayerInfo = {
         );
     },
 
-    authenticate: function (playerId, token, playerIp, conn) {
+    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
             if (err || !decoded) {
@@ -15943,6 +15945,11 @@ let dbPlayerInfo = {
 
                             // Online time trace
                             dbPlayerOnlineTime.authenticateTimeLog(playerData._id, token).catch(errorUtils.reportError);
+
+                            // Login if required - For long validity of token period
+                            if (isLogin) {
+                                dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
+                            }
 
                             deferred.resolve(true);
                             // }
