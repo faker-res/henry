@@ -7996,7 +7996,6 @@ let dbPartner = {
     },
 
     getPartnerBillBoard: async function (platformId, periodCheck, recordCount, partnerId, mode) {
-        let prom;
         let recordDate;
         let returnData = {};
         let playerDataField;
@@ -8307,6 +8306,7 @@ let dbPartner = {
             await dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
                 console.log("calculatePartnerCommissionBillBoard failed", err, commissionBB);
             });
+            commissionBB = await dbconfig.collection_commissionBB.findOne({platform: platformObj._id, period: periodCheck}).lean();
         }
         else if (commissionBB.lastCalculate < twentyFiveMinutesAgo) {
             dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
@@ -8314,7 +8314,6 @@ let dbPartner = {
             });
         }
 
-        console.log("commissionB aaaB", commissionBB)
         return dbPartner.retrieveCalculatedPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, commissionBB);
     },
 
@@ -8323,7 +8322,7 @@ let dbPartner = {
         let topNBillBoard = await dbconfig.collection_commissionBBRecord.find({
             platform: platformObj._id,
             period: periodCheck,
-            lastFinished: commissionBB.lastFinished,
+            lastCalculate: commissionBB.lastFinished,
         }, {
             name: 1,
             amount: 1,
