@@ -44487,6 +44487,13 @@ define(['js/app'], function (myApp) {
                         vm.topUpAmountBasic = {};
                         if (data && data.data) {
                             vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+
+                            if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
+                                vm.topUpAmountBasic.commonTopUpAmountRange = {
+                                    minAmount: 10,
+                                    maxAmount: 100000
+                                };
+                            }
                         }
                     })
                 });
