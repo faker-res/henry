@@ -156,7 +156,7 @@ var WebSocketUtility = {
                     //    level: constSystemLogLevel.ACTION };
                     //dblog.createSystemLog(logData);
 
-                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
+                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
                         dbApiLog.createApiLog(conn, wsFunc, result, reqData);
                     }
                 },
@@ -375,6 +375,7 @@ var WebSocketUtility = {
                 wss.clients.forEach(
                     client => {
                         if (service[functionName] && client.EBETNotify == true) {
+                            console.log("EBET RTN Notification", data)
                             service[functionName].response(client, {status: 200, data: data});
                         }
                     }

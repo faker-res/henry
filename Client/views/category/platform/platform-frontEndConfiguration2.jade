@@ -305,9 +305,8 @@ style.
                                 label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control(ng-model='vm.newFrontEndGameSetting.displayFormat')
-                                        option(ng-repeat='(i,v) in vm.displayFormat', value='{{v}}') {{ i | translate}}
-
-
+                                        option(ng-if="vm.newFrontEndGameSetting.device != 2", ng-repeat='(i,v) in vm.displayFormat.pc', value='{{v}}') {{ i | translate}}
+                                        option(ng-if="vm.newFrontEndGameSetting.device == 2", ng-repeat='(i,v) in vm.displayFormat.h5', value='{{v}}') {{ i | translate}}
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitGameSetting(vm.newFrontEndGameSetting)') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

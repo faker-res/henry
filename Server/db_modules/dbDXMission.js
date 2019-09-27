@@ -941,8 +941,8 @@ let dbDXMission = {
                             }
                         };
 
-                        let recipientName = msg.name || '';
-
+                        let encodePhoneNum = dbUtility.encodePhoneNum(sendObj.tel) || '';
+                        let recipientName = msg.name || encodePhoneNum || '';
                         return smsAPI.sending_sendMessage(sendObj).then(
                             retData => {
                                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');

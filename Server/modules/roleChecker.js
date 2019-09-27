@@ -433,6 +433,7 @@ var roleChecker = {
                 MaintainGame: ['updateGameStatusToPlatform'],
                 DisableGame: ['updateGameStatusToPlatform'],
                 UploadImage: [],
+                EditGameName: ['renameGame']
                 // MaintenanceTime: ['updateGameStatusToPlatform']
             },
             "GameGroup": {
@@ -443,6 +444,7 @@ var roleChecker = {
                 Delete: ['deleteGameGroup'],
                 RemoveGameFromGroup: ['updatePlatformGameGroup'],
                 AddGameToGroup: ['updatePlatformGameGroup'],
+                EditGameName: ['renameGame']
             },
             // "PaymentChannel": {
             //     Read: ['getAllPaymentChannel'],
@@ -512,6 +514,7 @@ var roleChecker = {
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
                 referral: ['updateReferralConfig'],
+                TopUpAmountConfig: ['updatePlatformTopUpAmount'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],

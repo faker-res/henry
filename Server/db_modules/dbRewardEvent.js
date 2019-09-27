@@ -817,7 +817,7 @@ var dbRewardEvent = {
                                                             select: "providerGroupId name providers"
                                                         }).then(
                                                             populatedProviderGroup => {
-                                                                if (populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
+                                                                if (populatedProviderGroup.result.providerGroup && populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
                                                                     return dbconfig.collection_gameProvider.populate(populatedProviderGroup, {
                                                                         path: 'result.providerGroup.providers',
                                                                         model: dbconfig.collection_gameProvider,
@@ -3020,7 +3020,7 @@ var dbRewardEvent = {
                         let periodData = rewardSpecificData[2];
                         let festivalData = rewardSpecificData[3];
                         let applyFestivalTimes = 0;
-                        let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
+                        let topUpSum = topUpDatas.reduce((sum, value) => sum + (value.oriAmount || value.amount), 0);
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         console.log('MT --checking before festivalData', festivalData);
@@ -3675,7 +3675,7 @@ var dbRewardEvent = {
     },
 
     updateRewardEventGroup: function (query, updateData) {
-        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
     },
 
     updateForbidRewardEvents: function (rewardObjId) {

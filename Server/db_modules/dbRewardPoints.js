@@ -1866,7 +1866,7 @@ let dbRewardPoints = {
                         if (!(playerPointInfoListArr && playerPointInfoListArr.length) && playerRewardPoint) {
                             playerPointInfoListArr = [{
                                 "rank": "1000+",
-                                "grade": playerRewardPoint.playerLevel.name,
+                                "grade": playerRewardPoint.playerLevel && playerRewardPoint.playerLevel.name || "等级不存在",
                                 "totalPoint": playerRewardPoint.points
                             }]
                         }
@@ -2649,6 +2649,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "gradeLimit": level,
                         "gradeName": levelName,
                         "point": reward.rewardPoints,
+                        "pointMode": reward.pointMode,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,

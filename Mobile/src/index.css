@@ -179,6 +179,7 @@ input:focus+label ,select:focus+label  {
   padding: 0 1em;
 }
 
+.overlay span,
 .overlay a {
   padding: 8px;
   text-decoration: none;
@@ -207,7 +208,8 @@ input:focus+label ,select:focus+label  {
   font-weight: 100;
 }
 
-.dropdown a {
+.dropdown a,
+.dropdown span {
   padding: 9px;
   text-decoration: none;
   font-size: 15px;

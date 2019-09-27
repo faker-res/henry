@@ -53,7 +53,8 @@ var localConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
+    bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
+    bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
 
 //for aws-development
@@ -90,7 +91,8 @@ var devConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
+    bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
+    bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
 
 //for settlement
@@ -157,7 +159,8 @@ var qaConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
+    bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
+    bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
 
 var testAPIConfig = {
@@ -297,7 +300,8 @@ var prodConfig = {
     voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
     voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
     voiceCodeSecret: "bfb2bab2d9ec",
-    weiboAppKey:"2849184197",
+    bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
+    bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
 
 

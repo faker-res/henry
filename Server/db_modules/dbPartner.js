@@ -9429,11 +9429,10 @@ let dbPartner = {
 
     urlShortener: (data) => {
 
-            let weiboAppKey = env.weiboAppKey;
             let urls = data.urls;
             let proms = [];
             urls.forEach(url =>{
-                let uri = 'http://api.t.sina.com.cn/short_url/shorten.json?source=' + weiboAppKey + '&url_long=' + url;
+                let uri = 'http://sa.sogou.com/gettiny?url=' + url;
                 let prom = getUrlShortner(uri);
                 proms.push(prom);
             })
@@ -9442,16 +9441,10 @@ let dbPartner = {
                 data=> {
                     let result = [];
                     data.forEach( (item, index) => {
-                        try {
-                             item = JSON.parse(item);
-                             item = ( item && item[0] ) ? item[0] : {}
-                             item.no = index + 1;
-                             result.push(item);
-                        }
-                         catch(err) {
-                             console.log('MT --checking JSON INVALID', item);
-                             result.push({no: index + 1 , url_long: urls[index]});
-                        }
+                        let urlData = {};
+                        urlData.url_short = item;
+                        urlData.no = index + 1;
+                        result.push(urlData);
                     })
                     console.log('MT --checking urlShortener', result);
                     return result
@@ -11336,6 +11329,7 @@ let dbPartner = {
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
 
+            statsObj.totalActivePlayer = allActivePlayerList.length || 0;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
             statsObj.currentPage = currentPage;
@@ -11897,6 +11891,9 @@ function getPartnerAndDownlinePlayerData (platformObjId, partnerObjId, crewAccou
                 break;
             case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
                 configPrefix = "weeklyActive";
+                break;
+            case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+                configPrefix = "monthlyActive";
                 break;
         }
 
@@ -13941,28 +13938,28 @@ function getCrewTopUpDetail (playerObjId, startTime, endTime) {
 }
 
 function getCustomizeRatePartner(query) {
-    let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
-    let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
+    // let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
+    // let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
     // multi level commission
     let mainCommissionRateConfigProm = dbconfig.collection_partnerMainCommRateConfig.find(query, {_id:0, partner:1}).lean();
 
-    return Promise.all([commissionConfigProm, commissionRateConfigProm, mainCommissionRateConfigProm]).then(
+    return mainCommissionRateConfigProm.then(
         data => {
             if (data) {
-                let commissionConfigPartner = data[0] || [];
-                let commissionRateConfigPartner = data[1] || [];
-                let mainCommissionRateConfigPartner = data[2] || [];
-                let returnData = [];
-                returnData = commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
-                    // avoid duplicate partner
-                    return !commissionConfigPartner.find(commConfig => commConfig.partner && item.partner && String(commConfig.partner) == String(item.partner));
-                }));
-                returnData =  returnData.concat(mainCommissionRateConfigPartner.filter(function (mainCommRate) {
-                    return !returnData.find(item => item.partner && mainCommRate.partner && String(item.partner) == String(mainCommRate.partner));
-                }));
+                // let commissionConfigPartner = data[0] || [];
+                // let commissionRateConfigPartner = data[1] || [];
+                // let mainCommissionRateConfigPartner = data[2] || [];
+                // let returnData = [];
+                // returnData = commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
+                //     // avoid duplicate partner
+                //     return !commissionConfigPartner.find(commConfig => commConfig.partner && item.partner && String(commConfig.partner) == String(item.partner));
+                // }));
+                // returnData =  returnData.concat(mainCommissionRateConfigPartner.filter(function (mainCommRate) {
+                //     return !returnData.find(item => item.partner && mainCommRate.partner && String(item.partner) == String(mainCommRate.partner));
+                // }));
 
 
-                return returnData;
+                return data;
             }
         }
     );
