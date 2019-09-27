@@ -75,6 +75,7 @@ class NavBar extends Component{
         platforms.forEach(platform => {
             list.push(<option key={platform.name} value={platform._id}> {`${platform.platformId}.  ${platform.name}`}</option>)
         })
+        console.log(list)
         return list;
     }
     
@@ -129,8 +130,8 @@ class NavBar extends Component{
                     </div>
 
                     <div className="overlay-content">
-                        <a href="#"> <FontAwesomeIcon icon="tachometer-alt"/> 面板</a>
-                        <a href="#"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
+                        <a href="#/dashboard"> <FontAwesomeIcon icon="tachometer-alt"/> 面板</a>
+                        <a href="#/analysis"> <FontAwesomeIcon icon="chart-line" /> 分析</a>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import LineChart from './lineChart';
 import Card from './card';
 import NavBar from './navBar';
-import DateFilter from './dateFilter';
 
 import socketService from '../services/socketService';
 import localStorageService from '../services/localStorageService';
@@ -268,12 +267,7 @@ class Dashboard extends Component {
         return (
             <div>
                 <NavBar/>
-                <br></br>
-                <br></br>
                 <div className="col-12">
-
-
-                    <br></br>
                     <h1>平台選擇</h1>
                     <hr></hr>
                     <div className="card-deck">
@@ -309,7 +303,6 @@ class Dashboard extends Component {
                         />
                     </div>
 
-                    <br></br>
                     <h1>统计数据</h1>
                     <hr></hr>
 
@@ -336,7 +329,6 @@ class Dashboard extends Component {
                     />
                 </div>
 
-                <br></br>
                 <h1>营运数据</h1>
                 <hr></hr>
 
@@ -358,9 +350,6 @@ class Dashboard extends Component {
                             </div>
                         </div>
                     </div>
-
-                    <DateFilter/>
-
                 </div>
             </div>
         );
