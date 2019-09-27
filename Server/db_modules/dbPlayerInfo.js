@@ -15948,6 +15948,7 @@ let dbPlayerInfo = {
 
                             // Login if required - For long validity of token period
                             if (isLogin) {
+                                console.log('confirm isLogin', isLogin);
                                 dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
                             }
 
