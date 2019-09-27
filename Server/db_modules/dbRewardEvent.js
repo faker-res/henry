@@ -817,7 +817,7 @@ var dbRewardEvent = {
                                                             select: "providerGroupId name providers"
                                                         }).then(
                                                             populatedProviderGroup => {
-                                                                if (populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
+                                                                if (populatedProviderGroup.result.providerGroup && populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
                                                                     return dbconfig.collection_gameProvider.populate(populatedProviderGroup, {
                                                                         path: 'result.providerGroup.providers',
                                                                         model: dbconfig.collection_gameProvider,

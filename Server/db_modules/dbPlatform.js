@@ -7289,6 +7289,28 @@ var dbPlatform = {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
     },
 
+    getPlatformTopUpAmountConfig: function (platformObjId) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformObjId}).lean();
+    },
+
+    updatePlatformTopUpAmount: function (query, updateData) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformTopUpAmountConfig.update(query, updateData);
+                } else {
+                    let newSetting = {
+                        platformObjId: query.platformObjId,
+                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpCountAmountRange: updateData.topUpCountAmountRange
+                    }
+
+                    return dbconfig.collection_platformTopUpAmountConfig(newSetting).save();
+                }
+            }
+        )
+    },
+
     toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {
         let query = {_id: platformObjId};
         let updObj = {$set: {displayFrontEndRewardPointsRankingData: updateData}};

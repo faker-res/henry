@@ -98,6 +98,7 @@ let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary
 let scheduledCsRankingRecordSchema = require('./../schema/logs2/scheduledCsRankingRecord');
 let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive800DailyRecords');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
+let platformTopUpAmountConfigSchema = require('./../schema/admindb/platformTopUpAmountConfig');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
@@ -303,6 +304,7 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
+let platformTopUpAmountConfigModel = db_admin.model('platformTopUpAmountConfig', platformTopUpAmountConfigSchema, 'platformTopUpAmountConfig');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
@@ -827,6 +829,7 @@ var dbProperties = {
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
+    collection_platformTopUpAmountConfig: platformTopUpAmountConfigModel,
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,

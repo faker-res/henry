@@ -24770,6 +24770,9 @@ define(['js/app'], function (myApp) {
 
                         vm.newDelayDurationGroup = {};
                         break;
+                    case 'topUpAmountConfig':
+                        vm.getPlatformTopUpAmountConfig(platformObjId);
+                        break;
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
                         break;
@@ -33388,6 +33391,9 @@ define(['js/app'], function (myApp) {
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
                         break;
+                    case 'topUpAmountConfig':
+                        updatePlatformTopUpAmountConfig(vm.topUpAmountBasic)
+                        break;
                     case 'partnerBasic':
                         updatePartnerBasic(vm.partnerBasic);
                         break;
@@ -34590,6 +34596,35 @@ define(['js/app'], function (myApp) {
                     }
 
                 });
+            }
+
+            function updatePlatformTopUpAmountConfig(srcData) {
+                let isPass = true;
+
+                if (srcData.topUpCountAmountRange && srcData.topUpCountAmountRange.length) {
+                    srcData.topUpCountAmountRange.forEach(el => {
+                        if (!el.topUpCount) {
+                            isPass = false;
+                        }
+                    })
+                }
+
+                let sendData = {
+                    query: {platformObjId: vm.filterConfigPlatform},
+                    updateData: {
+                        commonTopUpAmountRange: srcData.commonTopUpAmountRange,
+                        topUpCountAmountRange: srcData.topUpCountAmountRange
+                    }
+                };
+
+                if (isPass) {
+                    vm.configTableEdit=!vm.configTableEdit;
+                    socketService.$socket($scope.AppSocket, 'updatePlatformTopUpAmount', sendData, function (data) {
+                        loadPlatformData({loadAll: false});
+                    });
+                } else {
+                    socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                }
             }
 
             function updatePhoneFilter(srcData) {
@@ -44414,6 +44449,48 @@ define(['js/app'], function (myApp) {
                 }
                 return isValid;
             }
+
+            //#region top up amount range setting
+            vm.updateTopUpCountAmountRangeConfigInEdit = function (type, data) {
+                if (type == 'add') {
+                    if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
+                        if (data.topUpCount) {
+                            vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        } else {
+                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                        }
+                    } else {
+                        if (data) {
+                            if (data.topUpCount) {
+                                vm.topUpAmountBasic.topUpCountAmountRange = [];
+                                vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                            } else {
+                                socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                            }
+                        }
+                    }
+
+                } else if (type == 'remove') {
+                    vm.topUpAmountBasic.topUpCountAmountRange.splice(data, 1);
+                }
+            };
+
+            vm.getPlatformTopUpAmountConfig = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlatformTopUpAmountConfig', sendData, function (data) {
+                    console.log('getPlatformTopUpAmountConfig', data);
+                    $scope.$evalAsync(() => {
+                        vm.topUpAmountBasic = {};
+                        if (data && data.data) {
+                            vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+            //#endregion
 
             function getSelectedPlatform() {
                 let platform = null;
