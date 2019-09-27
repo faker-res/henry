@@ -2126,6 +2126,11 @@ let dbPlayerInfo = {
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         let chineseRegex = /^[\u4E00-\u9FA5\u00B7\u0020]{0,}$/;
 
+        if (playerdata.isTestPlayer) {
+            delete playerdata.partner;
+            delete playerdata.partnerId;
+        }
+
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
             if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
@@ -2538,7 +2543,7 @@ let dbPlayerInfo = {
                                 console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 ipDomain = ipDomainLog[0].domain;
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
-                                if (ipDomainLog[0].partnerId){
+                                if (ipDomainLog[0].partnerId && !(playerdata && playerdata.isTestPlayer)){
                                     partnerId = ipDomainLog[0].partnerId;
                                 }
 
