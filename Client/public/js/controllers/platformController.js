@@ -4288,6 +4288,7 @@ define(['js/app'], function (myApp) {
                         vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
                     }
                     //provider list init
+                    vm.nickNamePlatform = data.data;
                     vm.platformProviderList = data.data.gameProviders;
                     vm.platformProviderList.forEach(item => {
                         if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[platformId]) {
