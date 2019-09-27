@@ -495,7 +495,7 @@ const dbPlayerPayment = {
                             if (ret.max && Number(ret.max) && (tempMaxConfig > Number(ret.max))) {
                                 newMaxDepositAmount = Number(ret.max);
                             } else {
-                                newMaxDepositAmount = range.maxAmount;
+                                newMaxDepositAmount = tempMaxConfig;
                             }
                         }
 
