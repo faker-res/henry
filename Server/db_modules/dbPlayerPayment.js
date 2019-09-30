@@ -620,6 +620,13 @@ const dbPlayerPayment = {
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
         let player, rewardEvent, proposal, topUpSystemConfig;
         console.log('topupRequest JY::', topupRequest);
+        if (!(topupRequest.amount && Number.isInteger(topupRequest.amount) && topupRequest.amount < 10000000)) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Please fill in correct amount"
+            });
+        }
+
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
