@@ -5536,6 +5536,10 @@ let dbPartner = {
 
             let platformId = ObjectId(partnerDetail[0].platform);
             let partnerId = ObjectId(partnerDetail[0].partner);
+            let activePlayerTopUpTimes;
+            let activePlayerTopUpAmount;
+            let activePlayerConsumptionTimes;
+            let activePlayerConsumptionAmount;
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
