@@ -497,6 +497,21 @@ const dbPlayerPayment = {
                             } else {
                                 newMaxDepositAmount = tempMaxConfig;
                             }
+                        } else {
+                            let tempMinConfig = defaultMinTopUpAmount;
+                            let tempMaxConfig = defaultMaxTopUpAmount;
+
+                            if(ret.min && Number(ret.min) && (tempMinConfig > Number(ret.min))) {
+                                newMinDepositAmount = tempMinConfig;
+                            } else {
+                                newMinDepositAmount = Number(ret.min)
+                            }
+
+                            if (ret.max && Number(ret.max) && (tempMaxConfig > Number(ret.max))) {
+                                newMaxDepositAmount = Number(ret.max);
+                            } else {
+                                newMaxDepositAmount = tempMaxConfig;
+                            }
                         }
 
                         if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
