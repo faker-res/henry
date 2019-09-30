@@ -375,6 +375,7 @@ var WebSocketUtility = {
                 wss.clients.forEach(
                     client => {
                         if (service[functionName] && client.EBETNotify == true) {
+                            console.log("EBET RTN Notification", data)
                             service[functionName].response(client, {status: 200, data: data});
                         }
                     }

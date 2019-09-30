@@ -23,7 +23,7 @@
                         div(ng-if='provider.status !== 3')
                             .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
                             .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
-                            text(class='{{vm.getProviderStatusClass(vm.getProviderStatus(provider))}}') {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
+                            text(class='{{vm.getProviderStatusClass(vm.getProviderStatus(provider))}}') {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.nickNamePlatform, provider)}} )
                             text(ng-show="provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut") [{{'TRANSFER_OUT' | translate}} {{provider.batchCreditTransferOut.processedAmount}}/{{provider.batchCreditTransferOut.totalAmount}}]
                         div(ng-if='provider.status === 3')
                             .fa.fa-circle

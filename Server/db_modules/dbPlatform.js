@@ -3138,6 +3138,7 @@ var dbPlatform = {
             let playerLevels = [];
             let themeIdList = [];
             let themeStyleObjId = null;
+            let platformTopUpAmountConfig;
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3201,10 +3202,18 @@ var dbPlatform = {
                     if (data) {
 
                         platformData = data;
-                        return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
+
+                        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformData._id});
+
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
+                }
+            ).then(
+                topUpAmountConfig => {
+                    platformTopUpAmountConfig = topUpAmountConfig;
+
+                    return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
             ).then(
                 playerLevelData => {
@@ -3461,6 +3470,12 @@ var dbPlatform = {
 
                         if (subject == 'partner') {
                             return appendPartnerConfig(platformData._id, returnedObj);
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                        } else {
+                            returnedObj.minDepositAmount = 10;
                         }
 
                         return returnedObj;
@@ -7287,6 +7302,28 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
+    },
+
+    getPlatformTopUpAmountConfig: function (platformObjId) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformObjId}).lean();
+    },
+
+    updatePlatformTopUpAmount: function (query, updateData) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformTopUpAmountConfig.update(query, updateData);
+                } else {
+                    let newSetting = {
+                        platformObjId: query.platformObjId,
+                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpCountAmountRange: updateData.topUpCountAmountRange
+                    }
+
+                    return dbconfig.collection_platformTopUpAmountConfig(newSetting).save();
+                }
+            }
+        )
     },
 
     toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {
