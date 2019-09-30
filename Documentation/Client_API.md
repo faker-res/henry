@@ -799,6 +799,7 @@ API说明：
 	    playerId: 必填|String|玩家ID
 	    token: 必填|String|玩家token
         isLogin: 选填|Boolean|是否进行玩家登陆行为
+        clientDomain: 选填|String|玩家所在域名
 	    ```
 	* 操作成功:
         ```

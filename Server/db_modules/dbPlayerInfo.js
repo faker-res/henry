@@ -15915,7 +15915,7 @@ let dbPlayerInfo = {
         );
     },
 
-    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice) {
+    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
             if (err || !decoded) {
@@ -15953,8 +15953,8 @@ let dbPlayerInfo = {
 
                             // Login if required - For long validity of token period
                             if (isLogin) {
-                                console.log('confirm isLogin', isLogin);
                                 playerData.platformId = playerData.platform.platformId;
+                                playerData.clientDomain = clientDomain;
                                 dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
                             }
 
