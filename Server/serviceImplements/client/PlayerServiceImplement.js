@@ -1152,11 +1152,9 @@ let PlayerServiceImplement = function () {
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
-        console.log('authenticate data', data);
-
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.authenticate,
-            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice], true, false, false, true
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
         );
     };
 

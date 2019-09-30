@@ -5536,6 +5536,10 @@ let dbPartner = {
 
             let platformId = ObjectId(partnerDetail[0].platform);
             let partnerId = ObjectId(partnerDetail[0].partner);
+            let activePlayerTopUpTimes;
+            let activePlayerTopUpAmount;
+            let activePlayerConsumptionTimes;
+            let activePlayerConsumptionAmount;
 
             return dbconfig.collection_activeConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
                 if (!config) {
@@ -11102,6 +11106,9 @@ let dbPartner = {
         let rewardProposalTypes = [];
         let allPlayerList = [];
         let allActivePlayerList = [];
+        let activePlayerCount = 0;
+        let activeRequirement;
+        let playerDetailsObj = {};
         let newPlayerList = [];
         let allValidPlayerList = [];
         let validPlayerRequirement = {};
@@ -11206,6 +11213,9 @@ let dbPartner = {
             }
         ).then(
             partnerAndDownlinePlayerData => {
+                if (partnerAndDownlinePlayerData && partnerAndDownlinePlayerData.length) {
+                    activeRequirement = partnerAndDownlinePlayerData[0].activePlayerRequirement || null;
+                }
                 return getEachPartnerDownlinePlayerDetail(partnerAndDownlinePlayerData, timeSlots, providerGroups, paymentProposalTypes, rewardProposalTypes, validPlayerRequirement, platformRecord);
 
             }
@@ -11215,6 +11225,10 @@ let dbPartner = {
                     allPlayerData.forEach(data => {
                         let index = allPlayerList.findIndex(x => x && x.crewAccount && data.name && (x.crewAccount === data.name));
                         if (index > -1) {
+                            playerDetailsObj[data.name].topUpTimes += data.topUpDetail.topUpTimes;
+                            playerDetailsObj[data.name].consumptionTimes += data.consumptionDetail.consumptionTimes;
+                            playerDetailsObj[data.name].validBet += data.consumptionDetail.validAmount;
+                            playerDetailsObj[data.name].depositAmount += data.topUpDetail.topUpAmount;
                             allPlayerList[index].crewProfit += data.consumptionDetail.bonusAmount,
                             allPlayerList[index].depositAmount += data.topUpDetail.topUpAmount,
                             allPlayerList[index].withdrawAmount += data.withdrawalDetail.withdrawalAmount,
@@ -11223,6 +11237,12 @@ let dbPartner = {
                             allPlayerList[index].platformFee += data.totalPlatformFee,
                             allPlayerList[index].totalDepositWithdrawFee += data.totalDepositWithdrawFee
                         } else {
+                            playerDetailsObj[data.name] = {
+                                topUpTimes: data.topUpDetail.topUpTimes,
+                                consumptionTimes: data.consumptionDetail.consumptionTimes,
+                                validBet: data.consumptionDetail.validAmount,
+                                depositAmount: data.topUpDetail.topUpAmount
+                            }
                             let tempData = {
                                 crewAccount: data.name,
                                 crewRegisterTime: data.registrationTime,
@@ -11281,6 +11301,17 @@ let dbPartner = {
                             new Date(player.crewRegisterTime).getTime() >= intervalTime.startTime.getTime() &&
                             new Date(player.crewRegisterTime).getTime() < intervalTime.endTime.getTime());
                     }
+
+                    if (activeRequirement && playerDetailsObj && Object.keys(playerDetailsObj).length) {
+                        for (let key in playerDetailsObj) {
+                            if ((playerDetailsObj[key].consumptionTimes >= activeRequirement.consumptionTimes)
+                            && (playerDetailsObj[key].validBet >= activeRequirement.consumptionAmount)
+                            && (playerDetailsObj[key].topUpTimes >= activeRequirement.topUpTimes)
+                            && (playerDetailsObj[key].depositAmount >= activeRequirement.topUpAmount)) {
+                                activePlayerCount += 1
+                            }
+                        }
+                    }
                 }
 
                 let result = [];
@@ -11329,7 +11360,7 @@ let dbPartner = {
             totalCount = tempList.length ? tempList.length : 0;
             totalPage = Math.ceil(totalCount / limit);
 
-            statsObj.totalActivePlayer = allActivePlayerList.length || 0;
+            statsObj.totalActivePlayer = activePlayerCount || 0;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
             statsObj.currentPage = currentPage;
