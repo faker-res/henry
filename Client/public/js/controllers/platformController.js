@@ -4384,7 +4384,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData(vm.filterGamePlatform);
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
                 })
             }
 
