@@ -4295,6 +4295,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     if (gamePage) {
+                        vm.nickNamePlatform = data.data;
                         vm.platformProviderGameList = data.data.gameProviders;
                     }
                     vm.providerListCheck = {};
@@ -41746,26 +41747,17 @@ define(['js/app'], function (myApp) {
                 if(imageFile.files.length > 0){
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
-
-                    let REGEX_CHINESE = /[/^\s*$/]|[\u4e00-\u9fff]|[\u3400-\u4dbf]|[\u{20000}-\u{2a6df}]|[\u{2a700}-\u{2b73f}]|[\u{2b740}-\u{2b81f}]|[\u{2b820}-\u{2ceaf}]|[\uf900-\ufaff]|[\u3300-\u33ff]|[\ufe30-\ufe4f]|[\uf900-\ufaff]|[\u{2f800}-\u{2fa1f}]/u;
-                    let hasChinese = REGEX_CHINESE.test(fileName);
-                    console.log('checking regex', hasChinese);
-                    if(hasChinese){
-                        vm.uploadImageMsg = "上传档案名称请勿包含中文以及空格";
-                    }else{
-                        let sendQuery = {
-                            query: {
-                                platformId: platformNo,
-                                gameId: vm.curGame.gameId || null,
-                                gameName: fileName || null
-                            },
-                            fileData: fileData
-                        };
-                        $scope.$socketPromise("updateImageUrl", sendQuery);
-                        alert($translate('Upload Successful'));
-                        vm.providerClicked(1, vm.SelectedProvider);
-                    }
-
+                    let sendQuery = {
+                        query: {
+                            platformId: platformNo,
+                            gameId: vm.curGame.gameId || null,
+                            gameName: fileName || null
+                        },
+                        fileData: fileData
+                    };
+                    $scope.$socketPromise("updateImageUrl", sendQuery);
+                    alert($translate('Upload Successful'));
+                    vm.providerClicked(1, vm.SelectedProvider);
                 } else {
                     vm.uploadImageMsg = "Please choose an image first";
                 }
@@ -44486,6 +44478,14 @@ define(['js/app'], function (myApp) {
                         vm.topUpAmountBasic = {};
                         if (data && data.data) {
                             vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+                        }
+
+                        if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
+                            vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
+                            vm.topUpAmountBasic.commonTopUpAmountRange = {
+                                minAmount: 10,
+                                maxAmount: 100000
+                            };
                         }
                     })
                 });

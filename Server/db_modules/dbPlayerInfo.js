@@ -2126,6 +2126,11 @@ let dbPlayerInfo = {
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
         let chineseRegex = /^[\u4E00-\u9FA5\u00B7\u0020]{0,}$/;
 
+        if (playerdata.isTestPlayer) {
+            delete playerdata.partner;
+            delete playerdata.partnerId;
+        }
+
         if (env.mode !== "local" && env.mode !== "qa") {
             // ignore for unit test
             if (/*playerdata.name.length < 6 || playerdata.name.length > 20 ||*/ !playerdata.name.match(alphaNumRegex)) {
@@ -2538,7 +2543,7 @@ let dbPlayerInfo = {
                                 console.log("checking ipDomainSourceUrl", ipDomainSourceUrl || null)
                                 ipDomain = ipDomainLog[0].domain;
                                 ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
-                                if (ipDomainLog[0].partnerId){
+                                if (ipDomainLog[0].partnerId && !(playerdata && playerdata.isTestPlayer)){
                                     partnerId = ipDomainLog[0].partnerId;
                                 }
 
@@ -3634,6 +3639,7 @@ let dbPlayerInfo = {
         let isGetQuestion = false; //  return question only
         let correctQues = [];
         let incorrectQues = [];
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -3646,7 +3652,8 @@ let dbPlayerInfo = {
                     paymentSystemId = platformObj.bonusSystemType;
                 }
                 return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
-            }).then(
+            }
+        ).then(
             playerData => {
                 if (!playerData) {
                     return Q.reject({name: "DataError", message: "Cannot find player"});
@@ -15910,7 +15917,7 @@ let dbPlayerInfo = {
         );
     },
 
-    authenticate: function (playerId, token, playerIp, conn) {
+    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
             if (err || !decoded) {
@@ -15945,6 +15952,13 @@ let dbPlayerInfo = {
 
                             // Online time trace
                             dbPlayerOnlineTime.authenticateTimeLog(playerData._id, token).catch(errorUtils.reportError);
+
+                            // Login if required - For long validity of token period
+                            if (isLogin) {
+                                console.log('confirm isLogin', isLogin);
+                                playerData.platformId = playerData.platform.platformId;
+                                dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
+                            }
 
                             deferred.resolve(true);
                             // }

@@ -486,7 +486,22 @@ const dbPlayerPayment = {
                             let tempMinConfig = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
                             let tempMaxConfig = platformTopUpAmountConfig.commonTopUpAmountRange.maxAmount;
 
-                            if(ret.min && Number(ret.min) && (tempMinConfig > Number(ret.min))) {
+                            if(Number(ret.min) && (tempMinConfig > Number(ret.min))) {
+                                newMinDepositAmount = tempMinConfig;
+                            } else {
+                                newMinDepositAmount = Number(ret.min)
+                            }
+
+                            if (ret.max && Number(ret.max) && (tempMaxConfig > Number(ret.max))) {
+                                newMaxDepositAmount = Number(ret.max);
+                            } else {
+                                newMaxDepositAmount = tempMaxConfig;
+                            }
+                        } else {
+                            let tempMinConfig = defaultMinTopUpAmount;
+                            let tempMaxConfig = defaultMaxTopUpAmount;
+
+                            if(Number(ret.min) && (tempMinConfig > Number(ret.min))) {
                                 newMinDepositAmount = tempMinConfig;
                             } else {
                                 newMinDepositAmount = Number(ret.min)
@@ -506,7 +521,7 @@ const dbPlayerPayment = {
                             for (let i = 0; i < topUpCountAmountRanges.length; i++) {
                                 let range = topUpCountAmountRanges[i];
                                 if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
-                                    if(range && range.minAmount && ret.min && Number(ret.min)) {
+                                    if(range && range.minAmount && Number(ret.min)) {
                                         if(range.minAmount > Number(ret.min)) {
                                             newMinDepositAmount = range.minAmount;
                                         } else {
