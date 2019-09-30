@@ -769,7 +769,7 @@ define(['js/app'], function (myApp) {
                         status: '1',
                         qiUser: 'all',
                         displayWay: 'true',
-                        searchBySummaryData: true
+                        searchBySummaryData: false
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -2342,7 +2342,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedCompanyId.push(companyId);
                         })
                     }
-                    if (platform.data.csDepartment.length >0) {
+                    if (platform.data && platform.data.csDepartment && platform.data.csDepartment.length >0) {
 
                        platform.data.csDepartment.forEach(department =>{
                            vm.allCSDepartmentId.push(department._id);
@@ -3168,11 +3168,11 @@ define(['js/app'], function (myApp) {
                     console.log("Error when gather summarized Live 800 Record Data:", error)
                 });
 
-                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
-                   console.log("Live800 records has gathered completely")
-                }, function (error){
-                    console.log("Error when gather Live800 records: ", error)
-                });
+                // socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                //    console.log("Live800 records has gathered completely")
+                // }, function (error){
+                //     console.log("Error when gather Live800 records: ", error)
+                // });
             }
 
             vm.resummarizeLive800Record = function(){
@@ -3195,11 +3195,11 @@ define(['js/app'], function (myApp) {
                     console.log("Error when gather summarized Live 800 Record Data:", error)
                 });
 
-                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
-                    console.log("Live800 records has gathered completely")
-                }, function (error){
-                    console.log("Error when gather Live800 records: ", error)
-                });
+                // socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                //     console.log("Live800 records has gathered completely")
+                // }, function (error){
+                //     console.log("Error when gather Live800 records: ", error)
+                // });
             }
 
             vm.getSummarizedLive800RecordCount = function(){
