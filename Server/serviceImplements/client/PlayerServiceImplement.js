@@ -1827,6 +1827,11 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data && data.bankcard);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
     };
+
+    this.updatePlayerAvatar.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

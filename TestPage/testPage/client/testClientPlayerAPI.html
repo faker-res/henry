@@ -2279,6 +2279,25 @@
     </div>
 </div>
 
+
+<h3>Update Player Avatar (设置头像信息)</h3>
+<div class="test-container">
+    <div>
+        <label>Avatar
+            <input id="avatar" type=text name="avatar">
+        </label>
+    </div>
+    <div>
+        <label>Avatar Frame
+            <input id="avatarFrame" type=text name="avatarFrame">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="updatePlayerAvatar" data-api-name="updatePlayerAvatar">Update</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {
