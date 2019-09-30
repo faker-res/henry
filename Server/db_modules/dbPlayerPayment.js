@@ -353,7 +353,7 @@ const dbPlayerPayment = {
         let topUpSystemConfig;
         let topUpSystemName;
         let defaultMinTopUpAmount = 10;
-        let defaultMaxTopUpAmount = 100000;
+        let defaultMaxTopUpAmount = 1000000;
         let platformMinTopUpAmount = 0;
         let result = {};
         let proposalData = {};

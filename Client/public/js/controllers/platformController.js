@@ -44493,7 +44493,7 @@ define(['js/app'], function (myApp) {
                             vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
                             vm.topUpAmountBasic.commonTopUpAmountRange = {
                                 minAmount: 10,
-                                maxAmount: 100000
+                                maxAmount: 1000000
                             };
                         }
                     })
