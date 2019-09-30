@@ -22149,7 +22149,7 @@ let dbPlayerInfo = {
         });
     },
 
-    getDXTrackingData: (playerInfo, playerIds, query) => {
+    getDXTrackingData: (playerInfo, playerIds, query, bonusProposalType) => {
         playerIds = playerIds.map(playerId => ObjectId(playerId));
         // let stringPlayerIds = playerIds.map(playerId => String(playerId));
         // playerIds.concat(stringPlayerIds);
@@ -22178,7 +22178,6 @@ let dbPlayerInfo = {
                 }
             }
         ]).allowDiskUse(true).read("secondaryPreferred");
-
         let bonusProm = dbconfig.collection_proposal.aggregate([
             {
                 $match: {
@@ -22187,6 +22186,7 @@ let dbPlayerInfo = {
                         $gte: new Date(query.queryStart),
                         $lt: new Date(query.queryEnd)
                     },
+                    type: ObjectId(bonusProposalType._id),
                     "data.amount": {$exists: true}
                 }
             },
@@ -22288,7 +22288,7 @@ let dbPlayerInfo = {
         )
     },
 
-    getDXTrackingReport: function (platform, query, index, limit, sortCol) {
+    getDXTrackingReport: async function (platform, query, index, limit, sortCol) {
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
 
@@ -22361,8 +22361,14 @@ let dbPlayerInfo = {
             provider: [],
             player: []
         };
+        let bonusProposalType = await dbconfig.collection_proposalType.findOne({
+            platformId: platform,
+            name: constProposalType.PLAYER_BONUS
+        }).lean()
+
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
+
             return Q(
                 balancer.processStream(
                     {
@@ -22378,7 +22384,8 @@ let dbPlayerInfo = {
                                 request("player", "getDXTrackingData", {
                                     playerInfo: playerInfo,
                                     playerIds: playerIds,
-                                    query: query
+                                    query: query,
+                                    bonusProposalType: bonusProposalType,
                                 });
                         },
                         processResponse: function (record) {
