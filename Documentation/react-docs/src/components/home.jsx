@@ -6,18 +6,18 @@ class Home extends Component {
     state = {
         api: {
             Login: [
-                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#玩家开户"},
-                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家开户"},
+                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#登录"},
+                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家登录"},
             ],
             Register: [
-                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#登录"}
+                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#玩家开户"}
             ]
         },
         display:{},
         linkList:{}
     };
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         let api = this.state.api;
         let testData = [];
         for (let key in api) {
@@ -31,62 +31,29 @@ class Home extends Component {
     clickHandler = (event) => {
         let api = this.state.api;
         let testData = [];
-        let testDataDetail = [];
         for (let key in api) {
             testData.push(api[key]);
-            console.log('key api', api[key][key]);
         }
-        console.log('test data', testData);
-        let keys = Object.keys(api).map(key => key.toString());
-        let index = keys.findIndex(item => item.toString() === event.target.innerText);
-        console.log('the index', index);
+        let index = Object.keys(api).indexOf(event.target.innerText);
         this.setState({display: testData[index]});
-
-        // if(index < 0){
-        //     this.state.display.map(item => {
-        //         if(event.target.innerText === item.name){
-        //             console.log('display', item);
-        //             this.state.linkList = item.url;
-        //         }
-        //     })
-        // }else{
-        //     if(this.state.display[index].name === event.target.innerText){
-        //         this.state.linkList = this.state.display[index].url;
-        //     }
-        // }
+        this.setState({linkList: ""});
 
     };
 
-    anotherClick = (event) => {
+    showLinkHandler = (event) => {
         let api = this.state.display;
-        let testDataDetail = [];
-        for (let key in api) {
-            testDataDetail.push(api[key]);
-
-        }
-        testDataDetail.map(item => {
-            if(event.target.innerText === item.name){
-                this.state.linkList = item.url;
-                console.log('link 1', this.state.linkList);
-            }
-        })
-
-        this.setState({linkList: this.state.linkList});
-    }
+        let index = api.findIndex(item => item.name.toString() === event.target.innerText);
+        this.setState({linkList: api[index]});
+    };
 
     render() {
         const lists = Object.keys(this.state.api).map((key, index) => {
             return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
         });
-        console.log('btn display', this.state.display);
-        const btns = this.state.display.map(item => {
-                return <button onClick={this.anotherClick} className="btn btn-dark m-1">{item.name}</button>
+
+        const btns = this.state.display.map((item, index) => {
+                return <button key={index} onClick={this.showLinkHandler} className="btn btn-dark m-1">{item.name}</button>
         });
-        let link = " ";
-        console.log('link', this.state.linkList);
-        if(this.state.linkList.length > 0){
-            link = this.state.linkList;
-        }
 
         return (
             <div>
@@ -96,7 +63,10 @@ class Home extends Component {
                     />
                     <Content
                         linkBtn = {btns}
-                        urlList = {link}
+
+                        url = {this.state.linkList.url}
+                        name = {this.state.linkList.name}
+
                     />
                 </div>
             </div>
@@ -104,7 +74,4 @@ class Home extends Component {
     }
 }
 
-/*return  <a href={item.url}>
-    <button onClick={this.clickHandler} className="btn btn-dark m-1">{item.name}</button>
-</a>*/
 export default Home;
