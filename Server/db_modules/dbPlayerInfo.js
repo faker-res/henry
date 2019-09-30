@@ -16355,6 +16355,7 @@ let dbPlayerInfo = {
                                         || providerData.providerId == "83"
                                         || providerData.providerId == "86" // SABA
                                         || providerData.providerId == "94" // CQ9
+                                        || providerData.providerId == "131" // XJ
                                         || isApplyBonusDoubledReward
                                     )
                                 ) {
