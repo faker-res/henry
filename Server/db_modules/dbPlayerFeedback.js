@@ -1097,6 +1097,14 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        if (query.departments && query.departments.length && query.departments.includes('')) {
+            let deptArray = query.departments;
+            query.departments = deptArray.filter(a => {
+                if (a !== '') {
+                    return a;
+                }
+            });
+        }
         let department = await dbconfig.collection_department.find({
             _id: {$in: query.departments}
         }).lean();
