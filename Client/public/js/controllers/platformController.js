@@ -33365,6 +33365,7 @@ define(['js/app'], function (myApp) {
                             vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
                         }
 
+                        console.log("walaoeheheh",JSON.stringify(vm.platformBatchLevelUp,null,2))
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,

@@ -12105,7 +12105,8 @@ let dbPlayerInfo = {
                                             $lt: new Date(platformPeriodTime.endTime)
                                         },
                                         playerId: ObjectId(playerObj._id)
-                                    }
+                                    },
+                                    {createTime: 1, amount: 1}
                                 ).lean();
 
 
@@ -12118,7 +12119,8 @@ let dbPlayerInfo = {
                                             $lt: new Date(platformPeriodTime.endTime)
                                         },
                                         playerId: ObjectId(playerObj._id)
-                                    }
+                                    },
+                                    {createTime: 1, validAmount: 1}
                                 ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                     if (doc._doc) {
                                         consumptionArr.push(doc._doc);
@@ -12520,7 +12522,8 @@ let dbPlayerInfo = {
                                         $lt: new Date(platformPeriodTime.endTime)
                                     },
                                     playerId: ObjectId(playerObj._id)
-                                }
+                                },
+                                {createTime: 1, amount: 1}
                             ).lean();
 
                             let consumptionArr = [];
@@ -12532,7 +12535,8 @@ let dbPlayerInfo = {
                                         $lt: new Date(platformPeriodTime.endTime)
                                     },
                                     playerId: ObjectId(playerObj._id)
-                                }
+                                },
+                                {createTime: 1, validAmount: 1}
                             ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                 if (doc._doc) {
                                     consumptionArr.push(doc._doc);
