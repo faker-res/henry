@@ -32,7 +32,6 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlatformAnnouncement'),
     require('./../socketActionModule/socketActionPlayerMail'),
     require('./../socketActionModule/socketActionReport'),
-    require('./../socketActionModule/socketActionTestRewardEvent'),
     require('./../socketActionModule/socketActionUtility'),
     require('./../socketActionModule/socketActionPromoCode'),
     require('./../socketActionModule/socketActionCsOfficer'),
