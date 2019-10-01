@@ -12478,18 +12478,20 @@ define(['js/app'], function (myApp) {
                             }
                         })
 
-                        if (!(vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length)) {
-                            if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                                vm.gameProviderGroup.forEach(gameProviderGroup => {
+                        if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                if (!(vm.rateAfterRebateGameProviderGroup.find(group=> group.gameProviderGroupId && gameProviderGroup._id
+                                    && String(group.gameProviderGroupId) == String(gameProviderGroup._id)))) {
                                     vm.rateAfterRebateGameProviderGroup.push({
                                         gameProviderGroupId: gameProviderGroup._id,
                                         name: gameProviderGroup.name
                                     });
-                                    vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
-                                    vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
-                                })
-                            }
+                                }
+                            })
+                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                            vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
                         }
+
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
