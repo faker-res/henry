@@ -880,6 +880,9 @@ var dbPlayerTopUpRecord = {
             queryObj = {
                 proposalId: query.proposalId
             };
+            if (query.platformList && query.platformList.length > 0) {
+                queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+            }
         } else {
             queryObj = await getProposalQ(query);
         }

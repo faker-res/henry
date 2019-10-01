@@ -438,7 +438,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        let isValidData = Boolean(data);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.createCommonTopupProposal, [conn.playerId, data, lastLoginIp, "CLIENT"], isValidData);
     };
 
