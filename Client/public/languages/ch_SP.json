@@ -5469,6 +5469,9 @@
   "Require right platform": "需要正确的平台前缀",
   "incomplete active setting, please set partner active params": "请先设置",
   "Incomplete commission rate configuration": "代理提成设置不完善",
+  "commissionBillboard": "佣金排行榜",
+  "Commission_Rank": "佣金排名",
+  "AccumulatedCommission": "累积佣金",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",

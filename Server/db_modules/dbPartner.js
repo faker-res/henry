@@ -8295,7 +8295,35 @@ let dbPartner = {
 
     },
 
-    async getPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, recordDate) {
+    async adminGetPartnerCommissionBillBoard (platformObjId, periodCheck, count) {
+        let totalRecord = count || 10;
+
+        // get platform
+        let platformObj = await dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        if (!(platformObj && platformObj._id)) {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+
+        // get period of record date
+        if (periodCheck == constPartnerBillBoardPeriod.DAILY) {
+            recordDate = dbutility.getTodaySGTime();
+        } else if (periodCheck == constPartnerBillBoardPeriod.WEEKLY) {
+            recordDate = dbutility.getCurrentWeekSGTime();
+        }  else if (periodCheck == constPartnerBillBoardPeriod.BIWEEKLY) {
+            recordDate = dbutility.getCurrentBiWeekSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.MONTHLY) {
+            recordDate = dbutility.getCurrentMonthSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+
+        } else {
+            return Promise.reject({name: "DataError", message: "Invalid period"});
+        }
+
+        return dbPartner.getPartnerCommissionBillBoard(platformObj, periodCheck, null, totalRecord, recordDate, true);
+    },
+
+    async getPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, recordDate, isAdmin, index) {
+        console.log('getPartnerCommissionBillBoard arguments', arguments)
         let now = new Date();
         let twentyFiveMinutesAgo = new Date();
         twentyFiveMinutesAgo.setMinutes(now.getMinutes()-25);
@@ -8315,7 +8343,41 @@ let dbPartner = {
             });
         }
 
+        if(isAdmin) {
+            return retrieveCommissionBillBoardForAdmin(platformObj, periodCheck, totalRecord, )
+        }
         return dbPartner.retrieveCalculatedPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, commissionBB);
+    },
+
+    async retrieveCommissionBillBoardForAdmin (platformObj, period, count, index, commissionBB, containFakeRecord) {
+        commissionBB = commissionBB || {};
+
+        let rankingQuery = {
+            platform: platformObj._id,
+            period: period,
+            lastCalculate: commissionBB.lastFinished,
+        };
+        let ranking = await dbconfig.collection_commissionBBRecord.find(rankingQuery, {
+            name: 1,
+            amount: 1,
+            _id: 0
+        }).sort({
+            amount: -1,
+            name: 1
+        }).skip(index).limit(totalRecord).lean();
+
+        for (let i = 0; i < topNBillBoard.length; i++) {
+            topNBillBoard[i].rank = i + index + 1;
+        }
+
+        let total = await dbconfig.collection_commissionBBRecord.count(rankingQuery);
+
+        return {
+            data: ranking,
+            count,
+            index,
+            total
+        };
     },
 
     async retrieveCalculatedPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, commissionBB) {

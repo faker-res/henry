@@ -1,0 +1,4 @@
+include ./partner-setting-platform-select
+div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'commissionBillboard')")
+    table.common-table#partnerCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+    #partnerCBillBoardTablePage

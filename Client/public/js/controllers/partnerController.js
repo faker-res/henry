@@ -188,6 +188,14 @@ define(['js/app'], function (myApp) {
             MANUAL: 5,
         };
 
+        vm.constPartnerBillBoardPeriod = {
+            DAILY: "1",
+            WEEKLY: "2",
+            BIWEEKLY: "3",
+            MONTHLY: "4",
+            NO_PERIOD: "5"
+        };
+
 
         // player advertisement
         vm.currentImageButtonNo = 2;
@@ -17303,11 +17311,75 @@ define(['js/app'], function (myApp) {
                     vm.resetPartnerAddPosterAdsTable();
                     vm.getPartnerPosterAdsList();
                     break;
+                case 'commissionBillboard':
+                    vm.commissionBillboardQuery = {
+                        period: vm.constPartnerBillBoardPeriod.DAILY,
+                        count: 10
+                    };
+                    utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
+                        vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
+                        });
+                        $scope.$evalAsync();
+                    });
+                    vm.getPartnerCommissionBillBoard();
+                    break;
 
             }
 
             $scope.$evalAsync();
         };
+
+        vm.getPartnerCommissionBillBoard = function () {
+            if (!vm.platformInSetting) {
+                return;
+            }
+            let query = {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionBillboardQuery.period,
+                count: vm.commissionBillboardQuery.pageObj && vm.commissionBillboardQuery.pageObj.pageSize || 10
+            };
+            console.log('getPartnerCommissionBillBoardquery', query)
+            $scope.$socketPromise('getPartnerCommissionBillBoard', query).then(
+                data => {
+                    console.log("getPartnerCommissionBillBoard", data);
+                }
+            );
+        };
+
+        vm.drawPartnerCommissionBillBoard = function(tableData, size, newSearch) {
+            let tableOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: 0, bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Commission_Rank'), data: "rank", bSortable: false},
+                    {title: $translate('partnerName'), data: "name", bSortable: false},
+                    {title: $translate('AccumulatedCommission'), data: "amount", sClass: "alignRight", bSortable: false},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                // no special html, so probably no need row callback
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+
+            vm.commissionBillboardTable = utilService.createDatatableWithFooter('#partnerCBillBoardTable', tableOptions, {}, true);
+            vm.commissionBillboardQuery.pageObj.init({maxCount: size}, newSearch);
+            // since backend sorting this should not be needed
+            // $('#commissionBillboardTable').off('order.dt');
+            // $('#commissionBillboardTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'partnerProfitQuery', vm.searchPartnerProfitReport);
+            // });
+            setTimeout(function () {
+                $('#partnerCBillBoardTable_wrapper').resize();
+            }, 500);
+        }
 
         vm.getPartnerBasic = function () {
             vm.partnerBasic = vm.partnerBasic || {};
@@ -17693,7 +17765,7 @@ define(['js/app'], function (myApp) {
             });
         }
 
-         vm.updatePlatformsActiveConfig = function () {
+        vm.updatePlatformsActiveConfig = function () {
             var sendData = {
                 query: {platform: vm.bulkActiveConfigPlatforms},
                 updateData: vm.bulkActiveConfig
@@ -18336,6 +18408,7 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch, isExport) {
+            console.log('tableData',tableData)
             let tableOptions = {
                 data: tableData,
                 "order": vm.partnerSettlementQuery.aaSorting || [],
