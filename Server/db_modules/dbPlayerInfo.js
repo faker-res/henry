@@ -22187,7 +22187,8 @@ let dbPlayerInfo = {
                         $lt: new Date(query.queryEnd)
                     },
                     type: ObjectId(bonusProposalType._id),
-                    "data.amount": {$exists: true}
+                    "data.amount": {$exists: true},
+                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                 }
             },
             {
