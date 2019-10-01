@@ -673,6 +673,7 @@ var roleChecker = {
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
                 WECHAT_GROUP_REPORT:['getWechatControlSession'],
+                QQ_GROUP_REPORT:['getQQControlSession'],
                 PROVIDER_CONSUMPTION_REPORT:['getProviderConsumptionReport'],
                 PAYMENT_MONITOR_REPORT: ['getPaymentMonitorLockedAdmin', 'getPaymentMonitorReport']
             },
