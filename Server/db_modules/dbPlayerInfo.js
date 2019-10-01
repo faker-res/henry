@@ -25114,6 +25114,23 @@ let dbPlayerInfo = {
         )
     },
 
+    updatePlayerAvatar: function (query, updateData) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+                if (playerData && playerData._id && playerData.platform) {
+                    let updateQuery = {
+                        _id: playerData._id,
+                        platform: playerData.platform
+                    };
+                    return dbconfig.collection_players.findOneAndUpdate(updateQuery, updateData, {new: true}).lean();
+                }
+            }
+        );
+    },
+
     /**
      * Create new Proposal to update player WeChat
      * @param {json} data - proposal data

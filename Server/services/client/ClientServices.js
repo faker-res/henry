@@ -118,6 +118,7 @@
                 "setPhoneNumberAndPassword",
                 "updatePasswordByPhoneNumber",
                 "getBankcardInfo",
+                "updatePlayerAvatar",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
