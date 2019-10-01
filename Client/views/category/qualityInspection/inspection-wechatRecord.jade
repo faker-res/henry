@@ -55,7 +55,8 @@ br
                 thead
                     th.col-md-4 {{"PRODUCT" | translate}}
                     th(style="width: 432px;") {{"Device" | translate}}
-                    th(style="width: 433px;") {{"wechatReceivingPlayer" | translate}}
+                    th(style="width: 433px;" ng-show="vm.inspectionWechat.type==='wechat'") {{"wechatReceivingPlayer" | translate}}
+                    th(style="width: 433px;" ng-show="vm.inspectionWechat.type==='qq'") {{"qqReceivingPlayer" | translate}}
                 tbody(ng-repeat="deviceList in vm.deviceList")
                     tr(ng-if="vm.playerDetailsSummary.length == 0" style="border: 1px solid;")
                         td(colspan = 10) {{ 'No data available in table' | translate }}
