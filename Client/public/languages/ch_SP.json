@@ -4393,10 +4393,10 @@
   "MY EVALUATION": "我的评估",
   "CS REPORT": "客服报表",
   "INSPECTION REPORT": "质检报表",
-  "WECHAT CONVERSATION RECORD": "微信对话记录",
-  "WechatConversationRecord": "微信对话记录",
-  "WECHAT CONVERSATION ANALYSIS REPORT": "微信对话统计报表",
-  "WechatConversationReport": "微信对话统计报表",
+  "WECHAT/QQ CONVERSATION RECORD": "微信/QQ对话记录",
+  "WechatConversationRecord": "微信/QQ对话记录",
+  "WECHAT/QQ CONVERSATION ANALYSIS REPORT": "微信/QQ对话统计报表",
+  "WechatConversationReport": "微信/QQ对话统计报表",
   "UNREAD EVALUATION": "未读评估",
   "READ EVALUATION": "已读评估",
   "APPEAL EVALUATION": "申诉评估",
@@ -5762,6 +5762,7 @@
   "Manual Approval": "人工审核",
   "approveCsPendingAndChangeStatus": "客服审核",
   "wechatReceivingPlayer": "收话玩家（客服备注内容+玩家微信号）",
+  "qqReceivingPlayer": "收话玩家（客服备注内容+玩家QQ号）",
   "wechatReceivingPlayer(Precise Search)": "收话玩家（模糊搜索）",
   "minute(s)": "分钟",
   "No first attempt login": "无-尚未首次登入",
@@ -6025,5 +6026,6 @@
   "QQGroupControl": "QQ群控监控",
   "QQ Group Control Monitor": "QQ群控监控",
   "QQ Version": "QQ版本",
-  "QQ_GROUP_CONTROL_MONITOR": "QQ群控监控"
+  "QQ_GROUP_CONTROL_MONITOR": "QQ群控监控",
+  "Total Player In Conversation(By QQ ID)": "对话的会员数量（根据QQ号）"
 }
