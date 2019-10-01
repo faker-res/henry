@@ -6020,5 +6020,10 @@
   "Top Up Amount Range": "充值区间",
   "Top Up Count(less than or equal)": "存款笔数（含、以下）",
   "Top Up Amount Config": "充值额度设置",
-  "Top Up Count is mandatory": "存款笔数是必填"
+  "Top Up Count is mandatory": "存款笔数是必填",
+  "QQ Monitor": "QQ监控",
+  "QQGroupControl": "QQ群控监控",
+  "QQ Group Control Monitor": "QQ群控监控",
+  "QQ Version": "QQ版本",
+  "QQ_GROUP_CONTROL_MONITOR": "QQ群控监控"
 }

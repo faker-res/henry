@@ -761,6 +761,9 @@ var roleChecker = {
             WinnerMonitor: {
                 Read:["getWinnerMonitorData"]
             },
+            QQGroupControl:{
+                Read: ['getQQGroupControlSessionMonitor', 'getQQGroupControlSessionHistory']
+            },
         },
         Payment: {
             "BankCardGroup": {
