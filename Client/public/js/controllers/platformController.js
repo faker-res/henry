@@ -24854,6 +24854,14 @@ define(['js/app'], function (myApp) {
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting(platformObjId);
                         break;
+                    case 'qqGroupControlSetting':
+                        vm.qqGroupControlEdit = false;
+                        vm.oriQQGroupControlSettingData = [];
+                        vm.qqGroupControlSettingData = [];
+                        vm.newQQGroupControlSetting = {};
+                        vm.deleteQQGroupControl = [];
+                        vm.getQQGroupControlSetting(platformObjId);
+                        break;
                     case 'winnerMonitorSetting':
                         vm.getWinnerMonitorConfig(platformObjId);
                         break;
@@ -33629,6 +33637,119 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            //#region qq group control setting
+            vm.getQQGroupControlSetting = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getQQGroupControlSetting', sendData, function (data) {
+                    console.log('getQQGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.qqGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                            vm.oriQQGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+
+            vm.addNewQQGroupControl = function (collection, data) {
+                if (data && ((!data.deviceId && !data.deviceNickName) || (!data.deviceId || !data.deviceNickName))) {
+                    return socketService.showErrorMessage($translate('Please fill in Mobile Phone Number and Device Name'));
+                }
+
+                if (collection && data && data.deviceId && data.deviceNickName) {
+                    let sendData = {
+                        deviceId: data.deviceId,
+                        deviceNickName: data.deviceNickName
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'isNewQQDeviceDataExist', sendData, function (newData) {
+                        console.log('isNewQQDeviceDataExist', newData);
+                        $scope.$evalAsync(() => {
+                            if (newData && newData.data && !newData.data.isDeviceIdExist && !newData.data.isDeviceNicknameExist) {
+                                data.isNew = true;
+                                collection.push(data);
+                                $scope.$evalAsync(() => {
+                                    vm.newQQGroupControlSetting = {};
+                                });
+                            }
+                        })
+                    });
+                }
+            };
+
+            vm.disableQQGroupControl = function (flag) {
+                vm.qqGroupControlEdit = flag;
+            };
+
+            vm.editQQGroupControl = function (data) {
+                if (data && data._id) {
+                    data.isEdit = true;
+                }
+            }
+
+            vm.submitQQGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.filterConfigPlatform,
+                    qqGroupControlSetting: vm.qqGroupControlSettingData,
+                    deleteQQGroupControlSetting: vm.deleteQQGroupControl
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateQQGroupControlSetting', sendData, function (data) {
+                    console.log('updateQQGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        let retryMessage = false;
+                        if (data && data.data.length > 0 && data.data[0]._id && data.data[0].isEdit) {
+                            data.data.forEach(qqDevice => {
+                                if (vm.qqGroupControlSettingData && vm.qqGroupControlSettingData.length > 0) {
+                                    for (let x = 0; x < vm.qqGroupControlSettingData.length; x++) {
+                                        if (vm.qqGroupControlSettingData[x]._id && qqDevice._id && vm.qqGroupControlSettingData[x]._id.toString() === qqDevice._id.toString()) {
+                                            if (qqDevice.isDeviceIdExist) {
+                                                retryMessage = true;
+                                                vm.qqGroupControlSettingData[x].isDeviceIdExist = true;
+                                            } else {
+                                                vm.qqGroupControlSettingData[x].isDeviceIdExist = false;
+                                            }
+                                            if (qqDevice.isDeviceNicknameExist) {
+                                                retryMessage = true;
+                                                vm.qqGroupControlSettingData[x].isDeviceNicknameExist = true;
+                                            } else {
+                                                vm.qqGroupControlSettingData[x].isDeviceNicknameExist = false;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        if (retryMessage) {
+                            return socketService.showErrorMessage($translate('Please fix the duplicate and retry again'));
+                        } else {
+                            vm.getQQGroupControlSetting(vm.filterConfigPlatform);
+                        }
+                    })
+                });
+            };
+
+            vm.cancelQQGroupControlSetting = function () {
+                vm.deleteQQGroupControl = [];
+                vm.newQQGroupControlSetting = {};
+                vm.qqGroupControlSettingData = JSON.parse(JSON.stringify(vm.oriQQGroupControlSettingData));
+            };
+
+            vm.deleteQQGroupControlSetting = function (data, collection, idx) {
+                if (data) {
+                    vm.deleteQQGroupControl.push(data);
+
+                    if (collection && collection.length > 0) {
+                        collection.splice(idx, 1);
+                    }
+                }
+            }
+            //#endregion
 
             // region winner monitor setting
             vm.getWinnerMonitorConfig = function (platformObjId) {
