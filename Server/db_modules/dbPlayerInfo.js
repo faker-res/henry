@@ -6973,7 +6973,9 @@ let dbPlayerInfo = {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
 
-                if (recordData.userAgent) {
+                if (playerData.deviceId || playerData.guestDeviceId) {
+                    recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+                } else if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);

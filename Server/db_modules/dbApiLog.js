@@ -7,6 +7,7 @@ const uaParser = require('ua-parser-js');
 const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
 const ObjectId = mongoose.Types.ObjectId;
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult, reqData, playerData) {
@@ -82,6 +83,9 @@ let dbApiLog = {
             ipAddress: ipAddress
         };
         logData.inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(reqData.deviceId || reqData.guestDeviceId) {
+            logData.inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);

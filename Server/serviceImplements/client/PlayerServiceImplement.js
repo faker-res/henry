@@ -196,6 +196,9 @@ let PlayerServiceImplement = function () {
         }];
 
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
         var md = new mobileDetect(uaString);
         data.ua = ua;
         data.md = md;
@@ -489,6 +492,9 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
