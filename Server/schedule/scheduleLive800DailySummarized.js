@@ -29,13 +29,14 @@ let everyDayAtTwelveAMJob = new CronJob(
             }
         );
 
-        // to record down the conversation record for speeding up the searching time
-        let recordProm = dbQualityInspection.getLive800Records(startDate, endDate);
+        // // to record down the conversation record for speeding up the searching time
+        // let recordProm = dbQualityInspection.getLive800Records(startDate, endDate);
+        //
+        // // to get the proposal settled manually and save in daily summary record
+        // let manualProm = dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1));
 
-        // to get the proposal settled manually and save in daily summary record
-        let manualProm = dbQualityInspection.getManualProposalDailySummaryRecord(dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().startTime, 1), dbUtility.getNDaysAgoFromSpecificStartTime(dbUtility.getTodaySGTime().endTime, 1));
-
-        return Promise.all([getSummarizedProm, recordProm, manualProm]).then(
+        // return Promise.all([getSummarizedProm, recordProm, manualProm]).then(
+        return getSummarizedProm.then(
             () => {
                 return dbQualityInspection.summarizeCsRankingData(startDate, endDate)
             }
@@ -44,7 +45,7 @@ let everyDayAtTwelveAMJob = new CronJob(
     }, function () {
         /* This function is executed when the job stops */
         console.log('Live 800 daily summarize schedule done');
-        console.log('Live 800 daily record schedule done');
+        // console.log('Live 800 daily record schedule done');
     },
     true /* Start the job right now */
     //timeZone /* Time zone of this job. */

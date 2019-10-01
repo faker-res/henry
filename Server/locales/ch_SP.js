@@ -569,6 +569,7 @@ var simplifiedChinese = {
     "This phone number has been registered": "该手机号码已注册",
     "Phone number and password don't match": "手机号码和密码不匹配",
     "Password is mandatory": "密码必填",
+    "Please fill in correct amount": "请填写正确金额",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

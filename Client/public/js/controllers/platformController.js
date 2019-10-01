@@ -3224,17 +3224,18 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
 
+                let inputDevice = vm.smsRecordQuery.inputDevice;
                 if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
-                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                    inputDevice = {$in: [6, 8]};
                 } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
-                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
+                    inputDevice = {$in: [5, 7]};
                 }
 
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
                     accountStatus: vm.smsRecordQuery.accountStatus,
-                    inputDevice: vm.smsRecordQuery.inputDevice,
+                    inputDevice: inputDevice,
                     useVoiceCode: vm.smsRecordQuery.sendType,
                     type: 'registration',
                     status: 'all',
@@ -4295,6 +4296,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     if (gamePage) {
+                        vm.nickNamePlatform = data.data;
                         vm.platformProviderGameList = data.data.gameProviders;
                     }
                     vm.providerListCheck = {};
@@ -4382,7 +4384,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData(vm.filterGamePlatform);
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
                 })
             }
 
@@ -44486,6 +44488,14 @@ define(['js/app'], function (myApp) {
                         vm.topUpAmountBasic = {};
                         if (data && data.data) {
                             vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+                        }
+
+                        if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
+                            vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
+                            vm.topUpAmountBasic.commonTopUpAmountRange = {
+                                minAmount: 10,
+                                maxAmount: 1000000
+                            };
                         }
                     })
                 });

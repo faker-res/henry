@@ -89,7 +89,6 @@ let commonTestFunc = {
                     validCredit: 600,
                     realName: "Test Player",
                     phoneNumber: '80808080',
-                    DOB: new Date(),
                     email: 'testPlayer@sinonet.com.sg',
                     lastLoginIp: '188.188.188.188',
 
