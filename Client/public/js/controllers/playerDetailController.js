@@ -5575,6 +5575,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.addPlayerFeedback = function (data) {
+            vm.toggleSubmitFeedbackButton = false;
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });
@@ -5591,6 +5592,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                vm.toggleSubmitFeedbackButton = true;
                 vm.addFeedback.content = "";
                 vm.addFeedback.result = "";
                 vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {

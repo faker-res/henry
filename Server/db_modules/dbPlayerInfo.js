@@ -6738,6 +6738,11 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
+        if(playerData) {
+            console.log("playerData.name", playerData.name);
+            console.log("userAgent", userAgent);
+            console.log("inputDevice", inputDevice);
+        }
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
