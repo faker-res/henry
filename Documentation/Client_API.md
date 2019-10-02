@@ -267,7 +267,10 @@
 	16. [拍卖](#拍卖：)
 		1. [查找拍卖商品](#查找拍卖商品)
 		2. [竞标拍卖商品](#竞标拍卖商品)
-
+    17. [QQ群控](#QQ群控：)
+    		1. [QQ群控发送心跳包维持链接](#QQ群控发送心跳包维持链接)
+    		2. [QQ群控客服与玩家对话](#QQ群控客服与玩家对话)
+    		3. [QQ群控绑定玩家QQ号+昵称+备注](#QQ群控绑定玩家QQ号+昵称+备注)
 
 
 
@@ -8314,5 +8317,111 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 						"__v": 0
 					}
 				}
+	* 操作成功：status--200
+	* 操作失败：status--4xx
+	
+# QQ群控：
+提供QQ群控服务相关服务的接口。
+
+### service: qqgroupcontrol
+#### 功能列表：
+
+<div id='QQ群控发送心跳包维持链接'></div>
+
+* **1. QQ群控发送心跳包维持链接**
+	* name:  sendQQGroupControlSessionToFPMS
+	* 必须在后台QQ群控设置手机设备号、绑定设备腻称
+	* 请求内容:
+		* ```
+			{
+				deviceId - String // - 手机设备号 - 必填 //”abc222”
+				adminId - String //FPMS登入帐号 //”admin”
+				status - Num //系统状态 (1 - 在线, 2 - 离线) //1
+				connectionAbnormalClickTimes - Num //本次连线异常点击 //1,
+				qqVersion - String //QQ版本 //1.1.1
+			}
+	* 响应内容:
+		* ```
+			{
+				"status": 200,
+				"data": {
+                    "__v": 0,
+                    "deviceId": "abc222",
+                    "deviceNickName": "test2",
+                    "csOfficer": "57b6c8b33d71e6c469f2aa20",
+                    "status": 1,
+                    "platformObjId": "5732dad105710cf94b5cfaaa",
+                    "lastActiveTime": "2019-10-02T01:34:15.712Z",
+                    "qqVersion": "1.1.1",
+                    "_id": "5d93fe9788967fc0eaa38bca",
+                    "createTime": "2019-10-02T01:34:15.714Z",
+                    "connectionAbnormalClickTimes": 0
+                }
+			}
+	* 操作成功：status--200
+	* 操作失败：status--4xx
+
+<div id='QQ群控客服与玩家对话'></div>
+
+* **2. QQ群控客服与玩家对话**
+	* name:  sendQQConversationToFPMS
+	* 连线后通过此接口发送客服对话
+	* 请求内容:
+		* ```
+			{
+				deviceId - String // - 手机设备号 - 必填 //“abc222”
+				playerQQRemark - String //备注 - 必填 //”player123”
+				csReplyTime - Date //客服发送的对话时间 - 必填 // "2018-11-30T07:42:00.000Z"
+				csReplyContent - String //客服发送的对话内容 //"player 123 test content 333"
+			}
+	* 响应内容:
+		* ```
+			{
+				"status": 200,
+				"data": {
+                    "__v": 0,
+                    "qqGroupControlSessionId": "5d94005588967fc0eaa38bcc",
+                    "deviceId": "222222",
+                    "deviceNickName": "test2",
+                    "platformObjId": "5732dad105710cf94b5cfaaa",
+                    "csOfficer": "57b6c8b33d71e6c469f2aa20",
+                    "playerQQRemark": "testbindremark22",
+                    "csReplyTime": "2019-10-02T01:39:00.000Z",
+                    "csReplyContent": "hi",
+                    "_id": "5d94005a88967fc0eaa38bcd",
+                    "createTime": "2019-10-02T01:41:46.761Z"
+                }
+			}
+	* 操作成功：status--200
+	* 操作失败：status--4xx
+
+<div id='QQ群控绑定玩家QQ号+昵称+备注'></div>
+
+* **3. QQ群控绑定玩家QQ号+昵称+备注**
+	* **客服登陆群控时会使用此接口操做绑定玩家QQ号+昵称+备注**
+	* name:  bindPlayerQQInfo
+	* 请求内容:
+		* ```
+			{
+				deviceId - String // - 手机设备号 - 必填 //”abc222”
+				playerQQRemark - String //备注 - 必填 //”testbindremark22”
+				playerQQId - String //玩家QQ号 - 必填 //”testbind2222222”
+				playerQQNickname - String //玩家昵称 //”testbindnickname22”
+			}
+	* 响应内容: 
+	    * ```
+            {
+                "status": 200,
+                "data":  {
+                    "__v": 0,
+                    "deviceId": "abc222",
+                    "platformObjId": "5732dad105710cf94b5cfaaa",
+                    "playerQQRemark": "testbindremark22",
+                    "playerQQId": "testbind2222222",
+                    "playerQQNickname": "testbindnickname22",
+                    "_id": "5d93ff4e88967fc0eaa38bcb",
+                    "createTime": "2019-10-02T01:37:18.569Z"
+                }
+            }
 	* 操作成功：status--200
 	* 操作失败：status--4xx
