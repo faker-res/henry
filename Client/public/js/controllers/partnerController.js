@@ -12456,6 +12456,7 @@ define(['js/app'], function (myApp) {
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
                                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                                     vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        let isAddedGroupProvider = false;
                                         let providerGroupRate = {
                                             gameProviderGroupId: gameProviderGroup._id,
                                             name: gameProviderGroup.name
@@ -12465,10 +12466,13 @@ define(['js/app'], function (myApp) {
                                                 if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                     availableProviderGroupRate.name = gameProviderGroup.name;
                                                     providerGroupRate = availableProviderGroupRate;
+                                                    isAddedGroupProvider = true;
                                                 }
                                             })
                                         }
-                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        if (!isAddedGroupProvider) {
+                                            vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        }
                                     })
                                 }
 
