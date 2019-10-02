@@ -719,7 +719,7 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
-                        {_id: proposalData.data._id, isTestPlayer: {$in: [null, false]}},
+                        {_id: proposalData.data._id},
                         proposalData.data,
                         constShardKeys.collection_players
                     ).then(

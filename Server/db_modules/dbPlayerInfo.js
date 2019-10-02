@@ -6738,6 +6738,11 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
+        if(playerData) {
+            console.log("playerData.name", playerData.name);
+            console.log("userAgent", userAgent);
+            console.log("inputDevice", inputDevice);
+        }
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -6973,7 +6978,9 @@ let dbPlayerInfo = {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
 
-                if (recordData.userAgent) {
+                if (playerData.deviceId || playerData.guestDeviceId) {
+                    recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+                } else if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
@@ -15915,7 +15922,7 @@ let dbPlayerInfo = {
         );
     },
 
-    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice) {
+    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
             if (err || !decoded) {
@@ -15953,8 +15960,8 @@ let dbPlayerInfo = {
 
                             // Login if required - For long validity of token period
                             if (isLogin) {
-                                console.log('confirm isLogin', isLogin);
                                 playerData.platformId = playerData.platform.platformId;
+                                playerData.clientDomain = clientDomain;
                                 dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
                             }
 
@@ -16355,6 +16362,7 @@ let dbPlayerInfo = {
                                         || providerData.providerId == "83"
                                         || providerData.providerId == "86" // SABA
                                         || providerData.providerId == "94" // CQ9
+                                        || providerData.providerId == "131" // XJ
                                         || isApplyBonusDoubledReward
                                     )
                                 ) {
@@ -22149,7 +22157,7 @@ let dbPlayerInfo = {
         });
     },
 
-    getDXTrackingData: (playerInfo, playerIds, query) => {
+    getDXTrackingData: (playerInfo, playerIds, query, bonusProposalType) => {
         playerIds = playerIds.map(playerId => ObjectId(playerId));
         // let stringPlayerIds = playerIds.map(playerId => String(playerId));
         // playerIds.concat(stringPlayerIds);
@@ -22178,7 +22186,6 @@ let dbPlayerInfo = {
                 }
             }
         ]).allowDiskUse(true).read("secondaryPreferred");
-
         let bonusProm = dbconfig.collection_proposal.aggregate([
             {
                 $match: {
@@ -22187,7 +22194,9 @@ let dbPlayerInfo = {
                         $gte: new Date(query.queryStart),
                         $lt: new Date(query.queryEnd)
                     },
-                    "data.amount": {$exists: true}
+                    type: ObjectId(bonusProposalType._id),
+                    "data.amount": {$exists: true},
+                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                 }
             },
             {
@@ -22288,7 +22297,7 @@ let dbPlayerInfo = {
         )
     },
 
-    getDXTrackingReport: function (platform, query, index, limit, sortCol) {
+    getDXTrackingReport: async function (platform, query, index, limit, sortCol) {
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
 
@@ -22361,8 +22370,14 @@ let dbPlayerInfo = {
             provider: [],
             player: []
         };
+        let bonusProposalType = await dbconfig.collection_proposalType.findOne({
+            platformId: platform,
+            name: constProposalType.PLAYER_BONUS
+        }).lean()
+
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
+
             return Q(
                 balancer.processStream(
                     {
@@ -22378,7 +22393,8 @@ let dbPlayerInfo = {
                                 request("player", "getDXTrackingData", {
                                     playerInfo: playerInfo,
                                     playerIds: playerIds,
-                                    query: query
+                                    query: query,
+                                    bonusProposalType: bonusProposalType,
                                 });
                         },
                         processResponse: function (record) {
@@ -25109,6 +25125,23 @@ let dbPlayerInfo = {
                 }
             }
         )
+    },
+
+    updatePlayerAvatar: function (query, updateData) {
+        return dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+                if (playerData && playerData._id && playerData.platform) {
+                    let updateQuery = {
+                        _id: playerData._id,
+                        platform: playerData.platform
+                    };
+                    return dbconfig.collection_players.findOneAndUpdate(updateQuery, updateData, {new: true}).lean();
+                }
+            }
+        );
     },
 
     /**

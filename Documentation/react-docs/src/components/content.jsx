@@ -16,16 +16,14 @@ class Content extends Component{
 
                     </div>
                 </div>
-                <a href={this.props.urlList}>
-                    <p>{this.props.urlList}</p>
+                <a href={this.props.url}>
+                    <h4>{this.props.name}</h4>
                 </a>
             </div>
         )
     }
 }
-/*<a href={this.state.linkList.url}>
-    <p>{this.state.linkList.url}</p>
-</a>*/
+
 export default Content;
 
 

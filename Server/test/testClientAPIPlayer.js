@@ -33,13 +33,10 @@ var testPlayerObjId = null;
 var testPlayerId = null;
 var testNewPlayerId = null;
 var testNewGuestPlayerId = null;
-var testNewPlayerPartnerId = null;
 var smsCode = null;
 var smsCode1 = null;
 var token = null;
-var dat = null;
 var testPlayerGender = null;
-var testPlayerDOB = null;
 var testPlayerRealName = null;
 var testPlayerOldPwd = null;
 var smsLog = null;
@@ -78,11 +75,8 @@ describe("Test Client API - Player service", function () {
         testPlayerObjId = testPlayer._id;
         testPlayerId = testPlayer.playerId;
         testPlayerGender = testPlayer.gender;
-        testPlayerDOB = testPlayer.DOB;
         testPlayerRealName = testPlayer.realName;
-
         testPlayerGender = testPlayer.gender;
-        testPlayerDOB = testPlayer.DOB;
         testPlayerRealName = testPlayer.realName;
 
         // create a connection
@@ -570,7 +564,7 @@ describe("Test Client API - Player service", function () {
     it('Should update player', function () {
         clientPlayerAPITest.update(function (data) {
             data.status.should.equal(200);
-        },{playerId: testNewPlayerId, gender: testPlayerGender, DOB: testPlayerDOB});
+        },{playerId: testNewPlayerId, gender: testPlayerGender});
     });
 
     it('Should update player qq', function () {
