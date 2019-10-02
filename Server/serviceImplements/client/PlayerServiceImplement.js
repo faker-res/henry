@@ -1158,11 +1158,9 @@ let PlayerServiceImplement = function () {
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
-        console.log('authenticate data', data);
-
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.authenticate,
-            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice], true, false, false, true
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
         );
     };
 
@@ -1832,6 +1830,11 @@ let PlayerServiceImplement = function () {
     this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.bankcard);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
+    };
+
+    this.updatePlayerAvatar.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

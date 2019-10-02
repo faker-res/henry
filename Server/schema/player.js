@@ -373,7 +373,11 @@ var playerSchema = new Schema({
     // short url to referral purpose
     shortUrl: {type: JSON},
     //os for native app
-    osType: {type: String, index: true}
+    osType: {type: String, index: true},
+    // avatar
+    avatar: {type: String},
+    // avatar frame
+    avatarFrame: {type: String},
 });
 
 //record is unique by name and platform

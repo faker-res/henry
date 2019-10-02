@@ -3224,17 +3224,18 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
 
+                let inputDevice = vm.smsRecordQuery.inputDevice;
                 if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
-                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                    inputDevice = {$in: [6, 8]};
                 } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
-                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
+                    inputDevice = {$in: [5, 7]};
                 }
 
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
                     accountStatus: vm.smsRecordQuery.accountStatus,
-                    inputDevice: vm.smsRecordQuery.inputDevice,
+                    inputDevice: inputDevice,
                     useVoiceCode: vm.smsRecordQuery.sendType,
                     type: 'registration',
                     status: 'all',
@@ -4383,7 +4384,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData(vm.filterGamePlatform);
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
                 })
             }
 
@@ -41747,17 +41748,26 @@ define(['js/app'], function (myApp) {
                 if(imageFile.files.length > 0){
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
-                    let sendQuery = {
-                        query: {
-                            platformId: platformNo,
-                            gameId: vm.curGame.gameId || null,
-                            gameName: fileName || null
-                        },
-                        fileData: fileData
-                    };
-                    $scope.$socketPromise("updateImageUrl", sendQuery);
-                    alert($translate('Upload Successful'));
-                    vm.providerClicked(1, vm.SelectedProvider);
+
+                    let REGEX_CHINESE = /[/^\s*$/]|[\u4e00-\u9fff]|[\u3400-\u4dbf]|[\u{20000}-\u{2a6df}]|[\u{2a700}-\u{2b73f}]|[\u{2b740}-\u{2b81f}]|[\u{2b820}-\u{2ceaf}]|[\uf900-\ufaff]|[\u3300-\u33ff]|[\ufe30-\ufe4f]|[\uf900-\ufaff]|[\u{2f800}-\u{2fa1f}]/u;
+                    let hasChinese = REGEX_CHINESE.test(fileName);
+                    console.log('checking regex', hasChinese);
+                    if(hasChinese){
+                        vm.uploadImageMsg = "上传档案名称请勿包含中文以及空格";
+                    }else{
+                        let sendQuery = {
+                            query: {
+                                platformId: platformNo,
+                                gameId: vm.curGame.gameId || null,
+                                gameName: fileName || null
+                            },
+                            fileData: fileData
+                        };
+                        $scope.$socketPromise("updateImageUrl", sendQuery);
+                        alert($translate('Upload Successful'));
+                        vm.providerClicked(1, vm.SelectedProvider);
+                    }
+
                 } else {
                     vm.uploadImageMsg = "Please choose an image first";
                 }
@@ -44484,7 +44494,7 @@ define(['js/app'], function (myApp) {
                             vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
                             vm.topUpAmountBasic.commonTopUpAmountRange = {
                                 minAmount: 10,
-                                maxAmount: 100000
+                                maxAmount: 1000000
                             };
                         }
                     })
