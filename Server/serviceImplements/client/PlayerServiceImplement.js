@@ -196,6 +196,9 @@ let PlayerServiceImplement = function () {
         }];
 
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
         var md = new mobileDetect(uaString);
         data.ua = ua;
         data.md = md;
@@ -489,6 +492,9 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
@@ -1143,18 +1149,19 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.prepareGetPlayerBillBoard, [data.platformId, data.periodCheck, data.hourCheck, data.recordCount, data.playerId, data.mode, data.providerId], isValidData, false, false, true);
     };
 
-    //added case
     this.authenticate.expectsData = 'playerId: String, token: String';
-    this.authenticate.onRequest = function (wsFunc, conn, data) {
+    this.authenticate.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.token);
-        let playerIp = conn.upgradeReq.connection.remoteAddress || '';
-        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                playerIp = forwardedIp[0].trim();
-            }
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.authenticate, [data.playerId, data.token, playerIp, conn], true, false, false, true);
+        let playerIp = dbUtility.getIpAddress(conn);
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        let md = new mobileDetect(uaString);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+
+        WebSocketUtil.performAction(
+            conn, wsFunc, data, dbPlayerInfo.authenticate,
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
+        );
     };
 
     this.authenticatePlayerPartner.expectsData = 'playerId: String, partnerId: String, token: String';
@@ -1823,6 +1830,11 @@ let PlayerServiceImplement = function () {
     this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.bankcard);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
+    };
+
+    this.updatePlayerAvatar.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

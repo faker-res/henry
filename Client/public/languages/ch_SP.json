@@ -5015,6 +5015,7 @@
   "-- Edit (partner name) Child Partner: Editor ID -- Date": " —— 编辑（代理名）下级代理：设置人账号 —— 日期",
   "notifyEditChildPartner": "编辑代理下线结构通知",
   "back end only": "只限后台操作",
+  "BULK_SETTING_ALL_GROUP": "批量配置所有组",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",
@@ -6012,5 +6013,11 @@
   "consumptionType": "投注条件",
   "depositType": "存款条件",
   "First Top Up Amount, Top Up Count is required more than zero": "被推荐人首次单笔存款额、被推荐人存款笔数必填大过0",
-  "EditGameName": "编辑游戏名称"
+  "EditGameName": "编辑游戏名称",
+  "TOP_UP_AMOUNT_RANGE": "充值额度区间",
+  "Top Up Count Amount Range": "存款笔数额度区间",
+  "Top Up Amount Range": "充值区间",
+  "Top Up Count(less than or equal)": "存款笔数（含、以下）",
+  "Top Up Amount Config": "充值额度设置",
+  "Top Up Count is mandatory": "存款笔数是必填"
 }

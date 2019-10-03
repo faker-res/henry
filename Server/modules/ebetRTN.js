@@ -128,7 +128,7 @@ function sendQueryCommand(tableType, size) {
 
         setTimeout(function() {
             if (!handled) {
-                events.removeListener(requestId);
+                events.removeAllListeners([requestId]);
                 reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
             }
         }, 60000);

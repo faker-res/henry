@@ -3224,17 +3224,18 @@ define(['js/app'], function (myApp) {
                     platformIdList = vm.allPlatformData.map(a => a._id);
                 }
 
+                let inputDevice = vm.smsRecordQuery.inputDevice;
                 if(vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 6){
-                    vm.smsRecordQuery.inputDevice = {$in: [6, 8]};
+                    inputDevice = {$in: [6, 8]};
                 } else if (vm.smsRecordQuery && vm.smsRecordQuery.inputDevice && vm.smsRecordQuery.inputDevice == 5) {
-                    vm.smsRecordQuery.inputDevice = {$in: [5, 7]};
+                    inputDevice = {$in: [5, 7]};
                 }
 
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
                     accountStatus: vm.smsRecordQuery.accountStatus,
-                    inputDevice: vm.smsRecordQuery.inputDevice,
+                    inputDevice: inputDevice,
                     useVoiceCode: vm.smsRecordQuery.sendType,
                     type: 'registration',
                     status: 'all',
@@ -4295,6 +4296,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     if (gamePage) {
+                        vm.nickNamePlatform = data.data;
                         vm.platformProviderGameList = data.data.gameProviders;
                     }
                     vm.providerListCheck = {};
@@ -4382,7 +4384,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, sendString, sendData, function (data) {
                     console.log(data);
                     loadPlatformData();
-                    vm.getPlatformGameData(vm.filterGamePlatform);
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
                 })
             }
 
@@ -17285,6 +17287,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
+                        vm.lastSuccessBackEndQuery = data && data.data && data.data.backEndQuery;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -24772,6 +24775,9 @@ define(['js/app'], function (myApp) {
                         loadDelayDurationGroup(platformObjId);
 
                         vm.newDelayDurationGroup = {};
+                        break;
+                    case 'topUpAmountConfig':
+                        vm.getPlatformTopUpAmountConfig(platformObjId);
                         break;
                     case 'bonusBasic':
                         vm.getBonusBasic(platformObjId);
@@ -33362,7 +33368,7 @@ define(['js/app'], function (myApp) {
 
                             vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
                         }
-
+                        
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
@@ -33390,6 +33396,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'platformBasic':
                         updatePlatformBasic(vm.platformBasic);
+                        break;
+                    case 'topUpAmountConfig':
+                        updatePlatformTopUpAmountConfig(vm.topUpAmountBasic)
                         break;
                     case 'partnerBasic':
                         updatePartnerBasic(vm.partnerBasic);
@@ -34593,6 +34602,35 @@ define(['js/app'], function (myApp) {
                     }
 
                 });
+            }
+
+            function updatePlatformTopUpAmountConfig(srcData) {
+                let isPass = true;
+
+                if (srcData.topUpCountAmountRange && srcData.topUpCountAmountRange.length) {
+                    srcData.topUpCountAmountRange.forEach(el => {
+                        if (!el.topUpCount) {
+                            isPass = false;
+                        }
+                    })
+                }
+
+                let sendData = {
+                    query: {platformObjId: vm.filterConfigPlatform},
+                    updateData: {
+                        commonTopUpAmountRange: srcData.commonTopUpAmountRange,
+                        topUpCountAmountRange: srcData.topUpCountAmountRange
+                    }
+                };
+
+                if (isPass) {
+                    vm.configTableEdit=!vm.configTableEdit;
+                    socketService.$socket($scope.AppSocket, 'updatePlatformTopUpAmount', sendData, function (data) {
+                        loadPlatformData({loadAll: false});
+                    });
+                } else {
+                    socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                }
             }
 
             function updatePhoneFilter(srcData) {
@@ -40640,17 +40678,6 @@ define(['js/app'], function (myApp) {
                             result.push(singleRecord);
                         });
                         vm.departmentUsers = result;
-
-                        // Feedback Query tab - only display CS name according to the departments that contain selected platforms
-                        if (vm.queryDepartments && vm.queryDepartments.length && vm.departmentUsers && vm.departmentUsers.length) {
-                            vm.departmentUsers.forEach(user => {
-                                vm.queryDepartments.forEach(dept => {
-                                    if (user.departmentName.toString() === dept.departmentName.toString()) {
-                                        vm.csNameByDepartment.push(user);
-                                    }
-                                })
-                            })
-                        }
                     });
                 });
             };
@@ -40684,7 +40711,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     console.log(data);
                     vm.getCtiData();
@@ -40702,6 +40731,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
                 $('.chosenPlayers').each((i,ply)=>{
                     let isChecked = $(ply).is(':checked');
@@ -40720,6 +40750,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     vm.getCtiData();
                 });
@@ -41725,17 +41756,26 @@ define(['js/app'], function (myApp) {
                 if(imageFile.files.length > 0){
                     let fileName = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0].name || null;
                     let fileData = imageFile && imageFile.files && imageFile.files.length > 0 && imageFile.files[0] || null;
-                    let sendQuery = {
-                        query: {
-                            platformId: platformNo,
-                            gameId: vm.curGame.gameId || null,
-                            gameName: fileName || null
-                        },
-                        fileData: fileData
-                    };
-                    $scope.$socketPromise("updateImageUrl", sendQuery);
-                    alert($translate('Upload Successful'));
-                    vm.providerClicked(1, vm.SelectedProvider);
+
+                    let REGEX_CHINESE = /[/^\s*$/]|[\u4e00-\u9fff]|[\u3400-\u4dbf]|[\u{20000}-\u{2a6df}]|[\u{2a700}-\u{2b73f}]|[\u{2b740}-\u{2b81f}]|[\u{2b820}-\u{2ceaf}]|[\uf900-\ufaff]|[\u3300-\u33ff]|[\ufe30-\ufe4f]|[\uf900-\ufaff]|[\u{2f800}-\u{2fa1f}]/u;
+                    let hasChinese = REGEX_CHINESE.test(fileName);
+                    console.log('checking regex', hasChinese);
+                    if(hasChinese){
+                        vm.uploadImageMsg = "上传档案名称请勿包含中文以及空格";
+                    }else{
+                        let sendQuery = {
+                            query: {
+                                platformId: platformNo,
+                                gameId: vm.curGame.gameId || null,
+                                gameName: fileName || null
+                            },
+                            fileData: fileData
+                        };
+                        $scope.$socketPromise("updateImageUrl", sendQuery);
+                        alert($translate('Upload Successful'));
+                        vm.providerClicked(1, vm.SelectedProvider);
+                    }
+
                 } else {
                     vm.uploadImageMsg = "Please choose an image first";
                 }
@@ -44419,6 +44459,56 @@ define(['js/app'], function (myApp) {
                 }
                 return isValid;
             }
+
+            //#region top up amount range setting
+            vm.updateTopUpCountAmountRangeConfigInEdit = function (type, data) {
+                if (type == 'add') {
+                    if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
+                        if (data.topUpCount) {
+                            vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        } else {
+                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                        }
+                    } else {
+                        if (data) {
+                            if (data.topUpCount) {
+                                vm.topUpAmountBasic.topUpCountAmountRange = [];
+                                vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                            } else {
+                                socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                            }
+                        }
+                    }
+
+                } else if (type == 'remove') {
+                    vm.topUpAmountBasic.topUpCountAmountRange.splice(data, 1);
+                }
+            };
+
+            vm.getPlatformTopUpAmountConfig = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlatformTopUpAmountConfig', sendData, function (data) {
+                    console.log('getPlatformTopUpAmountConfig', data);
+                    $scope.$evalAsync(() => {
+                        vm.topUpAmountBasic = {};
+                        if (data && data.data) {
+                            vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
+                        }
+
+                        if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
+                            vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
+                            vm.topUpAmountBasic.commonTopUpAmountRange = {
+                                minAmount: 10,
+                                maxAmount: 1000000
+                            };
+                        }
+                    })
+                });
+            };
+            //#endregion
 
             function getSelectedPlatform() {
                 let platform = null;

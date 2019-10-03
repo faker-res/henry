@@ -6329,7 +6329,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
+            topupMatchQuery.oriAmount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -7786,7 +7786,7 @@ let dbPlayerReward = {
                         let topUpAmountToParticipates = selectedRewardParam && selectedRewardParam.hasOwnProperty('minTopUpAmount') ? selectedRewardParam.minTopUpAmount : 0;
                         let operationOptions = eventData.condition && eventData.condition.operatorOption ? true : false;
 
-                        let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + value.amount, 0) : 0;
+                        let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + (value.oriAmount || value.amount), 0) : 0;
                         let consumptionSum = consumptionData ? consumptionData.reduce((sum, value) => sum + value.validAmount, 0): 0
                         let applyRewardSum = periodData ? periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0): 0;
 
@@ -7859,7 +7859,7 @@ let dbPlayerReward = {
                             //For set topup bDirty Use
                             topUpData.forEach((topUpRecord) => {
                                 if (useTopupRecordAmount < topUpAmountToParticipates) {
-                                    useTopupRecordAmount += topUpRecord.amount;
+                                    useTopupRecordAmount += (topUpRecord.oriAmount || topUpRecord.amount);
                                     updateTopupRecordIds.push(topUpRecord._id);
                                 }
                             });
@@ -8897,14 +8897,14 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
                             if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
                                 console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
-                                proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
+                                proposalData.data.rewardAmount = (lastTopUpData.oriAmount || lastTopUpData.amount) * selectedRewardParam.amountPercent;
                                 if (selectedRewardParam && selectedRewardParam.spendingTimes) {
                                     selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                     spendingAmount = proposalData.data.rewardAmount * selectedRewardParam.spendingTimes;
                                     proposalData.data.spendingAmount = spendingAmount;
                                 }
                                 if (lastTopUpData && lastTopUpData.amount) {
-                                    proposalData.data.applyAmount = lastTopUpData.amount;
+                                    proposalData.data.applyAmount = lastTopUpData.oriAmount || lastTopUpData.amount;
                                     proposalData.data.actualAmount = lastTopUpData.amount;
                                 }
                             }
