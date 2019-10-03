@@ -36064,13 +36064,12 @@ define(['js/app'], function (myApp) {
                                 }
                             });
 
+                            data.data.map(e => {
+                                if (e.parent && parentId && parentId.toString() === e.parent.toString()) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
 
-                                data.data.map(e => {
-                                    if (e.parent && parentId && parentId.toString() === e.parent.toString()) {
-                                        vm.queryDepartments.push(e);
-                                    }
-                                });
-                            }
                             endLoadMultipleSelect('.spicker');
                         });
                     }
