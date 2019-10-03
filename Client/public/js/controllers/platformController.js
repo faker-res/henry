@@ -36105,14 +36105,14 @@ define(['js/app'], function (myApp) {
                                 });
 
                                 data.data.map(e => {
-                                    if (selectedPlatform.find(platform=> platform.data.name && String(platform.data.name) == String(e.departmentName))) {
+                                    if (selectedPlatform.find(platform=> platform.data && platform.data.name && String(platform.data.name) == String(e.departmentName))) {
                                         vm.queryDepartments.push(e);
                                         parentId.push(e._id);
                                     }
                                 });
 
                                 data.data.map(e => {
-                                    if (parentId.find(pId => String(pId) == String(e.parent))) {
+                                    if (e.parent && parentId.find(pId => String(pId) == String(e.parent))) {
                                         vm.queryDepartments.push(e);
                                     }
                                 });
