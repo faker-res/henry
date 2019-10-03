@@ -36128,7 +36128,7 @@ define(['js/app'], function (myApp) {
                                 });
 
                                 data.data.map(e => {
-                                    if (parentId.toString() === e.parent.toString()) {
+                                    if (e.parent && parentId && parentId.toString() === e.parent.toString()) {
                                         vm.queryDepartments.push(e);
                                     }
                                 });
