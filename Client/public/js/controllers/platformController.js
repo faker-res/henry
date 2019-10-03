@@ -17287,6 +17287,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
+                        vm.lastSuccessBackEndQuery = data && data.data && data.data.backEndQuery;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -17540,6 +17541,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addPlayerFeedback = function (data, isConfirm = false) {
+                vm.toggleSubmitFeedbackButton = false;
 
                 if (!isConfirm) {
                     vm.modalYesNo = {};
@@ -17566,6 +17568,7 @@ define(['js/app'], function (myApp) {
                     };
                     console.log('sendData', sendData);
                     socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                        vm.toggleSubmitFeedbackButton = true;
                         vm.addFeedback.content = "";
                         vm.addFeedback.result = "";
                         if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
@@ -17890,6 +17893,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
                 vm.playerFeedbackQuery.callPermission = "true";
+                vm.toggleSubmitFeedbackButton = true;
                 setTimeout(
                     () => {
                         let parentId;
@@ -40707,7 +40711,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     console.log(data);
                     vm.getCtiData();
@@ -40725,6 +40731,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
                 $('.chosenPlayers').each((i,ply)=>{
                     let isChecked = $(ply).is(':checked');
@@ -40743,6 +40750,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     vm.getCtiData();
                 });

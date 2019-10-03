@@ -9,7 +9,7 @@
     1. [设置语言](#设置语言)
 3. [玩家信息服务](#玩家信息服务：)
 	1. [玩家开户](#玩家开户)
-	2. [获取验证码](#获取验证码)
+	2. [获取图形验证码](#获取图形验证码)
 	3. [登录](#登录)
 	4. [注销](#注销)
 	5. [是否已成功登入](#是否已成功登入)
@@ -20,14 +20,14 @@
 	10. [设置短信通知(已淘汰)](#设置短信通知)
 	10.1. [获取玩家短信状态](#获取玩家短信状态)
 	10.2. [设置玩家短信状态](#设置玩家短信状态)
-	11. [用户是否有效](#用户是否有效)
-	12. [链接验证](#链接验证)
+	11. [用户名是否有效](#用户名是否有效)
+	12. [登陆状态验证](#登陆状态验证)
 	13. [获取玩家站内信](#获取玩家站内信)
-	14. [通知玩家有新的站内信](#通知玩家有新的站内信)
+	14. [接收新的站内信通知](#接收新的站内信通知)
 	15. [标记站内信为已读](#标记站内信为已读)
 	16. [获取未读取站内信](#获取未读取站内信)
-	17. [删除所有邮件](#删除所有邮件)
-	18. [删除邮件](#删除邮件)
+	17. [删除所有站内信](#删除所有站内信)
+	18. [删除站内信](#删除站内信)
 	19. [获取玩家额度](#获取玩家额度)
 	20. [获取玩家全额消费](#获取玩家全额消费)
 	21. [修改玩家头像](#修改玩家头像)
@@ -226,6 +226,8 @@
 		42. [获取代理转账记录](#获取代理转账记录)
 		43. [查询所有下线玩家详情](#查询所有下线玩家详情)
 		44. [代理推广域名防红和短链转换](#代理推广域名防红和短链转换)
+		45. [查询代理的下级会员信息](#查询代理的下级会员信息)
+        46. [查询代理的下级代理信息](#查询代理的下级代理信息)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -503,9 +505,10 @@ API说明：
   - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit: true/false}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
-<div id='获取验证码'></div>
 
-* **2. 获取验证码**
+<div id='获取图形验证码'></div>
+
+* **2. 获取图形验证码**
   - 从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来。
   - 请求内容：  name: captcha{} //空对象
   - 响应内容：{status: 200/40x, data: “base64;pngXfasagGFFSD”}
@@ -766,9 +769,9 @@ API说明：
         errorMessage: 错误信息
         ```
 
-<div id='用户是否有效'></div>
+<div id='用户名是否有效'></div>
 
-* **11. 用户是否有效**
+* **11. 用户名是否有效**
     * functionName: isValidUsername
 	* 用于在注册时，检测玩家的用户名是否有效。
 	* 请求内容：
@@ -788,9 +791,9 @@ API说明：
         errorMessage: 错误信息
         ```
 
-<div id='链接验证'></div>
+<div id='登陆状态验证'></div>
 
-* **12. 链接验证**
+* **12. 登陆状态验证**
     * functionName: authenticate
 	* 用于验证玩家webSocket链接是否有效。
 	* 当玩家已登录，但是webSocket链接断开，再建立链接是可以用token来验证链接
@@ -840,9 +843,9 @@ API说明：
         errorMessage: 错误信息
         ```
 
-<div id='通知玩家有新的站内信'></div>
+<div id='接收新的站内信通知'></div>
 
-* **14. 通知玩家有新的站内信**
+* **14. 接收新的站内信通知**
 	* functionName: notifyNewMail
 	* 监听类型, 呼叫后, 如果有新邮件, 系统会主动推送
 	* 请求内容：
@@ -920,9 +923,9 @@ API说明：
         errorMessage: 错误信息
         ```
 
-<div id='删除所有邮件'></div>
+<div id='删除所有站内信'></div>
 
-* **17. 删除所有邮件**
+* **17. 删除所有站内信**
 	* functionName: deleteAllMail
 	* 请求内容：
 	    ```
@@ -939,9 +942,9 @@ API说明：
         errorMessage: 错误信息
         ```
 
-<div id='删除邮件'></div>
+<div id='删除站内信'></div>
 
-* **18. 删除邮件**
+* **18. 删除站内信**
 	* functionName: deleteMail
 	* 请求内容：
 	    ```
@@ -6810,6 +6813,127 @@ API说明：
               }
             }
     * 操作失败：status--4xx, data-null, errorMessage:””
+    
+<div id='查询代理的下级会员信息'></div>
+
+* **45. 查询代理的下级会员信息**
+    * name: getDownLinePlayerInfo
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                platformId: "1" //平台ID - 必填
+                period: 1  //1:本日  2:本周 3:本月 - 必填
+                whosePlayer: 1 //1:全部  2: 直属下线会员  3:下线代理会员 - 必填
+                playerType: 1 //1:全部 2: 新增会员 3:活跃会员- 必填
+                crewAccount: "vptest001" //玩家账号 （用于单一搜索）
+                requestPage: 1 //请求第几页（从1开始）
+                count: 10 //每页数据条数（默认为10条）
+                sortType: 1 //"1:充值   2:提款  3:输赢值  
+                              4:有效投注额  5:优惠金额  6: 平台费  
+                              7: 存取款手续费"
+                sort: true //true 升序、false 降序（默认）
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                "stats": {
+                  "totalActivePlayer": 3, 活跃会员总数
+                  "totalCount": 3, //数据总数
+                  "totalPage": 1, //一共多少页
+                  "currentPage": 1, //当前页
+                  "totalNewPlayerCount": 0, // 新增会员总数  （只随period变动而变动）
+                  "totalValidCrewPlayer": 0, // 有效会员总数    (只随period变动而变动）
+                  "totalDepositAmount": 0,  // 总存款额
+                  "totalWithdrawAmount": 0, // 总提款数
+                  "totalPromoAmount": 0, // 总优惠金额
+                  "totalCrewProfit": 0, // 总输赢金额
+                  "totalPlatformFee": 0, // 总平台费
+                  "totalDepositWithdrawFee": 0,  // 总存取款手续费
+                  "totalValidBet": 0  // 总有效投注额
+                },
+                "list": [
+                  {
+                    "crewAccount": "vptest004", //玩家账号
+                    "crewRegisterTime": "2019-09-12T02:31:07.156Z", // 注册时间
+                    "crewLastLoginTime": "2019-09-12T02:31:07.156Z", // 最后登录时间
+                    "crewProfit": 0, // 输赢金额
+                    "depositAmount": 0, // 存款金额
+                    "withdrawAmount": 0, // 提款金额
+                    "validBet": 0, // 有效投注额
+                    "promoAmount": 0, // 优惠金额
+                    "platformFee": 0, // 平台手续费
+                    "totalDepositWithdrawFee": 0 // 存取款手续费
+                  }
+                ]
+              }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
+<div id='查询代理的下级代理信息'></div>
+
+* **46. 查询代理的下级代理信息**
+    * name: getDownLinePartnerInfo
+    * service:partner
+    * 请求内容
+        * ```
+            {
+                platformId: "1" //平台ID - 必填
+                period: 1 //1:本日   2:本周  3:本月  4: 本期（当期实时佣金） - 必填
+                partnerType: 1 //1:全部 2: 新增下级代理- 必填
+                partnerAccount: "pptest001" //代理账号 （用于单一搜索）
+                requestPage: 1 //请求第几页（从1开始）
+                count: 10 //每页数据条数（默认为10条）
+                sortType: 1 //"1:充值   2:提款  3:输赢值  
+                              4:有效投注额  5:优惠金额  6: 平台费  
+                              7: 存取款手续费 8: 贡献佣金"
+                              如果不传该参数，默认按照注册时间顺序排序
+                sort: true //true 升序、false 降序（默认）
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": {
+                  "stats": {
+                    "totalCount": 3, //数据总数
+                    "totalPage": 1, //一共多少页
+                    "currentPage": 1, //当前页
+                    "totalNewPartnerCount": 0, // 新增代理总数  （只随period变动而变动）
+                    "totalPartnerCount": 1, // 总代理人数
+                    "totalDepositAmount": 0, // 总存金额
+                    "totalWithdrawAmount": 0, // 总提款金额
+                    "totalPromoAmount": 0,  // 总优惠金额
+                    "totalCrewProfit": 0,  // 总输赢金额
+                    "totalPlatformFee": 0, // 总平台费
+                    "totalHandlingFee": 0, // 总存取款手续费
+                    "totalCommission": 0 // 总贡献佣金
+                  },
+                  "list": [
+                    {
+                      "partnerAccount": "pptest002", //代理账号
+                      "partnerRegisterTime": "2019-09-12T01:54:24.534Z", // 注册时间
+                      "partnerLastLoginTime": "2019-09-12T01:54:24.535Z", // 最后登录时间
+                      "commissionType": 1,  // 佣金模式
+                      "partnerLevel": 3,  // 代理等级
+                      "crewProfit": 0,  // 输赢金额
+                      "depositAmount": 0,  // 存款金额
+                      "withdrawAmount": 0,  // 提款金额
+                      "validBet": 0, // 有效投注额
+                      "promoAmount": 0, // 优惠金额
+                      "platformFee": 0, // 平台手续费
+                      "totalDepositWithdrawFee": 0,  // 存取款手续费 
+                      "commission": 0 // 贡献佣金
+                    }
+                  ]
+                }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
 <!--文档没有华语名称，因此暂时命名“平台”-->
 # 平台：
 提供平台相关服务的接口。
