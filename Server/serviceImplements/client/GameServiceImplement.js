@@ -15,6 +15,7 @@ var dbRewardTask = require('./../../db_modules/dbRewardTask');
 var dbGameType = require("../../db_modules/dbGameType.js");
 var constServerCode = require("./../../const/constServerCode");
 var constSystemParam = require('./../../const/constSystemParam');
+const constPlayerRegistrationInterface = require('./../../const/constPlayerRegistrationInterface');
 
 var cpmsAPI = require("../../externalAPI/cpmsAPI");
 var uaParser = require('ua-parser-js');
@@ -185,6 +186,9 @@ var GameServiceImplement = function () {
         let ip = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
                 ip = forwardedIp[0].trim();
