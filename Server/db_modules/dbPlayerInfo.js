@@ -14725,13 +14725,12 @@ let dbPlayerInfo = {
     /*
      * Apply bonus
      */
-    applyBonus: function (userAgent, playerId, bonusId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
+    applyBonus: async function (userAgent, playerId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
         let ximaWithdrawUsed = 0;
         if (amount < 100 && !adminInfo) {
-            return Q.reject({name: "DataError", errorMessage: "Amount is not enough"});
+            return Promise.reject({name: "DataError", errorMessage: "Amount is not enough"});
         }
-        let player = null;
-        let bonusDetail = null;
+
         let bUpdateCredit = false;
         let platform;
         let isUsingXima = false;
@@ -14758,517 +14757,506 @@ let dbPlayerInfo = {
                 }
             );
         };
-        bonusId = parseInt(bonusId);
         amount = parseInt(amount);
 
-        return dbconfig.collection_players.findOne({playerId: playerId})
+        // Check if player exist
+        let player = await dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider})
-            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
-                playerData => {
-                    //check if player has pending proposal to update bank info
-                    if (playerData) {
-                        let propQ = {
-                            "data._id": String(playerData._id)
-                        };
+            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean();
 
-                        platform = playerData.platform;
-                        player = playerData;
+        if (!player) {
+            return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
+        }
 
-                        if (platform && platform.isPhoneNumberBoundToPlayerBeforeApplyBonus) {
-                            if (playerData && !playerData.phoneNumber) {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    errorMessage: localization.localization.translate("Please complete the phone number, thank you")
-                                });
-                            }
-                        }
 
-                        // if no withdrawal bank was selected, use default first bank in player data
-                        if (!withdrawalBank && !bankId) {
-                            withdrawalBank = {
-                                bankName: playerData.bankName || null,
-                                bankAccount: playerData.bankAccount || null,
-                                bankAccountName: playerData.bankAccountName || null,
-                                bankAccountType: playerData.bankAccountType || null,
-                                bankAccountProvince: playerData.bankAccountProvince || null,
-                                bankAccountCity: playerData.bankAccountCity || null,
-                                bankAccountDistrict: playerData.bankAccountDistrict || null,
-                                bankAddress: playerData.bankAddress || null,
-                                bankBranch: playerData.bankBranch || null,
-                            }
-                        } else {
-                            // if a withdrawal bank was selected, match the bank input and player existing bank data
-                            // compare with first bank info
-                            if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
-                                && withdrawalBank.bankAccount === playerData.bankAccount
-                                && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
-                                withdrawalBank = {
-                                    bankName: playerData.bankName || null,
-                                    bankAccount: playerData.bankAccount || null,
-                                    bankAccountName: playerData.bankAccountName || null,
-                                    bankAccountType: playerData.bankAccountType || null,
-                                    bankAccountProvince: playerData.bankAccountProvince || null,
-                                    bankAccountCity: playerData.bankAccountCity || null,
-                                    bankAccountDistrict: playerData.bankAccountDistrict || null,
-                                    bankAddress: playerData.bankAddress || null,
-                                    bankBranch: playerData.bankBranch || null,
-                                }
-                            } else if (playerData.multipleBankDetailInfo) {
-                                // compare with second and third bank info
-                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
-                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) || bankId === '2') {
-                                    withdrawalBank = {
-                                        bankName: playerData.multipleBankDetailInfo.bankName2 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount2 || null,
-                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
-                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
-                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
-                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity2 || null,
-                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict2 || null,
-                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress2 || null,
-                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
-                                    }
-                                }
-                                if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
-                                    && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
-                                    && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) || bankId === '3') {
-                                    withdrawalBank = {
-                                        bankName: playerData.multipleBankDetailInfo.bankName3 || null,
-                                        bankAccount: playerData.multipleBankDetailInfo.bankAccount3 || null,
-                                        bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
-                                        bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
-                                        bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
-                                        bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity3 || null,
-                                        bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict3 || null,
-                                        bankAddress: playerData.multipleBankDetailInfo.bankAddress3 || null,
-                                        bankBranch: playerData.multipleBankDetailInfo.bankBranch3 || null,
-                                    }
-                                }
-                            } else {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    errorMessage: localization.localization.translate("Player does not have matching bank info")
-                                });
-                            }
-                        }
+        let propQ = {
+            "data._id": String(player._id)
+        };
 
-                        return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
-                            proposals => {
-                                if (proposals && proposals.length > 0) {
-                                    let bExist = false;
-                                    proposals.forEach(
-                                        proposal => {
-                                            if (proposal.status == constProposalStatus.PENDING ||
-                                                (proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
-                                                bExist = true;
-                                            }
-                                        }
-                                    );
-                                    if (!bExist || bForce) {
-                                        return playerData;
-                                    }
-                                    else {
-                                        return Promise.reject({
-                                            name: "DataError",
-                                            errorMessage: "Player is updating bank info"
-                                        });
-                                    }
-                                }
-                                else {
-                                    return playerData;
-                                }
-                            }
-                        );
-                    }
-                    else {
-                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
+        platform = player.platform;
+
+        // Check if player phone number is required
+        if (platform && platform.isPhoneNumberBoundToPlayerBeforeApplyBonus && !player.phoneNumber) {
+            return Promise.reject({
+                name: "DataError",
+                errorMessage: localization.localization.translate("Please complete the phone number, thank you")
+            });
+        }
+
+        // Get player withdrawal bank info
+        withdrawalBank = getPlayerWithdrawalBank(player, withdrawalBank, bankId);
+
+        if (!withdrawalBank) {
+            return Promise.reject({
+                name: "DataError",
+                errorMessage: localization.localization.translate("Player does not have matching bank info")
+            });
+        }
+
+        // Check if player is updating bank info
+        let pendingProps = await dbPropUtil.getProposalDataOfType(platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ);
+
+        if (pendingProps && pendingProps.length > 0) {
+            let bExist = false;
+
+            pendingProps.forEach(
+                proposal => {
+                    if (
+                        proposal.status === constProposalStatus.PENDING ||
+                        (proposal.process && proposal.process.status === constProposalStatus.PENDING)
+                    ) {
+                        bExist = true;
                     }
                 }
-            ).then(
-                playerData => {
-                    if (playerData) {
-                        player = playerData;
+            );
+            if (bExist && !bForce) {
+                return Promise.reject({
+                    name: "DataError",
+                    errorMessage: "Player is updating bank info"
+                });
+            }
+        }
 
-                        return dbPlayerUtil.setPlayerBState(player._id, "playerBonus", true);
+        return dbPlayerUtil.setPlayerBState(player._id, "playerBonus", true).then(
+            playerState => {
+                if (!playerState) {
+                    return Promise.reject({
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        name: "DBError",
+                        message: "withdrawal fail, please contact cs"
+                    })
+                }
 
-                    } else {
-                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
+                bonusSystemConfig =
+                    extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
+
+                if (player.ximaWithdraw) {
+                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
+
+                    if (amount <= player.ximaWithdraw) {
+                        isUsingXima = true;
                     }
                 }
-            ).then(
-                playerState => {
-                    if (!playerState) {
-                        return Promise.reject({
-                            status: constServerCode.CONCURRENT_DETECTED,
-                            name: "DBError",
-                            message: "withdrawal fail, please contact cs"
-                        })
-                    }
 
-                    bonusSystemConfig =
-                        extConfig && player.platform.bonusSystemType && extConfig[player.platform.bonusSystemType];
-
-                    if (player.ximaWithdraw) {
-                        ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
-
-                        if (amount <= player.ximaWithdraw) {
-                            isUsingXima = true;
-                        }
-                    }
-
-                    let permissionProm = Promise.resolve(true);
-                    let disablePermissionProm = Promise.resolve(true);
-                    if (!player.permission.applyBonus) {
-                        permissionProm = dbconfig.collection_playerPermissionLog.find(
-                            {
-                                player: player._id,
-                                platform: platform._id,
-                                // "oldData.applyBonus": true,
-                                "newData.applyBonus": false,
-                            },
-                            {remark: 1}
-                        ).sort({createTime: -1}).limit(1).lean().then(
-                            log => {
-                                if (log && log.length > 0) {
-                                    lastBonusRemark = log[0].remark;
-                                }
-                            }
-                        );
-
-                        disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                let permissionProm = Promise.resolve(true);
+                let disablePermissionProm = Promise.resolve(true);
+                if (!player.permission.applyBonus) {
+                    permissionProm = dbconfig.collection_playerPermissionLog.find(
+                        {
                             player: player._id,
                             platform: platform._id,
-                            isSystem: false
-                        }).sort({createTime: -1}).lean().then(
-                            manualPermissionSetting => {
-
-                                if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
-                                    && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
-                                    return dbconfig.collection_proposal.find({
-                                        'data.platformId': platform._id,
-                                        'data.playerObjId': player._id,
-                                        mainType: constProposalType.PLAYER_BONUS,
-                                        status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                        'data.remark': '禁用提款: '+ lastBonusRemark
-                                    }).sort({createTime: -1}).limit(1).then(proposalData => {
-                                        if (proposalData && proposalData.length > 0) {
-                                            lastBonusRemark = manualPermissionSetting.remark;
-                                        }
-                                    });
-                                }
-                            }
-                        )
-                    }
-                    return Promise.all([permissionProm, disablePermissionProm]).then(
-                        res => {
-                            if (player.platform && player.platform.useProviderGroup) {
-                                let unlockAllGroups = Promise.resolve(true);
-                                if (bForce) {
-                                    unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(player._id, adminInfo).catch(errorUtils.reportError);
-                                }
-                                return unlockAllGroups.then(
-                                    () => {
-                                        return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
-                                    }
-                                );
-                            } else {
-                                return false;
+                            // "oldData.applyBonus": true,
+                            "newData.applyBonus": false,
+                        },
+                        {remark: 1}
+                    ).sort({createTime: -1}).limit(1).lean().then(
+                        log => {
+                            if (log && log.length > 0) {
+                                lastBonusRemark = log[0].remark;
                             }
                         }
                     );
+
+                    disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                        player: player._id,
+                        platform: platform._id,
+                        isSystem: false
+                    }).sort({createTime: -1}).lean().then(
+                        manualPermissionSetting => {
+
+                            if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                return dbconfig.collection_proposal.find({
+                                    'data.platformId': platform._id,
+                                    'data.playerObjId': player._id,
+                                    mainType: constProposalType.PLAYER_BONUS,
+                                    status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.remark': '禁用提款: '+ lastBonusRemark
+                                }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                    if (proposalData && proposalData.length > 0) {
+                                        lastBonusRemark = manualPermissionSetting.remark;
+                                    }
+                                });
+                            }
+                        }
+                    )
                 }
-            ).then(
-                RTG => {
-                    if (RTG) {
-                        let consumptionOffset = Number.isFinite(Number(platform.autoApproveConsumptionOffset)) ? Number(platform.autoApproveConsumptionOffset) : 0;
-                        let curConsumption = Number.isFinite(Number(RTG.curConsumption)) ? Number(RTG.curConsumption) : 0;
-                        let currentConsumption = curConsumption + consumptionOffset;
-
-                        let targetConsumption = Number.isFinite(Number(RTG.targetConsumption)) ? Number(RTG.targetConsumption) : 0;
-                        let forbidXIMAAmt = Number.isFinite(Number(RTG.forbidXIMAAmt)) ? Number(RTG.forbidXIMAAmt) : 0;
-                        let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
-
-                        if (currentConsumption >= totalTargetConsumption) {
-                            console.log('unlock rtg due to consumption clear in other location B', RTG._id);
-                            return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG).then(
+                return Promise.all([permissionProm, disablePermissionProm]).then(
+                    res => {
+                        if (player.platform && player.platform.useProviderGroup) {
+                            let unlockAllGroups = Promise.resolve(true);
+                            if (bForce) {
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(player._id, adminInfo).catch(errorUtils.reportError);
+                            }
+                            return unlockAllGroups.then(
                                 () => {
                                     return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
                                 }
                             );
+                        } else {
+                            return false;
                         }
                     }
-                    return RTG;
-                }
-            ).then(
-                RTGs => {
-                    if (!RTGs || isUsingXima) {
-                        if (!withdrawalBank.bankName || !withdrawalBank.bankAccountName || !withdrawalBank.bankAccount) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                                name: "DataError",
-                                errorMessage: "Player does not have valid payment information"
-                            });
-                        }
-                        let todayTime = dbUtility.getTodaySGTime();
-                        let creditProm = Q.resolve();
+                );
+            }
+        ).then(
+            RTG => {
+                if (RTG) {
+                    let consumptionOffset = Number.isFinite(Number(platform.autoApproveConsumptionOffset)) ? Number(platform.autoApproveConsumptionOffset) : 0;
+                    let curConsumption = Number.isFinite(Number(RTG.curConsumption)) ? Number(RTG.curConsumption) : 0;
+                    let currentConsumption = curConsumption + consumptionOffset;
 
-                        if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true)
-                        }
+                    let targetConsumption = Number.isFinite(Number(RTG.targetConsumption)) ? Number(RTG.targetConsumption) : 0;
+                    let forbidXIMAAmt = Number.isFinite(Number(RTG.forbidXIMAAmt)) ? Number(RTG.forbidXIMAAmt) : 0;
+                    let totalTargetConsumption = targetConsumption + forbidXIMAAmt;
 
-                        return creditProm.then(
+                    if (currentConsumption >= totalTargetConsumption) {
+                        console.log('unlock rtg due to consumption clear in other location B', RTG._id);
+                        return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG).then(
                             () => {
-                                return dbconfig.collection_players.findOne({playerId: playerId})
-                                    .populate({path: "platform", model: dbconfig.collection_platform})
-                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
-                                    .lean();
-                            },
-                            err => {
-                                console.log("LH check apply bonus error -----", err);
-                                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
-                                    return Promise.reject(err);
-                                }
-
-                                //if not certain error, return playerInfo data
-                                return dbconfig.collection_players.findOne({playerId: playerId})
-                                    .populate({path: "platform", model: dbconfig.collection_platform})
-                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
-                                    .lean();
+                                return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
                             }
-                        ).then(
-                            playerData => {
-                                //check if player has enough credit
-                                player = playerData;
-                                if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
-                                    return Q.reject({
-                                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                        name: "DataError",
-                                        errorMessage: "Player does not have enough credit."
-                                    });
-                                }
-                                return dbconfig.collection_proposal.find(
-                                    {
-                                        mainType: "PlayerBonus",
-                                        createTime: {
-                                            $gte: todayTime.startTime,
-                                            $lt: todayTime.endTime
-                                        },
-                                        "data.playerId": playerId,
-                                        status: {
-                                            $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
-                                        }
-                                    }
-                                ).lean();
-                            }
-                        ).then(
-                            todayBonusApply => {
-                                let changeCredit = -amount;
-                                let finalAmount = amount;
-                                let creditCharge = 0;
-                                let creditChargeWithoutDecimal = 0;
-                                let amountAfterUpdate = player.validCredit - amount;
-                                let playerLevelVal = player.playerLevel.value;
-                                if (player.platform.bonusSetting) {
-                                    // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
-                                    //     return item.value == playerLevelVal
-                                    // });
-
-                                    let bonusSetting = {};
-
-                                    for (let x in player.platform.bonusSetting) {
-                                        if (player.platform.bonusSetting[x].value == playerLevelVal) {
-                                            bonusSetting = player.platform.bonusSetting[x];
-                                        }
-                                    }
-                                    if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
-                                        creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
-                                        if(platform.withdrawalFeeNoDecimal){
-                                            creditChargeWithoutDecimal = parseInt(creditCharge);
-                                            finalAmount = finalAmount - creditChargeWithoutDecimal;
-                                        }else{
-                                            finalAmount = finalAmount - creditCharge;
-                                        }
-                                    }
-                                }
-
-                                return dbconfig.collection_players.findOneAndUpdate(
-                                    {
-                                        _id: player._id,
-                                        platform: player.platform._id
-                                    },
-                                    {$inc: {validCredit: changeCredit}},
-                                    {new: true}
-                                ).then(
-                                    //check if player's credit is correct after update
-                                    updateRes => dbconfig.collection_players.findOne({_id: player._id})
-                                ).then(
-                                    newPlayerData => {
-                                        if (newPlayerData) {
-                                            bUpdateCredit = true;
-                                            //to fix float problem...
-                                            if (newPlayerData.validCredit < -0.02) {
-                                                //credit will be reset below
-                                                return Q.reject({
-                                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                                    name: "DataError",
-                                                    errorMessage: "Player does not have enough credit.",
-                                                    data: '(detected after withdrawl)'
-                                                });
-                                            }
-                                            //check if player's credit is correct after update
-                                            if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
-                                                console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
-                                                return Q.reject({
-                                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                                    name: "DataError",
-                                                    errorMessage: "Update player credit failed",
-                                                    data: '(detected after withdrawl)'
-                                                });
-                                            }
-                                            //fix player negative credit
-                                            if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
-                                                newPlayerData.validCredit = 0;
-                                                dbconfig.collection_players.findOneAndUpdate(
-                                                    {_id: newPlayerData._id, platform: newPlayerData.platform},
-                                                    {validCredit: 0}
-                                                ).then();
-                                            }
-                                            player.validCredit = newPlayerData.validCredit;
-                                            //create proposal
-                                            var proposalData = {
-                                                creator: adminInfo || {
-                                                    type: 'player',
-                                                    name: player.name,
-                                                    id: playerId
-                                                },
-                                                playerId: playerId,
-                                                playerObjId: player._id,
-                                                playerName: player.name,
-                                                bonusId: bonusId,
-                                                platformId: player.platform._id,
-                                                platform: player.platform.platformId,
-                                                bankTypeId: withdrawalBank.bankName,
-                                                amount: finalAmount,
-                                                // bonusCredit: bonusDetail.credit,
-                                                curAmount: player.validCredit,
-                                                // remark: player.remark,
-                                                lastSettleTime: new Date(),
-                                                honoreeDetail: honoreeDetail,
-                                                creditCharge: platform.withdrawalFeeNoDecimal ? creditChargeWithoutDecimal : creditCharge,
-                                                oriCreditCharge: creditCharge,
-                                                ximaWithdrawUsed: ximaWithdrawUsed,
-                                                isAutoApproval: player.platform.enableAutoApplyBonus,
-                                                bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
-                                                bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
-                                                //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
-                                                changeCredit: changeCredit
-                                            };
-                                            if (!player.permission.applyBonus) {
-                                                proposalData.remark = "禁用提款: " + lastBonusRemark;
-                                                if(player.platform.playerForbidApplyBonusNeedCsApproval) {
-                                                    proposalData.needCsApproved = true;
-                                                }
-                                            }
-
-                                            if (player.platform.bonusSystemType && bonusSystemConfig) {
-                                                proposalData.bonusSystemType = player.platform.bonusSystemType;
-                                                proposalData.bonusSystemName = bonusSystemConfig.name;
-                                            } else if (!player.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
-                                                Object.keys(extConfig).forEach(key => {
-                                                    if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
-                                                        proposalData.bonusSystemType = Number(key);
-                                                        proposalData.bonusSystemName = extConfig[key].name;
-                                                    }
-                                                });
-                                            }
-
-                                            var newProposal = {
-                                                creator: proposalData.creator,
-                                                data: proposalData,
-                                                entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-                                                userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                            };
-                                            newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
-
-                                            return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
-                                        }
-                                    });
-                            });
-                    } else {
-                        return Promise.reject({
-                            status: constServerCode.NOT_ENOUGH_CONSUMPTION,
+                        );
+                    }
+                }
+                return RTG;
+            }
+        ).then(
+            RTGs => {
+                if (!RTGs || isUsingXima) {
+                    if (!withdrawalBank.bankName || !withdrawalBank.bankAccountName || !withdrawalBank.bankAccount) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
-                            errorMessage: "There are available reward task group to complete"
+                            errorMessage: "Player does not have valid payment information"
                         });
                     }
-                }
-            ).then(
-                proposal => {
-                    if (proposal) {
-                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.autoApproveWhenSingleBonusApplyLessThan) {
-                            dbPlayerInfo.createLargeWithdrawalLog(proposal, platform._id).catch(err => {
-                                console.log("createLargeWithdrawalLog failed", err);
-                                return errorUtils.reportError(err);
-                            });
-                        }
+                    let todayTime = dbUtility.getTodaySGTime();
+                    let creditProm = Q.resolve();
 
-                        if (bUpdateCredit) {
-                            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
-                        }
-                        dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
-                        return proposal;
-                    } else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
+                    if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
+                        creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true)
                     }
-                }
-            ).then(
-                data => {
-                    let proposal = Object.assign({}, data);
-                    proposal.type = proposal.type._id;
-                    return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
-                        platform => {
-                            if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
-                                let proposals = [];
-                                proposals.push(proposal);
-                                dbAutoProposal.processAutoProposals(proposals, platform, withdrawalBank);
-                            }
-                            return data;
+
+                    return creditProm.then(
+                        () => {
+                            return dbconfig.collection_players.findOne({playerId: playerId})
+                                .populate({path: "platform", model: dbconfig.collection_platform})
+                                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                .lean();
                         },
-                        error => {
-                            errorUtils.reportError(error);
-                            return data;
+                        err => {
+                            console.log("LH check apply bonus error -----", err);
+                            if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                                return Promise.reject(err);
+                            }
+
+                            //if not certain error, return playerInfo data
+                            return dbconfig.collection_players.findOne({playerId: playerId})
+                                .populate({path: "platform", model: dbconfig.collection_platform})
+                                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                .lean();
                         }
-                    );
-                },
-                error => {
-                    if (bUpdateCredit) {
-                        return resetCredit(player._id, player.platform._id, amount, error);
-                    }
-                    else {
-                        return Q.reject(error);
-                    }
+                    ).then(
+                        playerData => {
+                            //check if player has enough credit
+                            player = playerData;
+                            if ((parseFloat(playerData.validCredit).toFixed(2)) < parseFloat(amount)) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                    name: "DataError",
+                                    errorMessage: "Player does not have enough credit."
+                                });
+                            }
+                            return dbconfig.collection_proposal.find(
+                                {
+                                    mainType: "PlayerBonus",
+                                    createTime: {
+                                        $gte: todayTime.startTime,
+                                        $lt: todayTime.endTime
+                                    },
+                                    "data.playerId": playerId,
+                                    status: {
+                                        $in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]
+                                    }
+                                }
+                            ).lean();
+                        }
+                    ).then(
+                        todayBonusApply => {
+                            let changeCredit = -amount;
+                            let finalAmount = amount;
+                            let creditCharge = 0;
+                            let creditChargeWithoutDecimal = 0;
+                            let amountAfterUpdate = player.validCredit - amount;
+                            let playerLevelVal = player.playerLevel.value;
+                            if (player.platform.bonusSetting) {
+                                // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
+                                //     return item.value == playerLevelVal
+                                // });
+
+                                let bonusSetting = {};
+
+                                for (let x in player.platform.bonusSetting) {
+                                    if (player.platform.bonusSetting[x].value == playerLevelVal) {
+                                        bonusSetting = player.platform.bonusSetting[x];
+                                    }
+                                }
+                                if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
+                                    creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
+                                    if(platform.withdrawalFeeNoDecimal){
+                                        creditChargeWithoutDecimal = parseInt(creditCharge);
+                                        finalAmount = finalAmount - creditChargeWithoutDecimal;
+                                    }else{
+                                        finalAmount = finalAmount - creditCharge;
+                                    }
+                                }
+                            }
+
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {
+                                    _id: player._id,
+                                    platform: player.platform._id
+                                },
+                                {$inc: {validCredit: changeCredit}},
+                                {new: true}
+                            ).then(
+                                //check if player's credit is correct after update
+                                updateRes => dbconfig.collection_players.findOne({_id: player._id})
+                            ).then(
+                                newPlayerData => {
+                                    if (newPlayerData) {
+                                        bUpdateCredit = true;
+                                        //to fix float problem...
+                                        if (newPlayerData.validCredit < -0.02) {
+                                            //credit will be reset below
+                                            return Q.reject({
+                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                name: "DataError",
+                                                errorMessage: "Player does not have enough credit.",
+                                                data: '(detected after withdrawl)'
+                                            });
+                                        }
+                                        //check if player's credit is correct after update
+                                        if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
+                                            console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
+                                            return Q.reject({
+                                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                                name: "DataError",
+                                                errorMessage: "Update player credit failed",
+                                                data: '(detected after withdrawl)'
+                                            });
+                                        }
+                                        //fix player negative credit
+                                        if (newPlayerData.validCredit < 0 && newPlayerData.validCredit > -0.02) {
+                                            newPlayerData.validCredit = 0;
+                                            dbconfig.collection_players.findOneAndUpdate(
+                                                {_id: newPlayerData._id, platform: newPlayerData.platform},
+                                                {validCredit: 0}
+                                            ).then();
+                                        }
+                                        player.validCredit = newPlayerData.validCredit;
+                                        //create proposal
+                                        var proposalData = {
+                                            creator: adminInfo || {
+                                                type: 'player',
+                                                name: player.name,
+                                                id: playerId
+                                            },
+                                            playerId: playerId,
+                                            playerObjId: player._id,
+                                            playerName: player.name,
+                                            platformId: player.platform._id,
+                                            platform: player.platform.platformId,
+                                            bankTypeId: withdrawalBank.bankName,
+                                            amount: finalAmount,
+                                            // bonusCredit: bonusDetail.credit,
+                                            curAmount: player.validCredit,
+                                            // remark: player.remark,
+                                            lastSettleTime: new Date(),
+                                            honoreeDetail: honoreeDetail,
+                                            creditCharge: platform.withdrawalFeeNoDecimal ? creditChargeWithoutDecimal : creditCharge,
+                                            oriCreditCharge: creditCharge,
+                                            ximaWithdrawUsed: ximaWithdrawUsed,
+                                            isAutoApproval: player.platform.enableAutoApplyBonus,
+                                            bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
+                                            bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
+                                            changeCredit: changeCredit
+                                        };
+                                        if (!player.permission.applyBonus) {
+                                            proposalData.remark = "禁用提款: " + lastBonusRemark;
+                                            if(player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                                proposalData.needCsApproved = true;
+                                            }
+                                        }
+
+                                        if (player.platform.bonusSystemType && bonusSystemConfig) {
+                                            proposalData.bonusSystemType = player.platform.bonusSystemType;
+                                            proposalData.bonusSystemName = bonusSystemConfig.name;
+                                        } else if (!player.platform.bonusSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                                            Object.keys(extConfig).forEach(key => {
+                                                if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                                    proposalData.bonusSystemType = Number(key);
+                                                    proposalData.bonusSystemName = extConfig[key].name;
+                                                }
+                                            });
+                                        }
+
+                                        var newProposal = {
+                                            creator: proposalData.creator,
+                                            data: proposalData,
+                                            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                            userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                        };
+                                        newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+
+                                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
+                                    }
+                                });
+                        });
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.NOT_ENOUGH_CONSUMPTION,
+                        name: "DataError",
+                        errorMessage: "There are available reward task group to complete"
+                    });
                 }
-            ).then(
-                returnData => {
-                    if (player) {
-                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
-                    }
-                    return returnData;
-                }
-            ).catch(
-                err => {
-                    if (err.status === constServerCode.CONCURRENT_DETECTED) {
-                        // Ignore concurrent request for now
-                    } else {
-                        // Set BState back to false
-                        dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+            }
+        ).then(
+            proposal => {
+                if (proposal) {
+                    if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.autoApproveWhenSingleBonusApplyLessThan) {
+                        dbPlayerInfo.createLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                            console.log("createLargeWithdrawalLog failed", err);
+                            return errorUtils.reportError(err);
+                        });
                     }
 
-                    throw err;
+                    if (bUpdateCredit) {
+                        dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
+                    }
+                    dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
+                    return proposal;
+                } else {
+                    return Q.reject({name: "DataError", errorMessage: "Cannot create bonus proposal"});
                 }
-            );
+            }
+        ).then(
+            data => {
+                let proposal = Object.assign({}, data);
+                proposal.type = proposal.type._id;
+                return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
+                    platform => {
+                        if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
+                            let proposals = [];
+                            proposals.push(proposal);
+                            dbAutoProposal.processAutoProposals(proposals, platform, withdrawalBank);
+                        }
+                        return data;
+                    },
+                    error => {
+                        errorUtils.reportError(error);
+                        return data;
+                    }
+                );
+            },
+            error => {
+                if (bUpdateCredit) {
+                    return resetCredit(player._id, player.platform._id, amount, error);
+                }
+                else {
+                    return Q.reject(error);
+                }
+            }
+        ).then(
+            returnData => {
+                if (player) {
+                    dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                }
+                return returnData;
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(player._id, "playerBonus", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
+            }
+        );
+
+        function getPlayerWithdrawalBank (playerData, withdrawalBank, bankId) {
+            // if no withdrawal bank was selected, use default first bank in player data
+            if (!withdrawalBank && !bankId) {
+                withdrawalBank = {
+                    bankName: playerData.bankName || null,
+                    bankAccount: playerData.bankAccount || null,
+                    bankAccountName: playerData.bankAccountName || null,
+                    bankAccountType: playerData.bankAccountType || null,
+                    bankAccountProvince: playerData.bankAccountProvince || null,
+                    bankAccountCity: playerData.bankAccountCity || null,
+                    bankAccountDistrict: playerData.bankAccountDistrict || null,
+                    bankAddress: playerData.bankAddress || null,
+                    bankBranch: playerData.bankBranch || null,
+                }
+            } else {
+                // if a withdrawal bank was selected, match the bank input and player existing bank data
+                // compare with first bank info
+                if ((withdrawalBank && withdrawalBank.bankName === playerData.bankName
+                    && withdrawalBank.bankAccount === playerData.bankAccount
+                    && withdrawalBank.bankAccountName === playerData.bankAccountName) || bankId === '1') {
+                    withdrawalBank = {
+                        bankName: playerData.bankName || null,
+                        bankAccount: playerData.bankAccount || null,
+                        bankAccountName: playerData.bankAccountName || null,
+                        bankAccountType: playerData.bankAccountType || null,
+                        bankAccountProvince: playerData.bankAccountProvince || null,
+                        bankAccountCity: playerData.bankAccountCity || null,
+                        bankAccountDistrict: playerData.bankAccountDistrict || null,
+                        bankAddress: playerData.bankAddress || null,
+                        bankBranch: playerData.bankBranch || null,
+                    }
+                } else if (playerData.multipleBankDetailInfo) {
+                    // compare with second and third bank info
+                    if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName2
+                        && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount2
+                        && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName2) || bankId === '2') {
+                        withdrawalBank = {
+                            bankName: playerData.multipleBankDetailInfo.bankName2 || null,
+                            bankAccount: playerData.multipleBankDetailInfo.bankAccount2 || null,
+                            bankAccountName: playerData.multipleBankDetailInfo.bankAccountName2 || null,
+                            bankAccountType: playerData.multipleBankDetailInfo.bankAccountType2 || null,
+                            bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince2 || null,
+                            bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity2 || null,
+                            bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict2 || null,
+                            bankAddress: playerData.multipleBankDetailInfo.bankAddress2 || null,
+                            bankBranch: playerData.multipleBankDetailInfo.bankBranch2 || null,
+                        }
+                    }
+                    if ((withdrawalBank && withdrawalBank.bankName === playerData.multipleBankDetailInfo.bankName3
+                        && withdrawalBank.bankAccount === playerData.multipleBankDetailInfo.bankAccount3
+                        && withdrawalBank.bankAccountName === playerData.multipleBankDetailInfo.bankAccountName3) || bankId === '3') {
+                        withdrawalBank = {
+                            bankName: playerData.multipleBankDetailInfo.bankName3 || null,
+                            bankAccount: playerData.multipleBankDetailInfo.bankAccount3 || null,
+                            bankAccountName: playerData.multipleBankDetailInfo.bankAccountName3 || null,
+                            bankAccountType: playerData.multipleBankDetailInfo.bankAccountType3 || null,
+                            bankAccountProvince: playerData.multipleBankDetailInfo.bankAccountProvince3 || null,
+                            bankAccountCity: playerData.multipleBankDetailInfo.bankAccountCity3 || null,
+                            bankAccountDistrict: playerData.multipleBankDetailInfo.bankAccountDistrict3 || null,
+                            bankAddress: playerData.multipleBankDetailInfo.bankAddress3 || null,
+                            bankBranch: playerData.multipleBankDetailInfo.bankBranch3 || null,
+                        }
+                    }
+                }
+            }
+
+            return withdrawalBank;
+        }
     },
 
     getPlayerBankList: function (playerObjId, platformObjId, isMultipleBank) {

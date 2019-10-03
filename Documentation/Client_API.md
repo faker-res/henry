@@ -61,7 +61,7 @@
 	49. [电话号码查找账号](#电话号码查找账号)
 	50. [获取接收代理转账记录](#获取接收代理转账记录)
 	51. [生成游客账号](#生成游客账号51)
-	52. [生成游客账号](#生成游客账号52)
+	52. [电话号码注册与登陆](#电话号码注册与登陆)
 	53. [修改生日日期](#修改生日日期)
 	54. [玩家电话号码与密码登入](#玩家电话号码与密码登入)
 	55. [绑定手机号](#绑定手机号)
@@ -69,7 +69,7 @@
 	57. [获取更新密码令牌](#获取更新密码令牌)
 	58. [令牌更新密码](#令牌更新密码)
 	59. [获取玩家最近玩的两个游戏](#获取玩家最近玩的两个游戏)
-    60. [APP设置密码](#APP设置密码)
+    60. [APP设置登陆密码](#APP设置登陆密码)
     61. [获取玩家推广域名防红和短链转换](#获取玩家推广域名防红和短链转换)
     62. [手机号码与密码注册](#手机号码与密码注册)
     63. [手机号码与密码登录](#手机号码与密码登录)
@@ -1915,9 +1915,9 @@ API说明：
 	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
 	* 操作失败： status--4xx, data--null
 
-<div id='生成游客账号52'></div>
+<div id='电话号码注册与登陆'></div>
 
-* **52. 生成游客账号** //
+* **52. 电话号码注册与登陆** //
 	* name: playerLoginOrRegisterWithSMS
 	* service:player
 	* 请求内容：
@@ -2026,9 +2026,9 @@ API说明：
 	* 操作成功： `{status--200，data: true}`
 	* 操作失败： `{status--40x，errorMessage: ””}`
 
-<div id='APP设置密码'></div>
+<div id='APP设置登陆密码'></div>
 
-* **60. APP设置密码**
+* **60. APP设置登陆密码**
     * service: player
     * name: settingPlayerPassword
     * 需登陆: 是
@@ -2213,46 +2213,27 @@ API说明：
 
 <div id='兑换奖品申请'></div>
 
-
-* **1. 兑换奖品申请**
-  - 向系统申请使用额度兑换奖品。服务端应根据奖品信息与玩家的额度，验证玩家是否
-  - name: applyBonus
-  - 请求内容：`{bonusId: 1, amount: 1, honoreeDetail: {mobile: 13500101111}}`
-  - bonusId: 1
-  - amount:兑奖数量
-  - honoreeDetail: 已弃用。
-  - bankId: //1,2,3 多银行卡的选择，若不填就是默认银行卡1
-  - 响应内容：
-	  - ```
-		  - {
-				 status: 200/4xx,
-				 data: {
-					 proposalId: “000123”,
-					 proposalType: “003”,
-					 status: “001”,
-					 requestDetail: {
-						 bonusId: “001”,
-						 amount: 1,
-						 honoreeDetail: {
-							 mobile: 13500101111
-						}
-					},
-					createTime: “2016-08-15 12:00:00”,...
-				},
-				errorMessage: “xxxxxx”
-			}
-  - Status：操作状态， 200--操作成功， 4xx--操作失败
-  - Proposal: 申请成功之后产生的提案。包含信息：
-  - proposalId: 提案Id,
-  - proposalType: 提案类型
-  - Status: 提案状态
-  - requestDetail: 兑奖明细, 包含申请兑奖的明细信息。
-  - createTime: 创建时间
-	   … 更多提案的明细信息
-  -  errorMessage: 详细错误信息
+* **1. 申请提款**
+  * 向系统申请提款
+  * name: applyBonus
+  * 请求内容：
+      ```
+      amount: 必填|Int|提款额度
+      bankId: 选填|Int|多银行卡的选择，若不填就是默认银行卡1
+      ```
+  * 操作成功:
+      ```
+      status: 200
+      data: 提款提案详情
+      ```
+  * 操作失败:
+      ```
+      status: 40x
+      data: -
+      errorMessage: 错误信息
+      ```
 
 <div id='获取兑奖申请列表'></div>
-
 
 * **2. 获取兑奖申请列表**
   - 获取玩家所提交的兑奖申请单列表。
