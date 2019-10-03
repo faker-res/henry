@@ -1851,7 +1851,7 @@ var dbPlatform = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 40, //100
+                                batchSize: 30, //100
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "checkPlayerLevelDownForPlayers", {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
