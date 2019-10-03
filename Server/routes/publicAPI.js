@@ -40,6 +40,11 @@ function emit(request, response, dbCall, args, event, isValidData) {
                         console.log("******************************** data",data);
                         response.json({success:true, data:data});
                     });
+                } else if (!isValidData) {
+                    return response.json({
+                        success: false,
+                        message: 'Invalid data.'
+                    });
                 }
             } else {
                 return response.json({
@@ -419,7 +424,7 @@ router.post('/getAllRewardProposal', function (req, res, next) {
 
 router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
     let data = req.body;
-    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
@@ -427,7 +432,7 @@ router.post('/countLoginPlayerbyPlatformWeek', function (req, res, next) {
 });
 router.post('/getTopUpTotalAmountForAllPlatform', function (req, res, next) {
     let data = req.body;
-    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
@@ -435,7 +440,7 @@ router.post('/getTopUpTotalAmountForAllPlatform', function (req, res, next) {
 });
 router.post('/getBonusRequestList', function (req, res, next) {
     let data = req.body;
-    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
@@ -443,7 +448,7 @@ router.post('/getBonusRequestList', function (req, res, next) {
 });
 router.post('/getPlayerConsumptionSumForAllPlatform', function (req, res, next) {
     let data = req.body;
-    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';
@@ -451,7 +456,7 @@ router.post('/getPlayerConsumptionSumForAllPlatform', function (req, res, next) 
 });
 router.post('/countNewPlayers', function (req, res, next) {
     let data = req.body;
-    let isValidData = Boolean(data && data.startDate && data.endDate && data.platformObjId);
+    let isValidData = Boolean(data && data.startDate && data.endDate);
     let startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
     let endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
     let platform = data.platformObjId ? ObjectId(data.platformObjId) : 'all';

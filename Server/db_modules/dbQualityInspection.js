@@ -1525,7 +1525,7 @@ var dbQualityInspection = {
                     inspectionRate : 0,
                     timeoutRate : 0,
                     createTime: new Date(closedTime),
-                    roles : 1
+                    roles : 3
                 };
                 conversation[last+1].timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, '', sec);
             }
@@ -5319,10 +5319,11 @@ var dbQualityInspection = {
             }
         ).read("secondaryPreferred");
 
-        let summaryProm = dbconfig.collection_live800RecordDayRecord.aggregate(
+        // change to collection_qualityInspection if not using "test data" function; else using collection_live800RecordDayRecord
+        let summaryProm = dbconfig.collection_qualityInspection.aggregate(
             {
                 $match: {
-                    processTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+                    createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
                 }
             },
             {
