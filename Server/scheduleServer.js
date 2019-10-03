@@ -13,6 +13,7 @@ let scheduleCheckAndUpdateWCSessionStatus = require('./schedule/scheduleCheckAnd
 let scheduleLive800DailySummarized = require('./schedule/scheduleLive800DailySummarized');
 let scheduleCheckMinPointNotification = require('./schedule/scheduleCheckMinPointNotification');
 let scheduleAutoUnbindReferral = require('./schedule/scheduleAutoUnbindReferral');
+let scheduleCheckAndUpdateQQSessionStatus = require('./schedule/scheduleCheckAndUpdateQQSessionStatus');
 // let scheduleCheckEveryHourPassOneMin = require('./schedule/schedulerPerHourPassOneMin');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
