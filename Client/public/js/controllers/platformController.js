@@ -33397,7 +33397,7 @@ define(['js/app'], function (myApp) {
 
                             vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
                         }
-
+                        
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
