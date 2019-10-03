@@ -18244,8 +18244,37 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.feedbackAdminQuery.sortCol
                 };
 
-                if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
-                    sendQuery.admin = vm.feedbackAdminQuery.admin;
+                // if (vm.feedbackAdminQuery.admin && vm.feedbackAdminQuery.admin != 'all') {
+                //     sendQuery.admin = vm.feedbackAdminQuery.admin;
+                // }
+
+                let admins = [];
+
+                if (vm.feedbackAdminQuery.departments) {
+                    if (vm.feedbackAdminQuery.roles) {
+                        vm.queryRoles.map(e => {
+                            if (e._id != "" && (vm.feedbackAdminQuery.roles.indexOf(e._id) >= 0)) {
+                                e.users.map(f => admins.push(f._id))
+                            }
+                        })
+                    } else {
+                        vm.queryRoles.map(e => {
+                            if (e && e._id != "" && e.users && e.users.length) {
+                                e.users.map(f => {
+                                    if (f && f._id != "") {
+                                        admins.push(f._id);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+
+                if (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length) {
+                    vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
+                }
+                if ( (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0) || admins.length) {
+                    sendQuery.csOfficer = vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0 ? vm.feedbackAdminQuery.admins : admins;
                 }
                 // if (vm.feedbackAdminQuery.cs && vm.feedbackAdminQuery != '') {
                 //     sendQuery.cs = vm.feedbackAdminQuery.cs;
@@ -36047,31 +36076,74 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getDepartmentDetailsByPlatformObjId = (platformObjId) => {
-                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: platformObjId},
+                let isMultiplePlatform = false;
+                if (platformObjId && Array.isArray(platformObjId)) {
+                    isMultiplePlatform = true;
+                }
+
+                if (!(platformObjId && platformObjId.length) && isMultiplePlatform && vm.platformList && vm.platformList.length) {
+                    platformObjId = vm.platformList.map(platform => platform.id);
+                    isMultiplePlatform = true;
+                }
+                socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: isMultiplePlatform? {$in: platformObjId}: platformObjId},
                     data => {
                         $scope.$evalAsync(() => {
-                            let parentId;
-                            let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId)[0];
                             vm.queryDepartments = [];
                             vm.queryRoles = [];
-
                             vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
 
-                            data.data.map(e => {
-                                if (e.departmentName.toString() === selectedPlatform.data.name.toString()) {
-                                    vm.queryDepartments.push(e);
-                                    parentId = e._id;
+                            if (isMultiplePlatform) {
+                                let parentId = [];
+                                // let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId);
+                                if (!(vm.platformList && vm.platformList.length)) {
+                                    return;
                                 }
-                            });
+                                let selectedPlatform = vm.platformList.filter(platform => {
+                                    if (platformObjId.find(selectedPlatform => String(selectedPlatform) == String(platform.id))) {
+                                        return platform;
+                                    }
+                                });
 
-                            data.data.map(e => {
-                                if (parentId.toString() === e.parent.toString()) {
-                                    vm.queryDepartments.push(e);
-                                }
-                            });
+                                data.data.map(e => {
+                                    if (selectedPlatform.find(platform=> platform.data.name && String(platform.data.name) == String(e.departmentName))) {
+                                        vm.queryDepartments.push(e);
+                                        parentId.push(e._id);
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (parentId.find(pId => String(pId) == String(e.parent))) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+                            } else {
+                                let parentId;
+                                let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId)[0];
+
+                                data.data.map(e => {
+                                    if (e.departmentName.toString() === selectedPlatform.data.name.toString()) {
+                                        vm.queryDepartments.push(e);
+                                        parentId = e._id;
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (parentId.toString() === e.parent.toString()) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+                            }
 
                             endLoadMultipleSelect('.spicker');
                         });
+                    },
+                    () => {
+                        $scope.$evalAsync(() => {
+                            vm.queryDepartments = [];
+                            vm.queryRoles = [];
+                            vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
+                            endLoadMultipleSelect('.spicker');
+                        })
                     }
                 );
             };
@@ -40625,7 +40697,8 @@ define(['js/app'], function (myApp) {
                 vm.feedbackAdminQuery.total = 0;
                 vm.feedbackAdminQuery.cs = '';
                 vm.departmentUsers = [];
-                vm.getUniqueAdminFeedbacks();
+                // vm.getUniqueAdminFeedbacks();
+                vm.getDepartmentDetailsByPlatformObjId([]);
                 vm.feedbackAdminQuery.admin = "any";
                 vm.feedbackAdminQuery = {
                     result: 'all',
