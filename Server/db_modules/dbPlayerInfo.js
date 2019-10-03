@@ -20396,7 +20396,8 @@ let dbPlayerInfo = {
                 playerData => {
                     let summaryDataQuery = {
                         date: {$gte: summaryStartTime, $lt: summaryEndTime},
-                        platformId: ObjectId(platform)
+                        platformId: ObjectId(platform),
+                        gameDetail: {$exists: true}
                     };
 
                     if (isSinglePlayer) {
