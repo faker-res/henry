@@ -5433,6 +5433,10 @@
   "UnbindPhoneDeviceId": "解除绑定电话和设备号",
   "Please select player for selected bulk call": "在指定群播前，请打勾选择要拨打的电话",
 
+  "BIWEEKLY": "每半月",
+  "MONTHLY": "每月",
+  "NO_PERIOD": "无周期",
+
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
   "TS_REGISTERED_PLAYER_LIST": "已注册玩家名单",

@@ -17314,15 +17314,16 @@ define(['js/app'], function (myApp) {
                 case 'commissionBillboard':
                     vm.commissionBillboardQuery = {
                         period: vm.constPartnerBillBoardPeriod.DAILY,
-                        count: 10
+                        limit: 10,
+                        index: 0
                     };
                     utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
                         vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
+                            commonPageChangeHandler(curP, pageSize, "commissionBillboardQuery", vm.getPartnerCommissionBillBoard);
                         });
                         $scope.$evalAsync();
                     });
-                    vm.getPartnerCommissionBillBoard();
+                    vm.getPartnerCommissionBillBoard(true);
                     break;
 
             }
@@ -17330,19 +17331,27 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         };
 
-        vm.getPartnerCommissionBillBoard = function () {
+        vm.getPartnerCommissionBillBoard = function (newSearch) {
             if (!vm.platformInSetting) {
                 return;
             }
+            console.log("vm.commissionBillboardQuery", vm.commissionBillboardQuery)
             let query = {
                 platformObjId: vm.platformInSetting._id,
                 period: vm.commissionBillboardQuery.period,
-                count: vm.commissionBillboardQuery.pageObj && vm.commissionBillboardQuery.pageObj.pageSize || 10
+                count: newSearch ? 10 : vm.commissionBillboardQuery.limit || 10,
+                index: vm.commissionBillboardQuery.index
             };
             console.log('getPartnerCommissionBillBoardquery', query)
             $scope.$socketPromise('getPartnerCommissionBillBoard', query).then(
                 data => {
                     console.log("getPartnerCommissionBillBoard", data);
+                    if (data && data.data && data.data.data) {
+                        vm.drawPartnerCommissionBillBoard(data.data.data.map(row => {
+                            row.amount = $noRoundTwoDecimalPlaces(row.amount);
+                            return row;
+                        }), data.data.total, newSearch)
+                    }
                 }
             );
         };

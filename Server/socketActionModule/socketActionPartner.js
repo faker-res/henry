@@ -690,7 +690,7 @@ function socketActionPartner(socketIO, socket) {
         getPartnerCommissionBillBoard: function getPartnerCommissionBillBoard(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.period && data.count);
-            socketUtil.emitter(self.socket, dbPartner.adminGetPartnerCommissionBillBoard, [data.platformObjId, data.period, data.count], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.adminGetPartnerCommissionBillBoard, [data.platformObjId, data.period, data.count, data.index, data.containFakeRecord], actionName, isValidData);
         },
 
 

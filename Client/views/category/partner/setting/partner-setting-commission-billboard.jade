@@ -1,4 +1,7 @@
 include ./partner-setting-platform-select
 div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'commissionBillboard')")
+    text.inline-block.margin-right-5 {{'TYPE' | translate}}
+    select.inline-block( ng-model="vm.commissionBillboardQuery.period" ng-change="vm.getPartnerCommissionBillBoard(true)")
+        option(ng-repeat='(i,j) in vm.constPartnerBillBoardPeriod', value= '{{j}}') {{i | translate}}
     table.common-table#partnerCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
     #partnerCBillBoardTablePage

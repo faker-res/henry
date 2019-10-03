@@ -8295,7 +8295,7 @@ let dbPartner = {
 
     },
 
-    async adminGetPartnerCommissionBillBoard (platformObjId, periodCheck, count) {
+    async adminGetPartnerCommissionBillBoard (platformObjId, periodCheck, count, index, containFakeRecord) {
         let totalRecord = count || 10;
 
         // get platform
@@ -8319,11 +8319,10 @@ let dbPartner = {
             return Promise.reject({name: "DataError", message: "Invalid period"});
         }
 
-        return dbPartner.getPartnerCommissionBillBoard(platformObj, periodCheck, null, totalRecord, recordDate, true);
+        return dbPartner.getPartnerCommissionBillBoard(platformObj, periodCheck, null, count, recordDate, true, index, containFakeRecord);
     },
 
-    async getPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, recordDate, isAdmin, index) {
-        console.log('getPartnerCommissionBillBoard arguments', arguments)
+    async getPartnerCommissionBillBoard (platformObj, periodCheck, partnerObj, totalRecord, recordDate, isAdmin, index, containFakeRecord) {
         let now = new Date();
         let twentyFiveMinutesAgo = new Date();
         twentyFiveMinutesAgo.setMinutes(now.getMinutes()-25);
@@ -8344,13 +8343,14 @@ let dbPartner = {
         }
 
         if(isAdmin) {
-            return retrieveCommissionBillBoardForAdmin(platformObj, periodCheck, totalRecord, )
+            return dbPartner.retrieveCommissionBillBoardForAdmin(platformObj, periodCheck, totalRecord, index, commissionBB, containFakeRecord);
         }
         return dbPartner.retrieveCalculatedPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, commissionBB);
     },
 
     async retrieveCommissionBillBoardForAdmin (platformObj, period, count, index, commissionBB, containFakeRecord) {
         commissionBB = commissionBB || {};
+        index = index || 0;
 
         let rankingQuery = {
             platform: platformObj._id,
@@ -8364,10 +8364,10 @@ let dbPartner = {
         }).sort({
             amount: -1,
             name: 1
-        }).skip(index).limit(totalRecord).lean();
+        }).skip(index).limit(count).lean();
 
-        for (let i = 0; i < topNBillBoard.length; i++) {
-            topNBillBoard[i].rank = i + index + 1;
+        for (let i = 0; i < ranking.length; i++) {
+            ranking[i].rank = i + index + 1;
         }
 
         let total = await dbconfig.collection_commissionBBRecord.count(rankingQuery);
