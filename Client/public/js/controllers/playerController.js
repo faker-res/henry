@@ -6006,7 +6006,7 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerValidCredit = row.validCredit;
+                            vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
                                     vm.showAnyLobby = false;
