@@ -784,6 +784,7 @@ var dbPlayerConsumptionRecord = {
                 if (verifiedData && verifiedData[0] && verifiedData[1] && verifiedData[2] && platformGameData && (platformGameData[0] || platformGameData[1])) {
                     var data = verifiedData;
                     recordData.playerId = data[0]._id;
+                    recordData.loginDevice = data[0].loginDevice;
                     recordData.platformId = data[0].platform;
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
@@ -2320,18 +2321,22 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReportFromSummary: async function (startTime, endTime, providerId, platformList, listAll) {
+    winRateReportFromSummary: async function (startTime, endTime, providerId, platformList, listAll, loginDevice) {
         let participantsProm;
         let groupById = null;
         let returnedObj;
         let platformListQuery;
         let platformQuery = {};
+        let loginDeviceQuery;
 
         if(platformList && platformList.length > 0) {
             platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
             platformQuery = { platformObjIdList: platformList.map(item=>{return ObjectId(item)})};
         }
 
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
+        }
 
         const matchObj = {
             date: {
@@ -2346,6 +2351,10 @@ var dbPlayerConsumptionRecord = {
 
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
+        }
+
+        if (loginDeviceQuery) {
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         if (listAll) {
@@ -2469,14 +2478,19 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    winRateReport: function (startTime, endTime, providerId, platformList, listAll) {
+    winRateReport: function (startTime, endTime, providerId, platformList, listAll, loginDevice) {
         let participantsProm;
         let platformListQuery;
         let platformQuery = {};
+        let loginDeviceQuery;
 
         if(platformList && platformList.length > 0) {
             platformListQuery = {$in: platformList.map(item=>{return ObjectId(item)})};
             platformQuery = { platformObjIdList: platformList.map(item=>{return ObjectId(item)})};
+        }
+
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
         }
 
         const matchObj = {
@@ -2495,6 +2509,10 @@ var dbPlayerConsumptionRecord = {
 
         if (providerId && providerId !== 'all') {
             matchObj.providerId = ObjectId(providerId);
+        }
+
+        if (loginDeviceQuery) {
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         let groupById = null;
@@ -3051,7 +3069,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: {playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType"},
+                    _id: {playerId: "$playerId", platformId: "$platformId", providerId: "$providerId", cpGameType: "$cpGameType", loginDevice: "$loginDevice"},
                     count: {$sum: {$cond: ["$count", "$count", 1]}},
                     amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
@@ -3075,6 +3093,7 @@ var dbPlayerConsumptionRecord = {
                                     p.playerId == consumption._id.playerId
                                     && p.providerId == consumption._id.providerId
                                     && p.cpGameType == consumption._id.cpGameType
+                                    && p.loginDevice == consumption._id.loginDevice
                                 );
 
                                 if (indexNo === -1) {
@@ -3086,7 +3105,8 @@ var dbPlayerConsumptionRecord = {
                                         consumptionValidAmount: consumption.validAmount,
                                         consumptionBonusAmount: consumption.bonusAmount,
                                         cpGameType: consumption._id.cpGameType,
-                                        providerId: consumption._id.providerId
+                                        providerId: consumption._id.providerId,
+                                        loginDevice: consumption._id.loginDevice
                                     });
                                 } else {
                                     if (!isNullOrUndefined(playerReportDaySummary[indexNo].consumptionTimes)) {

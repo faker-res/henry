@@ -143,6 +143,13 @@ define(['js/app'], function (myApp) {
             {typeId: 4, name: 'WechatPay'}
         ];
 
+        vm.loginDeviceList = {
+            1: 'WEB',
+            2: 'H5',
+            3: 'APP_IOS',
+            4: 'APP_ANDROID'
+        };
+
         vm.allActions = ['createDepartmentWithParent',
         'updateDepartmentParent',
         'updateDepartment',
@@ -2774,6 +2781,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
             let socketName = 'winRateReport';
@@ -2840,6 +2848,7 @@ define(['js/app'], function (myApp) {
             if (listAll) {
                 vm.curWinRateQuery.listAll = true;
             }
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
@@ -11533,6 +11542,12 @@ define(['js/app'], function (myApp) {
                     vm.winRateQuery = {};
                     vm.winRateSummaryData = {};
                     vm.winRateQuery.providerId = 'all';
+                    vm.winRateQuery.loginDevice = [];
+                    Object.keys(vm.loginDeviceList).forEach(key => {
+                        if (key) {
+                            vm.winRateQuery.loginDevice.push(key);
+                        }
+                    })
                     vm.reportSearchTime = 0;
                     vm.winRateLayer1 = true;
                     vm.winRateLayer2 = false;

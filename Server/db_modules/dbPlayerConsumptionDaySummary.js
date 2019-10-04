@@ -49,6 +49,7 @@ var dbPlayerConsumptionDaySummary = {
                 providerId: data.providerId,
                 cpGameType: data.cpGameType,
                 date: data.date,
+                loginDevice: data.loginDevice,
             },
             upsertData,
             constShardKeys.collection_winRateReportDataDaySummary
