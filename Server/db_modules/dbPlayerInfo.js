@@ -20397,7 +20397,6 @@ let dbPlayerInfo = {
                     let summaryDataQuery = {
                         date: {$gte: summaryStartTime, $lt: summaryEndTime},
                         platformId: ObjectId(platform),
-                        gameDetail: {$exists: true}
                     };
 
                     if (isSinglePlayer) {
@@ -24634,7 +24633,7 @@ let dbPlayerInfo = {
 
                 data[1].map(d => {
                     if (d && d.name && d.name == "LOCAL_CREDIT") {
-                        result.currentFreeAmount = d.currentLockAmount ? d.currentLockAmount : 0;
+                        result.currentFreeAmount = d.currentLockAmount ?  parseFloat((d.currentLockAmount).toFixed(2)) : 0;
                         result.freeAmount = d.lockAmount ? dbUtility.noRoundTwoDecimalPlaces(d.lockAmount) : 0;
                     }
                 })
@@ -24966,6 +24965,7 @@ let dbPlayerInfo = {
                 returnData.localAmount =  totalLockedCredit + parseFloat(returnData.credit);
                 returnData.localAmount =  parseFloat((returnData.localAmount).toFixed(2));
 
+                returnData.credit =  parseFloat((returnData.credit).toFixed(2));
                 return returnData;
             });
 
