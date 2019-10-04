@@ -207,8 +207,6 @@
                 "delayManualTopupRequest",
                 "getManualTopupRequestList",
                 "getAlipayTopupRequestList",
-                "manualTopupStatusNotify",
-                "onlineTopupStatusNotify",
                 "getProvinceList",
                 "getCityList",
                 "getDistrictList",

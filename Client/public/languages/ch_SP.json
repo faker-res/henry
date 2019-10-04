@@ -3332,8 +3332,6 @@
   "requestManualTopup": "手工充值",
   "cancelManualTopupRequest": "取消手工充值",
   "getManualTopupRequestList": "获取手工充值申请列表",
-  "manualTopupStatusNotify": "手工充值状态通知",
-  "onlineTopupStatusNotify": "在线充值状态通知",
   "getTopupList": "充值记录列表",
   "getTopupHistory": "充值历史",
   "getProvinceList": "获取省份列表",

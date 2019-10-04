@@ -225,20 +225,6 @@
         this._service.getOnlineTopupType.once(callback);
     };
 
-    proto.manualTopupStatusNotify = function (callback, requestData) {
-        var responseFunc = function(data){
-            callback(data);
-        };
-        this._service.manualTopupStatusNotify.addListener(responseFunc);
-    };
-
-    proto.onlineTopupStatusNotify = function (callback, requestData) {
-        var responseFunc = function(data){
-            callback(data);
-        };
-        this._service.onlineTopupStatusNotify.addListener(responseFunc);
-    };
-
     proto.getProvinceList = function (callback, requestData) {
         var data = requestData || {};
         this._service.getProvinceList.request(data);

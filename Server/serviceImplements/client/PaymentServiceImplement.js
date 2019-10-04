@@ -244,18 +244,6 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
     };
 
-    this.manualTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "manualTopupStatusNotify", data);
-        }
-    );
-
-    this.onlineTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "onlineTopupStatusNotify", data);
-        }
-    );
-
     this.getProvinceList.expectsData = '';
     this.getProvinceList.onRequest = function (wsFunc, conn, data) {
         var isValidData = true;
