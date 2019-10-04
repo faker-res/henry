@@ -22,6 +22,7 @@ define(['js/app'], function (myApp) {
         vm.credibilityRemarks = [];
         vm.queryPara = {};
         vm.selectedTopupTab = "";
+        vm.toggleSubmitFeedbackButton = true;
         vm.allProposalStatus = [
             "PrePending",
             "Pending",

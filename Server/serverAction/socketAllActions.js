@@ -48,6 +48,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionThemeControl'),
     require('./../socketActionModule/socketActionLargeWithdrawal'),
     require('./../socketActionModule/socketActionWCGroupControl'),
+    require('./../socketActionModule/socketActionQQGroupControl'),
     require('./../socketActionModule/socketActionAuction'),
     require('./../socketActionModule/socketActionWinnerMonitor'),
     require('./../socketActionModule/socketActionPartnerCommission'),

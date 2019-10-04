@@ -69,6 +69,8 @@
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
                         span {{"WeChatGroupControlSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "qqGroupControlSetting"}', ng-click='vm.configTabClicked("qqGroupControlSetting")')
+                        span {{"qqGroupControlSetting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "winnerMonitorSetting"}', ng-click='vm.configTabClicked("winnerMonitorSetting")')
                         span {{"Winner Monitor Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "defaultFeedbackConfig"}', ng-click='vm.configTabClicked("defaultFeedbackConfig")')
@@ -2449,8 +2451,8 @@
                             i.fa.fa-ban
                             text {{"CANCEL" | translate}}
 
-
-
+                div(ng-if='vm.selectedConfigTab=="qqGroupControlSetting"')
+                    include platform-settings/qqGroupControlSetting
                 div(ng-if='vm.selectedConfigTab=="emailAuditConfig"')
                     include platform-settings/email-audit
                 div(ng-if='vm.selectedConfigTab=="emailNotificationConfig"')

@@ -85,20 +85,22 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBonusList, [data], true);
     };
 
-    this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetails: String';
-    this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        data.userAgent = userAgent;
-        console.log('userAgent JY ==========', userAgent);
-        var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId], isValidData, true, false, false).then(
-            function (res) {
+    this.applyBonus.expectsData = 'amount: Number|String';
+    this.applyBonus.onRequest = function(wsFunc, conn, data) {
+        data.userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(conn.playerId && data && typeof data.amount === 'number' && data.amount > 0);
+        let param = [
+            data.userAgent, conn.playerId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId
+        ];
+
+        WebSocketUtil.responsePromise(
+            conn, wsFunc, data, dbPlayerInfo.applyBonus, param, isValidData, true, false, false
+        ).then(
+            function(res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                // Handle by proposal executor
-                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };

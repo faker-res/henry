@@ -4194,6 +4194,443 @@ var dbQualityInspection = {
         }
     },
 
+    getQQConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content, playerQQRemark, index, limit){
+        index = index || 0;
+        let csOfficerProm = [];
+        let checkCSOfficer = false;
+        let deviceList;
+        let totalCount = 0;
+        let query = {
+            csReplyTime: {'$lte':new Date(endTime),
+                '$gte': new Date(startTime)}
+        };
+        let platformQuery = {};
+
+        if (platform && platform.length > 0) {
+            query.platformObjId = {$in: platform.map(p => ObjectId(p))};
+            platformQuery._id = {$in: platform};
+        }
+
+        if (deviceNickName && deviceNickName.length > 0){
+            query.deviceNickName = {$in: deviceNickName};
+        }
+
+        if (csName && csName.length > 0) {
+            csOfficerProm = dbconfig.collection_admin.find({adminName: {$in: csName}}).lean();
+            checkCSOfficer = true;
+        }
+
+        if (content) {
+            query.csReplyContent = new RegExp('.*' + content + '.*');
+        }
+
+        if (playerQQRemark) {
+            query.playerQQRemark = new RegExp('.*' + playerQQRemark + '.*');
+        }
+
+        return Promise.all([csOfficerProm]).then(
+            csOfficer => {
+                if (csOfficer && csOfficer.length > 0 && csOfficer[0] && csOfficer[0].length > 0) {
+                    let csOfficerIdList = [];
+
+                    csOfficer[0].forEach(cs => {
+                        if (cs && cs._id) {
+                            csOfficerIdList.push(cs._id);
+                        }
+                    });
+
+                    query.csOfficer = {$in: csOfficerIdList};
+                } else if (checkCSOfficer) {
+                    query.csOfficer = [];
+                }
+
+                return;
+            }
+        ).then(
+            () => {
+                let platformProm = dbconfig.collection_platform.find(platformQuery).lean();
+                let dataProm = dbconfig.collection_qqConversationLog.aggregate(
+                    {$match: query},
+                    {
+                        "$group": {
+                            "_id": {
+                                "platformObjId": "$platformObjId",
+                                "deviceId": "$deviceId",
+                                "deviceNickName": "$deviceNickName",
+                                "playerQQRemark": "$playerQQRemark"
+                            },
+                            "count": {"$sum": 1},
+                        }
+                    },
+                    { $skip: index },
+                    { $limit: limit },
+                    {
+                        $project: {
+                            _id: 1,
+                            count: 1
+                        }
+                    }
+                ).read("secondaryPreferred");
+                let sizeProm = dbconfig.collection_qqConversationLog.aggregate(
+                    {$match: query},
+                    {
+                        "$group": {
+                            "_id": {
+                                "platformObjId": "$platformObjId",
+                                "deviceId": "$deviceId",
+                                "deviceNickName": "$deviceNickName",
+                                "playerQQRemark": "$playerQQRemark"
+                            },
+                            "count": {"$sum": 1},
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": null,
+                            "count": {"$sum": 1},
+                        }
+                    }
+                ).read("secondaryPreferred");
+
+                return Promise.all([platformProm, dataProm, sizeProm]);
+            }
+        ).then(
+            result => {
+                if(result && result.length > 1){
+                    let platformDetails = result[0];
+                    deviceList = result[1];
+                    totalCount = result[2] && result[2][0] && result[2][0].count ? result[2][0].count : 0;
+                    let playerQQRemarkList = [];
+
+                    deviceList.forEach(device => {
+                        if (device && device._id && device._id.platformObjId){
+                            let platformIndex = platformDetails.findIndex(p => p._id.toString() == device._id.platformObjId.toString());
+
+                            if(platformIndex > -1){
+                                device._id.platformName = platformDetails[platformIndex].name || "";
+                            }else{
+                                device._id.platformName = "";
+                            }
+                        }
+
+                        if (device && device._id && device._id.playerQQRemark){
+                            playerQQRemarkList.push(device._id.playerQQRemark);
+                        }
+                    });
+
+                    return dbconfig.collection_qqGroupControlPlayerQQ.find({playerQQRemark: {$in: playerQQRemarkList}});
+                }
+            }
+        ).then(
+            playerQQList => {
+                if(playerQQList && playerQQList.length > 0){
+                    deviceList.forEach(device => {
+                        if(device && device._id && device._id.platformObjId && device._id.playerQQRemark){
+                            let playerQQIndex = playerQQList.findIndex(p => p.playerQQRemark == device._id.playerQQRemark && p.deviceId == device._id.deviceId);
+
+                            if(playerQQIndex > -1){
+                                device._id.playerQQId = playerQQList[playerQQIndex].playerQQId || "";
+                            }
+                        }
+                    });
+                }
+
+                return {data: deviceList, size: totalCount};
+            }
+        );
+    },
+
+    getQQDeviceNickNameList: function(platformList){
+        let query = {};
+
+        if(platformList){
+            query.platformObjId = {$in: platformList};
+        }
+
+        return dbconfig.collection_qqConversationLog.distinct('deviceNickName', query).lean();
+    },
+
+    getQQConversation: function(platform, deviceNickName, csName, startTime, endTime, content, playerQQRemark, index, limit, sortCol){
+        let csOfficerProm = [];
+        let checkCSOfficer = false;
+        let size;
+        let conversationList;
+        let query = {
+            csReplyTime: {'$lte':new Date(endTime),
+                '$gte': new Date(startTime)},
+        };
+        let platformQuery = {};
+
+        if(platform && platform.length > 0){
+            platform = Array.isArray(platform) ? platform : [platform];
+            query.platformObjId = {$in: platform.map(p => ObjectId(p))};
+            platformQuery._id = {$in: platform};
+        }
+
+        if(deviceNickName && deviceNickName.length > 0){
+            query.deviceNickName = {$in: deviceNickName};
+        }
+
+        if(csName && csName.length > 0){
+            csOfficerProm = dbconfig.collection_admin.find({adminName: {$in: csName}}).lean();
+            checkCSOfficer = true;
+        }
+
+        if(content){
+            query.csReplyContent = new RegExp('.*' + content + '.*')
+        }
+
+        if(playerQQRemark && playerQQRemark.length > 0){
+            query.playerQQRemark = {$in: playerQQRemark};
+        }
+
+        return Promise.all([csOfficerProm]).then(
+            csOfficer => {
+                if(csOfficer && csOfficer.length > 0 && csOfficer[0] && csOfficer[0].length > 0){
+                    let csOfficerIdList = [];
+
+                    csOfficer[0].forEach(cs => {
+                        if(cs && cs._id){
+                            csOfficerIdList.push(cs._id);
+                        }
+                    });
+
+                    query.csOfficer = {$in: csOfficerIdList};
+                }else if(checkCSOfficer){
+                    query.csOfficer = [];
+                }
+
+                return;
+            }
+        ).then(
+            () => {
+                if (!sortCol) {
+                    sortCol = {platformObjId: 1, deviceNickName: 1, csOfficer: 1, playerQQRemark: 1, csReplyTime: -1}
+                } else if (sortCol) {
+                    if (typeof sortCol.platformObjId != "undefined") {
+                        sortCol.deviceNickName = sortCol.platformObjId;
+                        sortCol.csOfficer = sortCol.platformObjId;
+                        sortCol.playerQQRemark = sortCol.platformObjId;
+                        sortCol.csReplyTime = -1;
+                    } else if (typeof sortCol.deviceNickName != "undefined") {
+                        sortCol.csOfficer = sortCol.deviceNickName;
+                        sortCol.playerQQRemark = sortCol.deviceNickName;
+                        sortCol.csReplyTime = -1;
+                    } else if (typeof sortCol.csOfficer != "undefined") {
+                        sortCol.playerQQRemark = sortCol.csOfficer;
+                        sortCol.csReplyTime = -1;
+                    } else if (typeof sortCol.playerQQRemark != "undefined") {
+                        sortCol.csReplyTime = -1;
+                    }
+                }
+
+                let dataProm = dbconfig.collection_qqConversationLog.find(query)
+                    .populate({path: "platformObjId", model: dbconfig.collection_platform})
+                    .populate({path: "csOfficer", model: dbconfig.collection_admin}).skip(index).limit(limit)
+                    .sort(sortCol)
+                    .lean();
+                let sizeProm = dbconfig.collection_qqConversationLog.find(query).count();
+
+                return Promise.all([dataProm, sizeProm]);
+            }
+        ).then(
+            result => {
+                if(result && result.length > 1){
+                    conversationList = result[0];
+                    size = result[1] || 0;
+                    let playerQQRemarkList = [];
+
+                    conversationList.forEach(conversation => {
+                        if (conversation && conversation.playerQQRemark) {
+                            playerQQRemarkList.push(conversation.playerQQRemark);
+                        }
+                    });
+
+                    return dbconfig.collection_qqGroupControlPlayerQQ.find({playerQQRemark: {$in: playerQQRemarkList}});
+                }
+            }
+        ).then(
+            playerQQList => {
+                if (playerQQList && playerQQList.length > 0) {
+                    conversationList.forEach(conversation => {
+                        if (conversation && conversation.platformObjId._id && conversation.playerQQRemark) {
+                            let playerQQIndex = playerQQList.findIndex(p => p.playerQQRemark == conversation.playerQQRemark);
+
+                            if (playerQQIndex > -1) {
+                                conversation.playerQQId = playerQQList[playerQQIndex].playerQQId || "";
+                            }
+                        }
+                    });
+                }
+
+                return {data: conversationList, size: size};
+            }
+        );
+    },
+
+    getQQConversationReport: function(platform, deviceNickName, csName, startTime, endTime, index, limit){
+        let csOfficerProm = [];
+        let checkCSOfficer = false;
+        let deviceList;
+        let platformQuery = {};
+        let qqQuery = {};
+        let qqDetails;
+        let query = {
+            csReplyTime: {
+                '$lte': new Date(endTime),
+                '$gte': new Date(startTime)
+            }
+        };
+
+        if (platform && platform.length > 0){
+            query.platformObjId = {$in: platform.map(p => ObjectId(p))};
+            platformQuery._id = {$in: platform};
+            qqQuery.platformObjId = {$in: platform.map(p => ObjectId(p))};
+        }
+
+        if (deviceNickName && deviceNickName.length > 0) {
+            query.deviceNickName = {$in: deviceNickName};
+        }
+
+        if (csName && csName.length > 0) {
+            csOfficerProm = dbconfig.collection_admin.find({adminName: {$in: csName}}).lean();
+            checkCSOfficer = true;
+        }
+
+        return Promise.all([csOfficerProm]).then(
+            csOfficer => {
+                if (csOfficer && csOfficer.length > 0 && csOfficer[0] && csOfficer[0].length > 0) {
+                    let csOfficerIdList = [];
+
+                    csOfficer[0].forEach(cs => {
+                        if (cs && cs._id) {
+                            csOfficerIdList.push(cs._id);
+                        }
+                    });
+
+                    query.csOfficer = {$in: csOfficerIdList};
+
+                } else if (checkCSOfficer) {
+                    query.csOfficer = [];
+                }
+
+                return;
+            }
+        ).then(
+            () => {
+                let platformProm = dbconfig.collection_platform.find(platformQuery).lean();
+                let qqDetailsProm = dbconfig.collection_qqGroupControlPlayerQQ.find(qqQuery).lean();
+                let csOfficerProm = dbconfig.collection_admin.find().lean();
+                let dataProm = dbconfig.collection_qqConversationLog.aggregate(
+                    {$match: query},
+                    {
+                        "$group": {
+                            "_id": {
+                                "platformObjId": "$platformObjId",
+                                "csOfficer": "$csOfficer"
+                            },
+                            "totalConversation": {"$sum": 1},
+                        }
+                    },
+                    { $sort : { platformObjId : 1} }
+                ).read("secondaryPreferred");
+
+                return Promise.all([platformProm, qqDetailsProm, csOfficerProm, dataProm]);
+            }
+        ).then(
+            result => {
+                if (result && result.length > 3) {
+                    let platformDetails = result[0];
+                    qqDetails = result[1];
+                    let csOfficerDetails = result[2];
+                    let checkNoOfPlayerArrayProm = [];
+                    deviceList = result[3];
+
+                    deviceList.forEach(device => {
+                        if(device && device._id) {
+                            //match platformName with platformObjId
+                            if (device._id.platformObjId) {
+                                let platformIndex = platformDetails.findIndex(p => p._id.toString() == device._id.platformObjId.toString());
+
+                                if(platformIndex > -1){
+                                    device.platformName = platformDetails[platformIndex].name || "";
+                                }else{
+                                    device.platformName = "";
+                                }
+                            }
+
+                            if (device._id.csOfficer) {
+                                let csOfficerIndex = csOfficerDetails.findIndex(c => c._id.toString() == device._id.csOfficer.toString());
+
+                                if (csOfficerIndex > -1) {
+                                    device.csOfficerName = csOfficerDetails[csOfficerIndex].adminName || "";
+                                } else {
+                                    device.csOfficerName = "";
+                                }
+                            }
+
+                            let checkNoOfPlayerQuery = {
+                                platformObjId: device._id.platformObjId,
+                                csOfficer: device._id.csOfficer,
+                                csReplyTime: {
+                                    '$lte': new Date(endTime),
+                                    '$gte': new Date(startTime)
+                                }
+                            }
+                            let checkNoOfPlayerProm = dbconfig.collection_qqConversationLog.find(checkNoOfPlayerQuery).lean();
+
+                            checkNoOfPlayerArrayProm.push(checkNoOfPlayerProm);
+                        }
+                    });
+
+                    return Promise.all(checkNoOfPlayerArrayProm);
+                }
+            }
+        ).then(
+            noOfPlayerResult => {
+                let finalizePlayerResult = [];
+                // distinct duplicate player
+                if (noOfPlayerResult && noOfPlayerResult.length > 0) {
+                    noOfPlayerResult.forEach(conversation => {
+                        if (conversation && conversation.length > 0) {
+                            conversation.forEach(player => {
+                                if (player && player.playerQQRemark && player.platformObjId && player.csOfficer) {
+                                    let indexNo = finalizePlayerResult.findIndex(x => x && x.playerQQRemark && x.platformObjId && x.csOfficer &&
+                                        (x.playerQQRemark.trim() == player.playerQQRemark.trim()) &&
+                                        (x.platformObjId.toString() == player.platformObjId.toString()) &&
+                                        (x.csOfficer.toString() == player.csOfficer.toString()));
+
+                                    if (indexNo == -1) {
+                                        finalizePlayerResult.push({playerQQRemark: player.playerQQRemark, platformObjId: player.platformObjId, csOfficer: player.csOfficer});
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // count total player wechat id that csOfficer liasing with
+                if (finalizePlayerResult && finalizePlayerResult.length > 0) {
+                    finalizePlayerResult.forEach(player => {
+                        let deviceIndexNo = deviceList.findIndex(y => y._id.platformObjId.toString() == player.platformObjId.toString() && y._id.csOfficer.toString() == player.csOfficer.toString());
+
+                        if (deviceIndexNo != -1) {
+                            deviceList[deviceIndexNo].totalPlayerQQId = deviceList[deviceIndexNo].totalPlayerQQId ? deviceList[deviceIndexNo].totalPlayerQQId + 1 : 1;
+                        }
+                    });
+                }
+
+                let size = deviceList.length;
+                deviceList = deviceList.slice(index, Number(limit) + Number(index));
+
+                deviceList.sort(function(a, b) {
+                    return a.platformName > b.platformName;
+                });
+                return {data: deviceList, size: size};
+            }
+        );
+    },
+
     getWechatDeviceNickNameList: function(platformList){
         let query = {};
 

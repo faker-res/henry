@@ -4,6 +4,12 @@
         select.form-control(ng-change='vm.getWechatDeviceNickNameList();',ng-model='vm.inspectionWechat.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
 
     .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
+        label {{'Type' | translate}}
+        select.form-control(ng-model='vm.inspectionWechat.type' ng-change='vm.getWechatDeviceNickNameList();')
+            option(value='wechat') {{"WECHAT"|translate}}
+            option(value='qq') QQ
+
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
         label {{'Create Device Name' | translate}}
         select.form-control(ng-model='vm.inspectionWechat.deviceName', ng-options='device for device in vm.wechatDeviceList', multiple, bsp, data-actions-box='true')
 
@@ -49,7 +55,8 @@ br
                 thead
                     th.col-md-4 {{"PRODUCT" | translate}}
                     th(style="width: 432px;") {{"Device" | translate}}
-                    th(style="width: 433px;") {{"wechatReceivingPlayer" | translate}}
+                    th(style="width: 433px;" ng-show="vm.inspectionWechat.type==='wechat'") {{"wechatReceivingPlayer" | translate}}
+                    th(style="width: 433px;" ng-show="vm.inspectionWechat.type==='qq'") {{"qqReceivingPlayer" | translate}}
                 tbody(ng-repeat="deviceList in vm.deviceList")
                     tr(ng-if="vm.playerDetailsSummary.length == 0" style="border: 1px solid;")
                         td(colspan = 10) {{ 'No data available in table' | translate }}
@@ -70,7 +77,7 @@ br
                                                         tr.lastchild-noborder(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
                                                             td(style="border-left:1px solid;word-wrap: break-word;")
                                                                 div(style="width: 300px;")
-                                                                    a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatId}} {{")"}}
+                                                                    a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatOrQQId}} {{")"}}
                 tfoot
                     tr
                         th
