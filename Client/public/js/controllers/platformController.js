@@ -29167,7 +29167,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noRoundTwoDecimalPlaces(data) + "%" : $noRoundTwoDecimalPlaces(data)
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
