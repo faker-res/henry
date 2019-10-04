@@ -2272,55 +2272,26 @@ API说明：
 <div id='取消提款申请'></div>
 
 * **3. 取消提款申请**
-  - 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
-  - functionName: cancelBonusRequest
+  * 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
+  * functionName: cancelBonusRequest
   * 请求内容：
       ```
-      startTime: 选填|DateTime|开始时间
-      endTime: 选填|DateTime|结束时间
-      status: 选填|DateTime|提案状态(参考提案状态列表，默认：所有状态)
+      proposalId: 必填|String|提款提案号
       ```
-  - proposalId: 兑奖申请提案号
-  - 响应内容：`{status: 200/4xx, errorMessage: “xxxxxxx”}`
-  - Status: 操作状态， 200--操作成功, 4xx--操作失败. 主要是操作状态不对的情况。
-  - errorMessage: 详细错误信息
 
-<div id='获取奖品列表'></div>
-
-
-* **4. 获取奖品列表**
-	* 向支付系统获取奖品列表
-	* name: getBonusList
-	* 请求内容：`{requestId: “43985498”}`
-	* requestId: 求Id请 // ***here should be Id请求？？***
-	* 响应内容:
-		* ```
-			{
-				“status”: 200/4xx,
-				requestId: “43985498”,
-				“data”: [{
-					“id”: “001”,
-					“code”: “TeleCard”,
-					“name”: “10元移动充值卡”,
-					“credit”: 9.0,
-					“description”: “10块电话卡9个额度就可以啦！”
-				},{
-					“id”:”002”,
-					“code”: “ThailandTravel”,
-					“name”: “泰国五日游”,
-					“credit”: 3888,
-					“description”: “豪华泰国五日游,
-					High翻天”
-				}], “errorMessage”: “xxxxxx”}
-	* status: 操作状态, 200--成功, 4xx--失败
-	* requestId: 请求Id, 客户端Id, 用于路由
-	* data: 奖品列表数据，内容如下：
-	* id: 奖品id
-	* code: 奖品代码
-	* name: 奖品名称
-	* credit: 消耗额度
-	* description: 奖品说明
-	* errorMessage: 详细错误信息
+  * 操作成功:
+      ```
+      status: 200
+      data: {
+          proposalId: 提款提案号
+      }
+      ```
+  * 操作失败:
+      ```
+      status: 40x
+      data: -
+      errorMessage: 错误信息
+      ```
 
 <div id='获取有效在线充值方式'></div>
 

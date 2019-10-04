@@ -3324,7 +3324,6 @@
   "getConsecutiveLoginRewardDay": "获取玩家登陆累计天数",
   "getBonusRequestList": "获取申请提款列表",
   "cancelBonusRequest": "取消申请提款",
-  "getBonusList": "获取奖品列表",
   "nonXIMADetail": "不可洗码详情",
   "totalNonXIMAAmt": "不可洗码流水",
   "bConsumptionReturnRequest": "是否为玩家提交提前洗码",

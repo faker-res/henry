@@ -198,7 +198,6 @@
                 "getTopupList",
                 "applyBonus",
                 "getBonusRequestList",
-                "getBonusList",
                 "cancelBonusRequest",
                 "getOnlineTopupType",
                 "createOnlineTopupProposal",

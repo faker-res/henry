@@ -145,12 +145,6 @@
         });
     };
 
-    proto.getBonusList = function (callback, requestData) {
-        var data = requestData || {};
-        this._service.getBonusList.request(data);
-        this._service.getBonusList.once(callback);
-    };
-
     proto.applyBonus = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,

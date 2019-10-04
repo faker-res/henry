@@ -137,12 +137,6 @@
         var BonusService = function(connection){
             sinonet.WebSocketService.call(this, "bonus", connection);
 
-            //define functions
-            var functionNames = [
-                "getBonusList"
-            ];
-            addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
-
             var functionNames1 = [
                 "applyBonus",
                 "setBonusStatus"

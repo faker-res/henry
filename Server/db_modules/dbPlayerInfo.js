@@ -14719,14 +14719,6 @@ let dbPlayerInfo = {
     },
 
     /*
-     * Get bonus list
-     */
-    getBonusList: function () {
-        //get data from provider server
-        return pmsAPI.bonus_getBonusList({});
-    },
-
-    /*
      * Apply bonus
      */
     applyBonus: async function (userAgent, playerId, amount, honoreeDetail, bForce, adminInfo, platformData, withdrawalBank, bankId) {
