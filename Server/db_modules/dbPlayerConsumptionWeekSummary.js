@@ -874,7 +874,7 @@ var dbPlayerConsumptionWeekSummary = {
                         };
                         let consumeData = data && data[0] || null;
                         if (consumeData) {
-                            res.totalAmount = consumeData.totalAmount;
+                            res.totalAmount = consumeData.totalAmount? consumeData.totalAmount.toFixed(2): 0;
                             res.totalConsumptionAmount = consumeData.totalConsumptionAmount;
                             res.startTime = consumeData.settleTime && consumeData.settleTime.startTime;
                             res.endTime = consumeData.settleTime && consumeData.settleTime.endTime;
@@ -891,7 +891,7 @@ var dbPlayerConsumptionWeekSummary = {
                             Object.keys(amounts).forEach(
                                 type => {
                                     // console.log('amounts', amounts[type]);
-                                    res[type] = null
+                                    // res[type] = null
                                     if (res[type]) {
                                         if (res[type].hasOwnProperty("returnAmount")) {
                                             console.log('amount return', amounts[type].returnAmount);
