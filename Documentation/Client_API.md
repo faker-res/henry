@@ -80,9 +80,9 @@
 	1. [添加注册意向记录](#添加注册意向记录)
 	2. [修改注册意向记录](#修改注册意向记录)
 5. [支付信息服务](#支付信息服务：)
-	1. [兑换奖品申请](#兑换奖品申请)
-	2. [获取兑奖申请列表](#获取兑奖申请列表)
-	3. [取消兑奖申请](#取消兑奖申请)
+	1. [申请提款](#申请提款)
+	2. [获取提款提案列表](#获取提款提案列表)
+	3. [取消提款申请](#取消提款申请)
 	4. [获取奖品列表](#获取奖品列表)
 	5. [获取有效在线充值方式](#获取有效在线充值方式)
 	6. [创建在线充值提案](#创建在线充值提案)
@@ -2216,11 +2216,11 @@ API说明：
 ### service: payment
 #### 功能列表：
 
-<div id='兑换奖品申请'></div>
+<div id='申请提款'></div>
 
 * **1. 申请提款**
   * 向系统申请提款
-  * name: applyBonus
+  * functionName: applyBonus
   * 请求内容：
       ```
       amount: 必填|Int|提款额度
@@ -2238,37 +2238,48 @@ API说明：
       errorMessage: 错误信息
       ```
 
-<div id='获取兑奖申请列表'></div>
+<div id='获取提款提案列表'></div>
 
-* **2. 获取兑奖申请列表**
-  - 获取玩家所提交的兑奖申请单列表。
-  - name: getBonusRequestList
-  - 请求内容：`{startTime: “2016-08-10 0:0:0”, endTime: “2016-08-15: 23:59:59”, status:”Success”}`
-  - 查询条件：
-  - startTime: 开始时间
-  - endTime: 结束时间
-  - status: 提案状态(参考提案状态列表，默认：所有状态)
-  - 响应内容：
-   *   
-		  {status: 200/4xx, data: {
-			stats: {
-				totalCount: 20,
-				startIndex: 5
-			},
-			records: [
-				{proposalId:”001”, proposalType: “002”...},
-				{proposalId:”002”, proposalType: “002”...}
-			]}, errorMessage: “xxxxxxxx”}
-  - status:操作状态，200--操作成功，4xx--操作失败
-  - data: 申请兑奖提案列表，提案详细信息参见上面的兑奖申请。
+* **2. 获取提款提案列表**
+  * 获取玩家所提交的提款申请列表。
+  * functionName: getBonusRequestList
+  * 请求内容：
+      ```
+      startTime: 选填|DateTime|开始时间
+      endTime: 选填|DateTime|结束时间
+      status: 选填|DateTime|提案状态(参考提案状态列表，默认：所有状态)
+      ```
+  * 操作成功:
+      ```
+      status: 200
+      data: {
+          stats: {
+              totalCount: 提案总数
+              startIndex: 当前页面
+              requestCount: 页面总提案数
+              totalAmount: 提案总额度
+          }，
+          records: [提案详情]
+      }
+      ```
+  * 操作失败:
+      ```
+      status: 40x
+      data: -
+      errorMessage: 错误信息
+      ```
 
-<div id='取消兑奖申请'></div>
+<div id='取消提款申请'></div>
 
-
-* **3. 取消兑奖申请**
-  - 玩家可以取消已提交的兑奖申请。(前提是提案状态为未处理)
-  - name:cancelBonusRequest
-  - 请求内容：`{proposalId: “0001”}`
+* **3. 取消提款申请**
+  - 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
+  - functionName: cancelBonusRequest
+  * 请求内容：
+      ```
+      startTime: 选填|DateTime|开始时间
+      endTime: 选填|DateTime|结束时间
+      status: 选填|DateTime|提案状态(参考提案状态列表，默认：所有状态)
+      ```
   - proposalId: 兑奖申请提案号
   - 响应内容：`{status: 200/4xx, errorMessage: “xxxxxxx”}`
   - Status: 操作状态， 200--操作成功, 4xx--操作失败. 主要是操作状态不对的情况。

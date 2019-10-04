@@ -16847,42 +16847,34 @@ let dbPlayerInfo = {
     },
 
     cancelBonusRequest: function (playerId, proposalId) {
+        let proposal = null;
+        let bonusId = null;
 
-        var proposal = null;
-        var bonusId = null;
-        console.log("LH check bonus cancel issue 1 ------", playerId);
-        console.log("LH check bonus cancel issue 2 ------", proposalId);
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 if (proposalData) {
-                    if (proposalData.data && proposalData.data.bonusId) {
-                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT
-                            && proposalData.status != constProposalStatus.CSPENDING) {
-                            return Q.reject({
-                                status: constServerCode.DATA_INVALID,
-                                name: "DBError",
-                                message: 'This proposal has been processed'
-                            });
-                        }
-                        proposal = proposalData;
-                        bonusId = proposalData.data.bonusId;
-
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: proposalData._id, createTime: proposalData.createTime},
-                            {$inc: {processedTimes: 1}},
-                            {new: true}
-                        ).lean()
-                    }
-                    else {
-                        return Q.reject({
+                    if (
+                        proposalData.status !== constProposalStatus.PENDING
+                        && proposalData.status !== constProposalStatus.AUTOAUDIT
+                        && proposalData.status !== constProposalStatus.CSPENDING
+                    ) {
+                        return Promise.reject({
                             status: constServerCode.DATA_INVALID,
                             name: "DBError",
-                            message: 'Invalid proposal'
+                            message: 'This proposal has been processed'
                         });
                     }
+                    proposal = proposalData;
+                    bonusId = proposalData.data.bonusId;
+
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: proposalData._id, createTime: proposalData.createTime},
+                        {$inc: {processedTimes: 1}},
+                        {new: true}
+                    ).lean()
                 }
                 else {
-                    return Q.reject({name: "DBError", message: 'Cannot find proposal'});
+                    return Promise.reject({name: "DBError", message: 'Cannot find proposal'});
                 }
             }
         ).then(
@@ -16896,7 +16888,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log("LH check bonus cancel issue 3 ------", proposal);
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
