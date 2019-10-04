@@ -17287,6 +17287,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('_getPlayerFeedbackQuery', data);
+                        vm.lastSuccessBackEndQuery = data && data.data && data.data.backEndQuery;
                         if(vm.playerFeedbackSearchType === "one"){
                             console.log('_getSinglePlayerFeedbackQuery', data);
                             vm.drawSinglePlayerFeedback(data);
@@ -17540,6 +17541,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addPlayerFeedback = function (data, isConfirm = false) {
+                vm.toggleSubmitFeedbackButton = false;
 
                 if (!isConfirm) {
                     vm.modalYesNo = {};
@@ -17566,6 +17568,7 @@ define(['js/app'], function (myApp) {
                     };
                     console.log('sendData', sendData);
                     socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                        vm.toggleSubmitFeedbackButton = true;
                         vm.addFeedback.content = "";
                         vm.addFeedback.result = "";
                         if (!vm.ctiData || !vm.ctiData.hasOnGoingMission) {
@@ -17890,6 +17893,7 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedbackQuery.playerLevel = "all";
                 vm.playerFeedbackQuery.lastAccess = "15-28";
                 vm.playerFeedbackQuery.callPermission = "true";
+                vm.toggleSubmitFeedbackButton = true;
                 setTimeout(
                     () => {
                         let parentId;
@@ -24853,6 +24857,14 @@ define(['js/app'], function (myApp) {
                         vm.newWechatGroupControlSetting = {};
                         vm.deleteWechatGroupControl = [];
                         vm.getWechatGroupControlSetting(platformObjId);
+                        break;
+                    case 'qqGroupControlSetting':
+                        vm.qqGroupControlEdit = false;
+                        vm.oriQQGroupControlSettingData = [];
+                        vm.qqGroupControlSettingData = [];
+                        vm.newQQGroupControlSetting = {};
+                        vm.deleteQQGroupControl = [];
+                        vm.getQQGroupControlSetting(platformObjId);
                         break;
                     case 'winnerMonitorSetting':
                         vm.getWinnerMonitorConfig(platformObjId);
@@ -33364,7 +33376,7 @@ define(['js/app'], function (myApp) {
 
                             vm.playerLevelDisplayList = vm.playerLevelDisplayList || [];
                         }
-
+                        
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
@@ -33629,6 +33641,119 @@ define(['js/app'], function (myApp) {
             }
 
             // end of wechat group setting
+
+            //#region qq group control setting
+            vm.getQQGroupControlSetting = function (platformObjId) {
+                let sendData = {
+                    platformObjId: platformObjId || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getQQGroupControlSetting', sendData, function (data) {
+                    console.log('getQQGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.qqGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                            vm.oriQQGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+
+            vm.addNewQQGroupControl = function (collection, data) {
+                if (data && ((!data.deviceId && !data.deviceNickName) || (!data.deviceId || !data.deviceNickName))) {
+                    return socketService.showErrorMessage($translate('Please fill in Mobile Phone Number and Device Name'));
+                }
+
+                if (collection && data && data.deviceId && data.deviceNickName) {
+                    let sendData = {
+                        deviceId: data.deviceId,
+                        deviceNickName: data.deviceNickName
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'isNewQQDeviceDataExist', sendData, function (newData) {
+                        console.log('isNewQQDeviceDataExist', newData);
+                        $scope.$evalAsync(() => {
+                            if (newData && newData.data && !newData.data.isDeviceIdExist && !newData.data.isDeviceNicknameExist) {
+                                data.isNew = true;
+                                collection.push(data);
+                                $scope.$evalAsync(() => {
+                                    vm.newQQGroupControlSetting = {};
+                                });
+                            }
+                        })
+                    });
+                }
+            };
+
+            vm.disableQQGroupControl = function (flag) {
+                vm.qqGroupControlEdit = flag;
+            };
+
+            vm.editQQGroupControl = function (data) {
+                if (data && data._id) {
+                    data.isEdit = true;
+                }
+            }
+
+            vm.submitQQGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.filterConfigPlatform,
+                    qqGroupControlSetting: vm.qqGroupControlSettingData,
+                    deleteQQGroupControlSetting: vm.deleteQQGroupControl
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateQQGroupControlSetting', sendData, function (data) {
+                    console.log('updateQQGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        let retryMessage = false;
+                        if (data && data.data.length > 0 && data.data[0]._id && data.data[0].isEdit) {
+                            data.data.forEach(qqDevice => {
+                                if (vm.qqGroupControlSettingData && vm.qqGroupControlSettingData.length > 0) {
+                                    for (let x = 0; x < vm.qqGroupControlSettingData.length; x++) {
+                                        if (vm.qqGroupControlSettingData[x]._id && qqDevice._id && vm.qqGroupControlSettingData[x]._id.toString() === qqDevice._id.toString()) {
+                                            if (qqDevice.isDeviceIdExist) {
+                                                retryMessage = true;
+                                                vm.qqGroupControlSettingData[x].isDeviceIdExist = true;
+                                            } else {
+                                                vm.qqGroupControlSettingData[x].isDeviceIdExist = false;
+                                            }
+                                            if (qqDevice.isDeviceNicknameExist) {
+                                                retryMessage = true;
+                                                vm.qqGroupControlSettingData[x].isDeviceNicknameExist = true;
+                                            } else {
+                                                vm.qqGroupControlSettingData[x].isDeviceNicknameExist = false;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        if (retryMessage) {
+                            return socketService.showErrorMessage($translate('Please fix the duplicate and retry again'));
+                        } else {
+                            vm.getQQGroupControlSetting(vm.filterConfigPlatform);
+                        }
+                    })
+                });
+            };
+
+            vm.cancelQQGroupControlSetting = function () {
+                vm.deleteQQGroupControl = [];
+                vm.newQQGroupControlSetting = {};
+                vm.qqGroupControlSettingData = JSON.parse(JSON.stringify(vm.oriQQGroupControlSettingData));
+            };
+
+            vm.deleteQQGroupControlSetting = function (data, collection, idx) {
+                if (data) {
+                    vm.deleteQQGroupControl.push(data);
+
+                    if (collection && collection.length > 0) {
+                        collection.splice(idx, 1);
+                    }
+                }
+            }
+            //#endregion
 
             // region winner monitor setting
             vm.getWinnerMonitorConfig = function (platformObjId) {
@@ -40707,7 +40832,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     console.log(data);
                     vm.getCtiData();
@@ -40725,6 +40852,7 @@ define(['js/app'], function (myApp) {
                 sendQuery.searchFilter = JSON.stringify(vm.playerFeedbackQuery);
                 sendQuery.searchQuery = JSON.stringify(vm.getPlayerFeedbackQuery());
                 sendQuery.sortCol = VM.playerFeedbackQuery.sortCol || {registrationTime: -1};
+                sendQuery.backEndQuery = vm.lastSuccessBackEndQuery;
 
                 $('.chosenPlayers').each((i,ply)=>{
                     let isChecked = $(ply).is(':checked');
@@ -40743,6 +40871,7 @@ define(['js/app'], function (myApp) {
                     return;
                 }
 
+                console.log("createCallOutMission q", sendQuery)
                 $scope.$socketPromise("createCallOutMission", sendQuery).then(data => {
                     vm.getCtiData();
                 });

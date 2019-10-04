@@ -1,33 +1,31 @@
 import React, {Component} from 'react';
-import {Line} from 'react-chartjs-2';
+import {Bar} from 'react-chartjs-2';
 
-class LineChart extends Component{
-    state = {
+class BarChart extends Component{
 
-    }
-
-
-    render(){
+    render() {
         return (
-            <div className="col-12 col-md-6 col-xl-4">
-                <Line
+
+            <div className="row col-12 col-md-6 col-xl-6">
+                <Bar
                     data = {this.props.data}
                     options = {{
                         title: {
-                            display: true,
+                            display: false,
                             text: this.props.title,
                             fontSize: 25
                         },
                         legend: {
-                            position: 'bottom'
+                            position:'bottom'
                         }
-
                     }}
+                    height = {400}
                 />
             </div>
+
 
         )
     }
 }
 
-export default LineChart;
+export default BarChart;

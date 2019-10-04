@@ -786,6 +786,7 @@ var dbPlayerFeedback = {
             }
             console.log('return data', data);
             return {
+                backEndQuery: JSON.stringify(searchQuery),
                 data: data[0] ? data[0] : {},
                 index: index,
                 total: total
@@ -868,13 +869,13 @@ var dbPlayerFeedback = {
         } else {
             let range;
             if(query.lastAccess){
-                range = query.lastAccess.split("-");
-            }
-            sendQuery.lastAccessTime = {
-                $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
-            };
-            if (range[1]) {
-                sendQuery.lastAccessTime["$gte"] = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[1])));
+                range = query.lastAccess.split("-") || [];
+                sendQuery.lastAccessTime = {
+                    $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
+                };
+                if (range[1]) {
+                    sendQuery.lastAccessTime["$gte"] = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[1])));
+                }
             }
         }
 
@@ -1097,6 +1098,14 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        if (query.departments && query.departments.length && query.departments.includes('')) {
+            let deptArray = query.departments;
+            query.departments = deptArray.filter(a => {
+                if (a !== '') {
+                    return a;
+                }
+            });
+        }
         let department = await dbconfig.collection_department.find({
             _id: {$in: query.departments}
         }).lean();

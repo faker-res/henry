@@ -73,7 +73,7 @@ var dbPlayerTopUpDaySummary = {
             return Q(
                 balancer.processStream({
                     stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
+                    batchSize: 200,
                     makeRequest: function (playerIdObjs, request) {
                         request("player", "playerTopUpDaySummary_calculatePlatformDaySummaryForPlayers", {
                             startTime: startTime,
@@ -227,7 +227,7 @@ var dbPlayerTopUpDaySummary = {
 
         return balancer.processStream({
             stream: stream,
-            batchSize: constSystemParam.BATCH_SIZE,
+            batchSize: 200,
             makeRequest: function (playerIdObjs, request) {
                 request("player", requestAPI, {
                     startTime: startTime,
@@ -407,7 +407,7 @@ var dbPlayerTopUpDaySummary = {
                     return Q(
                         balancer.processStream({
                             stream: stream,
-                            batchSize: constSystemParam.BATCH_SIZE,
+                            batchSize: 200,
                             makeRequest: function (playerIdObjs, request) {
 
                                 request("player", "playerTopUpDaySummary_calculatePlatformDaySummaryForActiveValidPlayer", {
