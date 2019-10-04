@@ -80,11 +80,6 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.clientType, data.bPMSGroup, userIp], isValidData);
     };
 
-    this.getBonusList.expectsData = '';
-    this.getBonusList.onRequest = function (wsFunc, conn, data) {
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBonusList, [data], true);
-    };
-
     this.applyBonus.expectsData = 'amount: Number|String';
     this.applyBonus.onRequest = function(wsFunc, conn, data) {
         data.userAgent = conn['upgradeReq']['headers']['user-agent'];
@@ -248,18 +243,6 @@ var PaymentServiceImplement = function () {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
     };
-
-    this.manualTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "manualTopupStatusNotify", data);
-        }
-    );
-
-    this.onlineTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "onlineTopupStatusNotify", data);
-        }
-    );
 
     this.getProvinceList.expectsData = '';
     this.getProvinceList.onRequest = function (wsFunc, conn, data) {
