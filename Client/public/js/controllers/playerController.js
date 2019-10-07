@@ -6006,7 +6006,7 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerValidCredit = row.validCredit;
+                            vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
                                     vm.showAnyLobby = false;
@@ -13455,6 +13455,7 @@ define(['js/app'], function (myApp) {
             switch (choice) {
                 case 'bank1':
                     sendData = $.extend({}, vm.playerPayment);
+                    sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
                     sendData.bankAccountDistrict = vm.currentDistrict.district;
@@ -13468,6 +13469,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank2':
                     sendData = $.extend({}, vm.playerPayment2);
+                    sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
@@ -13483,6 +13485,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank3':
                     sendData = $.extend({}, vm.playerPayment3);
+                    sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
@@ -20268,6 +20271,15 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
+            console.log('vm.newPlayerProposal.data.isRegistered===', vm.newPlayerProposal.data.isRegistered);
+            console.log('vm.newPlayerProposal.data.isRegisteredTime===', vm.newPlayerProposal.data.isRegisteredTime);
+            if (vm.newPlayerProposal.data.isRegistered) {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
             if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
@@ -20278,7 +20290,7 @@ define(['js/app'], function (myApp) {
             // requirement by echo
             // 1.同账号 不同手机号尝试开户；
             // 2.同账号 同一手机号，
-            // 3. 不同账号 同一手机号
+            // 3.不同账号 同一手机号
             // 这三种情况，只要开户成功了，之前的历史记录都隐藏
             // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
             if (vm.newPlayerProposal.status === "Pending" && (vm.newPlayerRecordsSuccessNames.includes(vm.newPlayerProposal.name) || vm.newPlayerRecordsSuccessPhone.includes(vm.newPlayerProposal.data.phoneNumber))) {

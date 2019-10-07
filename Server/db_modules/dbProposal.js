@@ -1278,7 +1278,7 @@ var proposal = {
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
                     || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
-                        || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
+                        || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data) {
                     proposalTypeName = proposalData.type && proposalData.type.name || "";
                     return proposalData;
                 }
@@ -1293,9 +1293,6 @@ var proposal = {
                         } else {
                             errorMessage = "Invalid proposal status:" + proposalData.status;
                         }
-                    }
-                    else if (proposalData.data && proposalData.data.bonusId != bonusId) {
-                        errorMessage = "Invalid bonusId";
                     }
                     return Q.reject({
                         status: constServerCode.INVALID_PROPOSAL,
