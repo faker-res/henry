@@ -2795,7 +2795,7 @@ var dbPlayerConsumptionRecord = {
 
                 if (new Date(endTime) > twoDaysAgo) {
                     startTime = twoDaysAgo;
-                    return dbPlayerConsumptionRecord.getWinRateByGameType(startTime, endTime, providerId, platformId, providerName);
+                    return dbPlayerConsumptionRecord.getWinRateByGameType(startTime, endTime, providerId, platformId, providerName, loginDevice);
                 }
             }
         ).then(
