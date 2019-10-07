@@ -2245,9 +2245,9 @@ API说明：
   * functionName: getBonusRequestList
   * 请求内容：
       ```
-      startTime: 选填|DateTime|开始时间
-      endTime: 选填|DateTime|结束时间
-      status: 选填|DateTime|提案状态(参考提案状态列表，默认：所有状态)
+      startTime: 选填|Date|开始时间
+      endTime: 选填|Date|结束时间
+      status: 选填|String|提案状态(参考提案状态列表，默认：所有状态)
       ```
   * 操作成功:
       ```
@@ -2272,45 +2272,63 @@ API说明：
 <div id='取消提款申请'></div>
 
 * **3. 取消提款申请**
-  * 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
-  * functionName: cancelBonusRequest
-  * 请求内容：
-      ```
-      proposalId: 必填|String|提款提案号
-      ```
+    * 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
+    * functionName: cancelBonusRequest
+    * 请求内容：
+        ```
+        proposalId: 必填|String|提款提案号
+        ```
 
-  * 操作成功:
-      ```
-      status: 200
-      data: {
-          proposalId: 提款提案号
-      }
-      ```
-  * 操作失败:
-      ```
-      status: 40x
-      data: -
-      errorMessage: 错误信息
-      ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            proposalId: 提款提案号
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取充值记录'></div>
 
-* **21.  获取充值记录**
-	* 获取玩家充值记录
-	* Name: getTopupList
-	* 请求内容：
-		* ```
-			{
-				"topUpType": "2",  //1:手动充值 2:在线充值 3:支付宝充值 4：个人微信
-				"startTime": "xxxx", //date类型
-				"endTime": "xxx", //date类型
-				"startIndex": 0,  //记录开始index， 用于分页
-				"requestCount": 100  //请求记录数量，用于分页,
-				“sort”: true  //按时间排序, false:降序， true：正序
-				“bDirty”: false/true  //充值是否已被占用（已申请过奖励）
-				“bSinceLastConsumption”: true/false //是否是最后投注后的充值
-				“bSinceLastPlayerWithDraw”: true/false //是否是最后提款后的充值
-			}
+* **4.  获取充值记录**
+    * 获取玩家充值记录
+    * functionName: getTopupList
+    * 请求内容：
+        ```
+        topUpType: 选填|Int|1:手动充值 2:在线充值 3:支付宝充值 4：个人微信
+        startTime：选填|Date|开始时间
+        endTime：选填|Date|结束时间
+        startIndex: 选填|Int|记录开始index， 用于分页
+        requestCount: 选填|Int|请求记录数量，用于分页
+        sort: 选填|Boolean|按时间排序, false:降序， true：正序
+        bDirty: 选填|Boolean|充值是否已被占用（已申请过奖励）
+        bSinceLastConsumption: 选填|Boolean|是否是最后投注后的充值
+        bSinceLastPlayerWithDraw: 选填|Boolean|是否是最后提款后的充值
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            stats: {
+                totalCount: 提案总数
+                startIndex: 当前页面
+                requestCount: 页面总提案数
+                totalAmount: 提案总额度
+            }，
+            records: [提案详情]
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 	* 响应内容：
 		* ```
 			{
