@@ -1110,7 +1110,7 @@ var dbQualityInspection = {
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
                 query.operatorId.forEach(id => {
-                    live800AccReg.push(new RegExp("^" + id, "i"));
+                    live800AccReg.push(new RegExp("^" + id + "$", "i"));
                 });
                 queryQA['live800Acc.id'] = { '$in':live800AccReg}
             }
@@ -2427,20 +2427,17 @@ var dbQualityInspection = {
         let live800AccReg = null;
         cvs.batchData.forEach(uItem=>{
             if(uItem && uItem.live800Acc && uItem.live800Acc.id && uItem.status != constQualityInspectionStatus.NOT_EVALUATED) {
-                live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
+                live800AccReg = new RegExp("^" + uItem.live800Acc.id + "$", "i")
             }
 
-            let query = {'live800Acc': live800AccReg};
-            let prom = dbconfig.collection_admin.findOne(query).then(
-                item => {
-                    let adminName = item ? item._id : null;
-                    console.log('adminName', adminName);
+            let query = { 'live800Acc': live800AccReg};
+            let prom = dbconfig.collection_admin.findOne(query).lean().then(
+                item=>{
+                    let adminName = item ? item._id:null;
                     return adminName
-                }
-            ).then(
-                udata => {
-                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId, "live800Acc.name": new RegExp("^" + uItem.live800Acc.name, "i")}).then(qaData => {
-                        console.log('qaData', qaData);
+                })
+                .then(udata=>{
+                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId, "live800Acc.name": new RegExp("^" + uItem.live800Acc.name + "$", "i")}).lean().then(qaData => {
                         delete uItem.statusName;
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
@@ -2465,7 +2462,7 @@ var dbQualityInspection = {
                             dbconfig.collection_qualityInspection.findOneAndUpdate(
                                 {messageId: uItem.messageId},
                                 uItem
-                            ).then(data=>{
+                            ).lean().then(data=>{
                                 console.log(data);
                             })
                         }
@@ -2486,7 +2483,7 @@ var dbQualityInspection = {
         cvs.batchData.forEach(
             uItem => {
                 if(uItem && uItem.live800Acc && uItem.live800Acc.id && uItem.status != constQualityInspectionStatus.NOT_EVALUATED) {
-                    live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
+                    live800AccReg = new RegExp("^" + uItem.live800Acc.id + "$", "i")
                 }
 
                 let query = { 'live800Acc': live800AccReg};
@@ -2521,7 +2518,7 @@ var dbQualityInspection = {
                             return dbconfig.collection_live800RecordDayRecord.findOneAndUpdate(
                                 {
                                     messageId: uItem.messageId,
-                                    "live800Acc.name": new RegExp("^" + uItem.live800Acc.name, "i"),
+                                    "live800Acc.name": new RegExp(uItem.live800Acc.name, "i"),
                                     createTime: uItem.createTime
                                 },
                                 uItem, {new: true}
@@ -2606,7 +2603,7 @@ var dbQualityInspection = {
 
         })
         .then(udata=>{
-            return dbconfig.collection_qualityInspection.find({messageId: data.messageId, "live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}).then(qaData => {
+            return dbconfig.collection_qualityInspection.find({messageId: data.messageId, "live800Acc.name": new RegExp("^" + data.live800Acc.name + "$", "i")}).then(qaData => {
                 delete data.statusName;
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
@@ -2627,9 +2624,9 @@ var dbQualityInspection = {
 
                     console.log("LH TEST QUALITYINSPECTION",data);
                     console.log("LH TEST QUALITYINSPECTION DATA",qaData);
-                    console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")});
+                    console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name + "$", "i")});
                     console.log("LH TEST QUALITYINSPECTION FIND DATA",dbconfig.collection_qualityInspection.find(
-                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name + "$", "i")}
                     ));
                     // dbconfig.collection_qualityInspection.findOneAndUpdate(
                     //     {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
@@ -2638,7 +2635,7 @@ var dbQualityInspection = {
                     //     console.log("LH TEST return DATA,",data);
                     // })
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
-                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name + "$", "i")},
                         {$set: {
                                 conversation: data.conversation,
                                 status: data.status,
