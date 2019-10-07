@@ -875,7 +875,7 @@ var dbPlayerConsumptionWeekSummary = {
                         let consumeData = data && data[0] || null;
                         if (consumeData) {
                             res.totalAmount = consumeData.totalAmount? Number(consumeData.totalAmount.toFixed(2)): 0;
-                            res.totalConsumptionAmount = consumeData.totalConsumptionAmount;
+                            res.totalConsumptionAmount = consumeData.totalConsumptionAmount? Number(consumeData.totalConsumptionAmount.toFixed(2)): 0;
                             res.startTime = consumeData.settleTime && consumeData.settleTime.startTime;
                             res.endTime = consumeData.settleTime && consumeData.settleTime.endTime;
 
