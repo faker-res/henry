@@ -2421,7 +2421,7 @@ var dbQualityInspection = {
         return Promise.all(prom);
     },
 
-    rateBatchConversation: function(cvs, accName){
+    rateBatchConversation: function(cvs, accName) {
         var deferred = Q.defer();
         let proms = [];
         let live800AccReg = null;
@@ -2430,14 +2430,17 @@ var dbQualityInspection = {
                 live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
             }
 
-            let query = { 'live800Acc': live800AccReg};
+            let query = {'live800Acc': live800AccReg};
             let prom = dbconfig.collection_admin.findOne(query).then(
-                item=>{
-                    let adminName = item ? item._id:null;
+                item => {
+                    let adminName = item ? item._id : null;
+                    console.log('adminName', adminName);
                     return adminName
-                })
-                .then(udata=>{
+                }
+            ).then(
+                udata => {
                     return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId, "live800Acc.name": new RegExp("^" + uItem.live800Acc.name, "i")}).then(qaData => {
+                        console.log('qaData', qaData);
                         delete uItem.statusName;
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
@@ -2452,7 +2455,9 @@ var dbQualityInspection = {
                             totalTimeoutRate += item.timeoutRate;
                         });
                         uItem.totalInspectionRate = totalInspectionRate;
-                        uItem.totalTimeoutRate = totalTimeoutRate
+                        uItem.totalTimeoutRate = totalTimeoutRate;
+
+                        console.log('uItem', uItem);
 
                         if (qaData.length == 0) {
                             return dbconfig.collection_qualityInspection(uItem).save();
