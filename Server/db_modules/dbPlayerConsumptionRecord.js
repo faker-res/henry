@@ -2659,7 +2659,8 @@ var dbPlayerConsumptionRecord = {
 
     },
 
-    getWinRateByGameType: function (startTime, endTime, providerId, platformId, providerName) {
+    getWinRateByGameType: function (startTime, endTime, providerId, platformId, providerName, loginDevice) {
+        let loginDeviceQuery;
         // display winrate data by specific gametype (in a provider)
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
@@ -2671,13 +2672,25 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+        }
+
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
+        let groupObjIdData = '$cpGameType';
+        if (loginDeviceQuery) {
+            matchObj.loginDevice = loginDeviceQuery;
+            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+        }
+
         // the player are non-repeatable
         let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                 $match: matchObj
             },
             {
                 $group: {
-                    _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
+                    _id: groupData,
                     playerId: {
                         $addToSet: "$playerId"
                     }
@@ -2691,7 +2704,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: '$cpGameType',
+                    _id: groupObjIdData,
                     total_amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
                     consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
@@ -2712,8 +2725,9 @@ var dbPlayerConsumptionRecord = {
         )
     },
 
-    getWinRateByGameTypeFromSummary: function (startTime, endTime, providerId, platformId, providerName) {
+    getWinRateByGameTypeFromSummary: function (startTime, endTime, providerId, platformId, providerName, loginDevice) {
         let returnedObj;
+        let loginDeviceQuery;
         // display winrate data by specific gametype (in a provider)
         const matchObj = {
             date: {$gte: startTime, $lt: endTime},
@@ -2724,13 +2738,25 @@ var dbPlayerConsumptionRecord = {
             matchObj.providerId = ObjectId(providerId);
         }
 
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+        }
+
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
+        let groupObjIdData = '$cpGameType';
+        if (loginDeviceQuery) {
+            matchObj.loginDevice = loginDeviceQuery;
+            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+        }
+
         // the player are non-repeatable
         let participantsProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([{
                 $match: matchObj
             },
             {
                 $group: {
-                    _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
+                    _id: groupData,
                     playerId: {
                         $addToSet: "$playerId"
                     }
@@ -2744,7 +2770,7 @@ var dbPlayerConsumptionRecord = {
             },
             {
                 $group: {
-                    _id: '$cpGameType',
+                    _id: groupObjIdData,
                     total_amount: { $sum: "$consumptionAmount"},
                     validAmount: { $sum: "$consumptionValidAmount"},
                     consumptionTimes: { $sum: "$consumptionTimes"},
@@ -2777,9 +2803,19 @@ var dbPlayerConsumptionRecord = {
                 if (twoDaysWinRateReportData && twoDaysWinRateReportData.data && twoDaysWinRateReportData.data.length > 0) {
                     twoDaysWinRateReportData.data.forEach(
                         twoDaysData => {
-                            let indexNo = returnedObj.data.findIndex(r => r && r.providerId && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType
-                                                                            && r.providerId.toString() === twoDaysData.providerId.toString()
-                                                                            && r.cpGameType.toString() === twoDaysData.cpGameType.toString());
+                            let indexNo;
+
+                            if (loginDeviceQuery) {
+                                indexNo = returnedObj.data.findIndex(r => r && r.providerId && r.cpGameType && r.loginDevice
+                                    && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType && twoDaysData.loginDevice
+                                    && r.providerId.toString() === twoDaysData.providerId.toString()
+                                    && r.cpGameType.toString() === twoDaysData.cpGameType.toString()
+                                    && r.loginDevice.toString() === twoDaysData.loginDevice.toString());
+                            } else {
+                                indexNo = returnedObj.data.findIndex(r => r && r.providerId && r.cpGameType && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType
+                                    && r.providerId.toString() === twoDaysData.providerId.toString()
+                                    && r.cpGameType.toString() === twoDaysData.cpGameType.toString());
+                            }
 
                             if (indexNo === -1) {
                                 returnedObj.data.push(twoDaysData);
@@ -2833,7 +2869,13 @@ var dbPlayerConsumptionRecord = {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(party => {
-                        if(party._id && party._id.cpGameType && party._id.cpGameType == item._id){
+                        if(party._id && party._id.cpGameType && item._id && item._id.cpGameType && item._id.loginDevice
+                            && (party._id.cpGameType == item._id.cpGameType)
+                            && party._id.loginDevice && (party._id.loginDevice == item._id.loginDevice)){
+                            return item;
+                        } else if (party._id && party._id.cpGameType && item._id && !item._id.cpGameType && (party._id.cpGameType == item._id)) {
+                            return item;
+                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id && (party._id.providerId == providerId)) {
                             return item;
                         }
                     })
@@ -2846,7 +2888,14 @@ var dbPlayerConsumptionRecord = {
                         })
                     }
                 }
-                item.cpGameType = item._id;
+                if (item && item._id && item._id.cpGameType) {
+                    item.cpGameType = item._id.cpGameType;
+                } else if (item && item._id && !item._id.cpGameType) {
+                    item.cpGameType = item._id;
+                }
+                if (item && item._id && item._id.loginDevice) {
+                    item.loginDevice = item._id.loginDevice;
+                }
                 item.totalAmount = item.total_amount;
                 item.providerName = providerName;
                 item.participantNumber = participantNumber;
@@ -2869,7 +2918,7 @@ var dbPlayerConsumptionRecord = {
         }
     },
 
-    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, cpGameType) {
+    getWinRateByPlayers: function (startTime, endTime, providerId, platformId, cpGameType, loginDevice) {
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: ObjectId(platformId),
@@ -2881,6 +2930,11 @@ var dbPlayerConsumptionRecord = {
         if(!cpGameType || cpGameType == 'null'){
             matchObj.cpGameType = { $exists: false }
         }
+
+        if (loginDevice) {
+            matchObj.loginDevice = loginDevice;
+        }
+
         let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -2940,7 +2994,7 @@ var dbPlayerConsumptionRecord = {
         )
     },
 
-    getWinRateByPlayersFromSummary: function (startTime, endTime, providerId, platformId, cpGameType) {
+    getWinRateByPlayersFromSummary: function (startTime, endTime, providerId, platformId, cpGameType, loginDevice) {
         let returnedObj;
         const matchObj = {
             date: {$gte: startTime, $lt: endTime},
@@ -2952,6 +3006,11 @@ var dbPlayerConsumptionRecord = {
         if(!cpGameType || cpGameType == 'null'){
             matchObj.cpGameType = { $exists: false }
         }
+
+        if (loginDevice) {
+            matchObj.loginDevice = loginDevice;
+        }
+
         let participantsProm = dbconfig.collection_winRateReportDataDaySummary.distinct('playerId', matchObj).read("secondaryPreferred");
         let totalAmountProm = dbconfig.collection_winRateReportDataDaySummary.aggregate([
             {
@@ -3009,7 +3068,7 @@ var dbPlayerConsumptionRecord = {
 
                 if (new Date(endTime) > twoDaysAgo) {
                     startTime = twoDaysAgo;
-                    return dbPlayerConsumptionRecord.getWinRateByPlayers(startTime, endTime, providerId, platformId, cpGameType);
+                    return dbPlayerConsumptionRecord.getWinRateByPlayers(startTime, endTime, providerId, platformId, cpGameType, loginDevice);
                 }
             }
         ).then(
