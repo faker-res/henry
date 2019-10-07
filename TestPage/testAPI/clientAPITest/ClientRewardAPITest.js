@@ -117,12 +117,6 @@
         this.rewardService.applyProviderReward.once(callback);
     };
 
-    proto.getBonusList = function (callback, requestData) {
-        var data = requestData || {};
-        this.rewardService.getBonusList.request(data);
-        this.rewardService.getBonusList.once(callback);
-    };
-
     proto.applyBonus = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,

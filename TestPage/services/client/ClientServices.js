@@ -118,6 +118,7 @@
                 "setPhoneNumberAndPassword",
                 "updatePasswordByPhoneNumber",
                 "getBankcardInfo",
+                "updatePlayerAvatar",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -197,7 +198,6 @@
                 "getTopupList",
                 "applyBonus",
                 "getBonusRequestList",
-                "getBonusList",
                 "cancelBonusRequest",
                 "getOnlineTopupType",
                 "createOnlineTopupProposal",
@@ -207,8 +207,6 @@
                 "delayManualTopupRequest",
                 "getManualTopupRequestList",
                 "getAlipayTopupRequestList",
-                "manualTopupStatusNotify",
-                "onlineTopupStatusNotify",
                 "getProvinceList",
                 "getCityList",
                 "getDistrictList",
@@ -562,6 +560,25 @@
         rootObj.AuctionService = AuctionService;
     };
 
+    var defineQQGroupControlService = function (sinonet) {
+        var QQGroupControlService = function (connection) {
+            sinonet.WebSocketService.call(this, "qqgroupcontrol", connection);
+
+            //define functions
+            var functionNames = [
+                "sendQQGroupControlSessionToFPMS",
+                "sendQQConversationToFPMS",
+                "bindPlayerQQInfo"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        QQGroupControlService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        QQGroupControlService.prototype.constructor = QQGroupControlService;
+
+        rootObj.QQGroupControlService = QQGroupControlService;
+    };
+
     // Individual services should be declared above, and called in here
     var defineServices = function (sinonet) {
         defineConnectionService(sinonet);
@@ -579,6 +596,7 @@
         defineDXMissionService(sinonet);
         defineWCGroupControlService(sinonet);
         defineAuctionService(sinonet);
+        defineQQGroupControlService(sinonet);
     };
 
     if (isNode) {

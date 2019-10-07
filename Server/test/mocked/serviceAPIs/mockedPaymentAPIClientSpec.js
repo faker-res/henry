@@ -58,35 +58,11 @@ module.exports = {
     },
 
     bonus: {
-
-        getBonusList: data => ({
-            status: 200,
-            bonuses: [
-                {
-                    bonus_id: 1,
-                    code: 'code1',
-                    name: 'test1',
-                    credit: 100,
-                    description: 'test bonus 1',
-                    createtime: 'Jul 26, 2016 12:00:00 AM'
-                },
-                {
-                    bonus_id: 2,
-                    code: 'code2',
-                    name: 'test2',
-                    credit: 50,
-                    description: 'test bonus 2',
-                    createtime: 'Jul 26, 2016 12:00:00 AM'
-                }
-            ]
-        }),
-
         applyBonus: data => ({
             status: 200,
             proposalId: data.proposalId,
             bonusTaskId: data.bonusId,
         })
-
     },
 
     payment: {

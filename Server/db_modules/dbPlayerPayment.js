@@ -354,7 +354,6 @@ const dbPlayerPayment = {
         let topUpSystemName;
         let defaultMinTopUpAmount = 10;
         let defaultMaxTopUpAmount = 1000000;
-        let platformMinTopUpAmount = 0;
         let result = {};
         let proposalData = {};
         let newProposal = {};
@@ -378,10 +377,6 @@ const dbPlayerPayment = {
 
                     if (topUpSystemConfig && topUpSystemConfig.name) {
                         topUpSystemName = topUpSystemConfig.name;
-                    }
-
-                    if (playerData.platform && playerData.platform.minTopUpAmount) {
-                        platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
 
                     proposalData.playerId = playerId;
@@ -619,6 +614,10 @@ const dbPlayerPayment = {
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
         let player, rewardEvent, proposal, topUpSystemConfig;
+        let playerTopUpCount;
+        let platformTopUpAmountConfig;
+        let defaultMinTopUpAmount = 10;
+        let minTopUpAmount = 0;
         console.log('topupRequest JY::', topupRequest);
         if (!(topupRequest.amount && Number.isInteger(topupRequest.amount) && topupRequest.amount < 10000000)) {
             return Promise.reject({
@@ -683,6 +682,64 @@ const dbPlayerPayment = {
             eventData => {
                 rewardEvent = eventData;
 
+                let topUpCountProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                    [
+                        {
+                            $match: {
+                                platformId: player.platform._id,
+                                createTime: {$gte: new Date(player.registrationTime), $lte: new Date()},
+                                playerId: player._id
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: {$sum: 1}
+                            }
+                        }
+                    ]
+                ).allowDiskUse(true).exec();
+
+                let platformTopUpAmount = dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: player.platform._id}).lean();
+
+                return Promise.all([topUpCountProm, platformTopUpAmount]).then(
+                    data => {
+                        playerTopUpCount = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                        platformTopUpAmountConfig = data[1];
+
+                        let newMinTopUpAmount;
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+                            && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            newMinTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
+                            let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
+
+                            for (let i = 0; i < topUpCountAmountRanges.length; i++) {
+                                let range = topUpCountAmountRanges[i];
+                                if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
+                                    if(range && range.minAmount) {
+                                        newMinTopUpAmount = range.minAmount;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!newMinTopUpAmount) {
+                            newMinTopUpAmount = defaultMinTopUpAmount;
+                        }
+
+                        return newMinTopUpAmount;
+                    }
+                )
+            }
+        ).then(
+            minAmountData => {
+                minTopUpAmount = minAmountData;
+
                 // Check limited offer and promo code condition
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
@@ -704,7 +761,6 @@ const dbPlayerPayment = {
             }
         ).then(
             res => {
-                let minTopUpAmount = player.platform.minTopUpAmount || 0;
                 let limitedOfferTopUp = res[0];
                 let bonusCodeValidity = res[1];
 
