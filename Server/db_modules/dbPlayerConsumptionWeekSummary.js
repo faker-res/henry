@@ -908,10 +908,10 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
 
                                     if (res.totalAmount) {
-                                        res.totalAmount = res.totalAmount? Number(res.totalAmount.toFixed(2)): 0;
+                                        res.totalAmount = Number(res.totalAmount.toFixed(2));
                                     }
                                     if (res.totalConsumptionAmount) {
-                                        res.totalConsumptionAmount = res.totalConsumptionAmount? Number(res.totalConsumptionAmount.toFixed(2)): 0;
+                                        res.totalConsumptionAmount = Number(res.totalConsumptionAmount.toFixed(2));
                                     }
                                 }
                             )
