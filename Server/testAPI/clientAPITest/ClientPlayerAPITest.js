@@ -866,6 +866,12 @@
         });
     };
 
+    proto.updatePlayerAvatar = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerAvatar.request(data);
+        this.playerService.updatePlayerAvatar.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

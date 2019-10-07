@@ -1844,6 +1844,9 @@ define(['js/app'], function (myApp) {
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
                 proposalId: vm.queryTopup.proposalId,
+                platformList:
+                    vm.queryTopup.platformList && vm.queryTopup.platformList.length ?
+                        vm.queryTopup.platformList : vm.platformList.map(item => item._id),
                 index: 0,
                 limit: isExport ? 10000 : 1,
             } : {
@@ -3283,6 +3286,123 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'wechatGroupQuery', vm.searchWechatControlSession);
                 });
                 $('#wechatGroupReportTable').resize();
+            }
+        }
+
+        vm.getQQSessionDeviceNickName = function (platformObjIds) {
+            if (platformObjIds && platformObjIds.length) {
+                socketService.$socket($scope.AppSocket, 'getQQSessionDeviceNickName', {platformObjIds: platformObjIds}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.qqSessionNickName = data && data.data || [];
+                    })
+                })
+            } else {
+                vm.qqSessionNickName = [];
+            }
+        }
+
+        vm.getQQSessionCsOfficer = function (platformObjIds, deviceNickNames) {
+            if (platformObjIds && platformObjIds.length && deviceNickNames && deviceNickNames.length) {
+                socketService.$socket($scope.AppSocket, 'getQQSessionCsOfficer', {platformObjIds: platformObjIds, deviceNickNames: deviceNickNames}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.qqSessionCsOfficer = data && data.data || [];
+                    })
+                })
+            } else {
+                vm.qqSessionCsOfficer = [];
+            }
+        }
+
+        vm.searchQQControlSession = function (newSearch, isExport = false) {
+            $('#qqGroupReportTableSpin').show();
+
+            let sendObj = {
+                admin: authService.adminId,
+                deviceNickNames: vm.qqGroupQuery.deviceNickName,
+                csOfficer: vm.qqGroupQuery.csOfficer,
+                startTime: vm.qqGroupQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.qqGroupQuery.endTime.data('datetimepicker').getLocalDate(),
+                platformIds: vm.qqGroupQuery.product,
+                index: isExport? 0: (newSearch ? 0 : (vm.qqGroupQuery.index || 0)),
+                limit: isExport? 5000: vm.qqGroupQuery.limit || 10,
+                sortCol: vm.qqGroupQuery.sortCol || {createTime: -1}
+            }
+
+            vm.reportSearchTimeStart = new Date().getTime();
+            socketService.$socket($scope.AppSocket, 'getQQControlSession', sendObj, function (data) {
+                $('#qqGroupReportTableSpin').hide();
+                findReportSearchTime()
+                console.log('getQQControlSession', data);
+                vm.qqGroupQuery.totalCount = data.data.size;
+                vm.drawQQControlSession(
+                    data.data.data.map(item => {
+                        let timeDiff;
+                        if (!item.lastUpdateTime) {
+                            timeDiff = Math.abs(new Date().getTime() - new Date(item.createTime).getTime());
+                        } else {
+                            timeDiff = Math.abs(new Date(item.lastUpdateTime).getTime() - new Date(item.createTime).getTime());
+                        }
+                        item.onlineDuration$ = Math.floor(timeDiff / (1000 * 60)) + $translate("Minutes");
+                        if (item.createTime) {
+                            item.createTime = vm.dateReformat(item.createTime);
+                        }
+                        if (item.lastUpdateTime) {
+                            item.lastUpdateTime = vm.dateReformat(item.lastUpdateTime);
+                        }
+                        return item;
+                    }), data.data.size, {}, newSearch, isExport);
+                $scope.$evalAsync();
+            }, function (err) {
+                $('#qqGroupReportTableSpin').hide();
+                console.log(err);
+            }, true);
+        }
+
+        vm.drawQQControlSession = function (data, size, summary, newSearch, isExport) {
+            var tableOptions = {
+                data: data,
+                "order": vm.qqGroupQuery.aaSorting ,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT'), data: "platformObjId.name"},
+                    {title: $translate('Create Device Name'), data: "deviceNickName"},
+                    {title: $translate('Use Account'), data: "csOfficer.adminName"},
+                    {title: $translate('Start Connection Time'), data: "createTime"},
+                    {
+                        title: $translate('Offline Time'), data: "lastUpdateTime",
+                        render: function (data, type, row) {
+                            if (data) {
+                                return '<span>' + data + '</span>';
+                            } else {
+                                return '<span style="color: green">' + $translate("STILL_ONLINE") + '</span>';
+                            }
+                        }
+                    },
+                    {title: $translate('This Connection is Abnormally Clicked'), data: "connectionAbnormalClickTimes"},
+                    {title: $translate('Connection Time'), data: "onlineDuration$"},
+                ],
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                },
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if(isExport){
+                var proposalTbl = utilService.createDatatableWithFooter('#qqGroupReportExcelTable', tableOptions, {});
+                $('#qqGroupReportExcelTable_wrapper').hide();
+                vm.exportToExcel("qqGroupReportExcelTable", "QQ_GROUP_REPORT");
+            }else {
+                utilService.createDatatableWithFooter('#qqGroupReportTable', tableOptions, {});
+                vm.qqGroupQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#qqGroupReportTable').off('order.dt');
+                $('#qqGroupReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'qqGroupQuery', vm.searchQQControlSession);
+                });
+                $('#qqGroupReportTable').resize();
             }
         }
 
@@ -6961,6 +7081,7 @@ define(['js/app'], function (myApp) {
             var sendData = newproposalQuery.proposalId ? {
                 // platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
+                platformList: newproposalQuery.platformList ? newproposalQuery.platformList : [],
                 index: 0,
                 limit: isExport ? 10000 : 1,
             } : {
@@ -11519,6 +11640,18 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.wechatGroupQuery, '#wechatGroupQuery');
                     vm.wechatGroupQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "wechatGroupQuery", vm.searchWechatControlSession)
+                    });
+                });
+                $scope.safeApply();
+            } else if (choice == "QQ_GROUP_REPORT") {
+                vm.qqGroupQuery = {};
+                vm.reportSearchTime = 0;
+                getAdminPlatformName();
+
+                utilService.actionAfterLoaded("#qqGroupReportTablePage", function () {
+                    vm.commonInitTime(vm.qqGroupQuery, '#qqGroupQuery');
+                    vm.qqGroupQuery.pageObj = utilService.createPageForPagingTable("#qqGroupReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "qqGroupQuery", vm.searchQQControlSession)
                     });
                 });
                 $scope.safeApply();
