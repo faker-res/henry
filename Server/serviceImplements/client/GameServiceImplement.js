@@ -185,6 +185,7 @@ var GameServiceImplement = function () {
         let isValidData = Boolean(conn.playerId && data && data.gameId && data.clientDomainName);
         let ip = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        console.log("getLoginURL playerId",conn.playerId);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         if(data.deviceId || data.guestDeviceId) {
             inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
@@ -202,7 +203,7 @@ var GameServiceImplement = function () {
         var md = new mobileDetect(uaString);
         let userAgent = [{
             browser: ua.browser.name || '',
-            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+            device: ua.device.name || (md && md.mobile()) ? md.mobile() : '',
             os: ua.os.name || ''
         }];
 
