@@ -11750,6 +11750,7 @@ let dbPlayerInfo = {
                             currentAmt: topUpAmount,
                             forbidWithdrawIfBalanceAfterUnlock: 0,
                             forbidXIMAAmt: 0,
+                            remainingForbidXIMAAmt: 0, // new field for XIMA reward
                             curConsumption: 0,
                             targetConsumption: topUpAmount || 0
                         };
