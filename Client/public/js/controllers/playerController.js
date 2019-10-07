@@ -20271,6 +20271,15 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
+            console.log('vm.newPlayerProposal.data.isRegistered===', vm.newPlayerProposal.data.isRegistered);
+            console.log('vm.newPlayerProposal.data.isRegisteredTime===', vm.newPlayerProposal.data.isRegisteredTime);
+            if (vm.newPlayerProposal.data.isRegistered) {
+                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                    let str = vm.newPlayerProposal.data.phoneNumber;
+                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                }
+            }
+
             if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
                 if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
                     let str = vm.newPlayerProposal.data.phoneNumber;
@@ -20281,7 +20290,7 @@ define(['js/app'], function (myApp) {
             // requirement by echo
             // 1.同账号 不同手机号尝试开户；
             // 2.同账号 同一手机号，
-            // 3. 不同账号 同一手机号
+            // 3.不同账号 同一手机号
             // 这三种情况，只要开户成功了，之前的历史记录都隐藏
             // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
             if (vm.newPlayerProposal.status === "Pending" && (vm.newPlayerRecordsSuccessNames.includes(vm.newPlayerProposal.name) || vm.newPlayerRecordsSuccessPhone.includes(vm.newPlayerProposal.data.phoneNumber))) {
