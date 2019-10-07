@@ -2518,7 +2518,7 @@ var dbQualityInspection = {
                             return dbconfig.collection_live800RecordDayRecord.findOneAndUpdate(
                                 {
                                     messageId: uItem.messageId,
-                                    "live800Acc.name": new RegExp(uItem.live800Acc.name, "i"),
+                                    "live800Acc.name": new RegExp("^" + uItem.live800Acc.name + "$", "i"),
                                     createTime: uItem.createTime
                                 },
                                 uItem, {new: true}
