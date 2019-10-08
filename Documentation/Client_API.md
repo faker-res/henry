@@ -4404,6 +4404,7 @@ API说明：
 	* code: //分游组代码
 	* requestCount: //请求数据量， 默认查询100条游戏
 	* startIndex: //返回数据跳过个数，用于分页，可选参数， 默认值为0
+	* needLoginShow: true //默认值为false, 请求是否需要登入
 	* 响应内容：
 		* ```
 			{
