@@ -26,6 +26,7 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "homepage": "http://54.179.151.35:888/reactdoc/",
   "browserslist": {
     "production": [
       ">0.2%",

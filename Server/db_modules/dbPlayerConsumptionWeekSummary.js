@@ -874,8 +874,8 @@ var dbPlayerConsumptionWeekSummary = {
                         };
                         let consumeData = data && data[0] || null;
                         if (consumeData) {
-                            res.totalAmount = consumeData.totalAmount;
-                            res.totalConsumptionAmount = consumeData.totalConsumptionAmount;
+                            res.totalAmount = consumeData.totalAmount? Number(consumeData.totalAmount.toFixed(2)): 0;
+                            res.totalConsumptionAmount = consumeData.totalConsumptionAmount? Number(consumeData.totalConsumptionAmount.toFixed(2)): 0;
                             res.startTime = consumeData.settleTime && consumeData.settleTime.startTime;
                             res.endTime = consumeData.settleTime && consumeData.settleTime.endTime;
 
@@ -891,7 +891,7 @@ var dbPlayerConsumptionWeekSummary = {
                             Object.keys(amounts).forEach(
                                 type => {
                                     // console.log('amounts', amounts[type]);
-                                    res[type] = null
+                                    // res[type] = null
                                     if (res[type]) {
                                         if (res[type].hasOwnProperty("returnAmount")) {
                                             console.log('amount return', amounts[type].returnAmount);
@@ -905,6 +905,13 @@ var dbPlayerConsumptionWeekSummary = {
                                         if (res[type].hasOwnProperty("returnAmount")) {
                                             res[type].returnAmount = res[type].returnAmount.toFixed(2);
                                         }
+                                    }
+
+                                    if (res.totalAmount) {
+                                        res.totalAmount = Number(res.totalAmount.toFixed(2));
+                                    }
+                                    if (res.totalConsumptionAmount) {
+                                        res.totalConsumptionAmount = Number(res.totalConsumptionAmount.toFixed(2));
                                     }
                                 }
                             )
