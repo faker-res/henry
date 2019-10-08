@@ -80,11 +80,6 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.clientType, data.bPMSGroup, userIp], isValidData);
     };
 
-    this.getBonusList.expectsData = '';
-    this.getBonusList.onRequest = function (wsFunc, conn, data) {
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBonusList, [data], true);
-    };
-
     this.applyBonus.expectsData = 'amount: Number|String';
     this.applyBonus.onRequest = function(wsFunc, conn, data) {
         data.userAgent = conn['upgradeReq']['headers']['user-agent'];
@@ -106,25 +101,30 @@ var PaymentServiceImplement = function () {
     };
 
     this.getBonusRequestList.expectsData = '[startIndex]: Number, [requestCount]: Number';
-    this.getBonusRequestList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId);
+    this.getBonusRequestList.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAppliedBonusList, [conn.playerId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort], isValidData);
+        let param = [
+            conn.playerId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort
+        ];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAppliedBonusList, param, isValidData);
     };
 
     this.cancelBonusRequest.expectsData = 'proposalId: String';
-    this.cancelBonusRequest.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data.proposalId);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.cancelBonusRequest, [conn.playerId, data.proposalId], isValidData, true, false, false).then(
-            function (res) {
+    this.cancelBonusRequest.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId && data.proposalId);
+        let param = [conn.playerId, data.proposalId];
+
+        WebSocketUtil.responsePromise(
+            conn, wsFunc, data, dbPlayerInfo.cancelBonusRequest, param, isValidData, true, false, false
+        ).then(
+            function(res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                // Handle by proposal executor
-                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
             }
         ).catch(WebSocketUtil.errorHandler).done();
     };
@@ -243,18 +243,6 @@ var PaymentServiceImplement = function () {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
     };
-
-    this.manualTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "manualTopupStatusNotify", data);
-        }
-    );
-
-    this.onlineTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "onlineTopupStatusNotify", data);
-        }
-    );
 
     this.getProvinceList.expectsData = '';
     this.getProvinceList.onRequest = function (wsFunc, conn, data) {

@@ -9,22 +9,6 @@
     };
     var proto = BonusAPITest.prototype;
 
-    var testPlayerObjId = null;
-    var providerId = null;
-    var gameId = null;
-
-    if (isNode) {
-
-
-    }
-
-    proto.getBonusList = function(callback, requestData){
-        var data = requestData;
-        this._service.getBonusList.request(data);
-        var key = this._service.getBonusList.generateSyncKey(data);
-        this._service.getBonusList.onceSync(key, callback);
-    };
-
     proto.applyBonus = function(callback, requestData){
         var data = requestData;
         this._service.applyBonus.request(data);
