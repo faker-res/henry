@@ -124,6 +124,8 @@ let dbEmailAudit = {
         if (!proposal || !proposal.data) {
             return;
         }
+
+        console.log('proposal content', proposal);
         let proposalData = proposal.data;
 
         let playerName = proposalData.playerName || "";
@@ -152,6 +154,7 @@ let dbEmailAudit = {
             createTime,
         };
 
+        console.log('email content', emailContents);
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
 
         if (!setting) {
@@ -162,12 +165,19 @@ let dbEmailAudit = {
             return;
         }
 
-        let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
-        let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
+        console.log('email setting', setting);
+        // let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
+        // let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
+
+        let recipientsProm = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
+        // console.log('recipientsProm', recipientsProm);
+        let auditorsProm = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
+        // console.log('auditorsProm', auditorsProm);
 
         let [recipients, auditors] = await Promise.all([recipientsProm, auditorsProm]);
 
         if (!recipients || !recipients.length) {
+            // console.log('prom return');
             return;
         }
 
@@ -197,6 +207,7 @@ let dbEmailAudit = {
     },
 
     async sendCreditChangeUpdate (proposal) {
+        console.log('audit update proposal...', proposal);
         if (!proposal || !proposal.data) {
             return;
         }
@@ -230,6 +241,7 @@ let dbEmailAudit = {
 
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
 
+        console.log('audit update setting...', setting);
         if (!setting) {
             return;
         }
@@ -240,6 +252,7 @@ let dbEmailAudit = {
 
         let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
 
+        console.log('audit update recipients...', recipients);
         if (!recipients || !recipients.length) {
             return;
         }
@@ -248,12 +261,15 @@ let dbEmailAudit = {
             return recipient.email;
         });
 
+        console.log('audit update allRecipientEmail...', allRecipientEmail);
         let subject = getAuditCreditChangeEmailSubject(setting.emailNameExtension, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
+        console.log('audit update allEmailStr...', allEmailStr);
         let proposalProcessData = await dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
 
+        console.log('audit update proposalProcessData...', proposalProcessData);
         let processStep;
         if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
             processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
@@ -266,6 +282,7 @@ let dbEmailAudit = {
 
         let auditor = await dbconfig.collection_admin.findOne({_id: operator}, {adminName: 1}).lean();
 
+        console.log('audit update auditor...', auditor);
         let stepHtml = generateProposalStepTable(proposal, processStep, auditor);
 
         let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject, stepHtml);
@@ -811,7 +828,7 @@ function generateProposalStepTable (proposalData, proposalStep, auditor) {
 async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject);
-
+    console.log('email recipient', allRecipientEmail);
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -848,12 +865,15 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
     let emailResult = await emailer.sendEmail(emailConfig);
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+    console.log('email result', emailResult);
     return emailResult;
 }
 
 function getAuditCreditChangeEmailSubject (emailTitle, date, updateAmount, playerName) {
     let formattedDate = dbutility.getLocalTimeString(date , "YYYY/MM/DD");
     let formattedAmount = dbutility.noRoundTwoDecimalPlaces(updateAmount);
+    console.log('email subject', emailTitle);
+    console.log('email subject 2', playerName);
     return `${emailTitle} -- 额度加减（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
 }
 
