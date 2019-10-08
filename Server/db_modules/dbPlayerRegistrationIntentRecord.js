@@ -231,7 +231,7 @@ var dbPlayerRegistrationIntentRecord = {
             }
         }
         let updateQuery = {
-            data: Object.assign({}, query)
+            data: query
         };
 
         if(updateData != "Fail"){
