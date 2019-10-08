@@ -204,7 +204,7 @@ var dbPlayerFeedback = {
     },
 
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
-        var adminArr = [];
+        var adminArr = admin || [];
         var playerArr = [];
         var returnedData = [];
         var playerIdArr = [];
@@ -264,15 +264,15 @@ var dbPlayerFeedback = {
                 }
 
                 // return dbconfig.collection_admin.find({adminName: {$regex: ".*" + cs + ".*"}}).lean();
-                return dbconfig.collection_admin.find({adminName: admin}).lean();
-            }
-        ).then(
-            data => {
-                if (data && data[0]) {
-                    data.map(item => {
-                        adminArr.push(item._id);
-                    });
-                }
+                // return dbconfig.collection_admin.find({adminName: admin}).lean();
+            // }
+        // ).then(
+        //     data => {
+                // if (data && data[0]) {
+                //     data.map(item => {
+                //         adminArr.push(item._id);
+                //     });
+                // }
                 if (playerArr.length > 0) {
                     query.playerId = {$in: playerArr};
                 } else if (playerArr.length == 0 && player) {
@@ -1098,6 +1098,14 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        if (query.departments && query.departments.length && query.departments.includes('')) {
+            let deptArray = query.departments;
+            query.departments = deptArray.filter(a => {
+                if (a !== '') {
+                    return a;
+                }
+            });
+        }
         let department = await dbconfig.collection_department.find({
             _id: {$in: query.departments}
         }).lean();

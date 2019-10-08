@@ -92,6 +92,11 @@ define(['js/app'], function (myApp) {
                 $('#wechatMonitor.collapse').addClass('in');
                 $('#paymentMonitor.collapse').removeClass('in');
                 vm.pageName = "WECHAT_GROUP_CONTROL_MONITOR";
+            }else if(window.location.pathname == "/monitor/qqGroup") {
+                vm.seleDataType["QQ_GROUP_CONTROL_MONITOR"] = 'bg-bright';
+                $('#qqMonitor.collapse').addClass('in');
+                $('#paymentMonitor.collapse').removeClass('in');
+                vm.pageName = "QQ_GROUP_CONTROL_MONITOR";
             }else if(window.location.pathname == "/monitor/consumptionRecord") {
                 vm.seleDataType["CONSUMPTION_RECORD_MONITOR"] = 'bg-bright';
                 vm.pageName = "CONSUMPTION_RECORD_MONITOR";

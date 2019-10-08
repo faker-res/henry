@@ -209,7 +209,7 @@ const dbRewardTask = {
             playerId: rewardData.playerId,
             providerGroup: null,
             status: {$in: [constRewardTaskStatus.STARTED]}
-        }).then(
+        }).lean().then(
             providerGroup => {
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
@@ -245,13 +245,18 @@ const dbRewardTask = {
                         if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && proposalData.data.isDynamicRewardAmount) {
                             updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                             updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                            if (providerGroup.hasOwnProperty('remainingForbidXIMAAmt')){
+                                updObj.$inc.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
+                            }
                         } else {
                             updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                            if (providerGroup.hasOwnProperty('remainingForbidXIMAAmt')){
+                                updObj.$inc.remainingForbidXIMAAmt = consumptionAmt;
+                            }
                         }
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
-
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
@@ -274,6 +279,7 @@ const dbRewardTask = {
                     };
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        saveObj.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
