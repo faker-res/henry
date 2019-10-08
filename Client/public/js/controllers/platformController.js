@@ -18271,7 +18271,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length) {
-                    vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
+                    vm.feedbackAdminQuery.admins = vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
                 }
                 if ( (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0) || admins.length) {
                     sendQuery.csOfficer = vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0 ? vm.feedbackAdminQuery.admins : admins;
