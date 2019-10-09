@@ -15065,6 +15065,7 @@ let dbPlayerInfo = {
                                             playerId: playerId,
                                             playerObjId: player._id,
                                             playerName: player.name,
+                                            loginDevice: player.loginDevice || null,
                                             platformId: player.platform._id,
                                             platform: player.platform.platformId,
                                             bankTypeId: withdrawalBank.bankName,

@@ -784,6 +784,7 @@ var dbPlayerConsumptionRecord = {
                 if (verifiedData && verifiedData[0] && verifiedData[1] && verifiedData[2] && platformGameData && (platformGameData[0] || platformGameData[1])) {
                     var data = verifiedData;
                     recordData.playerId = data[0]._id;
+                    recordData.loginDevice = data[0].loginDevice;
                     recordData.platformId = data[0].platform;
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
