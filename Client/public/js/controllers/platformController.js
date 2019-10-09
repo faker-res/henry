@@ -36237,6 +36237,7 @@ define(['js/app'], function (myApp) {
                                         vm.queryDepartments.push(e);
                                     }
                                 });
+
                             } else {
                                 let parentId;
                                 let selectedPlatform = vm.platformList.filter(platform => platform.id.toString() === platformObjId)[0];
