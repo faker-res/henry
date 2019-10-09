@@ -2320,7 +2320,11 @@ API说明：
                 requestCount: 页面总提案数
                 totalAmount: 提案总额度
             }，
-            records: [提案详情]
+            records: [{  //查询记录列表
+                "amount": 充值额度
+                "createTime": 充值时间
+                bDirty: 充值记录是否已使用
+            }]
         }
         ```
     * 操作失败:
@@ -2329,41 +2333,19 @@ API说明：
         data: -
         errorMessage: 错误信息
         ```
-	* 响应内容：
-		* ```
-			{
-				"status": 200,  //200:成功 / 4xx:失败
-				"data": {
-					"stats": {
-						"totalCount": 1,  //查询记录总数量，用于分页
-						"totalAmount": 100,  //查询结果总额度
-						"startIndex": 0  //查询结果记录开始index
-					},
-					"records": [  //查询记录列表
-					{
-						"_id": "57e493bd4616da05674073eb",
-						"playerId": "Yun1068",
-						"platformId": "4",
-						"topUpType": "2",
-						"merchantTopUpType": "1",
-						"bankCardType": "1",
-						"amount": 100,
-						"createTime": "2016-09-23T02:30:21.196Z",
-						"__v": 0,
-						bDirty: false //充值记录是否已使用
-					}]
-				}
-			}
 
 <div id='获取省份列表'></div>
 
-* **22.  获取省份列表**
+* **5.  获取省份列表**
 	* Name: getProvinceList
-	* 请求内容：{}
+	* 请求内容：
+	    ```
+        {}
+        ```
 	* 响应内容：
-		* ```
-			{
-				status: 200/4xx,
+		```
+        {
+            status: 200/4xx,
 				data: [{
 					id: “001”,
 					name: “北京”
