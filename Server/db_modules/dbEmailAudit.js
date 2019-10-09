@@ -126,8 +126,12 @@ let dbEmailAudit = {
         }
 
         console.log('proposal content', proposal);
+        console.log('proposal_id', proposal.id);
+        console.log('proposalid', proposal._id);
         let proposalData = proposal.data;
 
+        //for saving message ID
+        let ObjId = proposal._id;
         let playerName = proposalData.playerName || "";
         let realName = proposalData.realNameBeforeEdit || "";
         let playerLevel = proposalData.playerLevelName || "";
@@ -152,6 +156,8 @@ let dbEmailAudit = {
             proposalId,
             platformName,
             createTime,
+
+            ObjId,
         };
 
         console.log('email content', emailContents);
@@ -164,8 +170,6 @@ let dbEmailAudit = {
         if (!setting.minimumAuditAmount || Math.abs(updateAmount) < Number(setting.minimumAuditAmount)) {
             return;
         }
-
-        console.log('email setting', setting);
         // let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
         // let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
 
@@ -828,7 +832,6 @@ function generateProposalStepTable (proposalData, proposalStep, auditor) {
 async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject);
-    console.log('email recipient', allRecipientEmail);
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -853,7 +856,8 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         recipient: admin.email, // admin email
         subject: subject, // title
         body: html, // html content
-        isHTML: true
+        isHTML: true,
+        proposalObjID: emailContents.ObjId
     };
 
     if (allEmailStr) {
@@ -866,6 +870,7 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     console.log('email result', emailResult);
+
     return emailResult;
 }
 
