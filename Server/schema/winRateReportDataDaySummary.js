@@ -22,6 +22,8 @@ let winRateReportDataDaySummarySchema = new Schema({
     consumptionBonusAmount: {type: Number, required: true, default: 0, index: true},
     //scheduler summary data create time
     createTime: {type: Date, index: true, default: Date.now},
+    //loginDevice
+    loginDevice: {type: Number, index: true}
 });
 
 module.exports = winRateReportDataDaySummarySchema;
