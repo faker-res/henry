@@ -72,6 +72,7 @@ const constSystemRewardEventGroup = require('./../const/constSystemRewardEventGr
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
+const constPlayerLoginDevice = require("../const/constPlayerLoginDevice");
 
 // db_common
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
@@ -7000,7 +7001,44 @@ let dbPlayerInfo = {
 
                 return record.save();
             }
-        ).then(
+        ).then(record => {
+            if (userAgent) {
+                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
+                let loginDevice;
+
+                console.log('tempInputDevice ==>', tempInputDevice);
+                console.log('playerData.osType ==>', playerData.osType);
+                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                    loginDevice = constPlayerLoginDevice.WEB;
+                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                    loginDevice = constPlayerLoginDevice.H5;
+                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                    if (playerData && playerData.osType) {
+                        let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
+                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
+                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    }
+                }
+
+                console.log('loginDevice ==>', loginDevice);
+                if (loginDevice) {
+                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        _id: record.player,
+                        platform: record.platform
+                    }, {
+                        loginDevice: loginDevice
+                    }).then(
+                        data => {
+                            return record;
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+            }
+            return record;
+        }).then(
             record => {
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
@@ -7768,7 +7806,44 @@ let dbPlayerInfo = {
                     error: error
                 });
             }
-        ).then(
+        ).then(record => {
+            if (userAgent) {
+                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
+                let loginDevice;
+
+                console.log('tempInputDevice 1==>', tempInputDevice);
+                console.log('playerData.osType 1==>', playerData.osType);
+                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                    loginDevice = constPlayerLoginDevice.WEB;
+                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                    loginDevice = constPlayerLoginDevice.H5;
+                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                    if (playerData && playerData.osType) {
+                        let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
+                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
+                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    }
+                }
+
+                console.log('loginDevice 1==>', loginDevice);
+                if (loginDevice) {
+                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        _id: record.player,
+                        platform: record.platform
+                    }, {
+                        loginDevice: loginDevice
+                    }).then(
+                        data => {
+                            return record;
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+            }
+            return record;
+        }).then(
             record => {
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
@@ -8153,6 +8228,38 @@ let dbPlayerInfo = {
                         let loginRecord = await record.save();
 
                         if (loginRecord) {
+                            if (userAgent) {
+                                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
+                                let loginDevice;
+
+                                console.log('tempInputDevice 2==>', tempInputDevice);
+                                console.log('inputData.osType 2==>', inputData.osType);
+                                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                                    loginDevice = constPlayerLoginDevice.WEB;
+                                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                                    loginDevice = constPlayerLoginDevice.H5;
+                                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                                    if (inputData && inputData.osType) {
+                                        let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
+                                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
+                                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                                    }
+                                }
+
+                                console.log('loginDevice 2==>', loginDevice);
+                                if (loginDevice) {
+                                    console.log('updatePlayerLoginDevice time log start', loginRecord.platform,  loginRecord.player);
+                                    await dbconfig.collection_players.findOneAndUpdate({
+                                        _id: loginRecord.player,
+                                        platform: loginRecord.platform
+                                    }, {
+                                        loginDevice: loginDevice
+                                    }).catch(errorUtils.reportError);
+                                }
+                            }
+
                             updateAutoFeedbackLoginCount(loginRecord).catch(errorUtils.reportError);
                             dbPlayerInfo.getRetentionRewardAfterLogin(loginRecord.platform, loginRecord.player, userAgent).catch(
                                 err => {

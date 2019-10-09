@@ -2781,6 +2781,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
             let socketName = 'winRateReport';
@@ -2847,6 +2848,7 @@ define(['js/app'], function (myApp) {
             if (listAll) {
                 vm.curWinRateQuery.listAll = true;
             }
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
@@ -2884,6 +2886,7 @@ define(['js/app'], function (myApp) {
 
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
 
             let socketName = 'getWinRateByGameType';
             if (vm.curWinRateQuery.searchBySummaryData) {
@@ -2904,6 +2907,8 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId || vm.selectedPlatform._id;
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
                 }
@@ -2916,27 +2921,43 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.getWinRateByPlayers = function (cpGameType, providerId, platformObjId) {
+        vm.getWinRateByPlayers = function (cpGameType, providerId, platformObjId, loginDevice) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
             vm.winRateLayer4 = true;
 
-            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
-            vm.curWinRateQuery.providerId = providerId;
-            vm.curWinRateQuery.platformId = platformObjId || vm.selectedPlatform._id;
+            let sendData = $.extend(true, {}, vm.winRateQuery);
+            sendData = $.extend(true, {}, vm.winRateQuery);
+            sendData.providerId = providerId;
+            sendData.platformId = platformObjId || vm.selectedPlatform._id;
 
-            vm.curWinRateQuery.limit = 0;
-            vm.curWinRateQuery.cpGameType = cpGameType;
-            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            sendData.limit = 0;
+            sendData.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            sendData.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
 
-            let socketName = 'getWinRateByPlayers';
-            if (vm.curWinRateQuery.searchBySummaryData) {
-                socketName = 'getWinRateByPlayersFromSummary';
+            if (cpGameType != "") {
+                sendData.cpGameType = cpGameType;
             }
 
-            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
+            if (Object.keys(vm.loginDeviceList).includes(loginDevice)) {
+                sendData.loginDevice = Number(loginDevice);
+            } else {
+               delete sendData.loginDevice;
+            }
+
+            if (loginDevice) {
+                vm.curWinRateQuery.loginDevice = Number(loginDevice);
+            } else {
+                delete vm.curWinRateQuery.loginDevice;
+            }
+
+            let socketName = 'getWinRateByPlayers';
+            if (sendData.searchBySummaryData) {
+                socketName = 'getWinRateByPlayersFromSummary';
+            }
+            console.log('getWinRateByPlayers sendData', sendData);
+            socketService.$socket($scope.AppSocket, socketName, sendData, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 vm.drawWinRateLayer4Report(data.data, data.length, data.data.summaryData, true);
@@ -3016,16 +3037,17 @@ define(['js/app'], function (myApp) {
                 "order": [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'plaftormName', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [3]},
-                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'profit', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [9]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platformName"},
+                    {title: $translate('LOGIN_DEVICE'), data: "loginDevice$"},
                     {title: $translate('PROVIDER'), data: "providerName"},
                     {title: $translate('GAME_TYPE'), data: "cpGameType", "width": "7%"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
@@ -3062,7 +3084,8 @@ define(['js/app'], function (myApp) {
                         title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
-                            return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"' + row.providerId +'\",\"'+ row.platformObjId+"\")'><a>" + txt + "</a></div>";
+                            let cpGameType = row && row._id && row._id.cpGameType ? row._id.cpGameType : row._id && typeof row._id === 'string' ? row._id : "";
+                            return "<div ng-click='vm.getWinRateByPlayers(\"" + cpGameType +'\",\"' + row.providerId +'\",\"'+ row.platformObjId +'\",\"'+ row.loginDevice+"\")'><a>" + txt + "</a></div>";
                         }
                     }
                 ],
@@ -3073,12 +3096,12 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             vm.winRateSummaryLayer3Table = utilService.createDatatableWithFooter('#winRateSummaryLayer3Table', tableOptions, {
-                3: summary.participantNumber,
-                4: summary.consumptionTimes,
-                5: summary.totalAmount,
-                6: summary.validAmount,
-                7: summary.bonusAmount,
-                8: summary.profit
+                4: summary.participantNumber,
+                5: summary.consumptionTimes,
+                6: summary.totalAmount,
+                7: summary.validAmount,
+                8: summary.bonusAmount,
+                9: summary.profit
             }, true);
             $('#winRateLayer3Table').resize();
         }
@@ -11865,6 +11888,12 @@ define(['js/app'], function (myApp) {
                     vm.winRateQuery = {};
                     vm.winRateSummaryData = {};
                     vm.winRateQuery.providerId = 'all';
+                    vm.winRateQuery.loginDevice = [];
+                    Object.keys(vm.loginDeviceList).forEach(key => {
+                        if (key) {
+                            vm.winRateQuery.loginDevice.push(key);
+                        }
+                    })
                     vm.reportSearchTime = 0;
                     vm.winRateLayer1 = true;
                     vm.winRateLayer2 = false;
