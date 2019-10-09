@@ -17312,24 +17312,48 @@ define(['js/app'], function (myApp) {
                     vm.getPartnerPosterAdsList();
                     break;
                 case 'commissionBillboard':
+                    vm.commissionBillboardPeriod = vm.constPartnerBillBoardPeriod.DAILY;
                     vm.commissionBillboardQuery = {
                         period: vm.constPartnerBillBoardPeriod.DAILY,
                         limit: 10,
                         index: 0
                     };
+
+                    vm.commissionFakeBillboardQuery = {
+                        period: vm.constPartnerBillBoardPeriod.DAILY,
+                        limit: 10,
+                        index: 0,
+                        pageObj: {}
+                    };
+
                     utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
                         vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                             commonPageChangeHandler(curP, pageSize, "commissionBillboardQuery", vm.getPartnerCommissionBillBoard);
                         });
                         $scope.$evalAsync();
                     });
+                    utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
+                        console.log('aaaaa')
+                        vm.commissionFakeBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerFakeCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                            commonPageChangeHandler(curP, pageSize, "fakeCommissionBillboardQuery", vm.getPartnerFakeCommissionBillBoard);
+                        });
+                        $scope.$evalAsync();
+                    });
                     vm.getPartnerCommissionBillBoard(true);
+                    vm.getPartnerFakeCommissionBillBoard(true);
                     break;
 
             }
 
             $scope.$evalAsync();
         };
+
+        vm.changePeriod = () => {
+            vm.commissionBillboardQuery.period = vm.commissionBillboardPeriod;
+            vm.commissionFakeBillboardQuery.period = vm.commissionBillboardPeriod;
+            vm.getPartnerCommissionBillBoard(true);
+            vm.getPartnerFakeCommissionBillBoard(true);
+        }
 
         vm.getPartnerCommissionBillBoard = function (newSearch) {
             if (!vm.platformInSetting) {
@@ -17388,6 +17412,163 @@ define(['js/app'], function (myApp) {
             setTimeout(function () {
                 $('#partnerCBillBoardTable_wrapper').resize();
             }, 500);
+        }
+
+        vm.getPartnerFakeCommissionBillBoard = function (newSearch) {
+            if (!vm.platformInSetting) {
+                return;
+            }
+            console.log("vm.commissionBillboardQuery", vm.commissionBillboardQuery)
+            let query = {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionBillboardQuery.period,
+                count: newSearch ? 10 : vm.commissionBillboardQuery.limit || 10,
+                index: vm.commissionBillboardQuery.index,
+                fakeMode: "1" // todo :: get it based on checkbox
+            };
+            console.log('getPartnerCommissionBillBoardquery', query)
+            // $scope.$socketPromise('getPartnerCommissionBillBoard', query).then(
+            //     data => {
+            //         console.log("getPartnerCommissionBillBoard", data);
+            //         if (data && data.data && data.data.data) {
+            //             vm.drawPartnerCommissionBillBoard(data.data.data.map(row => {
+            //                 row.amount = $noRoundTwoDecimalPlaces(row.amount);
+            //                 return row;
+            //             }), data.data.total, newSearch)
+            //         }
+            //     }
+            // );
+
+            let mockData = {
+                "success": true,
+                "data": {
+                    "data": [
+                        {
+                            "amount": 0,
+                            "name": "bluedragon",
+                            "rank": 1
+                        },
+                        {
+                            "amount": 0,
+                            "name": "jjdragon",
+                            "rank": 2
+                        },
+                        {
+                            "amount": 0,
+                            "name": "lldragon",
+                            "rank": 3
+                        },
+                        {
+                            "amount": 0,
+                            "name": "mmdragon",
+                            "rank": 4
+                        },
+                        {
+                            "amount": 0,
+                            "name": "nndragon",
+                            "rank": 5
+                        },
+                        {
+                            "amount": 0,
+                            "name": "oodragon",
+                            "rank": 6
+                        },
+                        {
+                            "amount": 0,
+                            "name": "partdragon",
+                            "rank": 7
+                        },
+                        {
+                            "amount": 0,
+                            "name": "ppdragon",
+                            "rank": 8
+                        },
+                        {
+                            "amount": 0,
+                            "name": "ptestvin1",
+                            "rank": 9
+                        },
+                        {
+                            "amount": 0,
+                            "name": "testvin1127",
+                            "rank": 10
+                        }
+                    ],
+                    "count": 10,
+                    "index": 0,
+                    "total": 19
+                }
+            }
+            vm.drawPartnerFakeCommissionBillBoard(mockData.data.data.map(row => {
+                row.amount = $noRoundTwoDecimalPlaces(row.amount);
+                return row;
+            }), mockData.data.total, newSearch);
+
+        };
+
+        vm.drawPartnerFakeCommissionBillBoard = function(tableData, size, newSearch) {
+            let tableOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: 0, bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Commission_Rank'), data: "rank", bSortable: false},
+                    {title: $translate('partnerName'), data: "name", bSortable: false},
+                    {title: $translate('AccumulatedCommission'), data: "amount", sClass: "alignRight", bSortable: false},
+                    {
+                        title: $translate('ACTION_BUTTON'),
+                        bSortable: false,
+                        data: "anywat",
+                        render: function (data, type, row, dataIndex) {
+
+                            let linkEdit = $('<a>', {
+                                // 'ng-click': 'vm.placeHolderFunc1("' + JSON.stringify(row) +'")',
+                                'ng-click': 'vm.placeHolderFunc1("' + row.name +'")',
+                            }).text($translate("EDIT"));
+
+                            let linkDelete = $('<a>', {
+                                'ng-click': 'vm.placeHolderFunc2("' + row.name +'")',
+                                // 'ng-click': 'vm.placeHolderFunc2("' + JSON.stringify(row) +'")',
+                            }).text($translate("DELETE"));
+
+                            return linkEdit.prop('outerHTML') + " / " + linkDelete.prop('outerHTML');
+                        }
+                    },
+                    {title: $translate('REMARKS'), data: "remarks", bSortable: false},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+
+            utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
+                vm.commissionFakeBillboardTable = utilService.createDatatableWithFooter('#partnerFakeCBillBoardTable', tableOptions, {}, true);
+                vm.commissionFakeBillboardQuery.pageObj.init({maxCount: size}, newSearch);
+            })
+            // since backend sorting this should not be needed
+            // $('#commissionBillboardTable').off('order.dt');
+            // $('#commissionBillboardTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'partnerProfitQuery', vm.searchPartnerProfitReport);
+            // });
+            setTimeout(function () {
+                $('#partnerFakeCBillBoardTable_wrapper').resize();
+            }, 500);
+        }
+
+        vm.placeHolderFunc1 = (input) => {
+            vm.updatingFakeRecord = input;
+            $("#modalUpdateFakeCommRecord").modal();
+            console.log('f1', input);
+        }
+
+        vm.placeHolderFunc2 = (input) => {
+            console.log('f2', input);
         }
 
         vm.getPartnerBasic = function () {
