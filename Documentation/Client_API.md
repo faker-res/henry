@@ -2174,27 +2174,7 @@ API说明：
             }
     * 操作成功： status--200
     * 操作失败： status--4xx, data--null
-
-<div id='设置头像信息'></div>
-
-* **67. 设置头像信息**
-	* Name: updatePlayerAvatar
-    * service:player
-	* 请求内容：
-        * ```
-            {
-                avatar: "myFace.jpg",      //头像
-                avatarFrame: "myFrame.jpg" //头像框
-            }
-	* 响应内容：
-		* ```
-			{
-				"status": 200
-				“data”: 玩家资料
-			}
-    * 操作成功： status--200, data--玩家资料
-    * 操作失败： status--4xx, data--null
-
+    
 # 注册意向服务：
 用于关注玩家注册过程中是否遇到问题，便于改进登录界面以及在适当的时候为玩家提供帮助。
 
