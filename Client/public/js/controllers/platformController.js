@@ -1607,6 +1607,7 @@ define(['js/app'], function (myApp) {
                     if (preventBlockUrl) {
                         item = preventBlockUrl + item;
                     }
+                    item = item.replace('&', '%26');
                     return item.trim();
                 });
                 let sendData = { "urls": urls };
@@ -1620,6 +1621,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateSingleUrl = function(url, no) {
+                url = url.replace('&', '%26');
                 let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
 
