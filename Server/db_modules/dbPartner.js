@@ -8360,7 +8360,6 @@ let dbPartner = {
         let ranking = await dbconfig.collection_commissionBBRecord.find(rankingQuery, {
             name: 1,
             amount: 1,
-            _id: 0
         }).sort({
             amount: -1,
             name: 1

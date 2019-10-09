@@ -484,6 +484,9 @@ let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commi
 let commissionBBRecordSchema = require('./../schema/commissionBBRecord');
 let commissionBBRecordModel = dbLogs2.model('commissionBBRecord', commissionBBRecordSchema, 'commissionBBRecord');
 
+let fakeCommissionBillBoardRecordSchema = require('./../schema/fakeCommissionBillBoardRecord');
+let fakeCommissionBillBoardRecordModel = dbLogs2.model('fakeCommissionBillBoardRecord', fakeCommissionBillBoardRecordSchema, 'fakeCommissionBillBoardRecord');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -879,6 +882,7 @@ var dbProperties = {
 
     collection_commissionBB: commissionBBModel,
     collection_commissionBBRecord: commissionBBRecordModel,
+    collection_fakeCommissionBillBoardRecord: fakeCommissionBillBoardRecordModel,
 
     collection_partnerWeekSummary: partnerWeekSummaryModel,
     collection_partnerChildWeekSummary: partnerChildWeekSummaryModel,
