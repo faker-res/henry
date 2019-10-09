@@ -143,13 +143,6 @@ define(['js/app'], function (myApp) {
             {typeId: 4, name: 'WechatPay'}
         ];
 
-        vm.loginDeviceList = {
-            1: 'WEB',
-            2: 'H5',
-            3: 'APP_IOS',
-            4: 'APP_ANDROID'
-        };
-
         vm.allActions = ['createDepartmentWithParent',
         'updateDepartmentParent',
         'updateDepartment',
@@ -2781,7 +2774,6 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
             let socketName = 'winRateReport';
@@ -2848,7 +2840,6 @@ define(['js/app'], function (myApp) {
             if (listAll) {
                 vm.curWinRateQuery.listAll = true;
             }
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
@@ -2886,7 +2877,6 @@ define(['js/app'], function (myApp) {
 
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
 
             let socketName = 'getWinRateByGameType';
             if (vm.curWinRateQuery.searchBySummaryData) {
@@ -2907,7 +2897,6 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId || vm.selectedPlatform._id;
-                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
                         return item;
                     })
                 }
@@ -2920,7 +2909,7 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.getWinRateByPlayers = function (cpGameType, providerId, platformObjId, loginDevice) {
+        vm.getWinRateByPlayers = function (cpGameType, providerId, platformObjId) {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
@@ -2934,12 +2923,6 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.cpGameType = cpGameType;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-
-            if (loginDevice) {
-                vm.curWinRateQuery.loginDevice = Number(loginDevice);
-            } else {
-                delete vm.curWinRateQuery.loginDevice;
-            }
 
             let socketName = 'getWinRateByPlayers';
             if (vm.curWinRateQuery.searchBySummaryData) {
@@ -3026,17 +3009,16 @@ define(['js/app'], function (myApp) {
                 "order": [[0, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'plaftormName', bSortable: true, 'aTargets': [2]},
-                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [4]},
-                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [5]},
-                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [6]},
-                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [8]},
-                    {'sortCol': 'profit', bSortable: true, 'aTargets': [9]},
+                    {'sortCol': 'participantNumber', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'consumptionTimes', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'totalAmount', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'validAmount', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'profit', bSortable: true, 'aTargets': [8]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platformName"},
-                    {title: $translate('LOGIN_DEVICE'), data: "loginDevice$"},
                     {title: $translate('PROVIDER'), data: "providerName"},
                     {title: $translate('GAME_TYPE'), data: "cpGameType", "width": "7%"},
                     {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
@@ -3073,8 +3055,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
-                            let cpGameType = row && row._id && row._id.cpGameType ? row._id.cpGameType : row._id;
-                            return "<div ng-click='vm.getWinRateByPlayers(\"" + cpGameType +'\",\"' + row.providerId +'\",\"'+ row.platformObjId +'\",\"'+ row.loginDevice+"\")'><a>" + txt + "</a></div>";
+                            return "<div ng-click='vm.getWinRateByPlayers(\"" + row._id +'\",\"' + row.providerId +'\",\"'+ row.platformObjId+"\")'><a>" + txt + "</a></div>";
                         }
                     }
                 ],
@@ -3085,12 +3066,12 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             vm.winRateSummaryLayer3Table = utilService.createDatatableWithFooter('#winRateSummaryLayer3Table', tableOptions, {
-                4: summary.participantNumber,
-                5: summary.consumptionTimes,
-                6: summary.totalAmount,
-                7: summary.validAmount,
-                8: summary.bonusAmount,
-                9: summary.profit
+                3: summary.participantNumber,
+                4: summary.consumptionTimes,
+                5: summary.totalAmount,
+                6: summary.validAmount,
+                7: summary.bonusAmount,
+                8: summary.profit
             }, true);
             $('#winRateLayer3Table').resize();
         }
@@ -11552,12 +11533,6 @@ define(['js/app'], function (myApp) {
                     vm.winRateQuery = {};
                     vm.winRateSummaryData = {};
                     vm.winRateQuery.providerId = 'all';
-                    vm.winRateQuery.loginDevice = [];
-                    Object.keys(vm.loginDeviceList).forEach(key => {
-                        if (key) {
-                            vm.winRateQuery.loginDevice.push(key);
-                        }
-                    })
                     vm.reportSearchTime = 0;
                     vm.winRateLayer1 = true;
                     vm.winRateLayer2 = false;
