@@ -2354,7 +2354,14 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         if (listAll) {
@@ -2512,7 +2519,14 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         let groupById = null;
@@ -2676,12 +2690,17 @@ var dbPlayerConsumptionRecord = {
             loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
         }
 
-        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
-        let groupObjIdData = '$cpGameType';
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+        let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
-            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
-            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         // the player are non-repeatable
@@ -2742,12 +2761,17 @@ var dbPlayerConsumptionRecord = {
             loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
         }
 
-        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
-        let groupObjIdData = '$cpGameType';
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+        let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
-            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
-            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         // the player are non-repeatable
@@ -2804,8 +2828,13 @@ var dbPlayerConsumptionRecord = {
                     twoDaysWinRateReportData.data.forEach(
                         twoDaysData => {
                             let indexNo;
+                            let isCpGameTypeAndLoginDeviceExist = false;
 
-                            if (loginDeviceQuery) {
+                            if(twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType && twoDaysData.loginDevice){
+                                isCpGameTypeAndLoginDeviceExist = true;
+                            }
+
+                            if (isCpGameTypeAndLoginDeviceExist) {
                                 indexNo = returnedObj.data.findIndex(r => r && r.providerId && r.cpGameType && r.loginDevice
                                     && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType && twoDaysData.loginDevice
                                     && r.providerId.toString() === twoDaysData.providerId.toString()
@@ -2873,9 +2902,9 @@ var dbPlayerConsumptionRecord = {
                             && (party._id.cpGameType == item._id.cpGameType)
                             && party._id.loginDevice && (party._id.loginDevice == item._id.loginDevice)){
                             return item;
-                        } else if (party._id && party._id.cpGameType && item._id && !item._id.cpGameType && (party._id.cpGameType == item._id)) {
+                        } else if (party._id && party._id.cpGameType && !party._id.loginDevice && item._id && item._id.cpGameType && !item._id.loginDevice && (party._id.cpGameType == item._id.cpGameType)) {
                             return item;
-                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id && (party._id.providerId == providerId)) {
+                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id.cpGameType && (party._id.providerId == providerId)) {
                             return item;
                         }
                     })
@@ -2933,6 +2962,10 @@ var dbPlayerConsumptionRecord = {
 
         if (loginDevice) {
             matchObj.loginDevice = loginDevice;
+        }
+
+        if (cpGameType && providerId && !loginDevice){
+            matchObj.loginDevice = { $exists: false }
         }
 
         let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
@@ -3009,6 +3042,10 @@ var dbPlayerConsumptionRecord = {
 
         if (loginDevice) {
             matchObj.loginDevice = loginDevice;
+        }
+
+        if (cpGameType && providerId && !loginDevice){
+            matchObj.loginDevice = { $exists: false }
         }
 
         let participantsProm = dbconfig.collection_winRateReportDataDaySummary.distinct('playerId', matchObj).read("secondaryPreferred");
