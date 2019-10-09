@@ -204,7 +204,7 @@ var dbPlayerFeedback = {
     },
 
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
-        var adminArr = admin || [];
+        var adminArr = [];
         var playerArr = [];
         var returnedData = [];
         var playerIdArr = [];
@@ -264,15 +264,15 @@ var dbPlayerFeedback = {
                 }
 
                 // return dbconfig.collection_admin.find({adminName: {$regex: ".*" + cs + ".*"}}).lean();
-                // return dbconfig.collection_admin.find({adminName: admin}).lean();
-            // }
-        // ).then(
-        //     data => {
-                // if (data && data[0]) {
-                //     data.map(item => {
-                //         adminArr.push(item._id);
-                //     });
-                // }
+                return dbconfig.collection_admin.find({adminName: admin}).lean();
+            }
+        ).then(
+            data => {
+                if (data && data[0]) {
+                    data.map(item => {
+                        adminArr.push(item._id);
+                    });
+                }
                 if (playerArr.length > 0) {
                     query.playerId = {$in: playerArr};
                 } else if (playerArr.length == 0 && player) {
