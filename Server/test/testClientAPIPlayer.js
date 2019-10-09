@@ -1,35 +1,39 @@
-var should = require('chai').should();
-var dbconfig = require('../modules/dbproperties');
-var WebSocketClient = require('../server_common/WebSocketClient');
-var PlayerService = require('../services/client/ClientServices').PlayerService;
-var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
-var TopUpIntentionService = require('../services/client/ClientServices').TopUpIntentionService;
-var ConsumptionService = require('../services/client/ClientServices').ConsumptionService;
-var ClientPlayerAPITest = require('../testAPI/clientAPITest/ClientPlayerAPITest');
+let should = require('chai').should();
+let dbconfig = require('../modules/dbproperties');
+let WebSocketClient = require('../server_common/WebSocketClient');
+let PlayerService = require('../services/client/ClientServices').PlayerService;
+let RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
+let TopUpIntentionService = require('../services/client/ClientServices').TopUpIntentionService;
+let ConsumptionService = require('../services/client/ClientServices').ConsumptionService;
+let ClientPlayerAPITest = require('../testAPI/clientAPITest/ClientPlayerAPITest');
 
-var env = require("../config/env").config();
-var commonTestFun = require('../test_modules/commonTestFunc');
+let env = require("../config/env").config();
+let commonTestFun = require('../test_modules/commonTestFunc');
+let dbRole = require('../db_modules/dbRole');
 
-var testPhoneNumber = '95567654';
-var testGuestPhoneNumber = '55699874';
+let testPhoneNumber = '95567654';
+let testGuestPhoneNumber = '55699874';
 
-var testPlayerName = null;
-var testNewPlayerName = 'testnewplayer';
-var testNewGuestPlayerName = 'testguestplayer';
-var testPlatformObjId = null;
-var testPlatformId = null;
-var testPlayerObjId = null;
-var testPlayerId = null;
-var testNewPlayerId = null;
-var testNewGuestPlayerId = null;
-var smsCode = null;
-var smsCode1 = null;
-var token = null;
-var testPlayerGender = null;
-var testPlayerRealName = null;
-var testPlayerOldPwd = null;
-var smsLog = null;
-var pwdToken = null;
+let testPlayerName = null;
+let testNewPlayerName = 'testnewplayer';
+let testNewGuestPlayerName = 'testguestplayer';
+let testPlatformObjId = null;
+let testPlatformId = null;
+let testPlayerObjId = null;
+let testPlayerId = null;
+let testNewPlayerId = null;
+let testNewGuestPlayerId = null;
+let smsCode = null;
+let token = null;
+let testPlayerGender = null;
+let testPlayerRealName = null;
+let testPlayerOldPwd = null;
+let smsLog = null;
+let pwdToken = null;
+let step1DepartmentId = null;
+let step1AdminId = null;
+let step1AdminName = null;
+let step1RoleId = null;
 
 describe("Test Client API - Player service", function () {
     this.timeout(12000)
@@ -86,34 +90,23 @@ describe("Test Client API - Player service", function () {
         curDate.setDate(curDate.getDate());
         console.log('cur date', curDate);
 
-        // create test sms code
-        let phoneNumbers = [testPhoneNumber, "80808080", "17355544411", "01155555555"];
-        let testSMSVerificationLogProms = [];
-        let testSMSLogProms = [];
-        if (phoneNumbers && phoneNumbers.length > 0) {
-            phoneNumbers.forEach(phoneNumber => {
-                testSMSVerificationLogProms.push(commonTestFun.createTestSMSVerificationLog({
-                    tel: phoneNumber,
-                    channel: randomCh,
-                    platformObjId: testPlatformObjId,
-                    platformId: testPlatformId,
-                    code: randomCode,
-                    delay: 0
-                }));
-                testSMSLogProms.push(commonTestFun.createTestSMSLog({
-                    tel: phoneNumber,
-                    channel: randomCh,
-                    platform: testPlatformObjId,
-                    platformId: testPlatformId,
-                    message: randomCode,
-                    type: 'player',
-                    status: 'success'
-                }));
-            });
+        // create test department
+        let testDepartment = await commonTestFun.createTestDepartment();
+        testDepartment.should.have.property('_id');
 
-            await Promise.all([testSMSVerificationLogProms, testSMSLogProms]);
-        }
-        smsLog = randomCode;
+        step1DepartmentId = testDepartment._id;
+
+        // create test admin with role
+        let testAdminWithRole = await commonTestFun.createTestAdminWithRole(step1DepartmentId);
+        testAdminWithRole[0].should.have.property('_id');
+        testAdminWithRole[1].should.have.property('_id');
+
+        step1AdminId = testAdminWithRole[0]._id;
+        step1AdminName = testAdminWithRole[0].adminName;
+        step1RoleId = testAdminWithRole[1]._id;
+
+        // attach test roles to test users
+        let testAttachRolesToUsers = await dbRole.attachRolesToUsersById([step1AdminId], [step1RoleId]);
 
         // create test client QnA Template
         let forgotPasswordLevel1 = {
@@ -162,7 +155,53 @@ describe("Test Client API - Player service", function () {
             minQuestionPass: 1,
             defaultPassword : "888888"
         }
-        await commonTestFun.createTestClientQnAConfig(testPlatformObjId, configData)
+        await commonTestFun.createTestClientQnAConfig(testPlatformObjId, configData);
+
+        // create test sms group
+        let testSmsGroup = await commonTestFun.createTestSMSGroup(testPlatformObjId);
+        testSmsGroup.should.have.property('smsId');
+
+        // update test sms group
+        let smsGroupData = [{
+            platformObjId: testPlatformObjId,
+            smsName: "PlayerRegisterIntentionSuccess",
+            smsParentSmsId: testSmsGroup.smsId
+        }]
+        await commonTestFun.updateTestSMSGroup(testPlatformObjId, smsGroupData)
+
+        // create test player mail
+        let title = "test player mail title";
+        let content = "test player mail content";
+        await commonTestFun.createTestPlayerMail(testPlatformObjId, step1AdminId, step1AdminName, testPlayerObjId, title, content);
+
+        // create test sms code
+        let phoneNumbers = [testPhoneNumber, "80808080", "17355544411", "01155555555"];
+        let testSMSVerificationLogProms = [];
+        let testSMSLogProms = [];
+        if (phoneNumbers && phoneNumbers.length > 0) {
+            phoneNumbers.forEach(phoneNumber => {
+                testSMSVerificationLogProms.push(commonTestFun.createTestSMSVerificationLog({
+                    tel: phoneNumber,
+                    channel: randomCh,
+                    platformObjId: testPlatformObjId,
+                    platformId: testPlatformId,
+                    code: randomCode,
+                    delay: 0
+                }));
+                testSMSLogProms.push(commonTestFun.createTestSMSLog({
+                    tel: phoneNumber,
+                    channel: randomCh,
+                    platform: testPlatformObjId,
+                    platformId: testPlatformId,
+                    message: randomCode,
+                    type: 'player',
+                    status: 'success'
+                }));
+            });
+
+            await Promise.all([testSMSVerificationLogProms, testSMSLogProms]);
+        }
+        smsLog = randomCode;
 
         // create a connection
         client.connect();
@@ -338,6 +377,10 @@ describe("Test Client API - Player service", function () {
         var randomPWD = Math.floor((Math.random() * 100000) + 100000);
         clientPlayerAPITest.resetPassword(function (data) {
             data.status.should.equal(200);
+            data.data.playerId.should.be.a('string');
+            data.data.createTime.should.be.a('string');
+            data.data.realName.should.be.a('string');
+            data.data.password.should.be.a('string');
         }, {
             platformId: testPlatformId,
             name: testPlayerName,
@@ -476,12 +519,22 @@ describe("Test Client API - Player service", function () {
     it('Should get player mailing list', function () {
         clientPlayerAPITest.getMailList(function (data) {
             data.status.should.equal(200);
+            data.data.should.be.an('array');
+            data.data[0].title.should.be.a('string');
+            data.data[0].content.should.be.a('string');
+            data.data[0].hasBeenRead.should.be.a('boolean');
+            data.data[0].createTime.should.be.a('string');
         },{playerId: testPlayerId});
     });
 
     it('Should get player unread mail', function () {
         clientPlayerAPITest.getUnreadMail(function (data) {
             data.status.should.equal(200);
+            data.data.should.be.an('array');
+            data.data[0].title.should.be.a('string');
+            data.data[0].content.should.be.a('string');
+            data.data[0].hasBeenRead.should.be.a('boolean');
+            data.data[0].createTime.should.be.a('string');
         },{playerId: testPlayerId});
     });
 
@@ -562,6 +615,11 @@ describe("Test Client API - Player service", function () {
     it('Should get SMS status', function () {
         clientPlayerAPITest.getSmsStatus(function (data) {
             data.status.should.equal(200);
+            data.data.should.be.an('array');
+            data.data[0].smsName.should.be.a('string');
+            data.data[0].smsId.should.be.a('number');
+            data.data[0].status.should.be.a('number');
+            data.data[0].settings.should.be.an('array');
         }, {playerId: testPlayerId});
     });
 
@@ -652,6 +710,9 @@ describe("Test Client API - Player service", function () {
     it('Should Get OM Captcha', function () {
         clientPlayerAPITest.getOMCaptcha(function (data) {
             data.status.should.equal(200);
+            data.data.should.be.an('object');
+            data.data.randomNumber.should.be.a('number');
+            data.data.b64ImgDataUrl.should.be.a('string');
         }, {platformId: testPlatformId});
     });
 
@@ -659,6 +720,11 @@ describe("Test Client API - Player service", function () {
         clientPlayerAPITest.getReceiveTransferList(function (data) {
             data.status.should.equal(200);
             data.data.should.be.an('object');
+            data.data.stats.totalCount.should.be.a('number');
+            data.data.stats.totalPage.should.be.a('number');
+            data.data.stats.currentPage.should.be.a('number');
+            data.data.stats.totalReceiveAmount.should.be.a('number');
+            data.data.list.should.be.an('array');
 
         }, {
             platformId: testPlatformId,
