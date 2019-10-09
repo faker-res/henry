@@ -3922,7 +3922,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            if (row.data.name && row.data.name != "" && row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                 link.append($('<div>', {
