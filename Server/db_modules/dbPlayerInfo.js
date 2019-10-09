@@ -20106,7 +20106,7 @@ let dbPlayerInfo = {
         console.log('postSummaryEndTime', postSummaryEndTime);
 
         if (summaryStartTime && summaryEndTime) {
-            console.log("checking using sumamry record")
+            console.log("checking using summary record")
             getSummaryProm = getSummaryData();
         }
 
@@ -24130,8 +24130,6 @@ let dbPlayerInfo = {
                             );
                         }
                         else {
-
-                            console.log("checking --- should go in this path!")
                             return getPlayerDeviceRecord(playerObjIds, new Date(startTime), new Date(endTime), option, false);
                         }
                     },

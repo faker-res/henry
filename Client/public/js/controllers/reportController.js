@@ -11730,7 +11730,6 @@ define(['js/app'], function (myApp) {
                     vm.deviceQuery = {};
                     vm.deviceQuery.totalCount = 0;
                     vm.deviceQuery.sortCol = {validConsumptionAmount: -1};
-                    // vm.playerQuery.limit = 5000;
                     vm.deviceQuery.consumptionTimesOperator = ">=";
                     vm.deviceQuery.profitAmountOperator = ">=";
                     vm.deviceQuery.topUpTimesOperator = ">=";

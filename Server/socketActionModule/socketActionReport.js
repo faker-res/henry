@@ -392,7 +392,6 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            console.log("checking --- getDeviceReportFromSummary isValidData", isValidData)
             socketUtil.emitter(self.socket, dbPlayerInfo.getDeviceReportFromSummary, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
@@ -401,7 +400,6 @@ function socketActionReport(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId);
             var platformId = ObjectId(data.platformId);
 
-            console.log("checking --- re-calculate")
             socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculateDeviceReportSummary, [platformId, data.start, data.end, data.name], actionName, isValidData);
         },
 
