@@ -55,11 +55,7 @@ var GameServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        let isSkipLogin = true;
-        if (data && data.needLoginShow) {
-            isSkipLogin = false;
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId, data.providerId], isValidData, false, false, isSkipLogin);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupGames, [data, data.startIndex, data.requestCount, conn.playerId, data.providerId], isValidData, false, false, true);
     };
 
     this.getGameGroupTreeInfo.expectsData = 'platformId: String';
