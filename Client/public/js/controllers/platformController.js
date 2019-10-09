@@ -5,7 +5,6 @@ define(['js/app'], function (myApp) {
             let $translate = $filter('translate');
             let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
-            let $noDecimalPlacesString = $filter('noDecimalPlacesString');
             let vm = this;
 
             // For debugging:
@@ -29197,7 +29196,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noDecimalPlacesString(data) + "%" : $noRoundTwoDecimalPlaces(data)
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noRoundTwoDecimalPlaces(data) + "%" : $noRoundTwoDecimalPlaces(data)
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
