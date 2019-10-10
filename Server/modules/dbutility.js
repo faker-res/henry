@@ -1414,11 +1414,13 @@ var dbUtility = {
             ua = uaParser(inputUserAgent);
         }
 
+        console.log("dbUtil.getInputDevice",ua);
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+        console.log("dbUtil.getInputDevice",userAgentInput[0]);
 
         let inputDevice="";
 
