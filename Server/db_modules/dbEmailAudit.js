@@ -833,9 +833,8 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
     let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject);
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
-
+    let hasMsgID = false;
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
-
     if (!admin) {
         console.log("admin not found on sendAuditCreditChangeEmail", adminObjId);
         return Promise.reject({message: "Admin not found."});
@@ -856,12 +855,25 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         recipient: admin.email, // admin email
         subject: subject, // title
         body: html, // html content
-        isHTML: true,
-        proposalObjID: emailContents.ObjId
+        isHTML: true
+        // proposalObjID: emailContents.ObjId
     };
 
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
+    }
+
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    console.log('get proposal...', proposalProm);
+    if(proposalProm.length > 0 && proposalProm[0].messageId){
+        emailConfig.messageId = proposalProm[0].messageId;
+        hasMsgID = true;
     }
 
     console.log(`sending audit email, AuditCreditChange, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
@@ -870,7 +882,9 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     console.log('email result', emailResult);
-
+    if(!hasMsgID){
+        await dbconfig.collection_proposal.update({_id: emailContents.ObjId}, {$set: {messageId: emailResult.messageId}}).lean();
+    }
     return emailResult;
 }
 

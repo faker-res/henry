@@ -12,9 +12,6 @@ const OAuth2 = google.auth.OAuth2;
 const env = require("../config/env").config();
 const directTransport = require('nodemailer-direct-transport');
 
-//for email message id
-const dbconfig = require('../modules/dbproperties');
-
 // gmail oauth guide: https://medium.com/@nickroach_50526/sending-emails-with-node-js-using-smtp-gmail-and-oauth2-316fe9c790a1
 const oauth2Client = new OAuth2(env.gmailOAuthClientId, env.gmailOAuthClientSecret, "https://developers.google.com/oauthplayground");
 let accessToken = "";
@@ -97,10 +94,8 @@ directTransporter.use('compile', htmlToText({}));   // For options see: https://
  * @returns {*}
  */
 var emailer = {
-    sendEmail: async function (config) {
+    sendEmail: function(config) {
         console.log('email config', config);
-        let hasMsgId;
-        let isAuditCredit;
         const mailOptions = {
             from: config.sender,
             to: config.recipient,
@@ -113,25 +108,12 @@ var emailer = {
         } else {
             mailOptions.text = config.body;
         }
-
-        if(config.proposalObjID){
-            let proposalProm = await dbconfig.collection_proposal.find({_id: config.proposalObjID}).lean();
-            if (!proposalProm) {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Error in getting proposal data",
-                });
-            }
-
-            console.log('get proposal...', proposalProm);
-            isAuditCredit = true;
-            if(proposalProm.length > 0 && proposalProm[0].messageId){
-                hasMsgId = true;
-                mailOptions.references = proposalProm[0].messageId;
-            }
+        if (config.messageId) {
+            mailOptions.references = config.messageId
         }
+        console.log('mail option before send...', mailOptions);
         // send mail with defined transport object
-        return Q.Promise(function (resolve, reject) {
+        return Q.Promise(function(resolve, reject) {
             try {
                 // if (smtpTransporter) {
                 //     console.log('smtp transporter ready')
@@ -140,7 +122,7 @@ var emailer = {
                 //     console.log('using direct')
                 // }
                 let transporter = smtpTransporter || directTransporter;
-                transporter.sendMail(mailOptions, async function (error, info) {
+                transporter.sendMail(mailOptions, function(error, info) {
                     if (error) {
                         reject(error);
                     } else {
@@ -149,11 +131,6 @@ var emailer = {
                             errorUtils.reportError(info);
                             reject(info);
                         } else {
-                            console.log('msg ID...', info.messageId);
-                            if (!hasMsgId && isAuditCredit) {
-                                console.log('is Audit');
-                                await dbconfig.collection_proposal.update({_id: config.proposalObjID}, {$set: {messageID: info.messageId}}).lean();
-                            }
                             resolve(info);
                         }
                     }
