@@ -347,7 +347,7 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.rewardSetting.pc.onClickAction", ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'pc', vm.rewardSetting.pc.onClickAction)")
                                         option(ng-repeat='(i, v) in vm.frontEndSettingOnClickAction', value='{{v}}') {{i | translate}}
-                                        option(value = 7) {{"selfDefine" | translate }}
+                                        option(value = 7) {{"customScript" | translate }}
                             .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -371,7 +371,7 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
                             .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
-                                label(style="width: 30%;") {{"selfDefine"|translate}}
+                                label(style="width: 30%;") {{"customScript" | translate}}
                                 div.inline-block(style="width: 70%;")
                                     label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
                                         a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
@@ -397,7 +397,7 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     select.form-control.inline-block(ng-model="vm.rewardSetting.h5.onClickAction", ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'h5', vm.rewardSetting.h5.onClickAction)")
                                         option(ng-repeat='(i, v) in vm.frontEndSettingOnClickAction', value='{{v}}') {{i | translate}}
-                                        option(value = 7) {{"selfDefine" | translate }}
+                                        option(value = 7) {{"customScript" | translate }}
                             .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -421,7 +421,7 @@ style.
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
                             .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 7")
-                                label(style="width: 30%;") {{"selfDefine"|translate}}
+                                label(style="width: 30%;") {{"customScript" | translate}}
                                 div.inline-block(style="width: 70%;")
                                     label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
                                         a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
