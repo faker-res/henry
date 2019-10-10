@@ -17322,9 +17322,10 @@ define(['js/app'], function (myApp) {
                     vm.commissionFakeBillboardQuery = {
                         period: vm.constPartnerBillBoardPeriod.DAILY,
                         limit: 10,
-                        index: 0,
-                        pageObj: {}
+                        index: 0
                     };
+                    vm.cBBLastCalculate = "-";
+                    vm.disableForceRecalculateCBB = false;
 
                     vm.fakeRecordQuery = {};
 
@@ -17335,9 +17336,8 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync();
                     });
                     utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
-                        console.log('aaaaa')
                         vm.commissionFakeBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerFakeCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                            commonPageChangeHandler(curP, pageSize, "fakeCommissionBillboardQuery", vm.getPartnerFakeCommissionBillBoard);
+                            commonPageChangeHandler(curP, pageSize, "commissionFakeBillboardQuery", vm.getPartnerFakeCommissionBillBoard);
                         });
                         $scope.$evalAsync();
                     });
@@ -17394,8 +17394,6 @@ define(['js/app'], function (myApp) {
                 data => {
                     console.log('createFakeCommissionBBRecord data', data)
                     socketService.showConfirmMessage($translate("Created successfully"), 3000);
-                    vm.getPartnerCommissionBillBoard(true);
-                    vm.getPartnerFakeCommissionBillBoard(true);
                 }
             );
         }
@@ -17416,6 +17414,7 @@ define(['js/app'], function (myApp) {
                 data => {
                     console.log("getPartnerCommissionBillBoard", data);
                     if (data && data.data && data.data.data) {
+                        vm.cBBLastCalculate = data.data.lastCalculate;
                         vm.drawPartnerCommissionBillBoard(data.data.data.map(row => {
                             row.amount = $noRoundTwoDecimalPlaces(row.amount);
                             return row;
@@ -17466,89 +17465,38 @@ define(['js/app'], function (myApp) {
             console.log("vm.commissionBillboardQuery", vm.commissionBillboardQuery)
             let query = {
                 platformObjId: vm.platformInSetting._id,
-                period: vm.commissionBillboardQuery.period,
-                count: newSearch ? 10 : vm.commissionBillboardQuery.limit || 10,
-                index: vm.commissionBillboardQuery.index,
-                fakeMode: "1" // todo :: get it based on checkbox
+                period: vm.commissionFakeBillboardQuery.period,
+                count: newSearch ? 10 : vm.commissionFakeBillboardQuery.limit || 10,
+                index: vm.commissionFakeBillboardQuery.index,
+                containFakeRecord: $('#cBBOnlyFakeRecord').prop('checked') ? 2 : 1,
             };
-            console.log('getPartnerCommissionBillBoardquery', query)
-            // $scope.$socketPromise('getPartnerCommissionBillBoard', query).then(
-            //     data => {
-            //         console.log("getPartnerCommissionBillBoard", data);
-            //         if (data && data.data && data.data.data) {
-            //             vm.drawPartnerCommissionBillBoard(data.data.data.map(row => {
-            //                 row.amount = $noRoundTwoDecimalPlaces(row.amount);
-            //                 return row;
-            //             }), data.data.total, newSearch)
-            //         }
-            //     }
-            // );
-
-            let mockData = {
-                "success": true,
-                "data": {
-                    "data": [
-                        {
-                            "amount": 0,
-                            "name": "bluedragon",
-                            "rank": 1
-                        },
-                        {
-                            "amount": 0,
-                            "name": "jjdragon",
-                            "rank": 2
-                        },
-                        {
-                            "amount": 0,
-                            "name": "lldragon",
-                            "rank": 3
-                        },
-                        {
-                            "amount": 0,
-                            "name": "mmdragon",
-                            "rank": 4
-                        },
-                        {
-                            "amount": 0,
-                            "name": "nndragon",
-                            "rank": 5
-                        },
-                        {
-                            "amount": 0,
-                            "name": "oodragon",
-                            "rank": 6
-                        },
-                        {
-                            "amount": 0,
-                            "name": "partdragon",
-                            "rank": 7
-                        },
-                        {
-                            "amount": 0,
-                            "name": "ppdragon",
-                            "rank": 8
-                        },
-                        {
-                            "amount": 0,
-                            "name": "ptestvin1",
-                            "rank": 9
-                        },
-                        {
-                            "amount": 0,
-                            "name": "testvin1127",
-                            "rank": 10
-                        }
-                    ],
-                    "count": 10,
-                    "index": 0,
-                    "total": 19
+            console.log('getPartnerFakeCommissionBillBoard q', query)
+            $scope.$socketPromise('getPartnerFakeCommissionBillBoard', query).then(
+                data => {
+                    console.log("getPartnerFakeCommissionBillBoard with fake data", data);
+                    if (data && data.data && data.data.data) {
+                        vm.drawPartnerFakeCommissionBillBoard(data.data.data.map(row => {
+                            row.amount = $noRoundTwoDecimalPlaces(row.amount);
+                            return row;
+                        }), data.data.total, newSearch)
+                    }
                 }
-            }
-            vm.drawPartnerFakeCommissionBillBoard(mockData.data.data.map(row => {
-                row.amount = $noRoundTwoDecimalPlaces(row.amount);
-                return row;
-            }), mockData.data.total, newSearch);
+            );
+        };
 
+        vm.forceRecalculateCBB = function () {
+            vm.disableForceRecalculateCBB = true;
+            $scope.$socketPromise('forceRecalculateCBB', {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionBillboardQuery.period
+            }).then(
+                data => {
+                    vm.getPartnerCommissionBillBoard(true);
+                    vm.getPartnerFakeCommissionBillBoard(true);
+                    socketService.showConfirmMessage($translate("Recalculated successfully"), 3000);
+                    vm.disableForceRecalculateCBB = false;
+                }
+            );
         };
 
         vm.drawPartnerFakeCommissionBillBoard = function(tableData, size, newSearch) {
@@ -17564,17 +17512,18 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('ACTION_BUTTON'),
                         bSortable: false,
-                        data: "anywat",
+                        data: "fakeSource",
                         render: function (data, type, row, dataIndex) {
+                            if (!data) {
+                                return '';
+                            }
 
                             let linkEdit = $('<a>', {
-                                // 'ng-click': 'vm.placeHolderFunc1("' + JSON.stringify(row) +'")',
-                                'ng-click': 'vm.placeHolderFunc1("' + row.name +'")',
+                                'ng-click': `vm.editFakeCBBRecord('${data}', '${row.name}', '${row.amount}')`,
                             }).text($translate("EDIT"));
 
                             let linkDelete = $('<a>', {
-                                'ng-click': 'vm.placeHolderFunc2("' + row.name +'")',
-                                // 'ng-click': 'vm.placeHolderFunc2("' + JSON.stringify(row) +'")',
+                                'ng-click': `vm.deleteFakeCBBRecord('${data}', '${row.name}')`,
                             }).text($translate("DELETE"));
 
                             return linkEdit.prop('outerHTML') + " / " + linkDelete.prop('outerHTML');
@@ -17595,7 +17544,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
                 vm.commissionFakeBillboardTable = utilService.createDatatableWithFooter('#partnerFakeCBillBoardTable', tableOptions, {}, true);
                 vm.commissionFakeBillboardQuery.pageObj.init({maxCount: size}, newSearch);
-            })
+            });
             // since backend sorting this should not be needed
             // $('#commissionBillboardTable').off('order.dt');
             // $('#commissionBillboardTable').on('order.dt', function (event, a, b) {
@@ -17606,14 +17555,36 @@ define(['js/app'], function (myApp) {
             }, 500);
         }
 
-        vm.placeHolderFunc1 = (input) => {
-            vm.updatingFakeRecord = input;
+        vm.editFakeCBBRecord = (fakeSource, name, commissionAmount) => {
+            commissionAmount = Number(commissionAmount) || 0;
+            vm.updatingFakeRecord = {
+                fakeSource,
+                name,
+                commissionAmount,
+                originalName: name
+            };
             $("#modalUpdateFakeCommRecord").modal();
-            console.log('f1', input);
         }
 
-        vm.placeHolderFunc2 = (input) => {
-            console.log('f2', input);
+        vm.updateFakeCBBRecord = () => {
+            $scope.$socketPromise('updateFakeCBBRecord', vm.updatingFakeRecord).then(data => {
+                socketService.showConfirmMessage($translate("Update Successfully! Your changes will be reflected on next ranking calculation."), 3000);
+            });
+        }
+
+        vm.deleteFakeCBBRecord = (fakeSource, name, isConfirm) => {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("DELETE") + name + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.deleteFakeCBBRecord(fakeSource, name, true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
+            $scope.$socketPromise('removeFakeCBBRecord', {fakeSource}).then(data => {
+                socketService.showConfirmMessage($translate("Delete Successfully! Your changes will be reflected on next ranking calculation."), 3000);
+            });
         }
 
         vm.getPartnerBasic = function () {

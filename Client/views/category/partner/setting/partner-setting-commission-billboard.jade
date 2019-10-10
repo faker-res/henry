@@ -4,6 +4,9 @@ div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 
         text.inline-block.margin-right-5 {{'TYPE' | translate}}
         select.inline-block( ng-model="vm.commissionBillboardPeriod" ng-change="vm.changePeriod(true)")
             option(ng-repeat='(i,j) in vm.constPartnerBillBoardPeriod', value= '{{j}}') {{i | translate}}
+        .pull-right
+            text.margin-right-5 {{"last update time" | translate}}: {{vm.cBBLastCalculate}}
+            button.btn.btn-warning.common-button(ng-click="vm.forceRecalculateCBB()" ng-disable="vm.disableForceRecalculateCBB") {{"Force Update" | translate}}
         table.common-table#partnerCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         .col-md-12#partnerCBillBoardTablePage
 
@@ -80,7 +83,7 @@ div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 
         .btn.btn-primary.common-button(ng-click="vm.generateFakeRecord()") {{ "CREATE" | translate }}
 
     div.padding-top-5em
-        input(type="checkbox" id="vm.onlyFakeRecord")
+        input#cBBOnlyFakeRecord(type="checkbox")
         text 仅显示假账号
         table.common-table#partnerFakeCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
         .col-md-12#partnerFakeCBillBoardTablePage
@@ -90,16 +93,16 @@ div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"EDIT_BB_COMMISSION_RANK" | translate}} {{vm.updatingFakeRecord}}
+                h4.modal-title {{"EDIT_BB_COMMISSION_RANK" | translate}} {{vm.updatingFakeRecord.originalName}}
 
 
             .modal-body
                 text {{"partnerName" | translate}}
-                input.form-control(ng-model="vm.placeholder10")
+                input.form-control(ng-model="vm.updatingFakeRecord.name")
                 text {{"currentCommission" | translate}}
-                input.form-control(type="number" ng-model="vm.placeholder11")
+                input.form-control(type="number" ng-model="vm.updatingFakeRecord.commissionAmount" step="0.01")
             .modal-footer
-                button.btn.btn-success.common-button(ng-disabled="!vm.placeholder10")
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-disabled="!vm.updatingFakeRecord.name || !vm.updatingFakeRecord.commissionAmount" ng-click="vm.updateFakeCBBRecord()")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal')

@@ -8297,6 +8297,7 @@ let dbPartner = {
 
     async adminGetPartnerCommissionBillBoard (platformObjId, periodCheck, count, index, containFakeRecord) {
         let totalRecord = count || 10;
+        let recordDate;
 
         // get platform
         let platformObj = await dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
@@ -8331,13 +8332,13 @@ let dbPartner = {
 
         // calculate if the last calculation is 25min ago
         if (!commissionBB || !commissionBB.lastCalculate) {
-            await dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
+            await dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, recordDate, commissionBB).catch(err => {
                 console.log("calculatePartnerCommissionBillBoard failed", err, commissionBB);
             });
             commissionBB = await dbconfig.collection_commissionBB.findOne({platform: platformObj._id, period: periodCheck}).lean();
         }
         else if (commissionBB.lastCalculate < twentyFiveMinutesAgo) {
-            dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB).catch(err => {
+            dbPartner.calculatePartnerCommissionBillBoard (platformObj, periodCheck, recordDate, commissionBB).catch(err => {
                 console.log("calculatePartnerCommissionBillBoard failed", err, commissionBB);
             });
         }
@@ -8360,7 +8361,7 @@ let dbPartner = {
                 name,
                 commissionAmount,
                 lastAmountUpdate: new Date(),
-                useFluntuation,
+                useFluctuation,
                 fluctuationType,
                 fluctuationLow,
                 fluctuationHigh,
@@ -8402,6 +8403,7 @@ let dbPartner = {
     },
 
     async retrieveCommissionBillBoardForAdmin (platformObj, period, count, index, commissionBB, containFakeRecord) {
+        // containFakeRecord: 0 - no fake record, 1 - all record, 2 - fake record only
         commissionBB = commissionBB || {};
         index = index || 0;
 
@@ -8410,12 +8412,20 @@ let dbPartner = {
             period: period,
             lastCalculate: commissionBB.lastFinished,
         };
+
+        if (!containFakeRecord) {
+            rankingQuery.fakeSource = null;
+        } else if (containFakeRecord === 2) {
+            rankingQuery.fakeSource = {$ne: null};
+        }
+
         let ranking = await dbconfig.collection_commissionBBRecord.find(rankingQuery, {
             name: 1,
             amount: 1,
+            fakeSource: 1,
         }).sort({
             amount: -1,
-            name: 1
+            name: 1,
         }).skip(index).limit(count).lean();
 
         for (let i = 0; i < ranking.length; i++) {
@@ -8428,6 +8438,7 @@ let dbPartner = {
             data: ranking,
             count,
             index,
+            lastCalculate: dbutility.getLocalTimeString(commissionBB.lastFinished, "YYYY/MM/DD HH:mm:ss"),
             total
         };
     },
@@ -8506,7 +8517,7 @@ let dbPartner = {
         return output;
     },
 
-    async calculatePartnerCommissionBillBoard (platformObj, periodCheck, totalRecord, recordDate, commissionBB) {
+    async calculatePartnerCommissionBillBoard (platformObj, periodCheck, recordDate, commissionBB) {
         let calTime = new Date();
 
         // prevent multiple calculation happen at the same time
@@ -8608,6 +8619,78 @@ let dbPartner = {
             }
         }
 
+        // find relevant fake record
+        let fakeCommissionBillBoardRecordsQuery = {
+            platform: platformObj._id,
+            period: periodCheck,
+        };
+        if (periodCheck != constPartnerBillBoardPeriod.NO_PERIOD) {
+            fakeCommissionBillBoardRecordsQuery.insertDate = {
+                "$gte": new Date(recordDate.startTime),
+                "$lte": new Date(recordDate.endTime)
+            };
+        }
+        let fakeCommissionBillBoardRecords = await dbconfig.collection_fakeCommissionBillBoardRecord.find(fakeCommissionBillBoardRecordsQuery).lean();
+
+        const calcMoment = moment(calTime).tz('Asia/Singapore');
+        const calcDay = calcMoment.format('dddd');
+        const calcDate = calcMoment.format('YYYYMMDD');
+        for (let i = 0; i < fakeCommissionBillBoardRecords.length; i++) {
+            let record = fakeCommissionBillBoardRecords[i];
+            if (
+                !record.useFluctuation || // not using fluctuation
+                !record[`flucOn${calcDay}`] || // not a fluctuation day
+                moment(record.lastAmountUpdate).tz('Asia/Singapore').format('YYYYMMDD') === calcDate // fluctuated today
+            ) {
+                continue;
+            }
+
+            let fluctuatedAmount;
+            if (record.fluctuationType) {
+                // percentile
+                let initAmount = record.commissionAmount;
+                let percentileFluctuated = dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 10);
+                fluctuatedAmount = math.chain(initAmount).multiply(100 + Number(percentileFluctuated) || 100).divide(100).round(2).done();
+            }
+            else {
+                // value
+                fluctuatedAmount = Number(dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 2));
+            }
+            record.commissionAmount = fluctuatedAmount;
+            await dbconfig.collection_fakeCommissionBillBoardRecord.update({_id: record._id}, {commissionAmount: fluctuatedAmount, lastAmountUpdate: calTime});
+        }
+
+        for (let i = 0; i < fakeCommissionBillBoardRecords.length; i++) {
+            let record = fakeCommissionBillBoardRecords[i];
+            await dbconfig.collection_commissionBBRecord.update({
+                platform: platformObj._id,
+                period: periodCheck,
+                lastCalculate: calTime,
+                fakeSource: record._id,
+            }, {
+                platform: platformObj._id,
+                period: periodCheck,
+                lastCalculate: calTime,
+                name: record.name,
+                amount: record.commissionAmount,
+                fakeSource: record._id,
+            }, {
+                upsert: true
+            }).catch(err => {
+                console.log("collection_commissionBBRecord update fake record failed", record._id, err);
+            });
+        }
+
+        let aDayAgo = new Date(calTime);
+        aDayAgo.setDate(aDayAgo.getDate() - 1);
+        dbconfig.collection_commissionBBRecord.deleteMany({
+            lastCalculate: {
+                $lt: aDayAgo
+            }
+        }).catch(err => {
+            console.log("collection_commissionBBRecord deleteMany failed", err)
+        });
+
         // updateComissionBB to confirm that the new billboard is ready
         await dbconfig.collection_commissionBB.update({
             platform: newCommissionBB.platform,
@@ -8616,6 +8699,43 @@ let dbPartner = {
         }, {
             lastFinished: newCommissionBB.lastCalculate
         });
+    },
+
+    async forceRecalculateCBB (platformObjId, periodCheck) {
+        let recordDate;
+
+        // get platform
+        let platformObj = await dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+        if (!(platformObj && platformObj._id)) {
+            return Promise.reject({name: "DataError", message: "Cannot find platform"});
+        }
+        let commissionBB = await dbconfig.collection_commissionBB.findOne({platform: platformObj._id, period: periodCheck}).lean();
+
+        // get period of record date
+        if (periodCheck == constPartnerBillBoardPeriod.DAILY) {
+            recordDate = dbutility.getTodaySGTime();
+        } else if (periodCheck == constPartnerBillBoardPeriod.WEEKLY) {
+            recordDate = dbutility.getCurrentWeekSGTime();
+        }  else if (periodCheck == constPartnerBillBoardPeriod.BIWEEKLY) {
+            recordDate = dbutility.getCurrentBiWeekSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.MONTHLY) {
+            recordDate = dbutility.getCurrentMonthSGTIme();
+        } else if (periodCheck == constPartnerBillBoardPeriod.NO_PERIOD) {
+
+        } else {
+            return Promise.reject({name: "DataError", message: "Invalid period"});
+        }
+
+        return dbPartner.calculatePartnerCommissionBillBoard(platformObj, periodCheck, recordDate, commissionBB);
+    },
+
+    async updateFakeCBBRecord (fakeRecordId, name, commissionAmount = 0) {
+        commissionAmount = math.round(commissionAmount, 2);
+        await dbconfig.collection_fakeCommissionBillBoardRecord.update({_id: fakeRecordId}, {name, commissionAmount});
+    },
+
+    async removeFakeCBBRecord (fakeRecordId) {
+        await dbconfig.collection_fakeCommissionBillBoardRecord.remove({_id: fakeRecordId});
     },
 
     getCrewActiveInfo: (platformId, partnerId, periodCycle, circleTimes, startDate, endDate, needsDetail= true, detailCircle = 0, startIndex = 0, count = 10) => {

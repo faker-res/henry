@@ -5440,6 +5440,11 @@
   "EDIT_BB_COMMISSION_RANK": "编辑佣金排名",
   "currentCommission": "目前佣金",
   "fake_record": "假数据",
+  "Update Successfully! Your changes will be reflected on next ranking calculation.": "编辑成功！你的编辑将会在下次计算更新时反映。",
+  "Delete Successfully! Your changes will be reflected on next ranking calculation.": "删除成功！你的删除将会在下次计算更新时反映。",
+  "Recalculated successfully": "重新计算成功！",
+  "last update time": "上次更新时间",
+  "Force Update": "强制更新",
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",

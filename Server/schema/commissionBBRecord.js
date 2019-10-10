@@ -14,9 +14,12 @@ let commissionBBRecordSchema = new Schema({
     // partner name
     name: {type: String},
     // total commission amount
-    amount: {type: Number}
+    amount: {type: Number},
+    // fake record source (if not exist, is real record)
+    fakeSource: {type: Schema.ObjectId, ref: 'fakeCommissionBillBoardRecord'},
 });
 
 commissionBBRecordSchema.index({platform: 1, period: 1, lastCalculate: -1, amount: -1, name: 1});
+commissionBBRecordSchema.index({platform: 1, period: 1, lastCalculate: -1, fakeSource: 1});
 
 module.exports = commissionBBRecordSchema;
