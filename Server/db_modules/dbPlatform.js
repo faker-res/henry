@@ -1816,7 +1816,7 @@ var dbPlatform = {
         );
     },
 
-    checkPlayerLevelDownForPlatform: async function (platformObjId) {
+    checkPlayerLevelDownForPlatform: function (platformObjId) {
         // const todayIsWeeklySettlementDay = dbUtility.getYesterdaySGTime().endTime.getTime() === dbUtility.getLastWeekSGTime().endTime.getTime();
         // const canCheckWeeklyConditions = todayIsWeeklySettlementDay;
         const checkPeriod = constPlayerLevelPeriod.DAY;
@@ -1831,50 +1831,43 @@ var dbPlatform = {
             platform: platformObjId
         }).sort({value: 1}).lean();
 
-        let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
-
-        // Check if platform is open for level down
-        if (platform.playerLevelDownPeriod !== 99) {
-            return levelsProm.then(
-                playerLevel => {
-                    if (!(playerLevel && playerLevel.length)) {
-                        return Promise.reject({name: "DataError", message: "Cannot find player level"});
-                    }
-
-                    var stream = dbconfig.collection_players.find(
-                        {
-                            platform: platformObjId,
-                            playerLevel: {$ne: playerLevel[0]._id}
-                        },
-                        {_id: 1}
-                    ).cursor({batchSize: 1000});
-
-                    var balancer = new SettlementBalancer();
-                    return balancer.initConns().then(function () {
-                        return Q(
-                            balancer.processStream(
-                                {
-                                    stream: stream,
-                                    batchSize: 30, //100
-                                    makeRequest: function (playerIdObjs, request) {
-                                        request("player", "checkPlayerLevelDownForPlayers", {
-                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                                return playerIdObj._id;
-                                            }),
-                                            checkPeriod: checkPeriod,
-                                            platformId: platformObjId,
-                                            playerLevelsObj: playerLevel
-                                        });
-                                    }
-                                }
-                            )
-                        );
-                    });
+        return levelsProm.then(
+            playerLevel => {
+                if (!(playerLevel && playerLevel.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player level"});
                 }
-            );
-        }
 
+                var stream = dbconfig.collection_players.find(
+                    {
+                        platform: platformObjId,
+                        playerLevel: {$ne: playerLevel[0]._id}
+                    },
+                    {_id: 1}
+                ).cursor({batchSize: 1000});
 
+                var balancer = new SettlementBalancer();
+                return balancer.initConns().then(function () {
+                    return Q(
+                        balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: 30, //100
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "checkPlayerLevelDownForPlayers", {
+                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                            return playerIdObj._id;
+                                        }),
+                                        checkPeriod: checkPeriod,
+                                        platformId: platformObjId,
+                                        playerLevelsObj: playerLevel
+                                    });
+                                }
+                            }
+                        )
+                    );
+                });
+            }
+        );
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
