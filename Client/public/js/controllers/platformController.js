@@ -4560,7 +4560,6 @@ define(['js/app'], function (myApp) {
 
                 vm.loginButtonText = "NO_LOG_IN_SHOW_OFF"
                 vm.loginShowButton = true; // show off button
-                console.log("walaoplatform", platform)
                 if (platform && platform.platformId) {
                     vm.disableLoginShowButton = false;
                     if (vm.SelectedProvider && vm.SelectedProvider.needLoginShow && vm.SelectedProvider.needLoginShow[platform.platformId]) {
@@ -4838,7 +4837,7 @@ define(['js/app'], function (myApp) {
                     gameProviderObjId: providerData && providerData._id? providerData._id: null,
                     needLoginShow: vm.loginShowButton
                 }
-                
+
                 socketService.$socket($scope.AppSocket, 'updateProviderNeedLoginShow', sendData, function(data) {
                     vm.getPlatformGameData(vm.filterGamePlatform, true);
                     $scope.$evalAsync();
