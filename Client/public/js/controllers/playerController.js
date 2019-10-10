@@ -230,7 +230,8 @@ define(['js/app'], function (myApp) {
         vm.allPlayerLevelUpPeriod = {
             DAY: 1,
             WEEK: 2,
-            MONTH: 3
+            MONTH: 3,
+            NONE: 99
             // 1: "DAY",
             // 2: "WEEK",
             // 3: "MONTH"
